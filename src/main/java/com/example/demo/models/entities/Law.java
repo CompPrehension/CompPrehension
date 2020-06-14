@@ -1,0 +1,52 @@
+package com.example.demo.models.entities;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+
+import javax.persistence.*;
+import java.util.List;
+
+@Entity
+@Data
+@NoArgsConstructor
+@Table(name = "Law")
+public class Law {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @Column(name = "isPositiveLaw")
+    private boolean isPositiveLaw;
+
+
+    @OneToMany(mappedBy = "law")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    private List<LawFormulation> lawFormulations;
+
+    @OneToMany(mappedBy = "law")
+    private List<Mistake> mistakes;
+
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "domain_id", nullable = false)
+    private Domain domain;
+
+
+    @ManyToMany
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @JoinTable(
+            name = "ConceptLaw",
+            joinColumns = @JoinColumn(name = "law_id"),
+            inverseJoinColumns = @JoinColumn(name = "concept_id"))
+    private List<Concept> concepts;
+
+    @ManyToMany(mappedBy = "laws", fetch = FetchType.LAZY)
+    private List<Tag> tags;
+
+    @ManyToMany(mappedBy = "laws", fetch = FetchType.LAZY)
+    private List<Question> questions;
+}
