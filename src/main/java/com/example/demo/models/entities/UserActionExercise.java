@@ -14,7 +14,7 @@ public class UserActionExercise {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "userAction_id", nullable = false)
     private UserAction userAction;
 

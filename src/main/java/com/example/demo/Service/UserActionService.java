@@ -14,6 +14,8 @@ public class UserActionService {
         this.userActionDao = userActionDao;
     }
 
-    //public UserAction getUserActionById(int id){
-   // }
+    public void saveUserAction(UserAction userAction) {
+        
+        userActionDao.save(userAction);
+    }
 }

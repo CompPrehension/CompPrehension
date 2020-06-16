@@ -2,10 +2,12 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.entities.Concept;
 import com.example.demo.models.entities.Law;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
 public class QuestionRequest {
     
     private List<Concept> deniedConcepts;

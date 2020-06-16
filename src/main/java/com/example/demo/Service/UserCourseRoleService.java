@@ -1,6 +1,8 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.Dao.UserCourseRoleDao;
+import com.example.demo.models.entities.UserAction;
+import com.example.demo.models.entities.UserCourseRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,5 +15,8 @@ public class UserCourseRoleService {
         this.userCourseRoleDao = userCourseRoleDao;
     }
 
+    public void saveUserCourseRole(UserCourseRole userCourseRole) {
 
+        userCourseRoleDao.save(userCourseRole);
+    }
 }

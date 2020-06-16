@@ -1,8 +1,12 @@
 package com.example.demo.models.entities.EnumData;
 
 public enum ActionType {
-    ENTER_SYSTEM;
-
+    ENTER_SYSTEM,
+    CREATE_EXERCISE,
+    EDIT_EXERCISE,
+    STARTED_EXERCISE,
+    LOGOUT;
+    
     ActionType() {
     }
 }

@@ -1,6 +1,10 @@
 package com.example.demo.models.businesslogic.backend;
-/*
+
 import com.example.demo.models.entities.DomainLawViolation;
+import com.example.demo.models.entities.Law;
+import com.example.demo.models.entities.Mistake;
+import com.example.demo.utils.HyperText;/*
+import com.sun.xml.bind.v2.runtime.reflect.ListTransducedAccessorImpl;
 import openllet.owlapi.OpenlletReasoner;
 import openllet.owlapi.OpenlletReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -11,12 +15,16 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import javax.swing.plaf.basic.BasicLabelUI;
 import java.io.File;
-import java.util.*;
+import java.util.*;*/
 
 import java.util.List;
-import java.util.ArrayList;
 
 public class OntologyBackend extends Backend {
+    @Override
+    public List<Mistake> judge(List<Law> laws, HyperText problem, List<BackendFact> response) {
+        return null;
+    }
+    /*
     static final String DEFAULT_FILENAME = "ontologies/test.owl";
     static final String DEFAULT_ONTOLOGY_IRI = "http://www.semanticweb.org/poas/ontologies/2020/5/test";
 
@@ -91,5 +99,5 @@ public class OntologyBackend extends Backend {
     OWLOntology Ontology;
     OWLDataFactory DataFactory;
     OpenlletReasoner Reasoner;
-
-}*/
+*/
+}

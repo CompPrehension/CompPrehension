@@ -18,7 +18,7 @@ public interface QuestionBack {
     
     public List<AnswerObject> getAnswerObjects();
     
-    public int AnswerObjectsCount();
+    public int answerObjectsCount();
     
     public void addAnswerObject(AnswerObject newObject);
     

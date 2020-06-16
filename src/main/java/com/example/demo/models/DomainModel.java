@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class DomainModel {
     
-    public ArrayList<Domain> getDomains() {
-        return null;
-    } 
+    //public ArrayList<Domain> getDomains() {
+    //    return null;
+    //} 
 }

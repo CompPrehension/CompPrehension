@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class ExerciseModel {
-
+/*
     private Core core = new Core();
     private Strategy strategy = new Strategy();
     
@@ -100,5 +100,5 @@ public class ExerciseModel {
             this.errors = errors;
         }
     }
-
+*/
 }

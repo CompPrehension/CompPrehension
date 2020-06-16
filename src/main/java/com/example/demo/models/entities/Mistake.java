@@ -16,13 +16,13 @@ public class Mistake {
     private Long id;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private Interaction interaction;
 
 
-    @OneToMany(mappedBy = "mistake", fetch = FetchType.LAZY)
-    private List<ExplanationTemplateInfo> explanationTemplateInfos;
+    @OneToMany(mappedBy = "mistake", fetch = FetchType.EAGER)
+    private List<ExplanationTemplateInfo> explanationTemplateInfo;
 
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

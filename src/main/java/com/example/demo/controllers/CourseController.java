@@ -1,8 +1,11 @@
 package com.example.demo.controllers;
-import com.example.demo.models.*;
+import com.example.demo.Service.CourseService;
+import com.example.demo.Service.DomainService;
+import com.example.demo.Service.ExerciseService;
+import com.example.demo.Service.UserService;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.CourseRole;
-import org.springframework.http.RequestEntity;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -22,10 +26,17 @@ public class CourseController {
         put(CourseRole.TEACHER, "exercisesEditPage");
     }};
 
-    private CourseModel courseModel = new CourseModel();
-    private DomainModel domainModel = new DomainModel();
-    private UserModel userModel = new UserModel();
-    private ExerciseModel exerciseModel = new ExerciseModel();
+    @Autowired
+    private CourseService courseService;
+    
+    @Autowired
+    private DomainService domainService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ExerciseService exerciseService;
     
     
     @GetMapping("/user/{user_id}/course/{course_id}")
@@ -34,13 +45,13 @@ public class CourseController {
                 
         String[] responseParams = {"exercises", "course", "user_id"};
         
-        ArrayList<Exercise> exercises = exerciseModel.getExercises(course_id);
+        List<Exercise> exercises = courseService.getExercises(course_id);
         model.addAttribute(responseParams[0], exercises);
         
-        Course course = courseModel.getCourse(course_id);
+        Course course = courseService.getCourse(course_id);
         model.addAttribute(responseParams[1], course);
         
-        CourseRole role = userModel.getCourseRole(user_id, course_id);
+        CourseRole role = userService.getCourseRole(user_id, course_id);
         model.addAttribute(responseParams[2], user_id);
         return roleExerciseEditingPageMap.get(role);        
     }
@@ -48,7 +59,7 @@ public class CourseController {
     @GetMapping("/exercise/domains")
     public ResponseEntity<Iterable<Domain>> getDomains() {
         
-        return ResponseEntity.ok().body(domainModel.getDomains());
+        return ResponseEntity.ok().body(domainService.getDomains());
     }
     
     
@@ -66,9 +77,9 @@ public class CourseController {
                                @RequestParam Long user_id, 
                                Model model) {
 
-        courseModel.addCourse(course_name, description, user_id);
+        courseService.addCourse(course_name, description, user_id);
         
-        model.addAttribute("courses", userModel.getUserCourses(user_id));
+        model.addAttribute("courses", userService.getUserCourses(user_id));
         model.addAttribute("user_id", user_id);
 
         return "mainPage";
@@ -78,7 +89,7 @@ public class CourseController {
     public String getCourseCreatingPanel(@RequestParam Long course_id, 
                                          @RequestParam Long user_id, Model model) {
 
-        model.addAttribute("course", courseModel.getCourse(course_id));
+        model.addAttribute("course", courseService.getCourse(course_id));
         model.addAttribute("user_id", user_id);
         
         return "courseEditingPage";
@@ -88,9 +99,9 @@ public class CourseController {
     public String updateCourse( @RequestParam Course course,
                                 @RequestParam Long user_id, Model model) {
 
-        courseModel.updateCourse(course);
+        courseService.updateCourse(course);
 
-        model.addAttribute("courses", userModel.getUserCourses(user_id));
+        model.addAttribute("courses", userService.getUserCourses(user_id));
         model.addAttribute("user_id", user_id);
         
         return "mainPage";
@@ -100,8 +111,8 @@ public class CourseController {
     public String getUserAddingPanel(@RequestParam Long course_id,
                                      @RequestParam Long user_id, Model model) {
 
-        model.addAttribute("course", courseModel.getCourse(course_id));
-        model.addAttribute("course_roles", courseModel.getCourseRoles());
+        model.addAttribute("course", courseService.getCourse(course_id));
+        model.addAttribute("course_roles", courseService.getCourseRoles());
         model.addAttribute("user_id", user_id);
         
         return "userAddingPanel";
@@ -114,8 +125,8 @@ public class CourseController {
                                              @RequestParam Long user_id, 
                                              Model model) {
         
-        User newCourseUser = userModel.getUser(user_login);
-        userModel.addToCourse(newCourseUser.getId(), course_id, course_role);
+        User newCourseUser = userService.getUser(user_login);
+        userService.addToCourse(newCourseUser.getId(), course_id, course_role);
         
         return ResponseEntity.ok().build();
     }

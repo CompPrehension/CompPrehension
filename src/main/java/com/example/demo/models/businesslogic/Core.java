@@ -1,7 +1,8 @@
 package com.example.demo.models.businesslogic;
-import com.example.demo.models.entities.ExerciseAttempt;
-import com.example.demo.models.entities.Exercise;
-import com.example.demo.models.entities.Response;
+import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
+import com.example.demo.models.businesslogic.backend.Backend;
+import com.example.demo.models.businesslogic.backend.OntologyBackend;
+import com.example.demo.models.entities.EnumData.QuestionType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,15 +10,27 @@ import java.util.Map;
 public class Core {
     
     private Map<Long, Domain> domainMap = new HashMap<Long, Domain>() {{
-        put((long)1, new Programming());        
+        put((long)0, new TestDomain());        
     }};   
     
+    private OntologyBackend ontologyBackend = new OntologyBackend();
+    
+    public Backend getDefaultBackend() {
+        
+        return ontologyBackend;
+    }
+    
     public Domain getDomain(long domainId) {
+        
+        if (!domainMap.containsKey(domainId)) {
+            
+            throw new DomainNFException("Domain with id: " + domainId + "Not Found");
+        }
         
         return domainMap.get(domainId);
     }
     
-    public void saveExercise(Exercise ex) {
+    /*public void saveExercise(Exercise ex) {
         
         //Проверяем, есть ли у упражнения id
         //Записываем упражнение в базу
@@ -25,17 +38,18 @@ public class Core {
             //Создаем в базе действие: упражнение было отредактировано
         //Иначе
             //Создаем в базе действие: упражнение было создано
-    }
+    }*/
     
-    public ExerciseAttempt startExerciseAttempt(long exerciseId, long userId, FrontEndInfo frontEndInfo) {
+    /*public ExerciseAttempt startExerciseAttempt(long exerciseId, long userId, FrontEndInfo frontEndInfo) {
         
         //Создаем в базе сущность ExerciseAttempt
         
         return null;
-    }
+    }*/
     
-    public void recieveResponse(long att_id, Response resp) {
+    /*public void receiveResponse(long att_id, Response resp) {
         
-    }
+    }*/    
+    
     
 }

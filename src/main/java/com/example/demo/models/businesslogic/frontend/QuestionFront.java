@@ -14,7 +14,7 @@ public interface QuestionFront {
     
     public AnswerObject getAnswerObject(int index);
 
-    public int AnswerObjectsCount();
+    public int answerObjectsCount();
     
     public QuestionType getQuestionType();
 }

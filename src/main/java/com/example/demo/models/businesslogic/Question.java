@@ -56,7 +56,7 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
 
     @Override
-    public int AnswerObjectsCount() {
+    public int answerObjectsCount() {
         
         return questionData.getAnswerObjects().size();
     }

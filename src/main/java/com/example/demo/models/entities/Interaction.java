@@ -19,6 +19,7 @@ public class Interaction {
     private Long id;
 
     @Column(name = "orderNumber")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int orderNumber;
 
 
@@ -32,8 +33,8 @@ public class Interaction {
     @NotFound(action = NotFoundAction.IGNORE)
     private Feedback feedback;
 
-    @OneToOne(mappedBy = "interaction")
-    private Mistake mistake;
+    @OneToMany(mappedBy = "interaction")
+    private List<Mistake> mistakes;
 
 
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)

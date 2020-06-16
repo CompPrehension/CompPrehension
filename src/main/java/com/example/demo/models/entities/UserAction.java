@@ -28,7 +28,7 @@ public class UserAction {
     @Column(name = "time")
     private Date time;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "userActionExercise_id", referencedColumnName = "id")
     @NotFound(action = NotFoundAction.IGNORE)
     private UserActionExercise userActionExercise;

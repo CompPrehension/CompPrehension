@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Data
@@ -15,4 +16,11 @@ public class Domain {
     private Long id;
 
     private String name;
+    
+    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    private List<Law> laws;
+
+    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    private List<Concept> concepts;
+
 }
