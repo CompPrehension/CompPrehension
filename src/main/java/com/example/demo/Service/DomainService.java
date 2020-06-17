@@ -4,10 +4,12 @@ import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
 import com.example.demo.models.Dao.DomainDao;
 import com.example.demo.models.entities.Domain;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class DomainService {
@@ -17,7 +19,7 @@ public class DomainService {
     @Autowired
     public DomainService(DomainDao domainDao) { this.domainDao = domainDao; }
     
-    public Iterable<Domain> getDomains() { return domainDao.findAll(); }
+    public List<Domain> getDomains() { return IterableUtils.toList(domainDao.findAll()); }
     
     public Domain getDomain(Long domainId) {
         try {

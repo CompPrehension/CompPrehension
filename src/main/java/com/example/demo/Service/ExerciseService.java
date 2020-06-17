@@ -85,7 +85,7 @@ public class ExerciseService {
     public void createExercise(ExerciseForm filledForm, long courseId, long userId, long domainId) throws ExerciseFormException {
 
         checkErrors(filledForm);
-        Exercise newExercise = core.getDomain(domainId).ProcessExerciseForm(filledForm);
+        Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
         
         //Создаем доп. таблицы в связи с созданием упражнения
         User user = userService.getUser(userId);
@@ -120,7 +120,7 @@ public class ExerciseService {
         
         Exercise updatedExercise = getExercise(exerciseId);  //Берем из базы exercise
         long domainId = updatedExercise.getDomain().getId();
-        Exercise newExercise = core.getDomain(domainId).ProcessExerciseForm(filledForm);
+        Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
         newExercise.setId(exerciseId);
         //Создаем доп. таблицы в связи с созданием упражнения
         User user = userService.getUser(userId);

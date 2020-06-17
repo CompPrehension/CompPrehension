@@ -7,6 +7,7 @@ import com.example.demo.models.entities.EnumData.Role;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
 import com.example.demo.models.Dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -129,12 +130,47 @@ public class UserService {
         return getUser(userId).getUserActions();
     }
 
+    public List<Action> getUserActionsToFront(long userId) {
+        
+        List<Action> actions = new ArrayList<>();
+        User user = getUser(userId);
+        for (UserAction ua : getUserActions(userId)) {
+            Action tmp = new Action();
+            tmp.setUserName(user.getFirstName() + user.getLastName());
+            tmp.setActionType(ua.getActionType().toString());
+            tmp.setActionTime(ua.getTime());
+            if (ua.getUserActionExercise() != null) {
+                tmp.setExerciseName(ua.getUserActionExercise().getExercise().getName());
+            }            
+            actions.add(tmp);
+        }
+        
+        return actions;
+    }
 
+    public void saveUser(User user) {
+        try {
+            if (getUser(user.getLogin()) != null) {
+                throw new DataIntegrityViolationException("Пользователь с таким логином " +
+                        "уже существует");
+            }
+        } catch (UserNFException e) {
+            userDao.save(user);
+        }        
+    }
+    
     /**
      * Обновить данные о пользователе
      * @param user - новые данные о пользователе
      */
-    public void updateUserProfile(User user) { userDao.save(user); }
+    public void updateUserProfile(User user) { 
+        
+        if (userDao.existsById(user.getId())) {
+            saveUser(user);
+        } else {
+            throw new UserNFException("User with id: " + user.getId() + "Not Found");
+        }
+    }
 
     /**
      * Получить курсы, на которые подписан пользователь (включая те, в которых он 

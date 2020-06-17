@@ -1,10 +1,8 @@
 package com.example.demo.controllers;
 
 import com.example.demo.Service.*;
-import com.example.demo.models.businesslogic.Core;
+import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.businesslogic.Question;
-import com.example.demo.models.businesslogic.QuestionRequest;
-import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.businesslogic.backend.BackendFact;
 import com.example.demo.models.businesslogic.backend.OntologyBackend;
 import com.example.demo.models.businesslogic.frontend.QuestionMistakes;
@@ -210,8 +208,10 @@ public class QuestionController {
         return ResponseEntity.ok().build();
     }
 
+    //TODO
     @GetMapping("/questionAttempt/{questionAttempt_id}")
-    public ResponseEntity getNewQuestion(@PathVariable Long questionAttempt_id) {
+    public ResponseEntity getNewQuestion(@PathVariable Long questionAttempt_id,
+                                         @RequestParam FrontEndInfo frontEndInfo) {
 
         ExerciseAttempt exerciseAttempt = questionAttemptService.getQuestionAttempt(
                 questionAttempt_id).getExerciseAttempt();

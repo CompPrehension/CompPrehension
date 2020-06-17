@@ -16,9 +16,13 @@ import java.util.List;
 public class TestDomain extends Domain {
     
     private final int DEFAULT_ANSWERS_COUNT = 4;
-    
-    protected ExerciseForm exerciseForm; 
-    
+
+    public TestDomain(com.example.demo.models.entities.Domain domain) {
+        super(domain);
+    }
+
+    protected ExerciseForm exerciseForm = new TestExerciseForm(domain); 
+        
     @Autowired
     private BackendService backendService;
     
@@ -30,8 +34,23 @@ public class TestDomain extends Domain {
         return exerciseForm;
     }
 
+    //TODO
     @Override
-    public Exercise ProcessExerciseForm(ExerciseForm ef) {
+    public Exercise processExerciseForm(ExerciseForm ef) {
+        /*
+        Exercise exercise = new Exercise();
+
+        for (Concept c : ef.getAllConcepts()) {
+            
+            ExerciseConcept ec = new ExerciseConcept();
+            ec.setExercise(exercise);
+            ec.setConcept(c);
+            
+            if (ef.getDeniedConcepts().contains(c)) {
+                
+                exercise.
+            }
+        }*/
         return null;
     }
 

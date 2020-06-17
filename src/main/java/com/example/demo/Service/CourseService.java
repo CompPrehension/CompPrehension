@@ -40,10 +40,19 @@ public class CourseService {
     /**
      * Добавить новый курс
      * @param course - данные о новом курсе
-     * @param author_id - id создателя курса
+     * @param authorId - id создателя курса
      */
-    public void addCourse(Course course , long author_id) {
-
+    public void addCourse(Course course , long authorId) {
+        
+        User user = userService.getUser(authorId);
+        UserCourseRole userCourseRole = new UserCourseRole();
+        userCourseRole.setUser(user);
+        userCourseRole.setCourseRole(CourseRole.AUTHOR);
+        userCourseRole.setCourse(course);
+        course.getUserCourseRoles().add(userCourseRole);
+        user.getUserCourseRoles().add(userCourseRole);
+        courseDao.save(course);
+        userService.updateUserProfile(user);
     }
 
     public List<User> getStudents(long courseId) {
@@ -69,7 +78,7 @@ public class CourseService {
      * @param description - описание курса
      * @param author_id - id автора курса
      */
-    public void addCourse(String name, String description , long author_id) {
+    public void addCourse(String name, String description, long author_id) {
 
         Course newCourse = new Course();
         newCourse.setName(name);
@@ -104,7 +113,7 @@ public class CourseService {
      */
     public void updateCourse(Course course) {
         
-        if (courseDao.existsById(course.getId())) {
+        if (!courseDao.existsById(course.getId())) {
             throw new CourseNFException("Course with id: " + course.getId() 
                     + "Not Found");
         }

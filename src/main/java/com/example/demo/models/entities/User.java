@@ -34,6 +34,8 @@ public class User {
     @Column(name = "birthdate")
     private Date birthdate;
 
+    @Column(name = "login")
+    private String login;
 
     @Column(name = "preferred_language")
     @Enumerated(EnumType.ORDINAL)

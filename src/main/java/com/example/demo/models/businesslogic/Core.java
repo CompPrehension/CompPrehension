@@ -1,16 +1,22 @@
 package com.example.demo.models.businesslogic;
 import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
+import com.example.demo.Service.DomainService;
 import com.example.demo.models.businesslogic.backend.Backend;
 import com.example.demo.models.businesslogic.backend.OntologyBackend;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class Core {
     
+    @Autowired
+    private DomainService domainService;
+    
+    //TODO
     private Map<Long, Domain> domainMap = new HashMap<Long, Domain>() {{
-        put((long)0, new TestDomain());        
+        put((long)0, new TestDomain(domainService.getDomain((long)0)));        
     }};   
     
     private OntologyBackend ontologyBackend = new OntologyBackend();

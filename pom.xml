@@ -42,7 +42,13 @@
 			<artifactId>mysql-connector-java</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+		</dependency>
+
+
 		<dependency>
 			<groupId>com.github.galigator.openllet</groupId>
 			<artifactId>openllet-owlapi</artifactId>

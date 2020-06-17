@@ -1,11 +1,14 @@
 package com.example.demo.controllers;
 
+import com.example.demo.Exceptions.NotFoundEx.UserNFException;
 import com.example.demo.Service.UserActionService;
 import com.example.demo.Service.UserService;
 import com.example.demo.models.entities.EnumData.ActionType;
 import com.example.demo.models.entities.User;
 import com.example.demo.models.entities.UserAction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.stereotype.Controller;
@@ -13,7 +16,7 @@ import org.springframework.stereotype.Controller;
 import java.util.Date;
 
 
-@Controller
+@RestController
 public class AuthorizationController {
 
     @Autowired
@@ -25,26 +28,27 @@ public class AuthorizationController {
     public final String [] LOGIN_ERRORS = { "Неверный логин или пароль" };
     
     @GetMapping("/login")
-    public String checkUserData(@RequestParam String login, 
-                                @RequestParam String password, Model model) {
+    public ResponseEntity<Long> checkUserData(@RequestParam String login,
+                                        @RequestParam String password) {
         
         long userId = userService.checkUserData(login, password);
-        if (userId == -1) {
-            
-            model.addAttribute("errors", LOGIN_ERRORS[0]);
-            return "login";
+        if (userId == -1) {            
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         
-        model.addAttribute("user_id", userId);
-        model.addAttribute("courses", userService.getUserCourses(userId));
-        return "mainPage";
+        return new ResponseEntity<>(userId, HttpStatus.OK);
     }
 
     @GetMapping("/logout")
-    public String logoutUser(@RequestParam Long user_id, Model model) {
-        
-        User user = userService.getUser(user_id);
+    public ResponseEntity<Void> logoutUser(@RequestParam Long user_id) {
 
+        User user;
+        try {
+            user = userService.getUser(user_id);
+        } catch (UserNFException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
         UserAction action = new UserAction();
         action.setActionType(ActionType.LOGOUT);
         action.setUser(user);
@@ -55,7 +59,7 @@ public class AuthorizationController {
         userService.updateUserProfile(user);
         //userActionService.saveUserAction(action);
         
-        return "login";
+        return new ResponseEntity<>(HttpStatus.OK);
     }
     
     //TODO
