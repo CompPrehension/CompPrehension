@@ -57,4 +57,9 @@ public class Ordering extends Question {
     public List<BackendFact> responseToFacts(long backendId) {
         return null;
     }
+
+    @Override
+    public Long getExerciseAttemptId() {
+        return null;
+    }
 }

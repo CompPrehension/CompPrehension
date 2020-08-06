@@ -48,26 +48,18 @@ public class CourseController {
         }
     }
     
-    
-    
-    @GetMapping("/user/{user_id}/course/{course_id}")
-    public String chooseCourse(@PathVariable Long course_id,
-                               @PathVariable Long user_id, Model model) {
-        /*        
-        String[] responseParams = {"exercises", "course", "user_id"};
-        
-        List<Exercise> exercises = courseService.getExercises(course_id);
-        model.addAttribute(responseParams[0], exercises);
-        
-        Course course = courseService.getCourse(course_id);
-        model.addAttribute(responseParams[1], course);
-        
-        CourseRole role = userService.getCourseRole(user_id, course_id);
-        model.addAttribute(responseParams[2], user_id);
-        return roleExerciseEditingPageMap.get(role);   */
-        return null;
-    }
+    @GetMapping("{courseId}/exercises")
+    public ResponseEntity<List<Exercise>> getExercises(@PathVariable Long courseId) {
 
+        try {
+            Course course = courseService.getCourse(courseId);
+            return new ResponseEntity<>(course.getExercises(), HttpStatus.OK);
+        } catch (CourseNFException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+    
+    
     @GetMapping("{course_id}/students")
     public ResponseEntity<List<User>> getStudentsOnCourse(@PathVariable Long course_id) {
 
@@ -78,22 +70,13 @@ public class CourseController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-    /*
+    
     @GetMapping("/exercise/domains")
     public ResponseEntity<Iterable<Domain>> getDomains() {
         
         return ResponseEntity.ok().body(domainService.getDomains());
-    }*/
-    
-    /*
-    @GetMapping("add")
-    public String getCourseCreatingPanel(@RequestParam Long user_id, Model model) {
+    }
         
-        model.addAttribute("user_id", user_id);
-        
-        return "courseEditingPage";
-    }*/
-
     @PostMapping("add")
     public ResponseEntity<Void> createCourse(@RequestParam Long authorId,
                                              @RequestParam Course course) {
@@ -105,17 +88,7 @@ public class CourseController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-    /*
-    @GetMapping("/course/edit")
-    public String getCourseCreatingPanel(@RequestParam Long course_id, 
-                                         @RequestParam Long user_id, Model model) {
-
-        model.addAttribute("course", courseService.getCourse(course_id));
-        model.addAttribute("user_id", user_id);
-        
-        return "courseEditingPage";
-    }*/
-
+    
     @PostMapping("edit")
     public ResponseEntity<Void> updateCourse( @RequestBody Course course) {
 
@@ -126,19 +99,7 @@ public class CourseController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }        
     }
-    
-    /*
-    @GetMapping("/course/add_user")
-    public String getUserAddingPanel(@RequestParam Long course_id,
-                                     @RequestParam Long user_id, Model model) {
-
-        model.addAttribute("course", courseService.getCourse(course_id));
-        model.addAttribute("course_roles", courseService.getCourseRoles());
-        model.addAttribute("user_id", user_id);
         
-        return "userAddingPanel";
-    }*/
-
     @PostMapping("add_user")
     public ResponseEntity<Void> getUserAddingPanel(@RequestParam String user_login, 
                                              @RequestParam CourseRole course_role,

@@ -21,10 +21,10 @@ public class DomainController {
     private DomainService domainService;
     
     @GetMapping
-    public ResponseEntity<List<Domain>> getDomains() {
+    public ResponseEntity<Iterable<Domain>> getDomains() {
         
         try {
-            List<Domain> domains = domainService.getDomains();
+            Iterable<Domain> domains = domainService.getDomains();
             return new ResponseEntity<>(domains, HttpStatus.OK);
         } catch (DomainNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

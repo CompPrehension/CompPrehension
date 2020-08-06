@@ -17,4 +17,8 @@ public interface QuestionFront {
     public int answerObjectsCount();
     
     public QuestionType getQuestionType();
+    
+    public Long getExerciseAttemptId();
+    
+    
 }

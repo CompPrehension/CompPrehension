@@ -39,42 +39,5 @@ public class AuthorizationController {
         return new ResponseEntity<>(userId, HttpStatus.OK);
     }
 
-    @GetMapping("/logout")
-    public ResponseEntity<Void> logoutUser(@RequestParam Long user_id) {
-
-        User user;
-        try {
-            user = userService.getUser(user_id);
-        } catch (UserNFException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        
-        UserAction action = new UserAction();
-        action.setActionType(ActionType.LOGOUT);
-        action.setUser(user);
-        action.setTime(new Date());
-               
-        user.getUserActions().add(action);
-        
-        userService.updateUserProfile(user);
-        //userActionService.saveUserAction(action);
-        
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-    
-    //TODO
-    @GetMapping("/registration")
-    public String getRegistrationForm(Model model) {
-        
-        return "registrationForm"; 
-    }
-
-    //TODO
-    @PostMapping("/registration")
-    public String registerUser() {
-        
-        return "login";
-    }
-    
     
 }

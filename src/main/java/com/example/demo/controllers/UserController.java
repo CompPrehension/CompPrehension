@@ -4,14 +4,10 @@ import com.example.demo.Exceptions.NotFoundEx.UserActionNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
 import com.example.demo.Service.CourseService;
 import com.example.demo.Service.UserService;
-import com.example.demo.models.CourseModel;
-import com.example.demo.models.UserModel;
 import com.example.demo.models.entities.*;
-import com.example.demo.models.entities.EnumData.CourseRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 

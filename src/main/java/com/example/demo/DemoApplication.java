@@ -5,7 +5,6 @@ import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.CourseRole;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.Role;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

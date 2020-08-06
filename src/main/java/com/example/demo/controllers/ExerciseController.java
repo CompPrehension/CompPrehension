@@ -10,18 +10,13 @@ import com.example.demo.Service.ExerciseService;
 import com.example.demo.models.businesslogic.ExerciseForm;
 import com.example.demo.models.businesslogic.FrontEndInfo;
 import com.example.demo.models.businesslogic.Question;
-import com.example.demo.models.entities.Exercise;
+import com.example.demo.models.businesslogic.frontend.QuestionFront;
 import com.example.demo.models.entities.QuestionAttempt;
-import com.example.demo.models.entities.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.ResponseExtractor;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -34,6 +29,15 @@ public class ExerciseController {
     
     @Autowired
     private CourseService courseService;
+
+
+
+
+    @GetMapping("{exercise_id}/question")
+    public ResponseEntity<QuestionFront> getExerciseQuestion(@PathVariable Long exerciseId, 
+                                                             @RequestParam Long userId) {
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
     
     
     
@@ -67,7 +71,7 @@ public class ExerciseController {
     @GetMapping("{exerciseId}/edit")
     public ResponseEntity<ExerciseForm> getExerciseFormToEdit(@PathVariable Long exerciseId) {
 
-       try {
+        try {
             ExerciseForm exerciseFrom = exerciseService.getExerciseFormToEdit(exerciseId);
             return new ResponseEntity<>(exerciseFrom, HttpStatus.OK);
         } catch (DomainNFException e) {
@@ -88,24 +92,6 @@ public class ExerciseController {
         } catch (ExerciseNFException | UserNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    
-    @GetMapping("/exercise/{exercise_id}")
-    public String getExerciseQuestion(@PathVariable Long exercise_id,
-                                      @RequestParam Long user_id,                                       
-                                      @RequestParam FrontEndInfo frontEndInfo, 
-                                      Model model) {
-        
-        Question question = exerciseService.getFirstExerciseQuestion(user_id,
-                exercise_id, frontEndInfo);
-        List<QuestionAttempt> attempts = question.getQuestionData().
-                getQuestionAttempts();
-        //К этому моменту уже будет минимум 1 попытка
-        model.addAttribute("questionAttempt_id", attempts.get(attempts.size() - 1).getId());  
-        model.addAttribute("questionFront", question);
-        
-        return "exerciseForm";
     }
     
     

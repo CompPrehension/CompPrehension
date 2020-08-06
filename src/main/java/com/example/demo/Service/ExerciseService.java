@@ -158,8 +158,16 @@ public class ExerciseService {
         }
     }
 
-    public Question getFirstExerciseQuestion(long userId, long exerciseId, FrontEndInfo frontEndInfo) {
+    public Question getExerciseQuestion(long userId, long exerciseId, FrontEndInfo frontEndInfo) {
 
+        
+        
+        
+        
+        
+        
+        
+        
         //ExerciseAttempt exerciseAttempt = core.startExerciseAttempt(exerciseId, userId, frontEndInfo);
         //Создаем попытку выполнения упражнения
         ExerciseAttempt exerciseAttempt = new ExerciseAttempt();
