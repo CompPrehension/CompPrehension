@@ -5,18 +5,17 @@ import com.example.demo.models.entities.EnumData.CourseRole;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.Role;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
-import com.example.demo.models.Dao.UserDao;
+import com.example.demo.models.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
-    private UserDao userDao;
+    private UserRepository userRepository;
 
     @Autowired
     private CourseService courseService;
@@ -25,13 +24,13 @@ public class UserService {
     private UserCourseRoleService userCourseRoleService;
     
     @Autowired
-    public UserService(UserDao userDao) {
-        this.userDao = userDao;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public User getUserByEmail(String email){
         try{
-            return userDao.findUserByEmail(email).orElseThrow(()->
+            return userRepository.findUserByEmail(email).orElseThrow(()->
                     new UserNFException("User with email: " + email + "Not Found"));
         }catch (Exception e){
             throw new UserNFException("Failed translation DB-user to Model-user", e);
@@ -40,7 +39,7 @@ public class UserService {
     
     public User getUserByLogin(String login) {
         try{
-            return userDao.findUserByLogin(login).orElseThrow(()->
+            return userRepository.findUserByLogin(login).orElseThrow(()->
                     new UserNFException("User with login: " + login + "Not Found"));
         } catch (Exception e){
             throw new UserNFException("Failed translation DB-user to Model-user", e);
@@ -60,7 +59,7 @@ public class UserService {
 
     public User getUser(long userId) { 
         try {  
-            return userDao.findUserById(userId).orElseThrow(()->
+            return userRepository.findById(userId).orElseThrow(()->
                     new UserNFException("User with id: " + userId + "Not Found"));
         } catch (Exception e){
             throw new UserNFException("Failed translation DB-user to Model-user", e);
@@ -69,7 +68,7 @@ public class UserService {
 
     public User getUser(String login) { 
         try {
-            return userDao.findUserByLogin(login).orElseThrow(()->
+            return userRepository.findUserByLogin(login).orElseThrow(()->
                     new UserNFException("User with login: " + login + "Not Found"));
         } catch (Exception e){
             throw new UserNFException("Failed translation DB-user to Model-user", e);
@@ -116,7 +115,7 @@ public class UserService {
         user.getUserCourseRoles().add(userCourseRole);
         
         courseService.updateCourse(course);
-        userDao.save(user);
+        userRepository.save(user);
         userCourseRoleService.saveUserCourseRole(userCourseRole);
     }
 
@@ -155,7 +154,7 @@ public class UserService {
                         "уже существует");
             }
         } catch (UserNFException e) {
-            userDao.save(user);
+            userRepository.save(user);
         }        
     }
     
@@ -165,7 +164,7 @@ public class UserService {
      */
     public void updateUserProfile(User user) { 
         
-        if (userDao.existsById(user.getId())) {
+        if (userRepository.existsById(user.getId())) {
             saveUser(user);
         } else {
             throw new UserNFException("User with id: " + user.getId() + "Not Found");

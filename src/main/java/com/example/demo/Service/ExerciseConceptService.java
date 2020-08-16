@@ -1,15 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.ExerciseConceptDao;
+import com.example.demo.models.repository.ExerciseConceptRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ExerciseConceptService {
-    private ExerciseConceptDao exerciseConceptDao;
+    private ExerciseConceptRepository exerciseConceptRepository;
 
     @Autowired
-    public ExerciseConceptService(ExerciseConceptDao exerciseConceptDao) {
-        this.exerciseConceptDao = exerciseConceptDao;
+    public ExerciseConceptService(ExerciseConceptRepository exerciseConceptRepository) {
+        this.exerciseConceptRepository = exerciseConceptRepository;
     }
 }

@@ -1,15 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.ConceptDao;
+import com.example.demo.models.repository.ConceptRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ConceptService {
-    private ConceptDao conceptDao;
+    private ConceptRepository conceptDao;
 
     @Autowired
-    public ConceptService(ConceptDao conceptDao) {
+    public ConceptService(ConceptRepository conceptDao) {
         this.conceptDao = conceptDao;
     }
 }

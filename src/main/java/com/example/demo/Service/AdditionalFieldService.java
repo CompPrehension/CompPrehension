@@ -1,16 +1,16 @@
 package com.example.demo.Service;
 
 
-import com.example.demo.models.Dao.AdditionalFieldDao;
+import com.example.demo.models.repository.AdditionalFieldRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AdditionalFieldService {
-    private AdditionalFieldDao additionalFieldDao;
+    private AdditionalFieldRepository additionalFieldRepository;
 
     @Autowired
-    public AdditionalFieldService(AdditionalFieldDao additionalFieldDao) {
-        this.additionalFieldDao = additionalFieldDao;
+    public AdditionalFieldService(AdditionalFieldRepository additionalFieldRepository) {
+        this.additionalFieldRepository = additionalFieldRepository;
     }
 }

@@ -2,7 +2,7 @@ package com.example.demo.Service;
 
 import com.example.demo.Exceptions.NotFoundEx.CourseNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
-import com.example.demo.models.Dao.CourseDao;
+import com.example.demo.models.repository.CourseRepository;
 import com.example.demo.models.entities.Course;
 import com.example.demo.models.entities.EnumData.CourseRole;
 import com.example.demo.models.entities.Exercise;
@@ -13,13 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 @Service
 public class CourseService {
     
-    private CourseDao courseDao;
+    private CourseRepository courseRepository;
 
     @Autowired
     private UserService userService;
@@ -28,13 +27,13 @@ public class CourseService {
     private UserCourseRoleService userCourseRoleService;
     
     @Autowired
-    public CourseService(CourseDao courseDao) {
-        this.courseDao = courseDao;
+    public CourseService(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
     }
     
     public Iterable<Course> getCoursesByUserId(Long userId) {
         
-        return courseDao.findAll();
+        return courseRepository.findAll();
     }
 
     /**
@@ -51,7 +50,7 @@ public class CourseService {
         userCourseRole.setCourse(course);
         course.getUserCourseRoles().add(userCourseRole);
         user.getUserCourseRoles().add(userCourseRole);
-        courseDao.save(course);
+        courseRepository.save(course);
         userService.updateUserProfile(user);
     }
 
@@ -95,7 +94,7 @@ public class CourseService {
 
         userCourseRoleService.saveUserCourseRole(userCourseRole);
         userService.updateUserProfile(user);
-        courseDao.save(newCourse);
+        courseRepository.save(newCourse);
         
     }
 
@@ -113,12 +112,12 @@ public class CourseService {
      */
     public void updateCourse(Course course) {
         
-        if (!courseDao.existsById(course.getId())) {
+        if (!courseRepository.existsById(course.getId())) {
             throw new CourseNFException("Course with id: " + course.getId() 
                     + "Not Found");
         }
         
-        courseDao.save(course);
+        courseRepository.save(course);
     }
 
 
@@ -129,7 +128,7 @@ public class CourseService {
      */
     public Course getCourse(long courseId) {
         try {
-            return courseDao.findCourseById(courseId).orElseThrow(()->
+            return courseRepository.findCourseById(courseId).orElseThrow(()->
                     new CourseNFException("Course with id: " + courseId + "Not Found"));
         }catch (Exception e){
             throw new UserNFException("Failed translation DB-course to Model-course", e);

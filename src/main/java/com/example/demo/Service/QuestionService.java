@@ -1,19 +1,18 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.QuestionDao;
+import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.Question;
-import com.example.demo.models.entities.QuestionAttempt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class QuestionService {
     
-    private QuestionDao questionDao;
+    private QuestionRepository questionRepository;
 
     private Core core = new Core();
 
@@ -23,14 +22,14 @@ public class QuestionService {
     private QuestionAttemptService questionAttemptService;
     
     @Autowired
-    public QuestionService(QuestionDao questionDao) {
-        this.questionDao = questionDao;
+    public QuestionService(QuestionRepository questionRepository) {
+        this.questionRepository = questionRepository;
     }
     
     
     public void saveQuestion(Question question) {
         
-        questionDao.save(question);
+        questionRepository.save(question);
     }
     
     public com.example.demo.models.businesslogic.Question generateBusinessLogicQuestion(

@@ -1,15 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.AnswerObjectDao;
+import com.example.demo.models.repository.AnswerObjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AnswerObjectService {
-    private AnswerObjectDao answerObjectDao;
+    private AnswerObjectRepository answerObjectRepository;
 
     @Autowired
-    public AnswerObjectService(AnswerObjectDao answerObjectDao) {
-        this.answerObjectDao = answerObjectDao;
+    public AnswerObjectService(AnswerObjectRepository answerObjectRepository) {
+        this.answerObjectRepository = answerObjectRepository;
     }
 }

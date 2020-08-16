@@ -1,16 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.GroupDao;
-import com.example.demo.models.entities.Group;
+import com.example.demo.models.repository.GroupRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GroupService {
-    private GroupDao groupDao;
+    private GroupRepository groupRepository;
 
     @Autowired
-    public GroupService(GroupDao groupDao) {
-        this.groupDao = groupDao;
+    public GroupService(GroupRepository groupRepository) {
+        this.groupRepository = groupRepository;
     }
 }

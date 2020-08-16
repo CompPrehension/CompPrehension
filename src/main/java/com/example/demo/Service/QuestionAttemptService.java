@@ -2,29 +2,28 @@ package com.example.demo.Service;
 
 import com.example.demo.Exceptions.NotFoundEx.CourseNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
-import com.example.demo.models.Dao.QuestionAttemptDao;
-import com.example.demo.models.entities.Question;
+import com.example.demo.models.repository.QuestionAttemptRepository;
 import com.example.demo.models.entities.QuestionAttempt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class QuestionAttemptService {
-    private QuestionAttemptDao questionAttemptDao;
+    private QuestionAttemptRepository questionAttemptRepository;
 
     @Autowired
-    public QuestionAttemptService(QuestionAttemptDao questionAttemptDao) {
-        this.questionAttemptDao = questionAttemptDao;
+    public QuestionAttemptService(QuestionAttemptRepository questionAttemptRepository) {
+        this.questionAttemptRepository = questionAttemptRepository;
     }
     
     public void saveQuestionAttempt(QuestionAttempt questionAttempt) {
         
-        questionAttemptDao.save(questionAttempt);
+        questionAttemptRepository.save(questionAttempt);
     }
     
     public QuestionAttempt getQuestionAttempt(Long questionAttemptId) {
         try {
-            return questionAttemptDao.findById(questionAttemptId).orElseThrow(()->
+            return questionAttemptRepository.findById(questionAttemptId).orElseThrow(()->
                     new CourseNFException("QuestionAttempt with id: " +
                             questionAttemptId + "Not Found"));
         }catch (Exception e){

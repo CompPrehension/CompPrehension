@@ -1,15 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.FeedbackDao;
+import com.example.demo.models.repository.FeedbackRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FeedbackService {
-    private FeedbackDao feedbackDao;
+    private FeedbackRepository feedbackRepository;
 
     @Autowired
-    public FeedbackService(FeedbackDao feedbackDao) {
-        this.feedbackDao = feedbackDao;
+    public FeedbackService(FeedbackRepository feedbackRepository) {
+        this.feedbackRepository = feedbackRepository;
     }
 }

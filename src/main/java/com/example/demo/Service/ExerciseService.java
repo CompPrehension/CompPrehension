@@ -3,13 +3,12 @@ package com.example.demo.Service;
 import com.example.demo.Exceptions.ExerciseFormException;
 import com.example.demo.Exceptions.NotFoundEx.ExerciseNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
-import com.example.demo.models.Dao.ExerciseDao;
+import com.example.demo.models.repository.ExerciseRepository;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.ActionType;
 import com.example.demo.models.entities.EnumData.AttemptStatus;
-import com.example.demo.models.entities.EnumData.Language;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,7 @@ import java.util.Map;
 @Service
 public class ExerciseService {
     
-    private ExerciseDao exerciseDao;
+    private ExerciseRepository exerciseRepository;
     
     @Autowired
     private CourseService courseService;
@@ -51,8 +50,8 @@ public class ExerciseService {
     
     
     @Autowired
-    public ExerciseService(ExerciseDao exerciseDao) {
-        this.exerciseDao = exerciseDao;
+    public ExerciseService(ExerciseRepository exerciseRepository) {
+        this.exerciseRepository = exerciseRepository;
     }
 
    
@@ -74,7 +73,7 @@ public class ExerciseService {
 
     public Exercise getExercise(long exerciseId) {
         try {
-            return exerciseDao.findExerciseById(exerciseId).orElseThrow(()->
+            return exerciseRepository.findExerciseById(exerciseId).orElseThrow(()->
                     new ExerciseNFException("Exercise with id: " + exerciseId + "Not Found"));
         }catch (Exception e){
             throw new UserNFException("Failed translation DB-exercise to Model-exercise", e);
@@ -109,7 +108,7 @@ public class ExerciseService {
         userService.updateUserProfile(user);
         userActionService.saveUserAction(action);
         //userActionExerciseService.saveUserActionExercise(userActionExercise);
-        exerciseDao.save(newExercise);
+        exerciseRepository.save(newExercise);
         
         //core.saveExercise(newExercise);
     }
@@ -142,7 +141,7 @@ public class ExerciseService {
         userService.updateUserProfile(user);
         userActionService.saveUserAction(action);
         //userActionExerciseService.saveUserActionExercise(userActionExercise);
-        exerciseDao.save(newExercise);
+        exerciseRepository.save(newExercise);
         
         //core.saveExercise(newExercise);
     }

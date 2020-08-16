@@ -1,15 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.ExplanationTemplateInfoDao;
+import com.example.demo.models.repository.ExplanationTemplateInfoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ExplanationTemplateInfoService {
-    private ExplanationTemplateInfoDao explanationTemplateInfoDao;
+    private ExplanationTemplateInfoRepository explanationTemplateInfoRepository;
 
     @Autowired
-    public ExplanationTemplateInfoService(ExplanationTemplateInfoDao explanationTemplateInfoDao) {
-        this.explanationTemplateInfoDao = explanationTemplateInfoDao;
+    public ExplanationTemplateInfoService(ExplanationTemplateInfoRepository explanationTemplateInfoRepository) {
+        this.explanationTemplateInfoRepository = explanationTemplateInfoRepository;
     }
 }

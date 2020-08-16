@@ -1,15 +1,15 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.QuestionConceptChoiceDao;
+import com.example.demo.models.repository.QuestionConceptChoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class QuestionConceptChoiceService {
-    private QuestionConceptChoiceDao questionConceptChoiceDao;
+    private QuestionConceptChoiceRepository questionConceptChoiceRepository;
 
     @Autowired
-    public QuestionConceptChoiceService(QuestionConceptChoiceDao questionConceptChoiceDao) {
-        this.questionConceptChoiceDao = questionConceptChoiceDao;
+    public QuestionConceptChoiceService(QuestionConceptChoiceRepository questionConceptChoiceRepository) {
+        this.questionConceptChoiceRepository = questionConceptChoiceRepository;
     }
 }

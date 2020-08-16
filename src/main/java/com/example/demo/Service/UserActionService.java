@@ -1,21 +1,21 @@
 package com.example.demo.Service;
 
-import com.example.demo.models.Dao.UserActionDao;
+import com.example.demo.models.repository.UserActionRepository;
 import com.example.demo.models.entities.UserAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserActionService {
-    private UserActionDao userActionDao;
+    private UserActionRepository userActionRepository;
 
     @Autowired
-    public UserActionService(UserActionDao userActionDao) {
-        this.userActionDao = userActionDao;
+    public UserActionService(UserActionRepository userActionRepository) {
+        this.userActionRepository = userActionRepository;
     }
 
     public void saveUserAction(UserAction userAction) {
         
-        userActionDao.save(userAction);
+        userActionRepository.save(userAction);
     }
 }
