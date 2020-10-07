@@ -73,7 +73,7 @@ public class ExerciseService {
 
     public Exercise getExercise(long exerciseId) {
         try {
-            return exerciseRepository.findExerciseById(exerciseId).orElseThrow(()->
+            return exerciseRepository.findById(exerciseId).orElseThrow(()->
                     new ExerciseNFException("Exercise with id: " + exerciseId + "Not Found"));
         }catch (Exception e){
             throw new UserNFException("Failed translation DB-exercise to Model-exercise", e);
