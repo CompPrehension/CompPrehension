@@ -137,8 +137,9 @@ public class QuestionController {
         Question question = questionService.generateBusinessLogicQuestion(qa.getQuestion());
         question.addFullResponse(responses);
         List<BackendFact> facts = question.responseToFacts();
+        List<BackendFact> statementFacts = question.statementToFacts();
         List<Mistake> mistakes = core.getDefaultBackend().judge(question.getNegativeLaws(), 
-                question.getQuestionText(), facts);
+                question.getQuestionText(), statementFacts, facts);
 
         FeedbackType feedbackType = strategy.determineFeedbackType(qa);
         if (mistakes.size() > 0) {

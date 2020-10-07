@@ -1,5 +1,6 @@
 package com.example.demo.models.businesslogic.backend;
 
+import com.example.demo.models.entities.Concept;
 import com.example.demo.models.entities.DomainLawViolation;
 import com.example.demo.models.entities.Law;
 import com.example.demo.models.entities.Mistake;
@@ -21,7 +22,7 @@ import java.util.List;
 
 public class OntologyBackend extends Backend {
     @Override
-    public List<Mistake> judge(List<Law> laws, HyperText problem, List<BackendFact> response) {
+    public List<Mistake> judge(List<Law> laws, HyperText problem, List<BackendFact> statement, List<BackendFact> response) {
         return null;
     }
     /*
