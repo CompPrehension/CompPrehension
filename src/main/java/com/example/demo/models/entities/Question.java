@@ -31,13 +31,13 @@ public class Question {
     private Boolean areAnswersRequireContext;
 
     @OneToMany(mappedBy = "question")
-    private List<QuestionConceptChoice> questionConceptChoices;
+    private List<QuestionConceptChoice> questionConceptChoices;//TODO: Проверить ОДИН К ОДНОМУ
 
     @OneToMany(mappedBy = "question")
-    private List<QuestionConceptOrder> questionConceptOrders;
+    private List<QuestionConceptOrder> questionConceptOrders;//TODO: Проверить ОДИН К ОДНОМУ
 
     @OneToMany(mappedBy = "question")
-    private List<QuestionConceptMatch> questionConceptMatches;
+    private List<QuestionConceptMatch> questionConceptMatches;//TODO: Проверить ОДИН К ОДНОМУ
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<QuestionAttempt> questionAttempts;
