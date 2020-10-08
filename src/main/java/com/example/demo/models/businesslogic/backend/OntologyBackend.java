@@ -20,7 +20,7 @@ import java.util.*;*/
 
 import java.util.List;
 
-public class OntologyBackend extends Backend {
+public class OntologyBackend extends SWRLBackend {
     @Override
     public List<Mistake> judge(List<Law> laws, HyperText problem, List<BackendFact> statement, List<BackendFact> response) {
         return null;

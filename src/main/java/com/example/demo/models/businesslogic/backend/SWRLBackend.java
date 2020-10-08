@@ -1,4 +1,4 @@
 package com.example.demo.models.businesslogic.backend;
 
-public class SWRLBackend {
+public abstract class SWRLBackend extends Backend {
 }
