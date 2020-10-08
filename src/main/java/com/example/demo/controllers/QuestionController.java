@@ -100,7 +100,7 @@ public class QuestionController {
             long domainId = qa.getExerciseAttempt().getExercise().getDomain().getId();
 
             feedback.setHyperText(core.getDomain(domainId).makeExplanation(
-                    mistakesInLastResponse, feedbackType).getText());
+                    mistakesInLastResponse, feedbackType).get(0).getText());
             
             interaction.setFeedback(feedback);
             interactionService.saveInteraction(interaction);
@@ -147,7 +147,7 @@ public class QuestionController {
             long domainId = qa.getExerciseAttempt().getExercise().getDomain().getId();
             
             explanation = core.getDomain(domainId).makeExplanation(mistakes,
-                    feedbackType);
+                    feedbackType).get(0);
         }
         
         interaction.setQuestionAttempt(qa);
