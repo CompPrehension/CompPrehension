@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Table(name = "ExerciseAttempt")
 public class ExerciseAttempt {
+    //TODO: Нужен ли здесь язык студента
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
