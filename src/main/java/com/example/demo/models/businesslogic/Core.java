@@ -2,8 +2,7 @@ package com.example.demo.models.businesslogic;
 import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
 import com.example.demo.Service.DomainService;
 import com.example.demo.models.businesslogic.backend.Backend;
-import com.example.demo.models.businesslogic.backend.OntologyBackend;
-import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.businesslogic.backend.PelletBackend;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
@@ -19,11 +18,11 @@ public class Core {
         put((long)0, new TestDomain(domainService.getDomain((long)0)));        
     }};   
     
-    private OntologyBackend ontologyBackend = new OntologyBackend();
+    private PelletBackend pelletBackend = new PelletBackend();
     
     public Backend getDefaultBackend() {
         
-        return ontologyBackend;
+        return pelletBackend;
     }
     
     public Domain getDomain(long domainId) {
