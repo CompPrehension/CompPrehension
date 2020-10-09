@@ -23,7 +23,6 @@ public abstract class SWRLBackend extends Backend {
     OWLClass Person;
 
     public SWRLBackend() {
-
         String base = "http://www.test/test.owl";
         OntologyIRI = IRI.create(base);
         Manager = OWLManager.createOWLOntologyManager();
@@ -76,6 +75,8 @@ public abstract class SWRLBackend extends Backend {
         Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dataProperty, ind, val));
     }
 
+    abstract OWLNamedIndividual findIndividual(String object);
+
     IRI getFullIRI(String name) {
         return IRI.create(OntologyIRI + "#" + name);
     }
@@ -86,14 +87,23 @@ public abstract class SWRLBackend extends Backend {
 
         for (Law law : laws) {
             for (LawFormulation lawFormulation : law.getLawFormulations()) {
-                try {
-                    ruleEngine.createSWRLRule(lawFormulation.getId().toString(), lawFormulation.getFormulation());
-                } catch (SWRLParseException e) {
-                    e.printStackTrace();
-                } catch (SWRLBuiltInException e) {
-                    e.printStackTrace();
+                if (lawFormulation.getBackend().getName() == "SWRL") {
+                    try {
+                        ruleEngine.createSWRLRule(lawFormulation.getId().toString(), lawFormulation.getFormulation());
+                    } catch (SWRLParseException e) {
+                        e.printStackTrace();
+                    } catch (SWRLBuiltInException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
+        }
+
+        for (BackendFact fact : statement) {
+            setDataProperty(getDataProperty(fact.getVerb()), findIndividual(fact.getObject()), Factory.getOWLLiteral(fact.getSubject()));
+        }
+        for (BackendFact fact : response) {
+            setDataProperty(getDataProperty(fact.getVerb()), findIndividual(fact.getObject()), Factory.getOWLLiteral(fact.getSubject()));
         }
 
         return findErrors();
