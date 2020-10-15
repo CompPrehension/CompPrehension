@@ -15,15 +15,12 @@ public class Mistake {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private Interaction interaction;
 
-
     @OneToMany(mappedBy = "mistake", fetch = FetchType.EAGER)
     private List<ExplanationTemplateInfo> explanationTemplateInfo;
-
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "law_id", nullable = false)
