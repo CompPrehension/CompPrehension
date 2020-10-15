@@ -3,7 +3,6 @@ package com.example.demo.models.businesslogic.backend;
 public class BackendFact {
     
     private String object;
-
     private String objectType;
 
     private String subject;
