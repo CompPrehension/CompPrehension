@@ -16,6 +16,7 @@ public class Domain {
     private Long id;
 
     private String name;
+    private String version;
     
     @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
     private List<Law> laws;

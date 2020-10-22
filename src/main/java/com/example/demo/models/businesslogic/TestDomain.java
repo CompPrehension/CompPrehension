@@ -18,11 +18,6 @@ public class TestDomain extends Domain {
     private final int DEFAULT_ANSWERS_COUNT = 4;
 
     @Override
-    public String getVersion() {
-        return null;
-    }
-
-    @Override
     public void update() {
 
     }
