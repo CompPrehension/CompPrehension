@@ -9,7 +9,7 @@ import com.example.demo.utils.HyperText;
 import java.util.List;
 
 public abstract class Domain {
-    
+
     protected com.example.demo.models.entities.Domain domain;
 
     public Domain(com.example.demo.models.entities.Domain domain) {

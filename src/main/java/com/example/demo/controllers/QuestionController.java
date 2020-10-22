@@ -4,13 +4,10 @@ import com.example.demo.Service.*;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.backend.BackendFact;
-import com.example.demo.models.businesslogic.backend.OntologyBackend;
-import com.example.demo.models.businesslogic.frontend.QuestionMistakes;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.InteractionType;
-import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.client.ResponseExtractor;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 //TODO
@@ -137,8 +131,9 @@ public class QuestionController {
         Question question = questionService.generateBusinessLogicQuestion(qa.getQuestion());
         question.addFullResponse(responses);
         List<BackendFact> facts = question.responseToFacts();
+        List<BackendFact> statementFacts = question.statementToFacts();
         List<Mistake> mistakes = core.getDefaultBackend().judge(question.getNegativeLaws(), 
-                question.getQuestionText(), facts);
+                question.getQuestionText(), statementFacts, facts);
 
         FeedbackType feedbackType = strategy.determineFeedbackType(qa);
         if (mistakes.size() > 0) {
