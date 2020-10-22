@@ -132,8 +132,8 @@ public class QuestionController {
         question.addFullResponse(responses);
         List<BackendFact> facts = question.responseToFacts();
         List<BackendFact> statementFacts = question.statementToFacts();
-        List<Mistake> mistakes = core.getDefaultBackend().judge(question.getNegativeLaws(), 
-                question.getQuestionText(), statementFacts, facts);
+        List<BackendFact> solution = core.getDefaultBackend().solve(question.getNegativeLaws(), statementFacts);
+        List<Mistake> mistakes = core.getDefaultBackend().judge(question.getNegativeLaws(), statementFacts, solution, facts);
 
         FeedbackType feedbackType = strategy.determineFeedbackType(qa);
         if (mistakes.size() > 0) {

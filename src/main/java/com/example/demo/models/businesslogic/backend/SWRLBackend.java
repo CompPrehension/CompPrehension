@@ -11,6 +11,7 @@ import org.swrlapi.core.SWRLRuleEngine;
 import org.swrlapi.exceptions.SWRLBuiltInException;
 import org.swrlapi.factory.SWRLAPIFactory;
 import org.swrlapi.parser.SWRLParseException;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
@@ -81,8 +82,12 @@ public abstract class SWRLBackend extends Backend {
         return IRI.create(OntologyIRI + "#" + name);
     }
 
+    public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement) {
+        throw new NotImplementedException();
+    }
+
     @Override
-    public List<Mistake> judge(List<Law> laws, HyperText problem, List<BackendFact> statement, List<BackendFact> response) {
+    public List<Mistake> judge(List<Law> laws, List<BackendFact> statement, List<BackendFact> correctAnswer, List<BackendFact> response) {
         SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
 
         for (Law law : laws) {
