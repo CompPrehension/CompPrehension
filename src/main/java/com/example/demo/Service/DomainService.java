@@ -19,7 +19,7 @@ public class DomainService {
     
     public Domain getDomain(Long domainId) {
         try {
-            return domainRepository.findDomainById(domainId).orElseThrow(()->
+            return domainRepository.findById(domainId).orElseThrow(()->
                     new DomainNFException("Domain with id: " + domainId + "Not Found"));
         }catch (Exception e){
             throw new UserNFException("Failed translation DB-domain to Model-domain", e);

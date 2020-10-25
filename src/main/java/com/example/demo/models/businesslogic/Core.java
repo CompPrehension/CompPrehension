@@ -14,10 +14,12 @@ public class Core {
     @Autowired
     private DomainService domainService;
     
-    //TODO
-    private Map<Long, Domain> domainMap = new HashMap<Long, Domain>() {{
-        put((long)0, new TestDomain(domainService.getDomain((long)0)));        
-    }};   
+    //TODO: Не работает, уточнить
+    private Map<Long, Domain> domainMap/* = new HashMap<Long, Domain>() {
+        {
+            put((long)0, new TestDomain(domainService.getDomain((long)0)));
+        }
+    }*/;
     
     private OntologyBackend ontologyBackend = new OntologyBackend();
     

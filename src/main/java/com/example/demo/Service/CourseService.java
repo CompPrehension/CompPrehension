@@ -128,7 +128,7 @@ public class CourseService {
      */
     public Course getCourse(long courseId) {
         try {
-            return courseRepository.findCourseById(courseId).orElseThrow(()->
+            return courseRepository.findById(courseId).orElseThrow(()->
                     new CourseNFException("Course with id: " + courseId + "Not Found"));
         }catch (Exception e){
             throw new UserNFException("Failed translation DB-course to Model-course", e);
