@@ -47,6 +47,6 @@ public interface QuestionBack {
     public abstract List<BackendFact> responseToFacts(long backendId);
     
     public QuestionType getQuestionType();
-    
-    
+
+    public List<BackendFact> statementToFacts();
 }
