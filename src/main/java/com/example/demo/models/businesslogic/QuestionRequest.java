@@ -11,12 +11,16 @@ import java.util.List;
 public class QuestionRequest {
     
     private List<Concept> deniedConcepts;
-    
+
     private List<Concept> targetConcepts;
-    
+
+    private List<Concept> allovedConcepts;
+
     private List<Law> targetLaws;
     
     private List<Law> deniedLaws;
+
+    private List<Law> allovedLaws;
 
 
     /**

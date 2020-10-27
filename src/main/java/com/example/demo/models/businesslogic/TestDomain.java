@@ -107,7 +107,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public HyperText makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType) {
+    public ArrayList<HyperText> makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType) {
         String explanation = "";
         
         if (mistakes.size() == 0) { explanation = "Ответ правильный"; } 
@@ -125,8 +125,9 @@ public class TestDomain extends Domain {
                 explanation += "Ответ неправильный";
             }
         }
-        
-        return new HyperText(explanation);
+        ArrayList<HyperText>res = new ArrayList<HyperText>() ;
+        res.add(new HyperText(explanation));
+        return res;
     }
 
 

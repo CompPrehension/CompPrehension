@@ -17,18 +17,18 @@ import java.util.Map;
 
 @Service
 public class ExerciseService {
-    
+
     private ExerciseRepository exerciseRepository;
-    
+
     @Autowired
     private CourseService courseService;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private DomainService domainService;
-    
+
     @Autowired
     private UserActionService userActionService;
 
@@ -37,7 +37,7 @@ public class ExerciseService {
 
     @Autowired
     private ExerciseAttemptService exerciseAttemptService;
-    
+
     @Autowired
     private QuestionAttemptService questionAttemptService;
 
@@ -45,16 +45,13 @@ public class ExerciseService {
     private QuestionService questionService;
 
     private Core core = new Core();
-    
+
     private Strategy strategy = new Strategy();
-    
-    
+
     @Autowired
     public ExerciseService(ExerciseRepository exerciseRepository) {
         this.exerciseRepository = exerciseRepository;
     }
-
-   
 
     public ExerciseForm getExerciseFrom(long domainId) {
 
@@ -80,12 +77,11 @@ public class ExerciseService {
         }
     }
 
-    
     public void createExercise(ExerciseForm filledForm, long courseId, long userId, long domainId) throws ExerciseFormException {
 
         checkErrors(filledForm);
         Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
-        
+
         //Создаем доп. таблицы в связи с созданием упражнения
         User user = userService.getUser(userId);
 
@@ -100,23 +96,23 @@ public class ExerciseService {
         newExercise.getUserActionExercises().add(userActionExercise);
         newExercise.setDomain(domainService.getDomain(domainId));
         newExercise.setCourse(courseService.getCourse(courseId));
-        
+
         action.setUserActionExercise(userActionExercise);
-        
+
         user.getUserActions().add(action);
 
         userService.updateUserProfile(user);
         userActionService.saveUserAction(action);
         //userActionExerciseService.saveUserActionExercise(userActionExercise);
         exerciseRepository.save(newExercise);
-        
+
         //core.saveExercise(newExercise);
     }
 
     public void updateExercise(ExerciseForm filledForm, long exerciseId, long userId) throws ExerciseFormException {
 
         checkErrors(filledForm);
-        
+
         Exercise updatedExercise = getExercise(exerciseId);  //Берем из базы exercise
         long domainId = updatedExercise.getDomain().getId();
         Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
@@ -142,7 +138,7 @@ public class ExerciseService {
         userActionService.saveUserAction(action);
         //userActionExerciseService.saveUserActionExercise(userActionExercise);
         exerciseRepository.save(newExercise);
-        
+
         //core.saveExercise(newExercise);
     }
 
@@ -159,36 +155,28 @@ public class ExerciseService {
 
     public Question getExerciseQuestion(long userId, long exerciseId, FrontEndInfo frontEndInfo) {
 
-        
-        
-        
-        
-        
-        
-        
-        
         //ExerciseAttempt exerciseAttempt = core.startExerciseAttempt(exerciseId, userId, frontEndInfo);
         //Создаем попытку выполнения упражнения
         ExerciseAttempt exerciseAttempt = new ExerciseAttempt();
         exerciseAttempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         exerciseAttempt.setExercise(getExercise(exerciseId));
         exerciseAttempt.setUser(userService.getUser(userId));
-        
+
         //Создаем попытку выполнения вопроса
         QuestionAttempt questionAttempt = new QuestionAttempt();
         questionAttempt.setExerciseAttempt(exerciseAttempt);
 
-        //Генерируем вопрос        
+        //Генерируем вопрос
         Question newQuestion = questionService.generateBusinessLogicQuestion(
                 exerciseAttempt);
-        
+
         questionAttempt.setQuestion(newQuestion.getQuestionData());
         exerciseAttempt.getQuestionAttempts().add(questionAttempt);
-        
+
         //Сохраняем получившиеся попытки в базу (вместе с этим сохраняется и вопрос)
         exerciseAttemptService.saveExerciseAttempt(exerciseAttempt);
         questionAttemptService.saveQuestionAttempt(questionAttempt);
-        
+
         return newQuestion;
     }
 
