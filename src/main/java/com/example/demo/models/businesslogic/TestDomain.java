@@ -17,6 +17,11 @@ public class TestDomain extends Domain {
     
     private final int DEFAULT_ANSWERS_COUNT = 4;
 
+    @Override
+    public void update() {
+
+    }
+
     public TestDomain(com.example.demo.models.entities.Domain domain) {
         super(domain);
     }

@@ -18,6 +18,14 @@ public class BackendFact {
         this.verb = verb;
     }
 
+    public BackendFact(String object, String subject, String verb) {
+        this.object = object;
+        this.objectType = "";
+        this.subject = subject;
+        this.subjectType = "";
+        this.verb = verb;
+    }
+
     public String getObject() {
         return object;
     }

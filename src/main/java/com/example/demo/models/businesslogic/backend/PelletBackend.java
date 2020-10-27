@@ -15,6 +15,7 @@ import org.swrlapi.core.SWRLRuleEngine;
 import org.swrlapi.exceptions.SWRLBuiltInException;
 import org.swrlapi.factory.SWRLAPIFactory;
 import org.swrlapi.parser.SWRLParseException;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,6 +45,10 @@ public class PelletBackend extends SWRLBackend {
         }
 
         return data.iterator().next().getLiteral();
+    }
+
+    OWLNamedIndividual findIndividual(String object) {
+        throw new NotImplementedException();
     }
 
     @Override

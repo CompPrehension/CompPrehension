@@ -12,6 +12,8 @@ public abstract class Domain {
 
     protected com.example.demo.models.entities.Domain domain;
 
+    public abstract void update();
+
     public Domain(com.example.demo.models.entities.Domain domain) {
         this.domain = domain;
     }
