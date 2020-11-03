@@ -31,8 +31,8 @@ public class DomainController {
         }
     }
     
-    @GetMapping("{domainId}")
-    public ResponseEntity<Domain> getDomain(@PathVariable long domainId) {
+    @GetMapping("{domainName}")
+    public ResponseEntity<Domain> getDomain(@PathVariable String domainId) {
         
         try {
             Domain domain = domainService.getDomain(domainId);

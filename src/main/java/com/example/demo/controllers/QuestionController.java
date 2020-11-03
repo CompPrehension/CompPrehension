@@ -91,7 +91,7 @@ public class QuestionController {
             interaction.setInteractionType(InteractionType.REQUEST_EXPLANATION);
             interaction.setQuestionAttempt(qa);
             
-            long domainId = qa.getExerciseAttempt().getExercise().getDomain().getId();
+            String domainId = qa.getExerciseAttempt().getExercise().getDomain().getName();
 
             feedback.setHyperText(core.getDomain(domainId).makeExplanation(
                     mistakesInLastResponse, feedbackType).get(0).getText());
@@ -139,7 +139,7 @@ public class QuestionController {
         if (mistakes.size() > 0) {
             
             interaction.setMistakes(mistakes);
-            long domainId = qa.getExerciseAttempt().getExercise().getDomain().getId();
+            String domainId = qa.getExerciseAttempt().getExercise().getDomain().getName();
             
             explanation = core.getDomain(domainId).makeExplanation(mistakes,
                     feedbackType).get(0);

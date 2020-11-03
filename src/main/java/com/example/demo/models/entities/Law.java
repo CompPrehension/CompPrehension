@@ -14,12 +14,9 @@ import java.util.List;
 @Table(name = "Law")
 public class Law {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String name;
 
-    @Column(name = "isPositiveLaw")
+    @Column(name = "is_positive_law")
     private boolean isPositiveLaw;
 
     @OneToMany(mappedBy = "law")

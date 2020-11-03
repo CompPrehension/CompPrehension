@@ -43,7 +43,7 @@ public class Strategy extends AbstractStrategy {
         qr.setSolvingDuration(30);
         qr.setTargetConcepts(targetConcepts);
 
-        Domain domain = domainService.getDomain(exercise.getDomain().getId());
+        Domain domain = domainService.getDomain(exercise.getDomain().getName());
         List<Law> laws = domain.getLaws();
         List<Law> targetLaws = new ArrayList<>();
         List<Law> deniedLaws = new ArrayList<>();

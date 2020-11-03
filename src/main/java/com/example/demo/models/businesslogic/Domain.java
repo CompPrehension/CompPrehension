@@ -3,6 +3,7 @@ package com.example.demo.models.businesslogic;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.Exercise;
+import com.example.demo.models.entities.Law;
 import com.example.demo.models.entities.Mistake;
 import com.example.demo.utils.HyperText;
 
@@ -14,6 +15,14 @@ public abstract class Domain {
     protected com.example.demo.models.entities.Domain domain;
 
     public abstract void update();
+
+    public String getName() {
+        return domain.getName();
+    }
+
+    public List<Law> getLaws() {
+        return domain.getLaws();
+    }
 
     public Domain(com.example.demo.models.entities.Domain domain) {
         this.domain = domain;

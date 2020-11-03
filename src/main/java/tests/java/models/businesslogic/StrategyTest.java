@@ -36,37 +36,37 @@ public class StrategyTest {
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttempt testExerciseAttempt) {
-        List<Long> deniedConcepts = new ArrayList<>();
-        List<Long> targetConcepts = new ArrayList<>();
+        List<String> deniedConcepts = new ArrayList<>();
+        List<String> targetConcepts = new ArrayList<>();
 
         //Выделить из упражнения целевые и запрещенные законы
         for (ExerciseConcept ec : testExerciseAttempt.getExercise().getExerciseConcepts()) {
 
             if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
 
-                targetConcepts.add(ec.getConcept().getId());
+                targetConcepts.add(ec.getConcept().getName());
 
             } else if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
 
-                deniedConcepts.add(ec.getConcept().getId());
+                deniedConcepts.add(ec.getConcept().getName());
 
             }
         }
 
         //Все целевые концепты должны быть внесены (а если лишние, но не противоречащие запрещённым?)
-        if (!qr.getTargetConcepts().stream().map(i -> i.getId()).collect(Collectors.toList())
+        if (!qr.getTargetConcepts().stream().map(i -> i.getName()).collect(Collectors.toList())
                 .containsAll(targetConcepts)) {
             return false;
         }
 
         //все запрещённые концепты должны быть обозначены
-        if (!deniedConcepts.containsAll(qr.getDeniedConcepts().stream().map(i -> i.getId()).collect(Collectors.toList()))) {
+        if (!deniedConcepts.containsAll(qr.getDeniedConcepts().stream().map(i -> i.getName()).collect(Collectors.toList()))) {
             return false;
         }
 
-        for (Long deniedConcept:deniedConcepts){
+        for (String deniedConcept : deniedConcepts){
             //Среди целевых концептов запроса не должно быть запрещённых концептов задания
-            if(qr.getTargetConcepts().stream().map(i -> i.getId()).collect(Collectors.toList()).contains(deniedConcept)){
+            if(qr.getTargetConcepts().stream().map(i -> i.getName()).collect(Collectors.toList()).contains(deniedConcept)){
                 return false;
             }
         }

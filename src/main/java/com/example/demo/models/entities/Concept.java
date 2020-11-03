@@ -12,9 +12,6 @@ import java.util.List;
 @Table(name = "Concept")
 public class Concept {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String name;
 
     @ManyToOne

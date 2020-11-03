@@ -12,10 +12,8 @@ import java.util.List;
 @Table(name = "Domain")
 public class Domain {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String name;
+
     private String version;
     
     @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
