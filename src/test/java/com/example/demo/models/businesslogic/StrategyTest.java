@@ -1,4 +1,4 @@
-package tests.java.models.businesslogic;
+package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.businesslogic.AbstractStrategy;
 import com.example.demo.models.businesslogic.QuestionRequest;

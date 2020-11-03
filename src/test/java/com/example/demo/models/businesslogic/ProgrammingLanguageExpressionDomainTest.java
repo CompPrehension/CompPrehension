@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration
-class ProgrammingLanguageExpressionDomainTest {
+public class ProgrammingLanguageExpressionDomainTest {
 
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
