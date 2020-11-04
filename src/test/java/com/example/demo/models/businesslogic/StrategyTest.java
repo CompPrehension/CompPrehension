@@ -1,26 +1,34 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.businesslogic.AbstractStrategy;
-import com.example.demo.models.businesslogic.QuestionRequest;
-import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.ExerciseConcept;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 public class StrategyTest {
-    private AbstractStrategy strategy = new Strategy();
+
+    @Autowired
+    private Strategy strategy;
+
     @Test
+    @Disabled("Until ExerciseAttempt is filled")
     public void generateQuestionThreeTimes () throws Exception
     {
+        assertNotNull(strategy);
 
         ExerciseAttempt testExerciseAttempt = new ExerciseAttempt();//Заполнить все значимые поля
+
+        assertNotNull(testExerciseAttempt.getExercise());
 
         QuestionRequest qr = strategy.generateQuestionRequest(testExerciseAttempt);
 

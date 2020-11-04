@@ -2,6 +2,8 @@ package com.example.demo.models.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.List;
@@ -20,9 +22,10 @@ public class Mistake {
     private Interaction interaction;
 
     @OneToMany(mappedBy = "mistake", fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     private List<ExplanationTemplateInfo> explanationTemplateInfo;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "law_id", nullable = false)
+    @JoinColumn(name = "law_name", nullable = false)
     private Law law;
 }

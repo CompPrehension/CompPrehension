@@ -4,6 +4,8 @@ import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.List;
@@ -47,10 +49,11 @@ public class Question {
 
 
     @ManyToMany(fetch = FetchType.EAGER)
+    @Fetch(value = FetchMode.SUBSELECT)
     @JoinTable(
             name = "QuestionLaw",
             joinColumns = @JoinColumn(name = "question_id"),
-            inverseJoinColumns = @JoinColumn(name = "law_id"))
+            inverseJoinColumns = @JoinColumn(name = "law_name"))
     private List<Law> laws;
 
 }

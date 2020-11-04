@@ -8,10 +8,12 @@ import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class Strategy extends AbstractStrategy {
     
     @Autowired

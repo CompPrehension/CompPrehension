@@ -25,7 +25,7 @@ public class Law {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "domain_id", nullable = false)
-    private DomainEntity domainEntity;
+    private DomainEntity domain;
 
     @ManyToMany
     @LazyCollection(LazyCollectionOption.FALSE)
