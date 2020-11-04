@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Domain")
-public class Domain {
+public class DomainEntity {
     @Id
     private String name;
 

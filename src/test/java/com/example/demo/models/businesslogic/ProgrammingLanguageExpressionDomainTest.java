@@ -35,12 +35,12 @@ public class ProgrammingLanguageExpressionDomainTest {
     @Test
     public void testQuestionGeneration() {
         List<Concept> concepts = new ArrayList<>();
-        concepts.add(conceptService.getConcept("Basic arithmetics", domain.domain));
+        concepts.add(conceptService.getConcept("Basic arithmetics", domain.domainEntity));
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(concepts);
         assertEquals(domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText(), "a + b + c");
 
-        concepts.add(conceptService.getConcept("Pointers", domain.domain));
+        concepts.add(conceptService.getConcept("Pointers", domain.domainEntity));
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(concepts);
         assertEquals(domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText(), "* * b");

@@ -3,13 +3,10 @@ package com.example.demo.models.businesslogic;
 import com.example.demo.Service.ConceptService;
 import com.example.demo.Service.DomainService;
 import com.example.demo.Service.LawService;
-import com.example.demo.models.entities.Concept;
+import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.entities.Exercise;
-import com.example.demo.models.entities.Law;
-import com.example.demo.models.entities.Mistake;
 import com.example.demo.models.repository.DomainRepository;
 import com.example.demo.utils.HyperText;
 import org.springframework.stereotype.Component;
@@ -25,33 +22,33 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         super(ProgrammingLanguageExpressionDomain.create(domainService, domainRepository, lawService, conceptService));
     }
 
-    static com.example.demo.models.entities.Domain create(DomainService domainService, DomainRepository domainRepository, LawService lawService, ConceptService conceptService) {
+    static DomainEntity create(DomainService domainService, DomainRepository domainRepository, LawService lawService, ConceptService conceptService) {
         if (domainService.hasDomain(ProgrammingLanguageExpressionDomain.name)) {
             return domainService.getDomain(ProgrammingLanguageExpressionDomain.name);
         } else {
             List<Concept> concepts = new ArrayList<>();
             List<Law> laws = new ArrayList<>();
 
-            com.example.demo.models.entities.Domain domain = domainService.createDomain(
+            DomainEntity domainEntity = domainService.createDomain(
                     ProgrammingLanguageExpressionDomain.name,
                     "1",
                     laws,
                     concepts
             );
 
-            concepts.add(conceptService.getConcept("Basic arithmetics", domain));
-            concepts.add(conceptService.getConcept("Associativity", domain));
-            concepts.add(conceptService.getConcept("Basic logic operators", domain));
-            concepts.add(conceptService.getConcept("Basic assignment", domain));
-            concepts.add(conceptService.getConcept("Pointers", domain));
-            concepts.add(conceptService.getConcept("Arrays", domain));
-            concepts.add(conceptService.getConcept("Precedence", domain));
+            concepts.add(conceptService.getConcept("Basic arithmetics", domainEntity));
+            concepts.add(conceptService.getConcept("Associativity", domainEntity));
+            concepts.add(conceptService.getConcept("Basic logic operators", domainEntity));
+            concepts.add(conceptService.getConcept("Basic assignment", domainEntity));
+            concepts.add(conceptService.getConcept("Pointers", domainEntity));
+            concepts.add(conceptService.getConcept("Arrays", domainEntity));
+            concepts.add(conceptService.getConcept("Precedence", domainEntity));
 
             List<Concept> precedenceConcepts = new ArrayList<>();
-            precedenceConcepts.add(conceptService.getConcept("Precedence", domain));
-            laws.add(lawService.getLaw("Less operator precedence", true, domain, precedenceConcepts));
+            precedenceConcepts.add(conceptService.getConcept("Precedence", domainEntity));
+            laws.add(lawService.getLaw("Less operator precedence", true, domainEntity, precedenceConcepts));
 
-            return domain;
+            return domainEntity;
         }
     }
 

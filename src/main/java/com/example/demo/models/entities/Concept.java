@@ -16,7 +16,7 @@ public class Concept {
 
     @ManyToOne
     @JoinColumn(name = "domain_id", nullable = false)
-    private Domain domain;
+    private DomainEntity domainEntity;
 
     @ManyToMany(mappedBy = "concepts")
     private List<Law> laws;

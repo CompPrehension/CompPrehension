@@ -1,5 +1,6 @@
 package com.example.demo.models.businesslogic;
 
+import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.Exercise;
@@ -12,20 +13,20 @@ import java.util.List;
 
 public abstract class Domain {
 
-    protected com.example.demo.models.entities.Domain domain;
+    protected DomainEntity domainEntity;
 
     public abstract void update();
 
     public String getName() {
-        return domain.getName();
+        return domainEntity.getName();
     }
 
     public List<Law> getLaws() {
-        return domain.getLaws();
+        return domainEntity.getLaws();
     }
 
-    public Domain(com.example.demo.models.entities.Domain domain) {
-        this.domain = domain;
+    public Domain(DomainEntity domainEntity) {
+        this.domainEntity = domainEntity;
     }
 
     public abstract ExerciseForm getExerciseForm();

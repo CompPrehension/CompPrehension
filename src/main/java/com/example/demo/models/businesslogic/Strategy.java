@@ -1,10 +1,9 @@
 package com.example.demo.models.businesslogic;
 
 import com.example.demo.Service.DomainService;
-import com.example.demo.Service.ExerciseAttemptService;
 import com.example.demo.Service.QuestionAttemptService;
 import com.example.demo.models.entities.*;
-import com.example.demo.models.entities.Domain;
+import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
@@ -43,8 +42,8 @@ public class Strategy extends AbstractStrategy {
         qr.setSolvingDuration(30);
         qr.setTargetConcepts(targetConcepts);
 
-        Domain domain = domainService.getDomain(exercise.getDomain().getName());
-        List<Law> laws = domain.getLaws();
+        DomainEntity domainEntity = domainService.getDomain(exercise.getDomain().getName());
+        List<Law> laws = domainEntity.getLaws();
         List<Law> targetLaws = new ArrayList<>();
         List<Law> deniedLaws = new ArrayList<>();
         //Распределяем законы не запрещенные и целевые
