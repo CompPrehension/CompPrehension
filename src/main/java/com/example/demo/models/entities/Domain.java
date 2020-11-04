@@ -16,10 +16,10 @@ public class Domain {
 
     private String version;
     
-    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "domain")
     private List<Law> laws;
 
-    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "domain")
     private List<Concept> concepts;
 
 }

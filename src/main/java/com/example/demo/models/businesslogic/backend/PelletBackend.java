@@ -1,24 +1,13 @@
 package com.example.demo.models.businesslogic.backend;
 
-import com.example.demo.models.entities.Law;
-import com.example.demo.models.entities.LawFormulation;
 import com.example.demo.models.entities.Mistake;
-import com.example.demo.utils.HyperText;
 import openllet.owlapi.OpenlletReasoner;
 import openllet.owlapi.OpenlletReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import org.swrlapi.core.SWRLRuleEngine;
-import org.swrlapi.exceptions.SWRLBuiltInException;
-import org.swrlapi.factory.SWRLAPIFactory;
-import org.swrlapi.parser.SWRLParseException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +37,7 @@ public class PelletBackend extends SWRLBackend {
     }
 
     OWLNamedIndividual findIndividual(String object) {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override

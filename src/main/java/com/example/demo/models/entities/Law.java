@@ -31,7 +31,7 @@ public class Law {
     @LazyCollection(LazyCollectionOption.FALSE)
     @JoinTable(
             name = "ConceptLaw",
-            joinColumns = @JoinColumn(name = "law_id"),
-            inverseJoinColumns = @JoinColumn(name = "concept_id"))
+            joinColumns = @JoinColumn(name = "law_name"),
+            inverseJoinColumns = @JoinColumn(name = "concept_name"))
     private List<Concept> concepts;
 }

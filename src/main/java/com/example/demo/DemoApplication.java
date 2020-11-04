@@ -17,28 +17,28 @@ import java.util.List;
 public class DemoApplication {
 
 	@Autowired
-	public static UserService userService;
+	public UserService userService;
 	
 	@Autowired
-	public static GroupService groupService;
+	public GroupService groupService;
 	
 	@Autowired
-	public static CourseService courseService;
+	public CourseService courseService;
 	
 	@Autowired
-	public static BackendService backendService;
+	public BackendService backendService;
 	
 	@Autowired
-	public static ExerciseService exerciseService;
+	public ExerciseService exerciseService;
 	
 	@Autowired
-	public static DomainService domainService;
+	public DomainService domainService;
 	
 	@Autowired
-	public static LawService lawService;
+	public LawService lawService;
 	
 	@Autowired
-	public static ConceptService conceptService;
+	public ConceptService conceptService;
 	
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
@@ -48,7 +48,7 @@ public class DemoApplication {
 		* При последующих запусках держим эту строку закомментированной, т.к. 
 		* в базе уже созданы все необходимые для запуска сущности
 		*/
-		initialDB();
+		//initialDB();
 	}
 
 

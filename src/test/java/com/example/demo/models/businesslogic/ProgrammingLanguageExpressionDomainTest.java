@@ -1,29 +1,48 @@
 package com.example.demo.models.businesslogic;
 
-import org.drools.core.command.assertion.AssertEquals;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.example.demo.Service.ConceptService;
+import com.example.demo.models.entities.Concept;
+import com.example.demo.models.entities.EnumData.Language;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration
+@SpringBootTest
 public class ProgrammingLanguageExpressionDomainTest {
 
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
 
+    @Autowired
+    ConceptService conceptService;
+
     @Test
     public void testName() {
-        Assert.assertEquals(domain.getName(), "ProgrammingLanguageExpressionDomain");
+        assertEquals(domain.getName(), "ProgrammingLanguageExpressionDomain");
     }
 
     @Test
     public void testLaws() {
-        Assert.assertEquals(domain.getLaws().size(), 1);
+        assertEquals(domain.getLaws().size(), 1);
+        assertEquals(domain.getLaws().get(0).getName(), "Less operator precedence");
+    }
+
+    @Test
+    public void testQuestionGeneration() {
+        List<Concept> concepts = new ArrayList<>();
+        concepts.add(conceptService.getConcept("Basic arithmetics", domain.domain));
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(concepts);
+        assertEquals(domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText(), "a + b + c");
+
+        concepts.add(conceptService.getConcept("Pointers", domain.domain));
+        QuestionRequest qr2 = new QuestionRequest();
+        qr2.setTargetConcepts(concepts);
+        assertEquals(domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText(), "* * b");
     }
 }

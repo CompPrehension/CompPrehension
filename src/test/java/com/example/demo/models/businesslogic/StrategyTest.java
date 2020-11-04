@@ -6,32 +6,33 @@ import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.ExerciseConcept;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class StrategyTest {
     private AbstractStrategy strategy = new Strategy();
     @Test
-    public void generateQuestionThreeTimes ()throws Exception
+    public void generateQuestionThreeTimes () throws Exception
     {
 
         ExerciseAttempt testExerciseAttempt = new ExerciseAttempt();//Заполнить все значимые поля
 
         QuestionRequest qr = strategy.generateQuestionRequest(testExerciseAttempt);
 
-        Assert.assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
+        assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
 
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 
-        Assert.assertTrue(checkQuestionRequest(qr1, testExerciseAttempt));
+        assertTrue(checkQuestionRequest(qr1, testExerciseAttempt));
 
         QuestionRequest qr2 = strategy.generateQuestionRequest(testExerciseAttempt);
 
-        Assert.assertTrue(checkQuestionRequest(qr2, testExerciseAttempt));
+        assertTrue(checkQuestionRequest(qr2, testExerciseAttempt));
 
     }
 
