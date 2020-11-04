@@ -2,7 +2,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
 import com.example.demo.Service.DomainService;
-import com.example.demo.models.entities.Domain;
+import com.example.demo.models.entities.DomainEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("domains")
@@ -21,22 +19,22 @@ public class DomainController {
     private DomainService domainService;
     
     @GetMapping
-    public ResponseEntity<Iterable<Domain>> getDomains() {
+    public ResponseEntity<Iterable<DomainEntity>> getDomains() {
         
         try {
-            Iterable<Domain> domains = domainService.getDomains();
+            Iterable<DomainEntity> domains = domainService.getDomains();
             return new ResponseEntity<>(domains, HttpStatus.OK);
         } catch (DomainNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
     
-    @GetMapping("{domainId}")
-    public ResponseEntity<Domain> getDomain(@PathVariable long domainId) {
+    @GetMapping("{domainName}")
+    public ResponseEntity<DomainEntity> getDomain(@PathVariable String domainId) {
         
         try {
-            Domain domain = domainService.getDomain(domainId);
-            return new ResponseEntity<>(domain, HttpStatus.OK);
+            DomainEntity domainEntity = domainService.getDomain(domainId);
+            return new ResponseEntity<>(domainEntity, HttpStatus.OK);
         } catch (DomainNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

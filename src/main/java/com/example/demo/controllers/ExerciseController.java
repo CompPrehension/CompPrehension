@@ -42,7 +42,7 @@ public class ExerciseController {
     
     
     @GetMapping("getExerciseForm")
-    public ResponseEntity<ExerciseForm> getExerciseForm(@RequestParam Long domain_id) {
+    public ResponseEntity<ExerciseForm> getExerciseForm(@RequestParam String domain_id) {
           
         try {
             ExerciseForm exerciseFrom = exerciseService.getExerciseFrom(domain_id);
@@ -56,7 +56,7 @@ public class ExerciseController {
     public ResponseEntity<Map<String, String>> addExercise(@RequestParam ExerciseForm filledForm,
                                                            @RequestParam Long course_id,
                                                            @RequestParam Long user_id,
-                                                           @RequestParam Long domain_id) {
+                                                           @RequestParam String domain_id) {
         try { 
             exerciseService.createExercise(filledForm, course_id, user_id, domain_id);
             return new ResponseEntity<>(HttpStatus.CREATED);

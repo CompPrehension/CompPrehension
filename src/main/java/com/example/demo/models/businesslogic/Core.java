@@ -14,7 +14,7 @@ public class Core {
     private DomainService domainService;
     
     //TODO: Не работает, уточнить
-    private Map<Long, Domain> domainMap/* = new HashMap<Long, Domain>() {
+    private Map<String, Domain> domainMap/* = new HashMap<Long, Domain>() {
         {
             put((long)0, new TestDomain(domainService.getDomain((long)0)));
         }
@@ -27,7 +27,7 @@ public class Core {
         return pelletBackend;
     }
     
-    public Domain getDomain(long domainId) {
+    public Domain getDomain(String domainId) {
         
         if (!domainMap.containsKey(domainId)) {
             

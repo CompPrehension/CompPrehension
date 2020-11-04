@@ -1,27 +1,23 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.Service.ConceptService;
 import com.example.demo.models.entities.Concept;
-import com.example.demo.models.entities.Domain;
+import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.Exercise;
 import com.example.demo.models.entities.ExerciseConcept;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class TestExerciseForm extends ExerciseForm {
 
     
-    private Domain domain; 
+    private DomainEntity domainEntity;
     
-    public TestExerciseForm(Domain domain) {
+    public TestExerciseForm(DomainEntity domainEntity) {
         
-        this.domain = domain;
-        super.allConcepts.addAll(domain.getConcepts());
+        this.domainEntity = domainEntity;
+        super.allConcepts.addAll(domainEntity.getConcepts());
     }
 
     @Override

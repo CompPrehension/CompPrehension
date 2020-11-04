@@ -22,11 +22,11 @@ public class TestDomain extends Domain {
 
     }
 
-    public TestDomain(com.example.demo.models.entities.Domain domain) {
-        super(domain);
+    public TestDomain(DomainEntity domainEntity) {
+        super(domainEntity);
     }
 
-    protected ExerciseForm exerciseForm = new TestExerciseForm(domain); 
+    protected ExerciseForm exerciseForm = new TestExerciseForm(domainEntity);
         
     @Autowired
     private BackendService backendService;

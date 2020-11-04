@@ -39,7 +39,7 @@ public class QuestionService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Language userLanguage = exerciseAttempt.getUser().getPreferred_language();
         com.example.demo.models.businesslogic.Domain domain = core.getDomain(
-                exerciseAttempt.getExercise().getDomain().getId());
+                exerciseAttempt.getExercise().getDomain().getName());
         com.example.demo.models.businesslogic.Question newQuestion = 
                 domain.makeQuestion(qr, userLanguage);
         

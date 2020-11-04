@@ -53,7 +53,7 @@ public class ExerciseService {
         this.exerciseRepository = exerciseRepository;
     }
 
-    public ExerciseForm getExerciseFrom(long domainId) {
+    public ExerciseForm getExerciseFrom(String domainId) {
 
         return core.getDomain(domainId).getExerciseForm();
     }
@@ -62,7 +62,7 @@ public class ExerciseService {
 
         //Берем из базы упражнение по id
         Exercise exercise = new Exercise();
-        ExerciseForm emptyForm = getExerciseFrom(exercise.getDomain().getId());
+        ExerciseForm emptyForm = getExerciseFrom(exercise.getDomain().getName());
         emptyForm.fillForm(exercise);
 
         return emptyForm;
@@ -77,7 +77,7 @@ public class ExerciseService {
         }
     }
 
-    public void createExercise(ExerciseForm filledForm, long courseId, long userId, long domainId) throws ExerciseFormException {
+    public void createExercise(ExerciseForm filledForm, long courseId, long userId, String domainId) throws ExerciseFormException {
 
         checkErrors(filledForm);
         Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
@@ -114,7 +114,7 @@ public class ExerciseService {
         checkErrors(filledForm);
 
         Exercise updatedExercise = getExercise(exerciseId);  //Берем из базы exercise
-        long domainId = updatedExercise.getDomain().getId();
+        String domainId = updatedExercise.getDomain().getName();
         Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
         newExercise.setId(exerciseId);
         //Создаем доп. таблицы в связи с созданием упражнения

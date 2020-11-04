@@ -3,7 +3,6 @@ package com.example.demo.models.businesslogic.backend;
 import com.example.demo.models.entities.Law;
 import com.example.demo.models.entities.LawFormulation;
 import com.example.demo.models.entities.Mistake;
-import com.example.demo.utils.HyperText;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -11,7 +10,6 @@ import org.swrlapi.core.SWRLRuleEngine;
 import org.swrlapi.exceptions.SWRLBuiltInException;
 import org.swrlapi.factory.SWRLAPIFactory;
 import org.swrlapi.parser.SWRLParseException;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
@@ -83,7 +81,7 @@ public abstract class SWRLBackend extends Backend {
     }
 
     public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement) {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override

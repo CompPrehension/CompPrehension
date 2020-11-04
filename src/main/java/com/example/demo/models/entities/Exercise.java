@@ -58,7 +58,7 @@ public class Exercise {
 
     @ManyToOne
     @JoinColumn(name = "domain_id", nullable = false)
-    private Domain domain;
+    private DomainEntity domain;
 
 
     @OneToMany(mappedBy = "exercise")

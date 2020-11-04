@@ -4,7 +4,6 @@ import com.example.demo.models.businesslogic.backend.BackendFact;
 import com.example.demo.models.businesslogic.frontend.FrontAnswerElement;
 import com.example.demo.models.entities.*;
 import com.example.demo.utils.HyperText;
-import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

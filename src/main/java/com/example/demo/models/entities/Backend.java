@@ -2,7 +2,6 @@ package com.example.demo.models.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Fetch;
 
 import javax.persistence.*;
 import java.util.List;

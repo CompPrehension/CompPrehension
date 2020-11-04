@@ -14,12 +14,9 @@ import java.util.List;
 @Table(name = "Law")
 public class Law {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String name;
 
-    @Column(name = "isPositiveLaw")
+    @Column(name = "is_positive_law")
     private boolean isPositiveLaw;
 
     @OneToMany(mappedBy = "law")
@@ -28,13 +25,13 @@ public class Law {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "domain_id", nullable = false)
-    private Domain domain;
+    private DomainEntity domain;
 
     @ManyToMany
     @LazyCollection(LazyCollectionOption.FALSE)
     @JoinTable(
             name = "ConceptLaw",
-            joinColumns = @JoinColumn(name = "law_id"),
-            inverseJoinColumns = @JoinColumn(name = "concept_id"))
+            joinColumns = @JoinColumn(name = "law_name"),
+            inverseJoinColumns = @JoinColumn(name = "concept_name"))
     private List<Concept> concepts;
 }

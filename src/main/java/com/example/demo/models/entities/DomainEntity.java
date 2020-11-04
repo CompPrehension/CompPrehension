@@ -10,18 +10,16 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Domain")
-public class Domain {
+public class DomainEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     private String name;
+
     private String version;
     
-    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "domain")
     private List<Law> laws;
 
-    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "domain")
     private List<Concept> concepts;
 
 }
