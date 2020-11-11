@@ -1,37 +1,58 @@
-package tests.java.models.businesslogic;
-
+import com.example.demo.DemoApplication;
 import com.example.demo.models.businesslogic.AbstractStrategy;
 import com.example.demo.models.businesslogic.QuestionRequest;
-import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.ExerciseConcept;
+import com.example.demo.models.repository.ExerciseAttemptRepository;
+import org.apache.commons.collections4.IterableUtils;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes= DemoApplication.class)
+@Transactional
 public class StrategyTest {
-    private AbstractStrategy strategy = new Strategy();
+    @Autowired
+    private AbstractStrategy strategy;
+    @Autowired
+    private ExerciseAttemptRepository exerciseAttemptRepository;
     @Test
     public void generateQuestionThreeTimes ()throws Exception
     {
 
-        ExerciseAttempt testExerciseAttempt = new ExerciseAttempt();//Заполнить все значимые поля
+        List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
+
+        ExerciseAttempt testExerciseAttempt = testExerciseAttemptList.get(0);
 
         QuestionRequest qr = strategy.generateQuestionRequest(testExerciseAttempt);
 
         Assert.assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
 
+        //Вызов домена с проверкой адекватности вопросов и тд
+
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         Assert.assertTrue(checkQuestionRequest(qr1, testExerciseAttempt));
 
+        //Вызов домена с проверкой адекватности вопросов и тд
+
         QuestionRequest qr2 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         Assert.assertTrue(checkQuestionRequest(qr2, testExerciseAttempt));
+
+        //Вызов домена с проверкой адекватности вопросов и тд
 
     }
 
@@ -53,7 +74,7 @@ public class StrategyTest {
             }
         }
 
-        //Все целевые концепты должны быть внесены (а если лишние, но не противоречащие запрещённым?)
+        //Все целевые концепты должны быть внесены (а если лишние, но не противоречащие запрещённым?)!!!МИНИМУМ 1!!!
         if (!qr.getTargetConcepts().stream().map(i -> i.getId()).collect(Collectors.toList())
                 .containsAll(targetConcepts)) {
             return false;

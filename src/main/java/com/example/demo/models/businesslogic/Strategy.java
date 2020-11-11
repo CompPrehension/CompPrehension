@@ -8,19 +8,27 @@ import com.example.demo.models.entities.Domain;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
+@NoArgsConstructor
 public class Strategy extends AbstractStrategy {
     
-    @Autowired
     private QuestionAttemptService questionAttemptService;
     
-    @Autowired
     private DomainService domainService;
-    
+
+    @Autowired
+    public Strategy(QuestionAttemptService questionAttemptService, DomainService domainService) {
+        this.questionAttemptService = questionAttemptService;
+        this.domainService = domainService;
+    }
+
     public QuestionRequest generateQuestionRequest(ExerciseAttempt exerciseAttempt) {
         
         QuestionRequest qr = new QuestionRequest();
