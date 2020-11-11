@@ -21,11 +21,11 @@ public class Mistake {
     private Interaction interaction;
 
 
-    @OneToMany(mappedBy = "mistake", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mistake", fetch = FetchType.LAZY)
     private List<ExplanationTemplateInfo> explanationTemplateInfo;
 
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "law_id", nullable = false)
     private Law law;
 }

@@ -46,7 +46,7 @@ public class Question {
     private List<AnswerObject> answerObjects;
 
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "QuestionLaw",
             joinColumns = @JoinColumn(name = "question_id"),
