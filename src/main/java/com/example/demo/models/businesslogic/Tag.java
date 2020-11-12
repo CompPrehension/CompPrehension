@@ -1,4 +1,4 @@
-package com.example.demo.models.entities;
+package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.businesslogic.Law;
 import lombok.Data;
