@@ -1,4 +1,8 @@
-package com.example.demo.models.entities;
+package com.example.demo.models.businesslogic;
+
+import com.example.demo.models.entities.Concept;
+import com.example.demo.models.entities.LawFormulation;
+import com.example.demo.models.entities.Tag;
 
 import java.util.List;
 

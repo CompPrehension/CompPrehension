@@ -4,8 +4,6 @@ import com.example.demo.models.businesslogic.backend.QuestionBack;
 import com.example.demo.models.businesslogic.frontend.QuestionFront;
 import com.example.demo.models.entities.AnswerObject;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.entities.Law;
-import com.example.demo.models.entities.QuestionLaw;
 import com.example.demo.models.entities.Response;
 import com.example.demo.utils.HyperText;
 

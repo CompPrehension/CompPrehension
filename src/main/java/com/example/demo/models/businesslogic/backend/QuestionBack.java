@@ -2,7 +2,7 @@ package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.entities.AnswerObject;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.entities.Law;
+import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.entities.Response;
 import com.example.demo.utils.HyperText;
 

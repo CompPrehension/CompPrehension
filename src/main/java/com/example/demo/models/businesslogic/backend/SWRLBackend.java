@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic.backend;
 
-import com.example.demo.models.entities.Law;
+import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.entities.LawFormulation;
 import com.example.demo.models.entities.Mistake;
 import org.semanticweb.owlapi.apibinding.OWLManager;

@@ -1,5 +1,6 @@
 package com.example.demo.models.entities;
 
+import com.example.demo.models.businesslogic.Law;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
