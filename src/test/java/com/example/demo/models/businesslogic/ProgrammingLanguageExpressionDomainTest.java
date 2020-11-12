@@ -23,9 +23,9 @@ public class ProgrammingLanguageExpressionDomainTest {
     }
 
     @Test
-    public void testLaws() throws Exception {
-        assertNotNull(domain.getLaw("single_token_binary_execution"));
-        assertTrue(domain.getLaw("single_token_binary_execution").isPositiveLaw());
+    public void testLaws() {
+        assertNotNull(domain.getPositiveLaw("single_token_binary_execution"));
+        assertTrue(domain.getPositiveLaw("single_token_binary_execution").isPositiveLaw());
     }
 
     @Test

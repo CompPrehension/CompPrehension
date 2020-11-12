@@ -19,29 +19,39 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         super(ProgrammingLanguageExpressionDomain.create(domainService));
 
         concepts = new ArrayList<>();
-        laws = new ArrayList<>();
+        positiveLaws = new ArrayList<>();
+        negativeLaws = new ArrayList<>();
 
-        Concept operatorConcept = addConcept("operator");
-        Concept variableConcept = addConcept("variable");
-        Concept literalConcept = addConcept("literal");
+        Concept operandConcept = addConcept("operand");
         Concept simpleOperandConcept = addConcept("simple_operand");
+        Concept operatorConcept = addConcept("operator", List.of(operandConcept));
+        Concept variableConcept = addConcept("variable", List.of(simpleOperandConcept));
+        Concept literalConcept = addConcept("literal", List.of(simpleOperandConcept));
         Concept precedenceConcept = addConcept("precedence");
         Concept associativityConcept = addConcept("associativity");
+        Concept leftAssociativityConcept = addConcept("left_associativity", List.of(associativityConcept));
+        Concept rightAssociativityConcept = addConcept("right_associativity", List.of(associativityConcept));
+        Concept absentAssociativityConcept = addConcept("absent_associativity", List.of(associativityConcept));
         Concept arityConcept = addConcept("arity");
-        Concept singleTokenUnaryConcept = addConcept("single_token_unary");
-        Concept singleTokenBinaryConcept = addConcept("single_token_binary");
-        Concept twoTokenUnaryConcept = addConcept("two_token_unary");
-        Concept twoTokenBinaryConcept = addConcept("two_token_binary");
-        Concept twoTokenTernaryConcept = addConcept("two_token_ternary");
+        Concept unaryConcept = addConcept("unary", List.of(arityConcept));
+        Concept binaryConcept = addConcept("binary", List.of(arityConcept));
+        Concept ternaryConcept = addConcept("ternary", List.of(arityConcept));
+        Concept singleTokenOperatorConcept = addConcept("single_token");
+        Concept twoTokenOperatorConcept = addConcept("two_token");
+        Concept singleTokenUnaryConcept = addConcept("single_token_unary", List.of(singleTokenOperatorConcept, unaryConcept));
+        Concept singleTokenBinaryConcept = addConcept("single_token_binary", List.of(singleTokenOperatorConcept, binaryConcept));
+        Concept twoTokenUnaryConcept = addConcept("two_token_unary", List.of(twoTokenOperatorConcept, unaryConcept));
+        Concept twoTokenBinaryConcept = addConcept("two_token_binary", List.of(twoTokenOperatorConcept, binaryConcept));
+        Concept twoTokenTernaryConcept = addConcept("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept));
         Concept operatorEvaluationStateConcept = addConcept("operator_evaluation_state");
-        Concept leftAssociativityConcept = addConcept("left_associativity");
-        Concept rightAssociativityConcept = addConcept("right_associativity");
-        Concept absentAssociativityConcept = addConcept("absent_associativity");
-        Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first");
-        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+");
-        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+");
-        Concept operatorEqualsConcept = addConcept("operator_==");
-        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++");
+        Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", List.of(binaryConcept, operatorEvaluationStateConcept));
+        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept));
+        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept));
+        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept));
+        Concept operatorEqualsConcept = addConcept("operator_==", List.of(singleTokenBinaryConcept));
+        Concept prefixOperatorConcept = addConcept("prefix", List.of(unaryConcept));
+        Concept postfixOperatorConcept = addConcept("postfix", List.of(unaryConcept));
+        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept));
 
         List<Concept> singleTokenBinaryExecutionConcepts = List.of(
                 precedenceConcept,
@@ -50,19 +60,134 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 singleTokenBinaryConcept,
                 simpleOperandConcept,
                 operatorEvaluationStateConcept);
-        laws.add(Law.createLaw("single_token_binary_execution", true, domainEntity, singleTokenBinaryExecutionConcepts));
+        positiveLaws.add(new PositiveLaw(
+                "single_token_binary_execution",
+                List.of(),
+                singleTokenBinaryExecutionConcepts,
+                List.of()
+        ));
 
-        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedenceLeft = List.of(
+        List<Concept> binaryPlusAssociativityConcepts = List.of(
+                leftAssociativityConcept,
+                operatorBinaryPlusConcept
+        );
+        positiveLaws.add(new PositiveLaw(
+                "operator_binary_+_associativity_left",
+                List.of(),
+                binaryPlusAssociativityConcepts,
+                List.of()
+        ));
+        List<Concept> binaryMultipleAssociativityConcepts = List.of(
+                leftAssociativityConcept,
+                operatorBinaryMultipleConcept
+        );
+        positiveLaws.add(new PositiveLaw(
+                "operator_binary_*_associativity_left",
+                List.of(),
+                binaryMultipleAssociativityConcepts,
+                List.of()
+        ));
+        List<Concept> unaryPlusAssociativityConcepts = List.of(
+                rightAssociativityConcept,
+                operatorBinaryPlusConcept
+        );
+        positiveLaws.add(new PositiveLaw(
+                "operator_unary_+_associativity_right",
+                List.of(),
+                unaryPlusAssociativityConcepts,
+                List.of()
+        ));
+        List<Concept> mulHigherPlusPrecedenceConcepts = List.of(
+                operatorBinaryMultipleConcept,
+                operatorBinaryPlusConcept,
+                precedenceConcept
+        );
+        positiveLaws.add(new PositiveLaw(
+                "precedence_binary_*_higher_binary_+",
+                List.of(),
+                mulHigherPlusPrecedenceConcepts,
+                List.of()
+        ));
+        List<Concept> unaryPlusHigherMulPrecedenceConcepts = List.of(
+                operatorBinaryMultipleConcept,
+                operatorBinaryPlusConcept,
+                precedenceConcept
+        );
+        positiveLaws.add(new PositiveLaw(
+                "precedence_unary_+_higher_binary_*",
+                List.of(),
+                unaryPlusHigherMulPrecedenceConcepts,
+                List.of()
+        ));
+
+
+        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence = List.of(
                 precedenceConcept,
                 operatorConcept,
-                singleTokenBinaryConcept,
-                simpleOperandConcept
+                singleTokenBinaryConcept
         );
-        laws.add(Law.createLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_left", false, domainEntity, errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedenceLeft));
+        negativeLaws.add(new NegativeLaw(
+                "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
+                List.of(),
+                errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
+                List.of(),
+                getPositiveLaw("single_token_binary_execution")
+        ));
+        negativeLaws.add(new NegativeLaw(
+                "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+                List.of(),
+                errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
+                List.of(),
+                getPositiveLaw("single_token_binary_execution")));
+
+        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity = List.of(
+                associativityConcept,
+                operatorConcept,
+                singleTokenBinaryConcept
+        );
+        negativeLaws.add(new NegativeLaw(
+                "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
+                List.of(),
+                errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
+                List.of(),
+                getPositiveLaw("single_token_binary_execution")
+        ));
+        negativeLaws.add(new NegativeLaw(
+                "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right",
+                List.of(),
+                errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
+                List.of(),
+                getPositiveLaw("single_token_binary_execution")
+        ));
+
+        List<Concept> errorNotLeftAssociativityBinaryPlus = List.of(
+                associativityConcept,
+                operatorBinaryPlusConcept
+        );
+        negativeLaws.add(new NegativeLaw(
+                "error_binary_+_right_associativity",
+                List.of(),
+                errorNotLeftAssociativityBinaryPlus,
+                List.of(),
+                getPositiveLaw("operator_binary_+_associativity_left")
+        ));
+        negativeLaws.add(new NegativeLaw(
+                "error_binary_+_absent_associativity",
+                List.of(),
+                errorNotLeftAssociativityBinaryPlus,
+                List.of(),
+                getPositiveLaw("operator_binary_+_associativity_left")
+        ));
+    }
+
+    private Concept addConcept(String name, List<Concept> baseConcepts) {
+        Concept concept = new Concept(name, baseConcepts);
+        concepts.add(concept);
+        return concept;
     }
 
     private Concept addConcept(String name) {
-        Concept concept = Concept.createConcept(name, domainEntity);
+        Concept concept = new Concept(name);
         concepts.add(concept);
         return concept;
     }

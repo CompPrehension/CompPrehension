@@ -1,21 +1,35 @@
 package com.example.demo.models.entities;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
+@Value
 public class Concept {
-    private String name;
-    private DomainEntity domain;
-    private List<Law> laws;
+    String name;
+    List<Concept> baseConcepts;
 
-    public static Concept createConcept(String name, DomainEntity domainEntity) {
-        Concept concept = new Concept();
-        concept.setName(name);
-        concept.setDomain(domainEntity);
-        return concept;
+    public Concept(String name) {
+        this.name = name;
+        this.baseConcepts = new ArrayList<>();
+    }
+
+    public Concept(String name, List<Concept> baseConcepts) {
+        this.name = name;
+        this.baseConcepts = baseConcepts;
+    }
+
+    public boolean hasBaseConcept(Concept concept) {
+        if (baseConcepts.contains(concept)) {
+            return true;
+        } else {
+            for (Concept baseConcept : baseConcepts) {
+                if (baseConcept.hasBaseConcept(concept)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
