@@ -21,20 +21,18 @@ public class DomainService {
     
     public Iterable<DomainEntity> getDomains() { return domainRepository.findAll(); }
 
-    public DomainEntity getOrCreateDomain(String domainName, String version, List<Law> laws, List<Concept> concepts) {
+    public DomainEntity getOrCreateDomain(String domainName, String version) {
         if (hasDomain(domainName)) {
             return getDomain(domainName);
         } else {
-            return createDomain(domainName, version, laws, concepts);
+            return createDomain(domainName, version);
         }
     }
 
-    public DomainEntity createDomain(String domainName, String version, List<Law> laws, List<Concept> concepts) {
+    public DomainEntity createDomain(String domainName, String version) {
         DomainEntity domainEntity = new DomainEntity();
         domainEntity.setName(domainName);
         domainEntity.setVersion(version);
-        domainEntity.setLaws(laws);
-        domainEntity.setConcepts(concepts);
         domainRepository.save(domainEntity);
         return domainEntity;
     }

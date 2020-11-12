@@ -9,19 +9,17 @@ import javax.persistence.*;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "ExerciseLaws")
-public class ExerciseLaws {
+@Table(name = "QuestionLaws")
+public class QuestionLaw {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "exercise_id", nullable = false)
-    private Exercise exercise;
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
-    @Column(name = "law_name")
+    @Column(name = "law_name", nullable = false)
     private String lawName;
-
-    @Enumerated(EnumType.ORDINAL)
-    private RoleInExercise roleInExercise;
 }
+

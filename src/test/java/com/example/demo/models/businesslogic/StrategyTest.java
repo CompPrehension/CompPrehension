@@ -53,11 +53,11 @@ public class StrategyTest {
 
             if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
 
-                targetConcepts.add(ec.getConcept().getName());
+                targetConcepts.add(ec.getConceptName());
 
             } else if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
 
-                deniedConcepts.add(ec.getConcept().getName());
+                deniedConcepts.add(ec.getConceptName());
 
             }
         }

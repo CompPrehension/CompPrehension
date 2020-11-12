@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Data
@@ -15,11 +16,4 @@ public class DomainEntity {
     private String name;
 
     private String version;
-    
-    @OneToMany(mappedBy = "domain")
-    private List<Law> laws;
-
-    @OneToMany(mappedBy = "domain")
-    private List<Concept> concepts;
-
 }

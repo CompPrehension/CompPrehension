@@ -17,7 +17,7 @@ public class TestExerciseForm extends ExerciseForm {
     public TestExerciseForm(DomainEntity domainEntity) {
         
         this.domainEntity = domainEntity;
-        super.allConcepts.addAll(domainEntity.getConcepts());
+        //super.allConcepts.addAll(domainEntity.getConcepts());
     }
 
     @Override
@@ -42,7 +42,7 @@ public class TestExerciseForm extends ExerciseForm {
         for (ExerciseConcept ec: exercise.getExerciseConcepts()) {
             
             if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
-                deniedConcepts.add(ec.getConcept());
+                //deniedConcepts.add(ec.getConcept());
             }
         }
     }    

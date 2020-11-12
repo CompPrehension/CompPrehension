@@ -1,17 +1,17 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.DomainEntity;
+import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
-import com.example.demo.models.entities.Exercise;
-import com.example.demo.models.entities.Law;
-import com.example.demo.models.entities.Mistake;
 import com.example.demo.utils.HyperText;
 
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Domain {
+    protected List<Law> laws;
+    protected List<Concept> concepts;
 
     protected DomainEntity domainEntity;
 
@@ -22,7 +22,7 @@ public abstract class Domain {
     }
 
     public List<Law> getLaws() {
-        return domainEntity.getLaws();
+        return laws;
     }
 
     public Domain(DomainEntity domainEntity) {

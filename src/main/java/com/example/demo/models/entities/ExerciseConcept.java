@@ -19,9 +19,8 @@ public class ExerciseConcept {
     @JoinColumn(name = "exercise_id", nullable = false)
     private Exercise exercise;
 
-    @ManyToOne
-    @JoinColumn(name = "concept_id", nullable = false)
-    private Concept concept;
+    @Column(name = "concept_name", nullable = false)
+    private String conceptName;
 
     @Enumerated(EnumType.ORDINAL)
     private RoleInExercise roleInExercise;
