@@ -83,9 +83,9 @@ public class TestDomain extends Domain {
         List<QuestionConceptChoice> questionConceptChoices = new ArrayList<>();
         questionConceptChoices.add(qcc);
         
-        question.setQuestionConceptChoices(questionConceptChoices);
+        //question.setQuestionConceptChoices(questionConceptChoices);
         question.setAreAnswersRequireContext(false);
-        question.setLaws(questionRequest.getTargetLaws());
+        //question.setLaws(questionRequest.getTargetLaws());
         question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionText(questionText);
         
@@ -120,7 +120,7 @@ public class TestDomain extends Domain {
                 
                 for (Mistake m : mistakes) {
                 
-                    explanation += "Нарушен закон - " + m.getLaw().getName() + ";\n";
+                    explanation += "Нарушен закон - " + m.getLawName() + ";\n";
                 }
                 explanation += "Ответ неправильный";
             }

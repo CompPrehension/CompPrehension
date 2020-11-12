@@ -4,8 +4,6 @@ import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.List;
@@ -26,20 +24,14 @@ public class Question {
     @Enumerated(EnumType.ORDINAL)
     private QuestionStatus questionStatus;
 
-    @Column(name = "questionText")
+    @Column(name = "question_text")
     private String questionText;
 
-    @Column(name = "answersRequireContext")
+    @Column(name = "question_domain_type")
+    private String questionDomainType;
+
+    @Column(name = "answers_require_context")
     private Boolean areAnswersRequireContext;
-
-    @OneToMany(mappedBy = "question")
-    private List<QuestionConceptChoice> questionConceptChoices;//TODO: Проверить ОДИН К ОДНОМУ
-
-    @OneToMany(mappedBy = "question")
-    private List<QuestionConceptOrder> questionConceptOrders;//TODO: Проверить ОДИН К ОДНОМУ
-
-    @OneToMany(mappedBy = "question")
-    private List<QuestionConceptMatch> questionConceptMatches;//TODO: Проверить ОДИН К ОДНОМУ
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<QuestionAttempt> questionAttempts;
@@ -47,13 +39,6 @@ public class Question {
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<AnswerObject> answerObjects;
 
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @Fetch(value = FetchMode.SUBSELECT)
-    @JoinTable(
-            name = "QuestionLaw",
-            joinColumns = @JoinColumn(name = "question_id"),
-            inverseJoinColumns = @JoinColumn(name = "law_name"))
-    private List<Law> laws;
-
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    private List<QuestionLaw> questionLaws;
 }

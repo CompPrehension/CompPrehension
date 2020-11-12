@@ -33,9 +33,11 @@ public class Strategy extends AbstractStrategy {
         //Выделить из упражнения целевые и запрещенные законы
         for (ExerciseConcept ec : exercise.getExerciseConcepts()) {
             if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
-                targetConcepts.add(ec.getConcept());
+                //TODO
+                //targetConcepts.add(ec.getConcept());
             } else if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
-                deniedConcepts.add(ec.getConcept());
+                //TODO
+                //deniedConcepts.add(ec.getConcept());
             }
         }
 
@@ -45,7 +47,8 @@ public class Strategy extends AbstractStrategy {
         qr.setTargetConcepts(targetConcepts);
 
         DomainEntity domainEntity = domainService.getDomain(exercise.getDomain().getName());
-        List<Law> laws = domainEntity.getLaws();
+        //TODO: make domain from entity
+        List<Law> laws = new ArrayList<>(); //domainEntity.getLaws();
         List<Law> targetLaws = new ArrayList<>();
         List<Law> deniedLaws = new ArrayList<>();
         //Распределяем законы не запрещенные и целевые

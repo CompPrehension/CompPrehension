@@ -5,6 +5,7 @@ import com.example.demo.models.businesslogic.frontend.QuestionFront;
 import com.example.demo.models.entities.AnswerObject;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.models.entities.Law;
+import com.example.demo.models.entities.QuestionLaw;
 import com.example.demo.models.entities.Response;
 import com.example.demo.utils.HyperText;
 
@@ -25,32 +26,34 @@ public abstract class Question implements QuestionFront, QuestionBack {
 
     @Override
     public List<Law> getPositiveLaws() {
-        
-        List<Law> allLaws = questionData.getLaws();
+
+        // TODO
+//        List<Law> allLaws = questionData.getLaws();
         List<Law> positiveLaws = new ArrayList<>();
 
-        for (Law l : allLaws) {
-            
-            if (l.isPositiveLaw()) {
-                positiveLaws.add(l);
-            }            
-        }
+//        for (QuestionLaw l : allLaws) {
+//
+//            if (l.getLawName().isPositiveLaw()) {
+//                positiveLaws.add(l);
+//            }
+//        }
         
         return positiveLaws;
     }
 
     @Override
     public List<Law> getNegativeLaws() {
-        
-        List<Law> allLaws = questionData.getLaws();
+
+        // TODO
+//        List<Law> allLaws = questionData.getLaws();
         List<Law> negativeLaws = new ArrayList<>();
 
-        for (Law l : allLaws) {
-
-            if (!l.isPositiveLaw()) {
-                negativeLaws.add(l);
-            }
-        }
+//        for (Law l : allLaws) {
+//
+//            if (!l.isPositiveLaw()) {
+//                negativeLaws.add(l);
+//            }
+//        }
 
         return negativeLaws;
     }

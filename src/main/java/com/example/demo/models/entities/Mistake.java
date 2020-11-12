@@ -25,7 +25,6 @@ public class Mistake {
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ExplanationTemplateInfo> explanationTemplateInfo;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "law_name", nullable = false)
-    private Law law;
+    @Column(name = "law_name", nullable = false)
+    private String lawName;
 }
