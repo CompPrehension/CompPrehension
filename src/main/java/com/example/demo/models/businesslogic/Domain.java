@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Domain {
-    protected List<Law> laws;
+    protected List<PositiveLaw> positiveLaws;
+    protected List<NegativeLaw> negativeLaws;
     protected List<Concept> concepts;
 
     protected DomainEntity domainEntity;
@@ -20,30 +21,42 @@ public abstract class Domain {
         return domainEntity.getName();
     }
 
-    public List<Law> getLaws() {
-        return laws;
+    public List<PositiveLaw> getPositiveLaws() {
+        return positiveLaws;
+    }
+    public List<NegativeLaw> getNegativeLaws() {
+        return negativeLaws;
     }
 
     public List<Concept> getConcepts() {
         return concepts;
     }
 
-    public Law getLaw(String name) throws Exception {
-        for (Law law : laws) {
+    public PositiveLaw getPositiveLaw(String name) {
+        for (PositiveLaw law : positiveLaws) {
             if (name.equals(law.getName())) {
                 return law;
             }
         }
-        throw new Exception();
+        return null;
     }
 
-    public Concept getConcept(String name) throws Exception {
+    public NegativeLaw getNegativeLaw(String name) {
+        for (NegativeLaw law : negativeLaws) {
+            if (name.equals(law.getName())) {
+                return law;
+            }
+        }
+        return null;
+    }
+
+    public Concept getConcept(String name) {
         for (Concept concept : concepts) {
             if (name.equals(concept.getName())) {
                 return concept;
             }
         }
-        throw new Exception();
+        return null;
     }
 
     public Domain(DomainEntity domainEntity) {

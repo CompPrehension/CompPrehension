@@ -1,6 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.Concept;
 import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.Exercise;
