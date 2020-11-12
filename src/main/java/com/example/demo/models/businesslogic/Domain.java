@@ -5,7 +5,6 @@ import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.utils.HyperText;
 
-import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +22,28 @@ public abstract class Domain {
 
     public List<Law> getLaws() {
         return laws;
+    }
+
+    public List<Concept> getConcepts() {
+        return concepts;
+    }
+
+    public Law getLaw(String name) throws Exception {
+        for (Law law : laws) {
+            if (name.equals(law.getName())) {
+                return law;
+            }
+        }
+        throw new Exception();
+    }
+
+    public Concept getConcept(String name) throws Exception {
+        for (Concept concept : concepts) {
+            if (name.equals(concept.getName())) {
+                return concept;
+            }
+        }
+        throw new Exception();
     }
 
     public Domain(DomainEntity domainEntity) {

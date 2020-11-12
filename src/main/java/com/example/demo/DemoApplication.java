@@ -34,12 +34,6 @@ public class DemoApplication {
 	@Autowired
 	public DomainService domainService;
 	
-	@Autowired
-	public LawService lawService;
-	
-	@Autowired
-	public ConceptService conceptService;
-	
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
 		

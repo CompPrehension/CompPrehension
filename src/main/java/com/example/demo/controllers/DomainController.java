@@ -22,7 +22,7 @@ public class DomainController {
     public ResponseEntity<Iterable<DomainEntity>> getDomains() {
         
         try {
-            Iterable<DomainEntity> domains = domainService.getDomains();
+            Iterable<DomainEntity> domains = domainService.getDomainEntities();
             return new ResponseEntity<>(domains, HttpStatus.OK);
         } catch (DomainNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -33,7 +33,7 @@ public class DomainController {
     public ResponseEntity<DomainEntity> getDomain(@PathVariable String domainId) {
         
         try {
-            DomainEntity domainEntity = domainService.getDomain(domainId);
+            DomainEntity domainEntity = domainService.getDomainEntity(domainId);
             return new ResponseEntity<>(domainEntity, HttpStatus.OK);
         } catch (DomainNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
