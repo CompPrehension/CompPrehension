@@ -1,6 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.Concept;
 import lombok.Data;
 
 import java.util.List;

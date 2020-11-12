@@ -1,6 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.Concept;
 import com.example.demo.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

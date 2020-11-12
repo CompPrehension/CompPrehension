@@ -1,6 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.Concept;
 import com.example.demo.models.entities.LawFormulation;
 import com.example.demo.models.entities.Tag;
 
