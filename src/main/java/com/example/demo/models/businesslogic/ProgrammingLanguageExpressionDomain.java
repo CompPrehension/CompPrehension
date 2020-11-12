@@ -1,8 +1,6 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.Service.ConceptService;
 import com.example.demo.Service.DomainService;
-import com.example.demo.Service.LawService;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
@@ -15,32 +13,33 @@ import java.util.List;
 
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
-    final static String name = "ProgrammingLanguageExpressionDomain";
+    public final static String name = "ProgrammingLanguageExpressionDomain";
 
-    public ProgrammingLanguageExpressionDomain(DomainService domainService, LawService lawService, ConceptService conceptService) {
-        super(ProgrammingLanguageExpressionDomain.create(domainService, lawService, conceptService));
+    public ProgrammingLanguageExpressionDomain(DomainService domainService) {
+        super(ProgrammingLanguageExpressionDomain.create(domainService));
 
         concepts = new ArrayList<>();
         laws = new ArrayList<>();
 
-        concepts.add(conceptService.createConcept("Basic arithmetics", domainEntity));
-        concepts.add(conceptService.createConcept("Associativity", domainEntity));
-        concepts.add(conceptService.createConcept("Basic logic operators", domainEntity));
-        concepts.add(conceptService.createConcept("Basic assignment", domainEntity));
-        concepts.add(conceptService.createConcept("Pointers", domainEntity));
-        concepts.add(conceptService.createConcept("Arrays", domainEntity));
-        concepts.add(conceptService.createConcept("Precedence", domainEntity));
+        concepts.add(Concept.createConcept("Basic arithmetics", domainEntity));
+        concepts.add(Concept.createConcept("Associativity", domainEntity));
+        concepts.add(Concept.createConcept("Basic logic operators", domainEntity));
+        concepts.add(Concept.createConcept("Basic assignment", domainEntity));
+        concepts.add(Concept.createConcept("Pointers", domainEntity));
+        concepts.add(Concept.createConcept("Arrays", domainEntity));
+        Concept precedence = Concept.createConcept("Precedence", domainEntity);
+        concepts.add(precedence);
 
         List<Concept> precedenceConcepts = new ArrayList<>();
-        precedenceConcepts.add(conceptService.createConcept("Precedence", domainEntity));
-        laws.add(lawService.createLaw("Less operator precedence", true, domainEntity, precedenceConcepts));
+        precedenceConcepts.add(precedence);
+        laws.add(Law.createLaw("Less operator precedence", true, domainEntity, precedenceConcepts));
     }
 
-    static DomainEntity create(DomainService domainService, LawService lawService, ConceptService conceptService) {
-        if (domainService.hasDomain(ProgrammingLanguageExpressionDomain.name)) {
-            return domainService.getDomain(ProgrammingLanguageExpressionDomain.name);
+    static DomainEntity create(DomainService domainService) {
+        if (domainService.hasDomainEntity(ProgrammingLanguageExpressionDomain.name)) {
+            return domainService.getDomainEntity(ProgrammingLanguageExpressionDomain.name);
         } else {
-            return domainService.createDomain(
+            return domainService.createDomainEntity(
                     ProgrammingLanguageExpressionDomain.name,
                     "1"
             );

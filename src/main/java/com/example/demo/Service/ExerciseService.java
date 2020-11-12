@@ -94,7 +94,7 @@ public class ExerciseService {
         userActionExercise.setExercise(newExercise);
         userActionExercise.setUserAction(action);
         newExercise.getUserActionExercises().add(userActionExercise);
-        newExercise.setDomain(domainService.getDomain(domainId));
+        newExercise.setDomain(domainService.getDomainEntity(domainId));
         newExercise.setCourse(courseService.getCourse(courseId));
 
         action.setUserActionExercise(userActionExercise);

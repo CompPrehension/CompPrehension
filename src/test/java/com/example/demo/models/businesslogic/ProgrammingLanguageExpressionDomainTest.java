@@ -1,6 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.Service.ConceptService;
 import com.example.demo.models.entities.Concept;
 import com.example.demo.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
@@ -18,9 +17,6 @@ public class ProgrammingLanguageExpressionDomainTest {
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
 
-    @Autowired
-    ConceptService conceptService;
-
     @Test
     public void testName() {
         assertEquals(domain.getName(), "ProgrammingLanguageExpressionDomain");
@@ -33,14 +29,14 @@ public class ProgrammingLanguageExpressionDomainTest {
     }
 
     @Test
-    public void testQuestionGeneration() {
+    public void testQuestionGeneration() throws Exception {
         List<Concept> concepts = new ArrayList<>();
-        concepts.add(conceptService.createConcept("Basic arithmetics", domain.domainEntity));
+        concepts.add(domain.getConcept("Basic arithmetics"));
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(concepts);
         assertEquals(domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText(), "a + b + c");
 
-        concepts.add(conceptService.createConcept("Pointers", domain.domainEntity));
+        concepts.add(domain.getConcept("Pointers"));
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(concepts);
         assertEquals(domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText(), "* * b");

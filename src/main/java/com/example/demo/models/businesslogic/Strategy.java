@@ -46,7 +46,7 @@ public class Strategy extends AbstractStrategy {
         qr.setSolvingDuration(30);
         qr.setTargetConcepts(targetConcepts);
 
-        DomainEntity domainEntity = domainService.getDomain(exercise.getDomain().getName());
+        DomainEntity domainEntity = domainService.getDomainEntity(exercise.getDomain().getName());
         //TODO: make domain from entity
         List<Law> laws = new ArrayList<>(); //domainEntity.getLaws();
         List<Law> targetLaws = new ArrayList<>();

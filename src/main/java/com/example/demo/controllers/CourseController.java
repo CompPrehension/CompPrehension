@@ -69,7 +69,7 @@ public class CourseController {
     @GetMapping("/exercise/domains")
     public ResponseEntity<Iterable<DomainEntity>> getDomains() {
         
-        return ResponseEntity.ok().body(domainService.getDomains());
+        return ResponseEntity.ok().body(domainService.getDomainEntities());
     }
         
     @PostMapping("add")
