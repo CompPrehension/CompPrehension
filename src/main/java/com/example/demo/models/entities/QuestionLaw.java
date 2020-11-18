@@ -21,5 +21,9 @@ public class QuestionLaw {
 
     @Column(name = "law_name", nullable = false)
     private String lawName;
+
+    @ManyToOne
+    @JoinColumn(name = "domain_name", nullable = false)
+    private DomainEntity domainEntity;
 }
 
