@@ -1,25 +1,22 @@
 package com.example.demo.models.businesslogic;
 
 import com.example.demo.DemoApplication;
+import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.ExerciseConcept;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
 import org.apache.commons.collections4.IterableUtils;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes= DemoApplication.class)
 @Transactional
@@ -28,6 +25,8 @@ public class StrategyTest {
     private AbstractStrategy strategy;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
+    @Autowired
+    ProgrammingLanguageExpressionDomain domain;
     @Test
     public void generateQuestionThreeTimes () throws Exception
     {
@@ -43,18 +42,24 @@ public class StrategyTest {
 
         assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
 
+        Question q = domain.makeQuestion(qr, Language.ENGLISH);
+        assertFalse(q.getQuestionText().getText().isEmpty());
         //Вызов домена с проверкой адекватности вопросов и тд
 
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         assertTrue(checkQuestionRequest(qr1, testExerciseAttempt));
 
+        Question q1 = domain.makeQuestion(qr1, Language.ENGLISH);
+        assertFalse(q1.getQuestionText().getText().isEmpty());
         //Вызов домена с проверкой адекватности вопросов и тд
 
         QuestionRequest qr2 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         assertTrue(checkQuestionRequest(qr2, testExerciseAttempt));
 
+        Question q2 = domain.makeQuestion(qr2, Language.ENGLISH);
+        assertFalse(q2.getQuestionText().getText().isEmpty());
         //Вызов домена с проверкой адекватности вопросов и тд
 
     }
