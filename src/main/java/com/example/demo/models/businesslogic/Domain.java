@@ -20,6 +20,10 @@ public abstract class Domain {
     public String getName() {
         return domainEntity.getName();
     }
+    
+    public String getVersion() {
+        return domainEntity.getVersion();
+    }
 
     public List<PositiveLaw> getPositiveLaws() {
         return positiveLaws;
