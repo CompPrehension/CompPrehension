@@ -37,22 +37,15 @@ public class PelletBackend extends SWRLBackend {
     }
 
     OWLNamedIndividual findIndividual(String object) {
-        return null;
+        return Factory.getOWLNamedIndividual(object);
     }
 
     @Override
     List<Mistake> findErrors() {
         List<Mistake> result = new ArrayList<>();
 
-        for (Node<OWLNamedIndividual> sameInd : Reasoner.getInstances(Person)) {
-            OWLNamedIndividual ind = sameInd.getRepresentativeElement();
+        //TODO
 
-            OWLDataProperty dp = getDataProperty("hasAge");
-
-            String age = getDataValue(ind, dp);
-            Mistake m = new Mistake();
-            result.add(m);
-        }
         return result;
     }
 }
