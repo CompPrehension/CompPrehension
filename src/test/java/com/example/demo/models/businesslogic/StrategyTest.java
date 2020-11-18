@@ -1,3 +1,5 @@
+package com.example.demo.models.businesslogic;
+
 import com.example.demo.DemoApplication;
 import com.example.demo.models.businesslogic.AbstractStrategy;
 import com.example.demo.models.businesslogic.QuestionRequest;
