@@ -46,7 +46,8 @@ public class ExerciseService {
 
     private Core core = new Core();
 
-    private Strategy strategy = new Strategy();
+    @Autowired
+    private Strategy strategy;
 
     @Autowired
     public ExerciseService(ExerciseRepository exerciseRepository) {

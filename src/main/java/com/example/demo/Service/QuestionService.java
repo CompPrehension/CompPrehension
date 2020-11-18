@@ -16,7 +16,8 @@ public class QuestionService {
 
     private Core core = new Core();
 
-    private Strategy strategy = new Strategy();
+    @Autowired
+    private Strategy strategy;
     
     @Autowired
     private QuestionAttemptService questionAttemptService;

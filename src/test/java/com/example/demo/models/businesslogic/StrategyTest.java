@@ -1,5 +1,8 @@
 package com.example.demo.models.businesslogic;
 
+import com.example.demo.DemoApplication;
+import com.example.demo.models.businesslogic.AbstractStrategy;
+import com.example.demo.models.businesslogic.QuestionRequest;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.ExerciseConcept;
@@ -7,26 +10,42 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import com.example.demo.models.repository.ExerciseAttemptRepository;
+import org.apache.commons.collections4.IterableUtils;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes= DemoApplication.class)
+@Transactional
 public class StrategyTest {
-
     @Autowired
-    private Strategy strategy;
-
+    private AbstractStrategy strategy;
+    @Autowired
+    private ExerciseAttemptRepository exerciseAttemptRepository;
     @Test
     @Disabled("Until ExerciseAttempt is filled")
     public void generateQuestionThreeTimes () throws Exception
     {
         assertNotNull(strategy);
 
-        ExerciseAttempt testExerciseAttempt = new ExerciseAttempt();//Заполнить все значимые поля
+        List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
+
+        ExerciseAttempt testExerciseAttempt = testExerciseAttemptList.get(0);
 
         assertNotNull(testExerciseAttempt.getExercise());
 
@@ -34,13 +53,19 @@ public class StrategyTest {
 
         assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
 
+        //Вызов домена с проверкой адекватности вопросов и тд
+
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         assertTrue(checkQuestionRequest(qr1, testExerciseAttempt));
 
+        //Вызов домена с проверкой адекватности вопросов и тд
+
         QuestionRequest qr2 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         assertTrue(checkQuestionRequest(qr2, testExerciseAttempt));
+
+        //Вызов домена с проверкой адекватности вопросов и тд
 
     }
 

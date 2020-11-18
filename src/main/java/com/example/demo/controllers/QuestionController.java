@@ -48,8 +48,9 @@ public class QuestionController {
     private ExplanationTemplateInfoService explanationTemplateInfoService;
     
     private Core core = new Core();
-    
-    private Strategy strategy = new Strategy();
+
+    @Autowired
+    private Strategy strategy ;
     
     @GetMapping("/questionAttempt/{questionAttempt_id}/explanation")
     public ResponseEntity getQuestionFeedback(@PathVariable Long questionAttempt_id,
