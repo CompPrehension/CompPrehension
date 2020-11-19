@@ -1,15 +1,14 @@
 package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.entities.Mistake;
+import gnu.trove.map.hash.THashMap;
 import openllet.owlapi.OpenlletReasoner;
 import openllet.owlapi.OpenlletReasonerFactory;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PelletBackend extends SWRLBackend {
     OpenlletReasoner Reasoner;
@@ -37,14 +36,44 @@ public class PelletBackend extends SWRLBackend {
     }
 
     OWLNamedIndividual findIndividual(String object) {
-        return Factory.getOWLNamedIndividual(object);
+        return Factory.getOWLNamedIndividual(getFullIRI(object));
+    }
+
+    HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> getObjectPropertyRelations(String objectProperty) {
+        HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> relations = new HashMap<>();
+
+        for (Node<OWLNamedIndividual> nodeInd : Reasoner.getInstances(Factory.getOWLClass(getThingClass()))) {
+            OWLNamedIndividual ind = nodeInd.getRepresentativeElement();
+
+            OWLObjectProperty opProperty = getObjectProperty(objectProperty);
+
+            Set<OWLNamedIndividual> inds = new HashSet<>();
+
+            for (Node<OWLNamedIndividual> sameOpInd : Reasoner.getObjectPropertyValues(ind, opProperty)) {
+                OWLNamedIndividual opInd = sameOpInd.getRepresentativeElement();
+                inds.add(opInd);
+            }
+
+            relations.put(ind, inds);
+        }
+
+        return relations;
     }
 
     @Override
-    List<Mistake> findErrors() {
+    List<Mistake> findErrors(THashMap<String, String> errorTypeToLawName) {
         List<Mistake> result = new ArrayList<>();
 
-        //TODO
+        for (Map.Entry<String, String> errorTypeToLawNameEntry : errorTypeToLawName.entrySet()) {
+            HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> rels = getObjectPropertyRelations(errorTypeToLawNameEntry.getKey());
+            for (Map.Entry<OWLNamedIndividual, Set<OWLNamedIndividual>> relsEntry : rels.entrySet()) {
+                for (OWLNamedIndividual ind : relsEntry.getValue()) {
+                    Mistake mistake = new Mistake();
+                    mistake.setLawName(errorTypeToLawNameEntry.getValue());
+                    result.add(mistake);
+                }
+            }
+        }
 
         return result;
     }
