@@ -1,6 +1,7 @@
 package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.entities.AnswerObject;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.entities.Response;
@@ -48,5 +49,5 @@ public interface QuestionBack {
     
     public QuestionType getQuestionType();
 
-    public List<BackendFact> statementToFacts();
+    public List<BackendFact> getStatementFacts();
 }

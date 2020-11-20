@@ -17,7 +17,6 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @Enumerated(EnumType.ORDINAL)
     private QuestionType questionType;
 
@@ -41,4 +40,7 @@ public class Question {
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<QuestionLaw> questionLaws;
+
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    private List<BackendFact> statementFacts;
 }

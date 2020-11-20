@@ -29,15 +29,50 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void testQuestionGeneration() throws Exception {
-        List<Concept> concepts = new ArrayList<>();
-        concepts.add(domain.getConcept("precedence"));
         QuestionRequest qr = new QuestionRequest();
-        qr.setTargetConcepts(concepts);
-        assertEquals(domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText(), "a + b * c");
+        qr.setTargetConcepts(List.of(
+                domain.getConcept("precedence")
+        ));
+        qr.setAllovedConcepts(List.of(
+                domain.getConcept("operator_binary_+"),
+                domain.getConcept("operator_binary_*")
+        ));
+        qr.setDeniedConcepts(List.of(
+                domain.getConcept("associativity")
+        ));
+        assertEquals("a + b * c", domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
 
-        concepts.add(domain.getConcept("associativity"));
         QuestionRequest qr2 = new QuestionRequest();
-        qr2.setTargetConcepts(concepts);
-        assertEquals(domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText(), "* * b");
+        qr2.setTargetConcepts(List.of(
+                domain.getConcept("associativity")
+        ));
+        qr2.setAllovedConcepts(List.of(
+                domain.getConcept("operator_binary_+")
+        ));
+        qr2.setDeniedConcepts(List.of(
+                domain.getConcept("precedence")
+        ));
+        assertEquals("a + b + c", domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText());
+
+        QuestionRequest qr3 = new QuestionRequest();
+        qr3.setTargetConcepts(List.of(
+                domain.getConcept("associativity"),
+                domain.getConcept("precedence")
+        ));
+        qr3.setAllovedConcepts(List.of(
+                domain.getConcept("operator_binary_*"),
+                domain.getConcept("operator_binary_+")
+        ));
+        qr3.setDeniedConcepts(List.of(
+
+        ));
+        assertEquals("a + b + c * d", domain.makeQuestion(qr3, Language.ENGLISH).getQuestionText().getText());
+
+        QuestionRequest qr4 = new QuestionRequest();
+        qr4.setTargetConcepts(List.of());
+        qr4.setAllovedConcepts(List.of());
+        qr4.setDeniedConcepts(List.of());
+        assertEquals("Choose associativity of operator binary +",
+                domain.makeQuestion(qr4, Language.ENGLISH).getQuestionText().getText());
     }
 }

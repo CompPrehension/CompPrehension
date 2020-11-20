@@ -3,6 +3,7 @@ package com.example.demo.models.businesslogic;
 import com.example.demo.models.businesslogic.backend.QuestionBack;
 import com.example.demo.models.businesslogic.frontend.QuestionFront;
 import com.example.demo.models.entities.AnswerObject;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.models.entities.Response;
 import com.example.demo.utils.HyperText;
@@ -126,5 +127,9 @@ public abstract class Question implements QuestionFront, QuestionBack {
         
         return questionData;
     }
-    
+
+    @Override
+    public List<BackendFact> getStatementFacts() {
+        return questionData.getStatementFacts();
+    }
 }

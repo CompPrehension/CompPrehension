@@ -28,6 +28,7 @@ public class Strategy extends AbstractStrategy {
         Exercise exercise = exerciseAttempt.getExercise();
 
         List<Concept> deniedConcepts = new ArrayList<>();
+        List<Concept> allowedConcepts = new ArrayList<>();
         List<Concept> targetConcepts = new ArrayList<>();
 
         //Выделить из упражнения целевые и запрещенные законы
@@ -45,6 +46,7 @@ public class Strategy extends AbstractStrategy {
         qr.setDeniedConcepts(deniedConcepts);
         qr.setSolvingDuration(30);
         qr.setTargetConcepts(targetConcepts);
+        qr.setAllovedConcepts(allowedConcepts);
 
         DomainEntity domainEntity = domainService.getDomainEntity(exercise.getDomain().getName());
         //TODO: make domain from entity

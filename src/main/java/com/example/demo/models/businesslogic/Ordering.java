@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.businesslogic.backend.BackendFact;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.*;
 
 import java.util.ArrayList;
@@ -52,12 +52,6 @@ public class Ordering extends Question {
     @Override
     public List<BackendFact> responseToFacts(long backendId) {
         return null;
-    }
-
-    @Override
-    public List<BackendFact> statementToFacts() {
-        List<BackendFact> facts = new ArrayList<>();
-        return facts;
     }
 
     @Override
