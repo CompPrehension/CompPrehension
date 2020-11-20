@@ -80,12 +80,6 @@ public class Choice extends Question {
     }
 
     @Override
-    public List<BackendFact> statementToFacts() {
-        List<BackendFact> facts = new ArrayList<>();
-        return facts;
-    }
-
-    @Override
     public Long getExerciseAttemptId() {
         return null;
     }

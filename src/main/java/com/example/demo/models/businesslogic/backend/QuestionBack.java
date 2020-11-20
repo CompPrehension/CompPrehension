@@ -49,5 +49,5 @@ public interface QuestionBack {
     
     public QuestionType getQuestionType();
 
-    public List<BackendFact> statementToFacts();
+    public List<BackendFact> getStatementFacts();
 }

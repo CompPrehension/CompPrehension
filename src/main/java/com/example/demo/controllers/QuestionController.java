@@ -3,7 +3,7 @@ package com.example.demo.controllers;
 import com.example.demo.Service.*;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.businesslogic.Question;
-import com.example.demo.models.businesslogic.backend.BackendFact;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
@@ -132,7 +132,7 @@ public class QuestionController {
         Question question = questionService.generateBusinessLogicQuestion(qa.getQuestion());
         question.addFullResponse(responses);
         List<BackendFact> facts = question.responseToFacts();
-        List<BackendFact> statementFacts = question.statementToFacts();
+        List<BackendFact> statementFacts = question.getStatementFacts();
         List<BackendFact> solution = core.getDefaultBackend().solve(question.getNegativeLaws(), statementFacts);
         List<Mistake> mistakes = core.getDefaultBackend().judge(question.getNegativeLaws(), statementFacts, solution, facts);
 

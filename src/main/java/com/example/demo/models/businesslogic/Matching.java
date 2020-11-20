@@ -2,11 +2,9 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.*;
-import com.example.demo.utils.HyperText;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Matching extends Question {
 
@@ -69,12 +67,6 @@ public class Matching extends Question {
     @Override
     public List<BackendFact> responseToFacts(long backendId) {
         return null;
-    }
-
-    @Override
-    public List<BackendFact> statementToFacts() {
-        List<BackendFact> facts = new ArrayList<>();
-        return facts;
     }
 
     @Override
