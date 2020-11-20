@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.businesslogic.backend.BackendFact;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.AnswerObject;
 import com.example.demo.models.entities.Response;
 
