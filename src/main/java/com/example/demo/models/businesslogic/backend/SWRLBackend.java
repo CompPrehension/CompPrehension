@@ -58,17 +58,17 @@ public abstract class SWRLBackend extends Backend {
 
     boolean addStatementFact(BackendFact fact) {
         if (fact.getVerb().equals("rdf:type")) {
-            if (fact.getSubject().equals("owl:NamedIndividual")) {
-                OWLNamedIndividual ind = Factory.getOWLNamedIndividual(getFullIRI(fact.getObject()));
+            if (fact.getObject().equals("owl:NamedIndividual")) {
+                OWLNamedIndividual ind = Factory.getOWLNamedIndividual(getFullIRI(fact.getSubject()));
                 Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(ind));
-            } else if (fact.getSubject().equals("owl:ObjectProperty")) {
-                OWLObjectProperty op = Factory.getOWLObjectProperty(getFullIRI(fact.getObject()));
+            } else if (fact.getObject().equals("owl:ObjectProperty")) {
+                OWLObjectProperty op = Factory.getOWLObjectProperty(getFullIRI(fact.getSubject()));
                 Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(op));
-            } else if (fact.getSubject().equals("owl:DatatypeProperty")) {
-                OWLDataProperty dp = Factory.getOWLDataProperty(getFullIRI(fact.getObject()));
+            } else if (fact.getObject().equals("owl:DatatypeProperty")) {
+                OWLDataProperty dp = Factory.getOWLDataProperty(getFullIRI(fact.getSubject()));
                 Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(dp));
-            } else if (fact.getSubject().equals("owl:Class")) {
-                OWLClass cl = Factory.getOWLClass(fact.getObject());
+            } else if (fact.getObject().equals("owl:Class")) {
+                OWLClass cl = Factory.getOWLClass(fact.getSubject());
                 Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(cl));
             } else {
                 return false;
@@ -77,25 +77,25 @@ public abstract class SWRLBackend extends Backend {
             // pass
             return false;
         } else {
-            OWLNamedIndividual ind = findIndividual(fact.getObject());
-            if (fact.getSubjectType().equals("owl:NamedIndividual")) {
+            OWLNamedIndividual ind = findIndividual(fact.getSubject());
+            if (fact.getObjectType().equals("owl:NamedIndividual")) {
                 OWLObjectProperty op = getObjectProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLObjectPropertyAssertionAxiom(op, ind, findIndividual(fact.getSubject())));
-            } else if (fact.getSubjectType().equals("xsd:int")) {
+                Manager.addAxiom(Ontology, Factory.getOWLObjectPropertyAssertionAxiom(op, ind, findIndividual(fact.getObject())));
+            } else if (fact.getObjectType().equals("xsd:int")) {
                 OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Integer.parseInt(fact.getSubject())));
-            } else if (fact.getSubjectType().equals("xsd:string")) {
+                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Integer.parseInt(fact.getObject())));
+            } else if (fact.getObjectType().equals("xsd:string")) {
                 OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, fact.getSubject()));
-            } else if (fact.getSubjectType().equals("xsd:boolean")) {
+                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, fact.getObject()));
+            } else if (fact.getObjectType().equals("xsd:boolean")) {
                 OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Boolean.parseBoolean(fact.getSubject())));
-            } else if (fact.getSubjectType().equals("xsd:double")) {
+                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Boolean.parseBoolean(fact.getObject())));
+            } else if (fact.getObjectType().equals("xsd:double")) {
                 OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Double.parseDouble(fact.getSubject())));
-            } else if (fact.getSubjectType().equals("xsd:float")) {
+                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Double.parseDouble(fact.getObject())));
+            } else if (fact.getObjectType().equals("xsd:float")) {
                 OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Float.parseFloat(fact.getSubject())));
+                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Float.parseFloat(fact.getObject())));
             } else {
                 return false;
             }
@@ -114,8 +114,8 @@ public abstract class SWRLBackend extends Backend {
         THashMap<String, String> errorTypeToLawName = new THashMap<>();
         for (BackendFact fact : statement) {
             if (fact.getVerb().equals("impl:ErrorDescription")) {
-                if (fact.getSubjectType().equals("owl:ObjectProperty")) {
-                    errorTypeToLawName.put(fact.getObject(), fact.getSubject());
+                if (fact.getObjectType().equals("owl:ObjectProperty")) {
+                    errorTypeToLawName.put(fact.getSubject(), fact.getObject());
                 }
             }
         }
