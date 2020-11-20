@@ -4,7 +4,6 @@ import com.example.demo.Service.DomainService;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
-import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.utils.HyperText;
 import gnu.trove.set.hash.THashSet;
@@ -240,7 +239,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             conceptNames.add(concept.getName());
         }
         THashSet<String> allowedConceptNames = new THashSet<>();
-        for (Concept concept : questionRequest.getAllovedConcepts()) {
+        for (Concept concept : questionRequest.getAllowedConcepts()) {
             allowedConceptNames.add(concept.getName());
         }
         THashSet<String> deniedConceptNames = new THashSet<>();
