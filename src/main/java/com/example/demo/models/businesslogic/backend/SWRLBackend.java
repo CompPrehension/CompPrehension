@@ -71,9 +71,6 @@ public abstract class SWRLBackend extends Backend {
             } else {
                 return false;
             }
-        } else if (fact.getVerb().equals("impl:ErrorDescription")) {
-            // pass
-            return false;
         } else {
             OWLNamedIndividual ind = findIndividual(fact.getSubject());
             if (fact.getObjectType().equals("owl:NamedIndividual")) {
