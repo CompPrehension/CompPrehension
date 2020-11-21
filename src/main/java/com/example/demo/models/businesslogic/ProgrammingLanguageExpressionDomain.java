@@ -344,7 +344,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     String getName(int step, int index) {
-        return "op-" + step + "-" + index;
+        return "op__" + step + "__" + index;
     }
 
     QuestionLaw getQuestionLaw(com.example.demo.models.entities.Question question, String law) {
@@ -364,7 +364,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return answerObject;
     }
 
-    List<BackendFact> getBackendFacts(List<String> expression) {
+    public List<BackendFact> getBackendFacts(List<String> expression) {
         List<BackendFact> facts = getSWRLBackendBaseFacts();
         int index = 0;
         for (String token : expression) {
@@ -376,6 +376,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 facts.add(new BackendFact("owl:NamedIndividual", name, "step", "xsd:int", String.valueOf(step)));
             }
             facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token));
+            facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "complex_beginning", "xsd:boolean", Boolean.toString(token.equals("(") || token.equals("[") || token.equals("?"))));
+            facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "complex_ending", "xsd:boolean", Boolean.toString(token.equals(")") || token.equals("]") || token.equals(":"))));
         }
         facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "last", "xsd:boolean", "true"));
         return facts;
@@ -526,22 +528,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "before_strict_order_operands_ternary",
                 "text(?a, \"?\") ^ has_operand(?a, ?b) ^ has_operand(?a, ?c) ^ has_operand(?a, ?d) ^ index(?b, ?b_index) ^ index(?c, ?c_index) ^ index(?d, ?d_index) ^ not_index(?c, ?d) ^ swrlb:lessThan(?b_index, ?c_index) ^ swrlb:lessThan(?b_index, ?d_index) -> before_direct(?b, ?c) ^ before_all_operands(?b, ?c) ^ before_by_third_operator(?b, ?c) ^ before_third_operator(?b, ?a)"
         ));
-        laws.add(getLawFormulation(
-                "complex_beggining_false",
-                "swrlb:notEqual(?a_text, \"(\") ^ swrlb:notEqual(?a_text, \"[\") ^ swrlb:notEqual(?a_text, \"?\") ^ text(?a, ?a_text) ^ step(?a, 0) -> complex_beginning(?a, false)"
-        ));
-        laws.add(getLawFormulation(
-                "complex_beginning(",
-                "text(?a, \"(\") ^ step(?a, 0) -> complex_beginning(?a, true)"
-        ));
-        laws.add(getLawFormulation(
-                "complex_beginning?",
-                "text(?a, \"?\") ^ step(?a, 0) -> complex_beginning(?a, true)"
-        ));
-        laws.add(getLawFormulation(
-                "complex_beginning[",
-                "text(?a, \"[\") ^ step(?a, 0) -> complex_beginning(?a, true)"
-        ));
+//        laws.add(getLawFormulation(
+//                "complex_beggining_false",
+//                "swrlb:notEqual(?a_text, \"(\") ^ swrlb:notEqual(?a_text, \"[\") ^ swrlb:notEqual(?a_text, \"?\") ^ text(?a, ?a_text) ^ step(?a, 0) -> complex_beginning(?a, false)"
+//        ));
+//        laws.add(getLawFormulation(
+//                "complex_beginning(",
+//                "text(?a, \"(\") ^ step(?a, 0) -> complex_beginning(?a, true)"
+//        ));
+//        laws.add(getLawFormulation(
+//                "complex_beginning?",
+//                "text(?a, \"?\") ^ step(?a, 0) -> complex_beginning(?a, true)"
+//        ));
+//        laws.add(getLawFormulation(
+//                "complex_beginning[",
+//                "text(?a, \"[\") ^ step(?a, 0) -> complex_beginning(?a, true)"
+//        ));
         laws.add(getLawFormulation(
                 "complex_boundaries",
                 "in_complex(?a, ?c) ^ next_index(?a, ?b) ^ complex_beginning(?a, false) ^ complex_ending(?b, true) ^ step(?a, 0) -> complex_boundaries(?c, ?b)"
@@ -550,22 +552,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "complex_boundaries_empty",
                 "next_index(?a, ?b) ^ step(?a, 0) ^ complex_beginning(?a, true) ^ complex_ending(?b, true) -> complex_boundaries(?a, ?b)"
         ));
-        laws.add(getLawFormulation(
-                "complex_ending)",
-                "text(?a, \")\") ^ step(?a, 0) -> complex_ending(?a, true)"
-        ));
-        laws.add(getLawFormulation(
-                "complex_ending:",
-                "text(?a, \":\") ^ step(?a, 0) -> complex_ending(?a, true)"
-        ));
-        laws.add(getLawFormulation(
-                "complex_ending]",
-                "text(?a, \"]\") ^ step(?a, 0) -> complex_ending(?a, true)"
-        ));
-        laws.add(getLawFormulation(
-                "complex_ending_false",
-                "text(?a, ?a_text) ^ swrlb:notEqual(?a_text, \")\") ^ swrlb:notEqual(?a_text, \"]\") ^ swrlb:notEqual(?a_text, \":\") ^ step(?a, 0) -> complex_ending(?a, false)"
-        ));
+//        laws.add(getLawFormulation(
+//                "complex_ending)",
+//                "text(?a, \")\") ^ step(?a, 0) -> complex_ending(?a, true)"
+//        ));
+//        laws.add(getLawFormulation(
+//                "complex_ending:",
+//                "text(?a, \":\") ^ step(?a, 0) -> complex_ending(?a, true)"
+//        ));
+//        laws.add(getLawFormulation(
+//                "complex_ending]",
+//                "text(?a, \"]\") ^ step(?a, 0) -> complex_ending(?a, true)"
+//        ));
+//        laws.add(getLawFormulation(
+//                "complex_ending_false",
+//                "text(?a, ?a_text) ^ swrlb:notEqual(?a_text, \")\") ^ swrlb:notEqual(?a_text, \"]\") ^ swrlb:notEqual(?a_text, \":\") ^ step(?a, 0) -> complex_ending(?a, false)"
+//        ));
         laws.add(getLawFormulation(
                 "copy_app",
                 "copy(?a, ?to) ^ app(?a, true) -> app(?to, true)"

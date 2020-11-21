@@ -1,0 +1,118 @@
+[
+  {
+    "expression": ["var1", "+$1", "var2"],
+    "objectProperty": "next_index",
+    "relations": [
+      {
+        "indexFrom": 1,
+        "indexesTo": [2]
+      },
+      {
+        "indexFrom": 2,
+        "indexesTo": [3]
+      }
+    ]
+  },
+  {
+    "expression": ["var1", "+$1", "var2"],
+    "objectProperty": "prev_index",
+    "relations": [
+      {
+        "indexFrom": 2,
+        "indexesTo": [1]
+      },
+      {
+        "indexFrom": 3,
+        "indexesTo": [2]
+      }
+    ]
+  },
+  {
+    "expression": ["var1", "+$1", "var2"],
+    "objectProperty": "next_step",
+    "relations": [
+      {
+        "indexFrom": 1,
+        "indexesTo": [1]
+      },
+      {
+        "indexFrom": 2,
+        "indexesTo": [2]
+      },
+      {
+        "indexFrom": 3,
+        "indexesTo": [3]
+      }
+    ]
+  },
+  {
+    "expression": ["var1", "+$1", "var2"],
+    "objectProperty": "same_step",
+    "relations": [
+      {
+        "indexFrom": 1,
+        "indexesTo": [1, 2, 3]
+      },
+      {
+        "indexFrom": 2,
+        "indexesTo": [1, 2, 3]
+      },
+      {
+        "indexFrom": 3,
+        "indexesTo": [1, 2, 3]
+      }
+    ]
+  },
+  {
+    "expression": ["var1", "+$1", "var2"],
+    "objectProperty": "not_index",
+    "relations": [
+      {
+        "indexFrom": 1,
+        "indexesTo": [2, 3]
+      },
+      {
+        "indexFrom": 2,
+        "indexesTo": [1, 3]
+      },
+      {
+        "indexFrom": 3,
+        "indexesTo": [1, 2]
+      }
+    ]
+  },
+  {
+    "expression": ["(", "(", ")", ")"],
+    "objectProperty": "complex_boundaries",
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [4]},
+      {"indexFrom": 2, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["(", "var","[", "var", "]", ")"],
+    "objectProperty": "complex_boundaries",
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [6]},
+      {"indexFrom": 3, "indexesTo": [5]}
+    ]
+  },
+  {
+    "expression": ["(", "(", ")", ")"],
+    "objectProperty": "in_complex",
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1]},
+      {"indexFrom": 3, "indexesTo": [1]}
+    ]
+  },
+  {
+    "expression": ["(", "var","[", "var", "]", ")"],
+    "objectProperty": "in_complex",
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1]},
+      {"indexFrom": 3, "indexesTo": [1]},
+      {"indexFrom": 4, "indexesTo": [3]},
+      {"indexFrom": 5, "indexesTo": [1]}
+    ]
+  }
+]

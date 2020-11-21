@@ -1,0 +1,1017 @@
+[
+  {
+    "expression": [],
+    "relations": []
+  },
+  {
+    "expression": ["(", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["var", "[", "var1", "]"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4]}
+    ]
+  },
+  {
+    "expression": ["(", "(", ")", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2, 4]},
+      {"indexFrom": 2, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["(", "var","[", "var", "]", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3, 6]},
+      {"indexFrom": 3, "indexesTo": [2, 4, 5]}
+    ]
+  },
+  {
+    "expression": ["(", "(", "(", "(", ")", ")", ")", "(" ,")", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [8, 10]},
+      {"indexFrom": 2, "indexesTo": [3, 7]},
+      {"indexFrom": 3, "indexesTo": [4, 6]},
+      {"indexFrom": 4, "indexesTo": [5]},
+      {"indexFrom": 8, "indexesTo": [2, 9]}
+    ]
+  },
+  {
+    "expression": ["--", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["++", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["!", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["+", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["-", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["*", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["&", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["~", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["--", "--", "--", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]},
+      {"indexFrom": 2, "indexesTo": [3]},
+      {"indexFrom": 3, "indexesTo": [4]}
+    ]
+  },
+  {
+    "expression": ["var", "--", "--", "--"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1]},
+      {"indexFrom": 3, "indexesTo": [2]},
+      {"indexFrom": 4, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["var", "--"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1]}
+    ]
+  },
+  {
+    "expression": ["!", "var", "--"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3]},
+      {"indexFrom": 3, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["!", "--", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2]},
+      {"indexFrom": 2, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["var1", ".", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var1", ".", "var2", ".", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["+", "-", "~", "--", "++", "&", "*", "!","var1", ".", "var2"],
+    "relations": [
+      {"indexFrom": 10, "indexesTo": [9, 11]},
+      {"indexFrom": 8, "indexesTo": [10]},
+      {"indexFrom": 7, "indexesTo": [8]},
+      {"indexFrom": 6, "indexesTo": [7]},
+      {"indexFrom": 5, "indexesTo": [6]},
+      {"indexFrom": 4, "indexesTo": [5]},
+      {"indexFrom": 3, "indexesTo": [4]},
+      {"indexFrom": 2, "indexesTo": [3]},
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["var1", "->", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var1", "->", "var2", "->", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var1", "->", "var2", ".", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var1", ".", "var2", "->", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["--", "var1", "->", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [2, 4]},
+      {"indexFrom": 1, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["-", "var1", "->", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [2, 4]},
+      {"indexFrom": 1, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["++", "var1", "->", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [2, 4]},
+      {"indexFrom": 1, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["var1", "->", "var2", "--"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["var1", "->", "var2", "++"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["(", "(", "var", "--", ")", "--", ")", "--"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [6, 7]},
+      {"indexFrom": 2, "indexesTo": [4, 5]},
+      {"indexFrom": 4, "indexesTo": [3]},
+      {"indexFrom": 6, "indexesTo": [2]},
+      {"indexFrom": 8, "indexesTo": [1]}
+    ]
+  },
+  {
+    "expression": ["--", "var", "--"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3]},
+      {"indexFrom": 3, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["++", "var", "--"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3]},
+      {"indexFrom": 3, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["++", "var", "++"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3]},
+      {"indexFrom": 3, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "--", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 3, "indexesTo": [4]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2", "--"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3]}
+    ]
+  },
+  {
+    "expression": ["--", "var", "+", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [1, 4]},
+      {"indexFrom": 1, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["+", "var", "+", "-", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [1, 4]},
+      {"indexFrom": 1, "indexesTo": [2]},
+      {"indexFrom": 4, "indexesTo": [5]}
+    ]
+  },
+  {
+    "expression": ["--", "var", "+", "--", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [1, 4]},
+      {"indexFrom": 1, "indexesTo": [2]},
+      {"indexFrom": 4, "indexesTo": [5]}
+    ]
+  },
+  {
+    "expression": ["var", "--", "+", "--", "var2"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [2, 4]},
+      {"indexFrom": 2, "indexesTo": [1]},
+      {"indexFrom": 4, "indexesTo": [5]}
+    ]
+  },
+  {
+    "expression": ["var", "*", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "/", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "%", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "*", "var2", "/", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "/", "var2", "*", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "%", "var2", "/", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "/", "var2", "%", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2", "/", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2", "*", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2", "/", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "-", "var2", "/", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<<", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", ">>", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "<<", "var2", ">>", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", ">>", "var2", "<<", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", ">>", "var2", "-", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<", "var2", "<<", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", ">", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", ">=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "<=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "<", "var2", "<", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<", "var2", ">", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<=", "var2", ">", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", ">", "var2", ">=", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<=", "var2", ">=", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "!=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "==", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "!=", "var2", "!=", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "==", "var2", "==", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<", "var2", "!=", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "<", "var2", "==", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "!=", "var2", "<", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "==", "var2", "<", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2", "+", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "=", "var2", "=", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "=", "var2", "+", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "+", "var2", "*", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "&", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "^", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "|", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "&", "var2", "^", "var3", "|", "var4"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]},
+      {"indexFrom": 6, "indexesTo": [4, 7]}
+    ]
+  },
+  {
+    "expression": ["var", "|", "var2", "&", "var3", "^", "var4"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 6]},
+      {"indexFrom": 4, "indexesTo": [3, 5]},
+      {"indexFrom": 6, "indexesTo": [4, 7]}
+    ]
+  },
+  {
+    "expression": ["var", "&", "var2", "<", "var3", "|", "var4"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]},
+      {"indexFrom": 6, "indexesTo": [2, 7]}
+    ]
+  },
+  {
+    "expression": ["var", "&&", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "||", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "&&", "var2", "||", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "||", "var2", "&&", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["var", "||", "var2", "&&", "var3", "^", "var4"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 6]},
+      {"indexFrom": 6, "indexesTo": [5, 7]}
+    ]
+  },
+  {
+    "expression": ["var", "=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "+=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "-=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "*=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "%=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "/=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "<<=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", ">>=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "&=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "^=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "|=", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var6", "%=", "var7","/=", "var8","*=", "var9", "-=", "var10", "+=", "var11", "=", "var12"],
+    "relations": [
+      {"indexFrom": 12, "indexesTo": [11, 13]},
+      {"indexFrom": 10, "indexesTo": [9, 12]},
+      {"indexFrom": 8, "indexesTo": [7, 10]},
+      {"indexFrom": 6, "indexesTo": [5, 8]},
+      {"indexFrom": 4, "indexesTo": [3, 6]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["var6", "=", "var7","+=", "var8","-=", "var9", "*=", "var10", "/=", "var11", "%=", "var12"],
+    "relations": [
+      {"indexFrom": 12, "indexesTo": [11, 13]},
+      {"indexFrom": 10, "indexesTo": [9, 12]},
+      {"indexFrom": 8, "indexesTo": [7, 10]},
+      {"indexFrom": 6, "indexesTo": [5, 8]},
+      {"indexFrom": 4, "indexesTo": [3, 6]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["var", "^=", "var2", "|=", "var3", "&=", "var4", ">>=", "var5", "<<=", "var6"],
+    "relations": [
+      {"indexFrom": 10, "indexesTo": [9, 11]},
+      {"indexFrom": 8, "indexesTo": [7, 10]},
+      {"indexFrom": 6, "indexesTo": [5, 8]},
+      {"indexFrom": 4, "indexesTo": [3, 6]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["var", "^=", "var2", "|=", "var3", "&=", "var4", "||", "var5", "<<=", "var6"],
+    "relations": [
+      {"indexFrom": 10, "indexesTo": [8, 11]},
+      {"indexFrom": 8, "indexesTo": [7, 9]},
+      {"indexFrom": 6, "indexesTo": [5, 10]},
+      {"indexFrom": 4, "indexesTo": [3, 6]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["var", ",", "var2"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["var", "|=", "var2", ",", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["var", ",", "var2", "|=", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["(", "var", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2, 3]}
+    ]
+  },
+  {
+    "expression": ["(", "var", "+", "var2", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3, 5]},
+      {"indexFrom": 3, "indexesTo": [2, 4]}
+    ]
+  },
+  {
+    "expression": ["(", "var1", "+", "var2", ")", "*", "--", "var3"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3, 5]},
+      {"indexFrom": 3, "indexesTo": [2, 4]},
+      {"indexFrom": 6, "indexesTo": [1, 7]},
+      {"indexFrom": 7, "indexesTo": [8]}
+    ]
+  },
+  {
+    "expression": ["var", "[", "var1", "+", "var2", "]", "*", "--", "var3"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4, 6]},
+      {"indexFrom": 4, "indexesTo": [3, 5]},
+      {"indexFrom": 7, "indexesTo": [2, 8]},
+      {"indexFrom": 8, "indexesTo": [9]}
+    ]
+  },
+  {
+    "expression": ["var1","[", "var2", "]","[","var3", "]", "++"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4]},
+      {"indexFrom": 5, "indexesTo": [2, 6, 7]},
+      {"indexFrom": 8, "indexesTo": [5]}
+    ]
+  },
+  {
+    "expression": ["var1", "*", "(", "var2", "*", "(", "var3", "+", "var4", ")", ")", "+", "var5"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 3, "indexesTo": [5, 11]},
+      {"indexFrom": 5, "indexesTo": [4, 6]},
+      {"indexFrom": 6, "indexesTo": [8, 10]},
+      {"indexFrom": 8, "indexesTo": [7, 9]},
+      {"indexFrom": 12, "indexesTo": [2, 13]}
+    ]
+  },
+  {
+    "expression": ["func", "(", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]}
+    ]
+  },
+  {
+    "expression": ["func", "(", ")", "--"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["a", "=" ,"func", "(", ")"],
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [3, 5]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["a", "=" ,"func", "(", ")", "--"],
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [3, 5]},
+      {"indexFrom": 6, "indexesTo": [4]},
+      {"indexFrom": 2, "indexesTo": [1, 6]}
+    ]
+  },
+  {
+    "expression": ["scope", "::", "func", "(", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]}
+    ]
+  },
+  {
+    "expression": ["scope1", "::", "scope2", "::", "func", "(", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5]},
+      {"indexFrom": 6, "indexesTo": [4, 7]}
+    ]
+  },
+  {
+    "expression": ["func", "(", "var", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4]}
+    ]
+  },
+  {
+    "expression": ["func", "(", "var", ")", "--"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4]},
+      {"indexFrom": 5, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["func", "(", "var1", "<", "var2" ,")", "--"],
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [3, 5]},
+      {"indexFrom": 2, "indexesTo": [1, 4, 6]},
+      {"indexFrom": 7, "indexesTo": [2]}
+    ]
+  },
+  {
+    "expression": ["a", "=" ,"func", "(", "var1", "<", "var2", ")"],
+    "relations": [
+      {"indexFrom": 6, "indexesTo": [5, 7]},
+      {"indexFrom": 4, "indexesTo": [3, 6, 8]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["a", "*" ,"func", "(", "var1", "<", "var2", ")"],
+    "relations": [
+      {"indexFrom": 6, "indexesTo": [5, 7]},
+      {"indexFrom": 4, "indexesTo": [3, 6, 8]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["a", "=" ,"func", "(", "var1", "<", "var2", ")", "--"],
+    "relations": [
+      {"indexFrom": 6, "indexesTo": [5, 7]},
+      {"indexFrom": 4, "indexesTo": [3, 6, 8]},
+      {"indexFrom": 9, "indexesTo": [4]},
+      {"indexFrom": 2, "indexesTo": [1, 9]}
+    ]
+  },
+  {
+    "expression": ["a", "." ,"func", "(", "var1", "<", "var2", ")", "--"],
+    "relations": [
+      {"indexFrom": 6, "indexesTo": [5, 7]},
+      {"indexFrom": 4, "indexesTo": [2, 6, 8]},
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 9, "indexesTo": [4]}
+    ]
+  },
+  {
+    "expression": ["func", "(", "var", ",", "var2", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 5, 6]}
+    ]
+  },
+  {
+    "expression": ["a", "=" ,"func", "(", "var", ",", "var2", ")"],
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [3, 5, 7, 8]},
+      {"indexFrom": 2, "indexesTo": [1, 4]}
+    ]
+  },
+  {
+    "expression": ["a", "=" ,"func", "(", "var", ",", "var2", ")", "--"],
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [3, 5, 7, 8]},
+      {"indexFrom": 9, "indexesTo": [4]},
+      {"indexFrom": 2, "indexesTo": [1, 9]}
+    ]
+  },
+  {
+    "expression": ["func", "(", "var", ",", "var2", ",", "var3", ",", "var4", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 5, 7, 9, 10]}
+    ]
+  },
+  {
+    "expression": ["(", "var", ",", "var2", ")"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [3, 5]},
+      {"indexFrom": 3, "indexesTo": [2, 4]}
+    ]
+  },
+  {
+    "expression": ["scope", "::", "func", "(", "var", ",", "var2", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 5, 7, 8]}
+    ]
+  },
+  {
+    "expression": ["a", "?", "b", ":", "c"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 5]}
+    ]
+  },
+  {
+    "expression": ["a", "?", "b", ":", "c", "?", "d", ":", "e"],
+    "relations": [
+      {"indexFrom": 6, "indexesTo": [5, 7, 8, 9]},
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 6]}
+    ]
+  },
+  {
+    "expression": ["(", "a", "?", "b", ":", "c", ")"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [2, 4, 5, 6]},
+      {"indexFrom": 1, "indexesTo": [3, 7]}
+    ]
+  },
+  {
+    "expression": ["a", "?", "b", ":", "c", "+", "a"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 6]},
+      {"indexFrom": 6, "indexesTo": [5, 7]}
+    ]
+  },
+  {
+    "expression": ["a", "?", "b", ":", "c", ",", "a"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 5]},
+      {"indexFrom": 6, "indexesTo": [2, 7]}
+    ]
+  },
+  {
+    "expression": ["a", "?", "b", ":", "(", "c", ",", "a", ")"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 5]},
+      {"indexFrom": 5, "indexesTo": [7, 9]},
+      {"indexFrom": 7, "indexesTo": [6, 8]}
+    ]
+  },
+  {
+    "expression": ["(", "a", "?", "b", ":", "c", ")", "+", "a"],
+    "relations": [
+      {"indexFrom": 3, "indexesTo": [2, 4, 5, 6]},
+      {"indexFrom": 1, "indexesTo": [3, 7]},
+      {"indexFrom": 8, "indexesTo": [1, 9]}
+    ]
+  },
+  {
+    "expression": ["a", "?", "b", "+", "c", ":", "c"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 4, 6, 7]},
+      {"indexFrom": 4, "indexesTo": [3, 5]}
+    ]
+  },
+  {
+    "expression": ["a", "+", "b", "?", "b", "+", "c", ":", "c", "*", "d"],
+    "relations": [
+      {"indexFrom": 2, "indexesTo": [1, 3]},
+      {"indexFrom": 4, "indexesTo": [2, 6, 8, 10]},
+      {"indexFrom": 6, "indexesTo": [5, 7]},
+      {"indexFrom": 10, "indexesTo": [9, 11]}
+    ]
+  },
+  {
+    "expression": ["(", "int", ")", "var"],
+    "relations": [
+      {"indexFrom": 1, "indexesTo": [2, 3]}
+    ]
+  }
+]
