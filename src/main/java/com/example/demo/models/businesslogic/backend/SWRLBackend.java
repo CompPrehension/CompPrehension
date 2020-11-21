@@ -110,7 +110,7 @@ public abstract class SWRLBackend extends Backend {
         }
         for (Law law : laws) {
             for (LawFormulation lawFormulation : law.getLawFormulations()) {
-                if (true) { //lawFormulation.getBackend().getName().equals("SWRL")) {
+                if (lawFormulation.getBackend().equals("SWRL")) {
                     try {
                         ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
                     } catch (SWRLParseException | SWRLBuiltInException e) {
@@ -131,7 +131,7 @@ public abstract class SWRLBackend extends Backend {
 
         for (Law law : laws) {
             for (LawFormulation lawFormulation : law.getLawFormulations()) {
-                if (true) { //lawFormulation.getBackend().getName().equals("SWRL")) {
+                if (lawFormulation.getBackend().equals("SWRL")) {
                     try {
                         ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
                     } catch (SWRLParseException | SWRLBuiltInException e) {

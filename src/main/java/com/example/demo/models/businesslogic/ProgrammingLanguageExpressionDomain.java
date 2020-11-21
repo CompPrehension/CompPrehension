@@ -1130,6 +1130,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         LawFormulation lawFormulation = new LawFormulation();
         lawFormulation.setLaw(name);
         lawFormulation.setFormulation(formulation);
+        lawFormulation.setBackend("SWRL");
         return lawFormulation;
     }
 
