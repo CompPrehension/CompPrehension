@@ -6,10 +6,10 @@ import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.utils.HyperText;
-import gnu.trove.set.hash.THashSet;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Component
@@ -234,15 +234,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
-        THashSet<String> conceptNames = new THashSet<>();
+        HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
         }
-        THashSet<String> allowedConceptNames = new THashSet<>();
+        HashSet<String> allowedConceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getAllowedConcepts()) {
             allowedConceptNames.add(concept.getName());
         }
-        THashSet<String> deniedConceptNames = new THashSet<>();
+        HashSet<String> deniedConceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getDeniedConcepts()) {
             deniedConceptNames.add(concept.getName());
         }
@@ -365,7 +365,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     List<BackendFact> getBackendFacts(List<String> expression) {
-        List<BackendFact> facts = new ArrayList<>();
+        List<BackendFact> facts = getSWRLBackendBaseFacts();
         int index = 0;
         for (String token : expression) {
             index++;
@@ -383,7 +383,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     List<BackendFact> getSWRLBackendBaseFacts() {
         List<BackendFact> facts = new ArrayList<>();
-        facts.add(new BackendFact("0_step", "rdf:type", "owl:ObjectProperty"));
+        facts.add(new BackendFact("zero_step", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("all_app_to_left", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("all_app_to_right", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("all_eval_to_right", "rdf:type", "owl:ObjectProperty"));
@@ -452,12 +452,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return facts;
     }
 
-    List<LawFormulation> getAllLaws() {
+    public List<LawFormulation> getAllLaws() {
         List<LawFormulation> laws = new ArrayList<>();
-        laws.add(getLawFormulation("aa", "bb"));
         laws.add(getLawFormulation(
-                "0_step",
-                "index(?a, ?a_index) ^ index(?b, ?a_index) ^ step(?b, 0) -> autogen0:_step(?a, ?b)"
+                "zero_step",
+                "index(?a, ?a_index) ^ index(?b, ?a_index) ^ step(?b, 0) -> zero_step(?a, ?b)"
         ));
         laws.add(getLawFormulation(
                 "all_app_to_left",
@@ -576,28 +575,28 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "copy(?a, ?to) ^ eval(?a, true) -> eval(?to, true)"
         ));
         laws.add(getLawFormulation(
-                "copy_eval_step_to_0_step",
-                "eval_step(?a, ?a_step) ^ autogen0:_step(?a, ?a0) -> eval_step(?a0, ?a_step)"
+                "copy_eval_step_to_zero_step",
+                "eval_step(?a, ?a_step) ^ zero_step(?a, ?a0) -> eval_step(?a0, ?a_step)"
         ));
         laws.add(getLawFormulation(
-                "copy_has_complex_operator_part_to_0_step",
-                "has_complex_operator_part(?a, ?b) ^ autogen0:_step(?a, ?a0) ^ autogen0:_step(?b, ?b0) -> has_complex_operator_part(?a0, ?b0)"
+                "copy_has_complex_operator_part_to_zero_step",
+                "has_complex_operator_part(?a, ?b) ^ zero_step(?a, ?a0) ^ zero_step(?b, ?b0) -> has_complex_operator_part(?a0, ?b0)"
         ));
         laws.add(getLawFormulation(
-                "copy_has_operand_to_0_step",
-                "has_operand(?a, ?b) ^ autogen0:_step(?a, ?a0) ^ autogen0:_step(?b, ?b0) -> has_operand(?a0, ?b0)"
+                "copy_has_operand_to_zero_step",
+                "has_operand(?a, ?b) ^ zero_step(?a, ?a0) ^ zero_step(?b, ?b0) -> has_operand(?a0, ?b0)"
         ));
         laws.add(getLawFormulation(
                 "copy_init",
                 "copy(?a, ?to) ^ init(?a, true) -> init(?to, true)"
         ));
         laws.add(getLawFormulation(
-                "copy_to_0_step",
-                "step(?a, 0) ^ step(?b, 1) ^ autogen0:_step(?b, ?a) -> copy_without_marks(?b, ?a)"
+                "copy_to_zero_step",
+                "step(?a, 0) ^ step(?b, 1) ^ zero_step(?b, ?a) -> copy_without_marks(?b, ?a)"
         ));
         laws.add(getLawFormulation(
                 "copy_to_1_step",
-                "step(?a, 0) ^ step(?b, 1) ^ autogen0:_step(?b, ?a) -> copy(?a, ?b)"
+                "step(?a, 0) ^ step(?b, 1) ^ zero_step(?b, ?a) -> copy(?a, ?b)"
         ));
         laws.add(getLawFormulation(
                 "copy_without_marks",
@@ -617,7 +616,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ));
         laws.add(getLawFormulation(
                 "copy_without_marks_complex_boundaries",
-                "same_step(?c, ?to) ^ copy_without_marks(?a, ?to) ^ complex_boundaries(?a, ?b) ^ autogen0:_step(?c, ?b0) ^ autogen0:_step(?b, ?b0) -> complex_boundaries(?to, ?c)"
+                "same_step(?c, ?to) ^ copy_without_marks(?a, ?to) ^ complex_boundaries(?a, ?b) ^ zero_step(?c, ?b0) ^ zero_step(?b, ?b0) -> complex_boundaries(?to, ?c)"
         ));
         laws.add(getLawFormulation(
                 "copy_without_marks_complex_ending",
@@ -625,7 +624,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ));
         laws.add(getLawFormulation(
                 "copy_without_marks_in_complex",
-                "same_step(?c, ?to) ^ copy_without_marks(?a, ?to) ^ in_complex(?a, ?b) ^ autogen0:_step(?c, ?b0) ^ autogen0:_step(?b, ?b0) -> in_complex(?to, ?c)"
+                "same_step(?c, ?to) ^ copy_without_marks(?a, ?to) ^ in_complex(?a, ?b) ^ zero_step(?c, ?b0) ^ zero_step(?b, ?b0) -> in_complex(?to, ?c)"
         ));
         laws.add(getLawFormulation(
                 "copy_without_marks_is_function_call",
@@ -665,7 +664,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ));
         laws.add(getLawFormulation(
                 "describe_error",
-                "swrlb:lessThan(?b_pos, ?a_pos) ^ swrlb:notEqual(?a_pos, 0) ^ student_pos(?b, ?b_pos) ^ swrlb:notEqual(?b_pos, 0) ^ before_direct(?a, ?b) ^ student_pos(?a, ?a_pos) ^ arity(?a, ?a_arity) ^ autogen0:_step(?a, ?a) ^ autogen0:_step(?b, ?b) -> describe_error(?a, ?b)"
+                "swrlb:lessThan(?b_pos, ?a_pos) ^ swrlb:notEqual(?a_pos, 0) ^ student_pos(?b, ?b_pos) ^ swrlb:notEqual(?b_pos, 0) ^ before_direct(?a, ?b) ^ student_pos(?a, ?a_pos) ^ arity(?a, ?a_arity) ^ zero_step(?a, ?a) ^ zero_step(?b, ?b) -> describe_error(?a, ?b)"
         ));
         laws.add(getLawFormulation(
                 "equal_priority_L_assoc",
@@ -717,7 +716,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ));
         laws.add(getLawFormulation(
                 "eval_operand_in_complex",
-                "init(?a, true) ^ in_complex(?a, ?b) ^ is_operand(?a, true) -> eval(?a, true)	Make incostistent until use of operand"
+                "init(?a, true) ^ in_complex(?a, ?b) ^ is_operand(?a, true) -> eval(?a, true)"
         ));
         laws.add(getLawFormulation(
                 "eval_postfix_operation",

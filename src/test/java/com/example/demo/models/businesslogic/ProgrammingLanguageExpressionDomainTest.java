@@ -1,5 +1,7 @@
 package com.example.demo.models.businesslogic;
 
+import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,5 +75,32 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr4.setDeniedConcepts(List.of());
         assertEquals("Choose associativity of operator binary +",
                 domain.makeQuestion(qr4, Language.ENGLISH).getQuestionText().getText());
+    }
+
+    @Test
+    public void testQuestionSolve() throws Exception {
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(List.of(
+                domain.getConcept("precedence")
+        ));
+        qr.setAllowedConcepts(List.of(
+                domain.getConcept("operator_binary_+"),
+                domain.getConcept("operator_binary_*")
+        ));
+        qr.setDeniedConcepts(List.of(
+                domain.getConcept("associativity")
+        ));
+        Question question = domain.makeQuestion(qr, Language.ENGLISH);
+        assertEquals("a + b * c", question.getQuestionText().getText());
+
+        PelletBackend backend = new PelletBackend();
+        Law law = new PositiveLaw(
+                "test",
+                domain.getAllLaws(),
+                List.of(),
+                List.of()
+        );
+        List<BackendFact> solution = backend.solve(List.of(law), question.getStatementFacts(), List.of("has_operand"));
+        assertEquals(8, solution.size());
     }
 }
