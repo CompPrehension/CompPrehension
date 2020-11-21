@@ -1,25 +1,24 @@
 package com.example.demo.models.businesslogic.backend;
 
-import com.example.demo.models.entities.Mistake;
-import gnu.trove.map.hash.THashMap;
-import openllet.owlapi.OpenlletReasoner;
-import openllet.owlapi.OpenlletReasonerFactory;
+import com.example.demo.models.entities.BackendFact;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
+import com.clarkparsia.pellet.owlapiv3.PelletReasoner;
+import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 
 import java.util.*;
 
 public class PelletBackend extends SWRLBackend {
-    OpenlletReasoner Reasoner;
+    PelletReasoner Reasoner;
 
     public PelletBackend () {
         super();
-        Reasoner = OpenlletReasonerFactory.getInstance().createReasoner(Ontology);
+        Reasoner = PelletReasonerFactory.getInstance().createReasoner(Ontology);
     }
 
     public NodeSet<OWLNamedIndividual> getAllIndividuals() {
-        return Reasoner.getInstances(getThingClass());
+        return Reasoner.getInstances(getThingClass(), true);
     }
 
     public String getDataValue(OWLNamedIndividual ind, OWLDataProperty dataProperty) {
@@ -42,7 +41,7 @@ public class PelletBackend extends SWRLBackend {
     HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> getObjectPropertyRelations(String objectProperty) {
         HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> relations = new HashMap<>();
 
-        for (Node<OWLNamedIndividual> nodeInd : Reasoner.getInstances(Factory.getOWLClass(getThingClass()))) {
+        for (Node<OWLNamedIndividual> nodeInd : Reasoner.getInstances(getThingClass(), true)) {
             OWLNamedIndividual ind = nodeInd.getRepresentativeElement();
 
             OWLObjectProperty opProperty = getObjectProperty(objectProperty);
@@ -61,20 +60,20 @@ public class PelletBackend extends SWRLBackend {
     }
 
     @Override
-    List<Mistake> findErrors(THashMap<String, String> errorTypeToLawName) {
-        List<Mistake> result = new ArrayList<>();
+    public List<BackendFact> getObjectProperties(String objectProperty) {
+        List<BackendFact> facts = new ArrayList<>();
+        HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> relations = getObjectPropertyRelations(objectProperty);
 
-        for (Map.Entry<String, String> errorTypeToLawNameEntry : errorTypeToLawName.entrySet()) {
-            HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> rels = getObjectPropertyRelations(errorTypeToLawNameEntry.getKey());
-            for (Map.Entry<OWLNamedIndividual, Set<OWLNamedIndividual>> relsEntry : rels.entrySet()) {
-                for (OWLNamedIndividual ind : relsEntry.getValue()) {
-                    Mistake mistake = new Mistake();
-                    mistake.setLawName(errorTypeToLawNameEntry.getValue());
-                    result.add(mistake);
-                }
+        for (Map.Entry<OWLNamedIndividual, Set<OWLNamedIndividual>> relationsEntry : relations.entrySet()) {
+            for (OWLNamedIndividual to : relationsEntry.getValue()) {
+                facts.add(new BackendFact(relationsEntry.getKey().getIRI().getShortForm(), objectProperty, to.getIRI().getShortForm()));
             }
         }
+        return facts;
+    }
 
-        return result;
+    @Override
+    void callReasoner() {
+        Reasoner.refresh();
     }
 }

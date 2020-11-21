@@ -1,6 +1,5 @@
 package com.example.demo.models.entities;
 
-import com.example.demo.models.businesslogic.Law;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LawFormulation {
     private String formulation;
-    private Law law;
-    private Backend backend;
+    private String law;
+    private String backend;
 }

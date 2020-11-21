@@ -11,13 +11,13 @@ public class QuestionRequest {
 
     private List<Concept> targetConcepts;
 
-    private List<Concept> allovedConcepts;
+    private List<Concept> allowedConcepts;
 
     private List<Law> targetLaws;
     
     private List<Law> deniedLaws;
 
-    private List<Law> allovedLaws;
+    private List<Law> allowedLaws;
 
 
     /**
