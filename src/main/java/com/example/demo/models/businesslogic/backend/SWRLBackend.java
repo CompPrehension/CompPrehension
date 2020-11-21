@@ -103,10 +103,26 @@ public abstract class SWRLBackend extends Backend {
         return true;
     }
 
+    public abstract List<BackendFact> getObjectProperties(String objectProperty);
+
     public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement) {
+        SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
+
         for (BackendFact fact : statement) {
             addStatementFact(fact);
         }
+        for (Law law : laws) {
+            for (LawFormulation lawFormulation : law.getLawFormulations()) {
+                if (true) { //lawFormulation.getBackend().getName().equals("SWRL")) {
+                    try {
+                        ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
+                    } catch (SWRLParseException | SWRLBuiltInException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
         return new ArrayList<>();
     }
 
@@ -128,7 +144,7 @@ public abstract class SWRLBackend extends Backend {
 
         for (Law law : laws) {
             for (LawFormulation lawFormulation : law.getLawFormulations()) {
-                if (lawFormulation.getBackend().getName().equals("SWRL")) {
+                if (true) { //lawFormulation.getBackend().getName().equals("SWRL")) {
                     try {
                         ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
                     } catch (SWRLParseException | SWRLBuiltInException e) {
