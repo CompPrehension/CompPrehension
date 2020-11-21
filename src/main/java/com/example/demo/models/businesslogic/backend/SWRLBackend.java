@@ -101,23 +101,26 @@ public abstract class SWRLBackend extends Backend {
     abstract List<BackendFact> getObjectProperties(String objectProperty);
     abstract void callReasoner();
 
+    void addLaw(Law law) {
+        SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
+        for (LawFormulation lawFormulation : law.getLawFormulations()) {
+            if (lawFormulation.getBackend().equals("SWRL")) {
+                try {
+                    ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
+                } catch (SWRLParseException | SWRLBuiltInException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     @Override
     public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement, List<String> solutionVerbs) {
-        SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
-
         for (BackendFact fact : statement) {
             addStatementFact(fact);
         }
         for (Law law : laws) {
-            for (LawFormulation lawFormulation : law.getLawFormulations()) {
-                if (lawFormulation.getBackend().equals("SWRL")) {
-                    try {
-                        ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
-                    } catch (SWRLParseException | SWRLBuiltInException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            addLaw(law);
         }
 
         callReasoner();
@@ -127,25 +130,15 @@ public abstract class SWRLBackend extends Backend {
 
     @Override
     public List<BackendFact> judge(List<Law> laws, List<BackendFact> statement, List<BackendFact> correctAnswer, List<BackendFact> response, List<String> violationVerbs) {
-        SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
-
-        for (Law law : laws) {
-            for (LawFormulation lawFormulation : law.getLawFormulations()) {
-                if (lawFormulation.getBackend().equals("SWRL")) {
-                    try {
-                        ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
-                    } catch (SWRLParseException | SWRLBuiltInException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
         for (BackendFact fact : statement) {
             addStatementFact(fact);
         }
         for (BackendFact fact : response) {
             addStatementFact(fact);
+        }
+
+        for (Law law : laws) {
+            addLaw(law);
         }
 
         callReasoner();
