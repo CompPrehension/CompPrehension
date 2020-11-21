@@ -130,7 +130,7 @@ public abstract class SWRLBackend extends Backend {
             for (LawFormulation lawFormulation : law.getLawFormulations()) {
                 if (lawFormulation.getBackend().getName().equals("SWRL")) {
                     try {
-                        ruleEngine.createSWRLRule(lawFormulation.getLaw().getName(), lawFormulation.getFormulation());
+                        ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
                     } catch (SWRLParseException | SWRLBuiltInException e) {
                         e.printStackTrace();
                     }

@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LawFormulation {
     private String formulation;
-    private Law law;
+    private String law;
     private Backend backend;
 }
