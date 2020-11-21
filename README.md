@@ -1,4 +1,4 @@
-## OntoQuiz
+## CompPrehension
 
 https://taiga.seschool.ru/project/oasychev-modelirovanie-ponimaniia-iadro/wiki/home
 
