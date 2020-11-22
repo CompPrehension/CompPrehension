@@ -52,7 +52,7 @@ public class StrategyTest {
         Question question = domain.makeQuestion(qr, Language.ENGLISH);
         assertEquals("a + b * c", question.getQuestionText().getText());
         //Вызов домена с проверкой адекватности вопросов и тд
-
+        testExerciseAttempt = testExerciseAttemptList.get(1);
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         assertTrue(checkQuestionRequest(qr1, testExerciseAttempt));
@@ -61,9 +61,11 @@ public class StrategyTest {
         assertFalse(q1.getQuestionText().getText().isEmpty());
         //Вызов домена с проверкой адекватности вопросов и тд
 
+        testExerciseAttempt = testExerciseAttemptList.get(2);
         QuestionRequest qr2 = strategy.generateQuestionRequest(testExerciseAttempt);
 
         assertTrue(checkQuestionRequest(qr2, testExerciseAttempt));
+
 
         Question q2 = domain.makeQuestion(qr2, Language.ENGLISH);
         assertFalse(q2.getQuestionText().getText().isEmpty());
