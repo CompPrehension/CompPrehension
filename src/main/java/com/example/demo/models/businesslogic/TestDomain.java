@@ -23,8 +23,7 @@ public class TestDomain extends Domain {
 
     }
 
-    public TestDomain(DomainEntity domainEntity) {
-        super(domainEntity);
+    public TestDomain() {
     }
 
     protected ExerciseForm exerciseForm = new TestExerciseForm(domainEntity);

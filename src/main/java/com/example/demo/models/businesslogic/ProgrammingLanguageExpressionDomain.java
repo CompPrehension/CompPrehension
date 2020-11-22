@@ -1,6 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.Service.DomainService;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
@@ -16,8 +15,8 @@ import java.util.List;
 public class ProgrammingLanguageExpressionDomain extends Domain {
     public final static String name = "ProgrammingLanguageExpressionDomain";
 
-    public ProgrammingLanguageExpressionDomain(DomainService domainService) {
-        super(ProgrammingLanguageExpressionDomain.create(domainService));
+    public ProgrammingLanguageExpressionDomain() {
+        //super(ProgrammingLanguageExpressionDomain.create(domainService));
 
         concepts = new ArrayList<>();
         positiveLaws = new ArrayList<>();
@@ -207,7 +206,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return concept;
     }
 
-    static DomainEntity create(DomainService domainService) {
+   /* static DomainEntity create(DomainService domainService) {
         if (domainService.hasDomainEntity(ProgrammingLanguageExpressionDomain.name)) {
             return domainService.getDomainEntity(ProgrammingLanguageExpressionDomain.name);
         } else {
@@ -216,7 +215,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "1"
             );
         }
-    }
+    }*/
 
     @Override
     public void update() {

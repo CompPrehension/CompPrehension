@@ -1,10 +1,12 @@
 package com.example.demo.models.businesslogic;
 
 import com.example.demo.DemoApplication;
+import com.example.demo.Service.DomainService;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
 import com.example.demo.models.entities.ExerciseConcept;
+import com.example.demo.utils.DomainAdapter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,14 +27,18 @@ public class StrategyTest {
     private AbstractStrategy strategy;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
+
     @Autowired
-    ProgrammingLanguageExpressionDomain domain;
+    DomainService domainService;
+
     @Test
     public void generateQuestionThreeTimes () throws Exception
     {
         assertNotNull(strategy);
 
         List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
+
+        Domain domain = DomainAdapter.getDomain(testExerciseAttemptList.get(0).getExercise().getDomain().getName());
 
         ExerciseAttempt testExerciseAttempt = testExerciseAttemptList.get(0);
 

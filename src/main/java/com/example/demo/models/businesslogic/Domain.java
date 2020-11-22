@@ -15,14 +15,17 @@ public abstract class Domain {
 
     protected DomainEntity domainEntity;
 
+    protected String name;
+    protected String version;
+
     public abstract void update();
 
     public String getName() {
-        return domainEntity.getName();
+        return name;
     }
     
     public String getVersion() {
-        return domainEntity.getVersion();
+        return version;
     }
 
     public List<PositiveLaw> getPositiveLaws() {
@@ -63,8 +66,8 @@ public abstract class Domain {
         return null;
     }
 
-    public Domain(DomainEntity domainEntity) {
-        this.domainEntity = domainEntity;
+    public Domain() {
+
     }
 
     public abstract ExerciseForm getExerciseForm();
