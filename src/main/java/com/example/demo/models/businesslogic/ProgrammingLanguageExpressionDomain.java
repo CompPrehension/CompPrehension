@@ -13,9 +13,10 @@ import java.util.List;
 
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
-    public final static String name = "ProgrammingLanguageExpressionDomain";
+    //protected String name = c
 
     public ProgrammingLanguageExpressionDomain() {
+        name = "ProgrammingLanguageExpressionDomain";
         //super(ProgrammingLanguageExpressionDomain.create(domainService));
 
         concepts = new ArrayList<>();

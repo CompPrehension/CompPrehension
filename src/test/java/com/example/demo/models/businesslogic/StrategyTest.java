@@ -24,7 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 public class StrategyTest {
     @Autowired
-    private AbstractStrategy strategy;
+    private Strategy strategy;
+
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
 
@@ -48,8 +49,8 @@ public class StrategyTest {
 
         assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
 
-        Question q = domain.makeQuestion(qr, Language.ENGLISH);
-        assertFalse(q.getQuestionText().getText().isEmpty());
+        Question question = domain.makeQuestion(qr, Language.ENGLISH);
+        assertEquals("a + b * c", question.getQuestionText().getText());
         //Вызов домена с проверкой адекватности вопросов и тд
 
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);

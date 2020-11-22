@@ -43,11 +43,11 @@ public class DomainService {
     @Autowired
     private ProgrammingLanguageExpressionDomain programmingLanguageExpressionDomain;
 
-    public Domain getDomain(String name) throws Exception {
-        if (name.equals(ProgrammingLanguageExpressionDomain.name)) {
+    /*public Domain getDomain(String name) throws Exception {
+        if (name.equals(ProgrammingLanguageExpressionDomain.getName())) {
             return programmingLanguageExpressionDomain;
         } else {
             throw new Exception();
         }
-    }
+    }*/
 }

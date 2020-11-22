@@ -7,11 +7,12 @@ import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
+import com.example.demo.utils.DomainAdapter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class Strategy extends AbstractStrategy {
@@ -26,6 +27,7 @@ public class Strategy extends AbstractStrategy {
 
         QuestionRequest qr = new QuestionRequest();
         Exercise exercise = exerciseAttempt.getExercise();
+        Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
 
         List<Concept> deniedConcepts = new ArrayList<>();
         List<Concept> allowedConcepts = new ArrayList<>();
@@ -34,12 +36,17 @@ public class Strategy extends AbstractStrategy {
         //Выделить из упражнения целевые и запрещенные законы
         for (ExerciseConcept ec : exercise.getExerciseConcepts()) {
             if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
-                //TODO
-                //targetConcepts.add(ec.getConcept());
+                targetConcepts.add(domain.getConcept(ec.getConceptName()));
             } else if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
-                //TODO
-                //deniedConcepts.add(ec.getConcept());
+                deniedConcepts.add(domain.getConcept(ec.getConceptName()));
             }
+        }
+
+        if(targetConcepts.contains(domain.getConcept("precedence"))){
+            allowedConcepts.add(domain.getConcept("operator_binary_*"));
+            allowedConcepts.add(domain.getConcept("operator_binary_+"));
+        }else{
+            allowedConcepts.add(domain.getConcept("operator_binary_+"));
         }
 
         qr.setComplexity(1);
@@ -48,9 +55,8 @@ public class Strategy extends AbstractStrategy {
         qr.setTargetConcepts(targetConcepts);
         qr.setAllowedConcepts(allowedConcepts);
 
-        DomainEntity domainEntity = domainService.getDomainEntity(exercise.getDomain().getName());
-        //TODO: make domain from entity
-        List<Law> laws = new ArrayList<>(); //domainEntity.getLaws();
+        List<Law> laws = new ArrayList<>(domain.getNegativeLaws()); //domainEntity.getLaws();
+
         List<Law> targetLaws = new ArrayList<>();
         List<Law> deniedLaws = new ArrayList<>();
         //Распределяем законы не запрещенные и целевые

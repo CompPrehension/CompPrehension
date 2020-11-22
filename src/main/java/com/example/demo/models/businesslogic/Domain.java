@@ -15,8 +15,8 @@ public abstract class Domain {
 
     protected DomainEntity domainEntity;
 
-    protected String name;
-    protected String version;
+    protected String name = "";
+    protected String version = "";
 
     public abstract void update();
 
@@ -67,7 +67,6 @@ public abstract class Domain {
     }
 
     public Domain() {
-
     }
 
     public abstract ExerciseForm getExerciseForm();
