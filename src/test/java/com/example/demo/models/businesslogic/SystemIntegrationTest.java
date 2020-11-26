@@ -2,6 +2,9 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.DemoApplication;
 import com.example.demo.Service.DomainService;
+import com.example.demo.models.businesslogic.backend.Backend;
+import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.entities.ExerciseAttempt;
@@ -32,8 +35,11 @@ public class SystemIntegrationTest {
     @Autowired
     DomainService domainService;
 
+    @Autowired
+    PelletBackend backend;
+
     @Test
-    public void generateQuestionThreeTimes() throws Exception
+    public void generateTest() throws Exception
     {
         assertNotNull(strategy);
 
@@ -72,6 +78,14 @@ public class SystemIntegrationTest {
         assertFalse(q2.getQuestionText().getText().isEmpty());
         //Вызов домена с проверкой адекватности вопросов и тд
 
+    }
+
+    void checkQuestionSolve(Question question, List<BackendFact> statementsFacts) {
+        return;
+    }
+
+    void checkQuestionJudge(Question question, List<BackendFact> violationFacts) {
+        return;
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttempt testExerciseAttempt) {
