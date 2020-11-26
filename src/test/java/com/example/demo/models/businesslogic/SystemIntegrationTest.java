@@ -57,8 +57,12 @@ public class SystemIntegrationTest {
 
         Question question = domain.makeQuestion(qr, Language.ENGLISH);
         assertEquals("a + b * c", question.getQuestionText().getText());
-        //backend.solve(question.getStatementFacts(), "has_operand");
-        //Вызов домена с проверкой адекватности вопросов и тд
+        List<BackendFact> solution = backend.solve(
+                domain.getQuestionLaws(question.getQuestionDomainType(), question.getStatementFacts()),
+                question.getStatementFacts(),
+                domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
+        assertFalse(solution.isEmpty());
+
         testExerciseAttempt = testExerciseAttemptList.get(1);
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 

@@ -134,8 +134,8 @@ public class QuestionController {
         question.addFullResponse(responses);
         List<BackendFact> facts = question.responseToFacts();
         List<BackendFact> statementFacts = question.getStatementFacts();
-        List<BackendFact> solution = core.getDefaultBackend().solve(question.getNegativeLaws(), statementFacts, List.of(/*TODO*/));
-        List<BackendFact> sentence = core.getDefaultBackend().judge(question.getNegativeLaws(), statementFacts, solution, facts, List.of(/*TODO*/));
+        List<BackendFact> solution = core.getDefaultBackend().solve(List.of(/*TODO*/), statementFacts, List.of(/*TODO*/));
+        List<BackendFact> sentence = core.getDefaultBackend().judge(List.of(/*TODO*/), statementFacts, solution, facts, List.of(/*TODO*/));
         List<Mistake> mistakes = new ArrayList<>(); //TODO
 
         FeedbackType feedbackType = strategy.determineFeedbackType(qa);

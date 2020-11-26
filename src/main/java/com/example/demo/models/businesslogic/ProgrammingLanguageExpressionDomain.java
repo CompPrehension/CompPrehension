@@ -181,14 +181,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 getPositiveLaw("operator_binary_+_associativity_left")
         ));
         negativeLaws.add(new NegativeLaw(
-                "precedence_binary_*_less_binary_+",
+                "error_precedence_binary_*_less_binary_+",
                 List.of(),
                 mulHigherPlusPrecedenceConcepts,
                 List.of(),
                 getPositiveLaw("precedence_binary_*_higher_binary_+")
         ));
         negativeLaws.add(new NegativeLaw(
-                "precedence_binary_*_equal_binary_+",
+                "error_precedence_binary_*_equal_binary_+",
                 List.of(),
                 mulHigherPlusPrecedenceConcepts,
                 List.of(),
@@ -1107,9 +1107,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return List.of(
                     getPositiveLaw("single_token_binary_execution"),
                     getPositiveLaw("operator_binary_+_associativity_left"),
-                    getPositiveLaw("single_token_binary_execution"),
-                    getPositiveLaw("precedence_binary_*_less_binary_+"),
-                    getPositiveLaw("precedence_binary_*_equal_binary_+")
+                    getPositiveLaw("single_token_binary_execution")
             );
         }
         return List.of();
@@ -1123,7 +1121,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left"),
                     getNegativeLaw("error_binary_+_right_associativity"),
-                    getNegativeLaw("error_binary_+_absent_associativity")
+                    getNegativeLaw("error_binary_+_absent_associativity"),
+                    getNegativeLaw("error_precedence_binary_*_less_binary_+"),
+                    getNegativeLaw("error_precedence_binary_*_equal_binary_+")
             );
         }
         return List.of();

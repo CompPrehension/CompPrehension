@@ -11,10 +11,6 @@ import java.util.List;
 
 public interface QuestionBack {
     
-    public List<Law> getPositiveLaws();
-
-    public List<Law> getNegativeLaws();
-    
     public AnswerObject getAnswerObject(int index);
     
     public List<AnswerObject> getAnswerObjects();
