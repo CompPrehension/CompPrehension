@@ -99,7 +99,12 @@ public abstract class Question implements QuestionFront, QuestionBack {
         return questionData.getStatementFacts();
     }
 
+    @Override
+    public List<BackendFact> getSolutionFacts() {
+        return questionData.getSolutionFacts();
+    }
+
     public String getQuestionDomainType() {
-        return  questionData.getQuestionDomainType();
+        return questionData.getQuestionDomainType();
     }
 }

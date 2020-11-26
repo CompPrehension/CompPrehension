@@ -154,4 +154,14 @@ public class TestDomain extends Domain {
     public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
         return null;
     }
+
+    @Override
+    public List<BackendFact> responseToFacts(String questionDomainType, List<Response> responses, List<AnswerObject> answerObjects) {
+        return null;
+    }
+
+    @Override
+    public List<Mistake> interpretSentence(List<BackendFact> violations) {
+        return null;
+    }
 }

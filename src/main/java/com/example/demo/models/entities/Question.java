@@ -44,4 +44,6 @@ public class Question {
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<BackendFact> statementFacts;
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    private List<BackendFact> solutionFacts;
 }

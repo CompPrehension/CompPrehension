@@ -83,4 +83,13 @@ public abstract class Domain {
 
     public abstract List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts);
     public abstract List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts);
+
+    /**
+     * Сформировать из ответов (которые были ранее добавлены к вопросу)
+     * студента факты в универсальной форме
+     * @return - факты в универсальной форме
+     */
+    public abstract List<BackendFact> responseToFacts(String questionDomainType, List<Response> responses, List<AnswerObject> answerObjects);
+
+    public abstract List<Mistake> interpretSentence(List<BackendFact> violations);
 }

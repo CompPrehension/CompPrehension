@@ -45,5 +45,8 @@ public interface QuestionBack {
 
     public List<BackendFact> getStatementFacts();
 
+    public List<BackendFact> getSolutionFacts();
+
     public String getQuestionDomainType();
+
 }
