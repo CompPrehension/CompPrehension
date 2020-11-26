@@ -25,8 +25,6 @@ public interface QuestionBack {
     
     public void setAnswerObjects(List<AnswerObject> objects);
     
-    public HyperText getQuestionText();
-    
     public void addResponse(Response r);
     
     public void addFullResponse(List<Response> responses);
@@ -50,4 +48,6 @@ public interface QuestionBack {
     public QuestionType getQuestionType();
 
     public List<BackendFact> getStatementFacts();
+
+    public String getQuestionDomainType();
 }

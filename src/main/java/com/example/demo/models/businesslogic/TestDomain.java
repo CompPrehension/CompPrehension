@@ -130,5 +130,28 @@ public class TestDomain extends Domain {
         return res;
     }
 
+    @Override
+    public List<Law> getQuestionLaws(String questionDomainType, List<BackendFact> statementFacts) {
+        return null;
+    }
 
+    @Override
+    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts) {
+        return null;
+    }
+
+    @Override
+    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts) {
+        return null;
+    }
+
+    @Override
+    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+        return null;
+    }
+
+    @Override
+    public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+        return null;
+    }
 }

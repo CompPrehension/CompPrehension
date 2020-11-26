@@ -76,5 +76,11 @@ public abstract class Domain {
     public abstract Question makeQuestion(QuestionRequest questionRequest, Language userLanguage);
     
     public abstract ArrayList<HyperText> makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType);
-    
+
+    public abstract List<Law> getQuestionLaws(String questionDomainType, List<BackendFact> statementFacts);
+    public abstract List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts);
+    public abstract List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts);
+
+    public abstract List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts);
+    public abstract List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts);
 }

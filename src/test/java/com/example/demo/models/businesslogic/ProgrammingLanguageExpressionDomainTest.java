@@ -94,13 +94,10 @@ public class ProgrammingLanguageExpressionDomainTest {
         assertEquals("a + b * c", question.getQuestionText().getText());
 
         PelletBackend backend = new PelletBackend();
-        Law law = new PositiveLaw(
-                "test",
-                domain.getAllLaws(),
-                List.of(),
-                List.of()
-        );
-        List<BackendFact> solution = backend.solve(List.of(law), question.getStatementFacts(), List.of("has_operand"));
+        List<BackendFact> solution = backend.solve(
+                domain.getQuestionLaws(question.getQuestionDomainType(), question.getStatementFacts()),
+                question.getStatementFacts(),
+                domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
         assertEquals(8, solution.size());
     }
 }

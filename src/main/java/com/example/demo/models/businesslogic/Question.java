@@ -132,4 +132,8 @@ public abstract class Question implements QuestionFront, QuestionBack {
     public List<BackendFact> getStatementFacts() {
         return questionData.getStatementFacts();
     }
+
+    public String getQuestionDomainType() {
+        return  questionData.getQuestionDomainType();
+    }
 }
