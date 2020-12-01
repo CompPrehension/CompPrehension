@@ -24,40 +24,6 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
 
     @Override
-    public List<Law> getPositiveLaws() {
-
-        // TODO
-//        List<Law> allLaws = questionData.getLaws();
-        List<Law> positiveLaws = new ArrayList<>();
-
-//        for (QuestionLaw l : allLaws) {
-//
-//            if (l.getLawName().isPositiveLaw()) {
-//                positiveLaws.add(l);
-//            }
-//        }
-        
-        return positiveLaws;
-    }
-
-    @Override
-    public List<Law> getNegativeLaws() {
-
-        // TODO
-//        List<Law> allLaws = questionData.getLaws();
-        List<Law> negativeLaws = new ArrayList<>();
-
-//        for (Law l : allLaws) {
-//
-//            if (!l.isPositiveLaw()) {
-//                negativeLaws.add(l);
-//            }
-//        }
-
-        return negativeLaws;
-    }
-
-    @Override
     public int answerObjectsCount() {
         
         return questionData.getAnswerObjects().size();
@@ -131,5 +97,14 @@ public abstract class Question implements QuestionFront, QuestionBack {
     @Override
     public List<BackendFact> getStatementFacts() {
         return questionData.getStatementFacts();
+    }
+
+    @Override
+    public List<BackendFact> getSolutionFacts() {
+        return questionData.getSolutionFacts();
+    }
+
+    public String getQuestionDomainType() {
+        return questionData.getQuestionDomainType();
     }
 }

@@ -136,6 +136,9 @@ public abstract class SWRLBackend extends Backend {
         for (BackendFact fact : response) {
             addStatementFact(fact);
         }
+        for (BackendFact fact : correctAnswer) {
+            addStatementFact(fact);
+        }
 
         for (Law law : laws) {
             addLaw(law);

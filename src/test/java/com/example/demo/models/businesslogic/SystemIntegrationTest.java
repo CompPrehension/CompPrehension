@@ -2,10 +2,14 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.DemoApplication;
 import com.example.demo.Service.DomainService;
+import com.example.demo.Service.QuestionService;
+import com.example.demo.models.businesslogic.backend.Backend;
+import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.entities.*;
+import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
-import com.example.demo.models.entities.ExerciseAttempt;
-import com.example.demo.models.entities.ExerciseConcept;
+import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.utils.DomainAdapter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes= DemoApplication.class)
 @Transactional
-public class StrategyTest {
+public class SystemIntegrationTest {
     @Autowired
     private Strategy strategy;
 
@@ -32,8 +36,17 @@ public class StrategyTest {
     @Autowired
     DomainService domainService;
 
+    @Autowired
+    PelletBackend backend;
+
+    @Autowired
+    QuestionService questionService;
+
+    @Autowired
+    QuestionRepository questionRepository;
+
     @Test
-    public void generateQuestionThreeTimes () throws Exception
+    public void generateTest() throws Exception
     {
         assertNotNull(strategy);
 
@@ -50,8 +63,38 @@ public class StrategyTest {
         assertTrue(checkQuestionRequest(qr, testExerciseAttempt));
 
         Question question = domain.makeQuestion(qr, Language.ENGLISH);
+        //TODO: domain set domainEntity into question
+        question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));
         assertEquals("a + b * c", question.getQuestionText().getText());
-        //Вызов домена с проверкой адекватности вопросов и тд
+        questionService.saveQuestion(question.questionData);
+        Long questionId = question.questionData.getId();
+
+        Question question1 = questionService.generateBusinessLogicQuestion(questionRepository.findById(questionId).get());
+        List<BackendFact> solution = backend.solve(
+                domain.getQuestionLaws(question1.getQuestionDomainType(), question1.getStatementFacts()),
+                question.getStatementFacts(),
+                domain.getSolutionVerbs(question1.getQuestionDomainType(), question1.getStatementFacts()));
+        assertFalse(solution.isEmpty());
+        question1.questionData.setSolutionFacts(solution);
+
+        question1.addResponse(makeResponse(question1.getAnswerObject(0)));
+        List<BackendFact> responseFacts = question1.responseToFacts();
+        assertFalse(responseFacts.isEmpty());
+        List<BackendFact> violations = backend.judge(
+                domain.getQuestionLaws(question1.getQuestionDomainType(), question1.getStatementFacts()),
+                question1.getStatementFacts(),
+                solution,
+                responseFacts,
+                domain.getViolationVerbs(question1.getQuestionDomainType(), question1.getStatementFacts())
+        );
+        assertFalse(violations.isEmpty());
+        List<Mistake> mistakes = domain.interpretSentence(violations);
+        assertFalse(mistakes.isEmpty());
+        assertEquals(1, mistakes.size());
+        assertEquals(
+                "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+                mistakes.get(0).getLawName());
+
         testExerciseAttempt = testExerciseAttemptList.get(1);
         QuestionRequest qr1 = strategy.generateQuestionRequest(testExerciseAttempt);
 
@@ -71,6 +114,21 @@ public class StrategyTest {
         assertFalse(q2.getQuestionText().getText().isEmpty());
         //Вызов домена с проверкой адекватности вопросов и тд
 
+    }
+
+    Response makeResponse(AnswerObject answer) {
+        Response response = new Response();
+        response.setLeftAnswerObject(answer);
+        response.setRightAnswerObject(answer);
+        return response;
+    }
+
+    void checkQuestionSolve(Question question, List<BackendFact> statementsFacts) {
+        return;
+    }
+
+    void checkQuestionJudge(Question question, List<BackendFact> violationFacts) {
+        return;
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttempt testExerciseAttempt) {

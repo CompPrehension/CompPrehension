@@ -6,9 +6,11 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import com.clarkparsia.pellet.owlapiv3.PelletReasoner;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Component
 public class PelletBackend extends SWRLBackend {
     PelletReasoner Reasoner;
 

@@ -18,6 +18,9 @@ public class AnswerObject {
     @Column(name = "hyperText")
     private String hyperText;
 
+    @Column(name = "domainInfo")
+    private String domainInfo;
+
     @Column(name = "isRightCol")
     private boolean isRightCol;
 

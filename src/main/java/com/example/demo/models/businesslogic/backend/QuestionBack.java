@@ -11,10 +11,6 @@ import java.util.List;
 
 public interface QuestionBack {
     
-    public List<Law> getPositiveLaws();
-
-    public List<Law> getNegativeLaws();
-    
     public AnswerObject getAnswerObject(int index);
     
     public List<AnswerObject> getAnswerObjects();
@@ -24,8 +20,6 @@ public interface QuestionBack {
     public void addAnswerObject(AnswerObject newObject);
     
     public void setAnswerObjects(List<AnswerObject> objects);
-    
-    public HyperText getQuestionText();
     
     public void addResponse(Response r);
     
@@ -50,4 +44,9 @@ public interface QuestionBack {
     public QuestionType getQuestionType();
 
     public List<BackendFact> getStatementFacts();
+
+    public List<BackendFact> getSolutionFacts();
+
+    public String getQuestionDomainType();
+
 }

@@ -13,6 +13,7 @@ import java.util.List;
 
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
+    static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     //protected String name = c
 
     public ProgrammingLanguageExpressionDomain() {
@@ -180,14 +181,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 getPositiveLaw("operator_binary_+_associativity_left")
         ));
         negativeLaws.add(new NegativeLaw(
-                "precedence_binary_*_less_binary_+",
+                "error_precedence_binary_*_less_binary_+",
                 List.of(),
                 mulHigherPlusPrecedenceConcepts,
                 List.of(),
                 getPositiveLaw("precedence_binary_*_higher_binary_+")
         ));
         negativeLaws.add(new NegativeLaw(
-                "precedence_binary_*_equal_binary_+",
+                "error_precedence_binary_*_equal_binary_+",
                 List.of(),
                 mulHigherPlusPrecedenceConcepts,
                 List.of(),
@@ -253,22 +254,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
             question.setQuestionText("a + b + c");
             question.setAnswerObjects(List.of(
-                    getAnswerObject(question, "+ between a and b", "operator_binary_+", false),
-                    getAnswerObject(question, "+ between b and c", "operator_binary_+", false)
+                    getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
+                    getAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4))
             ));
-            question.setQuestionDomainType("OrderOperators");
+            question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setStatementFacts(getBackendFacts(List.of("a", "+", "b", "+", "c")));
-            question.setQuestionLaws(List.of(
-                    getQuestionLaw(question, "operator_binary_+_associativity_left"),
-                    getQuestionLaw(question, "single_token_binary_execution"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left"),
-                    getQuestionLaw(question, "error_binary_+_right_associativity"),
-                    getQuestionLaw(question, "error_binary_+_absent_associativity")
-            ));
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         } else if (conceptNames.contains("precedence") &&
@@ -278,20 +269,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
             question.setQuestionText("a + b * c");
             question.setAnswerObjects(List.of(
-                    getAnswerObject(question, "+", "operator_binary_+", false),
-                    getAnswerObject(question, "*", "operator_binary_*", false)
+                    getAnswerObject(question, "+", "operator_binary_+", getName(0, 2)),
+                    getAnswerObject(question, "*", "operator_binary_*", getName(0, 4))
             ));
-            question.setQuestionDomainType("OrderOperators");
+            question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setStatementFacts(getBackendFacts(List.of("a", "+", "b", "*", "c")));
-            question.setQuestionLaws(List.of(
-                    getQuestionLaw(question, "precedence_binary_*_higher_binary_+"),
-                    getQuestionLaw(question, "single_token_binary_execution"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
-                    getQuestionLaw(question, "precedence_binary_*_less_binary_+"),
-                    getQuestionLaw(question, "precedence_binary_*_equal_binary_+")
-            ));
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         }  else if (conceptNames.contains("precedence") &&
@@ -300,27 +283,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_*")) {
             com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
             question.setQuestionText("a + b + c * d");
-            question.setQuestionDomainType("OrderOperators");
+            question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(List.of(
-                    getAnswerObject(question, "+ between a and b", "operator_binary_+", false),
-                    getAnswerObject(question, "+ between c and d", "operator_binary_+", false),
-                    getAnswerObject(question, "*", "operator_binary_*", false)
+                    getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
+                    getAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4)),
+                    getAnswerObject(question, "*", "operator_binary_*", getName(0, 6))
             ));
             question.setStatementFacts(getBackendFacts(List.of("a", "+", "b", "+", "c", "*", "d")));
-            question.setQuestionLaws(List.of(
-                    getQuestionLaw(question, "precedence_binary_*_higher_binary_+"),
-                    getQuestionLaw(question, "operator_binary_+_associativity_left"),
-                    getQuestionLaw(question, "single_token_binary_execution"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
-                    getQuestionLaw(question, "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left"),
-                    getQuestionLaw(question, "error_binary_+_right_associativity"),
-                    getQuestionLaw(question, "error_binary_+_absent_associativity"),
-                    getQuestionLaw(question, "precedence_binary_*_less_binary_+"),
-                    getQuestionLaw(question, "precedence_binary_*_equal_binary_+")
-            ));
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         } else {
@@ -330,14 +300,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionDomainType("ChooseAssociativity");
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(List.of(
-                    getAnswerObject(question, "left", "left_associativity", false),
-                    getAnswerObject(question, "right", "right_associativity", false),
-                    getAnswerObject(question, "no associativity", "absent_associativity", false)
-            ));
-            question.setQuestionLaws(List.of(
-                    getQuestionLaw(question, "operator_binary_+_associativity_left"),
-                    getQuestionLaw(question, "error_binary_+_right_associativity"),
-                    getQuestionLaw(question, "error_binary_+_absent_associativity")
+                    getAnswerObject(question, "left", "left_associativity", "left"),
+                    getAnswerObject(question, "right", "right_associativity", "right"),
+                    getAnswerObject(question, "no associativity", "absent_associativity", "no associativity")
             ));
             return new SingleChoice(question);
         }
@@ -355,10 +320,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return questionLaw;
     }
 
-    AnswerObject getAnswerObject(com.example.demo.models.entities.Question question, String text, String concept, boolean isRightCol) {
+    AnswerObject getAnswerObject(com.example.demo.models.entities.Question question, String text, String concept, String domainInfo) {
         AnswerObject answerObject = new AnswerObject();
         answerObject.setHyperText(text);
-        answerObject.setRightCol(isRightCol);
+        answerObject.setRightCol(false);
+        answerObject.setDomainInfo(domainInfo);
         answerObject.setConcept(concept);
         answerObject.setQuestion(question);
         return answerObject;
@@ -1128,12 +1094,120 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return laws;
     }
 
+    public List<Law> getQuestionLaws(String questionDomainType, List<BackendFact> statementFacts) {
+        List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, statementFacts);
+        List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, statementFacts);
+        List<Law> laws = new ArrayList<>();
+        laws.addAll(positiveLaws);
+        laws.addAll(negativeLaws);
+        return laws;
+    }
+
+    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            return List.of(
+                    getPositiveLaw("single_token_binary_execution"),
+                    getPositiveLaw("operator_binary_+_associativity_left"),
+                    getPositiveLaw("single_token_binary_execution")
+            );
+        }
+        return List.of();
+    }
+
+    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            return List.of(
+                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
+                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
+                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
+                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left"),
+                    getNegativeLaw("error_binary_+_right_associativity"),
+                    getNegativeLaw("error_binary_+_absent_associativity"),
+                    getNegativeLaw("error_precedence_binary_*_less_binary_+"),
+                    getNegativeLaw("error_precedence_binary_*_equal_binary_+")
+            );
+        }
+        return List.of();
+    }
+
     LawFormulation getLawFormulation(String name, String formulation) {
         LawFormulation lawFormulation = new LawFormulation();
         lawFormulation.setLaw(name);
         lawFormulation.setFormulation(formulation);
         lawFormulation.setBackend("SWRL");
         return lawFormulation;
+    }
+
+    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            return List.of(
+                    "has_operand",
+                    "before_direct",
+                    "before_by_third_operator",
+                    "before_third_operator",
+                    "before_as_operand"
+            );
+        }
+        return List.of();
+    }
+
+    public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            return List.of(
+                    "student_error_more_priority_left",
+                    "student_error_more_priority_right",
+                    "student_error_left_assoc",
+                    "student_error_right_assoc",
+                    "student_error_in_complex",
+                    "student_error_strict_operands_order",
+                    "before_direct"
+            );
+        }
+        return List.of();
+    }
+
+    @Override
+    public List<BackendFact> responseToFacts(String questionDomainType, List<Response> responses, List<AnswerObject> answerObjects) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            List<BackendFact> result = new ArrayList<>();
+            int pos = 1;
+            HashSet<String> used = new HashSet<>();
+            for (Response response : responses) {
+                result.add(new BackendFact(
+                        "owl:NamedIndividual",
+                        response.getLeftAnswerObject().getDomainInfo(),
+                        "student_pos",
+                        "xsd:int",
+                        String.valueOf(pos)));
+                used.add(response.getLeftAnswerObject().getDomainInfo());
+                pos = pos + 1;
+            }
+            for (AnswerObject answerObject : answerObjects) {
+                if (!used.contains(answerObject.getDomainInfo())) {
+                    result.add(new BackendFact(
+                            "owl:NamedIndividual",
+                            answerObject.getDomainInfo(),
+                            "student_pos",
+                            "xsd:int",
+                            "100000"));
+                }
+            }
+            return result;
+        }
+        return List.of();
+    }
+
+    @Override
+    public List<Mistake> interpretSentence(List<BackendFact> violations) {
+        List<Mistake> mistakes = new ArrayList<>();
+        for (BackendFact violation : violations) {
+            if (violation.getVerb().equals("student_error_more_priority_right")) {
+                Mistake mistake = new Mistake();
+                mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
+                mistakes.add(mistake);
+            }
+        }
+        return mistakes;
     }
 
     @Override

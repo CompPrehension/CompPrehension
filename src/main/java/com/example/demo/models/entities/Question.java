@@ -38,9 +38,12 @@ public class Question {
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<AnswerObject> answerObjects;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<QuestionLaw> questionLaws;
+    @ManyToOne
+    @JoinColumn(name = "domain_name", nullable = false)
+    private DomainEntity domainEntity;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<BackendFact> statementFacts;
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    private List<BackendFact> solutionFacts;
 }
