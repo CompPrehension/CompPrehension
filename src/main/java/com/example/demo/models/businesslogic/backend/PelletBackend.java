@@ -68,7 +68,13 @@ public class PelletBackend extends SWRLBackend {
 
         for (Map.Entry<OWLNamedIndividual, Set<OWLNamedIndividual>> relationsEntry : relations.entrySet()) {
             for (OWLNamedIndividual to : relationsEntry.getValue()) {
-                facts.add(new BackendFact(relationsEntry.getKey().getIRI().getShortForm(), objectProperty, to.getIRI().getShortForm()));
+                facts.add(new BackendFact(
+                        "owl:NamedIndividual",
+                        relationsEntry.getKey().getIRI().getShortForm(),
+                        objectProperty,
+                        "owl:NamedIndividual",
+                        to.getIRI().getShortForm()
+                ));
             }
         }
         return facts;

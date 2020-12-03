@@ -18,12 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
-    //protected String name = c
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
-        //super(ProgrammingLanguageExpressionDomain.create(domainService));
-
         concepts = new ArrayList<>();
         positiveLaws = new ArrayList<>();
         negativeLaws = new ArrayList<>();
@@ -134,7 +131,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         );
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
-                List.of(),
+                getErrorLaws(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
                 List.of(),
                 getPositiveLaw("single_token_binary_execution")
@@ -211,17 +208,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         concepts.add(concept);
         return concept;
     }
-
-   /* static DomainEntity create(DomainService domainService) {
-        if (domainService.hasDomainEntity(ProgrammingLanguageExpressionDomain.name)) {
-            return domainService.getDomainEntity(ProgrammingLanguageExpressionDomain.name);
-        } else {
-            return domainService.createDomainEntity(
-                    ProgrammingLanguageExpressionDomain.name,
-                    "1"
-            );
-        }
-    }*/
 
     @Override
     public void update() {
@@ -626,10 +612,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         laws.add(getLawFormulation(
                 "copy_without_marks_text",
                 "copy_without_marks(?a, ?to) ^ text(?a, ?a_text) -> text(?to, ?a_text)"
-        ));
-        laws.add(getLawFormulation(
-                "describe_error",
-                "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)"
         ));
         laws.add(getLawFormulation(
                 "equal_priority_L_assoc",
@@ -1059,6 +1041,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "same_step",
                 "step(?a, ?a_step) ^ step(?b, ?a_step) -> same_step(?a, ?b)"
         ));
+
+        return laws;
+    }
+
+    public List<LawFormulation> getErrorLaws() {
+        List<LawFormulation> laws = new ArrayList<>();
+        laws.add(getLawFormulation(
+                "describe_error",
+                "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)"
+        ));
         laws.add(getLawFormulation(
                 "student_error_in_complex",
                 "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ text(?c, \"(\") ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
@@ -1083,7 +1075,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "student_error_strict_operands_order",
                 "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ is_operator_with_strict_operands_order(?c, true) ^ describe_error(?a, ?b) -> student_error_strict_operands_order(?b, ?a)"
         ));
-
         return laws;
     }
 
@@ -1138,7 +1129,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "before_direct",
                     "before_by_third_operator",
                     "before_third_operator",
-                    "before_as_operand"
+                    "before_as_operand",
+                    "is_operator_with_strict_operands_order",
+                    "high_priority_diff_priority",
+                    "high_priority_left_assoc",
+                    "high_priority_right_assoc"
             );
         }
         return List.of();
@@ -1151,10 +1146,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_left_assoc",
                     "student_error_right_assoc",
                     "student_error_in_complex",
-                    "student_error_strict_operands_order",
-                    "before_direct",
-                    "student_pos_less",
-                    "describe_error"
+                    "student_error_strict_operands_order"
             );
         }
         return List.of();
@@ -1167,12 +1159,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             int pos = 1;
             HashSet<String> used = new HashSet<>();
             for (Response response : responses) {
-                result.add(new BackendFact(
-                        "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
-                        "student_pos",
-                        "xsd:int",
-                        String.valueOf(pos)));
                 for (String earlier : used) {
                     result.add(new BackendFact(
                             "owl:NamedIndividual",
@@ -1185,14 +1171,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 used.add(response.getLeftAnswerObject().getDomainInfo());
                 pos = pos + 1;
             }
+
             for (AnswerObject answerObject : answerObjects) {
                 if (!used.contains(answerObject.getDomainInfo())) {
-                    result.add(new BackendFact(
-                            "owl:NamedIndividual",
-                            answerObject.getDomainInfo(),
-                            "student_pos",
-                            "xsd:int",
-                            "100000"));
                     for (String earlier : used) {
                         result.add(new BackendFact(
                                 "owl:NamedIndividual",
