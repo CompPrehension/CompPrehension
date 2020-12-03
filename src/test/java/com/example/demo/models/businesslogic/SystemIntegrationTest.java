@@ -202,7 +202,7 @@ public class SystemIntegrationTest {
         List<BackendFact> responseFacts = question.responseToFacts();
         assertFalse(responseFacts.isEmpty());
         List<BackendFact> violations = backend.judge(
-                domain.getQuestionLaws(question.getQuestionDomainType(), question.getStatementFacts()),
+                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), question.getStatementFacts())),
                 question.getStatementFacts(),
                 question.getSolutionFacts(),
                 responseFacts,

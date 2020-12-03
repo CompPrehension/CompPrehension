@@ -74,7 +74,7 @@ public abstract class SWRLBackend extends Backend {
                 OWLClass cl = Factory.getOWLClass(getFullIRI(fact.getSubject()));
                 Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(cl));
             } else {
-                return false;
+                throw new UnsupportedOperationException("SWRLBackend.addStatementFact unknown rdf:type");
             }
         } else {
             OWLNamedIndividual ind = findIndividual(fact.getSubject());
@@ -97,7 +97,7 @@ public abstract class SWRLBackend extends Backend {
                 OWLDataProperty dp = getDataProperty(fact.getVerb());
                 Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Float.parseFloat(fact.getObject())));
             } else {
-                return false;
+                throw new UnsupportedOperationException("SWRLBackend.addStatementFact unknown objectType");
             }
         }
         return true;
