@@ -5,11 +5,15 @@ import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.utils.HyperText;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
@@ -312,14 +316,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "op__" + step + "__" + index;
     }
 
-    QuestionLaw getQuestionLaw(com.example.demo.models.entities.Question question, String law) {
-        QuestionLaw questionLaw = new QuestionLaw();
-        questionLaw.setDomainEntity(domainEntity);
-        questionLaw.setLawName(law);
-        questionLaw.setQuestion(question);
-        return questionLaw;
-    }
-
     AnswerObject getAnswerObject(com.example.demo.models.entities.Question question, String text, String concept, String domainInfo) {
         AnswerObject answerObject = new AnswerObject();
         answerObject.setHyperText(text);
@@ -384,6 +380,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         facts.add(new BackendFact("prev_operand", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("prev_operation", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("same_step", "rdf:type", "owl:ObjectProperty"));
+        facts.add(new BackendFact("student_pos_less", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("student_error", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("student_error_equal_priority", "rdf:type", "owl:ObjectProperty"));
         facts.add(new BackendFact("student_error_in_complex", "rdf:type", "owl:ObjectProperty"));
@@ -632,7 +629,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ));
         laws.add(getLawFormulation(
                 "describe_error",
-                "swrlb:lessThan(?b_pos, ?a_pos) ^ swrlb:notEqual(?a_pos, 0) ^ student_pos(?b, ?b_pos) ^ swrlb:notEqual(?b_pos, 0) ^ before_direct(?a, ?b) ^ student_pos(?a, ?a_pos) ^ arity(?a, ?a_arity) ^ zero_step(?a, ?a) ^ zero_step(?b, ?b) -> describe_error(?a, ?b)"
+                "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)"
         ));
         laws.add(getLawFormulation(
                 "equal_priority_L_assoc",
@@ -1075,12 +1072,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)"
         ));
         laws.add(getLawFormulation(
-                "student_error_more_priority_left",
-                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_diff_priority(?a, ?b) ^ index(?a, ?a_index) ^ index(?b, ?b_index) ^ swrlb:lessThan(?a_index, ?b_index) -> student_error_more_priority_left(?b, ?a)"
-        ));
-        laws.add(getLawFormulation(
-                "student_error_more_priority_right",
-                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_diff_priority(?a, ?b) ^ index(?a, ?a_index) ^ index(?b, ?b_index) ^ swrlb:lessThan(?b_index, ?a_index) -> student_error_more_priority_right(?b, ?a)"
+                "student_error_more_priority",
+                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_diff_priority(?a, ?b) -> student_error_more_priority(?b, ?a)"
         ));
         laws.add(getLawFormulation(
                 "student_error_right_assoc",
@@ -1154,13 +1147,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             return List.of(
-                    "student_error_more_priority_left",
-                    "student_error_more_priority_right",
+                    "student_error_more_priority",
                     "student_error_left_assoc",
                     "student_error_right_assoc",
                     "student_error_in_complex",
                     "student_error_strict_operands_order",
-                    "before_direct"
+                    "before_direct",
+                    "student_pos_less",
+                    "describe_error"
             );
         }
         return List.of();
@@ -1179,6 +1173,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         "student_pos",
                         "xsd:int",
                         String.valueOf(pos)));
+                for (String earlier : used) {
+                    result.add(new BackendFact(
+                            "owl:NamedIndividual",
+                            earlier,
+                            "student_pos_less",
+                            "owl:NamedIndividual",
+                            response.getLeftAnswerObject().getDomainInfo()
+                    ));
+                }
                 used.add(response.getLeftAnswerObject().getDomainInfo());
                 pos = pos + 1;
             }
@@ -1190,6 +1193,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             "student_pos",
                             "xsd:int",
                             "100000"));
+                    for (String earlier : used) {
+                        result.add(new BackendFact(
+                                "owl:NamedIndividual",
+                                earlier,
+                                "student_pos_less",
+                                "owl:NamedIndividual",
+                                answerObject.getDomainInfo()
+                        ));
+                    }
                 }
             }
             return result;
@@ -1197,13 +1209,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return List.of();
     }
 
+    static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
+        Assertions.assertTrue(name.startsWith("op__"), name);
+        String[] parts = name.split("__");
+        assertEquals(3, parts.length, name);
+        if (allowNotZeroStep || parts[1].equals("0")) {
+            return Optional.of(Integer.parseInt(parts[2]));
+        }
+        return Optional.empty();
+    }
+
     @Override
     public List<Mistake> interpretSentence(List<BackendFact> violations) {
         List<Mistake> mistakes = new ArrayList<>();
         for (BackendFact violation : violations) {
-            if (violation.getVerb().equals("student_error_more_priority_right")) {
+            if (violation.getVerb().equals("student_error_more_priority")) {
                 Mistake mistake = new Mistake();
-                mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
+                if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
+                    mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_left");
+                } else {
+                    mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
+                }
+                mistakes.add(mistake);
+            } else if (violation.getVerb().equals("student_error_left_assoc")) {
+                Mistake mistake = new Mistake();
+                mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
+                mistakes.add(mistake);
+            } else if (violation.getVerb().equals("student_error_right_assoc")) {
+                Mistake mistake = new Mistake();
+                mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
                 mistakes.add(mistake);
             }
         }

@@ -28,7 +28,7 @@ public class BackendFact {
     private String verb;
 
     @ManyToOne
-    @JoinColumn(name = "BackendFact_id", nullable = false)
+    @JoinColumn(name = "BackendFact_id")
     private Question question;
 
     public BackendFact(String subjectType, String subject, String verb, String objectType, String object) {

@@ -76,6 +76,7 @@ public class PelletBackend extends SWRLBackend {
 
     @Override
     void callReasoner() {
+        Reasoner = PelletReasonerFactory.getInstance().createReasoner(Ontology);
         Reasoner.refresh();
     }
 }

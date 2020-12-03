@@ -20,8 +20,13 @@ public abstract class SWRLBackend extends Backend {
     OWLDataFactory Factory;
 
     public SWRLBackend() {
+        createOntology();
+    }
+
+    void createOntology() {
         String base = "http://www.test/test.owl";
         OntologyIRI = IRI.create(base);
+
         Manager = OWLManager.createOWLOntologyManager();
         Ontology = null;
 
@@ -116,6 +121,8 @@ public abstract class SWRLBackend extends Backend {
 
     @Override
     public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement, List<String> solutionVerbs) {
+        createOntology();
+
         for (BackendFact fact : statement) {
             addStatementFact(fact);
         }
@@ -130,6 +137,8 @@ public abstract class SWRLBackend extends Backend {
 
     @Override
     public List<BackendFact> judge(List<Law> laws, List<BackendFact> statement, List<BackendFact> correctAnswer, List<BackendFact> response, List<String> violationVerbs) {
+        createOntology();
+
         for (BackendFact fact : statement) {
             addStatementFact(fact);
         }
