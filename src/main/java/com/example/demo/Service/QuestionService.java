@@ -1,5 +1,9 @@
 package com.example.demo.Service;
 
+import com.example.demo.models.entities.AnswerObject;
+import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.repository.AnswerObjectRepository;
+import com.example.demo.models.repository.BackendFactRepository;
 import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.entities.EnumData.Language;
@@ -17,6 +21,12 @@ public class QuestionService {
     private Core core = new Core();
 
     @Autowired
+    AnswerObjectRepository answerObjectRepository;
+
+    @Autowired
+    BackendFactRepository backendFactRepository;
+
+    @Autowired
     private Strategy strategy;
     
     @Autowired
@@ -29,7 +39,30 @@ public class QuestionService {
     
     
     public void saveQuestion(Question question) {
-        
+        if (question.getAnswerObjects() != null) {
+            for (AnswerObject answerObject : question.getAnswerObjects()) {
+                if (answerObject.getId() == null) {
+                    answerObject.setQuestion(question);
+                    answerObjectRepository.save(answerObject);
+                }
+            }
+        }
+        if (question.getStatementFacts() != null) {
+            for (BackendFact fact : question.getStatementFacts()) {
+                if (fact.getId() == null) {
+                    fact.setQuestion(question);
+                    backendFactRepository.save(fact);
+                }
+            }
+        }
+        if (question.getSolutionFacts() != null) {
+            for (BackendFact fact : question.getSolutionFacts()) {
+                if (fact.getId() == null) {
+                    fact.setQuestion(question);
+                    backendFactRepository.save(fact);
+                }
+            }
+        }
         questionRepository.save(question);
     }
     

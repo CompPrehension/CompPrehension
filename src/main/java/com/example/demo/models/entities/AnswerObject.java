@@ -36,7 +36,7 @@ public class AnswerObject {
 
 
     @ManyToOne
-    @JoinColumn(name = "answerObject_id", nullable = false)
+    @JoinColumn(name = "answerObject_id")
     private Question question;
     
     

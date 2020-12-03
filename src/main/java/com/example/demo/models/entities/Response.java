@@ -21,15 +21,15 @@ public class Response {
     private SpecValue specValue;
 
     @ManyToOne
-    @JoinColumn(name = "leftObject_id", nullable = false)
+    @JoinColumn(name = "leftObject_id")
     private AnswerObject leftAnswerObject;
 
     @ManyToOne
-    @JoinColumn(name = "rightObject_id", nullable = false)
+    @JoinColumn(name = "rightObject_id")
     private AnswerObject rightAnswerObject;
 
     @ManyToOne
-    @JoinColumn(name = "interaction_id", nullable = false)
+    @JoinColumn(name = "interaction_id")
     private Interaction interaction;
 
 
