@@ -62,6 +62,9 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             assertEquals("a + b * c", question1.getQuestionText().getText());
+            // double save
+            questionService.saveQuestion(question1.questionData);
+            questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1);
             Question question3 = responseQuestion(question2, List.of(0));
             List<Mistake> mistakes = judgeQuestion(question3);
