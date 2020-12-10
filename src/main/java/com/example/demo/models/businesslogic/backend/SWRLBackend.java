@@ -59,52 +59,56 @@ public abstract class SWRLBackend extends Backend {
         return IRI.create(OntologyIRI + "#" + name);
     }
 
-    boolean addStatementFact(BackendFact fact) {
+    void addStatementFact(BackendFact fact) {
         if (fact.getVerb().equals("rdf:type")) {
-            if (fact.getObject().equals("owl:NamedIndividual")) {
-                OWLNamedIndividual ind = Factory.getOWLNamedIndividual(getFullIRI(fact.getSubject()));
-                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(ind));
-            } else if (fact.getObject().equals("owl:ObjectProperty")) {
-                OWLObjectProperty op = Factory.getOWLObjectProperty(getFullIRI(fact.getSubject()));
-                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(op));
-            } else if (fact.getObject().equals("owl:DatatypeProperty")) {
-                OWLDataProperty dp = Factory.getOWLDataProperty(getFullIRI(fact.getSubject()));
-                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(dp));
-            } else if (fact.getObject().equals("owl:Class")) {
-                OWLClass cl = Factory.getOWLClass(getFullIRI(fact.getSubject()));
-                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(cl));
-            } else {
-                throw new UnsupportedOperationException("SWRLBackend.addStatementFact unknown rdf:type");
-            }
-        } else {
-            OWLNamedIndividual ind = findIndividual(fact.getSubject());
-            if (fact.getObjectType().equals("owl:NamedIndividual")) {
-                OWLObjectProperty op = getObjectProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLObjectPropertyAssertionAxiom(op, ind, findIndividual(fact.getObject())));
-            } else if (fact.getObjectType().equals("xsd:int")) {
-                OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Integer.parseInt(fact.getObject())));
-            } else if (fact.getObjectType().equals("xsd:string")) {
-                OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, fact.getObject()));
-            } else if (fact.getObjectType().equals("xsd:boolean")) {
-                OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Boolean.parseBoolean(fact.getObject())));
-            } else if (fact.getObjectType().equals("xsd:double")) {
-                OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Double.parseDouble(fact.getObject())));
-            } else if (fact.getObjectType().equals("xsd:float")) {
-                OWLDataProperty dp = getDataProperty(fact.getVerb());
-                Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Float.parseFloat(fact.getObject())));
-            } else {
-                throw new UnsupportedOperationException("SWRLBackend.addStatementFact unknown objectType");
-            }
+            addOWLLawFormulation(fact.getSubject(), fact.getObject());
+            return;
         }
-        return true;
+
+        OWLNamedIndividual ind = findIndividual(fact.getSubject());
+        if (fact.getObjectType().equals("owl:NamedIndividual")) {
+            OWLObjectProperty op = getObjectProperty(fact.getVerb());
+            Manager.addAxiom(Ontology, Factory.getOWLObjectPropertyAssertionAxiom(op, ind, findIndividual(fact.getObject())));
+        } else if (fact.getObjectType().equals("xsd:int")) {
+            OWLDataProperty dp = getDataProperty(fact.getVerb());
+            Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Integer.parseInt(fact.getObject())));
+        } else if (fact.getObjectType().equals("xsd:string")) {
+            OWLDataProperty dp = getDataProperty(fact.getVerb());
+            Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, fact.getObject()));
+        } else if (fact.getObjectType().equals("xsd:boolean")) {
+            OWLDataProperty dp = getDataProperty(fact.getVerb());
+            Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Boolean.parseBoolean(fact.getObject())));
+        } else if (fact.getObjectType().equals("xsd:double")) {
+            OWLDataProperty dp = getDataProperty(fact.getVerb());
+            Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Double.parseDouble(fact.getObject())));
+        } else if (fact.getObjectType().equals("xsd:float")) {
+            OWLDataProperty dp = getDataProperty(fact.getVerb());
+            Manager.addAxiom(Ontology, Factory.getOWLDataPropertyAssertionAxiom(dp, ind, Float.parseFloat(fact.getObject())));
+        } else {
+            throw new UnsupportedOperationException("SWRLBackend.addStatementFact unknown objectType");
+        }
     }
 
     abstract List<BackendFact> getObjectProperties(String objectProperty);
     abstract void callReasoner();
+
+    void addOWLLawFormulation(String name, String type) {
+            if (type.equals("owl:NamedIndividual")) {
+                OWLNamedIndividual ind = Factory.getOWLNamedIndividual(getFullIRI(name));
+                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(ind));
+            } else if (type.equals("owl:ObjectProperty")) {
+                OWLObjectProperty op = Factory.getOWLObjectProperty(getFullIRI(name));
+                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(op));
+            } else if (type.equals("owl:DatatypeProperty")) {
+                OWLDataProperty dp = Factory.getOWLDataProperty(getFullIRI(name));
+                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(dp));
+            } else if (type.equals("owl:Class")) {
+                OWLClass cl = Factory.getOWLClass(getFullIRI(name));
+                Manager.addAxiom(Ontology, Factory.getOWLDeclarationAxiom(cl));
+            } else {
+                throw new UnsupportedOperationException("SWRLBackend.addOWLLawFormulations unknown type:" + type);
+            }
+    }
 
     void addLaw(Law law) {
         SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
@@ -115,6 +119,8 @@ public abstract class SWRLBackend extends Backend {
                 } catch (SWRLParseException | SWRLBuiltInException e) {
                     e.printStackTrace();
                 }
+            } else if (lawFormulation.getBackend().equals("OWL")) {
+                addOWLLawFormulation(lawFormulation.getLaw(), lawFormulation.getFormulation());
             }
         }
     }
@@ -122,12 +128,12 @@ public abstract class SWRLBackend extends Backend {
     @Override
     public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement, List<String> solutionVerbs) {
         createOntology();
+        for (Law law : laws) {
+            addLaw(law);
+        }
 
         for (BackendFact fact : statement) {
             addStatementFact(fact);
-        }
-        for (Law law : laws) {
-            addLaw(law);
         }
 
         callReasoner();
@@ -139,6 +145,10 @@ public abstract class SWRLBackend extends Backend {
     public List<BackendFact> judge(List<Law> laws, List<BackendFact> statement, List<BackendFact> correctAnswer, List<BackendFact> response, List<String> violationVerbs) {
         createOntology();
 
+        for (Law law : laws) {
+            addLaw(law);
+        }
+
         for (BackendFact fact : statement) {
             addStatementFact(fact);
         }
@@ -147,10 +157,6 @@ public abstract class SWRLBackend extends Backend {
         }
         for (BackendFact fact : correctAnswer) {
             addStatementFact(fact);
-        }
-
-        for (Law law : laws) {
-            addLaw(law);
         }
 
         callReasoner();
