@@ -95,5 +95,11 @@ public class QuestionService {
             return new SingleChoice(question);
         }
     }
+
+    public Question getQuestionById(Long id){
+
+        return questionRepository.findById(id).get();
+
+    }
 }
 

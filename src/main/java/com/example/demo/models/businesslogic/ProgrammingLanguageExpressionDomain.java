@@ -8,10 +8,8 @@ import com.example.demo.utils.HyperText;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Array;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,172 +25,172 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Concept operandConcept = addConcept("operand");
         Concept simpleOperandConcept = addConcept("simple_operand");
-        Concept operatorConcept = addConcept("operator", List.of(operandConcept));
-        Concept variableConcept = addConcept("variable", List.of(simpleOperandConcept));
-        Concept literalConcept = addConcept("literal", List.of(simpleOperandConcept));
+        Concept operatorConcept = addConcept("operator", new ArrayList<>(Arrays.asList(operandConcept)));
+        Concept variableConcept = addConcept("variable", new ArrayList<>(Arrays.asList(simpleOperandConcept)));
+        Concept literalConcept = addConcept("literal", new ArrayList<>(Arrays.asList(simpleOperandConcept)));
         Concept precedenceConcept = addConcept("precedence");
         Concept associativityConcept = addConcept("associativity");
-        Concept leftAssociativityConcept = addConcept("left_associativity", List.of(associativityConcept));
-        Concept rightAssociativityConcept = addConcept("right_associativity", List.of(associativityConcept));
-        Concept absentAssociativityConcept = addConcept("absent_associativity", List.of(associativityConcept));
+        Concept leftAssociativityConcept = addConcept("left_associativity", new ArrayList<>(Arrays.asList(associativityConcept)));
+        Concept rightAssociativityConcept = addConcept("right_associativity", new ArrayList<>(Arrays.asList(associativityConcept)));
+        Concept absentAssociativityConcept = addConcept("absent_associativity", new ArrayList<>(Arrays.asList(associativityConcept)));
         Concept arityConcept = addConcept("arity");
-        Concept unaryConcept = addConcept("unary", List.of(arityConcept));
-        Concept binaryConcept = addConcept("binary", List.of(arityConcept));
-        Concept ternaryConcept = addConcept("ternary", List.of(arityConcept));
+        Concept unaryConcept = addConcept("unary", new ArrayList<>(Arrays.asList(arityConcept)));
+        Concept binaryConcept = addConcept("binary", new ArrayList<>(Arrays.asList(arityConcept)));
+        Concept ternaryConcept = addConcept("ternary", new ArrayList<>(Arrays.asList(arityConcept)));
         Concept singleTokenOperatorConcept = addConcept("single_token");
         Concept twoTokenOperatorConcept = addConcept("two_token");
-        Concept singleTokenUnaryConcept = addConcept("single_token_unary", List.of(singleTokenOperatorConcept, unaryConcept));
-        Concept singleTokenBinaryConcept = addConcept("single_token_binary", List.of(singleTokenOperatorConcept, binaryConcept));
-        Concept twoTokenUnaryConcept = addConcept("two_token_unary", List.of(twoTokenOperatorConcept, unaryConcept));
-        Concept twoTokenBinaryConcept = addConcept("two_token_binary", List.of(twoTokenOperatorConcept, binaryConcept));
-        Concept twoTokenTernaryConcept = addConcept("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept));
+        Concept singleTokenUnaryConcept = addConcept("single_token_unary", new ArrayList<>(Arrays.asList(singleTokenOperatorConcept, unaryConcept)));
+        Concept singleTokenBinaryConcept = addConcept("single_token_binary", new ArrayList<>(Arrays.asList(singleTokenOperatorConcept, binaryConcept)));
+        Concept twoTokenUnaryConcept = addConcept("two_token_unary", new ArrayList<>(Arrays.asList(twoTokenOperatorConcept, unaryConcept)));
+        Concept twoTokenBinaryConcept = addConcept("two_token_binary", new ArrayList<>(Arrays.asList(twoTokenOperatorConcept, binaryConcept)));
+        Concept twoTokenTernaryConcept = addConcept("two_token_ternary", new ArrayList<>(Arrays.asList(twoTokenOperatorConcept, binaryConcept)));
         Concept operatorEvaluationStateConcept = addConcept("operator_evaluation_state");
-        Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", List.of(binaryConcept, operatorEvaluationStateConcept));
-        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept));
-        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept));
-        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept));
-        Concept operatorEqualsConcept = addConcept("operator_==", List.of(singleTokenBinaryConcept));
-        Concept prefixOperatorConcept = addConcept("prefix", List.of(unaryConcept));
-        Concept postfixOperatorConcept = addConcept("postfix", List.of(unaryConcept));
-        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept));
+        Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", new ArrayList<>(Arrays.asList(binaryConcept, operatorEvaluationStateConcept)));
+        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept)));
+        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
+        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
+        Concept operatorEqualsConcept = addConcept("operator_==", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
+        Concept prefixOperatorConcept = addConcept("prefix", new ArrayList<>(Arrays.asList(unaryConcept)));
+        Concept postfixOperatorConcept = addConcept("postfix", new ArrayList<>(Arrays.asList(unaryConcept)));
+        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
 
-        List<Concept> singleTokenBinaryExecutionConcepts = List.of(
+        List<Concept> singleTokenBinaryExecutionConcepts = new ArrayList<>(Arrays.asList(
                 precedenceConcept,
                 associativityConcept,
                 operatorConcept,
                 singleTokenBinaryConcept,
                 simpleOperandConcept,
-                operatorEvaluationStateConcept);
+                operatorEvaluationStateConcept));
         positiveLaws.add(new PositiveLaw(
                 "single_token_binary_execution",
                 getAllLaws(),
                 singleTokenBinaryExecutionConcepts,
-                List.of()
+                new ArrayList<>()
         ));
 
-        List<Concept> binaryPlusAssociativityConcepts = List.of(
+        List<Concept> binaryPlusAssociativityConcepts = new ArrayList<>(Arrays.asList(
                 leftAssociativityConcept,
                 operatorBinaryPlusConcept
-        );
+        ));
         positiveLaws.add(new PositiveLaw(
                 "operator_binary_+_associativity_left",
-                List.of(),
+                new ArrayList<>(),
                 binaryPlusAssociativityConcepts,
-                List.of()
+                new ArrayList<>()
         ));
-        List<Concept> binaryMultipleAssociativityConcepts = List.of(
+        List<Concept> binaryMultipleAssociativityConcepts = new ArrayList<>(Arrays.asList(
                 leftAssociativityConcept,
                 operatorBinaryMultipleConcept
-        );
+        ));
         positiveLaws.add(new PositiveLaw(
                 "operator_binary_*_associativity_left",
-                List.of(),
+                new ArrayList<>(),
                 binaryMultipleAssociativityConcepts,
-                List.of()
+                new ArrayList<>()
         ));
-        List<Concept> unaryPlusAssociativityConcepts = List.of(
+        List<Concept> unaryPlusAssociativityConcepts = new ArrayList<>(Arrays.asList(
                 rightAssociativityConcept,
                 operatorBinaryPlusConcept
-        );
+        ));
         positiveLaws.add(new PositiveLaw(
                 "operator_unary_+_associativity_right",
-                List.of(),
+                new ArrayList<>(),
                 unaryPlusAssociativityConcepts,
-                List.of()
+                new ArrayList<>()
         ));
-        List<Concept> mulHigherPlusPrecedenceConcepts = List.of(
+        List<Concept> mulHigherPlusPrecedenceConcepts = new ArrayList<>(Arrays.asList(
                 operatorBinaryMultipleConcept,
                 operatorBinaryPlusConcept,
                 precedenceConcept
-        );
+        ));
         positiveLaws.add(new PositiveLaw(
                 "precedence_binary_*_higher_binary_+",
-                List.of(),
+                new ArrayList<>(),
                 mulHigherPlusPrecedenceConcepts,
-                List.of()
+                new ArrayList<>()
         ));
-        List<Concept> unaryPlusHigherMulPrecedenceConcepts = List.of(
+        List<Concept> unaryPlusHigherMulPrecedenceConcepts = new ArrayList<>(Arrays.asList(
                 operatorBinaryMultipleConcept,
                 operatorBinaryPlusConcept,
                 precedenceConcept
-        );
+        ));
         positiveLaws.add(new PositiveLaw(
                 "precedence_unary_+_higher_binary_*",
-                List.of(),
+                new ArrayList<>(),
                 unaryPlusHigherMulPrecedenceConcepts,
-                List.of()
+                new ArrayList<>()
         ));
 
 
-        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence = List.of(
+        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence = new ArrayList<>(Arrays.asList(
                 precedenceConcept,
                 operatorConcept,
                 singleTokenBinaryConcept
-        );
+        ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
                 getErrorLaws(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("single_token_binary_execution")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-                List.of(),
+                new ArrayList<>(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("single_token_binary_execution")));
 
-        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity = List.of(
+        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity = new ArrayList<>(Arrays.asList(
                 associativityConcept,
                 operatorConcept,
                 singleTokenBinaryConcept
-        );
+        ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
-                List.of(),
+                new ArrayList<>(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("single_token_binary_execution")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right",
-                List.of(),
+                new ArrayList<>(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("single_token_binary_execution")
         ));
 
-        List<Concept> errorNotLeftAssociativityBinaryPlus = List.of(
+        List<Concept> errorNotLeftAssociativityBinaryPlus = new ArrayList<>(Arrays.asList(
                 associativityConcept,
                 operatorBinaryPlusConcept
-        );
+        ));
         negativeLaws.add(new NegativeLaw(
                 "error_binary_+_right_associativity",
-                List.of(),
+                new ArrayList<>(),
                 errorNotLeftAssociativityBinaryPlus,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("operator_binary_+_associativity_left")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_binary_+_absent_associativity",
-                List.of(),
+                new ArrayList<>(),
                 errorNotLeftAssociativityBinaryPlus,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("operator_binary_+_associativity_left")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_precedence_binary_*_less_binary_+",
-                List.of(),
+                new ArrayList<>(),
                 mulHigherPlusPrecedenceConcepts,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("precedence_binary_*_higher_binary_+")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_precedence_binary_*_equal_binary_+",
-                List.of(),
+                new ArrayList<>(),
                 mulHigherPlusPrecedenceConcepts,
-                List.of(),
+                new ArrayList<>(),
                 getPositiveLaw("precedence_binary_*_higher_binary_+")
         ));
     }
@@ -225,6 +223,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
+        
+        
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
@@ -243,13 +243,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 !conceptNames.contains("precedence")) {
             com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
             question.setQuestionText("a + b + c");
-            question.setAnswerObjects(List.of(
+            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
-                    getAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4))
-            ));
+                    getAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4)))));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
-            question.setStatementFacts(getBackendFacts(List.of("a", "+", "b", "+", "c")));
+            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c"))));
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         } else if (conceptNames.contains("precedence") &&
@@ -258,13 +257,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 deniedConceptNames.contains("associativity")) {
             com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
             question.setQuestionText("a + b * c");
-            question.setAnswerObjects(List.of(
+            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "+", "operator_binary_+", getName(0, 2)),
                     getAnswerObject(question, "*", "operator_binary_*", getName(0, 4))
-            ));
+            )));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
-            question.setStatementFacts(getBackendFacts(List.of("a", "+", "b", "*", "c")));
+            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "*", "c"))));
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         }  else if (conceptNames.contains("precedence") &&
@@ -275,12 +274,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionText("a + b + c * d");
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
-            question.setAnswerObjects(List.of(
+            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
                     getAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4)),
                     getAnswerObject(question, "*", "operator_binary_*", getName(0, 6))
-            ));
-            question.setStatementFacts(getBackendFacts(List.of("a", "+", "b", "+", "c", "*", "d")));
+            )));
+            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c", "*", "d"))));
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         } else {
@@ -289,11 +288,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionType(QuestionType.SINGLE_CHOICE);
             question.setQuestionDomainType("ChooseAssociativity");
             question.setAreAnswersRequireContext(true);
-            question.setAnswerObjects(List.of(
+            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "left", "left_associativity", "left"),
                     getAnswerObject(question, "right", "right_associativity", "right"),
                     getAnswerObject(question, "no associativity", "absent_associativity", "no associativity")
-            ));
+            )));
             return new SingleChoice(question);
         }
     }
@@ -1100,18 +1099,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return List.of(
+            return new ArrayList<>(Arrays.asList(
                     getPositiveLaw("single_token_binary_execution"),
                     getPositiveLaw("operator_binary_+_associativity_left"),
                     getPositiveLaw("single_token_binary_execution")
-            );
+            ));
         }
-        return List.of();
+        return new ArrayList<>(Arrays.asList());
     }
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return List.of(
+            return new ArrayList<>(Arrays.asList(
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
@@ -1120,9 +1119,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     getNegativeLaw("error_binary_+_absent_associativity"),
                     getNegativeLaw("error_precedence_binary_*_less_binary_+"),
                     getNegativeLaw("error_precedence_binary_*_equal_binary_+")
-            );
+            ));
         }
-        return List.of();
+        return new ArrayList<>(Arrays.asList());
     }
 
     LawFormulation getSWRLLawFormulation(String name, String formulation) {
@@ -1143,7 +1142,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return List.of(
+            return new ArrayList<>(Arrays.asList(
                     "has_operand",
                     "before_direct",
                     "before_by_third_operator",
@@ -1153,22 +1152,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "high_priority_diff_priority",
                     "high_priority_left_assoc",
                     "high_priority_right_assoc"
-            );
+            ));
         }
-        return List.of();
+        return new ArrayList<>();
     }
 
     public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return List.of(
+            return new ArrayList<>(Arrays.asList(
                     "student_error_more_priority",
                     "student_error_left_assoc",
                     "student_error_right_assoc",
                     "student_error_in_complex",
                     "student_error_strict_operands_order"
-            );
+            ));
         }
-        return List.of();
+        return new ArrayList<>();
     }
 
     @Override
@@ -1206,7 +1205,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             return result;
         }
-        return List.of();
+        return new ArrayList<>();
     }
 
     static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
