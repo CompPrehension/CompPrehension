@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Coda&family=Crimson+Text&family=Gothic+A1&family=M+PLUS+1p&family=M+PLUS+Rounded+1c&family=Nanum+Gothic&family=Nanum+Myeongjo&family=Noto+Sans&family=Open+Sans&display=swap');
+
+.comp-ph-question {
+  font-size: 16px;
+  font-family: 'M PLUS 1p', sans-serif;
+}
+
+.comp-ph-question p {
+  display: block;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.comp-ph-expr {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.comp-ph-expr .comp-ph-expr-op-btn {
+  display: inline-block;
+  font-size: 20px;
+  width: 25px;
+  height: 25px;
+  margin: 0 auto;
+  padding: 0;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition-duration: 0.2s;
+  
+  
+  border-radius: 4px;
+  background-color: #e7e7e7; 
+  color: black;
+  border: 2px solid #FFF;  
+}
+
+.comp-ph-expr .comp-ph-expr-op-btn:hover {
+  background-color: #b5b5b5;
+}
