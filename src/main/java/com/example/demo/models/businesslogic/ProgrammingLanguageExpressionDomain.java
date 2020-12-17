@@ -4,6 +4,7 @@ import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.repository.BackendFactRepository;
 import com.example.demo.utils.HyperText;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
@@ -1164,7 +1165,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_left_assoc",
                     "student_error_right_assoc",
                     "student_error_in_complex",
-                    "student_error_strict_operands_order"
+                    "student_error_strict_operands_order",
+                    "text",
+                    "index"
             ));
         }
         return new ArrayList<>();
@@ -1221,22 +1224,37 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public List<Mistake> interpretSentence(List<BackendFact> violations) {
         List<Mistake> mistakes = new ArrayList<>();
+        Map<String, BackendFact> nameToText = new HashMap<>();
+        Map<String, BackendFact> nameToPos = new HashMap<>();
         for (BackendFact violation : violations) {
+            if (violation.getVerb().equals("text")) {
+                nameToText.put(violation.getSubject(), violation);
+            } else if (violation.getVerb().equals("index")) {
+                nameToPos.put(violation.getSubject(), violation);
+            }
+        }
+
+        for (BackendFact violation : violations) {
+            Mistake mistake = new Mistake();
             if (violation.getVerb().equals("student_error_more_priority")) {
-                Mistake mistake = new Mistake();
                 if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
                     mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_left");
                 } else {
                     mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
                 }
-                mistakes.add(mistake);
             } else if (violation.getVerb().equals("student_error_left_assoc")) {
-                Mistake mistake = new Mistake();
                 mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
-                mistakes.add(mistake);
             } else if (violation.getVerb().equals("student_error_right_assoc")) {
-                Mistake mistake = new Mistake();
                 mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
+            }
+            if (mistake.getLawName() != null) {
+                mistake.setViolationFacts(new ArrayList<>(Arrays.asList(
+                        violation,
+                        nameToText.get(violation.getObject()),
+                        nameToText.get(violation.getSubject()),
+                        nameToPos.get(violation.getObject()),
+                        nameToPos.get(violation.getSubject())
+                )));
                 mistakes.add(mistake);
             }
         }
@@ -1245,6 +1263,82 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public ArrayList<HyperText> makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType) {
-        return null;
+        ArrayList<HyperText> result = new ArrayList<>();
+        for (Mistake mistake : mistakes) {
+            result.add(makeExplanation(mistake, feedbackType));
+        }
+        return result;
+    }
+
+    public static String getOperatorTextDescription(String errorText) {
+        if (errorText.equals("(")) {
+            return "parenthesis ";
+        } else if (errorText.equals("[")) {
+            return "brackets ";
+        } else if (errorText.contains("(")) {
+            return "function call ";
+        }
+        return "operator ";
+    }
+
+    HyperText makeExplanation(Mistake mistake, FeedbackType feedbackType) {
+        BackendFact base = null;
+        BackendFact third = null;
+        Map<String, String> nameToText = new HashMap<>();
+        Map<String, String> nameToPos = new HashMap<>();
+
+        for (BackendFact fact : mistake.getViolationFacts()) {
+            if (fact.getVerb().equals("before_third_operator")) {
+                third = fact;
+            } else if (fact.getVerb().equals("index")) {
+                nameToPos.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("text")) {
+                nameToText.put(fact.getSubject(), fact.getObject());
+            } else {
+                base = fact;
+            }
+        }
+
+        String errorText = nameToText.get(base.getSubject());
+        String reasonText = nameToText.get(base.getObject());
+
+        String thirdOperatorPos = third == null ? "" : nameToPos.get(third.getObject());
+        String thirdOperatorText = third == null ? "" : nameToText.get(third.getObject());
+
+        String reasonPos = nameToPos.get(base.getObject());
+        String errorPos = nameToPos.get(base.getSubject());
+
+        String what = getOperatorTextDescription(reasonText) + reasonText + " on pos " + reasonPos
+                + " should be evaluated before " + getOperatorTextDescription(errorText) + errorText + " on pos " + errorPos;
+        String reason = "";
+
+        String errorType = mistake.getLawName();
+
+        if (errorType.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_left") ||
+                errorType.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right")) {
+            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has higher precedence";
+        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left") && errorText.equals(reasonText)) {
+            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has left associativity and is evaluated from left to right";
+        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left")) {
+            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and left associativity";
+        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right") && errorText.equals(reasonText)) {
+            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has right associativity and is evaluated from right to left";
+        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right")) {
+            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and right associativity";
+//        } else if (error.Type == StudentErrorType.IN_COMPLEX && errorText.equals("(")) {
+//            reason = " because function arguments are evaluated before function call​";
+//        } else if (error.Type == StudentErrorType.IN_COMPLEX && errorText.equals("[")) {
+//            reason = " because expression in brackets is evaluated before brackets";
+//        } else if (error.Type == StudentErrorType.IN_COMPLEX && thirdOperatorText.equals("(")) {
+//            reason = " because expression in parenthesis is evaluated before operators​ outside of them";
+//        } else if (error.Type == StudentErrorType.IN_COMPLEX && thirdOperatorText.equals("[")) {
+//            reason = " because expression in brackets is evaluated before operator outside of them​​";
+//        } else if (error.Type == StudentErrorType.STRICT_OPERANDS_ORDER) {
+//            reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " on pos " + thirdOperatorPos + " must be evaluated before its right operand​";
+        } else {
+            reason = " because unknown error";
+        }
+
+        return new HyperText(what + "\n" + reason);
     }
 }

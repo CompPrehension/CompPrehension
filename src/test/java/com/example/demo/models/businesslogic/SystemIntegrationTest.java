@@ -12,6 +12,7 @@ import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.models.repository.ResponseRepository;
 import com.example.demo.utils.DomainAdapter;
+import com.example.demo.utils.HyperText;
 import io.swagger.models.auth.In;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,11 @@ import com.example.demo.models.repository.ExerciseAttemptRepository;
 import org.apache.commons.collections4.IterableUtils;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(classes= DemoApplication.class)
 @Transactional
@@ -72,6 +72,10 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     mistakes.get(0).getLawName());
+            List<HyperText> explanations  = explainMistakes(question3, mistakes);
+            assertEquals(1, explanations.size());
+            assertEquals("operator * on pos 4 should be evaluated before operator + on pos 2\n" +
+                    " because operator * has higher precedence", explanations.get(0).getText());
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
@@ -212,6 +216,11 @@ public class SystemIntegrationTest {
                 domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts())
         );
         return domain.interpretSentence(violations);
+    }
+
+    List<HyperText> explainMistakes(Question question, List<Mistake> mistakes) {
+        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
+        return domain.makeExplanation(mistakes, FeedbackType.EXPLANATION);
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttempt testExerciseAttempt) {
