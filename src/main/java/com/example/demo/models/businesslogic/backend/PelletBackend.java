@@ -61,6 +61,20 @@ public class PelletBackend extends SWRLBackend {
         return relations;
     }
 
+    HashMap<OWLNamedIndividual, Set<OWLLiteral>> getDataPropertyRelations(String dataProperty) {
+        HashMap<OWLNamedIndividual, Set<OWLLiteral>> relations = new HashMap<>();
+
+        for (Node<OWLNamedIndividual> nodeInd : Reasoner.getInstances(getThingClass(), true)) {
+            OWLNamedIndividual ind = nodeInd.getRepresentativeElement();
+
+            OWLDataProperty dpProperty = getDataProperty(dataProperty);
+
+            relations.put(ind, Reasoner.getDataPropertyValues(ind, dpProperty));
+        }
+
+        return relations;
+    }
+
     @Override
     public List<BackendFact> getObjectProperties(String objectProperty) {
         List<BackendFact> facts = new ArrayList<>();
@@ -79,6 +93,26 @@ public class PelletBackend extends SWRLBackend {
         }
         return facts;
     }
+
+    @Override
+    public List<BackendFact> getDataProperties(String dataProperty) {
+        List<BackendFact> facts = new ArrayList<>();
+        HashMap<OWLNamedIndividual, Set<OWLLiteral>> relations = getDataPropertyRelations(dataProperty);
+
+        for (Map.Entry<OWLNamedIndividual, Set<OWLLiteral>> relationsEntry : relations.entrySet()) {
+            for (OWLLiteral to : relationsEntry.getValue()) {
+                facts.add(new BackendFact(
+                        "owl:NamedIndividual",
+                        relationsEntry.getKey().getIRI().getShortForm(),
+                        dataProperty,
+                        to.getDatatype().toString(),
+                        to.getLiteral()
+                ));
+            }
+        }
+        return facts;
+    }
+
 
     @Override
     void callReasoner() {

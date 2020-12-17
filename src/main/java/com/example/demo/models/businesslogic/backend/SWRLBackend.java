@@ -90,6 +90,7 @@ public abstract class SWRLBackend extends Backend {
     }
 
     abstract List<BackendFact> getObjectProperties(String objectProperty);
+    abstract List<BackendFact> getDataProperties(String dataProperty);
     abstract void callReasoner();
 
     void addOWLLawFormulation(String name, String type) {
@@ -169,6 +170,8 @@ public abstract class SWRLBackend extends Backend {
         for (String verb : verbs) {
             List<BackendFact> verbFacts = getObjectProperties(verb);
             result.addAll(verbFacts);
+            List<BackendFact> verbFactsData = getDataProperties(verb);
+            result.addAll(verbFactsData);
         }
         return result;
     }
