@@ -58,11 +58,15 @@ public class SystemIntegrationTest {
 
         List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
 
+        //TODO: check why double save cause Unimplemented Exception
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            assertEquals("a + b * c", question1.getQuestionText().getText());
+            // double save
+            questionService.saveQuestion(question1.questionData);
+            questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(0));
+            Question question3 = responseQuestion(question2, List.of(0));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertEquals(1, mistakes.size());
             assertEquals(
@@ -70,10 +74,10 @@ public class SystemIntegrationTest {
                     mistakes.get(0).getLawName());
         }
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            assertEquals("a + b * c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(0, 1));
+            Question question3 = responseQuestion(question2, List.of(0, 1));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertEquals(1, mistakes.size());
             assertEquals(
@@ -82,36 +86,36 @@ public class SystemIntegrationTest {
         }
 
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            assertEquals("a + b * c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(1));
+            Question question3 = responseQuestion(question2, List.of(1));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertTrue(mistakes.isEmpty());
         }
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            assertEquals("a + b * c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(1, 0));
-            List<Mistake> mistakes = judgeQuestion(question3);
-            assertTrue(mistakes.isEmpty());
-        }
-
-        {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(1));
-            assertEquals("a + b + c * d", getQuestion(question1).getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(0));
+            Question question3 = responseQuestion(question2, List.of(1, 0));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertTrue(mistakes.isEmpty());
         }
 
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(1));
-            assertEquals("a + b + c * d", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            assertEquals("a + b + c * d", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(1));
+            Question question3 = responseQuestion(question2, List.of(0));
+            List<Mistake> mistakes = judgeQuestion(question3);
+            assertTrue(mistakes.isEmpty());
+        }
+
+        {
+            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            assertEquals("a + b + c * d", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1);
+            Question question3 = responseQuestion(question2, List.of(1));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
@@ -125,19 +129,19 @@ public class SystemIntegrationTest {
         }
 
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(2));
-            assertEquals("a + b + c", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            assertEquals("a + b + c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(0));
+            Question question3 = responseQuestion(question2, List.of(0));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertTrue(mistakes.isEmpty());
         }
 
         {
-            Long question1 = generateQuestion(testExerciseAttemptList.get(2));
-            assertEquals("a + b + c", getQuestion(question1).getQuestionText().getText());
+            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            assertEquals("a + b + c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1);
-            Long question3 = responseQuestion(question2, List.of(1));
+            Question question3 = responseQuestion(question2, List.of(1));
             List<Mistake> mistakes = judgeQuestion(question3);
             assertEquals(1, mistakes.size());
             assertEquals(
@@ -154,7 +158,7 @@ public class SystemIntegrationTest {
         return response;
     }
 
-    Long generateQuestion(ExerciseAttempt exerciseAttempt) {
+    Question generateQuestion(ExerciseAttempt exerciseAttempt) {
         assertNotNull(exerciseAttempt);
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         assertNotNull(exerciseAttempt.getExercise());
@@ -164,8 +168,7 @@ public class SystemIntegrationTest {
         assertNotNull(question);
         //TODO: domain set domainEntity into question
         question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));
-        questionService.saveQuestion(question.questionData);
-        return question.questionData.getId();
+        return question;
     }
 
     Question getQuestion(Long questionId) {
@@ -175,8 +178,7 @@ public class SystemIntegrationTest {
         return question;
     }
 
-    Long solveQuestion(Long questionId) {
-        Question question = getQuestion(questionId);
+    Long solveQuestion(Question question) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         assertNotNull(domain);
         List<BackendFact> solution = backend.solve(
@@ -189,18 +191,16 @@ public class SystemIntegrationTest {
         return question.questionData.getId();
     }
 
-    Long responseQuestion(Long questionId, List<Integer> responses) {
+    Question responseQuestion(Long questionId, List<Integer> responses) {
         Question question = getQuestion(questionId);
         for (Integer response : responses) {
             assertTrue(response < question.getAnswerObjects().size());
             question.addResponse(makeResponse(question.getAnswerObject(response)));
         }
-        questionService.saveQuestion(question.questionData);
-        return question.questionData.getId();
+        return question;
     }
 
-    List<Mistake> judgeQuestion(Long questionId) {
-        Question question = getQuestion(questionId);
+    List<Mistake> judgeQuestion(Question question) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         List<BackendFact> responseFacts = question.responseToFacts();
         assertFalse(responseFacts.isEmpty());
