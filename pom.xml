@@ -122,7 +122,12 @@
 			<artifactId>commons-collections4</artifactId>
 			<version>4.4</version>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.imsglobal</groupId>
+            <artifactId>basiclti-util</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+    </dependencies>
 
 	<dependencyManagement>
 		<dependencies>
