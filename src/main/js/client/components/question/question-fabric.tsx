@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { QuestionType } from '../typings/question.d';
-import store from '../store';
+import { QuestionType } from '../../typings/question.d';
+import store from '../../store';
 import { observer } from 'mobx-react';
 import { OrderQuestion } from "./question-types/order-question";
 import { SingleChoiceQuestion } from './question-types/single-choice-question';

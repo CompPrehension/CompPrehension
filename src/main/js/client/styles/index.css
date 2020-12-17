@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Coda&family=Crimson+Text&family=Gothic+A1&family=M+PLUS+1p&family=M+PLUS+Rounded+1c&family=Nanum+Gothic&family=Nanum+Myeongjo&family=Noto+Sans&family=Open+Sans&display=swap');
 
-.comp-ph-question {
+body {
   font-size: 16px;
   font-family: 'M PLUS 1p', sans-serif;
 }

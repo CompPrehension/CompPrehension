@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import $ from 'jquery';
-import { Question } from "../../typings/question.d";
+import { Question } from "../../../typings/question.d";
 
 
 export interface IOrderQuestionOptions {

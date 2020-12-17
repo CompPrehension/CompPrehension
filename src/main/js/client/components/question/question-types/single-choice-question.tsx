@@ -1,7 +1,7 @@
 
 import React from "react";
 import Checkbox from "@material-ui/core/Checkbox";
-import { Question } from "../../typings/question.d";
+import { Question } from "../../../typings/question.d";
 
 export interface ISingleChoiceQuestionOptions {
     question?: Question,

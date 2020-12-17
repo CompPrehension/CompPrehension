@@ -22,7 +22,7 @@ export type QuestionAnswer = {
 
 export type SessionInfo = {
     sessionId: string,
-    questionId: string,
+    attemptIds: string[],
     user: UserInfo,
     expired: Date,
 }

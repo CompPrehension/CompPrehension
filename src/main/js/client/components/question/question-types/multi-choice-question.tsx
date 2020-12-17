@@ -1,6 +1,6 @@
 import React from "react";
 import Checkbox from 'react-three-state-checkbox';
-import { Question, QuestionAnswer } from "../../typings/question.d";
+import { Question, QuestionAnswer } from "../../../typings/question.d";
 
 export interface IMultiChoiceSelection {
     [id: string]: boolean | null,

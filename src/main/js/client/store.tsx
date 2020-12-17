@@ -14,12 +14,12 @@ export class Store {
     }
 
     @action 
-    createSession = async (): Promise<void> => {
+    loadSessionInfo = async (): Promise<void> => {
         if (this.sessionInfo) {
             throw new Error("Session exists");
         }
 
-        const data = await ajaxGet<SessionInfo>('/createSession');
+        const data = await ajaxGet<SessionInfo>('loadSessionInfo');
         runInAction(() => {
             console.log(data);
             this.sessionInfo = data;
@@ -27,18 +27,18 @@ export class Store {
     }
 
     @action 
-    loadQuestion = async () : Promise<void> => {
+    loadQuestion = async (attemptId: string) : Promise<void> => {
         if (!this.sessionInfo) {
             throw new Error("Session is not defined");
         }
 
-        const { questionId } = this.sessionInfo;
-        if (!questionId) {
-            throw new Error("questionId is not defined")
-        }
+        //const { questionId } = this.sessionInfo;
+        //if (!questionId) {
+        //    throw new Error("questionId is not defined")
+        //}
 
         this.isLoading = true;
-        const data = await ajaxGet<Question>(`/getQuestion?question_id=${questionId}`);
+        const data = await ajaxGet<Question>(`getQuestion?question_id=${attemptId}`);
         runInAction(() => {
             console.log(data);
             this.questionData = data;
@@ -52,7 +52,7 @@ export class Store {
             question_id: questionData?.id,
             answers: toJS(answers),
         }
-        return ajaxPost('/addAnswer', body)
+        return ajaxPost('addAnswer', body)
     }
 
     @action 
