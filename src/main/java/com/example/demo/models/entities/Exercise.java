@@ -36,6 +36,9 @@ public class Exercise {
     @Column(name = "hidden")
     private Boolean hidden;
 
+    @Column(name = "tags")
+    private String tags;
+
 
     @Column(name = "exerciseType")
     @Enumerated(EnumType.ORDINAL)

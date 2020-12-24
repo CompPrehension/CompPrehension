@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -95,9 +96,9 @@ public class ProgrammingLanguageExpressionDomainTest {
 
         PelletBackend backend = new PelletBackend();
         List<BackendFact> solution = backend.solve(
-                domain.getQuestionLaws(question.getQuestionDomainType(), question.getStatementFacts()),
+                domain.getQuestionLaws(question.getQuestionDomainType(), new ArrayList<>()),
                 question.getStatementFacts(),
-                domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
+                domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
         assertFalse(solution.isEmpty());
     }
 }

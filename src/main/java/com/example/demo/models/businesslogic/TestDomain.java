@@ -131,17 +131,17 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public List<Law> getQuestionLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
         return null;
     }
 
     @Override
-    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         return null;
     }
 
     @Override
-    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         return null;
     }
 

@@ -4,12 +4,10 @@ import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.repository.BackendFactRepository;
 import com.example.demo.utils.HyperText;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
 
-import java.sql.Array;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,6 +53,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept postfixOperatorConcept = addConcept("postfix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
 
+        Tag CppTag = new Tag();
+        CppTag.setName("C++");
+        Tag JavaTag = new Tag();
+        JavaTag.setName("Java");
+
         List<Concept> singleTokenBinaryExecutionConcepts = new ArrayList<>(Arrays.asList(
                 precedenceConcept,
                 associativityConcept,
@@ -66,7 +69,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "single_token_binary_execution",
                 getAllLaws(),
                 singleTokenBinaryExecutionConcepts,
-                new ArrayList<>()
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag))
         ));
 
         List<Concept> binaryPlusAssociativityConcepts = new ArrayList<>(Arrays.asList(
@@ -77,7 +80,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "operator_binary_+_associativity_left",
                 new ArrayList<>(),
                 binaryPlusAssociativityConcepts,
-                new ArrayList<>()
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag))
         ));
         List<Concept> binaryMultipleAssociativityConcepts = new ArrayList<>(Arrays.asList(
                 leftAssociativityConcept,
@@ -87,7 +90,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "operator_binary_*_associativity_left",
                 new ArrayList<>(),
                 binaryMultipleAssociativityConcepts,
-                new ArrayList<>()
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag))
         ));
         List<Concept> unaryPlusAssociativityConcepts = new ArrayList<>(Arrays.asList(
                 rightAssociativityConcept,
@@ -97,7 +100,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "operator_unary_+_associativity_right",
                 new ArrayList<>(),
                 unaryPlusAssociativityConcepts,
-                new ArrayList<>()
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag))
         ));
         List<Concept> mulHigherPlusPrecedenceConcepts = new ArrayList<>(Arrays.asList(
                 operatorBinaryMultipleConcept,
@@ -108,7 +111,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "precedence_binary_*_higher_binary_+",
                 new ArrayList<>(),
                 mulHigherPlusPrecedenceConcepts,
-                new ArrayList<>()
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag))
         ));
         List<Concept> unaryPlusHigherMulPrecedenceConcepts = new ArrayList<>(Arrays.asList(
                 operatorBinaryMultipleConcept,
@@ -119,7 +122,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "precedence_unary_+_higher_binary_*",
                 new ArrayList<>(),
                 unaryPlusHigherMulPrecedenceConcepts,
-                new ArrayList<>()
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag))
         ));
 
 
@@ -132,14 +135,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
                 getErrorLaws(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("single_token_binary_execution")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                 new ArrayList<>(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("single_token_binary_execution")));
 
         List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity = new ArrayList<>(Arrays.asList(
@@ -149,16 +152,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
-                new ArrayList<>(),
+                getLeftAssocErrorLaws(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("single_token_binary_execution")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right",
                 new ArrayList<>(),
                 errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("single_token_binary_execution")
         ));
 
@@ -170,28 +173,28 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "error_binary_+_right_associativity",
                 new ArrayList<>(),
                 errorNotLeftAssociativityBinaryPlus,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("operator_binary_+_associativity_left")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_binary_+_absent_associativity",
                 new ArrayList<>(),
                 errorNotLeftAssociativityBinaryPlus,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("operator_binary_+_associativity_left")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_precedence_binary_*_less_binary_+",
                 new ArrayList<>(),
                 mulHigherPlusPrecedenceConcepts,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("precedence_binary_*_higher_binary_+")
         ));
         negativeLaws.add(new NegativeLaw(
                 "error_precedence_binary_*_equal_binary_+",
                 new ArrayList<>(),
                 mulHigherPlusPrecedenceConcepts,
-                new ArrayList<>(),
+                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
                 getPositiveLaw("precedence_binary_*_higher_binary_+")
         ));
     }
@@ -1071,10 +1074,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "before_as_operand(?a, ?b) ^ complex_beginning(?b, true) ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
         ));
         laws.add(getSWRLLawFormulation(
-                "student_error_left_assoc",
-                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)"
-        ));
-        laws.add(getSWRLLawFormulation(
                 "student_error_more_priority",
                 "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_diff_priority(?a, ?b) -> student_error_more_priority(?b, ?a)"
         ));
@@ -1089,16 +1088,29 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return laws;
     }
 
-    public List<Law> getQuestionLaws(String questionDomainType, List<BackendFact> statementFacts) {
-        List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, statementFacts);
-        List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, statementFacts);
+    public List<LawFormulation> getLeftAssocErrorLaws() {
+        List<LawFormulation> laws = new ArrayList<>();
+        laws.add(getOWLLawFormulation("before_as_operand", "owl:ObjectProperty"));
+        laws.add(getOWLLawFormulation("describe_error", "owl:ObjectProperty"));
+        laws.add(getOWLLawFormulation("high_priority_left_assoc", "owl:ObjectProperty"));
+        laws.add(getOWLLawFormulation("student_error_left_assoc", "owl:ObjectProperty"));
+        laws.add(getSWRLLawFormulation(
+                "student_error_left_assoc",
+                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_priority_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)"
+        ));
+        return laws;
+    }
+
+    public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
+        List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
+        List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
         List<Law> laws = new ArrayList<>();
         laws.addAll(positiveLaws);
         laws.addAll(negativeLaws);
         return laws;
     }
 
-    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     getPositiveLaw("single_token_binary_execution"),
@@ -1109,18 +1121,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new ArrayList<>(Arrays.asList());
     }
 
-    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            List<NegativeLaw> result = new ArrayList<>(Arrays.asList(
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
                     getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
-                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left"),
                     getNegativeLaw("error_binary_+_right_associativity"),
                     getNegativeLaw("error_binary_+_absent_associativity"),
                     getNegativeLaw("error_precedence_binary_*_less_binary_+"),
                     getNegativeLaw("error_precedence_binary_*_equal_binary_+")
             ));
+            for (Tag tag : tags) {
+                if (tag.getName().equals("C++")) {
+                    result.add(getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left"));
+                }
+            }
+            return result;
         }
         return new ArrayList<>(Arrays.asList());
     }
