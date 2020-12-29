@@ -1,5 +1,6 @@
 package com.example.demo.Service;
 
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.AnswerObject;
 import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.repository.AnswerObjectRepository;
@@ -72,7 +73,7 @@ public class QuestionService {
         //Генерируем вопрос
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Language userLanguage = exerciseAttempt.getUser().getPreferred_language();
-        com.example.demo.models.businesslogic.Domain domain = core.getDomain(
+        Domain domain = core.getDomain(
                 exerciseAttempt.getExercise().getDomain().getName());
         com.example.demo.models.businesslogic.Question newQuestion = 
                 domain.makeQuestion(qr, userLanguage);

@@ -2,8 +2,7 @@ package com.example.demo.Service;
 
 import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
-import com.example.demo.models.businesslogic.Domain;
-import com.example.demo.models.businesslogic.ProgrammingLanguageExpressionDomain;
+import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import com.example.demo.models.repository.DomainRepository;
 import com.example.demo.models.entities.DomainEntity;
 import org.springframework.beans.factory.annotation.Autowired;

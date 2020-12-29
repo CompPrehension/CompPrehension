@@ -3,9 +3,9 @@ import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
 import com.example.demo.Service.DomainService;
 import com.example.demo.models.businesslogic.backend.Backend;
 import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.businesslogic.domains.Domain;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class Core {

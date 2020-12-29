@@ -2,13 +2,11 @@ package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.businesslogic.PositiveLaw;
-import com.example.demo.models.businesslogic.ProgrammingLanguageExpressionDomain;
+import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import com.example.demo.models.entities.BackendFact;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
-import net.joshka.junit.json.params.JsonFileSource;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -161,21 +159,21 @@ class PelletBackendTest {
         checkObjectProperty(object, objectProperty);
     }
 
-    @ParameterizedTest
-    @JsonFileSource(resources = "../../../../../../before-test-data.json")
-    public void BeforeTest(javax.json.JsonObject object) {
-        checkObjectProperty(object, "before");
-    }
-
-    @ParameterizedTest
-    @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
-    public void HasOperandTest(javax.json.JsonObject object) {
-        checkObjectProperty(object, "ast_edge");
-    }
-
-    @ParameterizedTest
-    @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
-    public void SimpleOntologyTest(javax.json.JsonObject object) {
-        checkObjectProperty(object);
-    }
+//    @ParameterizedTest
+//    @JsonFileSource(resources = "../../../../../../before-test-data.json")
+//    public void BeforeTest(javax.json.JsonObject object) {
+//        checkObjectProperty(object, "before");
+//    }
+//
+//    @ParameterizedTest
+//    @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
+//    public void HasOperandTest(javax.json.JsonObject object) {
+//        checkObjectProperty(object, "ast_edge");
+//    }
+//
+//    @ParameterizedTest
+//    @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
+//    public void SimpleOntologyTest(javax.json.JsonObject object) {
+//        checkObjectProperty(object);
+//    }
 }

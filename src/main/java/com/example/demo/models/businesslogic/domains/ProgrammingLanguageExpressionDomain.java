@@ -1,9 +1,12 @@
-package com.example.demo.models.businesslogic;
+package com.example.demo.models.businesslogic.domains;
 
+import com.example.demo.models.businesslogic.*;
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.entities.Question;
 import com.example.demo.utils.HyperText;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
@@ -226,9 +229,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
-        
-        
+    public com.example.demo.models.businesslogic.Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());

@@ -1,5 +1,7 @@
-package com.example.demo.models.businesslogic;
+package com.example.demo.models.businesslogic.domains;
 
+import com.example.demo.models.businesslogic.*;
+import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;

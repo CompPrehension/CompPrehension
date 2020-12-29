@@ -1,8 +1,8 @@
 package com.example.demo.utils;
 
-import com.example.demo.models.businesslogic.Domain;
-import com.example.demo.models.businesslogic.ProgrammingLanguageExpressionDomain;
-import com.example.demo.models.businesslogic.TestDomain;
+import com.example.demo.models.businesslogic.domains.Domain;
+import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import com.example.demo.models.businesslogic.domains.TestDomain;
 
 import java.util.HashMap;
 
