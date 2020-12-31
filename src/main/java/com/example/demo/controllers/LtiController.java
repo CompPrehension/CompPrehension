@@ -29,9 +29,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -95,10 +98,18 @@ public class LtiController {
         dto.setType(qData.getQuestionType().ordinal());
         dto.setAnswers(new QuestionAnswerDto[0]);
 
-        StringBuilder sb = new StringBuilder();
-        int idx = 0;
-        sb.append(qData.getQuestionText().replaceAll("[\\+\\-\\*\\/]", "<span id='answer_0' class='comp-ph-expr-op-btn'>$0</span>")
-                                         .replaceAll("\\*", "&#8727"));
+        StringBuilder sb = new StringBuilder(qData.getQuestionText());
+        Pattern pattern = Pattern.compile("[\\+\\-\\*\\/]");
+        Matcher matcher = pattern.matcher(sb.toString());
+        int idx = -1;
+        int offset = 0;
+        while (matcher.find()) {
+            String replaceStr = "<span id='answer_" + (++idx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
+            sb.replace(matcher.start() + offset - idx, matcher.end() + offset - idx, replaceStr);
+            offset+=replaceStr.length();
+        }
+
+        sb = new StringBuilder(sb.toString().replaceAll("\\*", "&#8727"));
         sb.insert(0, "<p class='comp-ph-expr'>"); sb.append("</p>");
         sb.insert(0, "<p>Приоритет операций в порядке убывания</p>");
         sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
