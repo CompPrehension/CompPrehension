@@ -43,7 +43,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
-        assertEquals("a + b * c", domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
+        assertEquals("a == b < c", domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
@@ -93,11 +93,18 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("associativity")
         ));
         Question question = domain.makeQuestion(qr, Language.ENGLISH);
-        assertEquals("a + b * c", question.getQuestionText().getText());
+        assertEquals("a == b < c", question.getQuestionText().getText());
+
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
 
         PelletBackend backend = new PelletBackend();
         List<BackendFact> solution = backend.solve(
-                domain.getQuestionLaws(question.getQuestionDomainType(), new ArrayList<>()),
+                domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
         assertFalse(solution.isEmpty());

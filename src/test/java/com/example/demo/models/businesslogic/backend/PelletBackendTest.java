@@ -1,12 +1,13 @@
 package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.businesslogic.Law;
-import com.example.demo.models.businesslogic.PositiveLaw;
 import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import com.example.demo.models.entities.BackendFact;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import net.joshka.junit.json.params.JsonFileSource;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -142,14 +143,10 @@ class PelletBackendTest {
         String jsonRelations = object.get("relations").toString();
 
         PelletBackend backend = new PelletBackend();
-        Law law = new PositiveLaw(
-                "test",
-                domain.getAllLaws(),
-                List.of(),
-                List.of()
-        );
+        List<Law> laws = new ArrayList<>();
+        laws.addAll(domain.getPositiveLaws());
         List<BackendFact> statement = domain.getBackendFacts(expression.getTokens());
-        List<BackendFact> solution = backend.solve(List.of(law), statement, List.of(objectProperty));
+        List<BackendFact> solution = backend.solve(laws, statement, List.of(objectProperty));
 
         checkObjectProperty(solution, jsonRelations, expression.size());
     }
@@ -159,21 +156,21 @@ class PelletBackendTest {
         checkObjectProperty(object, objectProperty);
     }
 
-//    @ParameterizedTest
-//    @JsonFileSource(resources = "../../../../../../before-test-data.json")
-//    public void BeforeTest(javax.json.JsonObject object) {
-//        checkObjectProperty(object, "before");
-//    }
-//
-//    @ParameterizedTest
-//    @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
-//    public void HasOperandTest(javax.json.JsonObject object) {
-//        checkObjectProperty(object, "ast_edge");
-//    }
-//
-//    @ParameterizedTest
-//    @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
-//    public void SimpleOntologyTest(javax.json.JsonObject object) {
-//        checkObjectProperty(object);
-//    }
+    @ParameterizedTest
+    @JsonFileSource(resources = "../../../../../../before-test-data.json")
+    public void BeforeTest(javax.json.JsonObject object) {
+        checkObjectProperty(object, "before");
+    }
+
+    @ParameterizedTest
+    @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
+    public void HasOperandTest(javax.json.JsonObject object) {
+        checkObjectProperty(object, "ast_edge");
+    }
+
+    @ParameterizedTest
+    @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
+    public void SimpleOntologyTest(javax.json.JsonObject object) {
+        checkObjectProperty(object);
+    }
 }
