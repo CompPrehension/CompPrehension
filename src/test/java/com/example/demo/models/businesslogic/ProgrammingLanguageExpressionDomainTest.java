@@ -1,12 +1,14 @@
 package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import com.example.demo.models.entities.BackendFact;
 import com.example.demo.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,7 +43,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
-        assertEquals("a + b * c", domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
+        assertEquals("a == b < c", domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
@@ -91,13 +93,20 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("associativity")
         ));
         Question question = domain.makeQuestion(qr, Language.ENGLISH);
-        assertEquals("a + b * c", question.getQuestionText().getText());
+        assertEquals("a == b < c", question.getQuestionText().getText());
+
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
 
         PelletBackend backend = new PelletBackend();
         List<BackendFact> solution = backend.solve(
-                domain.getQuestionLaws(question.getQuestionDomainType(), question.getStatementFacts()),
+                domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
-                domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
+                domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
         assertFalse(solution.isEmpty());
     }
 }

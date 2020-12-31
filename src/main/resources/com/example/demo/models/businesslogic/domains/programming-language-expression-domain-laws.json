@@ -1,0 +1,2255 @@
+[
+  {
+    "name": "step_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "step(?a, ?a_step) ^ step(?b, ?a_step) -> same_step(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "index",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_step",
+        "formulation": "index(?a, ?a_index) ^ index(?b, ?a_index) ^ step(?a, ?a_step) ^ step(?b, ?b_step) ^ swrlb:add(?b_step, ?a_step, 1) -> next_step(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "zero_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "zero_step",
+        "formulation": "index(?a, ?a_index) ^ index(?b, ?a_index) ^ step(?b, 0) -> zero_step(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "index_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "index",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_prev",
+        "formulation": "index(?a, ?a_index) ^ index(?b, ?b_index) ^ swrlb:add(?b_index, ?a_index, 1) ^ same_step(?a, ?b) -> next_index(?a, ?b) ^ prev_index(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "not_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "not_index",
+        "formulation": "index(?a, ?a_index) ^ index(?b, ?b_index) ^ swrlb:notEqual(?a_index, ?b_index) ^ same_step(?a, ?b) -> not_index(?b, ?a) ^ not_index(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "arity_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "prev_index(?a, ?b) ^ text(?b, ?b_text) ^ is_operand(?b, true) ^ step(?b, 1) -> prev_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand_unary_postfix",
+        "formulation": "prev_index(?a, ?b) ^ arity(?b, \"unary\") ^ prefix_postfix(?b, \"postfix\") ^ step(?b, 1) -> prev_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "prev_index(?a, ?b) ^ arity(?b, ?b_arity) ^ swrlb:notEqual(?b_arity, \"unary\") ^ step(?b, 1) -> prev_operation(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_operation_beggining",
+        "formulation": "step(?a, 1) ^ index(?a, 1) -> prev_operation(?a, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_operation_unary_prefix",
+        "formulation": "prev_index(?a, ?b) ^ arity(?b, \"unary\") ^ prefix_postfix(?b, \"prefix\") ^ step(?b, 1) -> prev_operation(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "operand",
+      "arity",
+      "unary",
+      "prefix",
+      "postfix"
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "arity_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "prev_index(?a, ?b) ^ text(?b, ?b_text) ^ is_operand(?b, true) ^ step(?b, 1) -> prev_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand_unary_postfix",
+        "formulation": "prev_index(?a, ?b) ^ arity(?b, \"unary\") ^ prefix_postfix(?b, \"postfix\") ^ step(?b, 1) -> prev_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "prev_index(?a, ?b) ^ arity(?b, ?b_arity) ^ swrlb:notEqual(?b_arity, \"unary\") ^ step(?b, 1) -> prev_operation(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_operation_beggining",
+        "formulation": "step(?a, 1) ^ index(?a, 1) -> prev_operation(?a, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_operation_unary_prefix",
+        "formulation": "prev_index(?a, ?b) ^ arity(?b, \"unary\") ^ prefix_postfix(?b, \"prefix\") ^ step(?b, 1) -> prev_operation(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "operand",
+      "arity",
+      "unary",
+      "prefix",
+      "postfix"
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "is_operand",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "swrlb:notEqual(?a_text, \"sizeof\") ^ swrlb:matches(?a_text, \"[a-zA-Z_0-9]+\") ^ step(?a, 1) ^ text(?a, ?a_text) -> init(?a, true) ^ is_operand(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_operand_close_bracket",
+        "formulation": "step(?a, 1) ^ text(?a, \"]\") -> init(?a, true) ^ is_operand(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_operand_close_parenthesis",
+        "formulation": "text(?a, \")\") ^ step(?a, 1) -> init(?a, true) ^ is_operand(?a, true)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "operand"
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "complex_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_ending",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "in_complex_begin",
+        "formulation": "next_index(?a, ?b) ^ complex_beginning(?a, true) ^ complex_ending(?b, false) ^ step(?a, 0) -> in_complex(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "in_complex_step",
+        "formulation": "next_index(?a, ?b) ^ step(?a, 0) ^ complex_beginning(?a, false) ^ in_complex(?a, ?c) ^ complex_ending(?b, false) -> in_complex(?b, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "complex_boundaries",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "in_complex_step_skip_inner_complex",
+        "formulation": "in_complex(?a, ?c) ^ complex_boundaries(?a, ?d) ^ step(?a, 0) -> in_complex(?d, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "complex_boundaries",
+        "formulation": "in_complex(?a, ?c) ^ next_index(?a, ?b) ^ complex_beginning(?a, false) ^ complex_ending(?b, true) ^ step(?a, 0) -> complex_boundaries(?c, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "complex_boundaries_empty",
+        "formulation": "next_index(?a, ?b) ^ step(?a, 0) ^ complex_beginning(?a, true) ^ complex_ending(?b, true) -> complex_boundaries(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "copy_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_init",
+        "formulation": "copy(?a, ?to) ^ init(?a, true) -> init(?to, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "copy_eval",
+        "formulation": "copy(?a, ?to) ^ eval(?a, true) -> eval(?to, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "copy_app",
+        "formulation": "copy(?a, ?to) ^ app(?a, true) -> app(?to, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "copy_without_marks",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks",
+        "formulation": "copy(?a, ?to) -> copy_without_marks(?a, ?to)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_arity",
+        "formulation": "arity(?a, ?a_arity) ^ copy_without_marks(?a, ?to) -> arity(?to, ?a_arity)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "associativity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_associativity",
+        "formulation": "associativity(?a, ?a_associativity) ^ copy_without_marks(?a, ?to) -> associativity(?to, ?a_associativity)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_complex_beginning",
+        "formulation": "complex_beginning(?a, ?b) ^ copy_without_marks(?a, ?to) -> complex_beginning(?to, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "complex_boundaries",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "zero_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_complex_boundaries",
+        "formulation": "same_step(?c, ?to) ^ copy_without_marks(?a, ?to) ^ complex_boundaries(?a, ?b) ^ zero_step(?c, ?b0) ^ zero_step(?b, ?b0) -> complex_boundaries(?to, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "complex_ending",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_complex_ending",
+        "formulation": "complex_ending(?a, ?b) ^ copy_without_marks(?a, ?to) -> complex_ending(?to, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_in_complex",
+        "formulation": "same_step(?c, ?to) ^ copy_without_marks(?a, ?to) ^ in_complex(?a, ?b) ^ zero_step(?c, ?b0) ^ zero_step(?b, ?b0) -> in_complex(?to, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_function_call",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_is_function_call",
+        "formulation": "is_function_call(?a, ?a_fc) ^ copy_without_marks(?a, ?to) -> is_function_call(?to, ?a_fc)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_is_operand",
+        "formulation": "copy_without_marks(?a, ?to) ^ is_operand(?a, ?is_op) -> is_operand(?to, ?is_op)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_operator_with_strict_operands_order",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_is_operator_with_strict_operands_order",
+        "formulation": "copy_without_marks(?a, ?to) ^ is_operator_with_strict_operands_order(?a, ?is_op) -> is_operator_with_strict_operands_order(?to, ?is_op)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "last",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_last",
+        "formulation": "last(?a, ?a_last) ^ copy_without_marks(?a, ?to) -> last(?to, ?a_last)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_prefix_postfix",
+        "formulation": "prefix_postfix(?a, ?a_pr) ^ copy_without_marks(?a, ?to) -> prefix_postfix(?to, ?a_pr)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_precedence",
+        "formulation": "precedence(?a, ?a_precedence) ^ copy_without_marks(?a, ?to) -> precedence(?to, ?a_precedence)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "real_pos",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_real_pos",
+        "formulation": "real_pos(?a, ?a_rp) ^ copy_without_marks(?a, ?to) -> real_pos(?to, ?a_rp)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_pos",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_student_pos",
+        "formulation": "copy_without_marks(?a, ?to) ^ student_pos(?a, ?a_sp) -> student_pos(?to, ?a_sp)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks_text",
+        "formulation": "copy_without_marks(?a, ?to) ^ text(?a, ?a_text) -> text(?to, ?a_text)",
+        "backend": "SWRL"
+      },
+
+      {
+        "name": "zero_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_eval_step_to_zero_step",
+        "formulation": "eval_step(?a, ?a_step) ^ zero_step(?a, ?a0) -> eval_step(?a0, ?a_step)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_complex_operator_part",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_has_complex_operator_part_to_zero_step",
+        "formulation": "has_complex_operator_part(?a, ?b) ^ zero_step(?a, ?a0) ^ zero_step(?b, ?b0) -> has_complex_operator_part(?a0, ?b0)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_has_operand_to_zero_step",
+        "formulation": "has_operand(?a, ?b) ^ zero_step(?a, ?a0) ^ zero_step(?b, ?b0) -> has_operand(?a0, ?b0)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "copy_to_zero_step",
+        "formulation": "step(?a, 0) ^ step(?b, 1) ^ zero_step(?b, ?a) -> copy_without_marks(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "copy_to_1_step",
+        "formulation": "step(?a, 0) ^ step(?b, 1) ^ zero_step(?b, ?a) -> copy(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "precedence_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence_diff_precedence",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence",
+        "formulation": "precedence(?a, ?a_prior) ^ precedence(?b, ?b_prior) ^ swrlb:lessThan(?a_prior, ?b_prior) ^ same_step(?a, ?b) -> high_precedence(?a, ?b) ^ high_precedence_diff_precedence(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "prev_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_left_by_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_left_by_step",
+        "formulation": "more_precedence_left_by_step(?a, ?b) ^ prev_index(?b, ?c) ^ high_precedence(?a, ?c) -> more_precedence_left_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_left_by_step_app",
+        "formulation": "more_precedence_left_by_step(?a, ?b) ^ prev_index(?b, ?c) ^ app(?c, true) -> more_precedence_left_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_left_by_step_eval",
+        "formulation": "more_precedence_left_by_step(?a, ?b) ^ prev_index(?b, ?c) ^ eval(?c, true) -> more_precedence_left_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_left_by_step_first",
+        "formulation": "precedence(?a, ?a_prior) ^ init(?a, true) -> more_precedence_left_by_step(?a, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_left_by_step_operand",
+        "formulation": "more_precedence_left_by_step(?a, ?b) ^ prev_index(?b, ?c) ^ is_operand(?c, true) -> more_precedence_left_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "next_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_right_by_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "more_precedence_right_by_step",
+        "formulation": "more_precedence_right_by_step(?a, ?b) ^ next_index(?b, ?c) ^ high_precedence(?a, ?c) -> more_precedence_right_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "more_precedence_right_by_step_app",
+        "formulation": "more_precedence_right_by_step(?a, ?b) ^ next_index(?b, ?c) ^ app(?c, true) -> more_precedence_right_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "more_precedence_right_by_step_eval",
+        "formulation": "more_precedence_right_by_step(?a, ?b) ^ next_index(?b, ?c) ^ eval(?c, true) -> more_precedence_right_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "more_precedence_right_by_step_first",
+        "formulation": "precedence(?a, ?a_prior) ^ init(?a, true) -> more_precedence_right_by_step(?a, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "more_precedence_right_by_step_operand",
+        "formulation": "more_precedence_right_by_step(?a, ?b) ^ next_index(?b, ?c) ^ is_operand(?c, true) -> more_precedence_right_by_step(?a, ?c)",
+        "backend": "SWRL"
+      },
+
+      {
+        "name": "index",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "more_precedence_left_by_step(?a, ?b) ^ index(?b, 1) -> has_highest_precedence_to_left(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_function_call",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_boundaries",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left_in_complex_,",
+        "formulation": "prev_index(?b, ?c) ^ in_complex(?a, ?c) ^ text(?a, \",\") ^ is_function_call(?c, false) ^ more_precedence_left_by_step(?a, ?b) ^ has_highest_precedence_to_left(?c, true) ^ complex_boundaries(?c, ?d) -> has_highest_precedence_to_left(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_highest_precedence_to_left_in_complex_not_,",
+        "formulation": "swrlb:notEqual(?a_text, \",\") ^ prev_index(?b, ?c) ^ in_complex(?a, ?c) ^ more_precedence_left_by_step(?a, ?b) ^ has_highest_precedence_to_left(?c, true) ^ text(?a, ?a_text) -> has_highest_precedence_to_left(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_highest_precedence_to_left_ternary",
+        "formulation": "has_highest_precedence_to_left(?c, true) ^ complex_boundaries(?c, ?d) -> has_highest_precedence_to_left(?d, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "last",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "more_precedence_right_by_step(?a, ?b) ^ last(?b, true) -> has_highest_precedence_to_right(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_highest_precedence_to_right_in_complex",
+        "formulation": "next_index(?b, ?d) ^ has_highest_precedence_to_right(?c, true) ^ in_complex(?a, ?c) ^ more_precedence_right_by_step(?a, ?b) ^ complex_boundaries(?c, ?d) -> has_highest_precedence_to_right(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_highest_precedence_to_right_ternary",
+        "formulation": "has_highest_precedence_to_right(?d, true) ^ complex_boundaries(?c, ?d) -> has_highest_precedence_to_right(?c, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "associativity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence_left_assoc",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "equal_precedence_L_assoc",
+        "formulation": "swrlb:equal(?a_prior, ?b_prior) ^ swrlb:equal(?a_assoc, ?b_assoc) ^ index(?b, ?b_index) ^ precedence(?a, ?a_prior) ^ associativity(?b, ?b_assoc) ^ precedence(?b, ?b_prior) ^ associativity(?a, ?a_assoc) ^ swrlb:equal(?a_assoc, \"L\") ^ swrlb:lessThan(?a_index, ?b_index) ^ index(?a, ?a_index) ^ same_step(?a, ?b) -> high_precedence_left_assoc(?a, ?b) ^ high_precedence(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "high_precedence_right_assoc",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "equal_precedence_R_assoc",
+        "formulation": "swrlb:equal(?a_prior, ?b_prior) ^ swrlb:equal(?a_assoc, ?b_assoc) ^ index(?b, ?b_index) ^ precedence(?a, ?a_prior) ^ associativity(?b, ?b_assoc) ^ precedence(?b, ?b_prior) ^ associativity(?a, ?a_assoc) ^ swrlb:equal(?a_assoc, \"R\") ^ index(?a, ?a_index) ^ same_step(?a, ?b) ^ swrlb:greaterThan(?a_index, ?b_index) -> high_precedence(?a, ?b) ^ high_precedence_right_assoc(?a, ?b)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "precedence"
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "evaluation_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "prev_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_left",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand_eval",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ prev_index(?b, ?c) ^ eval(?c, true) ^ has_highest_precedence_to_left(?a, true) ^ all_app_to_left(?a, ?b) -> find_left_operand(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand_init",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ prev_index(?b, ?c) ^ has_highest_precedence_to_left(?a, true) ^ init(?c, true) ^ all_app_to_left(?a, ?b) -> find_left_operand(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "next_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_right",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_right_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_right_operand_eval",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ next_index(?b, ?c) ^ all_app_to_right(?a, ?b) ^ eval(?c, true) ^ has_highest_precedence_to_left(?a, true) -> find_right_operand(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "find_right_operand_init",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ next_index(?b, ?c) ^ all_app_to_right(?a, ?b) ^ has_highest_precedence_to_left(?a, true) ^ init(?c, true) -> find_right_operand(?a, ?c)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "basics"
+    ]
+  },
+  {
+    "name": "evaluation_complex_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_left",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_left",
+        "formulation": "all_app_to_left(?a, ?b) ^ prev_index(?b, ?c) ^ app(?c, true) -> all_app_to_left(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_left_begin",
+        "formulation": "init(?a, true) ^ has_highest_precedence_to_left(?a, true) -> all_app_to_left(?a, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "next_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_right",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_app_to_right",
+        "formulation": "all_app_to_right(?a, ?b) ^ next_index(?b, ?c) ^ app(?c, true) -> all_app_to_right(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "all_app_to_right_begin",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ init(?a, true) -> all_app_to_right(?a, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "all_eval_to_right",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_eval_to_right",
+        "formulation": "all_eval_to_right(?a, ?b) ^ next_index(?b, ?c) ^ eval(?c, true) -> all_eval_to_right(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "all_eval_to_right_app",
+        "formulation": "all_eval_to_right(?a, ?b) ^ next_index(?b, ?c) ^ app(?c, true) -> all_eval_to_right(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_eval_to_right_begin",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ init(?a, true) ^ complex_beginning(?a, true) ^ has_highest_precedence_to_left(?a, true) -> all_eval_to_right(?a, ?a)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "evaluation"
+    ]
+  },
+  {
+    "name": "single_token_unary_execution",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "not_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_right_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_prefix_operation",
+        "formulation": "next_step(?b, ?b_next) ^ has_highest_precedence_to_right(?a, true) ^ step(?a, ?a_step) ^ arity(?a, \"unary\") ^ init(?a, true) ^ not_index(?b, ?other) ^ prefix_postfix(?a, \"prefix\") ^ has_highest_precedence_to_left(?a, true) ^ next_step(?a, ?a_next) ^ find_right_operand(?a, ?b) ^ same_step(?a, ?b) -> copy_without_marks(?a, ?a_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_prefix_operation_copy_others",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ arity(?a, \"unary\") ^ init(?a, true) ^ not_index(?b, ?other) ^ next_step(?other, ?other_next) ^ prefix_postfix(?a, \"prefix\") ^ same_step(?a, ?other) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ find_right_operand(?a, ?b) ^ same_step(?a, ?b) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_postfix_operation",
+        "formulation": "next_step(?b, ?b_next) ^ has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"unary\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ prefix_postfix(?a, \"postfix\") ^ next_step(?a, ?a_next) ^ same_step(?a, ?b) -> copy_without_marks(?a, ?a_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_postfix_operation_copy_others",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ arity(?a, \"unary\") ^ init(?a, true) ^ not_index(?b, ?other) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ prefix_postfix(?a, \"postfix\") ^ same_step(?a, ?b) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "precedence",
+      "associativity",
+      "operator",
+      "single_token_unary",
+      "operator_evaluation_state"
+    ],
+    "tags": [
+      "evaluation"
+    ]
+  },
+  {
+    "name": "single_token_binary_execution",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "not_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_right_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_binary_operation",
+        "formulation": "next_step(?b, ?b_next) ^ next_step(?c, ?c_next) ^ has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"binary\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ find_right_operand(?a, ?c) ^ next_step(?a, ?a_next) ^ same_step(?a, ?c) ^ same_step(?a, ?b) -> has_operand(?a, ?c) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ app(?c_next, true) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_binary_operation_copy_other",
+        "formulation": "has_highest_precedence_to_right(?a, true) ^ arity(?a, \"binary\") ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ find_right_operand(?a, ?c) ^ find_left_operand(?a, ?b) ^ init(?a, true) ^ not_index(?b, ?other) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ not_index(?c, ?other) ^ same_step(?a, ?c) ^ same_step(?a, ?b) -> copy(?other, ?other_next)",        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "precedence",
+      "associativity",
+      "operator",
+      "single_token_binary",
+      "operator_evaluation_state"
+    ],
+    "tags": [
+      "evaluation"
+    ]
+  },
+  {
+    "name": "two_token_binary_execution",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "not_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_right_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_eval_to_right",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_boundaries",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_complex_operator_part",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_function_call",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_,_in_function_call",
+        "formulation": "text(?a, \",\") ^ init(?a, true) ^ in_complex(?a, ?b) ^ is_function_call(?b, true) -> app(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_complex_operation",
+        "formulation": "next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ all_eval_to_right(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"complex\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ next_step(?a, ?a_next) ^ same_step(?a, ?c) ^ complex_boundaries(?a, ?c) -> copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ eval(?a_next, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_complex_operation_copy_inner_app",
+        "formulation": "next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ swrlb:lessThan(?a_index, ?other_index) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ complex_boundaries(?a, ?c) ^ index(?c, ?c_index) ^ all_eval_to_right(?a, ?b) ^ arity(?a, \"complex\") ^ app(?other, true) ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ not_index(?c, ?other) ^ index(?other, ?other_index) ^ swrlb:lessThan(?other_index, ?c_index) ^ same_step(?a, ?c) ^ index(?a, ?a_index) -> copy_without_marks(?other, ?other_next) ^ app(?other_next, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_complex_operation_copy_inner_eval",
+        "formulation": "next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ swrlb:lessThan(?a_index, ?other_index) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ complex_boundaries(?a, ?c) ^ index(?c, ?c_index) ^ all_eval_to_right(?a, ?b) ^ arity(?a, \"complex\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ not_index(?c, ?other) ^ index(?other, ?other_index) ^ swrlb:lessThan(?other_index, ?c_index) ^ same_step(?a, ?c) ^ index(?a, ?a_index) ^ eval(?other, true) -> copy_without_marks(?other, ?other_next) ^ app(?other_next, true) ^ has_operand(?a, ?other)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_complex_operation_copy_other_left",
+        "formulation": "next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ complex_boundaries(?a, ?c) ^ index(?c, ?c_index) ^ all_eval_to_right(?a, ?b) ^ arity(?a, \"complex\") ^ init(?a, true) ^ swrlb:lessThan(?other_index, ?a_index) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ next_step(?a, ?a_next) ^ not_index(?c, ?other) ^ is_function_call(?a, false) ^ same_step(?a, ?c) ^ index(?other, ?other_index) ^ index(?a, ?a_index) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_complex_operation_copy_other_right",
+        "formulation": "next_step(?c, ?c_next) ^ swrlb:greaterThan(?other_index, ?c_index) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ complex_boundaries(?a, ?c) ^ index(?c, ?c_index) ^ all_eval_to_right(?a, ?b) ^ arity(?a, \"complex\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ next_step(?a, ?a_next) ^ not_index(?c, ?other) ^ same_step(?a, ?c) ^ index(?other, ?other_index) ^ index(?a, ?a_index) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_complex_operation_copy_others_left_no_function_name",
+        "formulation": "next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ complex_boundaries(?a, ?c) ^ index(?c, ?c_index) ^ find_left_operand(?a, ?d) ^ all_eval_to_right(?a, ?b) ^ arity(?a, \"complex\") ^ init(?a, true) ^ swrlb:lessThan(?other_index, ?a_index) ^ has_highest_precedence_to_left(?a, true) ^ not_index(?a, ?other) ^ next_step(?a, ?a_next) ^ is_function_call(?a, true) ^ not_index(?d, ?other) ^ not_index(?c, ?other) ^ same_step(?a, ?c) ^ index(?other, ?other_index) ^ index(?a, ?a_index) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_function_name",
+        "formulation": "next_step(?function_name, ?function_name_next) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ all_eval_to_right(?a, ?b) ^ find_left_operand(?a, ?function_name) ^ same_step(?a, ?function_name) ^ arity(?a, \"complex\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ is_function_call(?a, true) ^ same_step(?a, ?c) ^ complex_boundaries(?a, ?c) -> copy_without_marks(?function_name, ?function_name_next) ^ app(?function_name_next, true) ^ has_complex_operator_part(?a, ?function_name)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_operand_in_complex",
+        "formulation": "init(?a, true) ^ in_complex(?a, ?b) ^ is_operand(?a, true) -> eval(?a, true)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "precedence",
+      "associativity",
+      "operator",
+      "two_token_binary",
+      "operator_evaluation_state"
+    ],
+    "tags": [
+      "evaluation"
+    ]
+  },
+  {
+    "name": "two_token_ternary_execution",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "not_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "same_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "next_step",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_left",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_highest_precedence_to_right",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_left_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "find_right_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "app",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_without_marks",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "all_eval_to_right",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_boundaries",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_complex_operator_part",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_ternary_operation",
+        "formulation": "arity(?a, \"ternary\") ^ next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ step(?a, ?a_step) ^ has_highest_precedence_to_right(?c, true) ^ find_right_operand(?c, ?e) ^ complex_boundaries(?a, ?c) ^ find_left_operand(?a, ?d) ^ all_eval_to_right(?a, ?b) ^ next_step(?e, ?e_next) ^ init(?a, true) ^ next_step(?d, ?d_next) ^ next_step(?a, ?a_next) ^ has_highest_precedence_to_left(?c, true) ^ same_step(?a, ?c) -> has_operand(?a, ?e) ^ copy_without_marks(?d, ?d_next) ^ has_operand(?a, ?d) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ copy_without_marks(?e, ?e_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ app(?d_next, true) ^ app(?e_next, true) ^ eval(?a_next, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_ternary_operation_copy_inner_app",
+        "formulation": "index(?c, ?c_index) ^ arity(?a, \"ternary\") ^ step(?a, ?a_step) ^ swrlb:lessThan(?a_index, ?other_index) ^ step(?other, ?a_step) ^ eval_step(?a, ?a_step) ^ app(?other, true) ^ next_step(?other, ?other_next) ^ index(?other, ?other_index) ^ swrlb:lessThan(?other_index, ?c_index) ^ complex_boundaries(?a, ?c) ^ index(?a, ?a_index) -> copy_without_marks(?other, ?other_next) ^ app(?other_next, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_ternary_operation_copy_inner_eval",
+        "formulation": "index(?c, ?c_index) ^ arity(?a, \"ternary\") ^ step(?a, ?a_step) ^ swrlb:lessThan(?a_index, ?other_index) ^ step(?other, ?a_step) ^ eval_step(?a, ?a_step) ^ app(?other, true) ^ next_step(?other, ?other_next) ^ index(?other, ?other_index) ^ swrlb:lessThan(?other_index, ?c_index) ^ complex_boundaries(?a, ?c) ^ index(?a, ?a_index) -> copy_without_marks(?other, ?other_next) ^ app(?other_next, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_ternary_operation_copy_other_left",
+        "formulation": "arity(?a, \"ternary\") ^ eval_step(?a, ?a_step) ^ step(?a, ?a_step) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ find_left_operand(?a, ?d) ^ swrlb:lessThan(?other_index, ?a_index) ^ not_index(?d, ?other) ^ index(?other, ?other_index) ^ index(?a, ?a_index) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "eval_ternary_operation_copy_other_right",
+        "formulation": "arity(?a, \"ternary\") ^ eval_step(?a, ?a_step) ^ step(?a, ?a_step) ^ next_step(?other, ?other_next) ^ same_step(?a, ?other) ^ complex_boundaries(?a, ?c) ^ find_right_operand(?c, ?d) ^ swrlb:lessThan(?c_index, ?other_index) ^ not_index(?d, ?other) ^ index(?other, ?other_index) ^ index(?c, ?c_index) -> copy(?other, ?other_next)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+      "precedence",
+      "associativity",
+      "operator",
+      "two_token_ternary",
+      "operator_evaluation_state"
+    ],
+    "tags": [
+      "evaluation"
+    ]
+  },
+  {
+    "name": "evaluation_order",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_complex_operator_part",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "ast_edge",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "ast_edge_has_complex_operator_part",
+        "formulation": "has_complex_operator_part(?a, ?b) -> ast_edge(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_direct",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_as_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before",
+        "formulation": "has_operand(?a, ?b) ^ text(?b, ?b_text) ^ swrlb:notEqual(?b_text, \"(\") -> before_direct(?b, ?a) ^ before_as_operand(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "ast_edge_has_operand",
+        "formulation": "has_operand(?a, ?b) -> ast_edge(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "before_by_third_operator",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_all_operands",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_all_operands",
+        "formulation": "before_all_operands(?a, ?b) ^ has_operand(?b, ?c) -> before_direct(?a, ?c) ^ before_by_third_operator(?a, ?c) ^ before_all_operands(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "before_before",
+        "formulation": "before(?a, ?b) ^ before(?b, ?c) -> before(?a, ?c)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "before_direct",
+        "formulation": "before_direct(?a, ?b) -> before(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_function_call",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_function_call",
+        "formulation": "has_operand(?a, ?b) ^ text(?b, \"(\") ^ is_function_call(?b, true) -> before_direct(?b, ?a) ^ before_as_operand(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "before_third_operator",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_in_complex",
+        "formulation": "has_operand(?a, ?b) ^ text(?b, \"(\") ^ has_operand(?b, ?c) -> before_direct(?c, ?a) ^ before_by_third_operator(?c, ?a) ^ before_third_operator(?c, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "is_operator_with_strict_operands_order",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "index",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_strict_order_operands",
+        "formulation": "is_operator_with_strict_operands_order(?a, true) ^ text(?a, ?a_text) ^ swrlb:notEqual(?a_text, \"?\") ^ has_operand(?a, ?b) ^ has_operand(?a, ?c) ^ index(?b, ?b_index) ^ index(?c, ?c_index) ^ swrlb:lessThan(?b_index, ?c_index) -> before_direct(?b, ?c) ^ before_all_operands(?b, ?c) ^ before_by_third_operator(?b, ?c) ^ before_third_operator(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "not_index",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_strict_order_operands_ternary",
+        "formulation": "text(?a, \"?\") ^ has_operand(?a, ?b) ^ has_operand(?a, ?c) ^ has_operand(?a, ?d) ^ index(?b, ?b_index) ^ index(?c, ?c_index) ^ index(?d, ?d_index) ^ not_index(?c, ?d) ^ swrlb:lessThan(?b_index, ?c_index) ^ swrlb:lessThan(?b_index, ?d_index) -> before_direct(?b, ?c) ^ before_all_operands(?b, ?c) ^ before_by_third_operator(?b, ?c) ^ before_third_operator(?b, ?a)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "order"
+    ]
+  },
+  {
+    "name": "operators_c++",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "associativity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_ending",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "operator+=",
+        "formulation": "step(?a, 1) ^ text(?a, \"+=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator!",
+        "formulation": "step(?a, 1) ^ text(?a, \"!\") -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator!=",
+        "formulation": "step(?a, 1) ^ text(?a, \"!=\") -> precedence(?a, 10) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator%",
+        "formulation": "text(?a, \"%\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 5) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator%=",
+        "formulation": "text(?a, \"%=\") ^ step(?a, 1) -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator&",
+        "formulation": "text(?a, \"&\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator&&",
+        "formulation": "step(?a, 1) ^ text(?a, \"&&\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ is_operator_with_strict_operands_order(?a, true) ^ precedence(?a, 14) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator&=",
+        "formulation": "text(?a, \"&=\") ^ step(?a, 1) -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator(",
+        "formulation": "text(?a, \"(\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> associativity(?a, \"L\") ^ precedence(?a, 0) ^ arity(?a, \"complex\") ^ init(?a, true) ^ complex_beginning(?a, true) ^ is_function_call(?a, false)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator*=",
+        "formulation": "step(?a, 1) ^ text(?a, \"*=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator,",
+        "formulation": "step(?a, 1) ^ text(?a, \",\") -> associativity(?a, \"L\") ^ precedence(?a, 17) ^ arity(?a, \"binary\") ^ is_operator_with_strict_operands_order(?a, true) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator-=",
+        "formulation": "step(?a, 1) ^ text(?a, \"-=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator->",
+        "formulation": "step(?a, 1) ^ text(?a, \"->\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator.",
+        "formulation": "step(?a, 1) ^ text(?a, \".\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator/",
+        "formulation": "step(?a, 1) ^ text(?a, \"/\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 5) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator/=",
+        "formulation": "step(?a, 1) ^ text(?a, \"/=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator:",
+        "formulation": "text(?a, \":\") ^ step(?a, 1) -> arity(?a, \"ternary\") ^ precedence(?a, 16) ^ init(?a, true) ^ complex_ending(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator::",
+        "formulation": "step(?a, 1) ^ text(?a, \"::\") -> associativity(?a, \"L\") ^ precedence(?a, 1) ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<",
+        "formulation": "step(?a, 1) ^ text(?a, \"<\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 9)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<<",
+        "formulation": "step(?a, 1) ^ text(?a, \"<<\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 7)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<<=",
+        "formulation": "step(?a, 1) ^ text(?a, \"<<=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<=",
+        "formulation": "step(?a, 1) ^ text(?a, \"<=\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 9)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator=",
+        "formulation": "step(?a, 1) ^ text(?a, \"=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator==",
+        "formulation": "step(?a, 1) ^ text(?a, \"==\") -> precedence(?a, 10) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator>",
+        "formulation": "step(?a, 1) ^ text(?a, \">\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 9)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator>=",
+        "formulation": "step(?a, 1) ^ text(?a, \">=\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 9)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator>>",
+        "formulation": "step(?a, 1) ^ text(?a, \">>\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 7)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator>>=",
+        "formulation": "step(?a, 1) ^ text(?a, \">>=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator?",
+        "formulation": "step(?a, 1) ^ text(?a, \"?\") -> arity(?a, \"ternary\") ^ precedence(?a, 16) ^ is_operator_with_strict_operands_order(?a, true) ^ init(?a, true) ^ complex_beginning(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator^",
+        "formulation": "step(?a, 1) ^ text(?a, \"^\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator^=",
+        "formulation": "step(?a, 1) ^ text(?a, \"^=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_binary&",
+        "formulation": "text(?a, \"&\") ^ step(?a, 1) ^ prev_operand(?a, ?b) -> precedence(?a, 11) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_binary*",
+        "formulation": "text(?a, \"*\") ^ step(?a, 1) ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 5) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_binary+",
+        "formulation": "text(?a, \"+\") ^ step(?a, 1) ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 6)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_binary-",
+        "formulation": "step(?a, 1) ^ text(?a, \"-\") ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 6)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_function_call",
+        "formulation": "text(?a, \"(\") ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"complex\") ^ init(?a, true) ^ is_function_call(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_postfix++",
+        "formulation": "step(?a, 1) ^ text(?a, \"++\") ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"postfix\") ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_postfix--",
+        "formulation": "step(?a, 1) ^ text(?a, \"--\") ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"postfix\") ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_prefix++",
+        "formulation": "step(?a, 1) ^ text(?a, \"++\") ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_prefix--",
+        "formulation": "step(?a, 1) ^ text(?a, \"--\") ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_subscript",
+        "formulation": "text(?a, \"[\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"complex\") ^ init(?a, true) ^ complex_beginning(?a, true) ^ is_function_call(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_unary*",
+        "formulation": "text(?a, \"*\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_unary+",
+        "formulation": "text(?a, \"+\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_unary-",
+        "formulation": "step(?a, 1) ^ text(?a, \"-\") ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator|",
+        "formulation": "step(?a, 1) ^ text(?a, \"|\") -> precedence(?a, 13) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator|=",
+        "formulation": "step(?a, 1) ^ text(?a, \"|=\") -> precedence(?a, 16) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator||",
+        "formulation": "step(?a, 1) ^ text(?a, \"||\") -> associativity(?a, \"L\") ^ precedence(?a, 15) ^ arity(?a, \"binary\") ^ is_operator_with_strict_operands_order(?a, true) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator~",
+        "formulation": "step(?a, 1) ^ text(?a, \"~\") -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 3) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "operators",
+      "C++"
+    ]
+  },
+  {
+    "name": "operators_python",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "associativity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_ending",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "operator:=",
+        "formulation": "step(?a, 1) ^ text(?a, \":=\") -> arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 18) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator=",
+        "formulation": "step(?a, 1) ^ text(?a, \"=\") -> arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 18) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_lambda",
+        "formulation": "step(?a, 1) ^ text(?a, \"lambda\") -> arity(?a, \"complex\") ^ init(?a, true) ^ precedence(?a, 17) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_if",
+        "formulation": "step(?a, 1) ^ text(?a, \"if\") -> arity(?a, \"ternary\") ^ init(?a, true) ^ precedence(?a, 16) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_else",
+        "formulation": "step(?a, 1) ^ text(?a, \"else\") -> arity(?a, \"ternary\") ^ init(?a, true) ^ precedence(?a, 16) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_or",
+        "formulation": "step(?a, 1) ^ text(?a, \"or\") -> arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 15) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_and",
+        "formulation": "step(?a, 1) ^ text(?a, \"and\") -> arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 14) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_in",
+        "formulation": "step(?a, 1) ^ text(?a, \"in\") ^ prev_operand(?a, ?b) -> arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 12) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_is",
+        "formulation": "step(?a, 1) ^ text(?a, \"is\") -> arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 12) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<",
+        "formulation": "step(?a, 1) ^ text(?a, \"<\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator!=",
+        "formulation": "step(?a, 1) ^ text(?a, \">\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<=",
+        "formulation": "step(?a, 1) ^ text(?a, \"<=\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator>=",
+        "formulation": "step(?a, 1) ^ text(?a, \">=\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator!=",
+        "formulation": "step(?a, 1) ^ text(?a, \"!=\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator==",
+        "formulation": "step(?a, 1) ^ text(?a, \"==\") -> precedence(?a, 12) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator|",
+        "formulation": "step(?a, 1) ^ text(?a, \"|\") -> precedence(?a, 11) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator^",
+        "formulation": "step(?a, 1) ^ text(?a, \"^\") -> precedence(?a, 10) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator&",
+        "formulation": "step(?a, 1) ^ text(?a, \"&\") -> precedence(?a, 9) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<<",
+        "formulation": "step(?a, 1) ^ text(?a, \"<<\") -> precedence(?a, 8) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator>>",
+        "formulation": "step(?a, 1) ^ text(?a, \">>\") -> precedence(?a, 8) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator<<",
+        "formulation": "step(?a, 1) ^ text(?a, \"<<\") -> precedence(?a, 8) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator+",
+        "formulation": "step(?a, 1) ^ text(?a, \"+\") ^ prev_operand(?a, ?b) -> precedence(?a, 7) ^ associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator-",
+        "formulation": "text(?a, \"-\") ^ step(?a, 1) ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 7) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator*",
+        "formulation": "text(?a, \"*\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 6) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator@",
+        "formulation": "text(?a, \"@\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 6) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator/",
+        "formulation": "text(?a, \"/\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 6) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator//",
+        "formulation": "text(?a, \"//\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 6) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator%",
+        "formulation": "text(?a, \"%\") ^ step(?a, 1) -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ precedence(?a, 6) ^ init(?a, true)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_unary+",
+        "formulation": "text(?a, \"+\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 5) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_unary-",
+        "formulation": "text(?a, \"-\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 5) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator~",
+        "formulation": "text(?a, \"~\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> arity(?a, \"unary\") ^ init(?a, true) ^ prefix_postfix(?a, \"prefix\") ^ precedence(?a, 5) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator**",
+        "formulation": "text(?a, \"**\") ^ step(?a, 1) -> precedence(?a, 4) ^ arity(?a, \"binary\") ^ init(?a, true) ^ associativity(?a, \"R\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_await",
+        "formulation": "text(?a, \"await\") ^ step(?a, 1) -> precedence(?a, 3) ^ arity(?a, \"unary\") ^ prefix_postfix(?a, \"prefix\") ^ init(?a, true) ^ associativity(?a, \"L\")",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator.",
+        "formulation": "step(?a, 1) ^ text(?a, \".\") -> associativity(?a, \"L\") ^ arity(?a, \"binary\") ^ init(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator_function_call",
+        "formulation": "text(?a, \"(\") ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"complex\") ^ init(?a, true) ^ is_function_call(?a, true) ^ complex_beginning(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator[",
+        "formulation": "text(?a, \"[\") ^ prev_operand(?a, ?b) -> associativity(?a, \"L\") ^ arity(?a, \"complex\") ^ init(?a, true) ^ is_function_call(?a, true) ^ complex_beginning(?a, true) ^ precedence(?a, 2)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "operator(",
+        "formulation": "text(?a, \"(\") ^ step(?a, 1) ^ prev_operation(?a, ?b) -> associativity(?a, \"L\") ^ precedence(?a, 1) ^ arity(?a, \"complex\") ^ init(?a, true) ^ complex_beginning(?a, true) ^ is_function_call(?a, false)",
+        "backend": "SWRL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "operators",
+      "Python"
+    ]
+  }
+]

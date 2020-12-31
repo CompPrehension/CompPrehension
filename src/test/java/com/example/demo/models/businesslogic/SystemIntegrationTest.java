@@ -3,17 +3,15 @@ package com.example.demo.models.businesslogic;
 import com.example.demo.DemoApplication;
 import com.example.demo.Service.DomainService;
 import com.example.demo.Service.QuestionService;
-import com.example.demo.models.businesslogic.backend.Backend;
 import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
-import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.models.repository.ResponseRepository;
 import com.example.demo.utils.DomainAdapter;
 import com.example.demo.utils.HyperText;
-import io.swagger.models.auth.In;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,31 +56,31 @@ public class SystemIntegrationTest {
 
         List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
 
-        //TODO: check why double save cause Unimplemented Exception
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", question1.getQuestionText().getText());
+            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            assertEquals("a == b < c", question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
-            questionService.saveQuestion(question1.questionData);
-            Long question2 = solveQuestion(question1);
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     mistakes.get(0).getLawName());
             List<HyperText> explanations  = explainMistakes(question3, mistakes);
             assertEquals(1, explanations.size());
-            assertEquals("operator * on pos 4 should be evaluated before operator + on pos 2\n" +
-                    " because operator * has higher precedence", explanations.get(0).getText());
+            assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
+                    " because operator < has higher precedence", explanations.get(0).getText());
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            assertEquals("a == b < c", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0, 1));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
@@ -91,36 +89,68 @@ public class SystemIntegrationTest {
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            assertEquals("a == b < c", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            assertEquals("a + b * c", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            assertEquals("a == b < c", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1, 0));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
-            assertEquals("a + b + c * d", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            List<Tag> tags = getTags(testExerciseAttemptList.get(1));
+            assertEquals("a == b < c", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            assertEquals(0, mistakes.size());
+        }
+
+        // Python question. Contrary to C++ "==" and "<" has same precedence
+        {
+            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(1));
+            assertEquals("a == b < c", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
+            Question question3 = responseQuestion(question2, List.of(1));
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            assertEquals(1, mistakes.size());
+            assertEquals(
+                    "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
+                    mistakes.get(0).getLawName());
+            List<HyperText> explanations  = explainMistakes(question3, mistakes);
+            assertEquals(1, explanations.size());
+            assertEquals("operator == on pos 2 should be evaluated before operator < on pos 4\n" +
+                    " because operator == has the same precedence and left associativity", explanations.get(0).getText());
+        }
+
+        {
+            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(2));
+            assertEquals("a + b + c * d", question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
+            Question question3 = responseQuestion(question2, List.of(0));
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(2));
             assertEquals("a + b + c * d", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
             expected.add("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
@@ -133,20 +163,22 @@ public class SystemIntegrationTest {
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            Question question1 = generateQuestion(testExerciseAttemptList.get(3));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(3));
             assertEquals("a + b + c", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            Question question1 = generateQuestion(testExerciseAttemptList.get(3));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(3));
             assertEquals("a + b + c", question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1);
+            Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3);
+            List<Mistake> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -182,11 +214,11 @@ public class SystemIntegrationTest {
         return question;
     }
 
-    Long solveQuestion(Question question) {
+    Long solveQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         assertNotNull(domain);
         List<BackendFact> solution = backend.solve(
-                domain.getQuestionLaws(question.getQuestionDomainType(), question.getStatementFacts()),
+                new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
         assertFalse(solution.isEmpty());
@@ -204,18 +236,34 @@ public class SystemIntegrationTest {
         return question;
     }
 
-    List<Mistake> judgeQuestion(Question question) {
+    List<Mistake> judgeQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         List<BackendFact> responseFacts = question.responseToFacts();
         assertFalse(responseFacts.isEmpty());
         List<BackendFact> violations = backend.judge(
-                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), question.getStatementFacts())),
+                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 question.getSolutionFacts(),
                 responseFacts,
                 domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts())
         );
         return domain.interpretSentence(violations);
+    }
+
+    List<Tag> getTags(ExerciseAttempt exerciseAttempt) {
+        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
+        List<Tag> result = new ArrayList<>();
+        for (String tagString : tags) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        for (String tagString : List.of("basics", "operators", "order", "evaluation")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        return result;
     }
 
     List<HyperText> explainMistakes(Question question, List<Mistake> mistakes) {

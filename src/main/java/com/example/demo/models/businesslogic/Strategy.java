@@ -2,13 +2,12 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.Service.DomainService;
 import com.example.demo.Service.QuestionAttemptService;
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
-import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.utils.DomainAdapter;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

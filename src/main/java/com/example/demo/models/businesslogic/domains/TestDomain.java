@@ -1,13 +1,16 @@
-package com.example.demo.models.businesslogic;
+package com.example.demo.models.businesslogic.domains;
 
 import com.example.demo.Service.BackendService;
 import com.example.demo.Service.QuestionService;
+import com.example.demo.models.businesslogic.*;
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.questionconcept.QuestionConceptChoice;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.entities.Question;
 import com.example.demo.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,7 +63,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
+    public com.example.demo.models.businesslogic.Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
 
         com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
         
@@ -131,17 +134,17 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public List<Law> getQuestionLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
         return null;
     }
 
     @Override
-    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         return null;
     }
 
     @Override
-    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         return null;
     }
 
