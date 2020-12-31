@@ -7,7 +7,7 @@ import com.example.demo.dto.QuestionAnswerDto;
 import com.example.demo.dto.QuestionDto;
 import com.example.demo.dto.SessionInfoDto;
 import com.example.demo.dto.UserInfoDto;
-import com.example.demo.models.businesslogic.Domain;
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.QuestionRequest;
 import com.example.demo.models.businesslogic.Strategy;
