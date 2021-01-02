@@ -40,6 +40,7 @@ public class QuestionService {
     
     
     public void saveQuestion(Question question) {
+        questionRepository.save(question);
         if (question.getAnswerObjects() != null) {
             for (AnswerObject answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
@@ -64,7 +65,6 @@ public class QuestionService {
                 }
             }
         }
-        questionRepository.save(question);
     }
     
     public com.example.demo.models.businesslogic.Question generateBusinessLogicQuestion(
