@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.repository.UserActionExerciseRepository;
-import com.example.demo.models.entities.UserActionExercise;
+import com.example.demo.models.entities.UserActionExerciseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class UserActionExerciseService {
         this.userActionExerciseRepository = userActionExerciseRepository;
     }
     
-    public void saveUserActionExercise(UserActionExercise userActionExercise) {
+    public void saveUserActionExercise(UserActionExerciseEntity userActionExercise) {
         
         userActionExerciseRepository.save(userActionExercise);
     }

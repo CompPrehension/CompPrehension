@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "ExerciseAttempt")
-public class ExerciseAttempt {
+public class ExerciseAttemptEntity {
     //TODO: Нужен ли здесь язык студента
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,12 +22,12 @@ public class ExerciseAttempt {
 
     @ManyToOne
     @JoinColumn(name = "exercise_id", nullable = false)
-    private Exercise exercise;
+    private ExerciseEntity exercise;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @OneToMany(mappedBy = "exerciseAttempt")
-    private List<QuestionAttempt> questionAttempts;
+    private List<QuestionAttemptEntity> questionAttempts;
 }

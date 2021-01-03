@@ -2,10 +2,11 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.businesslogic.backend.QuestionBack;
 import com.example.demo.models.businesslogic.frontend.QuestionFront;
-import com.example.demo.models.entities.AnswerObject;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.AnswerObjectEntity;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.entities.Response;
+import com.example.demo.models.entities.QuestionEntity;
+import com.example.demo.models.entities.ResponseEntity;
 import com.example.demo.utils.HyperText;
 
 import java.util.ArrayList;
@@ -13,13 +14,13 @@ import java.util.List;
 
 public abstract class Question implements QuestionFront, QuestionBack {
     
-    protected com.example.demo.models.entities.Question questionData;
+    protected QuestionEntity questionData;
 
-    protected List<Response> studentResponses = new ArrayList<>();
+    protected List<ResponseEntity> studentResponses = new ArrayList<>();
     
     protected boolean isFinalResponse = false;
     
-    public Question(com.example.demo.models.entities.Question questionData) {
+    public Question(QuestionEntity questionData) {
         this.questionData = questionData;
     }
 
@@ -30,25 +31,25 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
 
     @Override
-    public void addAnswerObject(AnswerObject newObject) {
+    public void addAnswerObject(AnswerObjectEntity newObject) {
         
         questionData.getAnswerObjects().add(newObject);
     }
 
     @Override
-    public void setAnswerObjects(List<AnswerObject> objects) {
+    public void setAnswerObjects(List<AnswerObjectEntity> objects) {
 
         questionData.setAnswerObjects(objects);
     }
 
     @Override
-    public void addResponse(Response r) {
+    public void addResponse(ResponseEntity r) {
         
         studentResponses.add(r);
     }
 
     @Override
-    public void addFullResponse(List<Response> responses) {
+    public void addFullResponse(List<ResponseEntity> responses) {
 
         studentResponses = responses;
         isFinalResponse = true;
@@ -66,7 +67,7 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
     
     @Override
-    public List<AnswerObject> getAnswerObjects() {
+    public List<AnswerObjectEntity> getAnswerObjects() {
         
         return questionData.getAnswerObjects();
     }
@@ -78,7 +79,7 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
 
     @Override
-    public AnswerObject getAnswerObject(int index) {
+    public AnswerObjectEntity getAnswerObject(int index) {
         
         return questionData.getAnswerObjects().get(index);
     }
@@ -89,18 +90,18 @@ public abstract class Question implements QuestionFront, QuestionBack {
         return questionData.getQuestionType();
     }
     
-    public com.example.demo.models.entities.Question getQuestionData() {
+    public QuestionEntity getQuestionData() {
         
         return questionData;
     }
 
     @Override
-    public List<BackendFact> getStatementFacts() {
+    public List<BackendFactEntity> getStatementFacts() {
         return questionData.getStatementFacts();
     }
 
     @Override
-    public List<BackendFact> getSolutionFacts() {
+    public List<BackendFactEntity> getSolutionFacts() {
         return questionData.getSolutionFacts();
     }
 

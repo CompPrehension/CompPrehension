@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "AnswerObject")
-public class AnswerObject {
+public class AnswerObjectEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,15 +29,15 @@ public class AnswerObject {
 
 
     @OneToMany(mappedBy = "leftAnswerObject", fetch = FetchType.LAZY)
-    private List<Response> responsesLeft;
+    private List<ResponseEntity> responsesLeft;
 
     @OneToMany(mappedBy = "rightAnswerObject", fetch = FetchType.LAZY)
-    private List<Response> responsesRight;
+    private List<ResponseEntity> responsesRight;
 
 
     @ManyToOne
     @JoinColumn(name = "answerObject_id")
-    private Question question;
+    private QuestionEntity question;
     
     
 }

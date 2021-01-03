@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.repository.InteractionRepository;
-import com.example.demo.models.entities.Interaction;
+import com.example.demo.models.entities.InteractionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class InteractionService {
         this.interactionRepository = interactionRepository;
     }
     
-    public void saveInteraction(Interaction interaction) {
+    public void saveInteraction(InteractionEntity interaction) {
         
         interactionRepository.save(interaction);
     }

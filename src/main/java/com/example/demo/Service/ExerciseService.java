@@ -62,14 +62,14 @@ public class ExerciseService {
     public ExerciseForm getExerciseFormToEdit(long exerciseId) {
 
         //Берем из базы упражнение по id
-        Exercise exercise = new Exercise();
+        ExerciseEntity exercise = new ExerciseEntity();
         ExerciseForm emptyForm = getExerciseFrom(exercise.getDomain().getName());
         emptyForm.fillForm(exercise);
 
         return emptyForm;
     }
 
-    public Exercise getExercise(long exerciseId) {
+    public ExerciseEntity getExercise(long exerciseId) {
         try {
             return exerciseRepository.findById(exerciseId).orElseThrow(()->
                     new ExerciseNFException("Exercise with id: " + exerciseId + "Not Found"));
@@ -81,17 +81,17 @@ public class ExerciseService {
     public void createExercise(ExerciseForm filledForm, long courseId, long userId, String domainId) throws ExerciseFormException {
 
         checkErrors(filledForm);
-        Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
+        ExerciseEntity newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
 
         //Создаем доп. таблицы в связи с созданием упражнения
-        User user = userService.getUser(userId);
+        UserEntity user = userService.getUser(userId);
 
-        UserAction action = new UserAction();
+        UserActionEntity action = new UserActionEntity();
         action.setActionType(ActionType.CREATE_EXERCISE);
         action.setUser(user);
         action.setTime(new Date());
 
-        UserActionExercise userActionExercise = new UserActionExercise();
+        UserActionExerciseEntity userActionExercise = new UserActionExerciseEntity();
         userActionExercise.setExercise(newExercise);
         userActionExercise.setUserAction(action);
         newExercise.getUserActionExercises().add(userActionExercise);
@@ -114,19 +114,19 @@ public class ExerciseService {
 
         checkErrors(filledForm);
 
-        Exercise updatedExercise = getExercise(exerciseId);  //Берем из базы exercise
+        ExerciseEntity updatedExercise = getExercise(exerciseId);  //Берем из базы exercise
         String domainId = updatedExercise.getDomain().getName();
-        Exercise newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
+        ExerciseEntity newExercise = core.getDomain(domainId).processExerciseForm(filledForm);
         newExercise.setId(exerciseId);
         //Создаем доп. таблицы в связи с созданием упражнения
-        User user = userService.getUser(userId);
+        UserEntity user = userService.getUser(userId);
 
-        UserAction action = new UserAction();
+        UserActionEntity action = new UserActionEntity();
         action.setActionType(ActionType.EDIT_EXERCISE);
         action.setUser(user);
         action.setTime(new Date());
 
-        UserActionExercise userActionExercise = new UserActionExercise();
+        UserActionExerciseEntity userActionExercise = new UserActionExerciseEntity();
         userActionExercise.setExercise(newExercise);
         userActionExercise.setUserAction(action);
         newExercise.getUserActionExercises().add(userActionExercise);
@@ -158,13 +158,13 @@ public class ExerciseService {
 
         //ExerciseAttempt exerciseAttempt = core.startExerciseAttempt(exerciseId, userId, frontEndInfo);
         //Создаем попытку выполнения упражнения
-        ExerciseAttempt exerciseAttempt = new ExerciseAttempt();
+        ExerciseAttemptEntity exerciseAttempt = new ExerciseAttemptEntity();
         exerciseAttempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         exerciseAttempt.setExercise(getExercise(exerciseId));
         exerciseAttempt.setUser(userService.getUser(userId));
 
         //Создаем попытку выполнения вопроса
-        QuestionAttempt questionAttempt = new QuestionAttempt();
+        QuestionAttemptEntity questionAttempt = new QuestionAttemptEntity();
         questionAttempt.setExerciseAttempt(exerciseAttempt);
 
         //Генерируем вопрос

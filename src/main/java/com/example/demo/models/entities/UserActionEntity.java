@@ -13,14 +13,14 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @Table(name = "UserAction")
-public class UserAction {
+public class UserActionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @Enumerated(EnumType.STRING)
     private ActionType actionType;
@@ -31,5 +31,5 @@ public class UserAction {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "userActionExercise_id", referencedColumnName = "id")
     @NotFound(action = NotFoundAction.IGNORE)
-    private UserActionExercise userActionExercise;
+    private UserActionExerciseEntity userActionExercise;
 }

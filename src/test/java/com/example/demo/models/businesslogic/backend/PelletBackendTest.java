@@ -2,7 +2,7 @@ package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import net.joshka.junit.json.params.JsonFileSource;
@@ -91,9 +91,9 @@ class PelletBackendTest {
         return Optional.empty();
     }
 
-    static HashMap<Integer, Set<Integer>> getObjectPropertyRelationsByIndex(List<BackendFact> solution) {
+    static HashMap<Integer, Set<Integer>> getObjectPropertyRelationsByIndex(List<BackendFactEntity> solution) {
         HashMap<Integer, Set<Integer>> result = new HashMap<>();
-        for (BackendFact fact : solution) {
+        for (BackendFactEntity fact : solution) {
             Optional<Integer> from = getIndexFromName(fact.getSubject(), false);
             Optional<Integer> to = getIndexFromName(fact.getObject(), true);
             if (from.isPresent() && to.isPresent()) {
@@ -125,7 +125,7 @@ class PelletBackendTest {
         return result;
     }
 
-    static public void checkObjectProperty(List<BackendFact> solution, String jsonRelations, int maxIndex) {
+    static public void checkObjectProperty(List<BackendFactEntity> solution, String jsonRelations, int maxIndex) {
         HashMap<Integer, Set<Integer>> real = getObjectPropertyRelationsByIndex(solution);
         HashMap<Integer, Set<Integer>> exp = getObjectPropertyRelationsByIndexFromJson(jsonRelations, maxIndex);
         Assertions.assertEquals(exp, real);
@@ -145,8 +145,8 @@ class PelletBackendTest {
         PelletBackend backend = new PelletBackend();
         List<Law> laws = new ArrayList<>();
         laws.addAll(domain.getPositiveLaws());
-        List<BackendFact> statement = domain.getBackendFacts(expression.getTokens());
-        List<BackendFact> solution = backend.solve(laws, statement, List.of(objectProperty));
+        List<BackendFactEntity> statement = domain.getBackendFacts(expression.getTokens());
+        List<BackendFactEntity> solution = backend.solve(laws, statement, List.of(objectProperty));
 
         checkObjectProperty(solution, jsonRelations, expression.size());
     }

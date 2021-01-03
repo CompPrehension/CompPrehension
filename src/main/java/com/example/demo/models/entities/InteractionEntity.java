@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Interaction")
-public class Interaction {
+public class InteractionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,19 +31,19 @@ public class Interaction {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "feedback_id", referencedColumnName = "id")
     @NotFound(action = NotFoundAction.IGNORE)
-    private Feedback feedback;
+    private FeedbackEntity feedback;
 
     @OneToMany(mappedBy = "interaction")
-    private List<Mistake> mistakes;
+    private List<MistakeEntity> mistakes;
 
 
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
-    private List<Response> responses;
+    private List<ResponseEntity> responses;
 
 
     @ManyToOne
     @JoinColumn(name = "questionAttempt_id", nullable = false)
-    private QuestionAttempt questionAttempt;
+    private QuestionAttemptEntity questionAttempt;
 
 
 }

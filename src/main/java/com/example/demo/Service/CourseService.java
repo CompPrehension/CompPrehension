@@ -3,11 +3,11 @@ package com.example.demo.Service;
 import com.example.demo.Exceptions.NotFoundEx.CourseNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
 import com.example.demo.models.repository.CourseRepository;
-import com.example.demo.models.entities.Course;
+import com.example.demo.models.entities.CourseEntity;
 import com.example.demo.models.entities.EnumData.CourseRole;
-import com.example.demo.models.entities.Exercise;
-import com.example.demo.models.entities.User;
-import com.example.demo.models.entities.UserCourseRole;
+import com.example.demo.models.entities.ExerciseEntity;
+import com.example.demo.models.entities.UserEntity;
+import com.example.demo.models.entities.UserCourseRoleEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +31,7 @@ public class CourseService {
         this.courseRepository = courseRepository;
     }
     
-    public Iterable<Course> getCoursesByUserId(Long userId) {
+    public Iterable<CourseEntity> getCoursesByUserId(Long userId) {
         
         return courseRepository.findAll();
     }
@@ -41,10 +41,10 @@ public class CourseService {
      * @param course - данные о новом курсе
      * @param authorId - id создателя курса
      */
-    public void addCourse(Course course , long authorId) {
+    public void addCourse(CourseEntity course , long authorId) {
         
-        User user = userService.getUser(authorId);
-        UserCourseRole userCourseRole = new UserCourseRole();
+        UserEntity user = userService.getUser(authorId);
+        UserCourseRoleEntity userCourseRole = new UserCourseRoleEntity();
         userCourseRole.setUser(user);
         userCourseRole.setCourseRole(CourseRole.AUTHOR);
         userCourseRole.setCourse(course);
@@ -54,13 +54,13 @@ public class CourseService {
         userService.updateUserProfile(user);
     }
 
-    public List<User> getStudents(long courseId) {
+    public List<UserEntity> getStudents(long courseId) {
         //Взять из базы пользователей с ролью - студент
-        ArrayList<User> students = new ArrayList<>();
-        Course course = getCourse(courseId);
-        List<UserCourseRole> userCourseRoles = course.getUserCourseRoles();
+        ArrayList<UserEntity> students = new ArrayList<>();
+        CourseEntity course = getCourse(courseId);
+        List<UserCourseRoleEntity> userCourseRoles = course.getUserCourseRoles();
 
-        for (UserCourseRole ucr : userCourseRoles) {
+        for (UserCourseRoleEntity ucr : userCourseRoles) {
             
             if (ucr.getCourseRole() == CourseRole.STUDENT) {
                 
@@ -79,12 +79,12 @@ public class CourseService {
      */
     public void addCourse(String name, String description, long author_id) {
 
-        Course newCourse = new Course();
+        CourseEntity newCourse = new CourseEntity();
         newCourse.setName(name);
         newCourse.setDescription(description);
-        User user = userService.getUser(author_id);
+        UserEntity user = userService.getUser(author_id);
 
-        UserCourseRole userCourseRole = new UserCourseRole();
+        UserCourseRoleEntity userCourseRole = new UserCourseRoleEntity();
         userCourseRole.setCourse(newCourse);
         userCourseRole.setCourseRole(CourseRole.AUTHOR);
         userCourseRole.setUser(user);
@@ -110,7 +110,7 @@ public class CourseService {
      * Обновить информацию о курсе
      * @param course  - новая информация о курсе
      */
-    public void updateCourse(Course course) {
+    public void updateCourse(CourseEntity course) {
         
         if (!courseRepository.existsById(course.getId())) {
             throw new CourseNFException("Course with id: " + course.getId() 
@@ -126,7 +126,7 @@ public class CourseService {
      * @param courseId - id курса, о котором хотим получить информацию
      * @return - информация о курсе
      */
-    public Course getCourse(long courseId) {
+    public CourseEntity getCourse(long courseId) {
         try {
             return courseRepository.findById(courseId).orElseThrow(()->
                     new CourseNFException("Course with id: " + courseId + "Not Found"));
@@ -144,9 +144,9 @@ public class CourseService {
         return Arrays.asList(CourseRole.values());
     }
 
-    public List<Exercise> getExercises(long courseId){
+    public List<ExerciseEntity> getExercises(long courseId){
 
-        Course c = getCourse(courseId);
+        CourseEntity c = getCourse(courseId);
         
         if (c == null) { return new ArrayList<>(); }
         

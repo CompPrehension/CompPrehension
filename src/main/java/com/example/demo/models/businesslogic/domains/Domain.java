@@ -73,25 +73,25 @@ public abstract class Domain {
 
     public abstract ExerciseForm getExerciseForm();
     
-    public abstract Exercise processExerciseForm(ExerciseForm ef);
+    public abstract ExerciseEntity processExerciseForm(ExerciseForm ef);
     
     public abstract Question makeQuestion(QuestionRequest questionRequest, Language userLanguage);
     
-    public abstract ArrayList<HyperText> makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType);
+    public abstract ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType);
 
     public abstract List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags);
     public abstract List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags);
     public abstract List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags);
 
-    public abstract List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts);
-    public abstract List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts);
+    public abstract List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
+    public abstract List<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
 
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
      * студента факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    public abstract List<BackendFact> responseToFacts(String questionDomainType, List<Response> responses, List<AnswerObject> answerObjects);
+    public abstract List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects);
 
-    public abstract List<Mistake> interpretSentence(List<BackendFact> violations);
+    public abstract List<MistakeEntity> interpretSentence(List<BackendFactEntity> violations);
 }

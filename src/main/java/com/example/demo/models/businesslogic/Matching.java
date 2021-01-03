@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.*;
 
 import java.util.ArrayList;
@@ -8,17 +8,17 @@ import java.util.List;
 
 public class Matching extends Question {
 
-    public Matching(com.example.demo.models.entities.Question questionData) {
+    public Matching(QuestionEntity questionData) {
         super(questionData);
     }
 
     @Override
-    public List<BackendFact> responseToFacts() {
+    public List<BackendFactEntity> responseToFacts() {
 
-        List<AnswerObject> answers = new ArrayList<>(super.
+        List<AnswerObjectEntity> answers = new ArrayList<>(super.
                 getAnswerObjects());
-        List<Response> responses = super.studentResponses;
-        List<BackendFact> facts = new ArrayList<>();
+        List<ResponseEntity> responses = super.studentResponses;
+        List<BackendFactEntity> facts = new ArrayList<>();
 //        QuestionConceptMatch questionConcept = questionData.
 //                getQuestionConceptMatches().get(0);
 //        //Формируем факты из ответов студент
@@ -65,7 +65,7 @@ public class Matching extends Question {
     }
 
     @Override
-    public List<BackendFact> responseToFacts(long backendId) {
+    public List<BackendFactEntity> responseToFacts(long backendId) {
         return null;
     }
 

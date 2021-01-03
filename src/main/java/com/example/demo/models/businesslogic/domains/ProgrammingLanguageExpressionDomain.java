@@ -279,7 +279,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Exercise processExerciseForm(ExerciseForm ef) {
+    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
         return null;
     }
 
@@ -301,7 +301,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (conceptNames.contains("associativity") &&
                 allowedConceptNames.contains("operator_binary_+") &&
                 !conceptNames.contains("precedence")) {
-            com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
+            QuestionEntity question = new QuestionEntity();
             question.setQuestionText("a + b + c");
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
@@ -315,7 +315,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_+") &&
                 allowedConceptNames.contains("operator_binary_*") &&
                 deniedConceptNames.contains("associativity")) {
-            com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
+            QuestionEntity question = new QuestionEntity();
             question.setQuestionText("a == b < c");
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "==", "operator_binary_+", getName(0, 2)),
@@ -330,7 +330,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 conceptNames.contains("associativity") &&
                 allowedConceptNames.contains("operator_binary_+") &&
                 allowedConceptNames.contains("operator_binary_*")) {
-            com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
+            QuestionEntity question = new QuestionEntity();
             question.setQuestionText("a + b + c * d");
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
@@ -343,7 +343,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionType(QuestionType.ORDER);
             return new Ordering(question);
         } else {
-            com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
+            QuestionEntity question = new QuestionEntity();
             question.setQuestionText("Choose associativity of operator binary +");
             question.setQuestionType(QuestionType.SINGLE_CHOICE);
             question.setQuestionDomainType("ChooseAssociativity");
@@ -361,8 +361,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "op__" + step + "__" + index;
     }
 
-    AnswerObject getAnswerObject(com.example.demo.models.entities.Question question, String text, String concept, String domainInfo) {
-        AnswerObject answerObject = new AnswerObject();
+    AnswerObjectEntity getAnswerObject(QuestionEntity question, String text, String concept, String domainInfo) {
+        AnswerObjectEntity answerObject = new AnswerObjectEntity();
         answerObject.setHyperText(text);
         answerObject.setRightCol(false);
         answerObject.setDomainInfo(domainInfo);
@@ -371,22 +371,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return answerObject;
     }
 
-    public List<BackendFact> getBackendFacts(List<String> expression) {
-        List<BackendFact> facts = new ArrayList<>();
+    public List<BackendFactEntity> getBackendFacts(List<String> expression) {
+        List<BackendFactEntity> facts = new ArrayList<>();
         int index = 0;
         for (String token : expression) {
             index++;
             for (int step = 0; step <= expression.size(); ++step) {
                 String name = getName(step, index);
-                facts.add(new BackendFact(name, "rdf:type", "owl:NamedIndividual"));
-                facts.add(new BackendFact("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
-                facts.add(new BackendFact("owl:NamedIndividual", name, "step", "xsd:int", String.valueOf(step)));
+                facts.add(new BackendFactEntity(name, "rdf:type", "owl:NamedIndividual"));
+                facts.add(new BackendFactEntity("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
+                facts.add(new BackendFactEntity("owl:NamedIndividual", name, "step", "xsd:int", String.valueOf(step)));
             }
-            facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token));
-            facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "complex_beginning", "xsd:boolean", Boolean.toString(token.equals("(") || token.equals("[") || token.equals("?"))));
-            facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "complex_ending", "xsd:boolean", Boolean.toString(token.equals(")") || token.equals("]") || token.equals(":"))));
+            facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token));
+            facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "complex_beginning", "xsd:boolean", Boolean.toString(token.equals("(") || token.equals("[") || token.equals("?"))));
+            facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "complex_ending", "xsd:boolean", Boolean.toString(token.equals(")") || token.equals("]") || token.equals(":"))));
         }
-        facts.add(new BackendFact("owl:NamedIndividual", getName(0, index), "last", "xsd:boolean", "true"));
+        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "last", "xsd:boolean", "true"));
         return facts;
     }
 
@@ -520,7 +520,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return lawFormulation;
     }
 
-    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     "has_operand",
@@ -537,7 +537,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new ArrayList<>();
     }
 
-    public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     "student_error_more_precedence",
@@ -553,14 +553,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public List<BackendFact> responseToFacts(String questionDomainType, List<Response> responses, List<AnswerObject> answerObjects) {
+    public List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            List<BackendFact> result = new ArrayList<>();
+            List<BackendFactEntity> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
-            for (Response response : responses) {
+            for (ResponseEntity response : responses) {
                 for (String earlier : used) {
-                    result.add(new BackendFact(
+                    result.add(new BackendFactEntity(
                             "owl:NamedIndividual",
                             earlier,
                             "student_pos_less",
@@ -572,10 +572,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 pos = pos + 1;
             }
 
-            for (AnswerObject answerObject : answerObjects) {
+            for (AnswerObjectEntity answerObject : answerObjects) {
                 if (!used.contains(answerObject.getDomainInfo())) {
                     for (String earlier : used) {
-                        result.add(new BackendFact(
+                        result.add(new BackendFactEntity(
                                 "owl:NamedIndividual",
                                 earlier,
                                 "student_pos_less",
@@ -601,11 +601,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public List<Mistake> interpretSentence(List<BackendFact> violations) {
-        List<Mistake> mistakes = new ArrayList<>();
-        Map<String, BackendFact> nameToText = new HashMap<>();
-        Map<String, BackendFact> nameToPos = new HashMap<>();
-        for (BackendFact violation : violations) {
+    public List<MistakeEntity> interpretSentence(List<BackendFactEntity> violations) {
+        List<MistakeEntity> mistakes = new ArrayList<>();
+        Map<String, BackendFactEntity> nameToText = new HashMap<>();
+        Map<String, BackendFactEntity> nameToPos = new HashMap<>();
+        for (BackendFactEntity violation : violations) {
             if (violation.getVerb().equals("text")) {
                 nameToText.put(violation.getSubject(), violation);
             } else if (violation.getVerb().equals("index")) {
@@ -613,8 +613,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-        for (BackendFact violation : violations) {
-            Mistake mistake = new Mistake();
+        for (BackendFactEntity violation : violations) {
+            MistakeEntity mistake = new MistakeEntity();
             if (violation.getVerb().equals("student_error_more_precedence")) {
                 if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
                     mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_left");
@@ -641,9 +641,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public ArrayList<HyperText> makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType) {
+    public ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType) {
         ArrayList<HyperText> result = new ArrayList<>();
-        for (Mistake mistake : mistakes) {
+        for (MistakeEntity mistake : mistakes) {
             result.add(makeExplanation(mistake, feedbackType));
         }
         return result;
@@ -660,13 +660,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "operator ";
     }
 
-    HyperText makeExplanation(Mistake mistake, FeedbackType feedbackType) {
-        BackendFact base = null;
-        BackendFact third = null;
+    HyperText makeExplanation(MistakeEntity mistake, FeedbackType feedbackType) {
+        BackendFactEntity base = null;
+        BackendFactEntity third = null;
         Map<String, String> nameToText = new HashMap<>();
         Map<String, String> nameToPos = new HashMap<>();
 
-        for (BackendFact fact : mistake.getViolationFacts()) {
+        for (BackendFactEntity fact : mistake.getViolationFacts()) {
             if (fact.getVerb().equals("before_third_operator")) {
                 third = fact;
             } else if (fact.getVerb().equals("index")) {

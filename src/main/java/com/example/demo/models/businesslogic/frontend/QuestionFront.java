@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic.frontend;
 
-import com.example.demo.models.entities.AnswerObject;
+import com.example.demo.models.entities.AnswerObjectEntity;
 import com.example.demo.models.entities.EnumData.QuestionType;
 import com.example.demo.utils.HyperText;
 
@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface QuestionFront {
     
-    public List<AnswerObject> getAnswerObjects();
+    public List<AnswerObjectEntity> getAnswerObjects();
     
     public HyperText getQuestionText();
     
-    public AnswerObject getAnswerObject(int index);
+    public AnswerObjectEntity getAnswerObject(int index);
 
     public int answerObjectsCount();
     

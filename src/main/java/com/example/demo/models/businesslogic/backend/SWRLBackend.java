@@ -1,7 +1,7 @@
 package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.businesslogic.Law;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.LawFormulation;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
@@ -59,7 +59,7 @@ public abstract class SWRLBackend extends Backend {
         return IRI.create(OntologyIRI + "#" + name);
     }
 
-    void addStatementFact(BackendFact fact) {
+    void addStatementFact(BackendFactEntity fact) {
         if (fact.getVerb().equals("rdf:type")) {
             addOWLLawFormulation(fact.getSubject(), fact.getObject());
             return;
@@ -89,8 +89,8 @@ public abstract class SWRLBackend extends Backend {
         }
     }
 
-    abstract List<BackendFact> getObjectProperties(String objectProperty);
-    abstract List<BackendFact> getDataProperties(String dataProperty);
+    abstract List<BackendFactEntity> getObjectProperties(String objectProperty);
+    abstract List<BackendFactEntity> getDataProperties(String dataProperty);
     abstract void callReasoner();
 
     void addOWLLawFormulation(String name, String type) {
@@ -127,13 +127,13 @@ public abstract class SWRLBackend extends Backend {
     }
 
     @Override
-    public List<BackendFact> solve(List<Law> laws, List<BackendFact> statement, List<String> solutionVerbs) {
+    public List<BackendFactEntity> solve(List<Law> laws, List<BackendFactEntity> statement, List<String> solutionVerbs) {
         createOntology();
         for (Law law : laws) {
             addLaw(law);
         }
 
-        for (BackendFact fact : statement) {
+        for (BackendFactEntity fact : statement) {
             addStatementFact(fact);
         }
 
@@ -143,20 +143,20 @@ public abstract class SWRLBackend extends Backend {
     }
 
     @Override
-    public List<BackendFact> judge(List<Law> laws, List<BackendFact> statement, List<BackendFact> correctAnswer, List<BackendFact> response, List<String> violationVerbs) {
+    public List<BackendFactEntity> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, List<String> violationVerbs) {
         createOntology();
 
         for (Law law : laws) {
             addLaw(law);
         }
 
-        for (BackendFact fact : statement) {
+        for (BackendFactEntity fact : statement) {
             addStatementFact(fact);
         }
-        for (BackendFact fact : response) {
+        for (BackendFactEntity fact : response) {
             addStatementFact(fact);
         }
-        for (BackendFact fact : correctAnswer) {
+        for (BackendFactEntity fact : correctAnswer) {
             addStatementFact(fact);
         }
 
@@ -165,12 +165,12 @@ public abstract class SWRLBackend extends Backend {
         return getFacts(violationVerbs);
     }
 
-    List<BackendFact> getFacts(List<String> verbs) {
-        List<BackendFact> result = new ArrayList<>();
+    List<BackendFactEntity> getFacts(List<String> verbs) {
+        List<BackendFactEntity> result = new ArrayList<>();
         for (String verb : verbs) {
-            List<BackendFact> verbFacts = getObjectProperties(verb);
+            List<BackendFactEntity> verbFacts = getObjectProperties(verb);
             result.addAll(verbFacts);
-            List<BackendFact> verbFactsData = getDataProperties(verb);
+            List<BackendFactEntity> verbFactsData = getDataProperties(verb);
             result.addAll(verbFactsData);
         }
         return result;

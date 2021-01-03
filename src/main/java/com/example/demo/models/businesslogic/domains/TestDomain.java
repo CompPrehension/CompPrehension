@@ -3,14 +3,12 @@ package com.example.demo.models.businesslogic.domains;
 import com.example.demo.Service.BackendService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.models.businesslogic.*;
-import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.questionconcept.QuestionConceptChoice;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.entities.Question;
 import com.example.demo.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,7 +42,7 @@ public class TestDomain extends Domain {
 
     //TODO
     @Override
-    public Exercise processExerciseForm(ExerciseForm ef) {
+    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
         /*
         Exercise exercise = new Exercise();
 
@@ -65,7 +63,7 @@ public class TestDomain extends Domain {
     @Override
     public com.example.demo.models.businesslogic.Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
 
-        com.example.demo.models.entities.Question question = new com.example.demo.models.entities.Question();
+        QuestionEntity question = new QuestionEntity();
         
         String questionText = "Вопрос на концепты: ";
         for (Concept c : questionRequest.getTargetConcepts()) {
@@ -93,10 +91,10 @@ public class TestDomain extends Domain {
         question.setQuestionText(questionText);
         
         //Создаем варианты ответов
-        List<AnswerObject> answerObjects = new ArrayList<>();
+        List<AnswerObjectEntity> answerObjects = new ArrayList<>();
         for (int i = 0; i < DEFAULT_ANSWERS_COUNT; i++) {
             
-            AnswerObject answerObject = new AnswerObject();
+            AnswerObjectEntity answerObject = new AnswerObjectEntity();
             answerObject.setRightCol(true);
             answerObject.setConcept("Concept " + i);
             answerObject.setHyperText("Concept " + i);
@@ -110,7 +108,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public ArrayList<HyperText> makeExplanation(List<Mistake> mistakes, FeedbackType feedbackType) {
+    public ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType) {
         String explanation = "";
         
         if (mistakes.size() == 0) { explanation = "Ответ правильный"; } 
@@ -121,7 +119,7 @@ public class TestDomain extends Domain {
                 explanation = "Ответ неправильный";
             } else if (feedbackType == FeedbackType.EXPLANATION) {
                 
-                for (Mistake m : mistakes) {
+                for (MistakeEntity m : mistakes) {
                 
                     explanation += "Нарушен закон - " + m.getLawName() + ";\n";
                 }
@@ -149,22 +147,22 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         return null;
     }
 
     @Override
-    public List<String> getViolationVerbs(String questionDomainType, List<BackendFact> statementFacts) {
+    public List<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         return null;
     }
 
     @Override
-    public List<BackendFact> responseToFacts(String questionDomainType, List<Response> responses, List<AnswerObject> answerObjects) {
+    public List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
         return null;
     }
 
     @Override
-    public List<Mistake> interpretSentence(List<BackendFact> violations) {
+    public List<MistakeEntity> interpretSentence(List<BackendFactEntity> violations) {
         return null;
     }
 }

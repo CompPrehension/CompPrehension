@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.repository.UserActionRepository;
-import com.example.demo.models.entities.UserAction;
+import com.example.demo.models.entities.UserActionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class UserActionService {
         this.userActionRepository = userActionRepository;
     }
 
-    public void saveUserAction(UserAction userAction) {
+    public void saveUserAction(UserActionEntity userAction) {
         
         userActionRepository.save(userAction);
     }

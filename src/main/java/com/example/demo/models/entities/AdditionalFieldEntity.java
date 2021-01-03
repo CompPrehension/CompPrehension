@@ -8,17 +8,17 @@ import javax.persistence.*;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "UserActionExercise")
-public class UserActionExercise {
+@Table(name = "AdditionalField")
+public class AdditionalFieldEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "userAction_id", nullable = false)
-    private UserAction userAction;
+    private String name;
+
+    private String value;
 
     @ManyToOne
     @JoinColumn(name = "exercise_id", nullable = false)
-    private Exercise exercise;
+    private ExerciseEntity exercise;
 }

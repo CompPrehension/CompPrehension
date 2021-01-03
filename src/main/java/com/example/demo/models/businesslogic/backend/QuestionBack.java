@@ -1,36 +1,34 @@
 package com.example.demo.models.businesslogic.backend;
 
-import com.example.demo.models.entities.AnswerObject;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.AnswerObjectEntity;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.businesslogic.Law;
-import com.example.demo.models.entities.Response;
-import com.example.demo.utils.HyperText;
+import com.example.demo.models.entities.ResponseEntity;
 
 import java.util.List;
 
 public interface QuestionBack {
     
-    public AnswerObject getAnswerObject(int index);
+    public AnswerObjectEntity getAnswerObject(int index);
     
-    public List<AnswerObject> getAnswerObjects();
+    public List<AnswerObjectEntity> getAnswerObjects();
     
     public int answerObjectsCount();
     
-    public void addAnswerObject(AnswerObject newObject);
+    public void addAnswerObject(AnswerObjectEntity newObject);
     
-    public void setAnswerObjects(List<AnswerObject> objects);
+    public void setAnswerObjects(List<AnswerObjectEntity> objects);
     
-    public void addResponse(Response r);
+    public void addResponse(ResponseEntity r);
     
-    public void addFullResponse(List<Response> responses);
+    public void addFullResponse(List<ResponseEntity> responses);
 
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
      * студента факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    public List<BackendFact> responseToFacts();
+    public List<BackendFactEntity> responseToFacts();
 
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
@@ -39,13 +37,13 @@ public interface QuestionBack {
      *                  факты
      * @return - факты в том формате, в котором их поймет backend
      */
-    public abstract List<BackendFact> responseToFacts(long backendId);
+    public abstract List<BackendFactEntity> responseToFacts(long backendId);
     
     public QuestionType getQuestionType();
 
-    public List<BackendFact> getStatementFacts();
+    public List<BackendFactEntity> getStatementFacts();
 
-    public List<BackendFact> getSolutionFacts();
+    public List<BackendFactEntity> getSolutionFacts();
 
     public String getQuestionDomainType();
 

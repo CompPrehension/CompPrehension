@@ -10,14 +10,14 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "ExerciseConcepts")
-public class ExerciseConcept {
+public class ExerciseConceptEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "exercise_id", nullable = false)
-    private Exercise exercise;
+    private ExerciseEntity exercise;
 
     @Column(name = "concept_name", nullable = false)
     private String conceptName;

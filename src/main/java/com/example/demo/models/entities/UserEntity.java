@@ -14,7 +14,8 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-public class User {
+@Table(name = "User")
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -49,13 +50,13 @@ public class User {
 
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserAction> userActions;
+    private List<UserActionEntity> userActions;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserCourseRole> userCourseRoles;
+    private List<UserCourseRoleEntity> userCourseRoles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<ExerciseAttempt> exerciseAttempts;
+    private List<ExerciseAttemptEntity> exerciseAttempts;
 
 
     @ManyToMany()
@@ -64,13 +65,13 @@ public class User {
             name = "UserGroup",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "group_id", referencedColumnName = "id"))
-    private List<Group> groups;
+    private List<GroupEntity> groups;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "UserExercise",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "exercise_id"))
-    private List<Exercise> exercises;
+    private List<ExerciseEntity> exercises;
 
 }

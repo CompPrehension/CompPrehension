@@ -22,10 +22,10 @@ public class Strategy extends AbstractStrategy {
     @Autowired
     private DomainService domainService;
 
-    public QuestionRequest generateQuestionRequest(ExerciseAttempt exerciseAttempt) {
+    public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
 
         QuestionRequest qr = new QuestionRequest();
-        Exercise exercise = exerciseAttempt.getExercise();
+        ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
 
         List<Concept> deniedConcepts = new ArrayList<>();
@@ -33,7 +33,7 @@ public class Strategy extends AbstractStrategy {
         List<Concept> targetConcepts = new ArrayList<>();
 
         //Выделить из упражнения целевые и запрещенные законы
-        for (ExerciseConcept ec : exercise.getExerciseConcepts()) {
+        for (ExerciseConceptEntity ec : exercise.getExerciseConcepts()) {
             if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
                 targetConcepts.add(domain.getConcept(ec.getConceptName()));
             } else if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
@@ -86,12 +86,12 @@ public class Strategy extends AbstractStrategy {
         return qr;
     }
 
-    public DisplayingFeedbackType determineDisplayingFeedbackType(QuestionAttempt questionAttempt) {
+    public DisplayingFeedbackType determineDisplayingFeedbackType(QuestionAttemptEntity questionAttempt) {
 
-        List<Interaction> interactions = questionAttempt.getInteractions();
+        List<InteractionEntity> interactions = questionAttempt.getInteractions();
 
         int interactionWithMistakes = 0;
-        for (Interaction i : interactions) {
+        for (InteractionEntity i : interactions) {
 
             if (i.getMistakes() != null || i.getMistakes().size() != 0) {
 
@@ -108,12 +108,12 @@ public class Strategy extends AbstractStrategy {
         }
     }
 
-    public FeedbackType determineFeedbackType(QuestionAttempt questionAttempt) {
+    public FeedbackType determineFeedbackType(QuestionAttemptEntity questionAttempt) {
 
-        List<Interaction> interactions = questionAttempt.getInteractions();
+        List<InteractionEntity> interactions = questionAttempt.getInteractions();
 
         int interactionWithMistakes = 0;
-        for (Interaction i : interactions) {
+        for (InteractionEntity i : interactions) {
 
             if (i.getMistakes() != null || i.getMistakes().size() != 0) {
 

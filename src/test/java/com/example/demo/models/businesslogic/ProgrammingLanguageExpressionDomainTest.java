@@ -2,7 +2,7 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.businesslogic.backend.PelletBackend;
 import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +103,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         }
 
         PelletBackend backend = new PelletBackend();
-        List<BackendFact> solution = backend.solve(
+        List<BackendFactEntity> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
