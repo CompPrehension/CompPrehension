@@ -1,7 +1,7 @@
 package com.example.demo.models.businesslogic.questionconcept;
 
-import com.example.demo.models.entities.Backend;
-import com.example.demo.models.entities.Question;
+import com.example.demo.models.entities.BackendEntity;
+import com.example.demo.models.entities.QuestionEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,7 +17,7 @@ public class QuestionConceptOrder {
 
     private String notInOrderVerb;
 
-    private Question question;
+    private QuestionEntity question;
 
-    private Backend backend;
+    private BackendEntity backend;
 }

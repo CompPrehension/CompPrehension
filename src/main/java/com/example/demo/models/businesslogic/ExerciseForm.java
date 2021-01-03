@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.Exercise;
+import com.example.demo.models.entities.ExerciseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public abstract class ExerciseForm {
     
     public abstract Map<String, String> validate();
     
-    public abstract void fillForm(Exercise exercise);
+    public abstract void fillForm(ExerciseEntity exercise);
 
     public List<Concept> getAllConcepts() {
         return allConcepts;

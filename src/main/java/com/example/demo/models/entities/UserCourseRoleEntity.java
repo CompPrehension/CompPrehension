@@ -10,18 +10,18 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "UserCourseRole")
-public class UserCourseRole {
+public class UserCourseRoleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private CourseEntity course;
 
     @Column(name = "role")
     @Enumerated(EnumType.ORDINAL)

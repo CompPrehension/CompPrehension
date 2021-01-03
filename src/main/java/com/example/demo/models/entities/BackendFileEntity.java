@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "BackendFile")
-public class BackendFile {
+public class BackendFileEntity {
     @Id//Не было ничего, добавил чтобы можно было запустить
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.repository.ResponseRepository;
-import com.example.demo.models.entities.Response;
+import com.example.demo.models.entities.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class ResponseService {
         this.responseRepository = responseRepository;
     }
     
-    public void saveResponse(Response response) {
+    public void saveResponse(ResponseEntity response) {
         
         responseRepository.save(response);
     }

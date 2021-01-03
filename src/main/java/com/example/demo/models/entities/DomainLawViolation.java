@@ -1,7 +1,6 @@
 package com.example.demo.models.entities;
 
 import java.util.List;
-import java.util.Map;
 
 public class DomainLawViolation {
     
@@ -9,5 +8,5 @@ public class DomainLawViolation {
     
     private long violatedLaw;
     
-    private List<ExplanationTemplateInfo> explanationTemplatesInfo;
+    private List<ExplanationTemplateInfoEntity> explanationTemplatesInfo;
 }

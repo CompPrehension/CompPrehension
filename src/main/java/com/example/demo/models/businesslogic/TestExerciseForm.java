@@ -2,8 +2,8 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.entities.DomainEntity;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
-import com.example.demo.models.entities.Exercise;
-import com.example.demo.models.entities.ExerciseConcept;
+import com.example.demo.models.entities.ExerciseEntity;
+import com.example.demo.models.entities.ExerciseConceptEntity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,9 +36,9 @@ public class TestExerciseForm extends ExerciseForm {
     }
 
     @Override
-    public void fillForm(Exercise exercise) {
+    public void fillForm(ExerciseEntity exercise) {
         
-        for (ExerciseConcept ec: exercise.getExerciseConcepts()) {
+        for (ExerciseConceptEntity ec: exercise.getExerciseConcepts()) {
             
             if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
                 //deniedConcepts.add(ec.getConcept());

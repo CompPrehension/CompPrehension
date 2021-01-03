@@ -2,7 +2,7 @@ package com.example.demo.Service;
 
 import com.example.demo.Exceptions.NotFoundEx.BackendNFException;
 import com.example.demo.models.repository.BackendRepository;
-import com.example.demo.models.entities.Backend;
+import com.example.demo.models.entities.BackendEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +17,9 @@ public class BackendService {
         this.backendRepository = backendRepository;
     }
     
-    public Backend getDefaultBackend() {
+    public BackendEntity getDefaultBackend() {
 
-        Iterator<Backend> iterator = backendRepository.findAll().iterator();
+        Iterator<BackendEntity> iterator = backendRepository.findAll().iterator();
         if (iterator.hasNext()) { return iterator.next(); }
         else { throw new BackendNFException("В базе нет backend-а по умолчанию"); }
         

@@ -3,7 +3,7 @@ package com.example.demo.Service;
 import com.example.demo.Exceptions.NotFoundEx.CourseNFException;
 import com.example.demo.Exceptions.NotFoundEx.UserNFException;
 import com.example.demo.models.repository.QuestionAttemptRepository;
-import com.example.demo.models.entities.QuestionAttempt;
+import com.example.demo.models.entities.QuestionAttemptEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +16,12 @@ public class QuestionAttemptService {
         this.questionAttemptRepository = questionAttemptRepository;
     }
     
-    public void saveQuestionAttempt(QuestionAttempt questionAttempt) {
+    public void saveQuestionAttempt(QuestionAttemptEntity questionAttempt) {
         
         questionAttemptRepository.save(questionAttempt);
     }
     
-    public QuestionAttempt getQuestionAttempt(Long questionAttemptId) {
+    public QuestionAttemptEntity getQuestionAttempt(Long questionAttemptId) {
         try {
             return questionAttemptRepository.findById(questionAttemptId).orElseThrow(()->
                     new CourseNFException("QuestionAttempt with id: " +

@@ -33,10 +33,10 @@ public class CourseController {
     private ExerciseService exerciseService;
     
     @GetMapping("{courseId}")
-    public ResponseEntity<Course> getCourse(@PathVariable Long courseId) {
+    public ResponseEntity<CourseEntity> getCourse(@PathVariable Long courseId) {
         
         try {
-            Course course = courseService.getCourse(courseId);
+            CourseEntity course = courseService.getCourse(courseId);
             return new ResponseEntity<>(course, HttpStatus.OK);
         } catch (CourseNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -44,10 +44,10 @@ public class CourseController {
     }
     
     @GetMapping("{courseId}/exercises")
-    public ResponseEntity<List<Exercise>> getExercises(@PathVariable Long courseId) {
+    public ResponseEntity<List<ExerciseEntity>> getExercises(@PathVariable Long courseId) {
 
         try {
-            Course course = courseService.getCourse(courseId);
+            CourseEntity course = courseService.getCourse(courseId);
             return new ResponseEntity<>(course.getExercises(), HttpStatus.OK);
         } catch (CourseNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -56,10 +56,10 @@ public class CourseController {
     
     
     @GetMapping("{course_id}/students")
-    public ResponseEntity<List<User>> getStudentsOnCourse(@PathVariable Long course_id) {
+    public ResponseEntity<List<UserEntity>> getStudentsOnCourse(@PathVariable Long course_id) {
 
         try {
-            List<User> students = courseService.getStudents(course_id);
+            List<UserEntity> students = courseService.getStudents(course_id);
             return new ResponseEntity<>(students, HttpStatus.OK);
         } catch (CourseNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -74,7 +74,7 @@ public class CourseController {
         
     @PostMapping("add")
     public ResponseEntity<Void> createCourse(@RequestParam Long authorId,
-                                             @RequestParam Course course) {
+                                             @RequestParam CourseEntity course) {
 
         try {
             courseService.addCourse(course, authorId);
@@ -85,7 +85,7 @@ public class CourseController {
     }
     
     @PostMapping("edit")
-    public ResponseEntity<Void> updateCourse( @RequestBody Course course) {
+    public ResponseEntity<Void> updateCourse( @RequestBody CourseEntity course) {
 
         try {
             courseService.updateCourse(course);
@@ -101,7 +101,7 @@ public class CourseController {
                                              @RequestParam Long course_id) {
         
         try {
-            User newCourseUser = userService.getUser(user_login);
+            UserEntity newCourseUser = userService.getUser(user_login);
             userService.addToCourse(newCourseUser.getId(), course_id, course_role);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (UserNFException | CourseNFException | UserCourseRoleNFException e) {

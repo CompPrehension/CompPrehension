@@ -24,12 +24,12 @@ public class UserController {
     private CourseService courseService;
 
     @GetMapping("{userId}/courses")
-    public ResponseEntity<List<Course>> getUserCourses(@PathVariable Long userId) {
-        List<Course> courses = new ArrayList<>(); 
+    public ResponseEntity<List<CourseEntity>> getUserCourses(@PathVariable Long userId) {
+        List<CourseEntity> courses = new ArrayList<>();
         try {
-            User user = userService.getUser(userId);
-            List<UserCourseRole> userCourseRoles = user.getUserCourseRoles();
-            for (UserCourseRole ucr : userCourseRoles) {
+            UserEntity user = userService.getUser(userId);
+            List<UserCourseRoleEntity> userCourseRoles = user.getUserCourseRoles();
+            for (UserCourseRoleEntity ucr : userCourseRoles) {
                 
                 courses.add(ucr.getCourse());
             }
@@ -53,10 +53,10 @@ public class UserController {
     }
     
     @GetMapping("{userId}")
-    public ResponseEntity<User> getUserInfo(@PathVariable Long user_profile_id) {
+    public ResponseEntity<UserEntity> getUserInfo(@PathVariable Long user_profile_id) {
         
         try {
-            User userProfile = userService.getUser(user_profile_id);
+            UserEntity userProfile = userService.getUser(user_profile_id);
             return new ResponseEntity<>(userProfile, HttpStatus.OK);
         } catch (UserNFException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -64,7 +64,7 @@ public class UserController {
     }
 
     @PostMapping("update")
-    public ResponseEntity<Void> setUserInfo(@RequestBody User user) {
+    public ResponseEntity<Void> setUserInfo(@RequestBody UserEntity user) {
 
        userService.updateUserProfile(user); 
         return ResponseEntity.ok().build();
@@ -77,7 +77,7 @@ public class UserController {
                                               @RequestParam Long course_id,
                                               Model model) {
 
-        User userInfo = userService.getUser(login);
+        UserEntity userInfo = userService.getUser(login);
         model.addAttribute("user", userInfo);
         model.addAttribute("groups", userService.getUserGroups(userInfo.getId()));
         model.addAttribute("is_user_singed_up", userService.getUserCourses(user_id).

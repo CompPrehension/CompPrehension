@@ -54,7 +54,7 @@ public class SystemIntegrationTest {
     {
         assertNotNull(strategy);
 
-        List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
+        List<ExerciseAttemptEntity> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
@@ -64,7 +64,7 @@ public class SystemIntegrationTest {
             questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
@@ -80,7 +80,7 @@ public class SystemIntegrationTest {
             assertEquals("a == b < c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0, 1));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
@@ -93,7 +93,7 @@ public class SystemIntegrationTest {
             assertEquals("a == b < c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
         {
@@ -102,7 +102,7 @@ public class SystemIntegrationTest {
             assertEquals("a == b < c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1, 0));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
 
@@ -112,7 +112,7 @@ public class SystemIntegrationTest {
             assertEquals("a == b < c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertEquals(0, mistakes.size());
         }
 
@@ -123,7 +123,7 @@ public class SystemIntegrationTest {
             assertEquals("a == b < c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -140,7 +140,7 @@ public class SystemIntegrationTest {
             assertEquals("a + b + c * d", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
 
@@ -150,7 +150,7 @@ public class SystemIntegrationTest {
             assertEquals("a + b + c * d", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
             expected.add("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
@@ -168,7 +168,7 @@ public class SystemIntegrationTest {
             assertEquals("a + b + c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertTrue(mistakes.isEmpty());
         }
 
@@ -178,7 +178,7 @@ public class SystemIntegrationTest {
             assertEquals("a + b + c", question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<Mistake> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -186,15 +186,15 @@ public class SystemIntegrationTest {
         }
     }
 
-    Response makeResponse(AnswerObject answer) {
-        Response response = new Response();
+    ResponseEntity makeResponse(AnswerObjectEntity answer) {
+        ResponseEntity response = new ResponseEntity();
         response.setLeftAnswerObject(answer);
         response.setRightAnswerObject(answer);
         responseRepository.save(response);
         return response;
     }
 
-    Question generateQuestion(ExerciseAttempt exerciseAttempt) {
+    Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         assertNotNull(exerciseAttempt);
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         assertNotNull(exerciseAttempt.getExercise());
@@ -217,7 +217,7 @@ public class SystemIntegrationTest {
     Long solveQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         assertNotNull(domain);
-        List<BackendFact> solution = backend.solve(
+        List<BackendFactEntity> solution = backend.solve(
                 new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
@@ -236,11 +236,11 @@ public class SystemIntegrationTest {
         return question;
     }
 
-    List<Mistake> judgeQuestion(Question question, List<Tag> tags) {
+    List<MistakeEntity> judgeQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
-        List<BackendFact> responseFacts = question.responseToFacts();
+        List<BackendFactEntity> responseFacts = question.responseToFacts();
         assertFalse(responseFacts.isEmpty());
-        List<BackendFact> violations = backend.judge(
+        List<BackendFactEntity> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 question.getSolutionFacts(),
@@ -250,7 +250,7 @@ public class SystemIntegrationTest {
         return domain.interpretSentence(violations);
     }
 
-    List<Tag> getTags(ExerciseAttempt exerciseAttempt) {
+    List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
         String[] tags = exerciseAttempt.getExercise().getTags().split(",");
         List<Tag> result = new ArrayList<>();
         for (String tagString : tags) {
@@ -266,17 +266,17 @@ public class SystemIntegrationTest {
         return result;
     }
 
-    List<HyperText> explainMistakes(Question question, List<Mistake> mistakes) {
+    List<HyperText> explainMistakes(Question question, List<MistakeEntity> mistakes) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         return domain.makeExplanation(mistakes, FeedbackType.EXPLANATION);
     }
 
-    private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttempt testExerciseAttempt) {
+    private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity testExerciseAttempt) {
         List<String> deniedConcepts = new ArrayList<>();
         List<String> targetConcepts = new ArrayList<>();
 
         //Выделить из упражнения целевые и запрещенные законы
-        for (ExerciseConcept ec : testExerciseAttempt.getExercise().getExerciseConcepts()) {
+        for (ExerciseConceptEntity ec : testExerciseAttempt.getExercise().getExerciseConcepts()) {
 
             if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
 

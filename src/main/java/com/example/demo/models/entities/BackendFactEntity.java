@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "BackendFacts")
-public class BackendFact {
+public class BackendFactEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,9 +29,9 @@ public class BackendFact {
 
     @ManyToOne
     @JoinColumn(name = "BackendFact_id")
-    private Question question;
+    private QuestionEntity question;
 
-    public BackendFact(String subjectType, String subject, String verb, String objectType, String object) {
+    public BackendFactEntity(String subjectType, String subject, String verb, String objectType, String object) {
         this.object = object;
         this.objectType = objectType;
         this.subject = subject;
@@ -39,7 +39,7 @@ public class BackendFact {
         this.verb = verb;
     }
 
-    public BackendFact(String subject, String verb, String object) {
+    public BackendFactEntity(String subject, String verb, String object) {
         this.object = object;
         this.objectType = "";
         this.subject = subject;

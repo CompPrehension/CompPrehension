@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
-public class Exercise {
+public class ExerciseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -54,11 +54,11 @@ public class Exercise {
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    private CourseEntity course;
 
     @ManyToOne
     @JoinColumn(name = "backend_id", nullable = false)
-    private Backend backend;
+    private BackendEntity backend;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", nullable = false)
@@ -67,27 +67,27 @@ public class Exercise {
 
     @OneToMany(mappedBy = "exercise")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<AdditionalField> additionalFields;
+    private List<AdditionalFieldEntity> additionalFields;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseDisplayingFeedbackType> exerciseDisplayingFeedbackTypes;
+    private List<ExerciseDisplayingFeedbackTypeEntity> exerciseDisplayingFeedbackTypes;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseQuestionType> exerciseQuestionTypes;
+    private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<UserActionExercise> userActionExercises;
+    private List<UserActionExerciseEntity> userActionExercises;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseLaws> exerciseLaws;
+    private List<ExerciseLawsEntity> exerciseLaws;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseConcept> exerciseConcepts;
+    private List<ExerciseConceptEntity> exerciseConcepts;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseAttempt> exerciseAttempts;
+    private List<ExerciseAttemptEntity> exerciseAttempts;
 
 
     @ManyToMany(mappedBy = "exercises")
-    private List<User> users;
+    private List<UserEntity> users;
 }

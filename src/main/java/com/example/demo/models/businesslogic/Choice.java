@@ -1,25 +1,26 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.BackendFact;
-import com.example.demo.models.entities.AnswerObject;
-import com.example.demo.models.entities.Response;
+import com.example.demo.models.entities.BackendFactEntity;
+import com.example.demo.models.entities.AnswerObjectEntity;
+import com.example.demo.models.entities.QuestionEntity;
+import com.example.demo.models.entities.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Choice extends Question {
 
-    public Choice(com.example.demo.models.entities.Question questionData) {
+    public Choice(QuestionEntity questionData) {
         super(questionData);
     }
 
     @Override
-    public List<BackendFact> responseToFacts() {
+    public List<BackendFactEntity> responseToFacts() {
 
-        List<AnswerObject> answers = new ArrayList<>(super.
+        List<AnswerObjectEntity> answers = new ArrayList<>(super.
                 getAnswerObjects());
-        List<Response> responses = super.studentResponses;
-        List<BackendFact> facts = new ArrayList<>();
+        List<ResponseEntity> responses = super.studentResponses;
+        List<BackendFactEntity> facts = new ArrayList<>();
 //        QuestionConceptChoice questionConcept = questionData.
 //                getQuestionConceptChoices().get(0);
 //        //Формируем факты из ответов студент
@@ -49,7 +50,7 @@ public class Choice extends Question {
     }
 
     @Override
-    public List<BackendFact> responseToFacts(long backendId) {
+    public List<BackendFactEntity> responseToFacts(long backendId) {
         /*
         List<AnswerObject> answers = super.getAnswerObjects();
         List<Response> responses = super.studentResponses;

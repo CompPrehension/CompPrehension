@@ -1,16 +1,16 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.businesslogic.domains.Domain;
-import com.example.demo.models.entities.AnswerObject;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.AnswerObjectEntity;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.repository.AnswerObjectRepository;
 import com.example.demo.models.repository.BackendFactRepository;
 import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
-import com.example.demo.models.entities.ExerciseAttempt;
-import com.example.demo.models.entities.Question;
+import com.example.demo.models.entities.ExerciseAttemptEntity;
+import com.example.demo.models.entities.QuestionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +39,10 @@ public class QuestionService {
     }
     
     
-    public void saveQuestion(Question question) {
+    public void saveQuestion(QuestionEntity question) {
         questionRepository.save(question);
         if (question.getAnswerObjects() != null) {
-            for (AnswerObject answerObject : question.getAnswerObjects()) {
+            for (AnswerObjectEntity answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
                     answerObject.setQuestion(question);
                     answerObjectRepository.save(answerObject);
@@ -50,7 +50,7 @@ public class QuestionService {
             }
         }
         if (question.getStatementFacts() != null) {
-            for (BackendFact fact : question.getStatementFacts()) {
+            for (BackendFactEntity fact : question.getStatementFacts()) {
                 if (fact.getId() == null) {
                     fact.setQuestion(question);
                     backendFactRepository.save(fact);
@@ -58,7 +58,7 @@ public class QuestionService {
             }
         }
         if (question.getSolutionFacts() != null) {
-            for (BackendFact fact : question.getSolutionFacts()) {
+            for (BackendFactEntity fact : question.getSolutionFacts()) {
                 if (fact.getId() == null) {
                     fact.setQuestion(question);
                     backendFactRepository.save(fact);
@@ -68,7 +68,7 @@ public class QuestionService {
     }
     
     public com.example.demo.models.businesslogic.Question generateBusinessLogicQuestion(
-            ExerciseAttempt exerciseAttempt) {
+            ExerciseAttemptEntity exerciseAttempt) {
         
         //Генерируем вопрос
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
@@ -84,7 +84,7 @@ public class QuestionService {
     }
 
     public com.example.demo.models.businesslogic.Question generateBusinessLogicQuestion(
-            Question question) {
+            QuestionEntity question) {
 
         if (question.getQuestionType() == QuestionType.MATCHING) {
             return new Matching(question);
@@ -97,7 +97,7 @@ public class QuestionService {
         }
     }
 
-    public Question getQuestionById(Long id){
+    public QuestionEntity getQuestionById(Long id){
 
         return questionRepository.findById(id).get();
 

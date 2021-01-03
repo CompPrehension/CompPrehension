@@ -5,13 +5,12 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "students_group")
-public class Group {
+public class GroupEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -19,5 +18,5 @@ public class Group {
     private String name;
 
     @ManyToMany(mappedBy = "groups")
-    private List<User> users;
+    private List<UserEntity> users;
 }

@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Course")
-public class Course {
+public class CourseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,8 +20,8 @@ public class Course {
     private String description;
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private List<Exercise> exercises;
+    private List<ExerciseEntity> exercises;
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private List<UserCourseRole> userCourseRoles;
+    private List<UserCourseRoleEntity> userCourseRoles;
 }

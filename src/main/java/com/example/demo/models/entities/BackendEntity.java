@@ -9,7 +9,8 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-public class Backend {
+@Table(name = "Backend")
+public class BackendEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

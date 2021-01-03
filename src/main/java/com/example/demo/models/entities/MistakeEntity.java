@@ -12,22 +12,22 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Mistake")
-public class Mistake {
+public class MistakeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
-    private Interaction interaction;
+    private InteractionEntity interaction;
 
     @OneToMany(mappedBy = "mistake", fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<ExplanationTemplateInfo> explanationTemplateInfo;
+    private List<ExplanationTemplateInfoEntity> explanationTemplateInfo;
 
     @Column(name = "law_name", nullable = false)
     private String lawName;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFact> violationFacts;
+    private List<BackendFactEntity> violationFacts;
 }

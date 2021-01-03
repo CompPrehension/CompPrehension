@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic.frontend;
 
-import com.example.demo.models.entities.AnswerObject;
+import com.example.demo.models.entities.AnswerObjectEntity;
 import lombok.Data;
 
 import java.util.Map;
@@ -18,7 +18,7 @@ public class QuestionMistakes {
      * Объект ответа (в основном это вариант ответа, но для соответствия еще
      * и элемент левой колонки), и является ли он правильным.
      */
-    private Map<AnswerObject, Boolean> mistakes;
+    private Map<AnswerObjectEntity, Boolean> mistakes;
     
     
 }

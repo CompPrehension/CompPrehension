@@ -1,6 +1,5 @@
 package com.example.demo.models.entities;
 
-import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.SpecValue;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +10,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "Response")
-public class Response {
+public class ResponseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,15 +21,15 @@ public class Response {
 
     @ManyToOne
     @JoinColumn(name = "leftObject_id")
-    private AnswerObject leftAnswerObject;
+    private AnswerObjectEntity leftAnswerObject;
 
     @ManyToOne
     @JoinColumn(name = "rightObject_id")
-    private AnswerObject rightAnswerObject;
+    private AnswerObjectEntity rightAnswerObject;
 
     @ManyToOne
     @JoinColumn(name = "interaction_id")
-    private Interaction interaction;
+    private InteractionEntity interaction;
 
 
 }

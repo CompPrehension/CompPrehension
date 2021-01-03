@@ -11,7 +11,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "ExerciseDisplayingFeedbackType")
-public class ExerciseDisplayingFeedbackType {
+public class ExerciseDisplayingFeedbackTypeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,5 +26,5 @@ public class ExerciseDisplayingFeedbackType {
 
     @ManyToOne
     @JoinColumn(name = "exercise_id", nullable = false)
-    private Exercise exercise;
+    private ExerciseEntity exercise;
 }

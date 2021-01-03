@@ -1,18 +1,19 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
+import com.example.demo.models.entities.QuestionEntity;
 import com.example.demo.utils.DomainAdapter;
 
 import java.util.List;
 
 public class Ordering extends Question {
 
-    public Ordering(com.example.demo.models.entities.Question questionData) {
+    public Ordering(QuestionEntity questionData) {
         super(questionData);
     }
 
     @Override
-    public List<BackendFact> responseToFacts() {
+    public List<BackendFactEntity> responseToFacts() {
         return DomainAdapter.getDomain(questionData.getDomainEntity().getName()).responseToFacts(
                 getQuestionDomainType(),
                 super.studentResponses,
@@ -21,7 +22,7 @@ public class Ordering extends Question {
     }
 
     @Override
-    public List<BackendFact> responseToFacts(long backendId) {
+    public List<BackendFactEntity> responseToFacts(long backendId) {
         return null;
     }
 

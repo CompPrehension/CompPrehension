@@ -1,6 +1,6 @@
 package com.example.demo.models.businesslogic.backend;
 
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
@@ -76,13 +76,13 @@ public class PelletBackend extends SWRLBackend {
     }
 
     @Override
-    public List<BackendFact> getObjectProperties(String objectProperty) {
-        List<BackendFact> facts = new ArrayList<>();
+    public List<BackendFactEntity> getObjectProperties(String objectProperty) {
+        List<BackendFactEntity> facts = new ArrayList<>();
         HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> relations = getObjectPropertyRelations(objectProperty);
 
         for (Map.Entry<OWLNamedIndividual, Set<OWLNamedIndividual>> relationsEntry : relations.entrySet()) {
             for (OWLNamedIndividual to : relationsEntry.getValue()) {
-                facts.add(new BackendFact(
+                facts.add(new BackendFactEntity(
                         "owl:NamedIndividual",
                         relationsEntry.getKey().getIRI().getShortForm(),
                         objectProperty,
@@ -95,13 +95,13 @@ public class PelletBackend extends SWRLBackend {
     }
 
     @Override
-    public List<BackendFact> getDataProperties(String dataProperty) {
-        List<BackendFact> facts = new ArrayList<>();
+    public List<BackendFactEntity> getDataProperties(String dataProperty) {
+        List<BackendFactEntity> facts = new ArrayList<>();
         HashMap<OWLNamedIndividual, Set<OWLLiteral>> relations = getDataPropertyRelations(dataProperty);
 
         for (Map.Entry<OWLNamedIndividual, Set<OWLLiteral>> relationsEntry : relations.entrySet()) {
             for (OWLLiteral to : relationsEntry.getValue()) {
-                facts.add(new BackendFact(
+                facts.add(new BackendFactEntity(
                         "owl:NamedIndividual",
                         relationsEntry.getKey().getIRI().getShortForm(),
                         dataProperty,

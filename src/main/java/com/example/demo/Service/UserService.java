@@ -28,7 +28,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User getUserByEmail(String email){
+    public UserEntity getUserByEmail(String email){
         try{
             return userRepository.findUserByEmail(email).orElseThrow(()->
                     new UserNFException("User with email: " + email + "Not Found"));
@@ -37,7 +37,7 @@ public class UserService {
         }
     }
     
-    public User getUserByLogin(String login) {
+    public UserEntity getUserByLogin(String login) {
         try{
             return userRepository.findUserByLogin(login).orElseThrow(()->
                     new UserNFException("User with login: " + login + "Not Found"));
@@ -48,7 +48,7 @@ public class UserService {
 
     public long checkUserData(String login, String password) {
         
-        User user;
+        UserEntity user;
         try { user = getUser(login); } 
         catch (UserNFException e) { return -1; }
         //Если пользователь не найден или у найденного пользователя не тот пароль
@@ -57,7 +57,7 @@ public class UserService {
         return user.getId();
     }
 
-    public User getUser(long userId) { 
+    public UserEntity getUser(long userId) {
         try {  
             return userRepository.findById(userId).orElseThrow(()->
                     new UserNFException("User with id: " + userId + "Not Found"));
@@ -66,7 +66,7 @@ public class UserService {
         }
     }
 
-    public User getUser(String login) { 
+    public UserEntity getUser(String login) {
         try {
             return userRepository.findUserByLogin(login).orElseThrow(()->
                     new UserNFException("User with login: " + login + "Not Found"));
@@ -104,9 +104,9 @@ public class UserService {
      */
     public void addToCourse(long userId, long courseId, CourseRole role) {
 
-        User user = getUser(userId);
-        Course course = courseService.getCourse(courseId);
-        UserCourseRole userCourseRole = new UserCourseRole();
+        UserEntity user = getUser(userId);
+        CourseEntity course = courseService.getCourse(courseId);
+        UserCourseRoleEntity userCourseRole = new UserCourseRoleEntity();
         userCourseRole.setUser(user);
         userCourseRole.setCourseRole(role);
         userCourseRole.setCourse(course);
@@ -124,7 +124,7 @@ public class UserService {
      * @param userId - id пользователя, действия которого хотим получить
      * @return - список действий пользователя
      */
-    public List<UserAction> getUserActions(long userId) {
+    public List<UserActionEntity> getUserActions(long userId) {
 
         return getUser(userId).getUserActions();
     }
@@ -132,8 +132,8 @@ public class UserService {
     public List<Action> getUserActionsToFront(long userId) {
         
         List<Action> actions = new ArrayList<>();
-        User user = getUser(userId);
-        for (UserAction ua : getUserActions(userId)) {
+        UserEntity user = getUser(userId);
+        for (UserActionEntity ua : getUserActions(userId)) {
             Action tmp = new Action();
             tmp.setUserName(user.getFirstName() + user.getLastName());
             tmp.setActionType(ua.getActionType().toString());
@@ -147,7 +147,7 @@ public class UserService {
         return actions;
     }
 
-    public void saveUser(User user) {
+    public void saveUser(UserEntity user) {
         try {
             if (getUser(user.getLogin()) != null) {
                 throw new DataIntegrityViolationException("Пользователь с таким логином " +
@@ -162,7 +162,7 @@ public class UserService {
      * Обновить данные о пользователе
      * @param user - новые данные о пользователе
      */
-    public void updateUserProfile(User user) { 
+    public void updateUserProfile(UserEntity user) {
         
         if (userRepository.existsById(user.getId())) {
             saveUser(user);
@@ -177,14 +177,14 @@ public class UserService {
      * @param userId - id пользователя, курсы которого мы хотим получить
      * @return - курсы, на которые подписан пользователь
      */
-    public List<Course> getUserCourses(long userId) {
+    public List<CourseEntity> getUserCourses(long userId) {
 
-        ArrayList<Course> courses = new ArrayList<>();
-        User user = getUser(userId);
+        ArrayList<CourseEntity> courses = new ArrayList<>();
+        UserEntity user = getUser(userId);
        
-        List<UserCourseRole> userCourseRoles = user.getUserCourseRoles();
+        List<UserCourseRoleEntity> userCourseRoles = user.getUserCourseRoles();
 
-        for (UserCourseRole ucr : userCourseRoles) {
+        for (UserCourseRoleEntity ucr : userCourseRoles) {
             courses.add(ucr.getCourse());
         }
         
@@ -196,7 +196,7 @@ public class UserService {
      * @param userId - id пользователя, которого надо подписать на курсы
      * @param courses - курсы, которые закрепим за пользователем
      */
-    public void setUserCourses(long userId, List<Course> courses) {
+    public void setUserCourses(long userId, List<CourseEntity> courses) {
 
     }
 
@@ -206,9 +206,9 @@ public class UserService {
      * @param userId - id пользователя, группы которого мы хотим получить
      * @return - список групп, в которых числится пользователь
      */
-    public List<Group> getUserGroups(long userId) {
+    public List<GroupEntity> getUserGroups(long userId) {
 
-        User user = getUser(userId);
+        UserEntity user = getUser(userId);
         
         return user.getGroups();
     }
@@ -237,10 +237,10 @@ public class UserService {
 
     public CourseRole getCourseRole(long userId, long courseId) {
 
-        User user = getUser(userId);
+        UserEntity user = getUser(userId);
         
         CourseRole cr = null;
-        List<UserCourseRole> userCourseRoles = user.getUserCourseRoles();
+        List<UserCourseRoleEntity> userCourseRoles = user.getUserCourseRoles();
         for (int i = 0; i < userCourseRoles.size(); i++) {
             
             if (userCourseRoles.get(i).getCourse().getId() == courseId) {

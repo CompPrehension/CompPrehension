@@ -1,10 +1,10 @@
 package com.example.demo.models.repository;
 
 
-import com.example.demo.models.entities.AdditionalField;
+import com.example.demo.models.entities.AdditionalFieldEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface AdditionalFieldRepository extends CrudRepository<AdditionalField, Long> {
+public interface AdditionalFieldRepository extends CrudRepository<AdditionalFieldEntity, Long> {
 }

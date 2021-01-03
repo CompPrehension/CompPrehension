@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "ExplanationTemplateInfo")
-public class ExplanationTemplateInfo {
+public class ExplanationTemplateInfoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,5 +23,5 @@ public class ExplanationTemplateInfo {
 
     @ManyToOne
     @JoinColumn(name = "violation_id", nullable = false)
-    private Mistake mistake;
+    private MistakeEntity mistake;
 }

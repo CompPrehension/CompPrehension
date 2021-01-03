@@ -3,14 +3,13 @@ package com.example.demo.controllers;
 import com.example.demo.Service.*;
 import com.example.demo.models.businesslogic.*;
 import com.example.demo.models.businesslogic.Question;
-import com.example.demo.models.entities.BackendFact;
+import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.InteractionType;
 import com.example.demo.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,14 +53,14 @@ public class QuestionController {
     private Strategy strategy ;
     
     @GetMapping("/questionAttempt/{questionAttempt_id}/explanation")
-    public ResponseEntity getQuestionFeedback(@PathVariable Long questionAttempt_id,
-                                              Model model) {
-        Feedback feedback = new Feedback();
-        QuestionAttempt qa = questionAttemptService.getQuestionAttempt(
+    public org.springframework.http.ResponseEntity getQuestionFeedback(@PathVariable Long questionAttempt_id,
+                                                                       Model model) {
+        FeedbackEntity feedback = new FeedbackEntity();
+        QuestionAttemptEntity qa = questionAttemptService.getQuestionAttempt(
                 questionAttempt_id);
         DisplayingFeedbackType dft = strategy.determineDisplayingFeedbackType(qa);
-        List<Mistake> mistakesInLastResponse = null;
-        List<Interaction> interactions = qa.getInteractions();
+        List<MistakeEntity> mistakesInLastResponse = null;
+        List<InteractionEntity> interactions = qa.getInteractions();
         
         //Найти последнюю интеракцию, в которой есть ошибки
         if (interactions != null && interactions.size() != 0) {
@@ -87,7 +86,7 @@ public class QuestionController {
         
         if (mistakesInLastResponse != null) {
 
-            Interaction interaction = new Interaction();
+            InteractionEntity interaction = new InteractionEntity();
             
             FeedbackType feedbackType = strategy.determineFeedbackType(qa);
             interaction.setInteractionType(InteractionType.REQUEST_EXPLANATION);
@@ -108,35 +107,35 @@ public class QuestionController {
         //Если стратегия решила показать студент объяснение
         if (dft == DisplayingFeedbackType.SHOW) {
             //Создаем интеракцию о том, что студент увидит фидбек 
-            Interaction interaction = new Interaction();
+            InteractionEntity interaction = new InteractionEntity();
             interaction.setQuestionAttempt(qa);
             interaction.setFeedback(feedback);
             interaction.setInteractionType(InteractionType.VIEWED_EXPLANATION);
             interactionService.saveInteraction(interaction);
         }
         
-        return ResponseEntity.ok().build();
+        return org.springframework.http.ResponseEntity.ok().build();
     }
 
     @PostMapping("/questionAttempt/{questionAttempt_id}")
-    public ResponseEntity recordQuestionResponse(@PathVariable Long questionAttempt_id,
-                                                 @RequestParam List<Response> responses,
-                                                 Model model) {
+    public org.springframework.http.ResponseEntity recordQuestionResponse(@PathVariable Long questionAttempt_id,
+                                                                          @RequestParam List<ResponseEntity> responses,
+                                                                          Model model) {
 
         HyperText explanation = null;
         
-        Interaction interaction = new Interaction();
+        InteractionEntity interaction = new InteractionEntity();
         interaction.setResponses(responses);
         interaction.setInteractionType(InteractionType.SEND_RESPONSE);
         
-        QuestionAttempt qa = questionAttemptService.getQuestionAttempt(questionAttempt_id);
+        QuestionAttemptEntity qa = questionAttemptService.getQuestionAttempt(questionAttempt_id);
         Question question = questionService.generateBusinessLogicQuestion(qa.getQuestion());
         question.addFullResponse(responses);
-        List<BackendFact> facts = question.responseToFacts();
-        List<BackendFact> statementFacts = question.getStatementFacts();
-        List<BackendFact> solution = core.getDefaultBackend().solve(List.of(/*TODO*/), statementFacts, List.of(/*TODO*/));
-        List<BackendFact> sentence = core.getDefaultBackend().judge(List.of(/*TODO*/), statementFacts, solution, facts, List.of(/*TODO*/));
-        List<Mistake> mistakes = new ArrayList<>(); //TODO
+        List<BackendFactEntity> facts = question.responseToFacts();
+        List<BackendFactEntity> statementFacts = question.getStatementFacts();
+        List<BackendFactEntity> solution = core.getDefaultBackend().solve(List.of(/*TODO*/), statementFacts, List.of(/*TODO*/));
+        List<BackendFactEntity> sentence = core.getDefaultBackend().judge(List.of(/*TODO*/), statementFacts, solution, facts, List.of(/*TODO*/));
+        List<MistakeEntity> mistakes = new ArrayList<>(); //TODO
 
         FeedbackType feedbackType = strategy.determineFeedbackType(qa);
         if (mistakes.size() > 0) {
@@ -150,7 +149,7 @@ public class QuestionController {
         
         interaction.setQuestionAttempt(qa);
         
-        Feedback feedback = new Feedback();
+        FeedbackEntity feedback = new FeedbackEntity();
         feedback.setHyperText(explanation.getText());
         feedback.setFeedBackType(feedbackType);
         
@@ -158,10 +157,10 @@ public class QuestionController {
         interactionService.saveInteraction(interaction);
 
         //Сохранить ошибки в бд
-        for (Mistake m : mistakes) { mistakeService.saveMistake(m); }
+        for (MistakeEntity m : mistakes) { mistakeService.saveMistake(m); }
                 
         //Сохранить все ответы в бд
-        for (Response r : responses) { responseService.saveResponse(r); }
+        for (ResponseEntity r : responses) { responseService.saveResponse(r); }
                 
         DisplayingFeedbackType dft = strategy.determineDisplayingFeedbackType(qa);
         model.addAttribute("feedback", feedback);
@@ -170,53 +169,53 @@ public class QuestionController {
         //Если стратегия решила показать студент объяснение
         if (dft == DisplayingFeedbackType.SHOW) {
             //Создаем интеракцию о том, что студент увидит фидбек 
-            interaction = new Interaction();
+            interaction = new InteractionEntity();
             interaction.setQuestionAttempt(qa);
             interaction.setFeedback(feedback);
             interaction.setInteractionType(InteractionType.VIEWED_EXPLANATION);
             interactionService.saveInteraction(interaction);
         }
         
-        return ResponseEntity.ok().build();
+        return org.springframework.http.ResponseEntity.ok().build();
     }
     
     @PostMapping("/questionAttempt/{questionAttempt_id}/explanation")
-    public ResponseEntity recordQuestionExplanation(@PathVariable Long questionAttempt_id,
-                                                    @RequestParam Feedback feedback) {
+    public org.springframework.http.ResponseEntity recordQuestionExplanation(@PathVariable Long questionAttempt_id,
+                                                                             @RequestParam FeedbackEntity feedback) {
 
-        QuestionAttempt qa = questionAttemptService.getQuestionAttempt(questionAttempt_id);
-        Interaction interaction = new Interaction();
+        QuestionAttemptEntity qa = questionAttemptService.getQuestionAttempt(questionAttempt_id);
+        InteractionEntity interaction = new InteractionEntity();
         interaction.setQuestionAttempt(qa);
         interaction.setInteractionType(InteractionType.VIEWED_EXPLANATION);
         interaction.setFeedback(feedback);
         interactionService.saveInteraction(interaction);
         
-        return ResponseEntity.ok().build();
+        return org.springframework.http.ResponseEntity.ok().build();
     }
 
     @PostMapping("/questionAttempt/{questionAttempt_id}/reaction")
-    public ResponseEntity recordStudentReaction(@PathVariable Long questionAttempt_id,
-                                                @RequestParam InteractionType reaction) {
+    public org.springframework.http.ResponseEntity recordStudentReaction(@PathVariable Long questionAttempt_id,
+                                                                         @RequestParam InteractionType reaction) {
 
-        QuestionAttempt qa = questionAttemptService.getQuestionAttempt(questionAttempt_id);
-        Interaction interaction = new Interaction();
+        QuestionAttemptEntity qa = questionAttemptService.getQuestionAttempt(questionAttempt_id);
+        InteractionEntity interaction = new InteractionEntity();
         interaction.setQuestionAttempt(qa);
         interaction.setInteractionType(reaction);
         interactionService.saveInteraction(interaction);
         
-        return ResponseEntity.ok().build();
+        return org.springframework.http.ResponseEntity.ok().build();
     }
 
     
     @GetMapping("/questionAttempt/{questionAttempt_id}")
-    public ResponseEntity getNewQuestion(@PathVariable Long questionAttempt_id,
-                                         @RequestParam FrontEndInfo frontEndInfo) {
+    public org.springframework.http.ResponseEntity getNewQuestion(@PathVariable Long questionAttempt_id,
+                                                                  @RequestParam FrontEndInfo frontEndInfo) {
 
-        ExerciseAttempt exerciseAttempt = questionAttemptService.getQuestionAttempt(
+        ExerciseAttemptEntity exerciseAttempt = questionAttemptService.getQuestionAttempt(
                 questionAttempt_id).getExerciseAttempt();
         
         //Создаем попытку выполнения вопроса
-        QuestionAttempt questionAttempt = new QuestionAttempt();
+        QuestionAttemptEntity questionAttempt = new QuestionAttemptEntity();
         questionAttempt.setExerciseAttempt(exerciseAttempt);
 
         //Генерируем вопрос        
@@ -230,6 +229,6 @@ public class QuestionController {
         exerciseAttemptService.saveExerciseAttempt(exerciseAttempt);
         questionAttemptService.saveQuestionAttempt(questionAttempt);
         
-        return ResponseEntity.ok().build();
+        return org.springframework.http.ResponseEntity.ok().build();
     }
 }

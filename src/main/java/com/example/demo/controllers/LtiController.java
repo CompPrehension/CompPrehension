@@ -1,7 +1,6 @@
 package com.example.demo.controllers;
 
 
-import com.example.demo.Exceptions.NotFoundEx.DomainNFException;
 import com.example.demo.Service.DomainService;
 import com.example.demo.dto.QuestionAnswerDto;
 import com.example.demo.dto.QuestionDto;
@@ -11,7 +10,8 @@ import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.QuestionRequest;
 import com.example.demo.models.businesslogic.Strategy;
-import com.example.demo.models.entities.ExerciseAttempt;
+import com.example.demo.models.entities.ExerciseAttemptEntity;
+import com.example.demo.models.entities.QuestionEntity;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
 import com.example.demo.utils.DomainAdapter;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
@@ -27,11 +27,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,7 +55,7 @@ public class LtiController {
     private ExerciseAttemptRepository exerciseAttemptRepository;
 
 
-    Question generateQuestion(ExerciseAttempt exerciseAttempt) {
+    Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
@@ -88,10 +85,10 @@ public class LtiController {
     @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(@RequestParam(name = "question_id") Long exAttemptId) throws Exception {
-        ExerciseAttempt attempt = exerciseAttemptRepository.findById(exAttemptId)
+        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = generateQuestion(attempt);
-        com.example.demo.models.entities.Question qData = question.getQuestionData();
+        QuestionEntity qData = question.getQuestionData();
 
         QuestionDto dto = new QuestionDto();
         dto.setId(exAttemptId.toString());

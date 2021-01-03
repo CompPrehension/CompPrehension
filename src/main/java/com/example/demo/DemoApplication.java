@@ -50,7 +50,7 @@ public class DemoApplication {
 	public static void initialDB() {
 		
 		//Создаем первого студента
-		User user = new User();
+		UserEntity user = new UserEntity();
 		user.setBirthdate(new Date());
 		user.setEmail("dsadasda@dadsa.com");
 		user.setPassword("1234");
@@ -62,13 +62,13 @@ public class DemoApplication {
 		
 		
 		//Создаем первую группу
-		Group group = new Group();
+		GroupEntity group = new GroupEntity();
 		group.setName("PrIn-366");
-		List<User> users = new ArrayList<>();
+		List<UserEntity> users = new ArrayList<>();
 		users.add(user);
 		
 		//Создаем второго студента
-		User user_2 = new User();
+		UserEntity user_2 = new UserEntity();
 		user_2.setBirthdate(new Date());
 		user_2.setEmail("uyrtutyua@ytr.com");
 		user_2.setPassword("123");
@@ -79,13 +79,13 @@ public class DemoApplication {
 		user_2.setRoles(roles);
 		
 		//Создаем вторую группу
-		Group group_2 = new Group();
+		GroupEntity group_2 = new GroupEntity();
 		group_2.setName("PrIn-367");
 		users = new ArrayList<>();
 		users.add(user_2);
 
 		//Создаем преподавателя
-		User user_3 = new User();
+		UserEntity user_3 = new UserEntity();
 		user_3.setBirthdate(new Date());
 		user_3.setEmail("qewqe@qeq.com");
 		user_3.setPassword("12345");
@@ -96,20 +96,20 @@ public class DemoApplication {
 		user_3.setRoles(roles);
 		
 		//Создаем курс
-		Course course_1 = new Course();
+		CourseEntity course_1 = new CourseEntity();
 		course_1.setName("Курс_1");
 		course_1.setDescription("Курс 1 о ...");
 		//course_1.set;
 				
 		//Создаем привязку студентов и преподавателей к курсу
-		List<UserCourseRole> userCourseRoles = new ArrayList<>();
-		UserCourseRole userCourseRole = new UserCourseRole();
+		List<UserCourseRoleEntity> userCourseRoles = new ArrayList<>();
+		UserCourseRoleEntity userCourseRole = new UserCourseRoleEntity();
 		userCourseRole.setCourse(course_1);
 		userCourseRole.setCourseRole(CourseRole.AUTHOR);
 		userCourseRole.setUser(user_3);
 		userCourseRoles.add(userCourseRole);
 
-		userCourseRole = new UserCourseRole();
+		userCourseRole = new UserCourseRoleEntity();
 		userCourseRole.setCourse(course_1);
 		userCourseRole.setCourseRole(CourseRole.STUDENT);
 		userCourseRole.setUser(user_2);

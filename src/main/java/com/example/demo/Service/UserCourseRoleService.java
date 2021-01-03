@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.models.repository.UserCourseRoleRepository;
-import com.example.demo.models.entities.UserCourseRole;
+import com.example.demo.models.entities.UserCourseRoleEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ public class UserCourseRoleService {
         this.userCourseRoleRepository = userCourseRoleRepository;
     }
 
-    public void saveUserCourseRole(UserCourseRole userCourseRole) {
+    public void saveUserCourseRole(UserCourseRoleEntity userCourseRole) {
 
         userCourseRoleRepository.save(userCourseRole);
     }

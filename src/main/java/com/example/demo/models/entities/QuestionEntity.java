@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "Question")
-public class Question {
+public class QuestionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,17 +33,17 @@ public class Question {
     private Boolean areAnswersRequireContext;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<QuestionAttempt> questionAttempts;
+    private List<QuestionAttemptEntity> questionAttempts;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<AnswerObject> answerObjects;
+    private List<AnswerObjectEntity> answerObjects;
 
     @ManyToOne
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFact> statementFacts;
+    private List<BackendFactEntity> statementFacts;
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFact> solutionFacts;
+    private List<BackendFactEntity> solutionFacts;
 }
