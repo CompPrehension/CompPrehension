@@ -20,7 +20,7 @@ export const OrderQuestion = (props: IOrderQuestionOptions) => {
 
         $('[id^="answer_"]')
             .click(e => {
-                const idStr = $(e.target).attr('id');
+                const idStr = $(e.target).attr('id')?.split("answer_")[1];
                 console.log(idStr);
                 onClicked(idStr);
             });

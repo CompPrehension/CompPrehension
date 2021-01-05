@@ -38,7 +38,7 @@ export class Store {
         //}
 
         this.isLoading = true;
-        const data = await ajaxGet<Question>(`getQuestion?question_id=${attemptId}`);
+        const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`);
         runInAction(() => {
             console.log(data);
             this.questionData = data;

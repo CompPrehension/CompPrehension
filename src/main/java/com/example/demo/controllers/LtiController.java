@@ -10,10 +10,16 @@ import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.QuestionRequest;
 import com.example.demo.models.businesslogic.Strategy;
+import com.example.demo.models.entities.EnumData.AttemptStatus;
 import com.example.demo.models.entities.ExerciseAttemptEntity;
+import com.example.demo.models.entities.ExerciseEntity;
 import com.example.demo.models.entities.QuestionEntity;
+import com.example.demo.models.entities.UserEntity;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
+import com.example.demo.models.repository.ExerciseRepository;
+import com.example.demo.models.repository.UserRepository;
 import com.example.demo.utils.DomainAdapter;
+import org.apache.commons.collections4.IterableUtils;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.imsglobal.lti.launch.LtiVerificationResult;
 import org.imsglobal.lti.launch.LtiVerifier;
@@ -28,7 +34,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,6 +61,12 @@ public class LtiController {
 
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
+
+    @Autowired
+    private ExerciseRepository exerciseRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
     Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
@@ -84,7 +98,7 @@ public class LtiController {
 
     @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
-    public QuestionDto getQuestion(@RequestParam(name = "question_id") Long exAttemptId) throws Exception {
+    public QuestionDto getQuestion(@RequestParam(name = "attemptId") Long exAttemptId) throws Exception {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = generateQuestion(attempt);
@@ -96,14 +110,15 @@ public class LtiController {
         dto.setAnswers(new QuestionAnswerDto[0]);
 
         StringBuilder sb = new StringBuilder(qData.getQuestionText());
-        Pattern pattern = Pattern.compile("[\\+\\-\\*\\/]");
+        Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>");
         Matcher matcher = pattern.matcher(sb.toString());
         int idx = -1;
         int offset = 0;
-        while (matcher.find()) {
+        while (offset < sb.length() && matcher.find(offset)) {
             String replaceStr = "<span id='answer_" + (++idx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
-            sb.replace(matcher.start() + offset - idx, matcher.end() + offset - idx, replaceStr);
-            offset+=replaceStr.length();
+            sb.replace(matcher.start(), matcher.end(), replaceStr);
+            offset = matcher.start() + replaceStr.length() ;
+            matcher = pattern.matcher(sb.toString());
         }
 
         sb = new StringBuilder(sb.toString().replaceAll("\\*", "&#8727"));
@@ -132,9 +147,21 @@ public class LtiController {
                 .map(String::trim)
                 .collect(Collectors.toList()));
 
+
+        List<ExerciseEntity> exercises = IterableUtils.toList(exerciseRepository.findAll());
+        List<ExerciseAttemptEntity> exerciseAttempts = new ArrayList<>();
+        UserEntity currentUser = userRepository.findAll().iterator().next();
+        for (ExerciseEntity e : exercises) {
+            ExerciseAttemptEntity ae = new ExerciseAttemptEntity();
+            ae.setExercise(e);
+            ae.setAttemptStatus(AttemptStatus.INCOMPLETE);
+            ae.setUser(currentUser);
+            exerciseAttempts.add(exerciseAttemptRepository.save(ae));
+        }
+
         SessionInfoDto result = new SessionInfoDto();
         result.setSessionId(session.getId());
-        result.setAttemptIds(StreamSupport.stream(exerciseAttemptRepository.findAll().spliterator(), false)
+        result.setAttemptIds(exerciseAttempts.stream()
             .map(v -> v.getId()).map(v -> v.toString())
             .toArray(String[]::new));
         result.setUser(user);
