@@ -2,10 +2,8 @@ package com.example.demo.controllers;
 
 
 import com.example.demo.Service.DomainService;
-import com.example.demo.dto.QuestionAnswerDto;
-import com.example.demo.dto.QuestionDto;
-import com.example.demo.dto.SessionInfoDto;
-import com.example.demo.dto.UserInfoDto;
+import com.example.demo.Service.QuestionService;
+import com.example.demo.dto.*;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.QuestionRequest;
@@ -27,17 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -68,13 +60,9 @@ public class LtiController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private QuestionService questionService;
 
-    Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
-        Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
-        return question;
-    }
 
     @RequestMapping(value = {"/launch"}, method = {RequestMethod.POST})
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, Object> params) throws Exception {
@@ -95,13 +83,55 @@ public class LtiController {
         return "index";
     }
 
+    @RequestMapping(value = {"/addAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
+            consumes = "application/json")
+    @ResponseBody
+    public String[] addAnswer(@RequestBody InteractionDto interaction,
+                              HttpServletRequest request) throws Exception {
+        Long exAttemptId = interaction.getAttemptId();
+        List<Long> answerIds = Arrays.stream(interaction.getAnswers().split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
+                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
+
+
+        /*Question question = generateQuestion(attempt);
+        questionService.saveQuestion(question.getQuestionData());
+
+        List<Integer> answers = (List<Integer>) session.getAttribute("prevAnswers");
+        if (answers == null) {
+            answers = new ArrayList<>();
+        }
+        if (answers.contains(answerId)) {
+            answers.remove(answerId);
+            //return new String[]{"Dublicate"};
+        }
+        answers.add(answerId);
+        session.setAttribute("prevAnswers", answers);
+
+
+        Long question2 = solveQuestion(attempt, question);
+        Question question3 = responseQuestion(question2, answers);
+        List<Mistake> mistakes = judgeQuestion(question3);
+        List<HyperText> explanations  = explainMistakes(question3, mistakes);
+        String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
+        if (errors.length > 0) {
+            return errors;
+        } else {
+            return new String[] {"Correct"};
+        }*/
+        return new String[0];
+    }
+
 
     @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(@RequestParam(name = "attemptId") Long exAttemptId) throws Exception {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        Question question = generateQuestion(attempt);
+        Question question = questionService.generateQuestion(attempt);
         QuestionEntity qData = question.getQuestionData();
 
         QuestionDto dto = new QuestionDto();

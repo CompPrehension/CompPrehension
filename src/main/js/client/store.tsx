@@ -49,7 +49,7 @@ export class Store {
     sendAnswers = () : Promise<void> => {
         const { answers, questionData } = this;
         const body = {
-            question_id: questionData?.id,
+            attemptId: questionData?.id,
             answers: toJS(answers),
         }
         return ajaxPost('addAnswer', body)
