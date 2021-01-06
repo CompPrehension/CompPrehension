@@ -4,19 +4,18 @@ package com.example.demo.controllers;
 import com.example.demo.Service.DomainService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.dto.*;
+import com.example.demo.models.businesslogic.Tag;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.QuestionRequest;
 import com.example.demo.models.businesslogic.Strategy;
+import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.AttemptStatus;
-import com.example.demo.models.entities.ExerciseAttemptEntity;
-import com.example.demo.models.entities.ExerciseEntity;
-import com.example.demo.models.entities.QuestionEntity;
-import com.example.demo.models.entities.UserEntity;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
 import com.example.demo.models.repository.ExerciseRepository;
 import com.example.demo.models.repository.UserRepository;
 import com.example.demo.utils.DomainAdapter;
+import com.example.demo.utils.HyperText;
 import org.apache.commons.collections4.IterableUtils;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.imsglobal.lti.launch.LtiVerificationResult;
@@ -44,12 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class LtiController {
     @Value("${config.property.lti_launch_secret}")
     private String ltiLaunchSecret;
-
-    @Autowired
-    private Strategy strategy;
-
-    @Autowired
-    private DomainService domainService;
 
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
@@ -89,40 +82,21 @@ public class LtiController {
     public String[] addAnswer(@RequestBody InteractionDto interaction,
                               HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
-        List<Long> answerIds = Arrays.stream(interaction.getAnswers().split(","))
-                .map(Long::parseLong)
+        List<Integer> answerIds = Arrays.stream(interaction.getAnswers().split(","))
+                .map(Integer::parseInt)
                 .collect(Collectors.toList());
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
 
-
-        /*Question question = generateQuestion(attempt);
-        questionService.saveQuestion(question.getQuestionData());
-
-        List<Integer> answers = (List<Integer>) session.getAttribute("prevAnswers");
-        if (answers == null) {
-            answers = new ArrayList<>();
-        }
-        if (answers.contains(answerId)) {
-            answers.remove(answerId);
-            //return new String[]{"Dublicate"};
-        }
-        answers.add(answerId);
-        session.setAttribute("prevAnswers", answers);
-
-
-        Long question2 = solveQuestion(attempt, question);
-        Question question3 = responseQuestion(question2, answers);
-        List<Mistake> mistakes = judgeQuestion(question3);
-        List<HyperText> explanations  = explainMistakes(question3, mistakes);
+        List<Tag> tags = questionService.getTags(attempt);
+        Question question = questionService.generateQuestion(attempt);
+        questionService.solveQuestion(question, tags);
+        questionService.responseQuestion(question, answerIds);
+        List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags);
+        List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
-        if (errors.length > 0) {
-            return errors;
-        } else {
-            return new String[] {"Correct"};
-        }*/
-        return new String[0];
+        return errors;
     }
 
 

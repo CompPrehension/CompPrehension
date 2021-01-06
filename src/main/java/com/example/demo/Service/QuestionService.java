@@ -4,6 +4,7 @@ import com.example.demo.models.businesslogic.backend.Backend;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
+import com.example.demo.models.entities.EnumData.InteractionType;
 import com.example.demo.models.repository.AnswerObjectRepository;
 import com.example.demo.models.repository.BackendFactRepository;
 import com.example.demo.models.repository.QuestionRepository;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,6 +46,9 @@ public class QuestionService {
     private Backend backend;
 
     @Autowired
+    private DomainService domainService;
+
+    @Autowired
     ResponseRepository responseRepository;
     
     @Autowired
@@ -55,6 +60,7 @@ public class QuestionService {
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
+        question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         return question;
     }
 
@@ -69,8 +75,7 @@ public class QuestionService {
         return question;
     }
 
-    public Question responseQuestion(Long questionId, List<Integer> responses) {
-        Question question = getQuestion(questionId);
+    public Question responseQuestion(Question question, List<Integer> responses) {
         for (Integer response : responses) {
             question.addResponse(makeResponse(question.getAnswerObject(response)));
         }
@@ -88,6 +93,22 @@ public class QuestionService {
                 domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts())
         );
         return domain.interpretSentence(violations);
+    }
+
+    public List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
+        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
+        List<Tag> result = new ArrayList<>();
+        for (String tagString : tags) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        for (String tagString : List.of("basics", "operators", "order", "evaluation")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        return result.stream().distinct().collect(Collectors.toList());
     }
 
     public List<HyperText> explainMistakes(Question question, List<MistakeEntity> mistakes) {
