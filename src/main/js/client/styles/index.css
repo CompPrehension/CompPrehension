@@ -5,8 +5,17 @@ body {
   font-family: 'M PLUS 1p', sans-serif;
 }
 
+.comp-ph-container {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  background-color: #d9edf7;
+  border-color: #bcdff1;
+  color: #31708f;
+}
+
 .comp-ph-question p {
-  display: block;
   margin-top: 10px;
   margin-bottom: 10px;
 }
@@ -15,16 +24,20 @@ body {
   font-size: 20px;
   display: flex;
   align-items: center;
+  display: inline-block;
+  background-color: white;
+  padding: 10px 5px;
+  border-radius: 4px;
 }
 
 .comp-ph-expr .comp-ph-expr-op-btn {
   display: inline-block;
   font-size: 20px;
-  width: 25px;
+  min-width: 25px;
   height: 25px;
   margin: 0 auto;
   padding: 0;
-  line-height: 20px;
+  line-height: 17px;
   text-align: center;
   cursor: pointer;
   transition-duration: 0.2s;
@@ -33,9 +46,26 @@ body {
   border-radius: 4px;
   background-color: #e7e7e7; 
   color: black;
-  border: 2px solid #FFF;  
+  border: 2px solid #b5b5b5;  
 }
 
 .comp-ph-expr .comp-ph-expr-op-btn:hover {
   background-color: #b5b5b5;
+}
+
+.comp-ph-feedback-wrapper {
+  margin-top: 20px;
+}
+
+.comp-ph-feedback-error {
+  background-color: #ffe0e0;
+  border: 1.5px solid #ff2929;
+  color: #ff2929;
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin-top: 10px;
+}
+
+.comp-ph-feedback-error:first-child {
+  margin-top: 0;
 }

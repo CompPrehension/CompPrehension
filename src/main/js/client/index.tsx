@@ -6,8 +6,10 @@ import { QuestionFabric } from './components/question/question-fabric';
 import React from 'react';
 import { CircularProgress } from '@material-ui/core';
 import "./styles/index.css"
+import 'bootstrap/dist/css/bootstrap.min.css';
 import {UserInfo} from "./components/user-info";
 import { NextQuestionBtn } from './components/next-question-btn';
+import { Feedback } from './components/feedback';
 
 const Home = observer(() => {
     useEffect(() => {
@@ -25,9 +27,10 @@ const Home = observer(() => {
     }
 
     return (
-        <div>
+        <div className="container comp-ph-container">
             <UserInfo />
             <QuestionFabric />
+            <Feedback />
             <NextQuestionBtn />
         </div>
     );

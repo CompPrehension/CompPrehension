@@ -7,7 +7,10 @@ export class Store {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable questionData?: Question = undefined;
     @observable answers: any = undefined;
+    @observable answersHistory: any[] = [];
     @observable isLoading: boolean = false;
+    @observable isFeedbackLoading: boolean = false;
+    @observable feedbackMessages: string[] = [];
 
     constructor() {
         makeObservable(this);
@@ -32,32 +35,36 @@ export class Store {
             throw new Error("Session is not defined");
         }
 
-        //const { questionId } = this.sessionInfo;
-        //if (!questionId) {
-        //    throw new Error("questionId is not defined")
-        //}
-
         this.isLoading = true;
-        const data = await ajaxGet<Question>(`getQuestion?question_id=${attemptId}`);
+        const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`);
         runInAction(() => {
             console.log(data);
             this.questionData = data;
+            this.answersHistory = [];
             this.isLoading = false;
         });
     }
      
-    sendAnswers = () : Promise<void> => {
-        const { answers, questionData } = this;
+    sendAnswers = async () : Promise<void> => {
+        const { answers, questionData, answersHistory } = this;
+        const mergedAnswers = answersHistory.join(",");
         const body = {
-            question_id: questionData?.id,
-            answers: toJS(answers),
+            attemptId: questionData?.id,
+            answers: toJS(mergedAnswers),
         }
-        return ajaxPost('addAnswer', body)
+
+        this.isFeedbackLoading = true;
+        const feedback = await ajaxPost<string[]>('addAnswer', body);
+        runInAction(() => {
+            this.feedbackMessages = feedback;
+            this.isFeedbackLoading = false;
+        });
     }
 
     @action 
     onAnswersChanged = (newAnswers: any): void => {
         this.answers = newAnswers;
+        this.answersHistory.push(newAnswers);
         this.sendAnswers();
     }
 
