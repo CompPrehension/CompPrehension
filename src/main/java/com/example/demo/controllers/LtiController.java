@@ -1,20 +1,16 @@
 package com.example.demo.controllers;
 
 
-import com.example.demo.Service.DomainService;
+import com.example.demo.Service.ExerciseService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.dto.*;
 import com.example.demo.models.businesslogic.Tag;
-import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.Question;
-import com.example.demo.models.businesslogic.QuestionRequest;
-import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.AttemptStatus;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
 import com.example.demo.models.repository.ExerciseRepository;
 import com.example.demo.models.repository.UserRepository;
-import com.example.demo.utils.DomainAdapter;
 import com.example.demo.utils.HyperText;
 import org.apache.commons.collections4.IterableUtils;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
@@ -33,10 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Controller
 @RequestMapping("lti")
@@ -49,6 +41,9 @@ public class LtiController {
 
     @Autowired
     private ExerciseRepository exerciseRepository;
+
+    @Autowired
+    private ExerciseService exerciseService;
 
     @Autowired
     private UserRepository userRepository;
@@ -89,7 +84,7 @@ public class LtiController {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
 
-        List<Tag> tags = questionService.getTags(attempt);
+        List<Tag> tags = exerciseService.getTags(attempt.getExercise());
         Question question = questionService.generateQuestion(attempt);
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answerIds);

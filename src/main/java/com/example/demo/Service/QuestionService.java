@@ -95,22 +95,6 @@ public class QuestionService {
         return domain.interpretSentence(violations);
     }
 
-    public List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
-        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
-        List<Tag> result = new ArrayList<>();
-        for (String tagString : tags) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        for (String tagString : List.of("basics", "operators", "order", "evaluation")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        return result.stream().distinct().collect(Collectors.toList());
-    }
-
     public List<HyperText> explainMistakes(Question question, List<MistakeEntity> mistakes) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
         return domain.makeExplanation(mistakes, FeedbackType.EXPLANATION);
@@ -120,7 +104,6 @@ public class QuestionService {
         Question question = generateBusinessLogicQuestion(questionRepository.findById(questionId).get());
         return question;
     }
-    
     
     public void saveQuestion(QuestionEntity question) {
         questionRepository.save(question);
