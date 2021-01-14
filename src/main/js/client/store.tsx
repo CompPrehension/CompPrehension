@@ -10,7 +10,7 @@ export class Store {
     @observable answersHistory: any[] = [];
     @observable isLoading: boolean = false;
     @observable isFeedbackLoading: boolean = false;
-    @observable feedbackMessages: string[] = [];
+    @observable feedbackMessages: string[] | undefined = undefined;
 
     constructor() {
         makeObservable(this);
@@ -36,17 +36,20 @@ export class Store {
         }
 
         this.isLoading = true;
-        const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`);
+        const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`)
+            .finally(() => this.isLoading = false);
         runInAction(() => {
             console.log(data);
             this.questionData = data;
+            this.feedbackMessages = undefined;
+            this.answers = undefined;
             this.answersHistory = [];
             this.isLoading = false;
         });
     }
      
     sendAnswers = async () : Promise<void> => {
-        const { answers, questionData, answersHistory } = this;
+        const { answers, questionData, answersHistory, feedbackMessages } = this;
         const mergedAnswers = answersHistory.join(",");
         const body = {
             attemptId: questionData?.id,

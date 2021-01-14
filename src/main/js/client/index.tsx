@@ -4,12 +4,13 @@ import { hydrate } from 'react-dom'
 import store from './store';
 import { QuestionFabric } from './components/question/question-fabric';
 import React from 'react';
-import { CircularProgress } from '@material-ui/core';
-import "./styles/index.css"
+import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {UserInfo} from "./components/user-info";
 import { NextQuestionBtn } from './components/next-question-btn';
 import { Feedback } from './components/feedback';
+import { Spinner } from 'react-bootstrap';
+import { Loader } from './components/loader';
 
 const Home = observer(() => {
     useEffect(() => {
@@ -23,7 +24,7 @@ const Home = observer(() => {
     }, []);
 
     if (store.isLoading) {
-        return <CircularProgress />;
+        return <Loader />;
     }
 
     return (

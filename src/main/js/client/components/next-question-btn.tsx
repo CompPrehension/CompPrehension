@@ -1,7 +1,7 @@
 
-import { Button } from '@material-ui/core';
 import { observer } from 'mobx-react';
 import * as React from 'react';
+import { Button } from 'react-bootstrap';
 import store from '../store';
 
 
@@ -19,7 +19,7 @@ export const NextQuestionBtn = observer(() => {
 
     return (
         <div style={{ marginTop: '20px'}}>            
-            <Button onClick={onClicked} variant="contained" color="primary">Следующий вопрос</Button>
+            <Button onClick={onClicked} variant="primary" >Следующий вопрос</Button>
         </div>
     )
 })

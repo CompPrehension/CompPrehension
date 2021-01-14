@@ -57,6 +57,15 @@ body {
   margin-top: 20px;
 }
 
+.comp-ph-feedback-correct {
+  background-color: #ddffd0;
+  border: 1.5px solid #2fa500;
+  color: #2a9300;
+  border-radius: 5px;
+  padding: 10px 15px;
+  margin-top: 10px;
+}
+
 .comp-ph-feedback-error {
   background-color: #ffe0e0;
   border: 1.5px solid #ff2929;

@@ -15,10 +15,11 @@ export const OrderQuestion = (props: IOrderQuestionOptions) => {
         return null;
     }
     useEffect(() => {
-        if (initialized)
-            return;
+        //if (initialized)
+        //    return;
 
-        $('[id^="answer_"]')
+        $('[id^="answer_"]:not(.handled-added)')
+            .addClass("handled-added")
             .click(e => {
                 const idStr = $(e.target).attr('id')?.split("answer_")[1];
                 console.log(idStr);
