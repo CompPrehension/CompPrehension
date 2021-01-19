@@ -156,21 +156,21 @@ class PelletBackendTest {
         checkObjectProperty(object, objectProperty);
     }
 
-    @ParameterizedTest
-    @JsonFileSource(resources = "../../../../../../before-test-data.json")
-    public void BeforeTest(javax.json.JsonObject object) {
-        checkObjectProperty(object, "before");
-    }
-
-    @ParameterizedTest
-    @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
-    public void HasOperandTest(javax.json.JsonObject object) {
-        checkObjectProperty(object, "ast_edge");
-    }
-
-    @ParameterizedTest
-    @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
-    public void SimpleOntologyTest(javax.json.JsonObject object) {
-        checkObjectProperty(object);
-    }
+//    @ParameterizedTest
+//    @JsonFileSource(resources = "../../../../../../before-test-data.json")
+//    public void BeforeTest(javax.json.JsonObject object) {
+//        checkObjectProperty(object, "before");
+//    }
+//
+//    @ParameterizedTest
+//    @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
+//    public void HasOperandTest(javax.json.JsonObject object) {
+//        checkObjectProperty(object, "ast_edge");
+//    }
+//
+//    @ParameterizedTest
+//    @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
+//    public void SimpleOntologyTest(javax.json.JsonObject object) {
+//        checkObjectProperty(object);
+//    }
 }
