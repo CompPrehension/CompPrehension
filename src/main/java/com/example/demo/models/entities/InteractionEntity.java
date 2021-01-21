@@ -42,8 +42,8 @@ public class InteractionEntity {
 
 
     @ManyToOne
-    @JoinColumn(name = "questionAttempt_id", nullable = false)
-    private QuestionAttemptEntity questionAttempt;
+    @JoinColumn(name = "question_id", nullable = false)
+    private QuestionEntity question;
 
 
 }

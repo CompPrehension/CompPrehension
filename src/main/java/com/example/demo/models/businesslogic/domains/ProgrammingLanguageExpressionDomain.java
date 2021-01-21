@@ -302,6 +302,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_+") &&
                 !conceptNames.contains("precedence")) {
             QuestionEntity question = new QuestionEntity();
+            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText("a + b + c");
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
@@ -316,6 +317,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_*") &&
                 deniedConceptNames.contains("associativity")) {
             QuestionEntity question = new QuestionEntity();
+            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText("a == b < c");
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "==", "operator_binary_+", getName(0, 2)),
@@ -331,6 +333,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_+") &&
                 allowedConceptNames.contains("operator_binary_*")) {
             QuestionEntity question = new QuestionEntity();
+            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText("a + b + c * d");
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
@@ -344,6 +347,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return new Ordering(question);
         } else {
             QuestionEntity question = new QuestionEntity();
+            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText("Choose associativity of operator binary +");
             question.setQuestionType(QuestionType.SINGLE_CHOICE);
             question.setQuestionDomainType("ChooseAssociativity");

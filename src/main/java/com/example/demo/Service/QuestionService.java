@@ -4,7 +4,6 @@ import com.example.demo.models.businesslogic.backend.Backend;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
-import com.example.demo.models.entities.EnumData.InteractionType;
 import com.example.demo.models.repository.AnswerObjectRepository;
 import com.example.demo.models.repository.BackendFactRepository;
 import com.example.demo.models.repository.QuestionRepository;
@@ -19,9 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @Service
 public class QuestionService {
@@ -38,9 +34,6 @@ public class QuestionService {
 
     @Autowired
     private Strategy strategy;
-    
-    @Autowired
-    private QuestionAttemptService questionAttemptService;
 
     @Autowired
     private Backend backend;
@@ -103,6 +96,10 @@ public class QuestionService {
     public Question getQuestion(Long questionId) {
         Question question = generateBusinessLogicQuestion(questionRepository.findById(questionId).get());
         return question;
+    }
+
+    public QuestionEntity getQuestionEntiity(Long questionId) {
+        return questionRepository.findById(questionId).get();
     }
     
     public void saveQuestion(QuestionEntity question) {

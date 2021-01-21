@@ -42,9 +42,6 @@ public class ExerciseService {
     private ExerciseAttemptService exerciseAttemptService;
 
     @Autowired
-    private QuestionAttemptService questionAttemptService;
-
-    @Autowired
     private QuestionService questionService;
 
     private Core core = new Core();
@@ -182,20 +179,14 @@ public class ExerciseService {
         exerciseAttempt.setExercise(getExercise(exerciseId));
         exerciseAttempt.setUser(userService.getUser(userId));
 
-        //Создаем попытку выполнения вопроса
-        QuestionAttemptEntity questionAttempt = new QuestionAttemptEntity();
-        questionAttempt.setExerciseAttempt(exerciseAttempt);
-
         //Генерируем вопрос
         Question newQuestion = questionService.generateBusinessLogicQuestion(
                 exerciseAttempt);
 
-        questionAttempt.setQuestion(newQuestion.getQuestionData());
-        exerciseAttempt.getQuestionAttempts().add(questionAttempt);
+        exerciseAttempt.getQuestions().add(newQuestion.getQuestionData());
 
         //Сохраняем получившиеся попытки в базу (вместе с этим сохраняется и вопрос)
         exerciseAttemptService.saveExerciseAttempt(exerciseAttempt);
-        questionAttemptService.saveQuestionAttempt(questionAttempt);
 
         return newQuestion;
     }

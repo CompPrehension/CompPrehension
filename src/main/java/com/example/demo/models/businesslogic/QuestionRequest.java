@@ -1,5 +1,6 @@
 package com.example.demo.models.businesslogic;
 
+import com.example.demo.models.entities.ExerciseAttemptEntity;
 import lombok.Data;
 
 import java.util.List;
@@ -32,6 +33,6 @@ public class QuestionRequest {
      */
     private int complexity;
     
-    
+    ExerciseAttemptEntity exerciseAttempt;
 }
 

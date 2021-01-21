@@ -33,10 +33,14 @@ public class QuestionEntity {
     private Boolean areAnswersRequireContext;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<QuestionAttemptEntity> questionAttempts;
+    private List<AnswerObjectEntity> answerObjects;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<AnswerObjectEntity> answerObjects;
+    private List<InteractionEntity> interactions;
+
+    @ManyToOne
+    @JoinColumn(name = "exerciseAttempt_id", nullable = false)
+    private ExerciseAttemptEntity exerciseAttempt;
 
     @ManyToOne
     @JoinColumn(name = "domain_name", nullable = false)

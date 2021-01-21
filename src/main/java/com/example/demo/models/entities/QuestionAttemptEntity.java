@@ -15,16 +15,4 @@ public class QuestionAttemptEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @OneToMany(mappedBy = "questionAttempt", fetch = FetchType.LAZY)
-    private List<InteractionEntity> interactions;
-
-
-    @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
-    private QuestionEntity question;
-
-    @ManyToOne
-    @JoinColumn(name = "exerciseAttempt_id", nullable = false)
-    private ExerciseAttemptEntity exerciseAttempt;
 }
