@@ -1,7 +1,6 @@
 package com.example.demo.models.businesslogic;
 
 import com.example.demo.Service.DomainService;
-import com.example.demo.Service.QuestionAttemptService;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
@@ -15,9 +14,6 @@ import java.util.*;
 
 @Component
 public class Strategy extends AbstractStrategy {
-    
-    @Autowired
-    private QuestionAttemptService questionAttemptService;
 
     @Autowired
     private DomainService domainService;
@@ -25,6 +21,7 @@ public class Strategy extends AbstractStrategy {
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
 
         QuestionRequest qr = new QuestionRequest();
+        qr.setExerciseAttempt(exerciseAttempt);
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
 
@@ -86,9 +83,9 @@ public class Strategy extends AbstractStrategy {
         return qr;
     }
 
-    public DisplayingFeedbackType determineDisplayingFeedbackType(QuestionAttemptEntity questionAttempt) {
+    public DisplayingFeedbackType determineDisplayingFeedbackType(QuestionEntity question) {
 
-        List<InteractionEntity> interactions = questionAttempt.getInteractions();
+        List<InteractionEntity> interactions = question.getInteractions();
 
         int interactionWithMistakes = 0;
         for (InteractionEntity i : interactions) {
@@ -108,9 +105,9 @@ public class Strategy extends AbstractStrategy {
         }
     }
 
-    public FeedbackType determineFeedbackType(QuestionAttemptEntity questionAttempt) {
+    public FeedbackType determineFeedbackType(QuestionEntity question) {
 
-        List<InteractionEntity> interactions = questionAttempt.getInteractions();
+        List<InteractionEntity> interactions = question.getInteractions();
 
         int interactionWithMistakes = 0;
         for (InteractionEntity i : interactions) {

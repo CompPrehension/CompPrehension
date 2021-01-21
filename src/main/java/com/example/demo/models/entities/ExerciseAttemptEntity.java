@@ -29,5 +29,5 @@ public class ExerciseAttemptEntity {
     private UserEntity user;
 
     @OneToMany(mappedBy = "exerciseAttempt")
-    private List<QuestionAttemptEntity> questionAttempts;
+    private List<QuestionEntity> questions;
 }
