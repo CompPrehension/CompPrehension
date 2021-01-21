@@ -60,6 +60,8 @@ public abstract class SWRLBackend extends Backend {
     }
 
     void addStatementFact(BackendFactEntity fact) {
+        assert fact != null;
+        assert fact.getVerb() != null;
         if (fact.getVerb().equals("rdf:type")) {
             addOWLLawFormulation(fact.getSubject(), fact.getObject());
             return;
@@ -112,6 +114,7 @@ public abstract class SWRLBackend extends Backend {
     }
 
     void addLaw(Law law) {
+        assert law != null;
         SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
         for (LawFormulation lawFormulation : law.getLawFormulations()) {
             if (lawFormulation.getBackend().equals("SWRL")) {
