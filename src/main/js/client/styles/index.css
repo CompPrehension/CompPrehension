@@ -30,14 +30,20 @@ body {
   border-radius: 4px;
 }
 
-.comp-ph-expr .comp-ph-expr-op-btn {
+.comp-ph-expr-const, .comp-ph-expr-op-btn {
   display: inline-block;
+  position: relative;
+  line-height: 17px;
+  color: black;
+}
+
+.comp-ph-expr .comp-ph-expr-op-btn {
+  
   font-size: 20px;
   min-width: 25px;
   height: 25px;
   margin: 0 auto;
   padding: 0;
-  line-height: 17px;
   text-align: center;
   cursor: pointer;
   transition-duration: 0.2s;
@@ -45,36 +51,38 @@ body {
   
   border-radius: 4px;
   background-color: #e7e7e7; 
-  color: black;
+  
   border: 2px solid #b5b5b5;  
 }
 
-.comp-ph-expr .comp-ph-expr-op-btn:hover {
+.comp-ph-expr .comp-ph-expr-op-btn:hover, .comp-ph-expr .comp-ph-expr-op-btn.disabled {
   background-color: #b5b5b5;
+}
+
+.comp-ph-expr .comp-ph-expr-op-btn.disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.comp-ph-expr .comp-ph-expr-bottom-hint {
+  position: absolute;
+  bottom: -17px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 9px;
+}
+
+.comp-ph-expr .comp-ph-expr-top-hint {
+  position: absolute;
+  top: -17px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 9px;
 }
 
 .comp-ph-feedback-wrapper {
   margin-top: 20px;
 }
 
-.comp-ph-feedback-correct {
-  background-color: #ddffd0;
-  border: 1.5px solid #2fa500;
-  color: #2a9300;
-  border-radius: 5px;
-  padding: 10px 15px;
-  margin-top: 10px;
-}
-
-.comp-ph-feedback-error {
-  background-color: #ffe0e0;
-  border: 1.5px solid #ff2929;
-  color: #ff2929;
-  border-radius: 5px;
-  padding: 10px 15px;
-  margin-top: 10px;
-}
-
-.comp-ph-feedback-error:first-child {
-  margin-top: 0;
-}

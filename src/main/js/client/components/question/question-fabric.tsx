@@ -13,12 +13,12 @@ export const QuestionFabric = observer(() => {
     }
 
     switch (questionData.type) {
-        case QuestionType.SINGLE_CHOICE:
-            return <SingleChoiceQuestion question={questionData} onSelectionChanged={(id) => store.onAnswersChanged(id)} selectedCheckboxId={store.getAnswers()} />;
-        case QuestionType.MULTI_CHOICE:
-            return <MultiChoiceQuestion question={questionData} onSelectionChanged={answ => store.onAnswersChanged(answ)} selectedCheckboxes={store.getAnswers()}/>;
+        //case QuestionType.SINGLE_CHOICE:
+        //    return <SingleChoiceQuestion question={questionData} onSelectionChanged={(id) => store.onAnswersChanged(id)} selectedCheckboxId={store.getAnswers()} />;
+        //case QuestionType.MULTI_CHOICE:
+        //    return <MultiChoiceQuestion question={questionData} onSelectionChanged={answ => store.onAnswersChanged(answ)} selectedCheckboxes={store.getAnswers()}/>;
         case QuestionType.ORDER:
-            return <OrderQuestion question={questionData} onClicked={answ => store.onAnswersChanged(answ)} />;
+            return <OrderQuestion />;
     }
 
     return (<div>Unsupported question type</div>);

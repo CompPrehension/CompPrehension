@@ -8,26 +8,33 @@ export enum QuestionType {
 
 type Html = string;
 
-export type Question = {
+export interface Question {
     id: string,
     type: QuestionType,
     text: Html,    
+    options: QuestionOptions,
     answers: QuestionAnswer[],
 }
 
-export type QuestionAnswer = {
+export interface QuestionOptions {
+    requireContext: boolean,
+    showTrace: boolean;
+    multipleChoiceEnabled: boolean,
+}
+
+export interface QuestionAnswer {
     id: string,
     text: Html,
 }
 
-export type SessionInfo = {
+export interface SessionInfo {
     sessionId: string,
     attemptIds: string[],
     user: UserInfo,
     expired: Date,
 }
 
-export type UserInfo = {
+export interface UserInfo {
     id: string,
     displayName: string,
     email: string,

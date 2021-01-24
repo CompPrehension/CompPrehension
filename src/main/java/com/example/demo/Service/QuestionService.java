@@ -103,6 +103,7 @@ public class QuestionService {
     }
     
     public void saveQuestion(QuestionEntity question) {
+        questionRepository.save(question);
         if (question.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
@@ -127,7 +128,6 @@ public class QuestionService {
                 }
             }
         }
-        questionRepository.save(question);
     }
     
     public Question generateBusinessLogicQuestion(
