@@ -11,4 +11,6 @@ public abstract class AbstractStrategy {
     public abstract DisplayingFeedbackType determineDisplayingFeedbackType(QuestionEntity question);
 
     public abstract FeedbackType determineFeedbackType(QuestionEntity question);
+
+    public abstract float grade(ExerciseAttemptEntity exerciseAttempt);
 }

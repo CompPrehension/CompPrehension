@@ -5,6 +5,7 @@ import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.DisplayingFeedbackType;
 import com.example.demo.models.entities.EnumData.FeedbackType;
+import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.utils.DomainAdapter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,5 +124,21 @@ public class Strategy extends AbstractStrategy {
         } else {
             return FeedbackType.EXPLANATION;
         }
+    }
+
+    @Override
+    public float grade(ExerciseAttemptEntity exerciseAttempt) {
+        ArrayList<QuestionEntity> questions = new ArrayList<>();
+        questions.addAll(exerciseAttempt.getQuestions());
+        int questionCount = 0;
+        float resolvedQuestionsGrade = 0; // За каждый вопрос можно назначать взвешенную оценку
+
+        for(QuestionEntity qe : questions){
+            questionCount++;
+            if(qe.getQuestionStatus() == QuestionStatus.RESOLVED){//Пока за каждое решенное + 1
+                resolvedQuestionsGrade++; //(самая простая стратегия - % решённых вопросов)
+            }
+        }
+        return resolvedQuestionsGrade/(float)questionCount;
     }
 }
