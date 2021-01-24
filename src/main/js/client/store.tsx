@@ -23,10 +23,9 @@ export class Store {
         }
 
         const data = await ajaxGet<SessionInfo>('loadSessionInfo');
-        runInAction(() => {
-            console.log(data);
-            this.sessionInfo = data;
-        });
+        
+        console.log(data);
+        this.sessionInfo = data;
     }
 
     @action 
@@ -38,18 +37,16 @@ export class Store {
         this.isLoading = true;
         const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`)
             .finally(() => this.isLoading = false);
-        runInAction(() => {
-            console.log(data);
-            this.questionData = data;
-            this.feedbackMessages = undefined;
-            this.answers = undefined;
-            this.answersHistory = [];
-            this.isLoading = false;
-        });
+
+        console.log(data);
+        this.questionData = data;
+        this.feedbackMessages = undefined;
+        this.answers = undefined;
+        this.answersHistory = [];
     }
      
     sendAnswers = async () : Promise<void> => {
-        const { answers, questionData, answersHistory, feedbackMessages } = this;
+        const { questionData, answersHistory } = this;
         const mergedAnswers = answersHistory.join(",");
         const body = {
             attemptId: questionData?.id,
@@ -57,11 +54,12 @@ export class Store {
         }
 
         this.isFeedbackLoading = true;
-        const feedback = await ajaxPost<string[]>('addAnswer', body);
-        runInAction(() => {
-            this.feedbackMessages = feedback;
-            this.isFeedbackLoading = false;
-        });
+        const feedback = await ajaxPost<string[]>('addAnswer', body)
+            .finally(() => this.isFeedbackLoading = false);
+        this.feedbackMessages = feedback;
+        if (feedback.length) {                
+            this.answersHistory.pop();
+        }
     }
 
     @action 

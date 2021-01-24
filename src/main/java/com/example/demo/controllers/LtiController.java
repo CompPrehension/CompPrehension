@@ -109,12 +109,17 @@ public class LtiController {
         dto.setAnswers(new QuestionAnswerDto[0]);
 
         StringBuilder sb = new StringBuilder(qData.getQuestionText());
-        Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>");
+        Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>|\\w+");
         Matcher matcher = pattern.matcher(sb.toString());
-        int idx = -1;
+        int idx = 0;
+        int anwerIdx = -1;
         int offset = 0;
         while (offset < sb.length() && matcher.find(offset)) {
-            String replaceStr = "<span id='answer_" + (++idx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
+            String match = matcher.group(0);
+            String replaceStr = match.matches("\\w")
+                    ? "<span data-comp-ph-pos='" + (++idx) +"' class='comp-ph-expr-const'>" + matcher.group(0) +"</span>"
+                    : "<span data-comp-ph-pos='" + (++idx) +"' id='answer_" + (++anwerIdx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
+
             sb.replace(matcher.start(), matcher.end(), replaceStr);
             offset = matcher.start() + replaceStr.length() ;
             matcher = pattern.matcher(sb.toString());
@@ -125,6 +130,12 @@ public class LtiController {
         sb.insert(0, "<p>Приоритет операций в порядке убывания</p>");
         sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
         dto.setText(sb.toString());
+
+        QuestionOptionsDto options = new QuestionOptionsDto();
+        options.setShowTrace(false);
+        options.setMultipleChoiceEnabled(false);
+        options.setRequireContext(true);
+        dto.setOptions(options);
 
         return dto;
     }
