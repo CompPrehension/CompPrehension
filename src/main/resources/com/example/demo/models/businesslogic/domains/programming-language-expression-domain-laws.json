@@ -2170,5 +2170,72 @@
       "operators",
       "Python"
     ]
+  },
+  {
+    "name": "type_basics",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "Type",
+        "formulation": "owl:Class",
+        "backend": "OWL"
+      },
+      {
+        "name": "TypeModifier",
+        "formulation": "owl:Class",
+        "backend": "OWL"
+      },
+      {
+        "name": "Field",
+        "formulation": "owl:Class",
+        "backend": "OWL"
+      },
+      {
+        "name": "Function",
+        "formulation": "owl:Class",
+        "backend": "OWL"
+      },
+      {
+        "name": "name",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_type",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_member",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_parameter",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_return_type",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_type",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_simple_type",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      "basics",
+      "type"
+    ]
   }
 ]
