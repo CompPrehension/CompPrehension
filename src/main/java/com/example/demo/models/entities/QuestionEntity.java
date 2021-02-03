@@ -2,16 +2,21 @@ package com.example.demo.models.entities;
 
 import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "Question")
+@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class QuestionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +36,10 @@ public class QuestionEntity {
 
     @Column(name = "answers_require_context")
     private Boolean areAnswersRequireContext;
+
+    @Type(type = "json")
+    @Column(name = "options_json", columnDefinition = "json")
+    private Map<String, Object> options;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<AnswerObjectEntity> answerObjects;
