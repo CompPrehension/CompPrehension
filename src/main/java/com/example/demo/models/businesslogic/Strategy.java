@@ -8,6 +8,7 @@ import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.utils.DomainAdapter;
+import org.apache.jena.atlas.lib.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -140,5 +141,51 @@ public class Strategy extends AbstractStrategy {
             }
         }
         return resolvedQuestionsGrade/(float)questionCount;
+    }
+
+    protected HashMap<String, Float> getLawGrade(ExerciseAttemptEntity exerciseAttempt){
+        HashMap<String, Float> res = new HashMap<>();
+
+        HashMap<String, ArrayList<Boolean>> conceptAtempt = new HashMap<>();
+        ArrayList<QuestionEntity> questions = new ArrayList<>();
+        questions.addAll(exerciseAttempt.getQuestions());
+
+        ArrayList<InteractionEntity> ies = new ArrayList<>();
+        for(QuestionEntity qe : questions){
+            ies.addAll(qe.getInteractions());
+        }
+
+        Collections.sort(ies, new OrderComparator());
+        Collections.reverse(ies);
+
+        for (InteractionEntity ie : ies){
+            ArrayList<MistakeEntity> mistakes = new ArrayList<>();
+            mistakes.addAll(ie.getMistakes());
+
+            for(MistakeEntity me : mistakes){
+                if(conceptAtempt.containsKey(me.getLawName())){
+                    conceptAtempt.get(me.getLawName()).add(false);
+                }else{
+                    ArrayList<Boolean> newLaw = new ArrayList<>();
+                    newLaw.add(false);
+                    conceptAtempt.put(me.getLawName(), newLaw);
+                }
+            }
+
+            if(mistakes.stream().count() == 0){
+                //выбрать верные законы и указать, что они были верны
+            }
+        }
+
+        //пересчитать верные и неверные законы в число
+
+        return res;
+    }
+
+    class OrderComparator implements Comparator<InteractionEntity> {
+        @Override
+        public int compare(InteractionEntity a, InteractionEntity b) {
+            return a.getOrderNumber() < b.getOrderNumber() ? -1 : a.getOrderNumber() == b.getOrderNumber() ? 0 : 1;
+        }
     }
 }
