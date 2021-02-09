@@ -131,11 +131,7 @@ public class LtiController {
         sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
         dto.setText(sb.toString());
 
-        QuestionOptionsDto options = new QuestionOptionsDto();
-        options.setShowTrace(false);
-        options.setMultipleChoiceEnabled(false);
-        options.setRequireContext(true);
-        dto.setOptions(options);
+        dto.setOptions(qData.getOptions());
 
         return dto;
     }

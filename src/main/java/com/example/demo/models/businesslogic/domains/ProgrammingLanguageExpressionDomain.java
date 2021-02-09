@@ -5,6 +5,8 @@ import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
+import com.example.demo.models.entities.QuestionOptions.QuestionOptionsEntity;
 import com.example.demo.utils.HyperText;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Assertions;
@@ -298,6 +300,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             deniedConceptNames.add(concept.getName());
         }
 
+        QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
+                .requireContext(true)
+                .showTrace(false)
+                .disableOnSelected(true)
+                .showOrderNumbers(true)
+                .orderNumberSuffix("/")
+                .build();
+
         if (conceptNames.contains("associativity") &&
                 allowedConceptNames.contains("operator_binary_+") &&
                 !conceptNames.contains("precedence")) {
@@ -311,6 +321,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setAreAnswersRequireContext(true);
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c"))));
             question.setQuestionType(QuestionType.ORDER);
+            question.setOptions(orderQuestionOptions);
             return new Ordering(question);
         } else if (conceptNames.contains("precedence") &&
                 allowedConceptNames.contains("operator_binary_+") &&
@@ -327,6 +338,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setAreAnswersRequireContext(true);
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "==", "b", "<", "c"))));
             question.setQuestionType(QuestionType.ORDER);
+            question.setOptions(orderQuestionOptions);
             return new Ordering(question);
         }  else if (conceptNames.contains("precedence") &&
                 conceptNames.contains("associativity") &&
@@ -344,6 +356,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             )));
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c", "*", "d"))));
             question.setQuestionType(QuestionType.ORDER);
+            question.setOptions(orderQuestionOptions);
             return new Ordering(question);
         } else {
             QuestionEntity question = new QuestionEntity();

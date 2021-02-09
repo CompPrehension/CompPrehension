@@ -2,6 +2,7 @@ package com.example.demo.models.entities;
 
 import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.entities.QuestionOptions.QuestionOptionsEntity;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,6 @@ import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Data
@@ -39,7 +39,7 @@ public class QuestionEntity {
 
     @Type(type = "json")
     @Column(name = "options_json", columnDefinition = "json")
-    private Map<String, Object> options;
+    private QuestionOptionsEntity options;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<AnswerObjectEntity> answerObjects;

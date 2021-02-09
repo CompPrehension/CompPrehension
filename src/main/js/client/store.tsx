@@ -22,9 +22,10 @@ export class Store {
             throw new Error("Session exists");
         }
 
-        const data = await ajaxGet<SessionInfo>('loadSessionInfo');
+        this.isLoading = true;
+        const data = await ajaxGet<SessionInfo>('loadSessionInfo')
+            .finally(() => this.isLoading = false);
         
-        console.log(data);
         this.sessionInfo = data;
     }
 

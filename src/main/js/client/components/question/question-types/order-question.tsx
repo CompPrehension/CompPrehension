@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import $ from 'jquery';
-import { Question } from "../../../typings/question.d";
+import { OrderQuestionOptions, Question } from "../../../typings/question.d";
 import { observer } from "mobx-react";
 import store from '../../../store';
 
@@ -10,29 +10,50 @@ export const OrderQuestion : React.FC = observer(() => {
         return null;
     }
 
-    // при смене id добавляем обработчики нажатия
-    const { options } = questionData;
+    const options = questionData.options as OrderQuestionOptions; 
+    const delim = options.orderNumberSuffix ?? "/";
+    const originalText = $(questionData.text);
+    
+    // actions on questionId changed (onInit)
     useEffect(() => {    
+        // add button click event handlers
         $('[id^="answer_"]').each((_, e) => {
             const $this = $(e);
             const idStr = $this.attr('id')?.split("answer_")[1]; 
             $this.click(() => onAnswersChanged(idStr));
         });
 
+        // show elements positions
         $("[data-comp-ph-pos]").each((_, e) => {
             const $this = $(e);
             const pos = $this.data("comp-ph-pos");
             $this.append($(`<span class="comp-ph-expr-top-hint">${pos}</span>`));
-        })
+        });  
     }, [questionData.id]);
 
-    $('[id^="answer_"]').removeClass('disabled');
-    $('.comp-ph-expr-bottom-hint').remove();
+
+    // drop all changes, set original qustion text
+    $('[id^="answer_"]')
+        .each((_, e) => {
+            const $this = $(e);
+            const pos = $this.data("comp-ph-pos");
+            $this.html(originalText.find(`#${e.id}`).html());
+            $this.append($(`<span class="comp-ph-expr-top-hint">${pos}</span>`));
+        })
+        .removeClass('disabled'); 
+
+    // apply history changes          
     answersHistory.forEach((h, idx) => {
-        if (!options.multipleChoiceEnabled) {
-            const answr = $(`#answer_${h}`);
-            answr.addClass('disabled');
-            answr.append($(`<span class="comp-ph-expr-bottom-hint">${idx}</span>`));
+        const answr = $(`#answer_${h}`);
+
+        // add pos hint
+        if (options.showOrderNumbers) {
+            answr.html(`${answr.html()}${delim}${idx}`);
+        }        
+
+        // disable if needed
+        if (options.disableOnSelected) {            
+            answr.addClass('disabled');            
         }
     });
 

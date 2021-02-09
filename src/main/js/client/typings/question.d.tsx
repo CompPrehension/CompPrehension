@@ -19,7 +19,12 @@ export interface Question {
 export interface QuestionOptions {
     requireContext: boolean,
     showTrace: boolean;
-    multipleChoiceEnabled: boolean,
+}
+
+export interface OrderQuestionOptions extends QuestionOptions {
+    disableOnSelected: boolean,
+    showOrderNumbers: boolean, 
+    orderNumberSuffix: string,
 }
 
 export interface QuestionAnswer {

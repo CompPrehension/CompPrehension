@@ -12,12 +12,12 @@ export const QuestionFabric = observer(() => {
         return null;
     }
 
-    switch (questionData.type) {
+    switch (true) {
         //case QuestionType.SINGLE_CHOICE:
         //    return <SingleChoiceQuestion question={questionData} onSelectionChanged={(id) => store.onAnswersChanged(id)} selectedCheckboxId={store.getAnswers()} />;
         //case QuestionType.MULTI_CHOICE:
         //    return <MultiChoiceQuestion question={questionData} onSelectionChanged={answ => store.onAnswersChanged(answ)} selectedCheckboxes={store.getAnswers()}/>;
-        case QuestionType.ORDER:
+        case questionData.type == QuestionType.ORDER && questionData.options.requireContext:
             return <OrderQuestion />;
     }
 
