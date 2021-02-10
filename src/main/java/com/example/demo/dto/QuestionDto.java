@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class QuestionDto {
     private String id;
-    private Integer type;
+    private String type;
     private String text;
     private QuestionOptionsEntity options;
     private QuestionAnswerDto[] answers = new QuestionAnswerDto[0];

@@ -105,7 +105,7 @@ public class LtiController {
 
         QuestionDto dto = new QuestionDto();
         dto.setId(exAttemptId.toString());
-        dto.setType(qData.getQuestionType().ordinal());
+        dto.setType(qData.getQuestionType().toString());
         dto.setAnswers(new QuestionAnswerDto[0]);
 
         StringBuilder sb = new StringBuilder(qData.getQuestionText());

@@ -17,7 +17,7 @@ export const QuestionFabric = observer(() => {
         //    return <SingleChoiceQuestion question={questionData} onSelectionChanged={(id) => store.onAnswersChanged(id)} selectedCheckboxId={store.getAnswers()} />;
         //case QuestionType.MULTI_CHOICE:
         //    return <MultiChoiceQuestion question={questionData} onSelectionChanged={answ => store.onAnswersChanged(answ)} selectedCheckboxes={store.getAnswers()}/>;
-        case questionData.type == QuestionType.ORDER && questionData.options.requireContext:
+        case questionData.type == "ORDER" && questionData.options.requireContext:
             return <OrderQuestion />;
     }
 

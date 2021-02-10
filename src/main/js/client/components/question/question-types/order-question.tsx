@@ -6,11 +6,11 @@ import store from '../../../store';
 
 export const OrderQuestion : React.FC = observer(() => {
     const { questionData, answersHistory, onAnswersChanged } = store;
-    if (!questionData) {
+    if (!questionData || questionData.type != "ORDER" || !questionData.options.requireContext) {
         return null;
     }
 
-    const options = questionData.options as OrderQuestionOptions; 
+    const { options } = questionData; 
     const delim = options.orderNumberSuffix ?? "/";
     const originalText = $(questionData.text);
     
