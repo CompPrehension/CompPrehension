@@ -6,8 +6,7 @@ import { ajaxGet, ajaxPost } from "./utils/ajax";
 export class Store {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable questionData?: Question = undefined;
-    @observable answers: any = undefined;
-    @observable answersHistory: any[] = [];
+    @observable answersHistory: string[] = [];
     @observable isLoading: boolean = false;
     @observable isFeedbackLoading: boolean = false;
     @observable feedbackMessages: string[] | undefined = undefined;
@@ -41,8 +40,7 @@ export class Store {
 
         console.log(data);
         this.questionData = data;
-        this.feedbackMessages = undefined;
-        this.answers = undefined;
+        this.feedbackMessages = undefined;        
         this.answersHistory = [];
     }
      
@@ -65,12 +63,9 @@ export class Store {
 
     @action 
     onAnswersChanged = (newAnswers: any): void => {
-        this.answers = newAnswers;
         this.answersHistory.push(newAnswers);
         this.sendAnswers();
     }
-
-    getAnswers = () => this.answers;
 }
 
 
