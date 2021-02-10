@@ -38,7 +38,6 @@ export class Store {
         const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`)
             .finally(() => this.isLoading = false);
 
-        console.log(data);
         this.questionData = data;
         this.feedbackMessages = undefined;        
         this.answersHistory = [];
@@ -55,15 +54,15 @@ export class Store {
         this.isFeedbackLoading = true;
         const feedback = await ajaxPost<string[]>('addAnswer', body)
             .finally(() => this.isFeedbackLoading = false);
-        this.feedbackMessages = feedback;
-        if (feedback.length) {                
+        this.feedbackMessages = feedback ?? [];
+        if (this.feedbackMessages.length) {                
             this.answersHistory.pop();
         }
     }
 
     @action 
-    onAnswersChanged = (newAnswers: any): void => {
-        this.answersHistory.push(newAnswers);
+    onAnswersChanged = (answerId: string): void => {
+        this.answersHistory.push(answerId);
         this.sendAnswers();
     }
 }

@@ -14,4 +14,5 @@ public class OrderQuestionOptionsEntity extends QuestionOptionsEntity {
     private boolean disableOnSelected = true;
     private boolean showOrderNumbers = true;
     private String orderNumberSuffix = "/";
+    private String[] orderNumberReplacers;
 }

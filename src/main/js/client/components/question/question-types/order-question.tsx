@@ -19,7 +19,7 @@ export const OrderQuestion : React.FC = observer(() => {
         // add button click event handlers
         $('[id^="answer_"]').each((_, e) => {
             const $this = $(e);
-            const idStr = $this.attr('id')?.split("answer_")[1]; 
+            const idStr = $this.attr('id')?.split("answer_")[1] ?? ""; 
             $this.click(() => onAnswersChanged(idStr));
         });
 
@@ -48,7 +48,8 @@ export const OrderQuestion : React.FC = observer(() => {
 
         // add pos hint
         if (options.showOrderNumbers) {
-            answr.html(`${answr.html()}${delim}${idx}`);
+            const orderNumber = options.orderNumberReplacers?.[idx] ?? (idx + 1);
+            answr.html(`${answr.html()}${delim}${orderNumber}`);
         }        
 
         // disable if needed

@@ -39,7 +39,8 @@ export interface QuestionOptions {
 export interface OrderQuestionOptions extends QuestionOptions {
     disableOnSelected: boolean,
     showOrderNumbers: boolean, 
-    orderNumberSuffix: string,
+    orderNumberSuffix?: string,
+    orderNumberReplacers?: string[],
 }
 
 export interface QuestionAnswer {
