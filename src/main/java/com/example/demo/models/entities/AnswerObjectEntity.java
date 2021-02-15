@@ -35,7 +35,7 @@ public class AnswerObjectEntity {
     private List<ResponseEntity> responsesRight;
 
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "answerObject_id")
     private QuestionEntity question;
     

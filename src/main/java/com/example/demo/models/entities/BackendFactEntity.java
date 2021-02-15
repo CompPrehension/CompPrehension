@@ -27,7 +27,7 @@ public class BackendFactEntity {
     @Column(name = "verb")
     private String verb;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "BackendFact_id")
     private QuestionEntity question;
 
