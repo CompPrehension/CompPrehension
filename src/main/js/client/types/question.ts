@@ -31,7 +31,9 @@ type MultiChoiceQuestionBase = QuestionBase & {
 }
 
 type MathingQuestionBase = QuestionBase & {        
-    type: "MATCHING",            
+    type: "MATCHING",  
+    answers: QuestionAnswer[],
+    groups: QuestionAnswer[],
 }
 
 export type Question = OrderQuestionBase | SingleChoiceQuestionBase | MultiChoiceQuestionBase | MathingQuestionBase
