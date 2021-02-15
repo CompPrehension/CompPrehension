@@ -1,8 +1,13 @@
+import { OrderQuestionOptions, QuestionOptions } from "./question-options";
 
 export type QuestionType = "SINGLE_CHOICE" | "MULTI_CHOICE" | "MATCHING" | "ORDER";
 
 export type Html = string;
 
+export interface QuestionAnswer {
+    id: string,
+    text: Html,
+}
 
 type QuestionBase = {
     id: string,
@@ -30,35 +35,3 @@ type MathingQuestionBase = QuestionBase & {
 }
 
 export type Question = OrderQuestionBase | SingleChoiceQuestionBase | MultiChoiceQuestionBase | MathingQuestionBase
-      
-export interface QuestionOptions {
-    requireContext: boolean,
-    showTrace: boolean;
-}
-
-export interface OrderQuestionOptions extends QuestionOptions {
-    disableOnSelected: boolean,
-    showOrderNumbers: boolean, 
-    orderNumberSuffix?: string,
-    orderNumberReplacers?: string[],
-}
-
-export interface QuestionAnswer {
-    id: string,
-    text: Html,
-}
-
-export interface SessionInfo {
-    sessionId: string,
-    attemptIds: string[],
-    user: UserInfo,
-    expired: Date,
-}
-
-export interface UserInfo {
-    id: string,
-    displayName: string,
-    email: string,
-    roles: string[],
-}
-

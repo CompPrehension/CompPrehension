@@ -1,5 +1,6 @@
 import { action, computed, makeObservable, observable, runInAction, toJS } from "mobx";
-import { Question, SessionInfo } from "./typings/question.d";
+import { Question } from "./types/question";
+import { SessionInfo } from "./types/session-info";
 import { ajaxGet, ajaxPost } from "./utils/ajax";
 
 
@@ -43,6 +44,7 @@ export class Store {
         this.answersHistory = [];
     }
      
+    @action 
     sendAnswers = async () : Promise<void> => {
         const { questionData, answersHistory } = this;
         const mergedAnswers = answersHistory.join(",");
