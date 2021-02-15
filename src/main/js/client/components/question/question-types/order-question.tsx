@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import $ from 'jquery';
-import { OrderQuestionOptions, Question } from "../../../typings/question.d";
 import { observer } from "mobx-react";
 import store from '../../../store';
 
