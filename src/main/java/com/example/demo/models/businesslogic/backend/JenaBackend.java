@@ -145,22 +145,22 @@ public class JenaBackend extends Backend {
         assert ind != null;
 
         if (fact.getObjectType().equals("owl:NamedIndividual")) {
-            ObjectProperty p = model.getObjectProperty(baseIRIPrefix + prop);
+            ObjectProperty p = model.createObjectProperty(baseIRIPrefix + prop);
             model.add(ind, p, model.getIndividual(baseIRIPrefix + obj));
         } else if (fact.getObjectType().equals("xsd:int")) {
-            DatatypeProperty p = model.getDatatypeProperty(baseIRIPrefix + prop);
+            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Integer.parseInt(obj));
         } else if (fact.getObjectType().equals("xsd:string")) {
-            DatatypeProperty p = model.getDatatypeProperty(baseIRIPrefix + prop);
+            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.add(ind, p, obj);
         } else if (fact.getObjectType().equals("xsd:boolean")) {
-            DatatypeProperty p = model.getDatatypeProperty(baseIRIPrefix + prop);
+            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Boolean.parseBoolean(obj));
         } else if (fact.getObjectType().equals("xsd:double")) {
-            DatatypeProperty p = model.getDatatypeProperty(baseIRIPrefix + prop);
+            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Double.parseDouble(obj));
         } else if (fact.getObjectType().equals("xsd:float")) {
-            DatatypeProperty p = model.getDatatypeProperty(baseIRIPrefix + prop);
+            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Float.parseFloat(obj));
         } else {
             throw new UnsupportedOperationException("JenaBackend.addStatementFact: unknown objectType: " + fact.getObjectType());
@@ -208,7 +208,7 @@ public class JenaBackend extends Backend {
                     RDFDatatype dt = objNode.asLiteral().getDatatype();
                     objType = dt.toString();
                 }
-                obj = objNode.asLiteral().toString();
+                obj = objNode.asLiteral().getLexicalForm();
             }
 
             facts.add(new BackendFactEntity(
@@ -226,7 +226,7 @@ public class JenaBackend extends Backend {
 
         List<BackendFactEntity> result = new ArrayList<>();
 
-        ExtendedIterator<OntProperty> props = model.listOntProperties();  // try listAllOntProperties if incomplete
+        ExtendedIterator<OntProperty> props = model.listAllOntProperties();  // try listAllOntProperties if incomplete
         while (props.hasNext()) {
             Property p = props.next();
             String propName = p.getLocalName();
