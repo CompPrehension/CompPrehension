@@ -3,6 +3,7 @@ package com.example.demo.models.businesslogic;
 import com.example.demo.DemoApplication;
 import com.example.demo.Service.DomainService;
 import com.example.demo.Service.QuestionService;
+import com.example.demo.models.businesslogic.backend.JenaBackend;
 import com.example.demo.models.businesslogic.backend.PelletBackend;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
@@ -37,8 +38,11 @@ public class SystemIntegrationTest {
     @Autowired
     DomainService domainService;
 
+//    @Autowired
+//    PelletBackend backend;
+
     @Autowired
-    PelletBackend backend;
+    JenaBackend backend;
 
     @Autowired
     QuestionService questionService;

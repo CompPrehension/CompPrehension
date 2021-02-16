@@ -1,6 +1,7 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.businesslogic.backend.PelletBackend;
+import com.example.demo.models.businesslogic.backend.Backend;
+import com.example.demo.models.businesslogic.backend.JenaBackend;
 import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.EnumData.Language;
@@ -102,7 +103,7 @@ public class ProgrammingLanguageExpressionDomainTest {
             tags.add(tag);
         }
 
-        PelletBackend backend = new PelletBackend();
+        Backend backend = new JenaBackend();
         List<BackendFactEntity> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),

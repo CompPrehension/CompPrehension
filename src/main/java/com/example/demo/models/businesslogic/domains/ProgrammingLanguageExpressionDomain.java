@@ -142,7 +142,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         JavaTag.setName("Java");
         
         ClassLoader CLDR = this.getClass().getClassLoader();
-        InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws.json");
+        InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws-jena.json");
         LawForm[] lawForms = new Gson().fromJson(
                 new InputStreamReader(inputStream),
                 LawForm[].class);
@@ -286,7 +286,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public com.example.demo.models.businesslogic.Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
+    public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
@@ -430,29 +430,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         laws.add(getOWLLawFormulation("student_error_right_assoc", "owl:ObjectProperty"));
         laws.add(getOWLLawFormulation("student_error_strict_operands_order", "owl:ObjectProperty"));
         laws.add(getOWLLawFormulation("text", "owl:DatatypeProperty"));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "describe_error",
-                "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)"
+//                "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)"
+                "(?b my:student_pos_less ?a), (?a my:before_direct ?b) -> (?a my:describe_error ?b)."
         ));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "student_error_in_complex",
-                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ text(?c, \"(\") ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
+//                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ text(?c, \"(\") ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
+                "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:text \"(\"), (?a my:describe_error ?b) -> (?b my:student_error_in_complex ?a)."
         ));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "student_error_in_complex_bound",
-                "before_as_operand(?a, ?b) ^ complex_beginning(?b, true) ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
+//                "before_as_operand(?a, ?b) ^ complex_beginning(?b, true) ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
+                "(?a my:before_as_operand ?b), (?b my:complex_beginning \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_in_complex ?a)."
         ));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "student_error_more_precedence",
-                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_diff_precedence(?a, ?b) -> student_error_more_precedence(?b, ?a)"
+//                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_diff_precedence(?a, ?b) -> student_error_more_precedence(?b, ?a)"
+                "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence ?a)."
         ));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "student_error_right_assoc",
-                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_right_assoc(?a, ?b) -> student_error_right_assoc(?b, ?a)"
+//                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_right_assoc(?a, ?b) -> student_error_right_assoc(?b, ?a)"
+                "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_right_assoc ?b) -> (?b my:student_error_right_assoc ?a)."
         ));
         laws.add(getSWRLLawFormulation(
                 "student_error_strict_operands_order",
-                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ is_operator_with_strict_operands_order(?c, true) ^ describe_error(?a, ?b) -> student_error_strict_operands_order(?b, ?a)"
+//                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ is_operator_with_strict_operands_order(?c, true) ^ describe_error(?a, ?b) -> student_error_strict_operands_order(?b, ?a)"
+                "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_strict_operands_order ?a)."
         ));
         return laws;
     }
@@ -463,9 +469,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         laws.add(getOWLLawFormulation("describe_error", "owl:ObjectProperty"));
         laws.add(getOWLLawFormulation("high_precedence_left_assoc", "owl:ObjectProperty"));
         laws.add(getOWLLawFormulation("student_error_left_assoc", "owl:ObjectProperty"));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "student_error_left_assoc",
-                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)"
+//                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)"
+                "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_left_assoc ?b) -> (?b my:student_error_left_assoc ?a)."
         ));
         return laws;
     }
@@ -526,6 +533,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         lawFormulation.setLaw(name);
         lawFormulation.setFormulation(formulation);
         lawFormulation.setBackend("SWRL");
+        return lawFormulation;
+    }
+
+    LawFormulation getJenaLawFormulation(String name, String formulation) {
+        LawFormulation lawFormulation = getSWRLLawFormulation(name, formulation);
+        lawFormulation.setBackend("Jena");
         return lawFormulation;
     }
 
