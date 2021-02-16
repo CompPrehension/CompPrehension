@@ -196,9 +196,6 @@ public class JenaBackend extends Backend {
         while (it.hasNext()) {
             Statement stmt = it.next();
 
-            // debug
-            System.out.println("getPropertyRelations( propName: " + propName + ", subj: " + stmt.getSubject().getLocalName() + " )");
-
             RDFNode objNode = stmt.getObject();
             String obj;
 
@@ -232,15 +229,8 @@ public class JenaBackend extends Backend {
             Property p = props.next();
             String propName = p.getLocalName();
             if (verbs.contains(propName)) {
-
-                // debug
-                System.out.println("getFacts( prop found: " + propName + " )");
-
                 List<BackendFactEntity> verbFacts = getPropertyRelations(p);
                 result.addAll(verbFacts);
-//            } else {
-//                // debug
-//                System.out.println("getFacts( props to found: " + (verbs.toString()) + ", prop NOT found: " + propName + " )");
             }
         }
         return result;
