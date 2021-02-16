@@ -115,11 +115,12 @@ public class JenaBackend extends Backend {
                 try {
                     domainRules.add(Rule.parseRule(lawFormulation.getFormulation()));
                 } catch (Rule.ParserException e) {
+                    System.out.println("Following error in rule: " + lawFormulation.getFormulation());
                     e.printStackTrace();
                 }
             } else if ("can_covert" != null) {
 
-                // TODO: convert rules
+                // TODO: convert rules if possible ?
             }
         }
     }
