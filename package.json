@@ -11,6 +11,7 @@
   "dependencies": {
     "@babel/polyfill": "7.2.5",
     "bootstrap": "^4.5.3",
+    "fp-ts": "^2.9.5",
     "jquery": "3.5.1",
     "mobx": "6.0.4",
     "mobx-react": "7.0.5",

@@ -2,6 +2,8 @@ import { action, computed, makeObservable, observable, runInAction, toJS } from 
 import { Question } from "./types/question";
 import { SessionInfo } from "./types/session-info";
 import { ajaxGet, ajaxPost } from "./utils/ajax";
+import * as E from "fp-ts/lib/Either";
+
 
 
 export class Store {
@@ -23,8 +25,9 @@ export class Store {
         }
 
         this.isLoading = true;
-        const data = await ajaxGet<SessionInfo>('loadSessionInfo')
+        const dataEither = await ajaxGet<SessionInfo>('loadSessionInfo')
             .finally(() => this.isLoading = false);
+        const data = E.getOrElseW(_ => undefined)(dataEither);
         
         this.sessionInfo = data;
     }
@@ -36,8 +39,9 @@ export class Store {
         }
 
         this.isLoading = true;
-        const data = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`)
+        const dataEither =  await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`)
             .finally(() => this.isLoading = false);
+        const data = E.getOrElseW(_ => undefined)(dataEither);
 
         this.questionData = data;
         this.feedbackMessages = undefined;        

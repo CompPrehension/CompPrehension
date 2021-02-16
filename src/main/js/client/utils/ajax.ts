@@ -1,15 +1,34 @@
+import { Either, left, right } from "fp-ts/lib/Either";
 
-
-
-export function ajaxGet<T>(url: string) : Promise<T> {
-    console.log(`ajax get: ${url}`);
-    return fetch(url)
-        .then(v => v.json())
-        .then(v => (console.log(v), v))
-        .catch(e => console.error(e));
+type RequestError = {
+    error: string,
+    message: string,
+    path: string,
+    status: number,
+    timestamp: string,
+    trace: string,
 }
 
-export function ajaxPost<T>(url: string, body: object) : Promise<T> {
+
+export function ajaxGet<T>(url: string) : Promise<Either<RequestError, T>> {
+    console.log(`ajax get: ${url}`);
+    return new Promise((res) => {
+        fetch(url)
+            .then(async resp => {
+                var json = await resp.json();                
+                if (resp.ok) {
+                    console.log(json);
+                    return json;
+                }
+                console.error(json);
+                throw json;
+            })
+            .then(v => res(right(v)))
+            .catch(e => res(left(e)));
+    });
+}
+
+export function ajaxPost<T>(url: string, body: object) : Promise<Either<RequestError, T>> {
     const params = {
         method: 'POST',
         headers: {
@@ -19,8 +38,18 @@ export function ajaxPost<T>(url: string, body: object) : Promise<T> {
     };
 
     console.log(`ajax post: ${url}`, params.body);
-    return fetch(url, params)
-        .then(v => v.json())
-        .then(v => (console.log(v), v))
-        .catch(e => console.error(e));
+    return new Promise((res) => {        
+        fetch(url, params)
+            .then(async resp => {
+                var json = await resp.json();               
+                if (resp.ok) {
+                    console.log(json);
+                    return json;
+                }
+                console.error(json);
+                throw json;
+            })
+            .then(v => res(right(v)))
+            .catch(e => res(left(e)));
+    });
 }
