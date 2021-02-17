@@ -36,6 +36,8 @@ public class InteractionEntity {
     @OneToMany(mappedBy = "interaction")
     private List<MistakeEntity> mistakes;
 
+    @OneToMany(mappedBy = "interaction")
+    private List<CorrectLawEntity> correctLaw;
 
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
     private List<ResponseEntity> responses;
