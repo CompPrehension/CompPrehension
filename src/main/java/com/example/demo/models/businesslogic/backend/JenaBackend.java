@@ -260,11 +260,7 @@ public class JenaBackend extends Backend {
             addStatementFact(fact);
         }
 
-        debug_dump_model("before_reasoning");
-
         callReasoner();
-
-        debug_dump_model("after_reasoning");
 
         return getFacts(solutionVerbs);
     }
