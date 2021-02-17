@@ -58,10 +58,12 @@ export class Store {
         }
 
         this.isFeedbackLoading = true;
-        const feedback = await ajaxPost<string[]>('addAnswer', body)
+        const feedbackEither = await ajaxPost<string[]>('addAnswer', body)
             .finally(() => this.isFeedbackLoading = false);
-        this.feedbackMessages = feedback ?? [];
-        if (this.feedbackMessages.length) {                
+        const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
+
+        this.feedbackMessages = feedback;
+        if (this.feedbackMessages?.length) {                
             this.answersHistory.pop();
         }
     }
