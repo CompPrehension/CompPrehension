@@ -11,7 +11,8 @@ import javax.persistence.*;
 @Table(name = "BackendFacts")
 public class BackendFactEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bf_generator")
+    @SequenceGenerator(name = "bf_generator", sequenceName = "BACKEND_FACTS_SEQUENCE")
     private Long id;
 
     @Column(name = "object")

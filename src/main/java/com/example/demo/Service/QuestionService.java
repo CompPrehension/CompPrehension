@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 public class QuestionService {
     
@@ -101,31 +103,31 @@ public class QuestionService {
     public QuestionEntity getQuestionEntiity(Long questionId) {
         return questionRepository.findById(questionId).get();
     }
-    
+
     public void saveQuestion(QuestionEntity question) {
         if (question.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
                     answerObject.setQuestion(question);
-                    answerObjectRepository.save(answerObject);
                 }
             }
+            answerObjectRepository.saveAll(question.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
         }
         if (question.getStatementFacts() != null) {
             for (BackendFactEntity fact : question.getStatementFacts()) {
                 if (fact.getId() == null) {
                     fact.setQuestion(question);
-                    backendFactRepository.save(fact);
                 }
             }
+            backendFactRepository.saveAll(question.getStatementFacts().stream().filter(f -> f.getId() == null)::iterator);
         }
         if (question.getSolutionFacts() != null) {
             for (BackendFactEntity fact : question.getSolutionFacts()) {
                 if (fact.getId() == null) {
                     fact.setQuestion(question);
-                    backendFactRepository.save(fact);
                 }
             }
+            backendFactRepository.saveAll(question.getSolutionFacts().stream().filter(f -> f.getId() == null)::iterator);
         }
         questionRepository.save(question);
     }
