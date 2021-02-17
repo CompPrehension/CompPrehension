@@ -28,7 +28,7 @@ public class QuestionEntity {
     @Enumerated(EnumType.ORDINAL)
     private QuestionStatus questionStatus;
 
-    @Column(name = "question_text")
+    @Column(name = "question_text", columnDefinition = "TEXT")
     private String questionText;
 
     @Column(name = "question_domain_type")

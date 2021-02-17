@@ -103,37 +103,13 @@ public class LtiController {
         Question question = questionService.generateQuestion(attempt);
         QuestionEntity qData = question.getQuestionData();
 
-        QuestionDto dto = new QuestionDto();
-        dto.setId(exAttemptId.toString());
-        dto.setType(qData.getQuestionType().toString());
-        dto.setAnswers(new QuestionAnswerDto[0]);
-
-        StringBuilder sb = new StringBuilder(qData.getQuestionText());
-        Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>|\\w+");
-        Matcher matcher = pattern.matcher(sb.toString());
-        int idx = 0;
-        int anwerIdx = -1;
-        int offset = 0;
-        while (offset < sb.length() && matcher.find(offset)) {
-            String match = matcher.group(0);
-            String replaceStr = match.matches("\\w")
-                    ? "<span data-comp-ph-pos='" + (++idx) +"' class='comp-ph-expr-const'>" + matcher.group(0) +"</span>"
-                    : "<span data-comp-ph-pos='" + (++idx) +"' id='answer_" + (++anwerIdx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
-
-            sb.replace(matcher.start(), matcher.end(), replaceStr);
-            offset = matcher.start() + replaceStr.length() ;
-            matcher = pattern.matcher(sb.toString());
-        }
-
-        sb = new StringBuilder(sb.toString().replaceAll("\\*", "&#8727"));
-        sb.insert(0, "<p class='comp-ph-expr'>"); sb.append("</p>");
-        sb.insert(0, "<p>Приоритет операций в порядке убывания</p>");
-        sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
-        dto.setText(sb.toString());
-
-        dto.setOptions(qData.getOptions());
-
-        return dto;
+        return QuestionDto.builder()
+            .id(exAttemptId.toString())
+            .type(qData.getQuestionType().toString())
+            .answers(new QuestionAnswerDto[0])
+            .text(qData.getQuestionText())
+            .options(qData.getOptions())
+            .build();
     }
 
     @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
@@ -145,14 +121,14 @@ public class LtiController {
             throw new Exception("Couldn't get session info");
         }
 
-        UserInfoDto user = new UserInfoDto();
-        user.setId(params.get("user_id").toString());
-        user.setDisplayName(params.get("lis_person_name_given").toString());
-        user.setEmail(params.get("lis_person_contact_email_primary").toString());
-        user.setRoles(Stream.of(params.get("roles").toString().split(","))
-                .map(String::trim)
-                .collect(Collectors.toList()));
-
+        UserInfoDto user = UserInfoDto.builder()
+             .id(params.get("user_id").toString())
+             .displayName(params.get("lis_person_name_given").toString())
+             .email(params.get("lis_person_contact_email_primary").toString())
+             .roles(Stream.of(params.get("roles").toString().split(","))
+                          .map(String::trim)
+                          .collect(Collectors.toList()))
+             .build();
 
         List<ExerciseEntity> exercises = IterableUtils.toList(exerciseRepository.findAll());
         List<ExerciseAttemptEntity> exerciseAttempts = new ArrayList<>();
@@ -165,14 +141,13 @@ public class LtiController {
             exerciseAttempts.add(exerciseAttemptRepository.save(ae));
         }
 
-        SessionInfoDto result = new SessionInfoDto();
-        result.setSessionId(session.getId());
-        result.setAttemptIds(exerciseAttempts.stream()
-            .map(v -> v.getId()).map(v -> v.toString())
-            .toArray(String[]::new));
-        result.setUser(user);
-        result.setExpired(new Date());
-
-        return result;
+        return SessionInfoDto.builder()
+            .sessionId(session.getId())
+            .attemptIds(exerciseAttempts.stream()
+                                        .map(v -> v.getId()).map(v -> v.toString())
+                                        .toArray(String[]::new))
+            .user(user)
+            .expired(new Date())
+            .build();
     }
 }

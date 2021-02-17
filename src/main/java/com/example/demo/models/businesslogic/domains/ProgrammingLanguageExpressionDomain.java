@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -313,7 +315,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 !conceptNames.contains("precedence")) {
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText("a + b + c");
+            question.setQuestionText(QuestionTextToHtml("a + b + c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
                     getAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4)))));
@@ -329,7 +331,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 deniedConceptNames.contains("associativity")) {
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText("a == b < c");
+            question.setQuestionText(QuestionTextToHtml("a == b < c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     getAnswerObject(question, "==", "operator_binary_+", getName(0, 2)),
                     getAnswerObject(question, "<", "operator_binary_*", getName(0, 4))
@@ -346,7 +348,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_*")) {
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText("a + b + c * d");
+            question.setQuestionText(QuestionTextToHtml("a + b + c * d"));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
@@ -372,6 +374,31 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             )));
             return new SingleChoice(question);
         }
+    }
+
+    public static String QuestionTextToHtml(String text) {
+        StringBuilder sb = new StringBuilder(text);
+        Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>|\\w+");
+        Matcher matcher = pattern.matcher(sb.toString());
+        int idx = 0;
+        int anwerIdx = -1;
+        int offset = 0;
+        while (offset < sb.length() && matcher.find(offset)) {
+            String match = matcher.group(0);
+            String replaceStr = match.matches("\\w")
+                    ? "<span data-comp-ph-pos='" + (++idx) +"' class='comp-ph-expr-const'>" + matcher.group(0) +"</span>"
+                    : "<span data-comp-ph-pos='" + (++idx) +"' id='answer_" + (++anwerIdx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
+
+            sb.replace(matcher.start(), matcher.end(), replaceStr);
+            offset = matcher.start() + replaceStr.length() ;
+            matcher = pattern.matcher(sb.toString());
+        }
+
+        sb = new StringBuilder(sb.toString().replaceAll("\\*", "&#8727"));
+        sb.insert(0, "<p class='comp-ph-expr'>"); sb.append("</p>");
+        sb.insert(0, "<p>Приоритет операций в порядке убывания</p>");
+        sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
+        return sb.toString();
     }
 
     String getName(int step, int index) {
