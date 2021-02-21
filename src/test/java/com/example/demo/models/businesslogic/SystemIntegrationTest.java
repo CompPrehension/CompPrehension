@@ -69,12 +69,14 @@ public class SystemIntegrationTest {
             questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
-            assertEquals(1, mistakes.size());
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            assertEquals(1, result.mistakes.size());
+            assertEquals(1, result.CountCorrectOptions);
+            assertEquals(1, result.IterationsLeft);
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-                    mistakes.get(0).getLawName());
-            List<HyperText> explanations  = explainMistakes(question3, mistakes);
+                    result.mistakes.get(0).getLawName());
+            List<HyperText> explanations  = explainMistakes(question3, result.mistakes);
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
@@ -85,7 +87,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0, 1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
@@ -98,7 +100,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertTrue(mistakes.isEmpty());
         }
         {
@@ -107,7 +109,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1, 0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -117,7 +119,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertEquals(0, mistakes.size());
         }
 
@@ -128,7 +130,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -145,7 +147,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -155,7 +157,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
             expected.add("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
@@ -173,7 +175,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -183,7 +185,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags);
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -241,7 +243,7 @@ public class SystemIntegrationTest {
         return question;
     }
 
-    List<MistakeEntity> judgeQuestion(Question question, List<Tag> tags) {
+    Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         List<BackendFactEntity> responseFacts = question.responseToFacts();
         assertFalse(responseFacts.isEmpty());

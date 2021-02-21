@@ -1,6 +1,7 @@
 package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.entities.BackendFactEntity;
+import org.mvel2.util.Make;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
@@ -94,6 +95,12 @@ public class PelletBackend extends SWRLBackend {
         return facts;
     }
 
+    String convertDatatype(String pelletType) {
+        String[] typeParts = pelletType.split("#");
+        assert typeParts.length == 2;
+        return "xsd:" + typeParts[1];
+    }
+
     @Override
     public List<BackendFactEntity> getDataProperties(String dataProperty) {
         List<BackendFactEntity> facts = new ArrayList<>();
@@ -105,7 +112,7 @@ public class PelletBackend extends SWRLBackend {
                         "owl:NamedIndividual",
                         relationsEntry.getKey().getIRI().getShortForm(),
                         dataProperty,
-                        to.getDatatype().toString(),
+                        convertDatatype(to.getDatatype().toString()),
                         to.getLiteral()
                 ));
             }

@@ -93,5 +93,10 @@ public abstract class Domain {
      */
     public abstract List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects);
 
-    public abstract List<MistakeEntity> interpretSentence(List<BackendFactEntity> violations);
+    public class InterpretSentenceResult {
+        public List<MistakeEntity> mistakes;
+        public int CountCorrectOptions;
+        public int IterationsLeft;
+    }
+    public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 }

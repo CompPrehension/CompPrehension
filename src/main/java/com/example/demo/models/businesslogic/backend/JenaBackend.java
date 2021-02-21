@@ -185,6 +185,11 @@ public class JenaBackend extends Backend {
         model.add( inf );
     }
 
+    String convertDatatype(String jenaType) {
+        String[] typeParts = jenaType.split("\\.|]");
+        return "xsd:" + typeParts[typeParts.length-1].toLowerCase();
+    }
+
     public List<BackendFactEntity> getPropertyRelations(Property property) {
         List<BackendFactEntity> facts = new ArrayList<>();
 
@@ -204,7 +209,7 @@ public class JenaBackend extends Backend {
             } else {
                 if (objType == null) {
                     RDFDatatype dt = objNode.asLiteral().getDatatype();
-                    objType = dt.toString();
+                    objType = convertDatatype(dt.toString());
                 }
                 obj = objNode.asLiteral().getLexicalForm();
             }

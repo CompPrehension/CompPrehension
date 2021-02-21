@@ -162,7 +162,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public List<MistakeEntity> interpretSentence(List<BackendFactEntity> violations) {
+    public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
         return null;
     }
 }

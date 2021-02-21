@@ -77,7 +77,7 @@ public class QuestionService {
         return question;
     }
 
-    public List<MistakeEntity> judgeQuestion(Question question, List<Tag> tags) {
+    public Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> responseFacts = question.responseToFacts();
         List<BackendFactEntity> violations = backend.judge(

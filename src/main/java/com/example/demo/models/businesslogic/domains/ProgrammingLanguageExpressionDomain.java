@@ -436,6 +436,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public List<LawFormulation> getErrorLaws() {
         List<LawFormulation> laws = new ArrayList<>();
+        laws.add(getOWLLawFormulation("is_operand", "owl:DatatypeProperty"));
+        laws.add(getOWLLawFormulation("student_pos_number", "owl:DatatypeProperty"));
         laws.add(getOWLLawFormulation("before_as_operand", "owl:ObjectProperty"));
         laws.add(getOWLLawFormulation("before_by_third_operator", "owl:ObjectProperty"));
         laws.add(getOWLLawFormulation("before_direct", "owl:ObjectProperty"));
@@ -588,7 +590,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "is_operator_with_strict_operands_order",
                     "high_precedence_diff_precedence",
                     "high_precedence_left_assoc",
-                    "high_precedence_right_assoc"
+                    "high_precedence_right_assoc",
+                    "is_operand"
             ));
         }
         return new ArrayList<>();
@@ -603,7 +606,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_in_complex",
                     "student_error_strict_operands_order",
                     "text",
-                    "index"
+                    "index",
+                    "before_direct",
+                    "student_pos_number",
+                    "is_operand"
             ));
         }
         return new ArrayList<>();
@@ -616,6 +622,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             int pos = 1;
             HashSet<String> used = new HashSet<>();
             for (ResponseEntity response : responses) {
+                result.add(new BackendFactEntity(
+                        "owl:NamedIndividual",
+                        response.getLeftAnswerObject().getDomainInfo(),
+                        "student_pos_number",
+                        "xsd:int",
+                        String.valueOf(pos)
+                ));
                 for (String earlier : used) {
                     result.add(new BackendFactEntity(
                             "owl:NamedIndividual",
@@ -658,15 +671,55 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public List<MistakeEntity> interpretSentence(List<BackendFactEntity> violations) {
+    public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
         List<MistakeEntity> mistakes = new ArrayList<>();
         Map<String, BackendFactEntity> nameToText = new HashMap<>();
         Map<String, BackendFactEntity> nameToPos = new HashMap<>();
+        Map<String, List<String>> before = new HashMap<>();
+        Map<String, String> studentPos = new HashMap<>();
+        HashSet<String> isOperand = new HashSet<>();
+        HashSet<String> allTokens = new HashSet<>();
         for (BackendFactEntity violation : violations) {
             if (violation.getVerb().equals("text")) {
                 nameToText.put(violation.getSubject(), violation);
             } else if (violation.getVerb().equals("index")) {
                 nameToPos.put(violation.getSubject(), violation);
+            } else if (violation.getVerb().equals("before_direct")) {
+                if (!before.containsKey(violation.getObject())) {
+                    before.put(violation.getObject(), new ArrayList<String>());
+                }
+                before.get(violation.getObject()).add(violation.getSubject());
+                allTokens.add(violation.getObject());
+                allTokens.add(violation.getSubject());
+            } else if (violation.getVerb().equals("student_pos_number")) {
+                studentPos.put(violation.getSubject(), violation.getObject());
+            } else if (violation.getVerb().equals("is_operand")) {
+                isOperand.add(violation.getSubject());
+            }
+        }
+
+        int IterationsLeft = 0;
+        int CountCorrectOptions = 0;
+        for (String operator : allTokens) {
+            if (!operator.startsWith("op__0") || isOperand.contains(operator)) {
+                continue;
+            }
+            boolean can = true;
+            if (before.containsKey(operator)) {
+                List<String> deps = before.get(operator);
+                if (studentPos.containsKey(operator)) {
+                    for (String dep : deps) {
+                        if (!studentPos.containsKey(dep)) {
+                            can = false;
+                        }
+                    }
+                }
+            }
+            if (can) {
+                CountCorrectOptions++;
+            }
+            if (!studentPos.containsKey(operator)) {
+                IterationsLeft++;
             }
         }
 
@@ -694,7 +747,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 mistakes.add(mistake);
             }
         }
-        return mistakes;
+
+        InterpretSentenceResult result = new InterpretSentenceResult();
+        result.mistakes = mistakes;
+        result.CountCorrectOptions = CountCorrectOptions;
+        result.IterationsLeft = IterationsLeft;
+        return result;
     }
 
     @Override

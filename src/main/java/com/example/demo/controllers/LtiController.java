@@ -88,7 +88,7 @@ public class LtiController {
         Question question = questionService.generateQuestion(attempt);
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answerIds);
-        List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags);
+        List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;
         List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
         return errors;

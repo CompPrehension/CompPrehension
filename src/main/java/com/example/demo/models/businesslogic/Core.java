@@ -19,11 +19,11 @@ public class Core {
             put((long)0, new TestDomain(domainService.getDomain((long)0)));
         }
     }*/;
-    
-    private PelletBackend pelletBackend = new PelletBackend();
+
+    @Autowired
+    private PelletBackend pelletBackend;
     
     public Backend getDefaultBackend() {
-        
         return pelletBackend;
     }
     
