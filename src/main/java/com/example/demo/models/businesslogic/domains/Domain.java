@@ -93,10 +93,15 @@ public abstract class Domain {
      */
     public abstract List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects);
 
-    public class InterpretSentenceResult {
-        public List<MistakeEntity> mistakes;
+    public class ProcessSolutionResult {
         public int CountCorrectOptions;
         public int IterationsLeft;
     }
+    public class InterpretSentenceResult extends ProcessSolutionResult {
+        public List<MistakeEntity> mistakes;
+    }
+
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
+
+    public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
 }

@@ -165,4 +165,7 @@ public class TestDomain extends Domain {
     public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
         return null;
     }
+
+    @Override
+    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {return null;}
 }

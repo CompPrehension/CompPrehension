@@ -671,30 +671,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
-        List<MistakeEntity> mistakes = new ArrayList<>();
-        Map<String, BackendFactEntity> nameToText = new HashMap<>();
-        Map<String, BackendFactEntity> nameToPos = new HashMap<>();
+    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
         Map<String, List<String>> before = new HashMap<>();
         Map<String, String> studentPos = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
         HashSet<String> allTokens = new HashSet<>();
-        for (BackendFactEntity violation : violations) {
-            if (violation.getVerb().equals("text")) {
-                nameToText.put(violation.getSubject(), violation);
-            } else if (violation.getVerb().equals("index")) {
-                nameToPos.put(violation.getSubject(), violation);
-            } else if (violation.getVerb().equals("before_direct")) {
-                if (!before.containsKey(violation.getObject())) {
-                    before.put(violation.getObject(), new ArrayList<String>());
+        for (BackendFactEntity fact : solution) {
+            if (fact.getVerb().equals("before_direct")) {
+                if (!before.containsKey(fact.getObject())) {
+                    before.put(fact.getObject(), new ArrayList<String>());
                 }
-                before.get(violation.getObject()).add(violation.getSubject());
-                allTokens.add(violation.getObject());
-                allTokens.add(violation.getSubject());
-            } else if (violation.getVerb().equals("student_pos_number")) {
-                studentPos.put(violation.getSubject(), violation.getObject());
-            } else if (violation.getVerb().equals("is_operand")) {
-                isOperand.add(violation.getSubject());
+                before.get(fact.getObject()).add(fact.getSubject());
+                allTokens.add(fact.getObject());
+                allTokens.add(fact.getSubject());
+            } else if (fact.getVerb().equals("student_pos_number")) {
+                studentPos.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("is_operand")) {
+                isOperand.add(fact.getSubject());
             }
         }
 
@@ -720,6 +713,32 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             if (!studentPos.containsKey(operator)) {
                 IterationsLeft++;
+            }
+        }
+
+        InterpretSentenceResult result = new InterpretSentenceResult();
+        result.CountCorrectOptions = CountCorrectOptions;
+        result.IterationsLeft = IterationsLeft;
+        return result;
+    }
+
+    @Override
+    public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
+        List<MistakeEntity> mistakes = new ArrayList<>();
+        Map<String, BackendFactEntity> nameToText = new HashMap<>();
+        Map<String, BackendFactEntity> nameToPos = new HashMap<>();
+        Map<String, List<String>> before = new HashMap<>();
+
+        for (BackendFactEntity violation : violations) {
+            if (violation.getVerb().equals("text")) {
+                nameToText.put(violation.getSubject(), violation);
+            } else if (violation.getVerb().equals("index")) {
+                nameToPos.put(violation.getSubject(), violation);
+            } else if (violation.getVerb().equals("before_direct")) {
+                if (!before.containsKey(violation.getObject())) {
+                    before.put(violation.getObject(), new ArrayList<String>());
+                }
+                before.get(violation.getObject()).add(violation.getSubject());
             }
         }
 
@@ -750,8 +769,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         InterpretSentenceResult result = new InterpretSentenceResult();
         result.mistakes = mistakes;
-        result.CountCorrectOptions = CountCorrectOptions;
-        result.IterationsLeft = IterationsLeft;
+
+        ProcessSolutionResult processResult = processSolution(violations);
+        result.CountCorrectOptions = processResult.CountCorrectOptions;
+        result.IterationsLeft = processResult.IterationsLeft;
         return result;
     }
 
