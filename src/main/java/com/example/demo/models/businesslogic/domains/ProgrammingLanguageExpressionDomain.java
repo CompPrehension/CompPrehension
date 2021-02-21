@@ -482,7 +482,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 //                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_right_assoc(?a, ?b) -> student_error_right_assoc(?b, ?a)"
                 "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_right_assoc ?b) -> (?b my:student_error_right_assoc ?a)."
         ));
-        laws.add(getSWRLLawFormulation(
+        laws.add(getJenaLawFormulation(
                 "student_error_strict_operands_order",
 //                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ is_operator_with_strict_operands_order(?c, true) ^ describe_error(?a, ?b) -> student_error_strict_operands_order(?b, ?a)"
                 "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_strict_operands_order ?a)."
