@@ -68,6 +68,11 @@ public class SystemIntegrationTest {
             // double save
             questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1, tags);
+            Question question2Q = getQuestion(question2);
+            Domain domain = DomainAdapter.getDomain(question2Q.questionData.getDomainEntity().getName());
+            Domain.ProcessSolutionResult processSolutionResult = domain.processSolution(question2Q.getSolutionFacts());
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
             assertEquals(1, result.mistakes.size());

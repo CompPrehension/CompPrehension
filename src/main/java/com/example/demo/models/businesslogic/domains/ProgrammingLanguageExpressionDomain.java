@@ -700,11 +700,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             boolean can = true;
             if (before.containsKey(operator)) {
                 List<String> deps = before.get(operator);
-                if (studentPos.containsKey(operator)) {
-                    for (String dep : deps) {
-                        if (!studentPos.containsKey(dep)) {
-                            can = false;
-                        }
+                for (String dep : deps) {
+                    if (!studentPos.containsKey(dep) && !isOperand.contains(dep)) {
+                        can = false;
                     }
                 }
             }
