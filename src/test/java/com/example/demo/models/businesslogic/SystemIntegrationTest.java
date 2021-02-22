@@ -68,9 +68,7 @@ public class SystemIntegrationTest {
             // double save
             questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1, tags);
-            Question question2Q = getQuestion(question2);
-            Domain domain = DomainAdapter.getDomain(question2Q.questionData.getDomainEntity().getName());
-            Domain.ProcessSolutionResult processSolutionResult = domain.processSolution(question2Q.getSolutionFacts());
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(0));
@@ -91,12 +89,17 @@ public class SystemIntegrationTest {
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(0, 1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
-            assertEquals(1, mistakes.size());
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            assertEquals(1, result.mistakes.size());
+            assertEquals(0, result.CountCorrectOptions);
+            assertEquals(0, result.IterationsLeft);
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-                    mistakes.get(0).getLawName());
+                    result.mistakes.get(0).getLawName());
         }
 
         {
@@ -246,6 +249,12 @@ public class SystemIntegrationTest {
             question.addResponse(makeResponse(question.getAnswerObject(response)));
         }
         return question;
+    }
+
+    Domain.ProcessSolutionResult getSolveInfo(Long questionId) {
+        Question question = getQuestion(questionId);
+        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
+        return domain.processSolution(question.getSolutionFacts());
     }
 
     Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {

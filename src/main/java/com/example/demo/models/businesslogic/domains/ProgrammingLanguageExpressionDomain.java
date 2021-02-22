@@ -697,7 +697,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (!operator.startsWith("op__0") || isOperand.contains(operator)) {
                 continue;
             }
-            boolean can = true;
+            boolean can = !studentPos.containsKey(operator);
             if (before.containsKey(operator)) {
                 List<String> deps = before.get(operator);
                 for (String dep : deps) {
