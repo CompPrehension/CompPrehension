@@ -83,6 +83,8 @@ public class SystemIntegrationTest {
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
+
+            float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
@@ -100,6 +102,7 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     result.mistakes.get(0).getLawName());
+            float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
 
         {
@@ -110,6 +113,7 @@ public class SystemIntegrationTest {
             Question question3 = responseQuestion(question2, List.of(1));
             List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertTrue(mistakes.isEmpty());
+            float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
@@ -119,6 +123,7 @@ public class SystemIntegrationTest {
             Question question3 = responseQuestion(question2, List.of(1, 0));
             List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
             assertTrue(mistakes.isEmpty());
+            float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
 
         {
