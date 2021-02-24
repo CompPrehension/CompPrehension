@@ -70,7 +70,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         // read domain Laws and formulations (rules) from file ...
         ClassLoader CLDR = this.getClass().getClassLoader();
-        InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws-jena.json");
+        InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws.json");
 
         RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory
