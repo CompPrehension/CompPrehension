@@ -11,7 +11,7 @@ public abstract class Law {
     @Getter
     String name;
     @Getter
-    List<LawFormulation> lawFormulations;
+    List<LawFormulation> formulations;
     @Getter
     List<Concept> concepts;
     @Getter

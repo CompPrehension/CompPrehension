@@ -46,7 +46,7 @@
     ],
     "concepts": [],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -91,7 +91,7 @@
     ],
     "concepts": [],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -165,14 +165,14 @@
       }
     ],
     "concepts": [
-      "operand",
-      "arity",
-      "unary",
-      "prefix",
-      "postfix"
+      {"name": "operand"},
+      {"name": "arity"},
+      {"name": "unary"},
+      {"name": "prefix"},
+      {"name": "postfix"}
     ],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -216,10 +216,10 @@
       }
     ],
     "concepts": [
-      "operand"
+      {"name": "operand"}
     ],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -284,7 +284,7 @@
     ],
     "concepts": [],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -544,7 +544,7 @@
     ],
     "concepts": [],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -773,10 +773,10 @@
       }
     ],
     "concepts": [
-      "precedence"
+      {"name": "precedence"}
     ],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -856,7 +856,7 @@
     ],
     "concepts": [],
     "tags": [
-      "basics"
+      {"name": "basics"}
     ]
   },
   {
@@ -951,7 +951,7 @@
     ],
     "concepts": [],
     "tags": [
-      "evaluation"
+      {"name": "evaluation"}
     ]
   },
   {
@@ -1060,14 +1060,14 @@
       }
     ],
     "concepts": [
-      "precedence",
-      "associativity",
-      "operator",
-      "single_token_unary",
-      "operator_evaluation_state"
+      {"name": "precedence"},
+      {"name": "associativity"},
+      {"name": "operator"},
+      {"name": "single_token_unary"},
+      {"name": "operator_evaluation_state"}
     ],
     "tags": [
-      "evaluation"
+      {"name": "evaluation"}
     ]
   },
   {
@@ -1161,14 +1161,14 @@
       }
     ],
     "concepts": [
-      "precedence",
-      "associativity",
-      "operator",
-      "single_token_binary",
-      "operator_evaluation_state"
+      {"name": "precedence"},
+      {"name": "associativity"},
+      {"name": "operator"},
+      {"name": "single_token_binary"},
+      {"name": "operator_evaluation_state"}
     ],
     "tags": [
-      "evaluation"
+      {"name": "evaluation"}
     ]
   },
   {
@@ -1327,14 +1327,14 @@
       }
     ],
     "concepts": [
-      "precedence",
-      "associativity",
-      "operator",
-      "two_token_binary",
-      "operator_evaluation_state"
+      {"name": "precedence"},
+      {"name": "associativity"},
+      {"name": "operator"},
+      {"name": "two_token_binary"},
+      {"name": "operator_evaluation_state"}
     ],
     "tags": [
-      "evaluation"
+      {"name": "evaluation"}
     ]
   },
   {
@@ -1463,14 +1463,14 @@
       }
     ],
     "concepts": [
-      "precedence",
-      "associativity",
-      "operator",
-      "two_token_ternary",
-      "operator_evaluation_state"
+      {"name": "precedence"},
+      {"name": "associativity"},
+      {"name": "operator"},
+      {"name": "two_token_ternary"},
+      {"name": "operator_evaluation_state"}
     ],
     "tags": [
-      "evaluation"
+      {"name": "evaluation"}
     ]
   },
   {
@@ -1600,7 +1600,7 @@
     ],
     "concepts": [],
     "tags": [
-      "order"
+      {"name": "order"}
     ]
   },
   {
@@ -1905,8 +1905,8 @@
     ],
     "concepts": [],
     "tags": [
-      "operators",
-      "C++"
+      {"name": "operators"},
+      {"name": "C++"}
     ]
   },
   {
@@ -2156,8 +2156,8 @@
     ],
     "concepts": [],
     "tags": [
-      "operators",
-      "Python"
+      {"name": "operators"},
+      {"name": "Python"}
     ]
   }
 ]

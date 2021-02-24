@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LawFormulation {
     private String formulation;
-    private String law;
+    private String name;
     private String backend;
 }

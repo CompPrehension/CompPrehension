@@ -9,6 +9,8 @@ import com.example.demo.models.entities.QuestionOptions.OrderQuestionOptionsEnti
 import com.example.demo.models.entities.QuestionOptions.QuestionOptionsEntity;
 import com.example.demo.utils.HyperText;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
 
@@ -19,86 +21,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-/** Helper class for loading from JSON */
-class LawFormulationForm {
-    String name;
-    String formulation;
-    String backend;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getFormulation() {
-        return formulation;
-    }
-
-    public void setFormulation(String formulation) {
-        this.formulation = formulation;
-    }
-
-    public String getBackend() {
-        return backend;
-    }
-
-    public void setBackend(String backend) {
-        this.backend = backend;
-    }
-}
-
-/** Helper class for loading from JSON */
-class LawForm {
-    String name;
-    List<LawFormulationForm> formulations;
-    List<String> concepts;
-    List<String> tags;
-    boolean positive;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<LawFormulationForm> getFormulations() {
-        return formulations;
-    }
-
-    public void setFormulations(List<LawFormulationForm> formulations) {
-        this.formulations = formulations;
-    }
-
-    public List<String> getConcepts() {
-        return concepts;
-    }
-
-    public void setConcepts(List<String> concepts) {
-        this.concepts = concepts;
-    }
-
-    public List<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
-
-    public boolean isPositive() {
-        return positive;
-    }
-
-    public void setPositive(boolean positive) {
-        this.positive = positive;
-    }
-}
 
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
@@ -149,47 +71,24 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // read domain Laws and formulations (rules) from file ...
         ClassLoader CLDR = this.getClass().getClassLoader();
         InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws-jena.json");
-        LawForm[] lawForms = new Gson().fromJson(
-                new InputStreamReader(inputStream),
-                LawForm[].class);
 
-        // Convert the Laws to compatible form and add to the domain ...
-        for (LawForm lawForm : lawForms) {
-            List<LawFormulation> formulations = new ArrayList<>();
-            for (LawFormulationForm lawFormulationForm : lawForm.formulations) {
-                LawFormulation lawFormulation = new LawFormulation();
-                lawFormulation.setFormulation(lawFormulationForm.formulation);
-                lawFormulation.setLaw(lawFormulationForm.name);
-                lawFormulation.setBackend(lawFormulationForm.backend);
-                formulations.add(lawFormulation);
-            }
-            List<Concept> lawConcepts = new ArrayList<>();
-            for (String lawConcept : lawForm.concepts) {
-                Concept concept = getConcept(lawConcept);
-                assert concept != null;
-                lawConcepts.add(concept);
-            }
-            List<Tag> lawTags = new ArrayList<>();
-            for (String lawTag : lawForm.tags) {
-                Tag tag = new Tag();
-                tag.setName(lawTag);
-                lawTags.add(tag);
-            }
-            if (lawForm.positive) {
-                positiveLaws.add(new PositiveLaw(
-                        lawForm.name,
-                        formulations,
-                        lawConcepts,
-                        lawTags
-                ));
+        RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Law.class, "positive")
+                        .registerSubtype(PositiveLaw.class, "true")
+                        .registerSubtype(NegativeLaw.class, "false");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+
+        Law[] lawForms = gson.fromJson(
+                new InputStreamReader(inputStream),
+                Law[].class);
+
+        for (Law lawForm : lawForms) {
+            if (lawForm.isPositiveLaw()) {
+                positiveLaws.add((PositiveLaw) lawForm);
             } else {
-                negativeLaws.add(new NegativeLaw(
-                        lawForm.name,
-                        formulations,
-                        lawConcepts,
-                        lawTags,
-                        getPositiveLaw("") // TODO: fix me
-                ));
+                negativeLaws.add((NegativeLaw) lawForm);
             }
         }
 
@@ -579,7 +478,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     LawFormulation getSWRLLawFormulation(String name, String formulation) {
         LawFormulation lawFormulation = new LawFormulation();
-        lawFormulation.setLaw(name);
+        lawFormulation.setName(name);
         lawFormulation.setFormulation(formulation);
         lawFormulation.setBackend("SWRL");
         return lawFormulation;
@@ -593,7 +492,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     LawFormulation getOWLLawFormulation(String name, String formulation) {
         LawFormulation lawFormulation = new LawFormulation();
-        lawFormulation.setLaw(name);
+        lawFormulation.setName(name);
         lawFormulation.setFormulation(formulation);
         lawFormulation.setBackend("OWL");
         return lawFormulation;

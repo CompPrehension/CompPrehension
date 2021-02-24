@@ -116,15 +116,15 @@ public abstract class SWRLBackend extends Backend {
     void addLaw(Law law) {
         assert law != null;
         SWRLRuleEngine ruleEngine = SWRLAPIFactory.createSWRLRuleEngine(Ontology);
-        for (LawFormulation lawFormulation : law.getLawFormulations()) {
+        for (LawFormulation lawFormulation : law.getFormulations()) {
             if (lawFormulation.getBackend().equals("SWRL")) {
                 try {
-                    ruleEngine.createSWRLRule(lawFormulation.getLaw(), lawFormulation.getFormulation());
+                    ruleEngine.createSWRLRule(lawFormulation.getName(), lawFormulation.getFormulation());
                 } catch (SWRLParseException | SWRLBuiltInException e) {
                     e.printStackTrace();
                 }
             } else if (lawFormulation.getBackend().equals("OWL")) {
-                addOWLLawFormulation(lawFormulation.getLaw(), lawFormulation.getFormulation());
+                addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             }
         }
     }

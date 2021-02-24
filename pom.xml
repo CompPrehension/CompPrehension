@@ -75,6 +75,11 @@
 			<artifactId>gson</artifactId>
 			<version>2.8.6</version>
 		</dependency>
+		<dependency>
+			<groupId>org.danilopianini</groupId>
+			<artifactId>gson-extras</artifactId>
+			<version>0.2.2-dev1n+f8657bfc</version>
+		</dependency>
 
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>

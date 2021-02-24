@@ -108,9 +108,9 @@ public class JenaBackend extends Backend {
 
     void addLaw(Law law) {
         assert law != null;
-        for (LawFormulation lawFormulation : law.getLawFormulations()) {
+        for (LawFormulation lawFormulation : law.getFormulations()) {
             if (lawFormulation.getBackend().equals("OWL")) {
-                addOWLLawFormulation(lawFormulation.getLaw(), lawFormulation.getFormulation());
+                addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             } else if (lawFormulation.getBackend().equals(BACKEND_TYPE)) {
                 try {
                     domainRules.add(Rule.parseRule(lawFormulation.getFormulation()));
