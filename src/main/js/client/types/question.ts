@@ -1,4 +1,4 @@
-import { OrderQuestionOptions, QuestionOptions } from "./question-options";
+import { MatchingQuestionOptions, OrderQuestionOptions, QuestionOptions } from "./question-options";
 
 export type QuestionType = "SINGLE_CHOICE" | "MULTI_CHOICE" | "MATCHING" | "ORDER";
 
@@ -34,6 +34,7 @@ type MathingQuestionBase = QuestionBase & {
     type: "MATCHING",  
     answers: QuestionAnswer[],
     groups: QuestionAnswer[],
+    options: MatchingQuestionOptions,
 }
 
 export type Question = OrderQuestionBase | SingleChoiceQuestionBase | MultiChoiceQuestionBase | MathingQuestionBase

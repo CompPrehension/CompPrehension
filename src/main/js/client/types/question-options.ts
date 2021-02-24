@@ -10,3 +10,8 @@ export interface OrderQuestionOptions extends QuestionOptions {
     orderNumberSuffix?: string,
     orderNumberReplacers?: string[],
 }
+
+export interface MatchingQuestionOptions extends QuestionOptions {
+    hideSelected: boolean,
+    mode: 'combobox' | 'dragNdrop',
+}

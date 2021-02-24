@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "es2015", "es2018.promise"],
+    "lib": ["dom", "esnext", "es2018.promise"],
     "experimentalDecorators": true,
     "strict": true,
     //"outDir": "./dist/",

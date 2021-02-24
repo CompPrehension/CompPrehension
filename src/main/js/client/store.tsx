@@ -12,7 +12,7 @@ export class Store {
     @observable answersHistory: string[] = [];
     @observable isLoading: boolean = false;
     @observable isFeedbackLoading: boolean = false;
-    @observable feedbackMessages: string[] | undefined = undefined;
+    @observable feedbackMessages?: string[] = undefined;
 
     constructor() {
         makeObservable(this);
@@ -43,9 +43,11 @@ export class Store {
             .finally(() => this.isLoading = false);
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
-        this.questionData = data;
-        this.feedbackMessages = undefined;        
-        this.answersHistory = [];
+        runInAction(() => {
+            this.questionData = data;
+            this.feedbackMessages = undefined;        
+            this.answersHistory = [];
+        });        
     }
      
     @action 
@@ -62,10 +64,12 @@ export class Store {
             .finally(() => this.isFeedbackLoading = false);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
-        this.feedbackMessages = feedback;
-        if (this.feedbackMessages?.length) {                
-            this.answersHistory.pop();
-        }
+        runInAction(() => {
+            this.feedbackMessages = feedback;
+            if (this.feedbackMessages?.length) {                
+                this.answersHistory.pop();
+            }
+        });
     }
 
     @action 
