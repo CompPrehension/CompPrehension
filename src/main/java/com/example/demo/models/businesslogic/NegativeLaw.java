@@ -7,9 +7,9 @@ import java.util.List;
 
 public class NegativeLaw extends Law {
     @Getter
-    PositiveLaw positiveLaw;
+    String positiveLaw;
 
-    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, PositiveLaw positiveLaw) {
+    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, String positiveLaw) {
         super(name, lawFormulations, concepts, tags);
         this.positiveLaw = positiveLaw;
     }

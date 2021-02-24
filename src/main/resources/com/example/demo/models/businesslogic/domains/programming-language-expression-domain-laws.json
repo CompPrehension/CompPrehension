@@ -2158,6 +2158,206 @@
     ]
   },
   {
+    "name": "errors",
+    "positive": false,
+    "formulations": [
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_pos_number",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_as_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_by_third_operator",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_direct",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_third_operator",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "describe_error",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence_left_assoc",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence_diff_precedence",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "high_precedence_right_assoc",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operator_with_strict_operands_order",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_pos_less",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_equal_precedence",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_left_assoc",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_more_precedence",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_more_precedence_left",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_more_precedence_right",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_right_assoc",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_strict_operands_order",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "describe_error",
+        "formulation": "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "describe_error",
+        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b) -> (?a my:describe_error ?b).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_in_complex",
+        "formulation": "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ text(?c, \"(\") ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_error_in_complex",
+        "formulation": "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:text \"(\"), (?a my:describe_error ?b) -> (?b my:student_error_in_complex ?a).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_in_complex_bound",
+        "formulation": "before_as_operand(?a, ?b) ^ complex_beginning(?b, true) ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_error_in_complex_bound",
+        "formulation": "(?a my:before_as_operand ?b), (?b my:complex_beginning \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_in_complex ?a).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_more_precedence",
+        "formulation": "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_diff_precedence(?a, ?b) -> student_error_more_precedence(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_error_more_precedence",
+        "formulation": "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence ?a).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_right_assoc",
+        "formulation": "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_right_assoc(?a, ?b) -> student_error_right_assoc(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_error_right_assoc",
+        "formulation": "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_right_assoc ?b) -> (?b my:student_error_right_assoc ?a).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_strict_operands_order",
+        "formulation": "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ is_operator_with_strict_operands_order(?c, true) ^ describe_error(?a, ?b) -> student_error_strict_operands_order(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_error_strict_operands_order",
+        "formulation": "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_strict_operands_order ?a).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_left_assoc",
+        "formulation": "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "student_error_left_assoc",
+        "formulation": "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_left_assoc ?b) -> (?b my:student_error_left_assoc ?a).",
+        "backend": "Jena"
+      }
+    ],
+    "positiveLaw": "single_token_binary_execution",
+    "concepts": [
+      {"name": "precedence"},
+      {"name": "operator"},
+      {"name": "single_token_binary"}
+    ],
+    "tags": [
+      {"name": "errors"}
+    ]
+  },
+  {
     "name": "operators_c++",
     "positive": true,
     "formulations": [

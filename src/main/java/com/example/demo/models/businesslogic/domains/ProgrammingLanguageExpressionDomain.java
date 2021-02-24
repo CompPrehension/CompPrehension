@@ -91,79 +91,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 negativeLaws.add((NegativeLaw) lawForm);
             }
         }
-
-        // Make more negative Laws, also prepare concept lists for that ...
-        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence = new ArrayList<>(Arrays.asList(
-                precedenceConcept,
-                operatorConcept,
-                singleTokenBinaryConcept
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
-                getErrorLaws(),
-                errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("single_token_binary_execution")
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-                new ArrayList<>(),
-                errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence,
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("single_token_binary_execution")));
-
-        List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity = new ArrayList<>(Arrays.asList(
-                associativityConcept,
-                operatorConcept,
-                singleTokenBinaryConcept
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
-                getLeftAssocErrorLaws(),
-                errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("single_token_binary_execution")
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right",
-                new ArrayList<>(),
-                errorSingleTokenBinaryOperatorHasUnevaluatedAssociativity,
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("single_token_binary_execution")
-        ));
-
-        List<Concept> errorNotLeftAssociativityBinaryPlus = new ArrayList<>(Arrays.asList(
-                associativityConcept,
-                operatorBinaryPlusConcept
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_binary_+_right_associativity",
-                new ArrayList<>(),
-                errorNotLeftAssociativityBinaryPlus,
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("operator_binary_+_associativity_left")
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_binary_+_absent_associativity",
-                new ArrayList<>(),
-                errorNotLeftAssociativityBinaryPlus,
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("operator_binary_+_associativity_left")
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_precedence_binary_*_less_binary_+",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("precedence_binary_*_higher_binary_+")
-        ));
-        negativeLaws.add(new NegativeLaw(
-                "error_precedence_binary_*_equal_binary_+",
-                new ArrayList<>(),
-                new ArrayList<>(),
-                new ArrayList<>(Arrays.asList(CppTag, JavaTag)),
-                getPositiveLaw("precedence_binary_*_higher_binary_+")
-        ));
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
@@ -352,78 +279,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return facts;
     }
 
-    public List<LawFormulation> getErrorLaws() {
-        List<LawFormulation> laws = new ArrayList<>();
-        laws.add(getOWLLawFormulation("is_operand", "owl:DatatypeProperty"));
-        laws.add(getOWLLawFormulation("student_pos_number", "owl:DatatypeProperty"));
-        laws.add(getOWLLawFormulation("before_as_operand", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("before_by_third_operator", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("before_direct", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("before_third_operator", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("complex_beginning", "owl:DatatypeProperty"));
-        laws.add(getOWLLawFormulation("describe_error", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("high_precedence_left_assoc", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("high_precedence_diff_precedence", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("high_precedence_right_assoc", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("is_operator_with_strict_operands_order", "owl:DatatypeProperty"));
-        laws.add(getOWLLawFormulation("student_pos_less", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_equal_precedence", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_in_complex", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_left_assoc", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_more_precedence", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_more_precedence_left", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_more_precedence_right", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_right_assoc", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_strict_operands_order", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("text", "owl:DatatypeProperty"));
-        laws.add(getJenaLawFormulation(
-                "describe_error",
-//                "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)"
-                "(?b my:student_pos_less ?a), (?a my:before_direct ?b) -> (?a my:describe_error ?b)."
-        ));
-        laws.add(getJenaLawFormulation(
-                "student_error_in_complex",
-//                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ text(?c, \"(\") ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
-                "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:text \"(\"), (?a my:describe_error ?b) -> (?b my:student_error_in_complex ?a)."
-        ));
-        laws.add(getJenaLawFormulation(
-                "student_error_in_complex_bound",
-//                "before_as_operand(?a, ?b) ^ complex_beginning(?b, true) ^ describe_error(?a, ?b) -> student_error_in_complex(?b, ?a)"
-                "(?a my:before_as_operand ?b), (?b my:complex_beginning \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_in_complex ?a)."
-        ));
-        laws.add(getJenaLawFormulation(
-                "student_error_more_precedence",
-//                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_diff_precedence(?a, ?b) -> student_error_more_precedence(?b, ?a)"
-                "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence ?a)."
-        ));
-        laws.add(getJenaLawFormulation(
-                "student_error_right_assoc",
-//                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_right_assoc(?a, ?b) -> student_error_right_assoc(?b, ?a)"
-                "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_right_assoc ?b) -> (?b my:student_error_right_assoc ?a)."
-        ));
-        laws.add(getJenaLawFormulation(
-                "student_error_strict_operands_order",
-//                "before_by_third_operator(?a, ?b) ^ before_third_operator(?a, ?c) ^ is_operator_with_strict_operands_order(?c, true) ^ describe_error(?a, ?b) -> student_error_strict_operands_order(?b, ?a)"
-                "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:describe_error ?b) -> (?b my:student_error_strict_operands_order ?a)."
-        ));
-        return laws;
-    }
-
-    public List<LawFormulation> getLeftAssocErrorLaws() {
-        List<LawFormulation> laws = new ArrayList<>();
-        laws.add(getOWLLawFormulation("before_as_operand", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("describe_error", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("high_precedence_left_assoc", "owl:ObjectProperty"));
-        laws.add(getOWLLawFormulation("student_error_left_assoc", "owl:ObjectProperty"));
-        laws.add(getJenaLawFormulation(
-                "student_error_left_assoc",
-//                "before_as_operand(?a, ?b) ^ describe_error(?a, ?b) ^ high_precedence_left_assoc(?a, ?b) -> student_error_left_assoc(?b, ?a)"
-                "(?a my:before_as_operand ?b), (?a my:describe_error ?b), (?a my:high_precedence_left_assoc ?b) -> (?b my:student_error_left_assoc ?a)."
-        ));
-        return laws;
-    }
-
     public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
         List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
         List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
@@ -461,41 +316,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            List<NegativeLaw> result = new ArrayList<>(Arrays.asList(
-                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_left"),
-                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_higher_precedence_right"),
-                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right"),
-                    getNegativeLaw("error_binary_+_right_associativity"),
-                    getNegativeLaw("error_binary_+_absent_associativity"),
-                    getNegativeLaw("error_precedence_binary_*_less_binary_+"),
-                    getNegativeLaw("error_precedence_binary_*_equal_binary_+"),
-                    getNegativeLaw("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left")
-            ));
-            return result;
+            List<NegativeLaw> negativeLaws = new ArrayList<>();
+            for (NegativeLaw law : getNegativeLaws()) {
+                boolean needLaw = true;
+                //filter by tags after separation
+                if (needLaw) {
+                    negativeLaws.add(law);
+                }
+            }
+            return negativeLaws;
         }
         return new ArrayList<>(Arrays.asList());
-    }
-
-    LawFormulation getSWRLLawFormulation(String name, String formulation) {
-        LawFormulation lawFormulation = new LawFormulation();
-        lawFormulation.setName(name);
-        lawFormulation.setFormulation(formulation);
-        lawFormulation.setBackend("SWRL");
-        return lawFormulation;
-    }
-
-    LawFormulation getJenaLawFormulation(String name, String formulation) {
-        LawFormulation lawFormulation = getSWRLLawFormulation(name, formulation);
-        lawFormulation.setBackend("Jena");
-        return lawFormulation;
-    }
-
-    LawFormulation getOWLLawFormulation(String name, String formulation) {
-        LawFormulation lawFormulation = new LawFormulation();
-        lawFormulation.setName(name);
-        lawFormulation.setFormulation(formulation);
-        lawFormulation.setBackend("OWL");
-        return lawFormulation;
     }
 
     public List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
