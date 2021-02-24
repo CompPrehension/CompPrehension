@@ -20,6 +20,11 @@ public class TestDomain extends Domain {
     private final int DEFAULT_ANSWERS_COUNT = 4;
 
     @Override
+    public List<HyperText> getFullSolutionTrace(Question question) {
+    	return null;
+    }
+
+    @Override
     public void update() {
 
     }

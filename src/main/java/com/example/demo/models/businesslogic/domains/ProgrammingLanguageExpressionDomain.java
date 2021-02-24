@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/** Helper class for loading from JSON */
 class LawFormulationForm {
     String name;
     String formulation;
@@ -49,6 +50,8 @@ class LawFormulationForm {
         this.backend = backend;
     }
 }
+
+/** Helper class for loading from JSON */
 class LawForm {
     String name;
     List<LawFormulationForm> formulations;
@@ -142,13 +145,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         CppTag.setName("C++");
         Tag JavaTag = new Tag();
         JavaTag.setName("Java");
-        
+
+        // read domain Laws and formulations (rules) from file ...
         ClassLoader CLDR = this.getClass().getClassLoader();
         InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws-jena.json");
         LawForm[] lawForms = new Gson().fromJson(
                 new InputStreamReader(inputStream),
                 LawForm[].class);
 
+        // Convert the Laws to compatible form and add to the domain ...
         for (LawForm lawForm : lawForms) {
             List<LawFormulation> formulations = new ArrayList<>();
             for (LawFormulationForm lawFormulationForm : lawForm.formulations) {
@@ -188,6 +193,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
+        // Make more negative Laws, also prepare concept lists for that ...
         List<Concept> errorSingleTokenBinaryOperatorHasUnevaluatedHigherPrecedence = new ArrayList<>(Arrays.asList(
                 precedenceConcept,
                 operatorConcept,
@@ -274,6 +280,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
+    public List<HyperText> getFullSolutionTrace(Question question) {
+    	return null;
+    }
+
+    @Override
     public void update() {
     }
 
@@ -289,6 +300,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
+
+        // Prepare concept name sets ...
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
@@ -313,6 +326,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (conceptNames.contains("associativity") &&
                 allowedConceptNames.contains("operator_binary_+") &&
                 !conceptNames.contains("precedence")) {
+            // make an Ordering question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a + b + c"));
@@ -329,6 +343,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allowedConceptNames.contains("operator_binary_+") &&
                 allowedConceptNames.contains("operator_binary_*") &&
                 deniedConceptNames.contains("associativity")) {
+            // make an Ordering question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a == b < c"));
@@ -346,6 +361,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 conceptNames.contains("associativity") &&
                 allowedConceptNames.contains("operator_binary_+") &&
                 allowedConceptNames.contains("operator_binary_*")) {
+            // make an Ordering question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a + b + c * d"));
@@ -361,6 +377,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setOptions(orderQuestionOptions);
             return new Ordering(question);
         } else {
+            // make a SingleChoice question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText("Choose associativity of operator binary +");
@@ -378,6 +395,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static String QuestionTextToHtml(String text) {
         StringBuilder sb = new StringBuilder(text);
+
+        // Wrap every token of the expression with <span> and some metadata ...
         Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>|\\w+");
         Matcher matcher = pattern.matcher(sb.toString());
         int idx = 0;
@@ -515,6 +534,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return laws;
     }
 
+    // filter positive laws by question type and tags
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
@@ -723,6 +743,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
         List<MistakeEntity> mistakes = new ArrayList<>();
+
+        // retrieve subjects' info from facts ...
         Map<String, BackendFactEntity> nameToText = new HashMap<>();
         Map<String, BackendFactEntity> nameToPos = new HashMap<>();
         Map<String, List<String>> before = new HashMap<>();
@@ -740,6 +762,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
+        // filter facts and fill mistakes list ...
         for (BackendFactEntity violation : violations) {
             MistakeEntity mistake = new MistakeEntity();
             if (violation.getVerb().equals("student_error_more_precedence")) {
@@ -795,11 +818,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     HyperText makeExplanation(MistakeEntity mistake, FeedbackType feedbackType) {
+
+        // retrieve subjects' info from facts, and find base and third ...
         BackendFactEntity base = null;
         BackendFactEntity third = null;
         Map<String, String> nameToText = new HashMap<>();
         Map<String, String> nameToPos = new HashMap<>();
-
         for (BackendFactEntity fact : mistake.getViolationFacts()) {
             if (fact.getVerb().equals("before_third_operator")) {
                 third = fact;

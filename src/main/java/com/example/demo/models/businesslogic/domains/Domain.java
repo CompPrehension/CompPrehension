@@ -70,6 +70,8 @@ public abstract class Domain {
 
     public Domain() {
     }
+    
+    public abstract List<HyperText> getFullSolutionTrace(Question question);
 
     public abstract ExerciseForm getExerciseForm();
     
@@ -101,6 +103,9 @@ public abstract class Domain {
         public List<MistakeEntity> mistakes;
     }
 
+    /**
+     * Сформировать из найденных Backend'ом фактов объекты нарушений
+     * */
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
