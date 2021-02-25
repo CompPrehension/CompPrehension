@@ -1916,7 +1916,7 @@
       },
       {
         "name": "eval_ternary_operation",
-        "formulation": "arity(?a, \"ternary\") ^ next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ step(?a, ?a_step) ^ has_highest_precedence_to_right(?c, true) ^ find_right_operand(?c, ?e) ^ complex_boundaries(?a, ?c) ^ find_left_operand(?a, ?d) ^ all_eval_to_right(?a, ?b) ^ next_step(?e, ?e_next) ^ init(?a, true) ^ next_step(?d, ?d_next) ^ next_step(?a, ?a_next) ^ has_highest_precedence_to_left(?c, true) ^ same_step(?a, ?c) -> has_operand(?a, ?e) ^ copy_without_marks(?d, ?d_next) ^ has_operand(?a, ?d) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ copy_without_marks(?e, ?e_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ app(?d_next, true) ^ app(?e_next, true) ^ eval(?a_next, true)",
+        "formulation": "arity(?a, \"ternary\") ^ next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ step(?a, ?a_step) ^ has_highest_precedence_to_right(?c, true) ^ find_right_operand(?c, ?e) ^ find_right_operand(?a, ?f) ^ complex_boundaries(?a, ?c) ^ find_left_operand(?a, ?d) ^ all_eval_to_right(?a, ?b) ^ next_step(?e, ?e_next) ^ init(?a, true) ^ next_step(?d, ?d_next) ^ next_step(?a, ?a_next) ^ has_highest_precedence_to_left(?c, true) ^ same_step(?a, ?c) -> has_operand(?a, ?e) ^ has_operand(?a, ?f) ^ copy_without_marks(?d, ?d_next) ^ has_operand(?a, ?d) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ copy_without_marks(?e, ?e_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ app(?d_next, true) ^ app(?e_next, true) ^ eval(?a_next, true)",
         "backend": "SWRL"
       },
       {
@@ -1926,7 +1926,7 @@
       },
       {
         "name": "eval_ternary_operation_copy_inner_eval",
-        "formulation": "index(?c, ?c_index) ^ arity(?a, \"ternary\") ^ step(?a, ?a_step) ^ swrlb:lessThan(?a_index, ?other_index) ^ step(?other, ?a_step) ^ eval_step(?a, ?a_step) ^ app(?other, true) ^ next_step(?other, ?other_next) ^ index(?other, ?other_index) ^ swrlb:lessThan(?other_index, ?c_index) ^ complex_boundaries(?a, ?c) ^ index(?a, ?a_index) -> copy_without_marks(?other, ?other_next) ^ app(?other_next, true)",
+        "formulation": "index(?c, ?c_index) ^ arity(?a, \"ternary\") ^ step(?a, ?a_step) ^ swrlb:lessThan(?a_index, ?other_index) ^ step(?other, ?a_step) ^ eval_step(?a, ?a_step) ^ eval(?other, true) ^ next_step(?other, ?other_next) ^ index(?other, ?other_index) ^ swrlb:lessThan(?other_index, ?c_index) ^ complex_boundaries(?a, ?c) ^ index(?a, ?a_index) -> copy_without_marks(?other, ?other_next) ^ app(?other_next, true)",
         "backend": "SWRL"
       },
       {
@@ -1941,7 +1941,7 @@
       },
       {
         "name": "eval_ternary_operation",
-        "formulation": "(?a my:arity \"ternary\"), (?c my:next_step ?c_next), (?b my:next_index ?c), (?a my:step ?a_step), (?c my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?c my:find_right_operand ?e), (?a my:complex_boundaries ?c), (?a my:find_left_operand ?d), (?a my:all_eval_to_right ?b), (?e my:next_step ?e_next), (?a my:init \"true\"^^xsd:boolean), (?d my:next_step ?d_next), (?a my:next_step ?a_next), (?c my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:same_step ?c) -> (?a my:has_operand ?e), (?d my:copy_without_marks ?d_next), (?a my:has_operand ?d), (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?e my:copy_without_marks ?e_next), (?a my:eval_step ?a_step), (?a my:has_complex_operator_part ?c), (?c_next my:app \"true\"^^xsd:boolean), (?d_next my:app \"true\"^^xsd:boolean), (?e_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean).",
+        "formulation": "(?a my:arity \"ternary\"), (?c my:next_step ?c_next), (?b my:next_index ?c), (?a my:step ?a_step), (?c my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?c my:find_right_operand ?e), (?a my:complex_boundaries ?c), (?a my:find_left_operand ?d), (?a my:find_right_operand ?f), (?a my:all_eval_to_right ?b), (?e my:next_step ?e_next), (?a my:init \"true\"^^xsd:boolean), (?d my:next_step ?d_next), (?a my:next_step ?a_next), (?c my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:same_step ?c) -> (?a my:has_operand ?e), (?a my:has_operand ?f), (?d my:copy_without_marks ?d_next), (?a my:has_operand ?d), (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?e my:copy_without_marks ?e_next), (?a my:eval_step ?a_step), (?a my:has_complex_operator_part ?c), (?c_next my:app \"true\"^^xsd:boolean), (?d_next my:app \"true\"^^xsd:boolean), (?e_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean).",
         "backend": "Jena"
       },
       {
@@ -1951,7 +1951,7 @@
       },
       {
         "name": "eval_ternary_operation_copy_inner_eval",
-        "formulation": "(?c my:index ?c_index), (?a my:arity \"ternary\"), (?a my:step ?a_step), lessThan(?a_index, ?other_index), (?other my:step ?a_step), (?a my:eval_step ?a_step), (?other my:app \"true\"^^xsd:boolean), (?other my:next_step ?other_next), (?other my:index ?other_index), lessThan(?other_index, ?c_index), (?a my:complex_boundaries ?c), (?a my:index ?a_index) -> (?other my:copy_without_marks ?other_next), (?other_next my:app \"true\"^^xsd:boolean).",
+        "formulation": "(?c my:index ?c_index), (?a my:arity \"ternary\"), (?a my:step ?a_step), lessThan(?a_index, ?other_index), (?other my:step ?a_step), (?a my:eval_step ?a_step), (?other my:eval \"true\"^^xsd:boolean), (?other my:next_step ?other_next), (?other my:index ?other_index), lessThan(?other_index, ?c_index), (?a my:complex_boundaries ?c), (?a my:index ?a_index) -> (?other my:copy_without_marks ?other_next), (?other_next my:app \"true\"^^xsd:boolean).",
         "backend": "Jena"
       },
       {
