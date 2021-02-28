@@ -2,7 +2,7 @@ package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.entities.BackendFactEntity;
-import com.example.demo.models.entities.LawFormulation;
+import com.example.demo.models.businesslogic.LawFormulation;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.swrlapi.core.SWRLRuleEngine;

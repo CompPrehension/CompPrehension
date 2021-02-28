@@ -3,7 +3,7 @@ package com.example.demo.models.businesslogic.backend;
 
 import com.example.demo.models.businesslogic.Law;
 import com.example.demo.models.entities.BackendFactEntity;
-import com.example.demo.models.entities.LawFormulation;
+import com.example.demo.models.businesslogic.LawFormulation;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;

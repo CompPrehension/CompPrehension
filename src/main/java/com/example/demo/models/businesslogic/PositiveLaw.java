@@ -1,7 +1,5 @@
 package com.example.demo.models.businesslogic;
 
-import com.example.demo.models.entities.LawFormulation;
-
 import java.util.List;
 
 public class PositiveLaw extends Law {

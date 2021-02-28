@@ -1,4 +1,4 @@
-package com.example.demo.models.entities;
+package com.example.demo.models.businesslogic;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
