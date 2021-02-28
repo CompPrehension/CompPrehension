@@ -76,7 +76,7 @@ public class SystemIntegrationTest {
             assertEquals(1, result.mistakes.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
-            assertEquals(1, result.IterationsLeft);
+            assertEquals(2, result.IterationsLeft);
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     result.mistakes.get(0).getLawName());
@@ -100,7 +100,7 @@ public class SystemIntegrationTest {
             assertEquals(1, result.mistakes.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(0, result.CountCorrectOptions);
-            assertEquals(0, result.IterationsLeft);
+            assertEquals(1, result.IterationsLeft);
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     result.mistakes.get(0).getLawName());
@@ -176,7 +176,7 @@ public class SystemIntegrationTest {
             assertEquals(1, result.mistakes.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
-            assertEquals(1, result.IterationsLeft);
+            assertEquals(2, result.IterationsLeft);
 
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",

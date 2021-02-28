@@ -524,7 +524,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = processResult.CountCorrectOptions;
-        result.IterationsLeft = processResult.IterationsLeft;
+        result.IterationsLeft = processResult.IterationsLeft + (mistakes.isEmpty() ? 0 : 1);
         return result;
     }
 
