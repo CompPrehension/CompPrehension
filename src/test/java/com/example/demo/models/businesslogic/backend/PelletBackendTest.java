@@ -146,7 +146,7 @@ class PelletBackendTest {
         JenaBackend backend = new JenaBackend();
         List<Law> laws = new ArrayList<>();
         for (PositiveLaw law : domain.getPositiveLaws()) {
-            if (!law.getName().equals("operators_python")) {
+            if (!law.getName().contains("python")) {
                 laws.add(law);
             }
         }

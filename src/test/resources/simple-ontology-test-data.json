@@ -90,6 +90,31 @@
     ]
   },
   {
+    "expression": ["(", "(", "(", "(", ")", ")", ")", "(", ")", ")"],
+    "objectProperty": "complex_boundaries",
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [5]},
+      {"indexFrom": 3, "indexesTo": [6]},
+      {"indexFrom": 2, "indexesTo": [7]},
+      {"indexFrom": 8, "indexesTo": [9]},
+      {"indexFrom": 1, "indexesTo": [10]}
+    ]
+  },
+  {
+    "expression": ["(", "(", "(", "(", ")", ")", ")", "(", ")", ")"],
+    "objectProperty": "in_complex",
+    "relations": [
+      {"indexFrom": 4, "indexesTo": [3]},
+      {"indexFrom": 5, "indexesTo": [3]},
+      {"indexFrom": 3, "indexesTo": [2]},
+      {"indexFrom": 6, "indexesTo": [2]},
+      {"indexFrom": 2, "indexesTo": [1]},
+      {"indexFrom": 7, "indexesTo": [1]},
+      {"indexFrom": 8, "indexesTo": [1]},
+      {"indexFrom": 9, "indexesTo": [1]}
+    ]
+  },
+  {
     "expression": ["(", "var","[", "var", "]", ")"],
     "objectProperty": "complex_boundaries",
     "relations": [
