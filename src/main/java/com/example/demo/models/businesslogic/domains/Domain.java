@@ -101,6 +101,7 @@ public abstract class Domain {
     }
     public class InterpretSentenceResult extends ProcessSolutionResult {
         public List<MistakeEntity> mistakes;
+        public List<String> correctlyAppliedLaws;
     }
 
     /**

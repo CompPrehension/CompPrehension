@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Math.max;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Component
@@ -355,6 +356,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_right_assoc",
                     "student_error_in_complex",
                     "student_error_strict_operands_order",
+                    "student_error_more_precedence_base",
+                    "student_error_left_assoc_base",
+                    "student_error_right_assoc_base",
+                    "student_error_in_complex_base",
+                    "student_error_strict_operands_order_base",
                     "text",
                     "index",
                     "before_direct",
@@ -477,18 +483,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // retrieve subjects' info from facts ...
         Map<String, BackendFactEntity> nameToText = new HashMap<>();
         Map<String, BackendFactEntity> nameToPos = new HashMap<>();
-        Map<String, List<String>> before = new HashMap<>();
 
         for (BackendFactEntity violation : violations) {
             if (violation.getVerb().equals("text")) {
                 nameToText.put(violation.getSubject(), violation);
             } else if (violation.getVerb().equals("index")) {
                 nameToPos.put(violation.getSubject(), violation);
-            } else if (violation.getVerb().equals("before_direct")) {
-                if (!before.containsKey(violation.getObject())) {
-                    before.put(violation.getObject(), new ArrayList<String>());
-                }
-                before.get(violation.getObject()).add(violation.getSubject());
             }
         }
 
@@ -520,10 +520,49 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         InterpretSentenceResult result = new InterpretSentenceResult();
         result.mistakes = mistakes;
+        result.correctlyAppliedLaws = calculateCorrectlyAppliedLaws(violations);
 
         ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = processResult.CountCorrectOptions;
         result.IterationsLeft = processResult.IterationsLeft;
+        return result;
+    }
+
+    List<String> calculateCorrectlyAppliedLaws(List<BackendFactEntity> violations) {
+        List<String> result = new ArrayList<>();
+
+        Map<String, Integer> nameToStudentPos = new HashMap<>();
+        Integer maxStudentPos = -1;
+        for (BackendFactEntity violation : violations) {
+            if (violation.getVerb().equals("student_pos_number")) {
+                Integer studentPosNumber = Integer.parseInt(violation.getObject());
+                maxStudentPos = max(maxStudentPos, studentPosNumber);
+                nameToStudentPos.put(violation.getSubject(), studentPosNumber);
+            }
+        }
+
+        for (BackendFactEntity violation : violations) {
+            if (!nameToStudentPos.getOrDefault(violation.getObject(), -2).equals(maxStudentPos) ||
+                    nameToStudentPos.containsKey(violation.getSubject())) {
+                continue;
+            }
+            String correctlyAppliedLaw = null;
+            if (violation.getVerb().equals("student_error_more_precedence_base")) {
+                if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
+                    correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_higher_precedence_left";
+                } else {
+                    correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_higher_precedence_right";
+                }
+            } else if (violation.getVerb().equals("student_error_left_assoc_base")) {
+                correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left";
+            } else if (violation.getVerb().equals("student_error_right_assoc_base")) {
+                correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right";
+            }
+            if (correctlyAppliedLaw != null) {
+                result.add(correctlyAppliedLaw);
+            }
+        }
+
         return result;
     }
 

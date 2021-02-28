@@ -74,6 +74,7 @@ public class SystemIntegrationTest {
             Question question3 = responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
             assertEquals(1, result.mistakes.size());
+            assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(1, result.IterationsLeft);
             assertEquals(
@@ -97,6 +98,7 @@ public class SystemIntegrationTest {
             Question question3 = responseQuestion(question2, List.of(0, 1));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
             assertEquals(1, result.mistakes.size());
+            assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(0, result.CountCorrectOptions);
             assertEquals(0, result.IterationsLeft);
             assertEquals(
@@ -110,9 +112,17 @@ public class SystemIntegrationTest {
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
-            assertTrue(mistakes.isEmpty());
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            assertEquals(0, result.mistakes.size());
+            assertEquals(1, result.correctlyAppliedLaws.size());
+            assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
+            assertEquals(1, result.CountCorrectOptions);
+            assertEquals(1, result.IterationsLeft);
+
             float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
         {
@@ -120,20 +130,17 @@ public class SystemIntegrationTest {
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(1, 0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
-            assertTrue(mistakes.isEmpty());
-            float grade = strategy.grade(testExerciseAttemptList.get(0));
-        }
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            assertEquals(0, result.mistakes.size());
+            assertEquals(0, result.correctlyAppliedLaws.size());
+            assertEquals(0, result.CountCorrectOptions);
+            assertEquals(0, result.IterationsLeft);
 
-        {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(1));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
-            assertEquals(0, mistakes.size());
+            float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
 
         // Python question. Contrary to C++ "==" and "<" has same precedence
@@ -142,13 +149,39 @@ public class SystemIntegrationTest {
             List<Tag> tags = getTags(testExerciseAttemptList.get(1));
             assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
+            Question question3 = responseQuestion(question2, List.of(0));
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            assertEquals(0, result.mistakes.size());
+            assertEquals(1, result.correctlyAppliedLaws.size());
+            assertEquals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left", result.correctlyAppliedLaws.get(0));
+            assertEquals(1, result.CountCorrectOptions);
+            assertEquals(1, result.IterationsLeft);
+
+        }
+
+        // Python question. Contrary to C++ "==" and "<" has same precedence
+        {
+            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(1));
+            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            Long question2 = solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
-            assertEquals(1, mistakes.size());
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            assertEquals(1, result.mistakes.size());
+            assertEquals(0, result.correctlyAppliedLaws.size());
+            assertEquals(1, result.CountCorrectOptions);
+            assertEquals(1, result.IterationsLeft);
+
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
-                    mistakes.get(0).getLawName());
-            List<HyperText> explanations  = explainMistakes(question3, mistakes);
+                    result.mistakes.get(0).getLawName());
+            List<HyperText> explanations  = explainMistakes(question3, result.mistakes);
             assertEquals(1, explanations.size());
             assertEquals("operator == on pos 2 should be evaluated before operator < on pos 4\n" +
                     " because operator == has the same precedence and left associativity", explanations.get(0).getText());
