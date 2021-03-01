@@ -81,7 +81,15 @@ public abstract class Domain {
     
     public abstract ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType);
 
-    public abstract List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags);
+    public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
+        List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
+        List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
+        List<Law> laws = new ArrayList<>();
+        laws.addAll(positiveLaws);
+        laws.addAll(negativeLaws);
+        return laws;
+    }
+
     public abstract List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags);
     public abstract List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags);
 

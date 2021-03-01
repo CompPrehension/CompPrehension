@@ -26,12 +26,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
+    static final String LAWS_CONFIG_PATH = "com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws.json";
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
+
+        fillConcepts();
+        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
+    }
+
+    private void fillConcepts() {
         concepts = new ArrayList<>();
-        positiveLaws = new ArrayList<>();
-        negativeLaws = new ArrayList<>();
 
         Concept operandConcept = addConcept("operand");
         Concept simpleOperandConcept = addConcept("simple_operand");
@@ -63,15 +68,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept prefixOperatorConcept = addConcept("prefix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept postfixOperatorConcept = addConcept("postfix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
+    }
 
-        Tag CppTag = new Tag();
-        CppTag.setName("C++");
-        Tag JavaTag = new Tag();
-        JavaTag.setName("Java");
+    private Concept addConcept(String name, List<Concept> baseConcepts) {
+        Concept concept = new Concept(name, baseConcepts);
+        concepts.add(concept);
+        return concept;
+    }
 
-        // read domain Laws and formulations (rules) from file ...
-        ClassLoader CLDR = this.getClass().getClassLoader();
-        InputStream inputStream = CLDR.getResourceAsStream("com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws.json");
+    private Concept addConcept(String name) {
+        Concept concept = new Concept(name);
+        concepts.add(concept);
+        return concept;
+    }
+
+    private void readLaws(InputStream inputStream) {
+        positiveLaws = new ArrayList<>();
+        negativeLaws = new ArrayList<>();
 
         RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory
@@ -92,18 +105,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 negativeLaws.add((NegativeLaw) lawForm);
             }
         }
-    }
-
-    private Concept addConcept(String name, List<Concept> baseConcepts) {
-        Concept concept = new Concept(name, baseConcepts);
-        concepts.add(concept);
-        return concept;
-    }
-
-    private Concept addConcept(String name) {
-        Concept concept = new Concept(name);
-        concepts.add(concept);
-        return concept;
     }
 
     @Override
@@ -158,8 +159,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a + b + c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
-                    getAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4)))));
+                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
+                    createAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4)))));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c"))));
@@ -175,8 +176,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a == b < c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    getAnswerObject(question, "==", "operator_binary_+", getName(0, 2)),
-                    getAnswerObject(question, "<", "operator_binary_*", getName(0, 4))
+                    createAnswerObject(question, "==", "operator_binary_+", getName(0, 2)),
+                    createAnswerObject(question, "<", "operator_binary_*", getName(0, 4))
             )));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
@@ -195,9 +196,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    getAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
-                    getAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4)),
-                    getAnswerObject(question, "*", "operator_binary_*", getName(0, 6))
+                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
+                    createAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4)),
+                    createAnswerObject(question, "*", "operator_binary_*", getName(0, 6))
             )));
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c", "*", "d"))));
             question.setQuestionType(QuestionType.ORDER);
@@ -212,12 +213,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionDomainType("ChooseAssociativity");
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    getAnswerObject(question, "left", "left_associativity", "left"),
-                    getAnswerObject(question, "right", "right_associativity", "right"),
-                    getAnswerObject(question, "no associativity", "absent_associativity", "no associativity")
+                    createAnswerObject(question, "left", "left_associativity", "left"),
+                    createAnswerObject(question, "right", "right_associativity", "right"),
+                    createAnswerObject(question, "no associativity", "absent_associativity", "no associativity")
             )));
             return new SingleChoice(question);
         }
+    }
+
+    private AnswerObjectEntity createAnswerObject(QuestionEntity question, String text, String concept, String domainInfo) {
+        AnswerObjectEntity answerObject = new AnswerObjectEntity();
+        answerObject.setHyperText(text);
+        answerObject.setRightCol(false);
+        answerObject.setDomainInfo(domainInfo);
+        answerObject.setConcept(concept);
+        answerObject.setQuestion(question);
+        return answerObject;
     }
 
     public static String QuestionTextToHtml(String text) {
@@ -247,18 +258,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return sb.toString();
     }
 
-    String getName(int step, int index) {
+    private String getName(int step, int index) {
         return "op__" + step + "__" + index;
-    }
-
-    AnswerObjectEntity getAnswerObject(QuestionEntity question, String text, String concept, String domainInfo) {
-        AnswerObjectEntity answerObject = new AnswerObjectEntity();
-        answerObject.setHyperText(text);
-        answerObject.setRightCol(false);
-        answerObject.setDomainInfo(domainInfo);
-        answerObject.setConcept(concept);
-        answerObject.setQuestion(question);
-        return answerObject;
     }
 
     public List<BackendFactEntity> getBackendFacts(List<String> expression) {
@@ -278,16 +279,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return facts;
     }
 
-    public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
-        List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
-        List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
-        List<Law> laws = new ArrayList<>();
-        laws.addAll(positiveLaws);
-        laws.addAll(negativeLaws);
-        return laws;
-    }
-
     // filter positive laws by question type and tags
+    @Override
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
@@ -414,7 +407,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new ArrayList<>();
     }
 
-    static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
+    private static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
         Assertions.assertTrue(name.startsWith("op__"), name);
         String[] parts = name.split("__");
         assertEquals(3, parts.length, name);
@@ -457,6 +450,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 for (String dep : deps) {
                     if (!studentPos.containsKey(dep) && !isOperand.contains(dep)) {
                         can = false;
+                        break;
                     }
                 }
             }
@@ -540,6 +534,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         for (BackendFactEntity violation : violations) {
+            // Consider only errors that could happen at current step and where current token will be error reason
             if (!nameToStudentPos.getOrDefault(violation.getObject(), -2).equals(maxStudentPos) ||
                     nameToStudentPos.containsKey(violation.getSubject())) {
                 continue;
@@ -573,7 +568,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    public static String getOperatorTextDescription(String errorText) {
+    private static String getOperatorTextDescription(String errorText) {
         if (errorText.equals("(")) {
             return "parenthesis ";
         } else if (errorText.equals("[")) {
@@ -584,7 +579,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "operator ";
     }
 
-    HyperText makeExplanation(MistakeEntity mistake, FeedbackType feedbackType) {
+    private HyperText makeExplanation(MistakeEntity mistake, FeedbackType feedbackType) {
 
         // retrieve subjects' info from facts, and find base and third ...
         BackendFactEntity base = null;
