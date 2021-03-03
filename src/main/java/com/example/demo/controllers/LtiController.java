@@ -74,7 +74,7 @@ public class LtiController {
     @RequestMapping(value = {"/addAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
             consumes = "application/json")
     @ResponseBody
-    public String[] addAnswer(@RequestBody InteractionDto interaction,
+    public FeedbackDto addAnswer(@RequestBody InteractionDto interaction,
                               HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
         List<Integer> answerIds = Arrays.stream(interaction.getAnswers().split(","))
@@ -91,7 +91,11 @@ public class LtiController {
         List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;
         List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
-        return errors;
+
+        return FeedbackDto.builder()
+            .grade(0f)
+            .errors(errors)
+            .build();
     }
 
 

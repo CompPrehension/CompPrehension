@@ -11,7 +11,10 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor @NoArgsConstructor
 @SuperBuilder
+/**
+  Base class for question options
+ */
 public class QuestionOptionsEntity implements Serializable {
+    /// Question text contains answers
     private boolean requireContext;
-    private boolean showTrace;
 }

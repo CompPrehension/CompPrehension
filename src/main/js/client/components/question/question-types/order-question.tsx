@@ -10,7 +10,7 @@ export const OrderQuestion : React.FC = observer(() => {
     }
 
     const { options } = questionData; 
-    const delim = options.orderNumberSuffix ?? "/";
+    const orderNumberOptions = options.orderNumberOptions ?? { delimiter: '/', position: 'SUFFIX', }
     const originalText = $(questionData.text);
     
     // actions on questionId changed (onInit)
@@ -45,14 +45,16 @@ export const OrderQuestion : React.FC = observer(() => {
     answersHistory.forEach((h, idx) => {
         const answr = $(`#answer_${h}`);
 
-        // add pos hint
-        if (options.showOrderNumbers) {
-            const orderNumber = options.orderNumberReplacers?.[idx] ?? (idx + 1);
-            answr.html(`${answr.html()}${delim}${orderNumber}`);
+        // add pos hint        
+        if (orderNumberOptions.position !== 'NONE') {
+            const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
+            const answerHtml = orderNumberOptions.position === 'PREFIX' ? [orderNumber, answr.html()] :
+                               orderNumberOptions.position === 'SUFFIX' ? [answr.html(), orderNumber] : [answr.html()];            
+            answr.html(answerHtml.join(orderNumberOptions.delimiter));
         }        
 
         // disable if needed
-        if (options.disableOnSelected) {            
+        if (options.enableMultipleSelection) {            
             answr.addClass('disabled');            
         }
     });
