@@ -4,6 +4,7 @@ package com.example.demo.controllers;
 import com.example.demo.Service.ExerciseService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.dto.*;
+import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.businesslogic.Tag;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.entities.*;
@@ -51,12 +52,12 @@ public class LtiController {
     @Autowired
     private QuestionService questionService;
 
+    @Autowired
+    private Strategy strategy;
+
 
     @RequestMapping(value = {"/launch"}, method = {RequestMethod.POST})
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, Object> params) throws Exception {
-        //List<ExerciseAttempt> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());
-        //Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-
         LtiVerifier ltiVerifier = new LtiOauthVerifier();
         String key = request.getParameter("oauth_consumer_key");
         String secret = this.ltiLaunchSecret;
@@ -91,9 +92,10 @@ public class LtiController {
         List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;
         List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
+        float grade = strategy.grade(attempt);
 
         return FeedbackDto.builder()
-            .grade(0f)
+            .grade(grade)
             .errors(errors)
             .build();
     }
