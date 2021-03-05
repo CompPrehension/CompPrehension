@@ -2,6 +2,7 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.models.entities.BackendFactEntity;
 import com.example.demo.models.entities.*;
+import com.example.demo.utils.DomainAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +15,16 @@ public class Matching extends Question {
 
     @Override
     public List<BackendFactEntity> responseToFacts() {
+        return DomainAdapter.getDomain(questionData.getDomainEntity().getName()).responseToFacts(
+                getQuestionDomainType(),
+                super.studentResponses,
+                getAnswerObjects()
+        );
 
-        List<AnswerObjectEntity> answers = new ArrayList<>(super.
-                getAnswerObjects());
-        List<ResponseEntity> responses = super.studentResponses;
-        List<BackendFactEntity> facts = new ArrayList<>();
+        //List<AnswerObjectEntity> answers = new ArrayList<>(super.
+        //        getAnswerObjects());
+        //List<ResponseEntity> responses = super.studentResponses;
+        //List<BackendFactEntity> facts = new ArrayList<>();
 //        QuestionConceptMatch questionConcept = questionData.
 //                getQuestionConceptMatches().get(0);
 //        //Формируем факты из ответов студент
@@ -60,7 +66,7 @@ public class Matching extends Question {
 //            facts.add(fact);
 //        }
 
-        return facts;
+        //return facts;
         
     }
 

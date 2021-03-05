@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
+    static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String LAWS_CONFIG_PATH = "com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws.json";
 
     public ProgrammingLanguageExpressionDomain() {
@@ -68,6 +69,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept prefixOperatorConcept = addConcept("prefix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept postfixOperatorConcept = addConcept("postfix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
+        Concept typeConcept = addConcept("type");
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
@@ -159,8 +161,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a + b + c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
-                    createAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4)))));
+                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2), true),
+                    createAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4), true))));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c"))));
@@ -176,8 +178,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
             question.setQuestionText(QuestionTextToHtml("a == b < c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "==", "operator_binary_+", getName(0, 2)),
-                    createAnswerObject(question, "<", "operator_binary_*", getName(0, 4))
+                    createAnswerObject(question, "==", "operator_binary_+", getName(0, 2), true),
+                    createAnswerObject(question, "<", "operator_binary_*", getName(0, 4), true)
             )));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
@@ -196,14 +198,55 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2)),
-                    createAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4)),
-                    createAnswerObject(question, "*", "operator_binary_*", getName(0, 6))
+                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2), true),
+                    createAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4), true),
+                    createAnswerObject(question, "*", "operator_binary_*", getName(0, 6), true)
             )));
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c", "*", "d"))));
             question.setQuestionType(QuestionType.ORDER);
             question.setOptions(orderQuestionOptions);
             return new Ordering(question);
+        } else if (conceptNames.contains("type")) {
+            // make Matching test question
+            QuestionEntity question = new QuestionEntity();
+            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
+            question.setQuestionText(QuestionTextToHtml(
+                    "class Matrix {\n" +
+                    "\tint getDeterminant() const;\n" +
+                    "\tMatrix transpose() const;\n" +
+                    "\tMatrix multiply(int a) const;\n" +
+                    "\tsize_t size() const;\n" +
+                    "\n" +
+                    "\tstatic Matrix identity(size_t size);\n" +
+                    "}\n" +
+                    "\n" +
+                    "Matrix a;\n" +
+                    "Matrix b;\n" +
+                    "int c;\n" +
+                    "int d;\n" +
+                    "\n" +
+                    "b * (a - c * a.identity(a.size())).getDeterminant()"));
+            question.setQuestionDomainType(DEFINE_TYPE_QUESTION_TYPE);
+            question.setAreAnswersRequireContext(true);
+            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
+                    createAnswerObject(question, "* between b and parenthesis", "", getName(0, 2), true),
+                    createAnswerObject(question, "parenthesis with expression", "", getName(0, 3), true),
+                    createAnswerObject(question, "-", "", getName(0, 5), true),
+                    createAnswerObject(question, "*", "", getName(0, 7), true),
+                    createAnswerObject(question, "( near identity", "", getName(0, 11), true),
+                    createAnswerObject(question, "( near size", "", getName(0, 15), true),
+                    createAnswerObject(question, "( near getDeterminant", "", getName(0, 21), true),
+                    createAnswerObject(question, "int", "", "int", false),
+                    createAnswerObject(question, "Matrix", "", "Matrix", false),
+                    createAnswerObject(question, "bool", "", "bool", false),
+                    createAnswerObject(question, "size_t", "", "size_t", false)
+            )));
+            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("b", "*", "(", "a", "-", "c", "*", "a", ".", "identity", "(", "a", ".", "size", "(", ")", ")", ")", ".", "getDeterminant", "(", ")"))));
+            question.setQuestionType(QuestionType.MATCHING);
+            question.setOptions(QuestionOptionsEntity.builder()
+                    .requireContext(true)
+                    .build());
+            return new Matching(question);
         } else {
             // make a SingleChoice question ...
             QuestionEntity question = new QuestionEntity();
@@ -213,18 +256,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setQuestionDomainType("ChooseAssociativity");
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "left", "left_associativity", "left"),
-                    createAnswerObject(question, "right", "right_associativity", "right"),
-                    createAnswerObject(question, "no associativity", "absent_associativity", "no associativity")
+                    createAnswerObject(question, "left", "left_associativity", "left", true),
+                    createAnswerObject(question, "right", "right_associativity", "right", true),
+                    createAnswerObject(question, "no associativity", "absent_associativity", "no associativity", true)
             )));
             return new SingleChoice(question);
         }
     }
 
-    private AnswerObjectEntity createAnswerObject(QuestionEntity question, String text, String concept, String domainInfo) {
+    private AnswerObjectEntity createAnswerObject(QuestionEntity question, String text, String concept, String domainInfo, boolean isLeft) {
         AnswerObjectEntity answerObject = new AnswerObjectEntity();
         answerObject.setHyperText(text);
-        answerObject.setRightCol(false);
+        answerObject.setRightCol(!isLeft);
         answerObject.setDomainInfo(domainInfo);
         answerObject.setConcept(concept);
         answerObject.setQuestion(question);
@@ -282,7 +325,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     // filter positive laws by question type and tags
     @Override
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
-        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
                 boolean needLaw = true;
@@ -335,6 +378,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "high_precedence_right_assoc",
                     "is_operand"
             ));
+        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
+            return new ArrayList<>(Arrays.asList(
+                    "get_type"
+            ));
         }
         return new ArrayList<>();
     }
@@ -357,6 +404,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "before_direct",
                     "student_pos_number",
                     "is_operand"
+            ));
+        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
+            return new ArrayList<>(Arrays.asList(
+                    "wrong_type"
             ));
         }
         return new ArrayList<>();
@@ -401,6 +452,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         ));
                     }
                 }
+            }
+            return result;
+        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
+            List<BackendFactEntity> result = new ArrayList<>();
+            for (ResponseEntity response : responses) {
+                result.add(new BackendFactEntity(
+                        "owl:NamedIndividual",
+                        response.getLeftAnswerObject().getDomainInfo(),
+                        "student_type",
+                        "xsd:string",
+                        response.getRightAnswerObject().getDomainInfo()
+                ));
             }
             return result;
         }
@@ -497,6 +560,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
             } else if (violation.getVerb().equals("student_error_right_assoc")) {
                 mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
+            } else if (violation.getVerb().equals("wrong_type")) {
+                mistake.setLawName("error_wrong_type");
             }
             if (mistake.getLawName() != null) {
                 mistake.setViolationFacts(new ArrayList<>(Arrays.asList(
