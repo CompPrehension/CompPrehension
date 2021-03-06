@@ -16,19 +16,14 @@ export const Feedback = observer(() => {
         return null;
     }
 
-    if (feedback.errors.length === 0) {
-        return (
-            <div className="comp-ph-feedback-wrapper">
-                <Alert variant="success">
-                    {"Correct, keep doing..."}
-                </Alert>       
-            </div>     
-        );
-    }
-
     return (
         <div className="comp-ph-feedback-wrapper">
-            {feedback.errors.map(m => <Alert variant="danger">{m}</Alert>)}
+            <p>Current grade: {feedback.grade}</p>
+            <p>
+                {feedback.errors.length
+                    ? feedback.errors.map(m => <Alert variant="danger">{m}</Alert>)
+                    : <Alert variant="success">{"Correct, keep doing..."}</Alert>}
+            </p>            
         </div>
     );
 });

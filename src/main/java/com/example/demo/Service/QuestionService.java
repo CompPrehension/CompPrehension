@@ -56,6 +56,7 @@ public class QuestionService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+        questionRepository.save(question.getQuestionData());
         return question;
     }
 

@@ -4,6 +4,8 @@ package com.example.demo.controllers;
 import com.example.demo.Service.ExerciseService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.dto.*;
+import com.example.demo.dto.question.QuestionDto;
+import com.example.demo.dto.question.QuestionMapper;
 import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.businesslogic.Tag;
 import com.example.demo.models.businesslogic.Question;
@@ -26,8 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -108,14 +108,7 @@ public class LtiController {
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = questionService.generateQuestion(attempt);
         QuestionEntity qData = question.getQuestionData();
-
-        return QuestionDto.builder()
-            .id(exAttemptId.toString())
-            .type(qData.getQuestionType().toString())
-            .answers(new QuestionAnswerDto[0])
-            .text(qData.getQuestionText())
-            .options(qData.getOptions())
-            .build();
+        return QuestionMapper.toDto(attempt, qData);
     }
 
     @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })

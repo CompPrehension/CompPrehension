@@ -18,7 +18,9 @@ import java.io.Serializable;
     include = JsonTypeInfo.As.PROPERTY,
     property = "_type")
 @JsonSubTypes({
+    // defines mapping to subtypes
     @JsonSubTypes.Type(value = OrderQuestionOptionsEntity.class, name = "OrderQuestionOptionsEntity"),
+    @JsonSubTypes.Type(value = MatchingQuestionOptionsEntity.class, name = "MatchingQuestionOptionsEntity"),
 })
 @Data
 @AllArgsConstructor @NoArgsConstructor

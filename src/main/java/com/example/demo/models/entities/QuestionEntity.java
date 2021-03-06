@@ -41,10 +41,10 @@ public class QuestionEntity {
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<AnswerObjectEntity> answerObjects;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<InteractionEntity> interactions;
 
     @ManyToOne

@@ -54,7 +54,7 @@ export const OrderQuestion : React.FC = observer(() => {
         }        
 
         // disable if needed
-        if (options.enableMultipleSelection) {            
+        if (options.multipleSelectionEnabled) {            
             answr.addClass('disabled');            
         }
     });

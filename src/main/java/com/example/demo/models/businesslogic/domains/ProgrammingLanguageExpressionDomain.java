@@ -5,6 +5,7 @@ import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
 import com.example.demo.models.entities.EnumData.QuestionType;
+import com.example.demo.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import com.example.demo.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import com.example.demo.models.entities.QuestionOptions.QuestionOptionsEntity;
 import com.example.demo.utils.HyperText;
@@ -148,7 +149,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(false)
-                .enableMultipleSelection(true)
+                .multipleSelectionEnabled(true)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .build();
 
@@ -158,7 +159,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             // make an Ordering question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(QuestionTextToHtml("a + b + c"));
+            question.setQuestionText(ExpressionToHtml("a + b + c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2), true),
                     createAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4), true))));
@@ -175,7 +176,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             // make an Ordering question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(QuestionTextToHtml("a == b < c"));
+            question.setQuestionText(ExpressionToHtml("a == b < c"));
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                     createAnswerObject(question, "==", "operator_binary_+", getName(0, 2), true),
                     createAnswerObject(question, "<", "operator_binary_*", getName(0, 4), true)
@@ -193,7 +194,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             // make an Ordering question ...
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(QuestionTextToHtml("a + b + c * d"));
+            question.setQuestionText(ExpressionToHtml("a + b + c * d"));
             question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
             question.setAreAnswersRequireContext(true);
             question.setAnswerObjects(new ArrayList<>(Arrays.asList(
@@ -242,8 +243,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             )));
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("b", "*", "(", "a", "-", "c", "*", "a", ".", "identity", "(", "a", ".", "size", "(", ")", ")", ")", ".", "getDeterminant", "(", ")"))));
             question.setQuestionType(QuestionType.MATCHING);
-            question.setOptions(QuestionOptionsEntity.builder()
+            question.setOptions(MatchingQuestionOptionsEntity.builder()
                     .requireContext(true)
+                    .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
                     .build());
             return new Matching(question);
         } else {
@@ -273,7 +275,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return answerObject;
     }
 
-    public static String QuestionTextToHtml(String text) {
+    public static String ExpressionToHtml(String text) {
         StringBuilder sb = new StringBuilder(text);
 
         // Wrap every token of the expression with <span> and some metadata ...
@@ -293,9 +295,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             matcher = pattern.matcher(sb.toString());
         }
 
-        sb = new StringBuilder(sb.toString().replaceAll("\\*", "&#8727"));
         sb.insert(0, "<p class='comp-ph-expr'>"); sb.append("</p>");
-        sb.insert(0, "<p>Приоритет операций в порядке убывания</p>");
+        return QuestionTextToHtml(sb.toString());
+    }
+
+    public static String QuestionTextToHtml(String text) {
+        StringBuilder sb = new StringBuilder(text
+                .replaceAll("\\*", "&#8727")
+                .replaceAll("\\n", "<br>")
+                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
         sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
         return sb.toString();
     }
