@@ -6,17 +6,17 @@ import { Loader } from './loader';
 
 
 export const Feedback = observer(() => {
-    const { feedbackMessages, isFeedbackLoading } = store;
+    const { feedback, isFeedbackLoading } = store;
     
     if (store.isFeedbackLoading) {
         return <Loader />;
     }
 
-    if (feedbackMessages === undefined) {
+    if (feedback === undefined) {
         return null;
     }
 
-    if (feedbackMessages.length === 0) {
+    if (feedback.errors.length === 0) {
         return (
             <div className="comp-ph-feedback-wrapper">
                 <Alert variant="success">
@@ -28,7 +28,7 @@ export const Feedback = observer(() => {
 
     return (
         <div className="comp-ph-feedback-wrapper">
-            {feedbackMessages.map(m => <Alert variant="danger">{m}</Alert>)}
+            {feedback.errors.map(m => <Alert variant="danger">{m}</Alert>)}
         </div>
     );
 });

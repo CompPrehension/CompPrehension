@@ -3,6 +3,7 @@ import { Question } from "./types/question";
 import { SessionInfo } from "./types/session-info";
 import { ajaxGet, ajaxPost } from "./utils/ajax";
 import * as E from "fp-ts/lib/Either";
+import { Feedback } from "./types/feedback";
 
 
 
@@ -10,9 +11,9 @@ export class Store {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable questionData?: Question = undefined;
     @observable answersHistory: string[] = [];
-    @observable isLoading: boolean = false;
+    @observable isLoading: boolean = true;
     @observable isFeedbackLoading: boolean = false;
-    @observable feedbackMessages?: string[] = undefined;
+    @observable feedback?: Feedback = undefined;
 
     constructor() {
         makeObservable(this);
@@ -45,7 +46,7 @@ export class Store {
 
         runInAction(() => {
             this.questionData = data;
-            this.feedbackMessages = undefined;        
+            this.feedback = undefined;        
             this.answersHistory = [];
         });        
     }
@@ -60,13 +61,13 @@ export class Store {
         }
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ajaxPost<string[]>('addAnswer', body)
+        const feedbackEither = await ajaxPost<Feedback>('addAnswer', body)
             .finally(() => this.isFeedbackLoading = false);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {
-            this.feedbackMessages = feedback;
-            if (this.feedbackMessages?.length) {                
+            this.feedback = feedback;
+            if (this.feedback?.errors.length) {                
                 this.answersHistory.pop();
             }
         });

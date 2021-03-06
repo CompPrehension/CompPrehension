@@ -8,11 +8,14 @@ import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.QuestionStatus;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.utils.DomainAdapter;
+import lombok.val;
 import org.apache.jena.atlas.lib.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+
+import static java.lang.Math.abs;
 
 @Component
 public class Strategy extends AbstractStrategy {
@@ -129,18 +132,21 @@ public class Strategy extends AbstractStrategy {
 
     @Override
     public float grade(ExerciseAttemptEntity exerciseAttempt) {
-        ArrayList<QuestionEntity> questions = new ArrayList<>();
-        questions.addAll(exerciseAttempt.getQuestions());
-        int questionCount = 0;
-        float resolvedQuestionsGrade = 0; // За каждый вопрос можно назначать взвешенную оценку
 
-        for(QuestionEntity qe : questions){
-            questionCount++;
-            if(qe.getQuestionStatus() == QuestionStatus.RESOLVED){//Пока за каждое решенное + 1
-                resolvedQuestionsGrade++; //(самая простая стратегия - % решённых вопросов)
-            }
+        val res = getLawGrade(exerciseAttempt);
+        if(res.keySet().stream().count() == 0){
+            return (float)0;
         }
-        return resolvedQuestionsGrade/(float)questionCount;
+
+        float summary = 0;
+
+        for(HashMap.Entry<String, Float> entry : res.entrySet()) {
+            String key = entry.getKey();
+            val value = entry.getValue();
+            summary += value;
+        }
+
+        return summary/(float)res.keySet().stream().count();
     }
 
     protected HashMap<String, Float> getLawGrade(ExerciseAttemptEntity exerciseAttempt){
@@ -152,7 +158,11 @@ public class Strategy extends AbstractStrategy {
 
         ArrayList<InteractionEntity> ies = new ArrayList<>();
         for(QuestionEntity qe : questions){
-            ies.addAll(qe.getInteractions());
+
+            val inter = qe.getInteractions();
+            if(inter != null) {
+                ies.addAll(inter);
+            }
         }
 
         Collections.sort(ies, new OrderComparator());
@@ -172,14 +182,54 @@ public class Strategy extends AbstractStrategy {
                 }
             }
 
-            if(mistakes.stream().count() == 0){
-                //выбрать верные законы и указать, что они были верны
+            ArrayList<CorrectLawEntity> correctLaws = new ArrayList<>();
+            correctLaws.addAll(ie.getCorrectLaw());
+
+            for(CorrectLawEntity cle : correctLaws){
+                if(conceptAtempt.containsKey(cle.getLawName())){
+                    conceptAtempt.get(cle.getLawName()).add(true);
+                }else{
+                    ArrayList<Boolean> newLaw = new ArrayList<>();
+                    newLaw.add(true);
+                    conceptAtempt.put(cle.getLawName(), newLaw);
+                }
+            }
+
+        }
+
+        for(HashMap.Entry<String, ArrayList<Boolean>> entry : conceptAtempt.entrySet()) {
+            String key = entry.getKey();
+            val value = entry.getValue();
+            res.put(key, calculateWeightedScore(value));
+        }
+
+        return res;
+    }
+
+    private Float calculateWeightedScore(ArrayList<Boolean> value) {
+        if(value.stream().count() == 0){
+            return (float)0;
+        }
+
+        float trueCount = 0;
+        float falseCount = 0;
+
+        float signCount = 5;
+        float curIteration = 0;
+
+        for(boolean i: value){
+            if(i){
+                trueCount += 1;
+            }else{
+                falseCount += 1;
+            }
+
+            if(abs(curIteration-signCount) < 0.0001){
+                break;
             }
         }
 
-        //пересчитать верные и неверные законы в число
-
-        return res;
+        return trueCount/(trueCount + falseCount);
     }
 
     class OrderComparator implements Comparator<InteractionEntity> {

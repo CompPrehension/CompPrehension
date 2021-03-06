@@ -1,14 +1,16 @@
 
 export interface QuestionOptions {
-    requireContext: boolean,
-    showTrace: boolean;
+    requireContext: boolean,    
 }
 
 export interface OrderQuestionOptions extends QuestionOptions {
-    disableOnSelected: boolean,
-    showOrderNumbers: boolean, 
-    orderNumberSuffix?: string,
-    orderNumberReplacers?: string[],
+    showTrace: boolean;
+    enableMultipleSelection: boolean,
+    orderNumberOptions?: {
+        delimiter: string,
+        position: 'PREFIX' | 'SUFFIX' | 'NONE',   
+        replacers?: string[],         
+    },    
 }
 
 export interface MatchingQuestionOptions extends QuestionOptions {

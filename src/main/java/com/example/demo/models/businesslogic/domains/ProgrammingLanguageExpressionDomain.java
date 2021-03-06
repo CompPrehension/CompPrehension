@@ -148,9 +148,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(false)
-                .disableOnSelected(true)
-                .showOrderNumbers(true)
-                .orderNumberSuffix("/")
+                .enableMultipleSelection(true)
+                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .build();
 
         if (conceptNames.contains("associativity") &&
