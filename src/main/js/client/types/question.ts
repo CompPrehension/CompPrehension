@@ -5,13 +5,13 @@ export type QuestionType = "SINGLE_CHOICE" | "MULTI_CHOICE" | "MATCHING" | "ORDE
 export type Html = string;
 
 export interface QuestionAnswer {
-    id: string,
+    id: number,
     text: Html,
 }
 
 type QuestionBase = {
-    attemptId: string,
-    questionId: string,
+    attemptId: number,
+    questionId: number,
     type: QuestionType,
     options: QuestionOptions,
     text: Html,

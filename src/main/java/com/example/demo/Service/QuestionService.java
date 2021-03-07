@@ -78,6 +78,16 @@ public class QuestionService {
         return question;
     }
 
+    public Question responseQuestion(Question question, Long[][] responses) {
+        for (Long[] pair: responses) {
+            AnswerObjectEntity left = question.getAnswerObject(pair[0].intValue());
+            AnswerObjectEntity right = question.getAnswerObject(pair[1].intValue());
+            ResponseEntity response = makeResponse(left, right);
+            question.addResponse(response);
+        }
+        return question;
+    }
+
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> responseFacts = question.responseToFacts();
@@ -170,6 +180,14 @@ public class QuestionService {
         ResponseEntity response = new ResponseEntity();
         response.setLeftAnswerObject(answer);
         response.setRightAnswerObject(answer);
+        responseRepository.save(response);
+        return response;
+    }
+
+    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR) {
+        ResponseEntity response = new ResponseEntity();
+        response.setLeftAnswerObject(answerL);
+        response.setRightAnswerObject(answerR);
         responseRepository.save(response);
         return response;
     }

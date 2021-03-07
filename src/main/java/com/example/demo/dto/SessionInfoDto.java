@@ -12,7 +12,7 @@ import java.util.Date;
 @Builder
 public class SessionInfoDto {
     private String sessionId;
-    private String[] attemptIds;
+    private Long[] attemptIds;
     private UserInfoDto user;
     private Date expired;
 }

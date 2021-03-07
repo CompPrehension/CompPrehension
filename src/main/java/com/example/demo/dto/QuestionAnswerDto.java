@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class QuestionAnswerDto {
-    private String id;
+    private Long id;
     private String text;
 }

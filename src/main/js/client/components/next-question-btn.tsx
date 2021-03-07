@@ -7,8 +7,8 @@ import store from '../store';
 
 export const NextQuestionBtn = observer(() => {
     const onClicked = () => {
-        const qId = store.questionData?.attemptId ?? '';
-        if (qId) {
+        const qId = store.questionData?.attemptId ?? -1;
+        if (qId !== -1) {
             const { attemptIds=[] } = store.sessionInfo ?? {};
             const idx = attemptIds.indexOf(qId) ?? -1;
             if (idx > -1) {

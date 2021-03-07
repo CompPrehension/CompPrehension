@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class UserInfoDto {
-    private String id;
+    private Long id;
     private String displayName;
     private String email;
     private List<String> roles = new ArrayList<>(0);

@@ -60,9 +60,9 @@ const ComboboxMatchingQuestion = observer(() => {
 
     const { answers = [], groups = [], options } = questionData;
         
-    let currentState : Record<string, any> = {};  
+    let currentState : Record<number, number> = {};  
     if (answersHistory.length) {
-        currentState = JSON.parse(answersHistory[answersHistory.length - 1]) as unknown as Record<string, any>;
+        currentState = answersHistory.reduce((acc, [l, r]) => (acc[l] = r, acc), {} as Record<number, number>);
     }
 
     return (
@@ -75,16 +75,18 @@ const ComboboxMatchingQuestion = observer(() => {
                         <tr>
                             <td dangerouslySetInnerHTML={{ __html: asw.text}}></td>
                             <td>
-                                <Select defaultValue={currentState?.[asw.id] ?? null}
+                                <Select defaultValue={(currentState?.[asw.id] ?? null) as any}
                                         options={groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
                                                        .map(g => ({ value: g.id, label: g.text }))}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
                                         onChange={(v => {
-                                            if (v !== null) {
-                                                const state = currentState;
-                                                state[asw.id] = v.value;
-                                                store.onAnswersChanged(JSON.stringify(state));
+                                            if (!v) {
+                                               return;
                                             }
+
+                                            const state = currentState;
+                                            state[asw.id] = v.value;
+                                            store.updateAnswersHistory(Object.keys(state).map(k => [+k, +state[+k]]));
                                         })} />                                
                             </td>
                         </tr>

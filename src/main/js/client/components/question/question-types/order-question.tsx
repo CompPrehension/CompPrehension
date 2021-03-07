@@ -19,7 +19,8 @@ export const OrderQuestion : React.FC = observer(() => {
         $('[id^="answer_"]').each((_, e) => {
             const $this = $(e);
             const idStr = $this.attr('id')?.split("answer_")[1] ?? ""; 
-            $this.click(() => onAnswersChanged(idStr));
+            const id = +idStr;
+            $this.click(() => onAnswersChanged([id, id]));
         });
 
         // show elements positions
@@ -42,7 +43,7 @@ export const OrderQuestion : React.FC = observer(() => {
         .removeClass('disabled'); 
 
     // apply history changes          
-    answersHistory.forEach((h, idx) => {
+    answersHistory.forEach(([h], idx) => {
         const answr = $(`#answer_${h}`);
 
         // add pos hint        

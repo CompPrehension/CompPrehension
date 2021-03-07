@@ -79,9 +79,7 @@ public class LtiController {
                               HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
         Long questionId = interaction.getQuestionId();
-        List<Integer> answerIds = Arrays.stream(interaction.getAnswers().split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+        Long[][] answers = interaction.getAnswers();
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
@@ -89,7 +87,7 @@ public class LtiController {
         List<Tag> tags = exerciseService.getTags(attempt.getExercise());
         Question question = questionService.getQuestion(questionId);
         questionService.solveQuestion(question, tags);
-        questionService.responseQuestion(question, answerIds);
+        questionService.responseQuestion(question, answers);
         List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;
         List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
@@ -122,7 +120,7 @@ public class LtiController {
         }
 
         UserInfoDto user = UserInfoDto.builder()
-             .id(params.get("user_id").toString())
+             .id(Long.parseLong(params.get("user_id").toString()))
              .displayName(params.get("lis_person_name_given").toString())
              .email(params.get("lis_person_contact_email_primary").toString())
              .roles(Stream.of(params.get("roles").toString().split(","))
@@ -144,8 +142,8 @@ public class LtiController {
         return SessionInfoDto.builder()
             .sessionId(session.getId())
             .attemptIds(exerciseAttempts.stream()
-                                        .map(v -> v.getId()).map(v -> v.toString())
-                                        .toArray(String[]::new))
+                                        .map(v -> v.getId())
+                                        .toArray(Long[]::new))
             .user(user)
             .expired(new Date())
             .build();

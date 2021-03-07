@@ -7,14 +7,15 @@ import com.example.demo.models.entities.QuestionEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class QuestionMapper {
     public static QuestionDto toDto(ExerciseAttemptEntity attempt, QuestionEntity question) {
         switch (question.getQuestionType()) {
             case ORDER:
                 return QuestionDto.builder()
-                        .attemptId(attempt.getId().toString())
-                        .questionId(question.getId().toString())
+                        .attemptId(attempt.getId())
+                        .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(new QuestionAnswerDto[0])
                         .text(question.getQuestionText())
@@ -22,18 +23,18 @@ public class QuestionMapper {
                         .build();
             case MATCHING:
                 List<AnswerObjectEntity> answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<>(0);
-                QuestionAnswerDto[] left = answers.stream()
-                        .filter(a -> !a.isRightCol())
-                        .map(a -> new QuestionAnswerDto(a.getId().toString(), a.getHyperText()))
+                QuestionAnswerDto[] left = IntStream.range(0, answers.size())
+                        .filter(i -> !answers.get(i).isRightCol())
+                        .mapToObj(i -> new QuestionAnswerDto((long)i, answers.get(i).getHyperText()))
                         .toArray(QuestionAnswerDto[]::new);
-                QuestionAnswerDto[] right = answers.stream()
-                        .filter(a -> a.isRightCol())
-                        .map(a -> new QuestionAnswerDto(a.getId().toString(), a.getHyperText()))
+                QuestionAnswerDto[] right = IntStream.range(0, answers.size())
+                        .filter(i -> answers.get(i).isRightCol())
+                        .mapToObj(i -> new QuestionAnswerDto((long)i, answers.get(i).getHyperText()))
                         .toArray(QuestionAnswerDto[]::new);
 
                 return MatchingQuestionDto.builder()
-                        .attemptId(attempt.getId().toString())
-                        .questionId(question.getId().toString())
+                        .attemptId(attempt.getId())
+                        .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(left)
                         .groups(right)
