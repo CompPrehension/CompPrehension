@@ -41,10 +41,10 @@ public class QuestionEntity {
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<AnswerObjectEntity> answerObjects;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<InteractionEntity> interactions;
 
     @ManyToOne
@@ -55,8 +55,8 @@ public class QuestionEntity {
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<BackendFactEntity> statementFacts;
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<BackendFactEntity> solutionFacts;
 }
