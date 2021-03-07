@@ -56,7 +56,7 @@ public class QuestionService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-        questionRepository.save(question.getQuestionData());
+        saveQuestion(question.getQuestionData());
         return question;
     }
 
@@ -114,22 +114,25 @@ public class QuestionService {
             }
             answerObjectRepository.saveAll(question.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
         }
+
+        List<BackendFactEntity> newBackendFacts = new ArrayList<>();
         if (question.getStatementFacts() != null) {
             for (BackendFactEntity fact : question.getStatementFacts()) {
-                if (fact.getId() == null) {
+                if (fact.getQuestion() == null) {
                     fact.setQuestion(question);
+                    newBackendFacts.add(fact);
                 }
             }
-            backendFactRepository.saveAll(question.getStatementFacts().stream().filter(f -> f.getId() == null)::iterator);
         }
         if (question.getSolutionFacts() != null) {
             for (BackendFactEntity fact : question.getSolutionFacts()) {
-                if (fact.getId() == null) {
+                if (fact.getQuestion() == null) {
                     fact.setQuestion(question);
+                    newBackendFacts.add(fact);
                 }
             }
-            backendFactRepository.saveAll(question.getSolutionFacts().stream().filter(f -> f.getId() == null)::iterator);
         }
+        backendFactRepository.saveAll(newBackendFacts);
         questionRepository.save(question);
     }
     

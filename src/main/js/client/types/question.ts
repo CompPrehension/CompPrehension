@@ -10,7 +10,8 @@ export interface QuestionAnswer {
 }
 
 type QuestionBase = {
-    id: string,
+    attemptId: string,
+    questionId: string,
     type: QuestionType,
     options: QuestionOptions,
     text: Html,

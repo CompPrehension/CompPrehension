@@ -13,7 +13,8 @@ public class QuestionMapper {
         switch (question.getQuestionType()) {
             case ORDER:
                 return QuestionDto.builder()
-                        .id(attempt.getId().toString())
+                        .attemptId(attempt.getId().toString())
+                        .questionId(question.getId().toString())
                         .type(question.getQuestionType().toString())
                         .answers(new QuestionAnswerDto[0])
                         .text(question.getQuestionText())
@@ -31,7 +32,8 @@ public class QuestionMapper {
                         .toArray(QuestionAnswerDto[]::new);
 
                 return MatchingQuestionDto.builder()
-                        .id(attempt.getId().toString())
+                        .attemptId(attempt.getId().toString())
+                        .questionId(question.getId().toString())
                         .type(question.getQuestionType().toString())
                         .answers(left)
                         .groups(right)

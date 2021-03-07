@@ -56,7 +56,8 @@ export class Store {
         const { questionData, answersHistory } = this;
         const mergedAnswers = answersHistory.join(",");
         const body = {
-            attemptId: questionData?.id,
+            attemptId: questionData?.attemptId,
+            questionId: questionData?.questionId,
             answers: toJS(mergedAnswers),
         }
 

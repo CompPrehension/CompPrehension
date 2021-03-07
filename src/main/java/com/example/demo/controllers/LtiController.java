@@ -78,6 +78,7 @@ public class LtiController {
     public FeedbackDto addAnswer(@RequestBody InteractionDto interaction,
                               HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
+        Long questionId = interaction.getQuestionId();
         List<Integer> answerIds = Arrays.stream(interaction.getAnswers().split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
@@ -86,7 +87,7 @@ public class LtiController {
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
 
         List<Tag> tags = exerciseService.getTags(attempt.getExercise());
-        Question question = questionService.generateQuestion(attempt);
+        Question question = questionService.getQuestion(questionId);
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answerIds);
         List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;

@@ -12,7 +12,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor @AllArgsConstructor
 @SuperBuilder
 public class QuestionDto {
-    private String id;
+    private String attemptId;
+    private String questionId;
     private String type;
     private String text;
     private QuestionOptionsEntity options;
