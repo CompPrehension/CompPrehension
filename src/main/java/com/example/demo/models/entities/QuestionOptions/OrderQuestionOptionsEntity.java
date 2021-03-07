@@ -18,8 +18,11 @@ public class OrderQuestionOptionsEntity extends QuestionOptionsEntity {
     /// Show answer trace
     private boolean showTrace = false;
 
-    /// Should be enabled multiple selection of same answers
-    private boolean enableMultipleSelection = true;
+    /// Same answers can be selected several times
+    private boolean multipleSelectionEnabled = true;
+
+    /// All answers must be selected
+    private boolean requireAllAnswers = true;
 
     /// Order number options
     private OrderNumberOptions orderNumberOptions = new OrderNumberOptions();

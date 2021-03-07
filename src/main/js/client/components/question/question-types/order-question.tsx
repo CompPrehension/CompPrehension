@@ -19,7 +19,8 @@ export const OrderQuestion : React.FC = observer(() => {
         $('[id^="answer_"]').each((_, e) => {
             const $this = $(e);
             const idStr = $this.attr('id')?.split("answer_")[1] ?? ""; 
-            $this.click(() => onAnswersChanged(idStr));
+            const id = +idStr;
+            $this.click(() => onAnswersChanged([id, id]));
         });
 
         // show elements positions
@@ -28,7 +29,7 @@ export const OrderQuestion : React.FC = observer(() => {
             const pos = $this.data("comp-ph-pos");
             $this.append($(`<span class="comp-ph-expr-top-hint">${pos}</span>`));
         });  
-    }, [questionData.id]);
+    }, [questionData.attemptId]);
 
 
     // drop all changes, set original qustion text
@@ -42,7 +43,7 @@ export const OrderQuestion : React.FC = observer(() => {
         .removeClass('disabled'); 
 
     // apply history changes          
-    answersHistory.forEach((h, idx) => {
+    answersHistory.forEach(([h], idx) => {
         const answr = $(`#answer_${h}`);
 
         // add pos hint        
@@ -54,7 +55,7 @@ export const OrderQuestion : React.FC = observer(() => {
         }        
 
         // disable if needed
-        if (options.enableMultipleSelection) {            
+        if (options.multipleSelectionEnabled) {            
             answr.addClass('disabled');            
         }
     });

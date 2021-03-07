@@ -4,13 +4,14 @@ import { SessionInfo } from "./types/session-info";
 import { ajaxGet, ajaxPost } from "./utils/ajax";
 import * as E from "fp-ts/lib/Either";
 import { Feedback } from "./types/feedback";
+import { Interaction } from "./types/interaction";
 
 
 
 export class Store {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable questionData?: Question = undefined;
-    @observable answersHistory: string[] = [];
+    @observable answersHistory: [number, number][] = [];
     @observable isLoading: boolean = true;
     @observable isFeedbackLoading: boolean = false;
     @observable feedback?: Feedback = undefined;
@@ -34,7 +35,7 @@ export class Store {
     }
 
     @action 
-    loadQuestion = async (attemptId: string) : Promise<void> => {
+    loadQuestion = async (attemptId: number) : Promise<void> => {
         if (!this.sessionInfo) {
             throw new Error("Session is not defined");
         }
@@ -53,11 +54,15 @@ export class Store {
      
     @action 
     sendAnswers = async () : Promise<void> => {
-        const { questionData, answersHistory } = this;
-        const mergedAnswers = answersHistory.join(",");
-        const body = {
-            attemptId: questionData?.id,
-            answers: toJS(mergedAnswers),
+        const { questionData, answersHistory } = this;      
+        if (!questionData) {
+            return;
+        }
+        
+        const body : Interaction = {
+            attemptId: questionData.attemptId,
+            questionId: questionData.questionId,
+            answers: toJS(answersHistory),
         }
 
         this.isFeedbackLoading = true;
@@ -74,8 +79,14 @@ export class Store {
     }
 
     @action 
-    onAnswersChanged = (answerId: string): void => {
-        this.answersHistory.push(answerId);
+    onAnswersChanged = (answer: [number, number]): void => {
+        this.answersHistory.push(answer);
+        this.sendAnswers();
+    }
+
+    @action
+    updateAnswersHistory = (newHistory: [number, number][]): void => {
+        this.answersHistory = [ ...newHistory ];
         this.sendAnswers();
     }
 }

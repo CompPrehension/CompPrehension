@@ -3554,5 +3554,106 @@
       {"name": "operators"},
       {"name": "Python"}
     ]
+  },
+  {
+    "name": "type_test",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "index",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "last",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "get_type",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "type2",
+        "formulation": "(?a my:index \"2\"^^xsd:integer) -> (?a my:get_type \"Matrix\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "type3",
+        "formulation": "(?a my:index \"3\"^^xsd:integer) -> (?a my:get_type \"Matrix\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "type5",
+        "formulation": "(?a my:index \"5\"^^xsd:integer) -> (?a my:get_type \"Matrix\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "type7",
+        "formulation": "(?a my:index \"7\"^^xsd:integer) -> (?a my:get_type \"Matrix\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "type11",
+        "formulation": "(?a my:index \"11\"^^xsd:integer) -> (?a my:get_type \"Matrix\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "type15",
+        "formulation": "(?a my:index \"15\"^^xsd:integer) -> (?a my:get_type \"size_t\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "type21",
+        "formulation": "(?a my:index \"21\"^^xsd:integer) -> (?a my:get_type \"int\").",
+        "backend": "Jena"
+      }
+    ],
+    "concepts": [],
+    "tags": [
+      {"name": "type"}
+    ]
+  },
+  {
+    "name": "type_test_error",
+    "positive": false,
+    "positiveLaw": "type_test",
+    "formulations": [
+      {
+        "name": "get_type",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_type",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "wrong_type",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "wrong_type",
+        "formulation": "(?a my:get_type ?type), (?a my:student_type ?s_type), (?type not_equal ?s_type) -> (?a my:wrong_type ?s_type).",
+        "backend": "Jena"
+      }
+    ],
+    "concepts": [],
+    "tags": [
+      {"name": "type"}
+    ]
   }
 ]

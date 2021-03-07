@@ -5,7 +5,8 @@ export interface QuestionOptions {
 
 export interface OrderQuestionOptions extends QuestionOptions {
     showTrace: boolean;
-    enableMultipleSelection: boolean,
+    multipleSelectionEnabled: boolean,
+    requireAllAnswers: boolean,
     orderNumberOptions?: {
         delimiter: string,
         position: 'PREFIX' | 'SUFFIX' | 'NONE',   
@@ -14,6 +15,5 @@ export interface OrderQuestionOptions extends QuestionOptions {
 }
 
 export interface MatchingQuestionOptions extends QuestionOptions {
-    hideSelected: boolean,
-    mode: 'combobox' | 'dragNdrop',
+    displayMode: 'combobox' | 'dragNdrop',
 }

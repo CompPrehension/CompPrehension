@@ -4,6 +4,8 @@ package com.example.demo.controllers;
 import com.example.demo.Service.ExerciseService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.dto.*;
+import com.example.demo.dto.question.QuestionDto;
+import com.example.demo.dto.question.QuestionMapper;
 import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.businesslogic.Tag;
 import com.example.demo.models.businesslogic.Question;
@@ -26,8 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -78,17 +78,16 @@ public class LtiController {
     public FeedbackDto addAnswer(@RequestBody InteractionDto interaction,
                               HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
-        List<Integer> answerIds = Arrays.stream(interaction.getAnswers().split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+        Long questionId = interaction.getQuestionId();
+        Long[][] answers = interaction.getAnswers();
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
 
         List<Tag> tags = exerciseService.getTags(attempt.getExercise());
-        Question question = questionService.generateQuestion(attempt);
+        Question question = questionService.getQuestion(questionId);
         questionService.solveQuestion(question, tags);
-        questionService.responseQuestion(question, answerIds);
+        questionService.responseQuestion(question, answers);
         List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;
         List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
@@ -108,14 +107,7 @@ public class LtiController {
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = questionService.generateQuestion(attempt);
         QuestionEntity qData = question.getQuestionData();
-
-        return QuestionDto.builder()
-            .id(exAttemptId.toString())
-            .type(qData.getQuestionType().toString())
-            .answers(new QuestionAnswerDto[0])
-            .text(qData.getQuestionText())
-            .options(qData.getOptions())
-            .build();
+        return QuestionMapper.toDto(attempt, qData);
     }
 
     @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
@@ -128,7 +120,7 @@ public class LtiController {
         }
 
         UserInfoDto user = UserInfoDto.builder()
-             .id(params.get("user_id").toString())
+             .id(Long.parseLong(params.get("user_id").toString()))
              .displayName(params.get("lis_person_name_given").toString())
              .email(params.get("lis_person_contact_email_primary").toString())
              .roles(Stream.of(params.get("roles").toString().split(","))
@@ -150,8 +142,8 @@ public class LtiController {
         return SessionInfoDto.builder()
             .sessionId(session.getId())
             .attemptIds(exerciseAttempts.stream()
-                                        .map(v -> v.getId()).map(v -> v.toString())
-                                        .toArray(String[]::new))
+                                        .map(v -> v.getId())
+                                        .toArray(Long[]::new))
             .user(user)
             .expired(new Date())
             .build();

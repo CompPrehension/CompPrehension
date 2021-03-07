@@ -64,7 +64,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1, tags);
@@ -90,7 +90,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -110,7 +110,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -128,7 +128,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -147,7 +147,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
             List<Tag> tags = getTags(testExerciseAttemptList.get(1));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -166,7 +166,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
             List<Tag> tags = getTags(testExerciseAttemptList.get(1));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -190,7 +190,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(2));
             List<Tag> tags = getTags(testExerciseAttemptList.get(2));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c * d"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
             List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
@@ -200,7 +200,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(2));
             List<Tag> tags = getTags(testExerciseAttemptList.get(2));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c * d"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
             List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
@@ -218,7 +218,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(3));
             List<Tag> tags = getTags(testExerciseAttemptList.get(3));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
             List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
@@ -228,7 +228,7 @@ public class SystemIntegrationTest {
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(3));
             List<Tag> tags = getTags(testExerciseAttemptList.get(3));
-            assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c"), question1.getQuestionText().getText());
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
             List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
@@ -237,12 +237,29 @@ public class SystemIntegrationTest {
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
                     mistakes.get(0).getLawName());
         }
+
+        {
+            Question question1 = generateQuestion(testExerciseAttemptList.get(4));
+            Tag tag = new Tag();
+            tag.setName("type");
+            List<Tag> tags = new ArrayList<>(Arrays.asList(tag));
+            assertEquals("MATCHING", question1.getQuestionType().name());
+            Long question2 = solveQuestion(question1, tags);
+            Question question3 = getQuestion(question2);
+            question3.addResponse(makeResponse(question3.getAnswerObject(2), question3.getAnswerObject(8)));
+            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
+            assertEquals(0, mistakes.size());
+        }
     }
 
     ResponseEntity makeResponse(AnswerObjectEntity answer) {
+        return makeResponse(answer, answer);
+    }
+
+    ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR) {
         ResponseEntity response = new ResponseEntity();
-        response.setLeftAnswerObject(answer);
-        response.setRightAnswerObject(answer);
+        response.setLeftAnswerObject(answerL);
+        response.setRightAnswerObject(answerR);
         responseRepository.save(response);
         return response;
     }

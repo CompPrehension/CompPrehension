@@ -44,7 +44,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
-        assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
@@ -56,7 +56,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr2.setDeniedConcepts(List.of(
                 domain.getConcept("precedence")
         ));
-        assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c"), domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr3 = new QuestionRequest();
         qr3.setTargetConcepts(List.of(
@@ -70,7 +70,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr3.setDeniedConcepts(List.of(
 
         ));
-        assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a + b + c * d"), domain.makeQuestion(qr3, Language.ENGLISH).getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), domain.makeQuestion(qr3, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr4 = new QuestionRequest();
         qr4.setTargetConcepts(List.of());
@@ -94,7 +94,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("associativity")
         ));
         Question question = domain.makeQuestion(qr, Language.ENGLISH);
-        assertEquals(ProgrammingLanguageExpressionDomain.QuestionTextToHtml("a == b < c"), question.getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question.getQuestionText().getText());
 
         List<Tag> tags = new ArrayList<>();
         for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {

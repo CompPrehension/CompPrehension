@@ -56,6 +56,7 @@ public class QuestionService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+        saveQuestion(question.getQuestionData());
         return question;
     }
 
@@ -73,6 +74,16 @@ public class QuestionService {
     public Question responseQuestion(Question question, List<Integer> responses) {
         for (Integer response : responses) {
             question.addResponse(makeResponse(question.getAnswerObject(response)));
+        }
+        return question;
+    }
+
+    public Question responseQuestion(Question question, Long[][] responses) {
+        for (Long[] pair: responses) {
+            AnswerObjectEntity left = question.getAnswerObject(pair[0].intValue());
+            AnswerObjectEntity right = question.getAnswerObject(pair[1].intValue());
+            ResponseEntity response = makeResponse(left, right);
+            question.addResponse(response);
         }
         return question;
     }
@@ -113,22 +124,25 @@ public class QuestionService {
             }
             answerObjectRepository.saveAll(question.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
         }
+
+        List<BackendFactEntity> newBackendFacts = new ArrayList<>();
         if (question.getStatementFacts() != null) {
             for (BackendFactEntity fact : question.getStatementFacts()) {
-                if (fact.getId() == null) {
+                if (fact.getQuestion() == null) {
                     fact.setQuestion(question);
+                    newBackendFacts.add(fact);
                 }
             }
-            backendFactRepository.saveAll(question.getStatementFacts().stream().filter(f -> f.getId() == null)::iterator);
         }
         if (question.getSolutionFacts() != null) {
             for (BackendFactEntity fact : question.getSolutionFacts()) {
-                if (fact.getId() == null) {
+                if (fact.getQuestion() == null) {
                     fact.setQuestion(question);
+                    newBackendFacts.add(fact);
                 }
             }
-            backendFactRepository.saveAll(question.getSolutionFacts().stream().filter(f -> f.getId() == null)::iterator);
         }
+        backendFactRepository.saveAll(newBackendFacts);
         questionRepository.save(question);
     }
     
@@ -166,6 +180,14 @@ public class QuestionService {
         ResponseEntity response = new ResponseEntity();
         response.setLeftAnswerObject(answer);
         response.setRightAnswerObject(answer);
+        responseRepository.save(response);
+        return response;
+    }
+
+    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR) {
+        ResponseEntity response = new ResponseEntity();
+        response.setLeftAnswerObject(answerL);
+        response.setRightAnswerObject(answerR);
         responseRepository.save(response);
         return response;
     }
