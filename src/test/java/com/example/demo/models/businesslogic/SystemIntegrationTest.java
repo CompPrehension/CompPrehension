@@ -2,6 +2,7 @@ package com.example.demo.models.businesslogic;
 
 import com.example.demo.DemoApplication;
 import com.example.demo.Service.DomainService;
+import com.example.demo.Service.InteractionService;
 import com.example.demo.Service.QuestionService;
 import com.example.demo.models.businesslogic.backend.JenaBackend;
 import com.example.demo.models.businesslogic.backend.PelletBackend;
@@ -9,6 +10,7 @@ import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
+import com.example.demo.models.entities.EnumData.InteractionType;
 import com.example.demo.models.entities.EnumData.RoleInExercise;
 import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.models.repository.ResponseRepository;
@@ -38,6 +40,9 @@ public class SystemIntegrationTest {
 
     @Autowired
     DomainService domainService;
+
+    @Autowired
+    InteractionService interactionService;
 
 //    @Autowired
 //    PelletBackend backend;
@@ -73,6 +78,34 @@ public class SystemIntegrationTest {
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+
+            //Сохранение интеракции
+            InteractionEntity ie = new InteractionEntity();
+            ie.setQuestion(question1.questionData);
+            ie.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
+            ie.setMistakes(result.mistakes);
+            ie.setOrderNumber(result.IterationsLeft);//Показатель порядка?
+            //ie.setFeedback();Где взять?
+            ArrayList<CorrectLawEntity> cles = new ArrayList<>();
+            for(int i = 0; i < result.correctlyAppliedLaws.size(); i++){
+                CorrectLawEntity cle = new CorrectLawEntity();
+                cle.setLawName(result.correctlyAppliedLaws.get(i));
+                cle.setInteraction(ie);
+                cles.add(cle);
+            }
+            ie.setCorrectLaw(cles);
+            interactionService.saveInteraction(ie);
+            ie = interactionService.getInteraction(ie.getId()).get();
+            ArrayList<InteractionEntity> ies = new ArrayList<>();
+            if(question1.questionData.getInteractions() != null) {
+                ies.addAll(question1.questionData.getInteractions());
+            }
+            ies.add(ie);
+            question1.questionData.setInteractions(ies);
+            questionService.saveQuestion(question1.questionData);
+
+            //interactionService.saveInteraction(ie);
+            Question q = questionService.getQuestion(question2);
             assertEquals(1, result.mistakes.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
@@ -85,7 +118,7 @@ public class SystemIntegrationTest {
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
 
-            float grade = strategy.grade(testExerciseAttemptList.get(0));
+            float grade = strategy.grade(IterableUtils.toList(exerciseAttemptRepository.findAll()).get(0));
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
@@ -106,11 +139,11 @@ public class SystemIntegrationTest {
                     result.mistakes.get(0).getLawName());
             float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
-
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            questionService.saveQuestion(question1.questionData);
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -122,6 +155,31 @@ public class SystemIntegrationTest {
             assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(1, result.IterationsLeft);
+
+            //Сохранение интеракции
+            InteractionEntity ie = new InteractionEntity();
+            ie.setQuestion(question1.questionData);
+            ie.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
+            ie.setMistakes(result.mistakes);
+            ie.setOrderNumber(result.IterationsLeft);//Показатель порядка?
+            //ie.setFeedback();Где взять?
+            ArrayList<CorrectLawEntity> cles = new ArrayList<>();
+            for(int i = 0; i < result.correctlyAppliedLaws.size(); i++){
+                CorrectLawEntity cle = new CorrectLawEntity();
+                cle.setLawName(result.correctlyAppliedLaws.get(i));
+                cle.setInteraction(ie);
+                cles.add(cle);
+            }
+            ie.setCorrectLaw(cles);
+            interactionService.saveInteraction(ie);
+            ie = interactionService.getInteraction(ie.getId()).get();
+            ArrayList<InteractionEntity> ies = new ArrayList<>();
+            if(question1.questionData.getInteractions() != null) {
+                ies.addAll(question1.questionData.getInteractions());
+            }
+            ies.add(ie);
+            question1.questionData.setInteractions(ies);
+            questionService.saveQuestion(question1.questionData);
 
             float grade = strategy.grade(testExerciseAttemptList.get(0));
         }

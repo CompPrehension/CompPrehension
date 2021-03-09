@@ -170,7 +170,9 @@ public class Strategy extends AbstractStrategy {
 
         for (InteractionEntity ie : ies){
             ArrayList<MistakeEntity> mistakes = new ArrayList<>();
-            mistakes.addAll(ie.getMistakes());
+            if (ie.getMistakes() != null) {
+                mistakes.addAll(ie.getMistakes());
+            }
 
             for(MistakeEntity me : mistakes){
                 if(conceptAtempt.containsKey(me.getLawName())){
@@ -183,7 +185,9 @@ public class Strategy extends AbstractStrategy {
             }
 
             ArrayList<CorrectLawEntity> correctLaws = new ArrayList<>();
-            correctLaws.addAll(ie.getCorrectLaw());
+            if(ie.getCorrectLaw() != null) {
+                correctLaws.addAll(ie.getCorrectLaw());
+            }
 
             for(CorrectLawEntity cle : correctLaws){
                 if(conceptAtempt.containsKey(cle.getLawName())){
