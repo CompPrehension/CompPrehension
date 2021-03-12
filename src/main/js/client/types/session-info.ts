@@ -1,8 +1,9 @@
-import { UserInfo } from "./user-info";
+import { TUserInfo } from "./user-info";
+import * as io from 'io-ts'
 
-export interface SessionInfo {
-    sessionId: string,
-    attemptIds: number[],
-    user: UserInfo,
-    expired: Date,
-}
+export const TSessionInfo = io.type({
+    sessionId: io.string,
+    attemptIds: io.array(io.number),
+    user: TUserInfo,
+});
+export type SessionInfo = io.TypeOf<typeof TSessionInfo>;
