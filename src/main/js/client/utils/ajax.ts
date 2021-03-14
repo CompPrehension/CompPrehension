@@ -1,32 +1,55 @@
-import { Either } from "fp-ts/lib/Either";
-import * as TE from "fp-ts/lib/TaskEither";
+import { Fetcher } from "fetcher-ts";
+import { Either, left, right } from "fp-ts/lib/Either";
+import * as O from "fp-ts/lib/Option";
+import * as io from "io-ts";
+import { PathReporter } from 'io-ts/lib/PathReporter';
+import { MergeIntersections } from "../types/utils";
 
 type RequestError = {
-    error: string,
+    error?: string,
     message: string,
-    path: string,
-    status: number,
-    timestamp: string,
-    trace: string,
+    path?: string,
+    status?: number,
+    timestamp?: string,
+    trace?: string,
 }
 
-
-export function ajaxGet<T>(url: string) : Promise<Either<RequestError, T>> {
+/**
+ * Do GET request
+ * @param {string} url Target url
+ * @param {io.Type<T, T, unknown>} [validator] Optional response validator
+ * @returns Pair of either RequestError or ResposeBody
+ */
+export function ajaxGet<T>(url: string, validator?: io.Type<T, T, unknown>) : Promise<Either<RequestError, T>> {
     console.log(`ajax get: ${url}`);
-    const lazyPromise = async () => {
-        const resp = await fetch(url);
-        const json = await resp.json();
-        if (resp.ok) {
-            console.log(json);
-            return json;
-        }
-        console.error(json);
-        throw json;
-    };
-    return TE.tryCatch(lazyPromise, rej => rej as RequestError)();
+
+    type FetcherResults = 
+        | { code: 200, payload: T } 
+        | { code: 500, payload: RequestError };
+    const fetcher = new Fetcher<FetcherResults, Either<RequestError, T>>(url)
+        .handle(200, data => (console.log(data), right(data)), validator)
+        .handle(500, error => (console.error(error), left(error)))
+        .discardRest(() => (console.error("Unhandled request error"), left({ message: "Unhandled request error" })));    
+        
+    const result = fetcher.run()
+        .then(([data, errors]) => {
+            if (O.isSome(errors)) {                
+                const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
+                return (console.error(error), left(error));     
+            }
+            return data;
+        });
+    return result;
 }
 
-export function ajaxPost<T>(url: string, body: object) : Promise<Either<RequestError, T>> {
+/**
+ * Do POST request
+ * @param {string} url Target url
+ * @param {object} body Request body
+ * @param {io.Type<T, T, unknown>} [validator] Optional response validator
+ * @returns Pair of either RequestError or ResposeBody
+ */
+export function ajaxPost<T>(url: string, body: object, validator?: io.Type<T, T, unknown>) : Promise<Either<RequestError, T>> {
     const params = {
         method: 'POST',
         headers: {
@@ -36,15 +59,21 @@ export function ajaxPost<T>(url: string, body: object) : Promise<Either<RequestE
     };
 
     console.log(`ajax post: ${url}`, params.body);
-    const lazyPromise = async () => {
-        const resp = await fetch(url, params);
-        const json = await resp.json();
-        if (resp.ok) {
-            console.log(json);
-            return json;
-        }
-        console.error(json);
-        throw json;
-    };
-    return TE.tryCatch(lazyPromise, rej => rej as RequestError)();
+    type FetcherResults = 
+        | { code: 200, payload: T } 
+        | { code: 500, payload: RequestError };
+    const fetcher = new Fetcher<FetcherResults, Either<RequestError, T>>(url, params)
+        .handle(200, data => (console.log(data), right(data)), validator)
+        .handle(500, error => (console.error(error), left(error)))
+        .discardRest(() => (console.error("Unhandled request error"), left({ message: "Unhandled request error" })));
+    
+    const result = fetcher.run()
+        .then(([data, errors]) => {
+            if (O.isSome(errors)) {
+                const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
+                return (console.error(error), left(error));    
+            }
+            return data;
+        });
+    return result;
 }

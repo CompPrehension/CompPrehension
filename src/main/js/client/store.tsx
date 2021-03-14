@@ -1,9 +1,9 @@
 import { action, computed, makeObservable, observable, runInAction, toJS } from "mobx";
-import { Question } from "./types/question";
-import { SessionInfo } from "./types/session-info";
+import { Question, TQuestion } from "./types/question";
+import { SessionInfo, TSessionInfo } from "./types/session-info";
 import { ajaxGet, ajaxPost } from "./utils/ajax";
 import * as E from "fp-ts/lib/Either";
-import { Feedback } from "./types/feedback";
+import { Feedback, TFeedback } from "./types/feedback";
 import { Interaction } from "./types/interaction";
 
 
@@ -27,7 +27,7 @@ export class Store {
         }
 
         this.isLoading = true;
-        const dataEither = await ajaxGet<SessionInfo>('loadSessionInfo')
+        const dataEither = await ajaxGet('loadSessionInfo', TSessionInfo)
             .finally(() => this.isLoading = false);
         const data = E.getOrElseW(_ => undefined)(dataEither);
         
@@ -41,7 +41,7 @@ export class Store {
         }
 
         this.isLoading = true;
-        const dataEither =  await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`)
+        const dataEither = await ajaxGet(`getQuestion?attemptId=${attemptId}`, TQuestion)
             .finally(() => this.isLoading = false);
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
@@ -66,7 +66,7 @@ export class Store {
         }
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ajaxPost<Feedback>('addAnswer', body)
+        const feedbackEither = await ajaxPost('addAnswer', body, TFeedback)
             .finally(() => this.isFeedbackLoading = false);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 

@@ -9,6 +9,7 @@ import com.example.demo.dto.question.QuestionMapper;
 import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.businesslogic.Tag;
 import com.example.demo.models.businesslogic.Question;
+import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.AttemptStatus;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
@@ -88,14 +89,16 @@ public class LtiController {
         Question question = questionService.getQuestion(questionId);
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answers);
-        List<MistakeEntity> mistakes = questionService.judgeQuestion(question, tags).mistakes;
-        List<HyperText> explanations = questionService.explainMistakes(question, mistakes);
+        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
+        List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
         float grade = strategy.grade(attempt);
 
         return FeedbackDto.builder()
             .grade(grade)
             .errors(errors)
+            .iterationsLeft(judgeResult.IterationsLeft)
+            .correctOptionsCount(judgeResult.CountCorrectOptions)
             .build();
     }
 
