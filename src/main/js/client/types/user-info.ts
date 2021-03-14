@@ -1,9 +1,14 @@
 import * as io from 'io-ts'
 
-export const TUserInfo = io.type({
+export type UserInfo = {
+    id: number,
+    displayName: string,
+    email: string,
+    roles: string[],
+}
+export const TUserInfo : io.Type<UserInfo> = io.type({
     id: io.number,
     displayName: io.string,
     email: io.string,
     roles: io.array(io.string),
 })
-export type UserInfo = io.TypeOf<typeof TUserInfo>

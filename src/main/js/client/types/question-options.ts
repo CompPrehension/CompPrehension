@@ -1,12 +1,23 @@
 import * as io from 'io-ts'
-import { MergeIntersections } from './utils'
 
-export const TQuestionOptions = io.type({
+export type QuestionOptions = {
+    requireContext: boolean,
+}
+export const TQuestionOptions : io.Type<QuestionOptions> = io.type({
     requireContext: io.boolean,
-})
-export type QuestionOptions = io.TypeOf<typeof TQuestionOptions>
+});
 
-export const TOrderQuestionOptions = io.intersection([
+export type OrderQuestionOptions = QuestionOptions & {
+    showTrace: boolean,
+    multipleSelectionEnabled: boolean,
+    requireAllAnswers: boolean,
+    orderNumberOptions?: {
+        delimiter: string,
+        position: 'PREFIX' | 'SUFFIX' | 'NONE',
+        replacers?: string[] | null,
+    }
+};
+export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
         showTrace: io.boolean,
@@ -29,9 +40,11 @@ export const TOrderQuestionOptions = io.intersection([
         ]),
     })
 ])
-export type OrderQuestionOptions = MergeIntersections<io.TypeOf<typeof TOrderQuestionOptions>>
 
-export const TMatchingQuestionOptions = io.intersection([
+export type MatchingQuestionOptions = QuestionOptions & {
+    displayMode: 'combobox' | 'dragNdrop',
+}
+export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
         displayMode: io.keyof({
@@ -40,4 +53,3 @@ export const TMatchingQuestionOptions = io.intersection([
         }),
     }),
 ])
-export type MatchingQuestionOptions = MergeIntersections<io.TypeOf<typeof TMatchingQuestionOptions>>

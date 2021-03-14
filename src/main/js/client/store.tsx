@@ -27,7 +27,7 @@ export class Store {
         }
 
         this.isLoading = true;
-        const dataEither = await ajaxGet<SessionInfo>('loadSessionInfo', TSessionInfo)
+        const dataEither = await ajaxGet('loadSessionInfo', TSessionInfo)
             .finally(() => this.isLoading = false);
         const data = E.getOrElseW(_ => undefined)(dataEither);
         
@@ -41,7 +41,7 @@ export class Store {
         }
 
         this.isLoading = true;
-        const dataEither = await ajaxGet<Question>(`getQuestion?attemptId=${attemptId}`, TQuestion)
+        const dataEither = await ajaxGet(`getQuestion?attemptId=${attemptId}`, TQuestion)
             .finally(() => this.isLoading = false);
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
@@ -66,7 +66,7 @@ export class Store {
         }
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ajaxPost<Feedback>('addAnswer', body, TFeedback)
+        const feedbackEither = await ajaxPost('addAnswer', body, TFeedback)
             .finally(() => this.isFeedbackLoading = false);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
