@@ -29,7 +29,7 @@ export const OrderQuestion : React.FC = observer(() => {
             const pos = $this.data("comp-ph-pos");
             $this.append($(`<span class="comp-ph-expr-top-hint">${pos}</span>`));
         });  
-    }, [questionData.attemptId]);
+    }, [questionData.questionId]);
 
 
     // drop all changes, set original qustion text
