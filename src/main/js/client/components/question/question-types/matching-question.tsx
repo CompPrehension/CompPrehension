@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
-import React from "react";
+import React, { useEffect } from "react";
 import store from '../../../store';
 import Select, { components } from 'react-select';
+import ReactDOM from "react-dom";
 
 
 export const MatchingQuestion : React.FC = observer(() => {
@@ -11,13 +12,15 @@ export const MatchingQuestion : React.FC = observer(() => {
     }
 
     const { options } = questionData;
-    switch(options.displayMode) {
-        case "combobox":
+    switch(true) {
+        case options.displayMode === "combobox" && !options.requireContext:
             return <ComboboxMatchingQuestion />;
-        case "dragNdrop":
+        case options.displayMode === "combobox" && options.requireContext:
+            return <ComboboxMatchingQuestionWithCtx />;
+        case options.displayMode === "dragNdrop":
             return <DragAndDropMatchingQuestion />;
         default:
-            return <div>NonImplemented</div>;    
+            return <div>NonImplemented</div>;  
     }
 });
 
@@ -52,18 +55,50 @@ const RawHtmlSelectSingleValue = (props : any) => {
     );
 };
 
+const ComboboxMatchingQuestionWithCtx = observer(() => {
+    const { questionData, answersHistory, onAnswersChanged } = store;
+    if (!questionData || questionData.type != "MATCHING" || !questionData.options.requireContext) {
+        return null;
+    }
+    const { groups = [], options } = questionData;      
+
+    useEffect(() => {
+        // replace all placeholders on first render
+        document.querySelectorAll('[id^="answer_"]')
+            .forEach(elem => {
+                const answerId = +elem.id?.split("answer_")[1];
+                const selector = <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
+                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }} 
+                                         onChange={(v => {
+                                            if (!v) {
+                                               return;
+                                            }
+
+                                            const state = store.answersHistory.reduce((acc, [l, r]) => (acc[l] = r, acc), {} as Record<number, number>);
+                                            state[answerId] = v.value;
+                                            store.updateAnswersHistory(Object.keys(state).map(k => [+k, +state[+k]]));
+                                        })}
+                                    />
+                ReactDOM.render(selector, elem);
+            });        
+    }, [questionData.questionId]);
+
+    return (
+        <div>
+            <p dangerouslySetInnerHTML={{ __html: questionData.text }} />
+        </div>
+    );
+});
+
 const ComboboxMatchingQuestion = observer(() => {
     const { questionData, answersHistory, onAnswersChanged } = store;
-    if (!questionData || questionData.type != "MATCHING") {
+    if (!questionData || questionData.type != "MATCHING" || questionData.options.requireContext) {
         return null;
     }
 
-    const { answers = [], groups = [], options } = questionData;
-        
-    let currentState : Record<number, number> = {};  
-    if (answersHistory.length) {
-        currentState = answersHistory.reduce((acc, [l, r]) => (acc[l] = r, acc), {} as Record<number, number>);
-    }
+    const { answers = [], groups = [], options } = questionData;        
+    const currentState = answersHistory
+        .reduce((acc, [l, r]) => (acc[l] = r, acc), {} as Record<number, number>); 
 
     return (
         <div>

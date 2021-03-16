@@ -14,13 +14,15 @@ type RequestError = {
     trace?: string,
 }
 
+type PromiseEither<E, A> = Promise<Either<E, A>>
+
 /**
  * Do GET request
  * @param {string} url Target url
  * @param {io.Type<T, T, unknown>} [validator] Optional response validator
  * @returns Pair of either RequestError or ResposeBody
  */
-export function ajaxGet<T>(url: string, validator?: io.Type<T, T, unknown>) : Promise<Either<RequestError, T>> {
+export async function ajaxGet<T = unknown>(url: string, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
     console.log(`ajax get: ${url}`);
 
     type FetcherResults = 
@@ -31,15 +33,12 @@ export function ajaxGet<T>(url: string, validator?: io.Type<T, T, unknown>) : Pr
         .handle(500, error => (console.error(error), left(error)))
         .discardRest(() => (console.error("Unhandled request error"), left({ message: "Unhandled request error" })));    
         
-    const result = fetcher.run()
-        .then(([data, errors]) => {
-            if (O.isSome(errors)) {                
-                const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
-                return (console.error(error), left(error));     
-            }
-            return data;
-        });
-    return result;
+    const [data, errors] = await fetcher.run();
+    if (O.isSome(errors)) {                
+        const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
+        return (console.error(error), left(error));      
+    }
+    return data;    
 }
 
 /**
@@ -49,7 +48,7 @@ export function ajaxGet<T>(url: string, validator?: io.Type<T, T, unknown>) : Pr
  * @param {io.Type<T, T, unknown>} [validator] Optional response validator
  * @returns Pair of either RequestError or ResposeBody
  */
-export function ajaxPost<T>(url: string, body: object, validator?: io.Type<T, T, unknown>) : Promise<Either<RequestError, T>> {
+export async function ajaxPost<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
     const params = {
         method: 'POST',
         headers: {
@@ -67,13 +66,10 @@ export function ajaxPost<T>(url: string, body: object, validator?: io.Type<T, T,
         .handle(500, error => (console.error(error), left(error)))
         .discardRest(() => (console.error("Unhandled request error"), left({ message: "Unhandled request error" })));
     
-    const result = fetcher.run()
-        .then(([data, errors]) => {
-            if (O.isSome(errors)) {
-                const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
-                return (console.error(error), left(error));    
-            }
-            return data;
-        });
-    return result;
+    const [data, errors] = await fetcher.run();
+    if (O.isSome(errors)) {                
+        const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
+        return (console.error(error), left(error));     
+    }
+    return data;
 }
