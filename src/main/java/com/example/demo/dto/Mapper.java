@@ -1,20 +1,32 @@
-package com.example.demo.dto.question;
+package com.example.demo.dto;
 
-import com.example.demo.dto.QuestionAnswerDto;
+import com.example.demo.dto.question.MatchingQuestionDto;
+import com.example.demo.dto.question.QuestionDto;
 import com.example.demo.models.entities.AnswerObjectEntity;
-import com.example.demo.models.entities.ExerciseAttemptEntity;
 import com.example.demo.models.entities.QuestionEntity;
+import com.example.demo.models.entities.UserEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class QuestionMapper {
-    public static QuestionDto toDto(ExerciseAttemptEntity attempt, QuestionEntity question) {
+public class Mapper {
+
+    public static UserInfoDto toDto(UserEntity user) {
+        return UserInfoDto.builder()
+                .id(user.getId())
+                .displayName(user.getFirstName() + " " + user.getLastName())
+                .email(user.getEmail())
+                .roles(user.getRoles().stream().map(Enum::toString).collect(Collectors.toList()))
+                .build();
+    }
+
+    public static QuestionDto toDto(QuestionEntity question) {
         switch (question.getQuestionType()) {
             case ORDER:
                 return QuestionDto.builder()
-                        .attemptId(attempt.getId())
+                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(new QuestionAnswerDto[0])
@@ -33,7 +45,7 @@ public class QuestionMapper {
                         .toArray(QuestionAnswerDto[]::new);
 
                 return MatchingQuestionDto.builder()
-                        .attemptId(attempt.getId())
+                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(left)

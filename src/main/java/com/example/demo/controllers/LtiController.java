@@ -6,16 +6,16 @@ import com.example.demo.Service.QuestionService;
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.*;
 import com.example.demo.dto.question.QuestionDto;
-import com.example.demo.dto.question.QuestionMapper;
+import com.example.demo.dto.Mapper;
 import com.example.demo.models.businesslogic.Strategy;
 import com.example.demo.models.businesslogic.Tag;
 import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.businesslogic.domains.Domain;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.AttemptStatus;
+import com.example.demo.models.entities.EnumData.Role;
 import com.example.demo.models.repository.ExerciseAttemptRepository;
 import com.example.demo.models.repository.ExerciseRepository;
-import com.example.demo.models.repository.UserRepository;
 import com.example.demo.utils.HyperText;
 import lombok.val;
 import org.apache.commons.collections4.IterableUtils;
@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("lti")
@@ -112,7 +111,7 @@ public class LtiController {
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = questionService.generateQuestion(attempt);
         QuestionEntity qData = question.getQuestionData();
-        return QuestionMapper.toDto(attempt, qData);
+        return Mapper.toDto(qData);
     }
 
     @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
@@ -126,12 +125,7 @@ public class LtiController {
 
         // get or create user
         val userEntity = userService.createOrUpdateFromLti(params);
-        val userDto = UserInfoDto.builder()
-             .id(userEntity.getId())
-             .displayName(userEntity.getFirstName() + " " + userEntity.getLastName())
-             .email(userEntity.getEmail())
-             .roles(userEntity.getRoles().stream().map(Enum::toString).collect(Collectors.toList()))
-             .build();
+        val userDto = Mapper.toDto(userEntity);
 
         val exercises = IterableUtils.toList(exerciseRepository.findAll());
         val exerciseAttempts = new ArrayList<ExerciseAttemptEntity>();
