@@ -66,7 +66,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public com.example.demo.models.businesslogic.Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
+    public com.example.demo.models.businesslogic.Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
 
         QuestionEntity question = new QuestionEntity();
         

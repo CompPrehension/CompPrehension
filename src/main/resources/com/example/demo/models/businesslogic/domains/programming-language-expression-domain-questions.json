@@ -48,6 +48,13 @@
       "associativity",
       "operator_binary_+",
       "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
     ]
   },
   {
@@ -100,6 +107,13 @@
       "operator_binary_==",
       "operator_binary_<",
       "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
     ]
   },
   {
@@ -167,6 +181,204 @@
       "operator_binary_+",
       "operator_binary_*",
       "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a + b + c",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "+ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "c"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "operator_binary_+",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a == b < c",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "== between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_==",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "< between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_<",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "=="
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "<"
+        },
+        {
+          "object": "c"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "operator_binary_==",
+      "operator_binary_<",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a + b + c * d",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "+ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "* between c and d",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "d"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "precedence",
+      "operator_binary_+",
+      "operator_binary_*",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
     ]
   },
   {
@@ -340,6 +552,14 @@
     "concepts": [
       "type",
       "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "type",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
     ]
   }
 ]

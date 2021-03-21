@@ -33,6 +33,13 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void testQuestionGeneration() throws Exception {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
                 domain.getConcept("precedence")
@@ -44,7 +51,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
-        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), domain.makeQuestion(qr, Language.ENGLISH).getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
@@ -56,7 +63,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr2.setDeniedConcepts(List.of(
                 domain.getConcept("precedence")
         ));
-        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), domain.makeQuestion(qr2, Language.ENGLISH).getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), domain.makeQuestion(qr2, tags, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr3 = new QuestionRequest();
         qr3.setTargetConcepts(List.of(
@@ -70,18 +77,25 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr3.setDeniedConcepts(List.of(
 
         ));
-        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), domain.makeQuestion(qr3, Language.ENGLISH).getQuestionText().getText());
+        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), domain.makeQuestion(qr3, tags, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr4 = new QuestionRequest();
         qr4.setTargetConcepts(List.of());
         qr4.setAllowedConcepts(List.of());
         qr4.setDeniedConcepts(List.of());
         assertEquals("Choose associativity of operator binary +",
-                domain.makeQuestion(qr4, Language.ENGLISH).getQuestionText().getText());
+                domain.makeQuestion(qr4, tags, Language.ENGLISH).getQuestionText().getText());
     }
 
     @Test
     public void testQuestionSolve() throws Exception {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
                 domain.getConcept("precedence")
@@ -93,15 +107,8 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
-        Question question = domain.makeQuestion(qr, Language.ENGLISH);
+        Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question.getQuestionText().getText());
-
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
 
         Backend backend = new JenaBackend();
         List<BackendFactEntity> solution = backend.solve(
