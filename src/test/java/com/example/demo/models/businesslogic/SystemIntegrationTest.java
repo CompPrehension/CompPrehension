@@ -328,7 +328,7 @@ public class SystemIntegrationTest {
         assertNotNull(exerciseAttempt.getExercise());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         assertTrue(checkQuestionRequest(qr, exerciseAttempt));
-        Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(qr, getTags(exerciseAttempt), exerciseAttempt.getUser().getPreferred_language());
         assertNotNull(question);
         //TODO: domain set domainEntity into question
         question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));

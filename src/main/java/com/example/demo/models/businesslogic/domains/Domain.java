@@ -82,7 +82,7 @@ public abstract class Domain {
     
     public abstract ExerciseEntity processExerciseForm(ExerciseForm ef);
     
-    public abstract Question makeQuestion(QuestionRequest questionRequest, Language userLanguage);
+    public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
     
     public abstract ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType);
 
@@ -125,12 +125,18 @@ public abstract class Domain {
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
 
     protected abstract List<Question> getQuestionTemplates();
-    public Question findQuestion(HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts) {
+    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts) {
         List<Question> questions = new ArrayList<>();
         int maxSuitCount = 0;
         for (Question q : getQuestionTemplates()) {
             int targetConceptCount = 0;
             boolean suit = true;
+            for (Tag tag : tags) {
+                if (!q.getTags().contains(tag.getName())) {
+                    suit = false;
+                    break;
+                }
+            }
             for (String concept : q.getConcepts()) {
                 if (deniedConcepts.contains(concept)) {
                     suit = false;

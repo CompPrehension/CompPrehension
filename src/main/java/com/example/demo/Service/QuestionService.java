@@ -51,10 +51,26 @@ public class QuestionService {
         this.questionRepository = questionRepository;
     }
 
+    List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
+        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
+        List<Tag> result = new ArrayList<>();
+        for (String tagString : tags) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        for (String tagString : List.of("basics", "operators", "order", "evaluation")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        return result;
+    }
+
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
-        Question question = domain.makeQuestion(qr, exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(qr, getTags(exerciseAttempt), exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
         return question;
@@ -155,7 +171,7 @@ public class QuestionService {
         Domain domain = core.getDomain(
                 exerciseAttempt.getExercise().getDomain().getName());
         Question newQuestion =
-                domain.makeQuestion(qr, userLanguage);
+                domain.makeQuestion(qr, getTags(exerciseAttempt), userLanguage);
         
         saveQuestion(newQuestion.getQuestionData());
         

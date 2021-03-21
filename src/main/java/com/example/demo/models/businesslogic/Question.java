@@ -10,6 +10,7 @@ import com.example.demo.models.entities.ResponseEntity;
 import com.example.demo.utils.HyperText;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public abstract class Question implements QuestionFront, QuestionBack {
@@ -19,6 +20,7 @@ public abstract class Question implements QuestionFront, QuestionBack {
     protected List<ResponseEntity> studentResponses = new ArrayList<>();
 
     protected List<String> concepts;
+    protected HashSet<String> tags;
     
     protected boolean isFinalResponse = false;
     
@@ -99,6 +101,9 @@ public abstract class Question implements QuestionFront, QuestionBack {
 
     public List<String> getConcepts() {
         return concepts;
+    }
+    public HashSet<String> getTags() {
+        return tags;
     }
 
     @Override

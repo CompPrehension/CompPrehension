@@ -163,7 +163,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
+    public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
         // Prepare concept name sets ...
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -189,7 +189,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
                 .build();
 
-        Question res = findQuestion(conceptNames, allowedConceptNames, deniedConceptNames);
+        Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames);
         if (res != null) {
             QuestionEntity entity = new QuestionEntity();
             List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
