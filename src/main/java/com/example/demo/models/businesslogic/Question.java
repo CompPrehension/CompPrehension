@@ -17,6 +17,8 @@ public abstract class Question implements QuestionFront, QuestionBack {
     protected QuestionEntity questionData;
 
     protected List<ResponseEntity> studentResponses = new ArrayList<>();
+
+    protected List<String> concepts;
     
     protected boolean isFinalResponse = false;
     
@@ -93,6 +95,10 @@ public abstract class Question implements QuestionFront, QuestionBack {
     public QuestionEntity getQuestionData() {
         
         return questionData;
+    }
+
+    public List<String> getConcepts() {
+        return concepts;
     }
 
     @Override

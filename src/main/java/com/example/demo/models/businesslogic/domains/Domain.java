@@ -5,10 +5,14 @@ import com.example.demo.models.businesslogic.Question;
 import com.example.demo.models.entities.*;
 import com.example.demo.models.entities.EnumData.FeedbackType;
 import com.example.demo.models.entities.EnumData.Language;
+import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.utils.HyperText;
+import com.google.common.collect.TreeMultimap;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 public abstract class Domain {
     protected List<PositiveLaw> positiveLaws;
@@ -16,6 +20,7 @@ public abstract class Domain {
     protected List<Concept> concepts;
 
     protected DomainEntity domainEntity;
+    protected QuestionRepository questionRepository;
 
     protected String name = "";
     protected String version = "";
@@ -118,4 +123,39 @@ public abstract class Domain {
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
+
+    protected abstract List<Question> getQuestionTemplates();
+    public Question findQuestion(String type, HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts) {
+        List<Question> questions = new ArrayList<>();
+        int maxSuitCount = 0;
+        for (Question q : getQuestionTemplates()) {
+            if (!q.getQuestionData().getQuestionDomainType().equals(type)) {
+                continue;
+            }
+            int targetConceptCount = 0;
+            boolean suit = true;
+            for (String concept : q.getConcepts()) {
+                if (deniedConcepts.contains(concept)) {
+                    suit = false;
+                    break;
+                }
+                if (targetConcepts.contains(concept)) {
+                    targetConceptCount++;
+                }
+            }
+
+            if (suit && targetConceptCount >= maxSuitCount) {
+                if (targetConceptCount > maxSuitCount) {
+                    questions.clear();
+                    maxSuitCount = targetConceptCount;
+                }
+                questions.add(q);
+            }
+        }
+        if (questions.isEmpty() || maxSuitCount == 0) {
+            return null;
+        } else {
+            return questions.get(new Random().nextInt(questions.size()));
+        }
+    }
 }

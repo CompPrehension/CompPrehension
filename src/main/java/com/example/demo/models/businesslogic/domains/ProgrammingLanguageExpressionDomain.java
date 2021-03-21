@@ -29,6 +29,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String LAWS_CONFIG_PATH = "com/example/demo/models/businesslogic/domains/programming-language-expression-domain-laws.json";
+    static final String QUESTIONS_CONFIG_PATH = "com/example/demo/models/businesslogic/domains/programming-language-expression-domain-questions.json";
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
@@ -129,9 +130,39 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return null;
     }
 
+
+    private List<Question> readQuestions(InputStream inputStream) {
+        List<Question> res = new ArrayList<>();
+
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+
+        Question[] questions = gson.fromJson(
+                new InputStreamReader(inputStream),
+                Question[].class);
+
+        Collections.addAll(res, questions);
+        return res;
+    }
+
+    static List<Question> QUESTIONS;
+    @Override
+    protected List<Question> getQuestionTemplates() {
+        if (QUESTIONS == null) {
+            QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
+        }
+        return QUESTIONS;
+    }
+
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, Language userLanguage) {
-
         // Prepare concept name sets ...
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -145,7 +176,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (Concept concept : questionRequest.getDeniedConcepts()) {
             deniedConceptNames.add(concept.getName());
         }
-
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(false)
@@ -153,60 +183,39 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .build();
 
-        if (conceptNames.contains("associativity") &&
-                allowedConceptNames.contains("operator_binary_+") &&
-                !conceptNames.contains("precedence")) {
-            // make an Ordering question ...
-            QuestionEntity question = new QuestionEntity();
-            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(ExpressionToHtml("a + b + c"));
-            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2), true),
-                    createAnswerObject(question, "+ between b and c", "operator_binary_+", getName(0, 4), true))));
-            question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
-            question.setAreAnswersRequireContext(true);
-            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c"))));
-            question.setQuestionType(QuestionType.ORDER);
-            question.setOptions(orderQuestionOptions);
-            return new Ordering(question);
-        } else if (conceptNames.contains("precedence") &&
-                allowedConceptNames.contains("operator_binary_+") &&
-                allowedConceptNames.contains("operator_binary_*") &&
-                deniedConceptNames.contains("associativity")) {
-            // make an Ordering question ...
-            QuestionEntity question = new QuestionEntity();
-            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(ExpressionToHtml("a == b < c"));
-            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "==", "operator_binary_+", getName(0, 2), true),
-                    createAnswerObject(question, "<", "operator_binary_*", getName(0, 4), true)
-            )));
-            question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
-            question.setAreAnswersRequireContext(true);
-            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "==", "b", "<", "c"))));
-            question.setQuestionType(QuestionType.ORDER);
-            question.setOptions(orderQuestionOptions);
-            return new Ordering(question);
-        }  else if (conceptNames.contains("precedence") &&
-                conceptNames.contains("associativity") &&
-                allowedConceptNames.contains("operator_binary_+") &&
-                allowedConceptNames.contains("operator_binary_*")) {
-            // make an Ordering question ...
-            QuestionEntity question = new QuestionEntity();
-            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(ExpressionToHtml("a + b + c * d"));
-            question.setQuestionDomainType(EVALUATION_ORDER_QUESTION_TYPE);
-            question.setAreAnswersRequireContext(true);
-            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "+ between a and b", "operator_binary_+", getName(0, 2), true),
-                    createAnswerObject(question, "+ between c and d", "operator_binary_+", getName(0, 4), true),
-                    createAnswerObject(question, "*", "operator_binary_*", getName(0, 6), true)
-            )));
-            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("a", "+", "b", "+", "c", "*", "d"))));
-            question.setQuestionType(QuestionType.ORDER);
-            question.setOptions(orderQuestionOptions);
-            return new Ordering(question);
-        } else if (conceptNames.contains("type")) {
+        String findType = EVALUATION_ORDER_QUESTION_TYPE;
+        Question res = findQuestion(findType, conceptNames, allowedConceptNames, deniedConceptNames);
+        if (res != null) {
+            QuestionEntity entity = new QuestionEntity();
+            List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
+            for (AnswerObjectEntity answerObjectEntity : res.getAnswerObjects()) {
+                AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+                newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
+                newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
+                newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
+                newAnswerObjectEntity.setQuestion(entity);
+                newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
+                newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
+                newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
+                answerObjectEntities.add(newAnswerObjectEntity);
+            }
+            entity.setAnswerObjects(answerObjectEntities);
+            entity.setAreAnswersRequireContext(true);
+            entity.setExerciseAttempt(questionRequest.getExerciseAttempt());
+            entity.setQuestionDomainType(findType);
+            entity.setQuestionText(ExpressionToHtml(res.getQuestionText().getText()));
+
+            List<String> tokens = new ArrayList<>();
+            for (BackendFactEntity fact : res.getStatementFacts()) {
+                tokens.add(fact.getObject());
+            }
+            entity.setStatementFacts(getBackendFacts(tokens));
+            entity.setQuestionType(QuestionType.ORDER);
+            entity.setOptions(orderQuestionOptions);
+            return new Ordering(entity);
+        }
+
+       if (conceptNames.contains("type")) {
             // make Matching test question
             QuestionEntity question = new QuestionEntity();
             question.setExerciseAttempt(questionRequest.getExerciseAttempt());
