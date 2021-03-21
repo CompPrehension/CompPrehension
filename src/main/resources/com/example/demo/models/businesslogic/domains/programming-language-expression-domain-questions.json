@@ -361,98 +361,6 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
-      "questionText": "a + b if c + d else e + f",
-      "areAnswersRequireContext": true,
-      "options": {
-      },
-      "answerObjects": [
-        {
-          "hyperText": "+ between a and b",
-          "domainInfo": "op__0__2",
-          "isRightCol": false,
-          "concept": "operator_binary_+",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "hyperText": "if between b and c",
-          "domainInfo": "op__0__4",
-          "isRightCol": false,
-          "concept": "operator_ternary",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "hyperText": "+ between c and d",
-          "domainInfo": "op__0__6",
-          "isRightCol": false,
-          "concept": "operator_binary_+",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "hyperText": "+ between e and f",
-          "domainInfo": "op__0__10",
-          "isRightCol": false,
-          "concept": "operator_binary_+",
-          "responsesLeft": [],
-          "responsesRight": []
-        }
-      ],
-      "statementFacts": [
-        {
-          "object": "a"
-        },
-        {
-          "object": "+"
-        },
-        {
-          "object": "b"
-        },
-        {
-          "object": "if"
-        },
-        {
-          "object": "c"
-        },
-        {
-          "object": "+"
-        },
-        {
-          "object": "d"
-        },
-        {
-          "object": "else"
-        },
-        {
-          "object": "e"
-        },
-        {
-          "object": "+"
-        },
-        {
-          "object": "f"
-        }
-      ]
-    },
-    "concepts": [
-      "precedence",
-      "operator_binary_+",
-      "operator_ternary"
-    ],
-    "tags": [
-      "Python",
-      "basics",
-      "operators",
-      "order",
-      "evaluation"
-    ]
-  },
-  {
-    "questionType": "ORDERING",
-    "questionData": {
-      "questionType": "ORDER",
-      "questionDomainType": "OrderOperators",
       "questionText": "-- a + b",
       "areAnswersRequireContext": true,
       "options": {
@@ -817,7 +725,7 @@
           "hyperText": "&& between ) and d",
           "domainInfo": "op__0__8",
           "isRightCol": false,
-          "concept": "operator_binary_||",
+          "concept": "operator_binary_&&",
           "responsesLeft": [],
           "responsesRight": []
         }
@@ -1920,6 +1828,953 @@
       "evaluation"
     ]
   },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a * b + c * d",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "* between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "* between c and d",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "d"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "precedence",
+      "operator_binary_+",
+      "operator_binary_*"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a + b if c + d else e + f",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "+ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "if between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_ternary",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between c and d",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between e and f",
+          "domainInfo": "op__0__10",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "if"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "else"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "f"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "operator_binary_+",
+      "operator_ternary"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a and b or c",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "and between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_and",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "and"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "c"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "operator_binary_and",
+      "operator_binary_or"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a and ( b or c )",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "and between a and (",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_and",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between b and c",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "and"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": ")"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "two_token_unary",
+      "operator_binary_and",
+      "operator_binary_or"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a and ( b or c ) and d",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "and between a and (",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_and",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between b and c",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "and between ) and d",
+          "domainInfo": "op__0__8",
+          "isRightCol": false,
+          "concept": "operator_binary_and",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "and"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": ")"
+        },
+        {
+          "object": "and"
+        },
+        {
+          "object": "d"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "precedence",
+      "two_token_unary",
+      "operator_binary_and",
+      "operator_binary_or"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a or ( b or c , d or e )",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "or between a and (",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between b and c",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between d and e",
+          "domainInfo": "op__0__9",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": ","
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": ")"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "two_token_unary",
+      "operator_binary_or"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a + ( b + c < d + e )",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "+ between a and (",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between b and c",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "< between c and d",
+          "domainInfo": "op__0__7",
+          "isRightCol": false,
+          "concept": "operator_binary_<",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between d and e",
+          "domainInfo": "op__0__9",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "<"
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": ")"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "two_token_unary",
+      "operator_binary_+",
+      "operator_binary_<"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a or f ( b or c , d or e )",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "or between a and f",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "( between f and b",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "function_call",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between b and c",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "or between d and e",
+          "domainInfo": "op__0__10",
+          "isRightCol": false,
+          "concept": "operator_binary_or",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "f"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": ","
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "or"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": ")"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "function_call",
+      "operator_binary_or"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a [ b + c ] + e",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "[ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_[",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between ] and e",
+          "domainInfo": "op__0__7",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "["
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "]"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "e"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "operator_binary_+",
+      "operator_["
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a + b [ c + d ] + e",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "+ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "[ between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_[",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between c and d",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between ] and e",
+          "domainInfo": "op__0__9",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "["
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "]"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "e"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "precedence",
+      "operator_binary_+",
+      "operator_["
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
+      "questionText": "a + b if c + d else e + f if g + h else i + j",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "+ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "if between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_ternary",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between c and d",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between e and f",
+          "domainInfo": "op__0__10",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "if between f and g",
+          "domainInfo": "op__0__12",
+          "isRightCol": false,
+          "concept": "operator_ternary",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between g and h",
+          "domainInfo": "op__0__14",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+ between h and j",
+          "domainInfo": "op__0__18",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "if"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "else"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "f"
+        },
+        {
+          "object": "if"
+        },
+        {
+          "object": "g"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "h"
+        },
+        {
+          "object": "else"
+        },
+        {
+          "object": "i"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "j"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "precedence",
+      "operator_binary_+",
+      "operator_ternary"
+    ],
+    "tags": [
+      "Python",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+
   {
     "questionType": "MATCHING",
     "questionData": {
