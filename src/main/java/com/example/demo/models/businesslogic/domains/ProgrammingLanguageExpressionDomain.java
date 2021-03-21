@@ -60,17 +60,27 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept singleTokenUnaryConcept = addConcept("single_token_unary", new ArrayList<>(Arrays.asList(singleTokenOperatorConcept, unaryConcept)));
         Concept singleTokenBinaryConcept = addConcept("single_token_binary", new ArrayList<>(Arrays.asList(singleTokenOperatorConcept, binaryConcept)));
         Concept twoTokenUnaryConcept = addConcept("two_token_unary", new ArrayList<>(Arrays.asList(twoTokenOperatorConcept, unaryConcept)));
+        Concept functionCallConcept = addConcept("function_call", new ArrayList<>(Arrays.asList(twoTokenUnaryConcept)));
         Concept twoTokenBinaryConcept = addConcept("two_token_binary", new ArrayList<>(Arrays.asList(twoTokenOperatorConcept, binaryConcept)));
+        Concept subscriptConcept = addConcept("operator_[", new ArrayList<>(Arrays.asList(twoTokenBinaryConcept)));
         Concept twoTokenTernaryConcept = addConcept("two_token_ternary", new ArrayList<>(Arrays.asList(twoTokenOperatorConcept, binaryConcept)));
         Concept operatorEvaluationStateConcept = addConcept("operator_evaluation_state");
         Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", new ArrayList<>(Arrays.asList(binaryConcept, operatorEvaluationStateConcept)));
         Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept)));
+        Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept)));
+        Concept operatorUnaryPtrConcept = addConcept("operator_unary_*", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept)));
         Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
+        Concept operatorBinaryMinusConcept = addConcept("operator_binary_-", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
         Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
+        Concept operatorBinaryCommaConcept = addConcept("operator_binary_,", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
+        Concept operatorTernaryConcept = addConcept("operator_ternary", new ArrayList<>(Arrays.asList(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept)));
         Concept operatorEqualsConcept = addConcept("operator_==", new ArrayList<>(Arrays.asList(singleTokenBinaryConcept)));
         Concept prefixOperatorConcept = addConcept("prefix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept postfixOperatorConcept = addConcept("postfix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
+        Concept operatorPrefixDecrementConcept = addConcept("operator_prefix_--", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
+        Concept operatorPostfixIncrementConcept = addConcept("operator_postfix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, postfixOperatorConcept)));
+        Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, postfixOperatorConcept)));
         Concept typeConcept = addConcept("type");
         Concept systemIntegrationTestConcept = addConcept("SystemIntegrationTest");
     }
