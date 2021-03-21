@@ -3,6 +3,7 @@ package com.example.demo.controllers;
 
 import com.example.demo.Service.ExerciseService;
 import com.example.demo.Service.QuestionService;
+import com.example.demo.Service.UserService;
 import com.example.demo.dto.*;
 import com.example.demo.dto.question.QuestionDto;
 import com.example.demo.dto.question.QuestionMapper;
@@ -49,7 +50,7 @@ public class LtiController {
     private ExerciseService exerciseService;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
     private QuestionService questionService;
@@ -59,7 +60,7 @@ public class LtiController {
 
 
     @RequestMapping(value = {"/launch"}, method = {RequestMethod.POST})
-    public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, Object> params) throws Exception {
+    public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> params) throws Exception {
         LtiVerifier ltiVerifier = new LtiOauthVerifier();
         String key = request.getParameter("oauth_consumer_key");
         String secret = this.ltiLaunchSecret;
@@ -118,38 +119,37 @@ public class LtiController {
     @ResponseBody
     public SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception {
         HttpSession session = request.getSession();
-        Map<String, Object> params = (Map<String, Object>) session.getAttribute("sessionInfo");
+        val params = (Map<String, String>) session.getAttribute("sessionInfo");
         if (params == null) {
             throw new Exception("Couldn't get session info");
         }
 
-        UserInfoDto user = UserInfoDto.builder()
-             .id(Long.parseLong(params.get("user_id").toString()))
-             .displayName(params.get("lis_person_name_given").toString())
-             .email(params.get("lis_person_contact_email_primary").toString())
-             .roles(Stream.of(params.get("roles").toString().split(","))
-                          .map(String::trim)
-                          .collect(Collectors.toList()))
+        // get or create user
+        val userEntity = userService.createOrUpdateFromLti(params);
+        val userDto = UserInfoDto.builder()
+             .id(userEntity.getId())
+             .displayName(userEntity.getFirstName() + " " + userEntity.getLastName())
+             .email(userEntity.getEmail())
+             .roles(userEntity.getRoles().stream().map(Enum::toString).collect(Collectors.toList()))
              .build();
 
-        List<ExerciseEntity> exercises = IterableUtils.toList(exerciseRepository.findAll());
-        List<ExerciseAttemptEntity> exerciseAttempts = new ArrayList<>();
-        UserEntity currentUser = userRepository.findAll().iterator().next();
+        val exercises = IterableUtils.toList(exerciseRepository.findAll());
+        val exerciseAttempts = new ArrayList<ExerciseAttemptEntity>();
         for (ExerciseEntity e : exercises) {
             ExerciseAttemptEntity ae = new ExerciseAttemptEntity();
             ae.setExercise(e);
             ae.setAttemptStatus(AttemptStatus.INCOMPLETE);
-            ae.setUser(currentUser);
+            ae.setUser(userEntity);
             exerciseAttempts.add(exerciseAttemptRepository.save(ae));
         }
 
-        val language = params.getOrDefault("launch_presentation_locale", "EN").toString().toUpperCase();
+        val language = params.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
         return SessionInfoDto.builder()
             .sessionId(session.getId())
             .attemptIds(exerciseAttempts.stream()
                                         .map(v -> v.getId())
                                         .toArray(Long[]::new))
-            .user(user)
+            .user(userDto)
             .language(language)
             .build();
     }

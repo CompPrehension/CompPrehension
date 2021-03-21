@@ -14,7 +14,9 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "User")
+@Table(name = "User", indexes = {
+    @Index(columnList = "external_id", name = "external_id_hidx"),
+})
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +39,9 @@ public class UserEntity {
 
     @Column(name = "login")
     private String login;
+
+    @Column(name = "external_id")
+    private String externalId;
 
     @Column(name = "preferred_language")
     @Enumerated(EnumType.ORDINAL)
