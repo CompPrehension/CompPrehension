@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { Alert, Spinner } from 'react-bootstrap';
+import { Alert, Badge } from 'react-bootstrap';
 import store from '../store';
 import { Feedback as FeedbackType } from '../types/feedback';
 import { Loader } from './loader';
@@ -22,7 +22,11 @@ export const Feedback = observer(() => {
             <p>
                 {renderFeedback(feedback)}                
             </p>
-            {/*<p>Current grade: {feedback.grade}</p>*/}           
+            <p>
+                <Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}
+                <Badge variant="success">Correct options: {feedback.correctOptionsCount}</Badge>{' '}
+                <Badge variant="info">Interactions left: {feedback.iterationsLeft}</Badge>{' '}
+            </p>              
         </div>
     );
 });
@@ -35,7 +39,7 @@ const renderFeedback = (feedback: FeedbackType) => {
         case 'DONE':
             return <Alert variant="success">All done!</Alert>;
         case 'PARTIALCORRECT':
-            return <Alert variant="success">Correct, keep doing... (interactions left: {feedback.iterationsLeft})</Alert>;
+            return <Alert variant="success">Correct, keep doing...</Alert>;
         case 'ERROR':
             return feedback.errors.map(m => <Alert variant="danger">{m}</Alert>);
     }
