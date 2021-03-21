@@ -2,7 +2,7 @@
   {
     "questionType": "ORDERING",
     "questionData": {
-      "questionType": "ORDERING",
+      "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c",
       "areAnswersRequireContext": true,
@@ -53,7 +53,7 @@
   {
     "questionType": "ORDERING",
     "questionData": {
-      "questionType": "ORDERING",
+      "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a == b < c",
       "areAnswersRequireContext": true,
@@ -105,7 +105,7 @@
   {
     "questionType": "ORDERING",
     "questionData": {
-      "questionType": "ORDERING",
+      "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c * d",
       "areAnswersRequireContext": true,
@@ -166,6 +166,179 @@
       "precedence",
       "operator_binary_+",
       "operator_binary_*",
+      "SystemIntegrationTest"
+    ]
+  },
+  {
+    "questionType": "MATCHING",
+    "questionData": {
+      "questionType": "MATCHING",
+      "questionDomainType": "DefineType",
+      "questionText": "class Matrix {\n\tint getDeterminant() const;\n\tMatrix transpose() const;\n\tMatrix multiply(int a) const;\n\tsize_t size() const;\n\n\tstatic Matrix identity(size_t size);\n}\n\nMatrix a;\nMatrix b;\nint c;\nint d;\n\nb * (a - c * a.identity(a.size())).getDeterminant()",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "* between b and parenthesis",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "parenthesis with expression",
+          "domainInfo": "op__0__3",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "-",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "*",
+          "domainInfo": "op__0__7",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "( near identity",
+          "domainInfo": "op__0__11",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "( near size",
+          "domainInfo": "op__0__15",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "( near getDeterminant",
+          "domainInfo": "op__0__21",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "int",
+          "domainInfo": "int",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "Matrix",
+          "domainInfo": "Matrix",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "bool",
+          "domainInfo": "bool",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "size_t",
+          "domainInfo": "size_t",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "b"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "a"
+        },
+        {
+          "object": "-"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "a"
+        },
+        {
+          "object": "."
+        },
+        {
+          "object": "identity"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": "a"
+        },
+        {
+          "object": "."
+        },
+        {
+          "object": "size"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": ")"
+        },
+        {
+          "object": ")"
+        },
+        {
+          "object": ")"
+        },
+        {
+          "object": "."
+        },
+        {
+          "object": "getDeterminant"
+        },
+        {
+          "object": "("
+        },
+        {
+          "object": ")"
+        }
+      ]
+    },
+    "concepts": [
+      "type",
       "SystemIntegrationTest"
     ]
   }

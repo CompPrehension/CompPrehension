@@ -72,6 +72,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept postfixOperatorConcept = addConcept("postfix", new ArrayList<>(Arrays.asList(unaryConcept)));
         Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, prefixOperatorConcept)));
         Concept typeConcept = addConcept("type");
+        Concept systemIntegrationTestConcept = addConcept("SystemIntegrationTest");
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
@@ -183,8 +184,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .build();
 
-        String findType = EVALUATION_ORDER_QUESTION_TYPE;
-        Question res = findQuestion(findType, conceptNames, allowedConceptNames, deniedConceptNames);
+        QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
+                .requireContext(false)
+                .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
+                .build();
+
+        Question res = findQuestion(conceptNames, allowedConceptNames, deniedConceptNames);
         if (res != null) {
             QuestionEntity entity = new QuestionEntity();
             List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
@@ -202,7 +207,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setAnswerObjects(answerObjectEntities);
             entity.setAreAnswersRequireContext(true);
             entity.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            entity.setQuestionDomainType(findType);
+            entity.setQuestionDomainType(res.getQuestionDomainType());
             entity.setQuestionText(ExpressionToHtml(res.getQuestionText().getText()));
 
             List<String> tokens = new ArrayList<>();
@@ -210,68 +215,34 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 tokens.add(fact.getObject());
             }
             entity.setStatementFacts(getBackendFacts(tokens));
-            entity.setQuestionType(QuestionType.ORDER);
-            entity.setOptions(orderQuestionOptions);
-            return new Ordering(entity);
+            entity.setQuestionType(res.getQuestionType());
+
+
+            switch (res.getQuestionType()) {
+                case ORDER:
+                    entity.setOptions(orderQuestionOptions);
+                    return new Ordering(entity);
+                case MATCHING:
+                    entity.setOptions(matchingQuestionOptions);
+                    return new Matching(entity);
+                default:
+                    throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + res.getQuestionType());
+            }
         }
 
-       if (conceptNames.contains("type")) {
-            // make Matching test question
-            QuestionEntity question = new QuestionEntity();
-            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText(QuestionTextToHtml(
-                    "class Matrix {\n" +
-                    "\tint getDeterminant() const;\n" +
-                    "\tMatrix transpose() const;\n" +
-                    "\tMatrix multiply(int a) const;\n" +
-                    "\tsize_t size() const;\n" +
-                    "\n" +
-                    "\tstatic Matrix identity(size_t size);\n" +
-                    "}\n" +
-                    "\n" +
-                    "Matrix a;\n" +
-                    "Matrix b;\n" +
-                    "int c;\n" +
-                    "int d;\n" +
-                    "\n" +
-                    "b * (a - c * a.identity(a.size())).getDeterminant()"));
-            question.setQuestionDomainType(DEFINE_TYPE_QUESTION_TYPE);
-            question.setAreAnswersRequireContext(true);
-            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "* between b and parenthesis", "", getName(0, 2), true),
-                    createAnswerObject(question, "parenthesis with expression", "", getName(0, 3), true),
-                    createAnswerObject(question, "-", "", getName(0, 5), true),
-                    createAnswerObject(question, "*", "", getName(0, 7), true),
-                    createAnswerObject(question, "( near identity", "", getName(0, 11), true),
-                    createAnswerObject(question, "( near size", "", getName(0, 15), true),
-                    createAnswerObject(question, "( near getDeterminant", "", getName(0, 21), true),
-                    createAnswerObject(question, "int", "", "int", false),
-                    createAnswerObject(question, "Matrix", "", "Matrix", false),
-                    createAnswerObject(question, "bool", "", "bool", false),
-                    createAnswerObject(question, "size_t", "", "size_t", false)
-            )));
-            question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("b", "*", "(", "a", "-", "c", "*", "a", ".", "identity", "(", "a", ".", "size", "(", ")", ")", ")", ".", "getDeterminant", "(", ")"))));
-            question.setQuestionType(QuestionType.MATCHING);
-            question.setOptions(MatchingQuestionOptionsEntity.builder()
-                    .requireContext(false)
-                    .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
-                    .build());
-            return new Matching(question);
-        } else {
-            // make a SingleChoice question ...
-            QuestionEntity question = new QuestionEntity();
-            question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            question.setQuestionText("Choose associativity of operator binary +");
-            question.setQuestionType(QuestionType.SINGLE_CHOICE);
-            question.setQuestionDomainType("ChooseAssociativity");
-            question.setAreAnswersRequireContext(true);
-            question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                    createAnswerObject(question, "left", "left_associativity", "left", true),
-                    createAnswerObject(question, "right", "right_associativity", "right", true),
-                    createAnswerObject(question, "no associativity", "absent_associativity", "no associativity", true)
-            )));
-            return new SingleChoice(question);
-        }
+        // make a SingleChoice question ...
+        QuestionEntity question = new QuestionEntity();
+        question.setExerciseAttempt(questionRequest.getExerciseAttempt());
+        question.setQuestionText("Choose associativity of operator binary +");
+        question.setQuestionType(QuestionType.SINGLE_CHOICE);
+        question.setQuestionDomainType("ChooseAssociativity");
+        question.setAreAnswersRequireContext(true);
+        question.setAnswerObjects(new ArrayList<>(Arrays.asList(
+                createAnswerObject(question, "left", "left_associativity", "left", true),
+                createAnswerObject(question, "right", "right_associativity", "right", true),
+                createAnswerObject(question, "no associativity", "absent_associativity", "no associativity", true)
+        )));
+        return new SingleChoice(question);
     }
 
     private AnswerObjectEntity createAnswerObject(QuestionEntity question, String text, String concept, String domainInfo, boolean isLeft) {

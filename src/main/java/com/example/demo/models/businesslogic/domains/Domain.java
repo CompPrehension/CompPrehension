@@ -125,13 +125,10 @@ public abstract class Domain {
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
 
     protected abstract List<Question> getQuestionTemplates();
-    public Question findQuestion(String type, HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts) {
+    public Question findQuestion(HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts) {
         List<Question> questions = new ArrayList<>();
         int maxSuitCount = 0;
         for (Question q : getQuestionTemplates()) {
-            if (!q.getQuestionData().getQuestionDomainType().equals(type)) {
-                continue;
-            }
             int targetConceptCount = 0;
             boolean suit = true;
             for (String concept : q.getConcepts()) {

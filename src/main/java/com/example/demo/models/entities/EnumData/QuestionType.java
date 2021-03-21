@@ -5,7 +5,4 @@ public enum QuestionType {
     MULTI_CHOICE,
     MATCHING,
     ORDER,
-    
-    QuestionType() {
-    }
 }
