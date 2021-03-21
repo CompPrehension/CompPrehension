@@ -9,10 +9,7 @@ import com.example.demo.models.repository.QuestionRepository;
 import com.example.demo.utils.HyperText;
 import com.google.common.collect.TreeMultimap;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public abstract class Domain {
     protected List<PositiveLaw> positiveLaws;
@@ -125,12 +122,19 @@ public abstract class Domain {
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
 
     protected abstract List<Question> getQuestionTemplates();
-    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts) {
+    public Question findQuestion(List<Tag> tags, Question q) {
+        return findQuestion(tags, new HashSet<>(q.getConcepts()), new HashSet<>(), new HashSet<>(), new HashSet<>(Set.of(q.getQuestionText().getText())));
+    }
+
+    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts, HashSet<String> forbiddenQuestions) {
         List<Question> questions = new ArrayList<>();
         int maxSuitCount = 0;
         for (Question q : getQuestionTemplates()) {
             int targetConceptCount = 0;
             boolean suit = true;
+            if (forbiddenQuestions.contains(q.getQuestionText().getText())) {
+                continue;
+            }
             for (Tag tag : tags) {
                 if (!q.getTags().contains(tag.getName())) {
                     suit = false;
