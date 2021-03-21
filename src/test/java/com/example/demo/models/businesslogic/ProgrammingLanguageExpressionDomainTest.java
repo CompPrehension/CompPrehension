@@ -42,7 +42,8 @@ public class ProgrammingLanguageExpressionDomainTest {
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
-                domain.getConcept("precedence")
+                domain.getConcept("precedence"),
+                domain.getConcept("SystemIntegrationTest")
         ));
         qr.setAllowedConcepts(List.of(
                 domain.getConcept("operator_binary_+"),
@@ -55,7 +56,8 @@ public class ProgrammingLanguageExpressionDomainTest {
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
-                domain.getConcept("associativity")
+                domain.getConcept("associativity"),
+                domain.getConcept("SystemIntegrationTest")
         ));
         qr2.setAllowedConcepts(List.of(
                 domain.getConcept("operator_binary_+")
@@ -68,7 +70,8 @@ public class ProgrammingLanguageExpressionDomainTest {
         QuestionRequest qr3 = new QuestionRequest();
         qr3.setTargetConcepts(List.of(
                 domain.getConcept("associativity"),
-                domain.getConcept("precedence")
+                domain.getConcept("precedence"),
+                domain.getConcept("SystemIntegrationTest")
         ));
         qr3.setAllowedConcepts(List.of(
                 domain.getConcept("operator_binary_*"),
@@ -98,7 +101,8 @@ public class ProgrammingLanguageExpressionDomainTest {
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
-                domain.getConcept("precedence")
+                domain.getConcept("precedence"),
+                domain.getConcept("SystemIntegrationTest")
         ));
         qr.setAllowedConcepts(List.of(
                 domain.getConcept("operator_binary_+"),
