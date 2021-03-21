@@ -172,6 +172,58 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return QUESTIONS;
     }
 
+    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity) {
+        QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
+                .requireContext(true)
+                .showTrace(false)
+                .multipleSelectionEnabled(true)
+                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
+                .build();
+
+        QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
+                .requireContext(false)
+                .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
+                .build();
+
+        QuestionEntity entity = new QuestionEntity();
+        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
+        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
+            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
+            newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
+            newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
+            newAnswerObjectEntity.setQuestion(entity);
+            newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
+            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
+            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
+            answerObjectEntities.add(newAnswerObjectEntity);
+        }
+        entity.setAnswerObjects(answerObjectEntities);
+        entity.setAreAnswersRequireContext(true);
+        entity.setExerciseAttempt(exerciseAttemptEntity);
+        entity.setQuestionDomainType(q.getQuestionDomainType());
+        entity.setQuestionText(ExpressionToHtml(q.getQuestionText().getText()));
+
+        List<String> tokens = new ArrayList<>();
+        for (BackendFactEntity fact : q.getStatementFacts()) {
+            tokens.add(fact.getObject());
+        }
+        entity.setStatementFacts(getBackendFacts(tokens));
+        entity.setQuestionType(q.getQuestionType());
+
+
+        switch (q.getQuestionType()) {
+            case ORDER:
+                entity.setOptions(orderQuestionOptions);
+                return new Ordering(entity);
+            case MATCHING:
+                entity.setOptions(matchingQuestionOptions);
+                return new Matching(entity);
+            default:
+                throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
+        }
+    }
+
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
         // Prepare concept name sets ...
@@ -187,57 +239,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (Concept concept : questionRequest.getDeniedConcepts()) {
             deniedConceptNames.add(concept.getName());
         }
-        QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
-                .requireContext(true)
-                .showTrace(false)
-                .multipleSelectionEnabled(true)
-                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
-                .build();
 
-        QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
-                .requireContext(false)
-                .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
-                .build();
-
-        Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames);
+        Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames, new HashSet<>());
         if (res != null) {
-            QuestionEntity entity = new QuestionEntity();
-            List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
-            for (AnswerObjectEntity answerObjectEntity : res.getAnswerObjects()) {
-                AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
-                newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
-                newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
-                newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
-                newAnswerObjectEntity.setQuestion(entity);
-                newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
-                newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-                newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
-                answerObjectEntities.add(newAnswerObjectEntity);
-            }
-            entity.setAnswerObjects(answerObjectEntities);
-            entity.setAreAnswersRequireContext(true);
-            entity.setExerciseAttempt(questionRequest.getExerciseAttempt());
-            entity.setQuestionDomainType(res.getQuestionDomainType());
-            entity.setQuestionText(ExpressionToHtml(res.getQuestionText().getText()));
-
-            List<String> tokens = new ArrayList<>();
-            for (BackendFactEntity fact : res.getStatementFacts()) {
-                tokens.add(fact.getObject());
-            }
-            entity.setStatementFacts(getBackendFacts(tokens));
-            entity.setQuestionType(res.getQuestionType());
-
-
-            switch (res.getQuestionType()) {
-                case ORDER:
-                    entity.setOptions(orderQuestionOptions);
-                    return new Ordering(entity);
-                case MATCHING:
-                    entity.setOptions(matchingQuestionOptions);
-                    return new Matching(entity);
-                default:
-                    throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + res.getQuestionType());
-            }
+            return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
         }
 
         // make a SingleChoice question ...
