@@ -74,9 +74,10 @@ const ComboboxMatchingQuestionWithCtx = observer(() => {
                                                return;
                                             }
 
-                                            const state = store.answersHistory.reduce((acc, [l, r]) => (acc[l] = r, acc), {} as Record<number, number>);
-                                            state[answerId] = v.value;
-                                            store.updateAnswersHistory(Object.keys(state).map(k => [+k, +state[+k]]));
+                                            const otherHistoryItems = answersHistory.filter(v => v[0] !== answerId);
+                                            const historyItem = [answerId, +v.value] as [number, number];
+                                            const newAnswersHistory = [...otherHistoryItems, historyItem];
+                                            store.updateAnswersHistory(newAnswersHistory);     
                                         })}
                                     />
                 ReactDOM.render(selector, elem);
@@ -96,9 +97,7 @@ const ComboboxMatchingQuestion = observer(() => {
         return null;
     }
 
-    const { answers = [], groups = [], options } = questionData;        
-    const currentState = answersHistory
-        .reduce((acc, [l, r]) => (acc[l] = r, acc), {} as Record<number, number>); 
+    const { answers = [], groups = [], options } = questionData;   
 
     return (
         <div>
@@ -110,7 +109,7 @@ const ComboboxMatchingQuestion = observer(() => {
                         <tr>
                             <td dangerouslySetInnerHTML={{ __html: asw.text}}></td>
                             <td>
-                                <Select defaultValue={(currentState?.[asw.id] ?? null) as any}
+                                <Select defaultValue={(answersHistory.find(v => v[0] === asw.id)?.[1] ?? null) as any}
                                         options={groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
                                                        .map(g => ({ value: g.id, label: g.text }))}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
@@ -118,10 +117,10 @@ const ComboboxMatchingQuestion = observer(() => {
                                             if (!v) {
                                                return;
                                             }
-
-                                            const state = currentState;
-                                            state[asw.id] = v.value;
-                                            store.updateAnswersHistory(Object.keys(state).map(k => [+k, +state[+k]]));
+                                            const otherHistoryItems = answersHistory.filter(v => v[0] !== asw.id);
+                                            const historyItem = [asw.id, +v.value] as [number, number];
+                                            const newAnswersHistory = [...otherHistoryItems, historyItem];
+                                            store.updateAnswersHistory(newAnswersHistory);                                            
                                         })} />                                
                             </td>
                         </tr>

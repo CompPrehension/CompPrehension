@@ -244,7 +244,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             question.setStatementFacts(getBackendFacts(new ArrayList<>(Arrays.asList("b", "*", "(", "a", "-", "c", "*", "a", ".", "identity", "(", "a", ".", "size", "(", ")", ")", ")", ".", "getDeterminant", "(", ")"))));
             question.setQuestionType(QuestionType.MATCHING);
             question.setOptions(MatchingQuestionOptionsEntity.builder()
-                    .requireContext(true)
+                    .requireContext(false)
                     .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
                     .build());
             return new Matching(question);

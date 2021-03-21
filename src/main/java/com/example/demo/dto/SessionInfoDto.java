@@ -14,6 +14,6 @@ public class SessionInfoDto {
     private String sessionId;
     private Long[] attemptIds;
     private UserInfoDto user;
-    private Date expired;
+    private String language;
 }
 

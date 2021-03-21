@@ -6,11 +6,11 @@ import { QuestionFabric } from './components/question/question-fabric';
 import React from 'react';
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {UserInfo} from "./components/user-info";
 import { NextQuestionBtn } from './components/next-question-btn';
 import { Feedback } from './components/feedback';
 import { Spinner } from 'react-bootstrap';
 import { Loader } from './components/loader';
+import { Header } from './components/header';
 
 const Home = observer(() => {
     useEffect(() => {
@@ -29,7 +29,7 @@ const Home = observer(() => {
 
     return (
         <div className="container comp-ph-container">
-            <UserInfo />
+            <Header />
             <QuestionFabric />
             <Feedback />
             <NextQuestionBtn />

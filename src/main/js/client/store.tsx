@@ -59,11 +59,11 @@ export class Store {
             return;
         }
         
-        const body : Interaction = {
+        const body: Interaction = toJS({
             attemptId: questionData.attemptId,
             questionId: questionData.questionId,
-            answers: toJS(answersHistory),
-        }
+            answers: answersHistory,
+        })
 
         this.isFeedbackLoading = true;
         const feedbackEither = await ajaxPost('addAnswer', body, TFeedback)

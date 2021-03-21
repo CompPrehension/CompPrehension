@@ -16,6 +16,7 @@ import com.example.demo.models.repository.ExerciseAttemptRepository;
 import com.example.demo.models.repository.ExerciseRepository;
 import com.example.demo.models.repository.UserRepository;
 import com.example.demo.utils.HyperText;
+import lombok.val;
 import org.apache.commons.collections4.IterableUtils;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.imsglobal.lti.launch.LtiVerificationResult;
@@ -142,13 +143,14 @@ public class LtiController {
             exerciseAttempts.add(exerciseAttemptRepository.save(ae));
         }
 
+        val language = params.getOrDefault("launch_presentation_locale", "EN").toString().toUpperCase();
         return SessionInfoDto.builder()
             .sessionId(session.getId())
             .attemptIds(exerciseAttempts.stream()
                                         .map(v -> v.getId())
                                         .toArray(Long[]::new))
             .user(user)
-            .expired(new Date())
+            .language(language)
             .build();
     }
 }
