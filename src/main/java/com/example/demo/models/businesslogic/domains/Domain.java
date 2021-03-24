@@ -159,7 +159,7 @@ public abstract class Domain {
                 questions.add(q);
             }
         }
-        if (questions.isEmpty() || maxSuitCount == 0) {
+        if (questions.isEmpty()) {
             return null;
         } else {
             return questions.get(new Random().nextInt(questions.size()));
