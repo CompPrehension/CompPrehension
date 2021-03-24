@@ -85,7 +85,12 @@ public class ProgrammingLanguageExpressionDomainTest {
         QuestionRequest qr4 = new QuestionRequest();
         qr4.setTargetConcepts(List.of());
         qr4.setAllowedConcepts(List.of());
-        qr4.setDeniedConcepts(List.of());
+        qr4.setDeniedConcepts(List.of(
+                domain.getConcept("associativity"),
+                domain.getConcept("precedence"),
+                domain.getConcept("type"),
+                domain.getConcept("SystemIntegrationTest")
+        ));
         assertEquals("Choose associativity of operator binary +",
                 domain.makeQuestion(qr4, tags, Language.ENGLISH).getQuestionText().getText());
     }
