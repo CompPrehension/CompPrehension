@@ -202,7 +202,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setAreAnswersRequireContext(true);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
-        entity.setQuestionText(ExpressionToHtml(q.getQuestionText().getText()));
 
         List<String> tokens = new ArrayList<>();
         for (BackendFactEntity fact : q.getStatementFacts()) {
@@ -214,9 +213,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
+                entity.setQuestionText(ExpressionToHtml(q.getQuestionText().getText()));
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
             case MATCHING:
+                entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
                 entity.setOptions(matchingQuestionOptions);
                 return new Matching(entity);
             default:
@@ -290,7 +291,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             matcher = pattern.matcher(sb.toString());
         }
 
-        sb.insert(0, "<p class='comp-ph-expr'>"); sb.append("</p>");
+        sb.insert(0, "<p class='comp-ph-expr'>");
+        sb.append("<!-- Original expression: " + text + "-->");
+        sb.append("</p>");
         return QuestionTextToHtml(sb.toString());
     }
 
