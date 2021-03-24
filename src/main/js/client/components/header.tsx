@@ -2,7 +2,7 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Navbar } from 'react-bootstrap';
 import store from '../store';
-import { UserInfo } from '../types/user-info';
+import { Pagination } from './pagination';
 
 
 export const Header = observer(() => {
@@ -15,6 +15,8 @@ export const Header = observer(() => {
     return (
         <Navbar>
             <Navbar.Collapse className="justify-content-end">   
+                <Pagination />
+                
                 <Navbar.Text className="px-2">
                     Language: <a href="#language">{sessionInfo.language}</a>
                 </Navbar.Text>     

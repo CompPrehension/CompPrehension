@@ -5,6 +5,10 @@ body {
   font-family: 'M PLUS 1p', sans-serif;
 }
 
+body ul {
+  margin: 0; 
+}
+
 .comp-ph-container {
   padding: 1rem;
   margin-bottom: 1rem;

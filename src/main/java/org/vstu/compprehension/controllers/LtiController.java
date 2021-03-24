@@ -1,6 +1,7 @@
 package org.vstu.compprehension.controllers;
 
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
@@ -103,15 +104,21 @@ public class LtiController {
             .build();
     }
 
-
-    @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
+    @RequestMapping(value = {"/generateQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
-    public QuestionDto getQuestion(@RequestParam(name = "attemptId") Long exAttemptId) throws Exception {
+    public QuestionDto generateQuestion(@RequestParam(name = "attemptId") Long exAttemptId) throws Exception {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = questionService.generateQuestion(attempt);
         QuestionEntity qData = question.getQuestionData();
         return Mapper.toDto(qData);
+    }
+
+    @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
+    @ResponseBody
+    public QuestionDto getQuestion(@RequestParam Long questionId) throws Exception {
+        val question = questionService.getQuestionEntiity(questionId);
+        return Mapper.toDto(question);
     }
 
     @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
@@ -123,27 +130,37 @@ public class LtiController {
             throw new Exception("Couldn't get session info");
         }
 
+        val exerciseId = NumberUtils.toLong(params.getOrDefault("custom_exerciseid", null), -1L);
+        if (exerciseId == -1L) {
+            throw new Exception("Invalid 'exerciseId' format");
+        }
+        val exercise = exerciseService.getExercise(exerciseId);
+
         // get or create user
         val userEntity = userService.createOrUpdateFromLti(params);
-        val userDto = Mapper.toDto(userEntity);
 
-        val exercises = IterableUtils.toList(exerciseRepository.findAll());
-        val exerciseAttempts = new ArrayList<ExerciseAttemptEntity>();
-        for (ExerciseEntity e : exercises) {
-            ExerciseAttemptEntity ae = new ExerciseAttemptEntity();
-            ae.setExercise(e);
-            ae.setAttemptStatus(AttemptStatus.INCOMPLETE);
-            ae.setUser(userEntity);
-            exerciseAttempts.add(exerciseAttemptRepository.save(ae));
-        }
+        // check existing attempt
+        // TODO ask user whether use existing attempt or create new
+        val existingAttempt = exerciseAttemptRepository
+                .findFirstByExerciseIdAndUserIdAndAttemptStatus(exerciseId, userEntity.getId(), AttemptStatus.INCOMPLETE);
+        val attempt = existingAttempt
+                .orElseGet(() -> {
+                    val ea = new ExerciseAttemptEntity();
+                    ea.setExercise(exercise);
+                    ea.setUser(userEntity);
+                    ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
+                    ea.setQuestions(new ArrayList<>(0));
+                    return exerciseAttemptRepository.save(ea);
+                });
 
         val language = params.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
         return SessionInfoDto.builder()
             .sessionId(session.getId())
-            .attemptIds(exerciseAttempts.stream()
+            .attemptId(attempt.getId())
+            .questionIds(attempt.getQuestions().stream()
                                         .map(v -> v.getId())
                                         .toArray(Long[]::new))
-            .user(userDto)
+            .user(Mapper.toDto(userEntity))
             .language(language)
             .build();
     }

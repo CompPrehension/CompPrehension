@@ -6,9 +6,8 @@ import { QuestionFabric } from './components/question/question-fabric';
 import React from 'react';
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { NextQuestionBtn } from './components/next-question-btn';
+import { GenerateNextQuestionBtn } from './components/generate-next-question-btn';
 import { Feedback } from './components/feedback';
-import { Spinner } from 'react-bootstrap';
 import { Loader } from './components/loader';
 import { Header } from './components/header';
 
@@ -16,14 +15,16 @@ const Home = observer(() => {
     useEffect(() => {
         (async () => {
             await store.loadSessionInfo();
-            const { attemptIds=[] } = store.sessionInfo ?? {};
-            if (attemptIds.length > 0) {
-                await store.loadQuestion(attemptIds[0]);
-            }            
+            const { questionIds=[] } = store.sessionInfo ?? {};
+            if (questionIds.length > 0) {
+                await store.loadQuestion(questionIds[0]);
+            } else {
+                await store.generateQuestion();
+            }           
         })()
     }, []);
 
-    if (store.isLoading) {
+    if (store.isSessionLoading) {
         return <Loader />;
     }
 
@@ -32,7 +33,7 @@ const Home = observer(() => {
             <Header />
             <QuestionFabric />
             <Feedback />
-            <NextQuestionBtn />
+            <GenerateNextQuestionBtn />            
         </div>
     );
 })

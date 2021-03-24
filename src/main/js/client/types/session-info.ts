@@ -3,13 +3,15 @@ import * as io from 'io-ts'
 
 export type SessionInfo = {
     sessionId: string,
-    attemptIds: number[],
+    attemptId: number,
+    questionIds: number[],
     user: UserInfo,
     language: string,
 };
 export const TSessionInfo : io.Type<SessionInfo> = io.type({
     sessionId: io.string,
-    attemptIds: io.array(io.number),
+    attemptId: io.number,
+    questionIds: io.array(io.number),
     user: TUserInfo,
     language: io.string,
 });

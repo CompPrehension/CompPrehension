@@ -18,5 +18,5 @@ export type MergeIntersections<T> =
  */
 export type MergeIntersectionsDeep<T> = 
   T extends object 
-    ? { [K in keyof T]: MergeIntersections<T[K]> }
+    ? { [K in keyof T]: MergeIntersectionsDeep<T[K]> }
     : T
