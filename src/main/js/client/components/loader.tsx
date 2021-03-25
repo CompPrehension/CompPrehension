@@ -6,10 +6,12 @@ type LoaderProps = {
 }
 
 export const Loader = (props: LoaderProps) => {
-    const delay = props.delay ?? 150;
-    const [enabled, setEnabled] = useState(false);
+    const delay = props.delay ?? 0;
+    const [enabled, setEnabled] = useState(delay === 0);
     useEffect(() => {
-        setTimeout(() => !enabled && setEnabled(true), delay);
+        if (delay > 0) {
+            setTimeout(() => !enabled && setEnabled(true), delay);
+        }
     });
 
     if (!enabled) {

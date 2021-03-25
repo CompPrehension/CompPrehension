@@ -7,8 +7,8 @@ import lombok.Data;
 @Builder
 public class FeedbackDto {
     private float grade;
-    private int iterationsLeft;
-    private int correctOptionsCount;
+    private Integer totalSteps;
+    private int stepsLeft;
     private String[] errors;
 }
 

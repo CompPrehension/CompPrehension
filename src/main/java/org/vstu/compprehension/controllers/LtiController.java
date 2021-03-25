@@ -99,8 +99,8 @@ public class LtiController {
         return FeedbackDto.builder()
             .grade(grade)
             .errors(errors)
-            .iterationsLeft(judgeResult.IterationsLeft)
-            .correctOptionsCount(judgeResult.CountCorrectOptions)
+            .stepsLeft(judgeResult.IterationsLeft)
+            .totalSteps(null) // TODO get from interaction
             .build();
     }
 

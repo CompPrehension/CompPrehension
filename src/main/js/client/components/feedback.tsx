@@ -13,7 +13,7 @@ export const Feedback = observer(() => {
         return <Loader />;
     }
 
-    if (!feedback) {
+    if (!feedback || store.isQuestionLoading) {
         return null;
     }
 
@@ -24,15 +24,15 @@ export const Feedback = observer(() => {
             </p>
             <p>
                 <Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}
-                <Badge variant="success">Correct options: {feedback.correctOptionsCount}</Badge>{' '}
-                <Badge variant="info">Interactions left: {feedback.iterationsLeft}</Badge>{' '}
+                <Badge variant="success">Total steps: {feedback.totalSteps ?? 'not implemented'}</Badge>{' '}
+                <Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}
             </p>              
         </div>
     );
 });
 
 const renderFeedback = (feedback: FeedbackType) => {
-    const state = (!feedback.errors.length && feedback.iterationsLeft === 0) ? 'DONE'
+    const state = (!feedback.errors.length && feedback.stepsLeft === 0) ? 'DONE'
         : (!feedback.errors.length) ? 'PARTIALCORRECT' 
         : 'ERROR' 
     switch(state) {

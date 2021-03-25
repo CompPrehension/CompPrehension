@@ -28,13 +28,13 @@ export class Store {
         }
 
         this.isSessionLoading = true;
-        const dataEither = await ajaxGet('loadSessionInfo', TSessionInfo)
-            .finally(() => this.isSessionLoading = false);
-                                
+        const dataEither = await ajaxGet('loadSessionInfo', TSessionInfo);                                
         const data = E.getOrElseW(_ => undefined)(dataEither);
-        if (data != undefined) {
+
+        runInAction(() => {
+            this.isSessionLoading = false;
             this.sessionInfo = data;
-        }
+        });
     }
 
     @action 
@@ -44,11 +44,11 @@ export class Store {
         }
 
         this.isQuestionLoading = true;
-        const dataEither = await ajaxGet(`getQuestion?questionId=${questionId}`, TQuestion)
-            .finally(() => this.isQuestionLoading = false);
+        const dataEither = await ajaxGet(`getQuestion?questionId=${questionId}`, TQuestion);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
+            this.isQuestionLoading = false;
             this.questionData = data;
             this.feedback = undefined;        
             this.answersHistory = [];
@@ -63,11 +63,11 @@ export class Store {
 
         const { attemptId } = this.sessionInfo;
         this.isQuestionLoading = true;
-        const dataEither = await ajaxGet(`generateQuestion?attemptId=${attemptId}`, TQuestion)
-            .finally(() => this.isQuestionLoading = false);            
+        const dataEither = await ajaxGet(`generateQuestion?attemptId=${attemptId}`, TQuestion);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
+            this.isQuestionLoading = false;
             this.questionData = data;
             this.feedback = undefined;        
             this.answersHistory = [];
@@ -91,11 +91,11 @@ export class Store {
         })
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ajaxPost('addAnswer', body, TFeedback)
-            .finally(() => this.isFeedbackLoading = false);
+        const feedbackEither = await ajaxPost('addAnswer', body, TFeedback);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {
+            this.isFeedbackLoading = false;
             this.feedback = feedback;
             if (this.feedback?.errors.length) {                
                 this.answersHistory.pop();
