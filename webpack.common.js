@@ -1,9 +1,8 @@
 module.exports = {
   entry: {
-    './target/classes/js/built/bundle-server.js': './src/main/js/server/server.js',
-    './target/classes/static/js/built/bundle-client.js': './src/main/js/client/index.tsx',
+    './src/main/resources/static/js/bundle-server.js': './src/main/js/server/server.js',
+    './src/main/resources/static/js/bundle-client.js': './src/main/js/client/index.tsx',
   },
-  devtool: 'inline-source-map',
   output: {
     path: __dirname,
     filename: '[name]'
@@ -31,8 +30,5 @@ module.exports = {
   },
   performance: {
     hints: false
-  },
-  optimization: {
-    minimize: false,
-  }
+  },  
 }

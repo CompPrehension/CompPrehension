@@ -20,7 +20,7 @@ export const OrderQuestion : React.FC = observer(() => {
             const $this = $(e);
             const idStr = $this.attr('id')?.split("answer_")[1] ?? ""; 
             const id = +idStr;
-            $this.click(() => onAnswersChanged([id, id]));
+            $this.on('click', () => onAnswersChanged([id, id]));
         });
 
         // show elements positions

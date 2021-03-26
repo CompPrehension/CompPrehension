@@ -1,14 +1,11 @@
 # Запуск в moodle
 
 ## Предварительно
-- поставить [node js](https://nodejs.org/en/)
 - заполнить таблицы MySQL тестовыми данными
 - проверить, что connectionString к MySQL стоит корректный в [настройках](https://github.com/procudin/CompPrehension/blob/master/src/main/resources/application.properties)
 - поставитить мудл ([здесь](https://download.moodle.org/windows/) прям готовая сборка php+mariadb+apache) или использовать [тестовый стенд](http://edu.vstu.org)
-- загрузить все зависимости -- ```npm install``` в папке с проектом
 
 ## Запуск сервера
-- сбилдить фронт ```npm run build```
 - сбилдить проект и запустить сервер spring
 
 Если корректно настроен connection к бд, то сервер должен запуститься без ошибок.

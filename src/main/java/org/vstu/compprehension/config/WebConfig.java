@@ -27,7 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public ScriptTemplateConfigurer scriptTemplateConfigurer() {
         ScriptTemplateConfigurer scriptTemplateConfigurer = new ScriptTemplateConfigurer("nashorn");
-        scriptTemplateConfigurer.setScripts("/js/polyfill.js", "/js/built/bundle-server.js");
+        scriptTemplateConfigurer.setScripts("/js/polyfill.js", "/static/js/bundle-server.js");
         scriptTemplateConfigurer.setRenderFunction("render");
         scriptTemplateConfigurer.setSharedEngine(false);
         return scriptTemplateConfigurer;
