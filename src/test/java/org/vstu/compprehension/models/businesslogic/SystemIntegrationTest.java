@@ -1,6 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import org.vstu.compprehension.DemoApplication;
+import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.InteractionService;
 import org.vstu.compprehension.Service.QuestionService;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes= DemoApplication.class)
+@SpringBootTest(classes= CompPrehensionApplication.class)
 @Transactional
 public class SystemIntegrationTest {
     @Autowired

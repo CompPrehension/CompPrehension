@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 @SpringBootApplication
-public class DemoApplication {
+public class CompPrehensionApplication {
 
 	@Autowired
 	public UserService userService;
@@ -38,7 +38,7 @@ public class DemoApplication {
 	public DomainService domainService;
 	
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		SpringApplication.run(CompPrehensionApplication.class, args);
 		
 		/*
 		* При первом запуске оставить не закомментированной эту строку. 
