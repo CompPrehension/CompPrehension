@@ -172,6 +172,11 @@ public class TestDomain extends Domain {
     }
 
     @Override
+    public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
+        return null;
+    }
+
+    @Override
     public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {return null;}
 
     @Override

@@ -22,11 +22,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.Math.max;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Component
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
+    static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
@@ -185,6 +186,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
                 .build();
 
+        QuestionOptionsEntity multiChoiceQuestionOptions = QuestionOptionsEntity.builder()
+                .requireContext(false)
+                .build();
+
         QuestionEntity entity = new QuestionEntity();
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
@@ -220,6 +225,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
                 entity.setOptions(matchingQuestionOptions);
                 return new Matching(entity);
+            case MULTI_CHOICE:
+                entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
+                entity.setOptions(multiChoiceQuestionOptions);
+                return new MultiChoice(entity);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -587,6 +596,30 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     return correctAnswer;
                 }
             }
+        }
+        return null;
+    }
+
+    List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
+        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
+        List<Tag> result = new ArrayList<>();
+        for (String tagString : tags) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            result.add(tag);
+        }
+        return result;
+    }
+
+    @Override
+    public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
+        assertFalse(interpretSentenceResult.mistakes.isEmpty());
+        HashSet<String> targetConcepts = new HashSet<>();
+        targetConcepts.add(interpretSentenceResult.mistakes.get(0).getLawName());
+
+        Question res = findQuestion(getTags(exerciseAttemptEntity), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
+        if (res != null) {
+            return makeQuestionCopy(res, exerciseAttemptEntity);
         }
         return null;
     }

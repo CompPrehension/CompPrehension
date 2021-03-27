@@ -116,6 +116,8 @@ public abstract class Domain {
      * */
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 
+    public abstract Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity);
+
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
 
     public class CorrectAnswer {

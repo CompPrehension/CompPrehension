@@ -2955,5 +2955,105 @@
       "order",
       "evaluation"
     ]
+  },
+  {
+    "questionType": "MULTI_CHOICE",
+    "questionData": {
+      "questionType": "MULTI_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Select all binary operators in expression: ! a + - b * c",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "hyperText": "!",
+          "domainInfo": "op__0__1",
+          "isRightCol": false,
+          "concept": "operator_unary_!",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "a",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operand",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "+",
+          "domainInfo": "op__0__3",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "-",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_unary_-",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "b",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "operand",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "*",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "c",
+          "domainInfo": "op__0__7",
+          "isRightCol": false,
+          "concept": "operand",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "!"
+        },
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "-"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "c"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++"
+    ]
   }
 ]
