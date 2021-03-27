@@ -675,6 +675,21 @@
         "backend": "Jena"
       },
       {
+        "name": "law_name",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "copy_law_name_to_zero_step",
+        "formulation": "law_name(?a, ?a_step) ^ zero_step(?a, ?a0) -> law_name(?a0, ?a_step)",
+        "backend": "SWRL"
+      },
+      {
+        "name": "copy_law_name_to_zero_step",
+        "formulation": "(?a my:law_name ?a_step), (?a my:zero_step ?a0) -> (?a0 my:law_name ?a_step).",
+        "backend": "Jena"
+      },
+      {
         "name": "has_complex_operator_part",
         "formulation": "owl:ObjectProperty",
         "backend": "OWL"
@@ -1381,7 +1396,7 @@
       },
       {
         "name": "eval_prefix_operation",
-        "formulation": "next_step(?b, ?b_next) ^ has_highest_precedence_to_right(?a, true) ^ step(?a, ?a_step) ^ arity(?a, \"unary\") ^ init(?a, true) ^ not_index(?b, ?other) ^ prefix_postfix(?a, \"prefix\") ^ has_highest_precedence_to_left(?a, true) ^ next_step(?a, ?a_next) ^ find_right_operand(?a, ?b) ^ same_step(?a, ?b) -> copy_without_marks(?a, ?a_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
+        "formulation": "next_step(?b, ?b_next) ^ has_highest_precedence_to_right(?a, true) ^ step(?a, ?a_step) ^ arity(?a, \"unary\") ^ init(?a, true) ^ not_index(?b, ?other) ^ prefix_postfix(?a, \"prefix\") ^ has_highest_precedence_to_left(?a, true) ^ next_step(?a, ?a_next) ^ find_right_operand(?a, ?b) ^ same_step(?a, ?b) -> copy_without_marks(?a, ?a_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ eval(?a_next, true) ^ law_name(?a, \"single_token_unary_prefix_execution\") ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
         "backend": "SWRL"
       },
       {
@@ -1391,7 +1406,7 @@
       },
       {
         "name": "eval_postfix_operation",
-        "formulation": "next_step(?b, ?b_next) ^ has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"unary\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ prefix_postfix(?a, \"postfix\") ^ next_step(?a, ?a_next) ^ same_step(?a, ?b) -> copy_without_marks(?a, ?a_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
+        "formulation": "next_step(?b, ?b_next) ^ has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"unary\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ prefix_postfix(?a, \"postfix\") ^ next_step(?a, ?a_next) ^ same_step(?a, ?b) -> copy_without_marks(?a, ?a_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ eval(?a_next, true) ^ law_name(?a, \"single_token_unary_postfix_execution\") ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
         "backend": "SWRL"
       },
       {
@@ -1401,7 +1416,7 @@
       },
       {
         "name": "eval_prefix_operation",
-        "formulation": "(?b my:next_step ?b_next), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:step ?a_step), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?b my:not_index ?other), (?a my:prefix_postfix \"prefix\"), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:next_step ?a_next), (?a my:find_right_operand ?b), (?a my:same_step ?b) -> (?a my:copy_without_marks ?a_next), (?b_next my:app \"true\"^^xsd:boolean), (?a my:eval_step ?a_step), (?a_next my:eval \"true\"^^xsd:boolean), (?b my:copy_without_marks ?b_next), (?a my:has_operand ?b).",
+        "formulation": "(?b my:next_step ?b_next), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:step ?a_step), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?b my:not_index ?other), (?a my:prefix_postfix \"prefix\"), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:next_step ?a_next), (?a my:find_right_operand ?b), (?a my:same_step ?b) -> (?a my:copy_without_marks ?a_next), (?b_next my:app \"true\"^^xsd:boolean), (?a my:eval_step ?a_step), (?a, my:law_name \"single_token_unary_prefix_execution\"^^xsd:string), (?a_next my:eval \"true\"^^xsd:boolean), (?b my:copy_without_marks ?b_next), (?a my:has_operand ?b).",
         "backend": "Jena"
       },
       {
@@ -1411,7 +1426,7 @@
       },
       {
         "name": "eval_postfix_operation",
-        "formulation": "(?b my:next_step ?b_next), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:find_left_operand ?b), (?a my:step ?a_step), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:prefix_postfix \"postfix\"), (?a my:next_step ?a_next), (?a my:same_step ?b) -> (?a my:copy_without_marks ?a_next), (?b_next my:app \"true\"^^xsd:boolean), (?a my:eval_step ?a_step), (?a_next my:eval \"true\"^^xsd:boolean), (?b my:copy_without_marks ?b_next), (?a my:has_operand ?b).",
+        "formulation": "(?b my:next_step ?b_next), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:find_left_operand ?b), (?a my:step ?a_step), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:prefix_postfix \"postfix\"), (?a my:next_step ?a_next), (?a my:same_step ?b) -> (?a my:copy_without_marks ?a_next), (?b_next my:app \"true\"^^xsd:boolean), (?a my:eval_step ?a_step), (?a, my:law_name \"single_token_unary_postfix_execution\"^^xsd:string), (?a_next my:eval \"true\"^^xsd:boolean), (?b my:copy_without_marks ?b_next), (?a my:has_operand ?b).",
         "backend": "Jena"
       },
       {
@@ -1512,7 +1527,7 @@
       },
       {
         "name": "eval_binary_operation",
-        "formulation": "next_step(?b, ?b_next) ^ next_step(?c, ?c_next) ^ has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"binary\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ find_right_operand(?a, ?c) ^ next_step(?a, ?a_next) ^ same_step(?a, ?c) ^ same_step(?a, ?b) -> has_operand(?a, ?c) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ app(?c_next, true) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b)",
+        "formulation": "next_step(?b, ?b_next) ^ next_step(?c, ?c_next) ^ has_highest_precedence_to_right(?a, true) ^ find_left_operand(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"binary\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ find_right_operand(?a, ?c) ^ next_step(?a, ?a_next) ^ same_step(?a, ?c) ^ same_step(?a, ?b) -> has_operand(?a, ?c) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ app(?b_next, true) ^ eval_step(?a, ?a_step) ^ app(?c_next, true) ^ eval(?a_next, true) ^ copy_without_marks(?b, ?b_next) ^ has_operand(?a, ?b) ^  law_name(?a, \"single_token_binary_execution\")",
         "backend": "SWRL"
       },
       {
@@ -1522,7 +1537,7 @@
       },
       {
         "name": "eval_binary_operation",
-        "formulation": "(?b my:next_step ?b_next), (?c my:next_step ?c_next), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:find_left_operand ?b), (?a my:step ?a_step), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:find_right_operand ?c), (?a my:next_step ?a_next), (?a my:same_step ?c), (?a my:same_step ?b) -> (?a my:has_operand ?c), (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?b_next my:app \"true\"^^xsd:boolean), (?a my:eval_step ?a_step), (?c_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean), (?b my:copy_without_marks ?b_next), (?a my:has_operand ?b).",
+        "formulation": "(?b my:next_step ?b_next), (?c my:next_step ?c_next), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:find_left_operand ?b), (?a my:step ?a_step), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:find_right_operand ?c), (?a my:next_step ?a_next), (?a my:same_step ?c), (?a my:same_step ?b) -> (?a my:has_operand ?c), (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?b_next my:app \"true\"^^xsd:boolean), (?a my:eval_step ?a_step), (?c_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean), (?a, my:law_name \"single_token_binary_execution\"^^xsd:string), (?b my:copy_without_marks ?b_next), (?a my:has_operand ?b).",
         "backend": "Jena"
       },
       {
@@ -1658,7 +1673,7 @@
       },
       {
         "name": "eval_complex_operation",
-        "formulation": "next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ all_eval_to_right(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"complex\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ next_step(?a, ?a_next) ^ same_step(?a, ?c) ^ complex_boundaries(?a, ?c) -> copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ eval(?a_next, true)",
+        "formulation": "next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ has_highest_precedence_to_right(?a, true) ^ all_eval_to_right(?a, ?b) ^ step(?a, ?a_step) ^ arity(?a, \"complex\") ^ init(?a, true) ^ has_highest_precedence_to_left(?a, true) ^ next_step(?a, ?a_next) ^ same_step(?a, ?c) ^ complex_boundaries(?a, ?c) -> copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ eval(?a_next, true) ^ law_name(?a, \"two_token_binary_execution\")",
         "backend": "SWRL"
       },
       {
@@ -1703,7 +1718,7 @@
       },
       {
         "name": "eval_complex_operation",
-        "formulation": "(?c my:next_step ?c_next), (?b my:next_index ?c), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:all_eval_to_right ?b), (?a my:step ?a_step), (?a my:arity \"complex\"), (?a my:init \"true\"^^xsd:boolean), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:next_step ?a_next), (?a my:same_step ?c), (?a my:complex_boundaries ?c) -> (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?a my:eval_step ?a_step), (?a my:has_complex_operator_part ?c), (?c_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean).",
+        "formulation": "(?c my:next_step ?c_next), (?b my:next_index ?c), (?a my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?a my:all_eval_to_right ?b), (?a my:step ?a_step), (?a my:arity \"complex\"), (?a my:init \"true\"^^xsd:boolean), (?a my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:next_step ?a_next), (?a my:same_step ?c), (?a my:complex_boundaries ?c) -> (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?a my:eval_step ?a_step), (?a my:has_complex_operator_part ?c), (?c_next my:app \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_binary_execution\"^^xsd:string), (?a_next my:eval \"true\"^^xsd:boolean).",
         "backend": "Jena"
       },
       {
@@ -1854,7 +1869,7 @@
       },
       {
         "name": "eval_ternary_operation",
-        "formulation": "arity(?a, \"ternary\") ^ next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ step(?a, ?a_step) ^ has_highest_precedence_to_right(?c, true) ^ find_right_operand(?c, ?e) ^ find_right_operand(?a, ?f) ^ complex_boundaries(?a, ?c) ^ find_left_operand(?a, ?d) ^ all_eval_to_right(?a, ?b) ^ next_step(?e, ?e_next) ^ init(?a, true) ^ next_step(?d, ?d_next) ^ next_step(?a, ?a_next) ^ has_highest_precedence_to_left(?c, true) ^ same_step(?a, ?c) -> has_operand(?a, ?e) ^ has_operand(?a, ?f) ^ copy_without_marks(?d, ?d_next) ^ has_operand(?a, ?d) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ copy_without_marks(?e, ?e_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ app(?d_next, true) ^ app(?e_next, true) ^ eval(?a_next, true)",
+        "formulation": "arity(?a, \"ternary\") ^ next_step(?c, ?c_next) ^ next_index(?b, ?c) ^ step(?a, ?a_step) ^ has_highest_precedence_to_right(?c, true) ^ find_right_operand(?c, ?e) ^ find_right_operand(?a, ?f) ^ complex_boundaries(?a, ?c) ^ find_left_operand(?a, ?d) ^ all_eval_to_right(?a, ?b) ^ next_step(?e, ?e_next) ^ init(?a, true) ^ next_step(?d, ?d_next) ^ next_step(?a, ?a_next) ^ has_highest_precedence_to_left(?c, true) ^ same_step(?a, ?c) -> has_operand(?a, ?e) ^ has_operand(?a, ?f) ^ copy_without_marks(?d, ?d_next) ^ has_operand(?a, ?d) ^ copy_without_marks(?a, ?a_next) ^ copy_without_marks(?c, ?c_next) ^ copy_without_marks(?e, ?e_next) ^ eval_step(?a, ?a_step) ^ has_complex_operator_part(?a, ?c) ^ app(?c_next, true) ^ app(?d_next, true) ^ app(?e_next, true) ^ eval(?a_next, true) ^ law_name(?a, \"two_token_ternary_execution\")",
         "backend": "SWRL"
       },
       {
@@ -1879,7 +1894,7 @@
       },
       {
         "name": "eval_ternary_operation",
-        "formulation": "(?a my:arity \"ternary\"), (?c my:next_step ?c_next), (?b my:next_index ?c), (?a my:step ?a_step), (?c my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?c my:find_right_operand ?e), (?a my:complex_boundaries ?c), (?a my:find_left_operand ?d), (?a my:find_right_operand ?f), (?a my:all_eval_to_right ?b), (?e my:next_step ?e_next), (?a my:init \"true\"^^xsd:boolean), (?d my:next_step ?d_next), (?a my:next_step ?a_next), (?c my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:same_step ?c) -> (?a my:has_operand ?e), (?a my:has_operand ?f), (?d my:copy_without_marks ?d_next), (?a my:has_operand ?d), (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?e my:copy_without_marks ?e_next), (?a my:eval_step ?a_step), (?a my:has_complex_operator_part ?c), (?c_next my:app \"true\"^^xsd:boolean), (?d_next my:app \"true\"^^xsd:boolean), (?e_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean).",
+        "formulation": "(?a my:arity \"ternary\"), (?c my:next_step ?c_next), (?b my:next_index ?c), (?a my:step ?a_step), (?c my:has_highest_precedence_to_right \"true\"^^xsd:boolean), (?c my:find_right_operand ?e), (?a my:complex_boundaries ?c), (?a my:find_left_operand ?d), (?a my:find_right_operand ?f), (?a my:all_eval_to_right ?b), (?e my:next_step ?e_next), (?a my:init \"true\"^^xsd:boolean), (?d my:next_step ?d_next), (?a my:next_step ?a_next), (?c my:has_highest_precedence_to_left \"true\"^^xsd:boolean), (?a my:same_step ?c) -> (?a my:has_operand ?e), (?a my:has_operand ?f), (?d my:copy_without_marks ?d_next), (?a my:has_operand ?d), (?a my:copy_without_marks ?a_next), (?c my:copy_without_marks ?c_next), (?e my:copy_without_marks ?e_next), (?a my:eval_step ?a_step), (?a, my:law_name \"two_token_ternary_execution\"^^xsd:string), (?a my:has_complex_operator_part ?c), (?c_next my:app \"true\"^^xsd:boolean), (?d_next my:app \"true\"^^xsd:boolean), (?e_next my:app \"true\"^^xsd:boolean), (?a_next my:eval \"true\"^^xsd:boolean).",
         "backend": "Jena"
       },
       {

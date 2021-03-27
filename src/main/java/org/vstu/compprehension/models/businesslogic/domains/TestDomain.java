@@ -175,6 +175,11 @@ public class TestDomain extends Domain {
     public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {return null;}
 
     @Override
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
+        return null;
+    }
+
+    @Override
     protected List<Question> getQuestionTemplates() {
         return null;
     }
