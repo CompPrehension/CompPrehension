@@ -3,10 +3,8 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.repository.QuestionRepository;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
@@ -17,7 +15,6 @@ public abstract class Domain {
     protected List<Concept> concepts;
 
     protected DomainEntity domainEntity;
-    protected QuestionRepository questionRepository;
 
     protected String name = "";
     protected String version = "";
@@ -120,6 +117,13 @@ public abstract class Domain {
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
+
+    public class CorrectAnswer {
+        public AnswerObjectEntity answer;
+        public HyperText explanation;
+        public String lawName;
+    }
+    public abstract CorrectAnswer getAnyNextCorrectAnswer(Question q);
 
     protected abstract List<Question> getQuestionTemplates();
     public Question findQuestion(List<Tag> tags, Question q) {

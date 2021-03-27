@@ -381,7 +381,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "high_precedence_diff_precedence",
                     "high_precedence_left_assoc",
                     "high_precedence_right_assoc",
-                    "is_operand"
+                    "is_operand",
+                    "law_name"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -485,16 +486,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return Optional.empty();
     }
 
-    @Override
-    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
+    class CorrectAnswerImpl {
+        String domainID;
+        String lawName;
+    }
+
+    private List<CorrectAnswerImpl> getCorrectAnswers(List<BackendFactEntity> solution) {
         Map<String, List<String>> before = new HashMap<>();
         Map<String, String> studentPos = new HashMap<>();
+        Map<String, String> operatorLawName = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
         HashSet<String> allTokens = new HashSet<>();
+
+        List<CorrectAnswerImpl> result = new ArrayList<>();
         for (BackendFactEntity fact : solution) {
             if (fact.getVerb().equals("before_direct")) {
                 if (!before.containsKey(fact.getObject())) {
-                    before.put(fact.getObject(), new ArrayList<String>());
+                    before.put(fact.getObject(), new ArrayList<>());
                 }
                 before.get(fact.getObject()).add(fact.getSubject());
                 allTokens.add(fact.getObject());
@@ -503,11 +511,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 studentPos.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("is_operand")) {
                 isOperand.add(fact.getSubject());
+            } else if (fact.getVerb().equals("law_name")) {
+                operatorLawName.put(fact.getSubject(), fact.getObject());
             }
         }
 
-        int IterationsLeft = 0;
-        int CountCorrectOptions = 0;
         for (String operator : allTokens) {
             if (!operator.startsWith("op__0") || isOperand.contains(operator)) {
                 continue;
@@ -523,17 +531,64 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 }
             }
             if (can) {
-                CountCorrectOptions++;
+                CorrectAnswerImpl answer = new CorrectAnswerImpl();
+                answer.domainID = operator;
+                answer.lawName = operatorLawName.get(operator);
+                result.add(answer);
             }
-            if (!studentPos.containsKey(operator)) {
+        }
+        return result;
+    }
+
+    @Override
+    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
+        Map<String, String> studentPos = new HashMap<>();
+        HashSet<String> isOperand = new HashSet<>();
+        HashSet<String> allTokens = new HashSet<>();
+        for (BackendFactEntity fact : solution) {
+            if (fact.getVerb().equals("before_direct")) {
+                allTokens.add(fact.getObject());
+                allTokens.add(fact.getSubject());
+            } else if (fact.getVerb().equals("student_pos_number")) {
+                studentPos.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("is_operand")) {
+                isOperand.add(fact.getSubject());
+            }
+        }
+
+        int IterationsLeft = 0;
+        for (String operator : allTokens) {
+            if (operator.startsWith("op__0") && !isOperand.contains(operator) && !studentPos.containsKey(operator)) {
                 IterationsLeft++;
             }
         }
 
         InterpretSentenceResult result = new InterpretSentenceResult();
-        result.CountCorrectOptions = CountCorrectOptions;
+        result.CountCorrectOptions = getCorrectAnswers(solution).size();
         result.IterationsLeft = IterationsLeft;
         return result;
+    }
+
+    HyperText getCorrectExplanation(String lawName) {
+        return new HyperText(lawName);
+    }
+
+    @Override
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
+        List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(q.getSolutionFacts());
+
+        for (AnswerObjectEntity answer : q.getAnswerObjects()) {
+            for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
+                if (answerImpl.domainID.equals(answer.getDomainInfo())) {
+                    CorrectAnswer correctAnswer = new CorrectAnswer();
+                    correctAnswer.answer = answer;
+                    correctAnswer.lawName = answerImpl.lawName;
+                    correctAnswer.explanation = getCorrectExplanation(answerImpl.lawName);
+                    return correctAnswer;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

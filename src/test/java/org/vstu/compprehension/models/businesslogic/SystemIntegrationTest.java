@@ -75,6 +75,9 @@ public class SystemIntegrationTest {
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
+            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2);
+            assertEquals("operator_binary_<", correctAnswer.answer.getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer.lawName);
             Question question3 = responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
 
@@ -367,6 +370,13 @@ public class SystemIntegrationTest {
         Question question = getQuestion(questionId);
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         return domain.processSolution(question.getSolutionFacts());
+    }
+
+
+    Domain.CorrectAnswer getCorrectAnswer(Long questionId) {
+        Question question = getQuestion(questionId);
+        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
+        return domain.getAnyNextCorrectAnswer(question);
     }
 
     Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {
