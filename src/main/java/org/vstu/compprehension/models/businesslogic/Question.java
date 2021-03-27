@@ -99,9 +99,17 @@ public abstract class Question implements QuestionFront, QuestionBack {
         return questionData;
     }
 
+    /**
+     * Don't use it for normal questions, only for templates
+     * @return
+     */
     public List<String> getConcepts() {
         return concepts;
     }
+    /**
+     * Don't use it for normal questions, only for templates
+     * @return
+     */
     public HashSet<String> getTags() {
         return tags;
     }

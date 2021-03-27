@@ -10,6 +10,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
+import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.repository.QuestionRepository;
 import org.vstu.compprehension.models.repository.ResponseRepository;
@@ -119,6 +120,10 @@ public class SystemIntegrationTest {
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
+            Long supQ = generateSupplementaryQuestion(result, testExerciseAttemptList.get(0));
+            Question supQ2 = questionService.getQuestion(supQ);
+            assertEquals(QuestionType.MULTI_CHOICE, supQ2.getQuestionType());
+            assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
 
             float grade = strategy.grade(IterableUtils.toList(exerciseAttemptRepository.findAll()).get(0));
         }
@@ -372,7 +377,6 @@ public class SystemIntegrationTest {
         return domain.processSolution(question.getSolutionFacts());
     }
 
-
     Domain.CorrectAnswer getCorrectAnswer(Long questionId) {
         Question question = getQuestion(questionId);
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
@@ -391,6 +395,15 @@ public class SystemIntegrationTest {
                 domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts())
         );
         return domain.interpretSentence(violations);
+    }
+
+    Long generateSupplementaryQuestion(Domain.InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttempt) {
+        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        Question question = domain.makeSupplementaryQuestion(interpretSentenceResult, exerciseAttempt);
+        assertNotNull(question);
+        question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));
+        questionService.saveQuestion(question.questionData);
+        return question.questionData.getId();
     }
 
     List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
