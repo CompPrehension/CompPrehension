@@ -36,7 +36,7 @@ import java.util.*;
 
 @Controller
 @RequestMapping("lti")
-public class LtiController {
+public class LtiController extends BasicController {
     @Value("${config.property.lti_launch_secret}")
     private String ltiLaunchSecret;
 
@@ -44,22 +44,12 @@ public class LtiController {
     private ExerciseAttemptRepository exerciseAttemptRepository;
 
     @Autowired
-    private ExerciseRepository exerciseRepository;
-
-    @Autowired
     private ExerciseService exerciseService;
 
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private QuestionService questionService;
-
-    @Autowired
-    private Strategy strategy;
-
-
-    @RequestMapping(value = {"/launch"}, method = {RequestMethod.POST})
+    @RequestMapping(value = {"/launch" }, method = {RequestMethod.POST})
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> params) throws Exception {
         LtiVerifier ltiVerifier = new LtiOauthVerifier();
         String key = request.getParameter("oauth_consumer_key");
@@ -75,54 +65,7 @@ public class LtiController {
         return "index";
     }
 
-    @RequestMapping(value = {"/addAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
-            consumes = "application/json")
-    @ResponseBody
-    public FeedbackDto addAnswer(@RequestBody InteractionDto interaction,
-                                 HttpServletRequest request) throws Exception {
-        Long exAttemptId = interaction.getAttemptId();
-        Long questionId = interaction.getQuestionId();
-        Long[][] answers = interaction.getAnswers();
-
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-
-        List<Tag> tags = exerciseService.getTags(attempt.getExercise());
-        Question question = questionService.getQuestion(questionId);
-        questionService.solveQuestion(question, tags);
-        questionService.responseQuestion(question, answers);
-        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
-        List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
-        String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
-        float grade = strategy.grade(attempt);
-
-        return FeedbackDto.builder()
-            .grade(grade)
-            .errors(errors)
-            .stepsLeft(judgeResult.IterationsLeft)
-            .totalSteps(null) // TODO get from interaction
-            .build();
-    }
-
-    @RequestMapping(value = {"/generateQuestion"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public QuestionDto generateQuestion(@RequestParam(name = "attemptId") Long exAttemptId) throws Exception {
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        Question question = questionService.generateQuestion(attempt);
-        QuestionEntity qData = question.getQuestionData();
-        return Mapper.toDto(qData);
-    }
-
-    @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public QuestionDto getQuestion(@RequestParam Long questionId) throws Exception {
-        val question = questionService.getQuestionEntiity(questionId);
-        return Mapper.toDto(question);
-    }
-
-    @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
-    @ResponseBody
+    @Override
     public SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception {
         HttpSession session = request.getSession();
         val params = (Map<String, String>) session.getAttribute("sessionInfo");

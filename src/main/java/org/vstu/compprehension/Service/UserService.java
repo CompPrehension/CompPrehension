@@ -1,5 +1,8 @@
 package org.vstu.compprehension.Service;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.CourseRole;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -26,6 +29,36 @@ public class UserService {
 
     @Autowired
     private UserCourseRoleService userCourseRoleService;
+
+    public UserEntity createOrUpdateFromAuthentication() throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new Exception("Trying to create user within Anonymous access");
+        }
+
+        val currentPrincipalName = authentication.getName();
+        val roles = authentication.getAuthorities().stream()
+                .map(r -> r.getAuthority().split("ROLE_"))
+                .flatMap(Arrays::stream)
+                .filter(r -> r.length() > 0).distinct()
+                .collect(Collectors.toList());
+        authentication.getDetails();
+        val externalId = "local_" + currentPrincipalName;
+
+        val entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
+        entity.setFirstName(currentPrincipalName);
+        entity.setLogin(currentPrincipalName);
+        entity.setPassword("undefined");
+        entity.setPreferred_language(Language.ENGLISH);
+        entity.setRoles(fromLtiRoles(roles));
+        entity.setExternalId(externalId);
+
+        if (entity.getId() == null) {
+            return userRepository.save(entity);
+        }
+        return entity;
+    }
+
 
     /**
      * Creates or updates user entity from LTI launch params

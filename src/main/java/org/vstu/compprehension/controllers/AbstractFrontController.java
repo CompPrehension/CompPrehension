@@ -1,0 +1,34 @@
+package org.vstu.compprehension.controllers;
+
+import lombok.val;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.dto.FeedbackDto;
+import org.vstu.compprehension.dto.InteractionDto;
+import org.vstu.compprehension.dto.Mapper;
+import org.vstu.compprehension.dto.SessionInfoDto;
+import org.vstu.compprehension.dto.question.QuestionDto;
+
+import javax.servlet.http.HttpServletRequest;
+
+public interface AbstractFrontController {
+    @RequestMapping(value = {"/",""}, method = { RequestMethod.GET })
+    String launch(HttpServletRequest request) throws Exception;
+
+    @RequestMapping(value = {"/addAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
+            consumes = "application/json")
+    @ResponseBody
+    FeedbackDto addAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception;
+
+    @RequestMapping(value = {"/generateQuestion"}, method = { RequestMethod.GET })
+    @ResponseBody
+    QuestionDto generateQuestion(@RequestParam(name = "attemptId") Long exAttemptId) throws Exception;
+
+    @RequestMapping(value = {"/getQuestion"}, method = { RequestMethod.GET })
+    @ResponseBody
+    QuestionDto getQuestion(@RequestParam Long questionId) throws Exception;
+
+    @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
+    @ResponseBody
+    SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception;
+}
