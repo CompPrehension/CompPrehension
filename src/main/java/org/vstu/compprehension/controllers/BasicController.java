@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.vstu.compprehension.Service.ExerciseService;
+import org.vstu.compprehension.Service.InteractionService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.FeedbackDto;
@@ -19,6 +20,7 @@ import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.utils.HyperText;
@@ -45,6 +47,9 @@ public class BasicController implements AbstractFrontController {
 
     @Autowired
     private Strategy strategy;
+
+    @Autowired
+    private InteractionService interactionService;
 
     @Override
     public String launch(HttpServletRequest request) throws Exception {
@@ -75,6 +80,10 @@ public class BasicController implements AbstractFrontController {
         Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
         List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
+        InteractionEntity ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.IterationsLeft,
+                judgeResult.correctlyAppliedLaws);
+        interactionService.saveInteraction(ie);
+
         float grade = strategy.grade(attempt);
 
         return FeedbackDto.builder()

@@ -132,7 +132,7 @@ public class Strategy extends AbstractStrategy {
     public float grade(ExerciseAttemptEntity exerciseAttempt) {
 
         val res = getLawGrade(exerciseAttempt);
-        if(res.keySet().stream().count() == 0){
+        if(res.keySet().isEmpty()){
             return (float)0;
         }
 

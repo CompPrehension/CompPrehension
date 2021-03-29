@@ -7,6 +7,7 @@ import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -46,6 +47,23 @@ public class InteractionEntity {
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private QuestionEntity question;
+
+    public InteractionEntity(QuestionEntity question, List<MistakeEntity> mistakes, int IterationsLeft, List<String> correctlyAppliedLaws){
+        //Сохранение интеракции
+        this.setQuestion(question);
+        this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
+        this.setMistakes(mistakes);
+        this.setOrderNumber(IterationsLeft);//Показатель порядка?
+        //ie.setFeedback();Где взять?
+        ArrayList<CorrectLawEntity> cles = new ArrayList<>();
+        for(int i = 0; i < correctlyAppliedLaws.size(); i++){
+            CorrectLawEntity cle = new CorrectLawEntity();
+            cle.setLawName(correctlyAppliedLaws.get(i));
+           // cle.setInteraction(ie);
+            cles.add(cle);
+        }
+        this.setCorrectLaw(cles);
+    }
 
 
 }
