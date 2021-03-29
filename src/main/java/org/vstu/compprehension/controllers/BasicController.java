@@ -3,8 +3,6 @@ package org.vstu.compprehension.controllers;
 import lombok.val;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.vstu.compprehension.Service.ExerciseService;
@@ -12,7 +10,7 @@ import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
-import org.vstu.compprehension.dto.Mapper;
+import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.SessionInfoDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -26,7 +24,6 @@ import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.utils.HyperText;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 

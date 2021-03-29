@@ -1,5 +1,7 @@
-package org.vstu.compprehension.dto;
+package org.vstu.compprehension.utils;
 
+import org.vstu.compprehension.dto.QuestionAnswerDto;
+import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;

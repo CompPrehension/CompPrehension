@@ -1,18 +1,15 @@
 package org.vstu.compprehension.controllers;
 
-import lombok.val;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
-import org.vstu.compprehension.dto.Mapper;
 import org.vstu.compprehension.dto.SessionInfoDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 
 import javax.servlet.http.HttpServletRequest;
 
 public interface AbstractFrontController {
-    @RequestMapping(value = {"/",""}, method = { RequestMethod.GET })
+    @RequestMapping(value = {"/"}, method = { RequestMethod.GET })
     String launch(HttpServletRequest request) throws Exception;
 
     @RequestMapping(value = {"/addAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
