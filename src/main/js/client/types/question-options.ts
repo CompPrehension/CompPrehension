@@ -43,6 +43,7 @@ export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersec
 
 export type MatchingQuestionOptions = QuestionOptions & {
     displayMode: 'combobox' | 'dragNdrop',
+    multipleSelectionEnabled: boolean,
 }
 export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.intersection([
     TQuestionOptions,
@@ -51,5 +52,6 @@ export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.in
             'combobox': null,
             'dragNdrop': null,
         }),
+        multipleSelectionEnabled: io.boolean,
     }),
 ])

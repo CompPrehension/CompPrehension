@@ -114,6 +114,11 @@ export class Store {
         this.answersHistory = [ ...newHistory ];
         this.sendAnswers();
     }
+
+    isHistoryChanged = (newHistory: [number, number][]): boolean => {
+        const { answersHistory } = this;
+        return newHistory.length !== answersHistory.length || JSON.stringify(newHistory.sort()) !== JSON.stringify(answersHistory.sort());
+    }
 }
 
 

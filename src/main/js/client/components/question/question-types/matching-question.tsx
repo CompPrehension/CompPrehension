@@ -52,10 +52,25 @@ const DragAndDropMatchingQuestion = observer(() => {
             dropzone: '.comp-ph-dropzone',
         })
 
-        droppable.on('droppable:dropped', (e: any) => {             
-            const source = e?.data?.dragEvent?.data?.originalSource;
-            const target = e?.data?.dropzone;
-            console.log('dropped', source, target)
+        droppable.on('droppable:stop', (e: any) => {             
+            const draggableId: string | undefined = e?.data?.dragEvent?.data?.source?.id;
+            const droppableId: string | undefined = e?.data?.dropzone?.id;
+            if (!draggableId || !droppableId) {
+                return;
+            }
+
+            // setTimeout is needed to guarantee completion of all dnd events
+            setTimeout(() => {
+                const newHistory = [...(document.querySelectorAll('[id^="answer_"] > [id^="dragAnswer_"]') as unknown as Element[])]
+                    .map<[number, number]>(e => {
+                        const leftId = e.parentElement?.id.split('_')[1] ?? '';
+                        const rightId = e?.id.split('_')[1] ?? '';
+                        return [+leftId, +rightId];
+                    });                        
+                if (store.isHistoryChanged(newHistory)) {
+                    store.updateAnswersHistory(newHistory);
+                }                
+            }, 10);
         });
     }, [questionData.questionId])
     
@@ -65,10 +80,12 @@ const DragAndDropMatchingQuestion = observer(() => {
                 <div className="col-md">
                     <p dangerouslySetInnerHTML={{ __html: questionData.text }} />
                     <div id="answer_0" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                    <div id="answer_1" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                    <div id="answer_2" className="comp-ph-dropzone" style={dropzoneStyle}></div>
                 </div>
                 <div className="col-md">
                     {groups.map(g => 
-                        (<div className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column" style={dropzoneStyle}>
+                        (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column" style={dropzoneStyle}>
                             <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2 d-flex justify-content-center" dangerouslySetInnerHTML={{ __html: g.text }}/>
                          </div>))}
                 </div>
