@@ -4,6 +4,9 @@ import store from '../../../store';
 import Select, { components } from 'react-select';
 import ReactDOM from "react-dom";
 
+// @ts-ignore
+import { Droppable } from '@shopify/draggable';
+
 
 export const MatchingQuestion : React.FC = observer(() => {
     const { questionData } = store;
@@ -30,10 +33,47 @@ const DragAndDropMatchingQuestion = observer(() => {
     if (!questionData || questionData.type != "MATCHING") {
         return null;
     }
-    const { answers = [], groups = [] } = questionData;
+    const { groups = [] } = questionData;
 
-   
-    return (<div>NonImplemented</div>);
+
+
+    // on question first render
+    const dropzoneStyle = { height: '40px', width: '80px' };
+    useEffect(() => {
+        document.querySelectorAll('[id^="answer_"]')
+            .forEach((e: any) => {
+                e.classList.add("comp-ph-dropzone");
+                e.style.height = dropzoneStyle.height;
+                e.style.width = dropzoneStyle.width;
+            });
+
+        const droppable = new Droppable(document.querySelectorAll('.comp-ph-droppable-container'), {
+            draggable: '.comp-ph-draggable',
+            dropzone: '.comp-ph-dropzone',
+        })
+
+        droppable.on('droppable:dropped', (e: any) => {             
+            const source = e?.data?.dragEvent?.data?.originalSource;
+            const target = e?.data?.dropzone;
+            console.log('dropped', source, target)
+        });
+    }, [questionData.questionId])
+    
+    return (
+        <div>
+            <div className="row comp-ph-droppable-container">
+                <div className="col-md">
+                    <p dangerouslySetInnerHTML={{ __html: questionData.text }} />
+                    <div id="answer_0" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                </div>
+                <div className="col-md">
+                    {groups.map(g => 
+                        (<div className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column" style={dropzoneStyle}>
+                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2 d-flex justify-content-center" dangerouslySetInnerHTML={{ __html: g.text }}/>
+                         </div>))}
+                </div>
+            </div>
+        </div>);
 });
 
 

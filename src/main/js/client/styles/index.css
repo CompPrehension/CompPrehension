@@ -90,3 +90,14 @@ body ul {
   margin-top: 20px;
 }
 
+.comp-ph-draggable {
+  height: 100%;
+}
+
+.comp-ph-dropzone {
+  outline: solid 1px;
+}
+
+.draggable-dropzone--occupied { 
+  background: lightgreen; 
+}
