@@ -4,6 +4,9 @@ import store from '../../../store';
 import Select, { components } from 'react-select';
 import ReactDOM from "react-dom";
 
+// @ts-ignore
+import { Droppable } from '@shopify/draggable';
+
 
 export const MatchingQuestion : React.FC = observer(() => {
     const { questionData } = store;
@@ -30,10 +33,64 @@ const DragAndDropMatchingQuestion = observer(() => {
     if (!questionData || questionData.type != "MATCHING") {
         return null;
     }
-    const { answers = [], groups = [] } = questionData;
+    const { groups = [] } = questionData;
 
-   
-    return (<div>NonImplemented</div>);
+
+
+    // on question first render
+    const dropzoneStyle = { height: '40px', width: '80px' };
+    useEffect(() => {
+        document.querySelectorAll('[id^="answer_"]')
+            .forEach((e: any) => {
+                e.classList.add("comp-ph-dropzone");
+                e.style.height = dropzoneStyle.height;
+                e.style.width = dropzoneStyle.width;
+            });
+
+        const droppable = new Droppable(document.querySelectorAll('.comp-ph-droppable-container'), {
+            draggable: '.comp-ph-draggable',
+            dropzone: '.comp-ph-dropzone',
+        })
+
+        droppable.on('droppable:stop', (e: any) => {             
+            const draggableId: string | undefined = e?.data?.dragEvent?.data?.source?.id;
+            const droppableId: string | undefined = e?.data?.dropzone?.id;
+            if (!draggableId || !droppableId) {
+                return;
+            }
+
+            // setTimeout is needed to guarantee completion of all dnd events
+            setTimeout(() => {
+                const newHistory = [...(document.querySelectorAll('[id^="answer_"] > [id^="dragAnswer_"]') as unknown as Element[])]
+                    .map<[number, number]>(e => {
+                        const leftId = e.parentElement?.id.split('_')[1] ?? '';
+                        const rightId = e?.id.split('_')[1] ?? '';
+                        return [+leftId, +rightId];
+                    });                        
+                if (store.isHistoryChanged(newHistory)) {
+                    store.updateAnswersHistory(newHistory);
+                }                
+            }, 10);
+        });
+    }, [questionData.questionId])
+    
+    return (
+        <div>
+            <div className="row comp-ph-droppable-container">
+                <div className="col-md">
+                    <p dangerouslySetInnerHTML={{ __html: questionData.text }} />
+                    <div id="answer_0" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                    <div id="answer_1" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                    <div id="answer_2" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                </div>
+                <div className="col-md">
+                    {groups.map(g => 
+                        (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column" style={dropzoneStyle}>
+                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2 d-flex justify-content-center" dangerouslySetInnerHTML={{ __html: g.text }}/>
+                         </div>))}
+                </div>
+            </div>
+        </div>);
 });
 
 

@@ -1,8 +1,4 @@
-module.exports = {
-  entry: {
-    './src/main/resources/static/js/bundle-server.js': './src/main/js/server/server.js',
-    './src/main/resources/static/js/bundle-client.js': './src/main/js/client/index.tsx',
-  },
+module.exports = {  
   output: {
     path: __dirname,
     filename: '[name]'

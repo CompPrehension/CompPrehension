@@ -13,7 +13,11 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MatchingQuestionOptionsEntity extends QuestionOptionsEntity {
+    /// Preferred display mode
     private DisplayMode displayMode;
+
+    /// Same answers can be selected several times
+    private boolean multipleSelectionEnabled;
 
     public enum DisplayMode {
         @JsonProperty("combobox")
