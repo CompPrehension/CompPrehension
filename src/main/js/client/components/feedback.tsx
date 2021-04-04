@@ -24,7 +24,7 @@ export const Feedback = observer(() => {
             </p>
             <p>
                 <Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}
-                <Badge variant="success">Total steps: {feedback.totalSteps ?? 'not implemented'}</Badge>{' '}
+                <Badge variant="success">Total steps: {feedback.totalSteps}</Badge>{' '}
                 <Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}
             </p>              
         </div>

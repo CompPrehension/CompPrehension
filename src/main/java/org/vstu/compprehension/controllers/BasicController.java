@@ -90,7 +90,7 @@ public class BasicController implements AbstractFrontController {
                 .grade(grade)
                 .errors(errors)
                 .stepsLeft(judgeResult.IterationsLeft)
-                .totalSteps(null) // TODO get from interaction
+                .totalSteps(question.getQuestionData().getInteractions().size())
                 .build();
     }
 

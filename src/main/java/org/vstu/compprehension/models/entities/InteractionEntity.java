@@ -38,10 +38,10 @@ public class InteractionEntity {
     @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
     private List<MistakeEntity> mistakes;
 
-    @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "interaction")
     private List<CorrectLawEntity> correctLaw;
 
-    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
     private List<ResponseEntity> responses;
 
 
