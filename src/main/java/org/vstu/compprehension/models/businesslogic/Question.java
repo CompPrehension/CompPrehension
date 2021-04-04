@@ -10,6 +10,7 @@ import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public abstract class Question implements QuestionFront, QuestionBack {
 
     @Override
     public void addResponse(ResponseEntity r) {
-        
+
         studentResponses.add(r);
     }
 
@@ -57,6 +58,11 @@ public abstract class Question implements QuestionFront, QuestionBack {
 
         studentResponses = responses;
         isFinalResponse = true;
+    }
+
+    @Override
+    public List<ResponseEntity> getResponses() {
+        return Collections.unmodifiableList(studentResponses);
     }
 
     public void FinalResponse(boolean isFinalResponse) {

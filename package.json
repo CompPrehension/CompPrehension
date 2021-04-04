@@ -15,7 +15,6 @@
     "fetcher-ts": "^1.1.1",
     "fp-ts": "^2.9.5",
     "io-ts": "^2.2.16",
-    "jquery": "3.5.1",
     "mobx": "6.0.4",
     "mobx-react": "7.0.5",
     "mobx-state-tree": "4.0.2",

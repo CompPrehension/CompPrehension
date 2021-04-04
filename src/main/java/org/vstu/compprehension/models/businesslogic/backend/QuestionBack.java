@@ -23,6 +23,8 @@ public interface QuestionBack {
     
     public void addFullResponse(List<ResponseEntity> responses);
 
+    public List<ResponseEntity> getResponses();
+
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
      * студента факты в универсальной форме

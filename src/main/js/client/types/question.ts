@@ -28,6 +28,7 @@ type QuestionBase = {
     options: QuestionOptions,
     text: Html,
     answers: QuestionAnswer[],
+    responses: [number, number][] | null,
 }
 const TQuestionBase : io.Type<QuestionBase> = io.type({
     attemptId: io.number,
@@ -36,6 +37,7 @@ const TQuestionBase : io.Type<QuestionBase> = io.type({
     options: TQuestionOptions,
     text: THtml,
     answers: io.array(TQuestionAnswer),
+    responses: io.union([io.array(io.tuple([io.number, io.number])), io.null]),
 });
 
 type OrderQuestionBase = QuestionBase & {

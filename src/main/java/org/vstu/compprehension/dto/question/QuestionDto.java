@@ -17,4 +17,5 @@ public class QuestionDto {
     private String text;
     private QuestionOptionsEntity options;
     private QuestionAnswerDto[] answers = new QuestionAnswerDto[0];
+    private Long[][] responses;
 }

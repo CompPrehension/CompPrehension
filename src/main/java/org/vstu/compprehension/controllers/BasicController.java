@@ -81,7 +81,7 @@ public class BasicController implements AbstractFrontController {
         List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
         InteractionEntity ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.IterationsLeft,
-                judgeResult.correctlyAppliedLaws);
+                judgeResult.correctlyAppliedLaws, question.getResponses());
         interactionService.saveInteraction(ie);
 
         float grade = strategy.grade(attempt);
@@ -90,7 +90,7 @@ public class BasicController implements AbstractFrontController {
                 .grade(grade)
                 .errors(errors)
                 .stepsLeft(judgeResult.IterationsLeft)
-                .totalSteps(null) // TODO get from interaction
+                .totalSteps(question.getQuestionData().getInteractions().size())
                 .build();
     }
 
