@@ -51,7 +51,7 @@ export class Store {
             this.isQuestionLoading = false;
             this.questionData = data;
             this.feedback = undefined;        
-            this.answersHistory = [];
+            this.answersHistory = data?.responses ?? [];
         });        
     }
 
@@ -70,7 +70,7 @@ export class Store {
             this.isQuestionLoading = false;
             this.questionData = data;
             this.feedback = undefined;        
-            this.answersHistory = [];
+            this.answersHistory = data?.responses ?? [];
             if (data) {
                 this.sessionInfo?.questionIds.push(data?.questionId)
             }

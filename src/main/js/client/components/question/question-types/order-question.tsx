@@ -28,35 +28,38 @@ export const OrderQuestion : React.FC = observer(() => {
             const pos = e.getAttribute('data-comp-ph-pos');
             e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
         })
+
     }, [questionData.questionId]);
 
+    useEffect(() => {
+        // drop all changes, set original qustion text    
+        document.querySelectorAll('[id^="answer_"]').forEach(e => {
+            const pos = e.getAttribute("data-comp-ph-pos");
+            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + `<span class="comp-ph-expr-top-hint">${pos}</span>`
+            e.classList.remove('disabled');
+        });
 
-    // drop all changes, set original qustion text    
-    document.querySelectorAll('[id^="answer_"]').forEach(e => {
-        const pos = e.getAttribute("data-comp-ph-pos");
-        e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + `<span class="comp-ph-expr-top-hint">${pos}</span>`
-        e.classList.remove('disabled');
-    });
+        // apply history changes    
+        answersHistory.forEach(([h], idx) => {
+            const answr = document.querySelector(`#answer_${h}`);
+            if (!answr) {
+                return;
+            }
 
-    // apply history changes    
-    answersHistory.forEach(([h], idx) => {
-        const answr = document.querySelector(`#answer_${h}`);
-        if (!answr) {
-            return;
-        }
-
-        // add pos hint        
-        if (orderNumberOptions.position !== 'NONE') {
-            const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
-            const answerHtml = orderNumberOptions.position === 'PREFIX' ? [orderNumber, answr.innerHTML] :
-                               orderNumberOptions.position === 'SUFFIX' ? [answr.innerHTML, orderNumber] : [answr.innerHTML];            
-            answr.innerHTML = answerHtml.join(orderNumberOptions.delimiter);
-        }  
-        // disable if needed
-        if (options.multipleSelectionEnabled) {            
-            answr.classList.add('disabled');            
-        }
-    });
+            // add pos hint        
+            if (orderNumberOptions.position !== 'NONE') {
+                const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
+                const answerHtml = orderNumberOptions.position === 'PREFIX' ? [orderNumber, answr.innerHTML] :
+                                orderNumberOptions.position === 'SUFFIX' ? [answr.innerHTML, orderNumber] : [answr.innerHTML];            
+                answr.innerHTML = answerHtml.join(orderNumberOptions.delimiter);
+            }  
+            // disable if needed
+            if (options.multipleSelectionEnabled) {            
+                answr.classList.add('disabled');            
+            }
+        });
+    }, [questionData.questionId, store.answersHistory.length])
+    
 
     return (
         <div>

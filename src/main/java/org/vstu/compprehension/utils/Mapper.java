@@ -1,5 +1,7 @@
 package org.vstu.compprehension.utils;
 
+import lombok.val;
+import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.dto.QuestionAnswerDto;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
@@ -9,10 +11,15 @@ import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
+import javax.persistence.Tuple;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 public class Mapper {
 
@@ -26,6 +33,30 @@ public class Mapper {
     }
 
     public static QuestionDto toDto(QuestionEntity question) {
+        // calculate last interaction responses
+        val lastInteraction = Optional.ofNullable(question.getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .reduce((first, second) -> second)
+                .filter(i -> i.getOrderNumber() > 0 && i.getMistakes().size() == 0); // select only incompleted interactions
+        val responses = lastInteraction
+                .flatMap(i -> Optional.ofNullable(i.getResponses()))
+                .map(resps -> {
+                    val answers = question.getAnswerObjects();
+                    return resps.stream()
+                            .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
+                            .map(pair -> {
+                                val leftIdx = LongStream.range(0, answers.size())
+                                        .filter(i -> answers.get((int) i).getId().equals(pair.getLeft().getId()))
+                                        .findFirst();
+                                val rightIdx = LongStream.range(0, answers.size())
+                                        .filter(i -> answers.get((int) i).getId().equals(pair.getRight().getId()))
+                                        .findFirst();
+                                return List.of(leftIdx.orElse(-1), rightIdx.orElse(-1)).toArray(new Long[2]);
+                            })
+                            .toArray(Long[][]::new);
+                })
+                .orElse(null);
+
         switch (question.getQuestionType()) {
             case ORDER:
                 return QuestionDto.builder()
@@ -35,6 +66,7 @@ public class Mapper {
                         .answers(new QuestionAnswerDto[0])
                         .text(question.getQuestionText())
                         .options(question.getOptions())
+                        .responses(responses)
                         .build();
             case MATCHING:
                 List<AnswerObjectEntity> answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<>(0);
@@ -55,6 +87,7 @@ public class Mapper {
                         .groups(right)
                         .text(question.getQuestionText())
                         .options(question.getOptions())
+                        .responses(responses)
                         .build();
             default:
                 throw new UnsupportedOperationException("Invalid mapping");

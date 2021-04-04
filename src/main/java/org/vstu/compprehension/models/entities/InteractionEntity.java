@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import lombok.val;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -48,12 +49,21 @@ public class InteractionEntity {
     @JoinColumn(name = "question_id", nullable = false)
     private QuestionEntity question;
 
-    public InteractionEntity(QuestionEntity question, List<MistakeEntity> mistakes, int IterationsLeft, List<String> correctlyAppliedLaws){
+    public InteractionEntity(
+            QuestionEntity question,
+            List<MistakeEntity> mistakes,
+            int IterationsLeft,
+            List<String> correctlyAppliedLaws,
+            List<ResponseEntity> responses){
         //Сохранение интеракции
         this.setQuestion(question);
         this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
         this.setMistakes(mistakes);
         this.setOrderNumber(IterationsLeft);//Показатель порядка?
+        this.setResponses(responses);
+        for(val r : responses) {
+            r.setInteraction(this);
+        }
         //ie.setFeedback();Где взять?
         ArrayList<CorrectLawEntity> cles = new ArrayList<>();
         for(int i = 0; i < correctlyAppliedLaws.size(); i++){
