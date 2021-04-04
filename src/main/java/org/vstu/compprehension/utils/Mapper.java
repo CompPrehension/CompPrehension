@@ -37,7 +37,7 @@ public class Mapper {
         val lastInteraction = Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .reduce((first, second) -> second)
-                .filter(i -> i.getOrderNumber() > 0 && i.getMistakes().size() == 0); // select only incompleted interactions
+                .filter(i -> i.getOrderNumber() >= 0 && i.getMistakes().size() == 0); // select only interactions without mistakes
         val responses = lastInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses()))
                 .map(resps -> {
