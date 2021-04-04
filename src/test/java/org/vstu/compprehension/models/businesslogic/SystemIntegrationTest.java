@@ -83,21 +83,16 @@ public class SystemIntegrationTest {
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
 
             //Сохранение интеракции
-            InteractionEntity ie = new InteractionEntity();
-            ie.setQuestion(question1.questionData);
-            ie.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
-            ie.setMistakes(result.mistakes);
-            ie.setOrderNumber(result.IterationsLeft);//Показатель порядка?
-            //ie.setFeedback();Где взять?
-            ArrayList<CorrectLawEntity> cles = new ArrayList<>();
-            for(int i = 0; i < result.correctlyAppliedLaws.size(); i++){
-                CorrectLawEntity cle = new CorrectLawEntity();
-                cle.setLawName(result.correctlyAppliedLaws.get(i));
-                cle.setInteraction(ie);
-                cles.add(cle);
-            }
-            ie.setCorrectLaw(cles);
+            InteractionEntity ie = new InteractionEntity(
+                    question1.questionData,
+                    result.mistakes,
+                    result.IterationsLeft,
+                    result.correctlyAppliedLaws,
+                    question1.getResponses()
+            );
             interactionService.saveInteraction(ie);
+
+
             ie = interactionService.getInteraction(ie.getId()).get();
             ArrayList<InteractionEntity> ies = new ArrayList<>();
             if(question1.questionData.getInteractions() != null) {
