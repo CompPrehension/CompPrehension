@@ -35,13 +35,13 @@ public class InteractionEntity {
     @NotFound(action = NotFoundAction.IGNORE)
     private FeedbackEntity feedback;
 
-    @OneToMany(mappedBy = "interaction")
+    @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
     private List<MistakeEntity> mistakes;
 
-    @OneToMany(mappedBy = "interaction")
+    @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
     private List<CorrectLawEntity> correctLaw;
 
-    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResponseEntity> responses;
 
 
@@ -59,6 +59,9 @@ public class InteractionEntity {
         this.setQuestion(question);
         this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
         this.setMistakes(mistakes);
+        for(val m : mistakes) {
+            m.setInteraction(this);
+        }
         this.setOrderNumber(IterationsLeft);//Показатель порядка?
         this.setResponses(responses);
         for(val r : responses) {
