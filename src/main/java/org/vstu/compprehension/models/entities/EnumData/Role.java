@@ -1,10 +1,12 @@
 package org.vstu.compprehension.models.entities.EnumData;
 
-public enum Role{
-    STUDENT,
-    TEACHER,
-    ADMIN;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    Role() {
-    }
+public enum Role{
+    @JsonProperty("STUDENT")
+    STUDENT,
+    @JsonProperty("TEACHER")
+    TEACHER,
+    @JsonProperty("ADMIN")
+    ADMIN;
 }
