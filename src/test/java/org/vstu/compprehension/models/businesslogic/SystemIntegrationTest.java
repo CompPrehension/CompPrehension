@@ -87,6 +87,7 @@ public class SystemIntegrationTest {
                     question1.questionData,
                     result.mistakes,
                     result.IterationsLeft,
+                    1.0f,
                     result.correctlyAppliedLaws,
                     question1.getResponses()
             );

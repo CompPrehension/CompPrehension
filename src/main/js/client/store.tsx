@@ -50,8 +50,8 @@ export class Store {
         runInAction(() => {
             this.isQuestionLoading = false;
             this.questionData = data;
-            this.feedback = undefined;        
-            this.answersHistory = data?.responses ?? [];
+            this.feedback = data?.feedback ?? undefined;
+            this.answersHistory = data?.responses ?? [];            
         });        
     }
 
@@ -69,7 +69,7 @@ export class Store {
         runInAction(() => {
             this.isQuestionLoading = false;
             this.questionData = data;
-            this.feedback = undefined;        
+            this.feedback = data?.feedback ?? undefined;
             this.answersHistory = data?.responses ?? [];
             if (data) {
                 this.sessionInfo?.questionIds.push(data?.questionId)
@@ -97,7 +97,7 @@ export class Store {
         runInAction(() => {
             this.isFeedbackLoading = false;
             this.feedback = feedback;
-            if (this.feedback?.errors.length) {                
+            if (this.feedback?.errors?.length) {                
                 this.answersHistory.pop();
             }
         });

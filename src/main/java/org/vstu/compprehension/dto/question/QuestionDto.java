@@ -1,5 +1,6 @@
 package org.vstu.compprehension.dto.question;
 
+import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.QuestionAnswerDto;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import lombok.AllArgsConstructor;
@@ -18,4 +19,5 @@ public class QuestionDto {
     private QuestionOptionsEntity options;
     private QuestionAnswerDto[] answers = new QuestionAnswerDto[0];
     private Long[][] responses;
+    private FeedbackDto feedback;
 }

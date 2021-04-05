@@ -75,22 +75,24 @@ public class BasicController implements AbstractFrontController {
 
         List<Tag> tags = exerciseService.getTags(attempt.getExercise());
         Question question = questionService.getQuestion(questionId);
+
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answers);
         Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
         List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
-        InteractionEntity ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.IterationsLeft,
-                judgeResult.correctlyAppliedLaws, question.getResponses());
-        interactionService.saveInteraction(ie);
+        val grade = strategy.grade(attempt);
 
-        float grade = strategy.grade(attempt);
+        val prevInteractionsCount = question.getQuestionData().getInteractions().size();
+        InteractionEntity ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.IterationsLeft,
+                grade, judgeResult.correctlyAppliedLaws, question.getResponses());
+        interactionService.saveInteraction(ie);
 
         return FeedbackDto.builder()
                 .grade(grade)
                 .errors(errors)
                 .stepsLeft(judgeResult.IterationsLeft)
-                .totalSteps(question.getQuestionData().getInteractions().size())
+                .totalSteps(prevInteractionsCount + 1)
                 .build();
     }
 
