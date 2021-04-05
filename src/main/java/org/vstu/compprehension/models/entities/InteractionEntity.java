@@ -38,7 +38,7 @@ public class InteractionEntity {
     @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
     private List<MistakeEntity> mistakes;
 
-    @OneToMany(mappedBy = "interaction")
+    @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
     private List<CorrectLawEntity> correctLaw;
 
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
@@ -72,7 +72,7 @@ public class InteractionEntity {
         for(int i = 0; i < correctlyAppliedLaws.size(); i++){
             CorrectLawEntity cle = new CorrectLawEntity();
             cle.setLawName(correctlyAppliedLaws.get(i));
-           // cle.setInteraction(ie);
+            cle.setInteraction(this);
             cles.add(cle);
         }
         this.setCorrectLaw(cles);
