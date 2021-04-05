@@ -1,16 +1,16 @@
 import * as io from 'io-ts'
 
 export type Feedback = {
-    grade: number,
-    errors: string[],
+    grade: number | null,
+    errors: string[] | null,
     totalSteps: number | null,
-    stepsLeft: number,
+    stepsLeft: number | null,
 } 
 export const TFeedback : io.Type<Feedback> = io.type({
-    grade: io.number,
-    errors: io.array(io.string),
+    grade: io.union([io.number, io.null]),
+    errors: io.union([io.array(io.string), io.null]),
     totalSteps: io.union([io.number, io.null]),
-    stepsLeft: io.number,
+    stepsLeft: io.union([io.number, io.null]),
 });
 
 
