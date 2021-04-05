@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
@@ -145,6 +146,14 @@ public class Strategy extends AbstractStrategy {
         }
 
         return summary/(float)res.keySet().stream().count();
+    }
+
+    @Override
+    public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
+        if(exerciseAttempt.getQuestions().stream().count() >= 15){
+            return Decision.FINISH;
+        }
+        return Decision.CONTINUE;
     }
 
     protected HashMap<String, Float> getLawGrade(ExerciseAttemptEntity exerciseAttempt){

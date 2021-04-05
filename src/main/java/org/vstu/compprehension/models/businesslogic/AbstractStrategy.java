@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -13,4 +14,6 @@ public abstract class AbstractStrategy {
     public abstract FeedbackType determineFeedbackType(QuestionEntity question);
 
     public abstract float grade(ExerciseAttemptEntity exerciseAttempt);
+
+    public abstract Decision decide(ExerciseAttemptEntity exerciseAttempt);
 }
