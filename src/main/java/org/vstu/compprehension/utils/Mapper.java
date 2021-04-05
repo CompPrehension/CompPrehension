@@ -28,7 +28,7 @@ public class Mapper {
                 .id(user.getId())
                 .displayName(user.getFirstName() + " " + user.getLastName())
                 .email(user.getEmail())
-                .roles(user.getRoles().stream().map(Enum::toString).collect(Collectors.toList()))
+                .roles(user.getRoles())
                 .build();
     }
 
