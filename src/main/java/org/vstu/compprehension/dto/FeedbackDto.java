@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 @Builder
 public class FeedbackDto {
-    private float grade;
+    private Float grade;
     private Integer totalSteps;
-    private int stepsLeft;
+    private Integer stepsLeft;
     private String[] errors;
 }
 

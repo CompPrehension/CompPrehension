@@ -52,22 +52,27 @@ public class InteractionEntity {
     public InteractionEntity(
             QuestionEntity question,
             List<MistakeEntity> mistakes,
-            int IterationsLeft,
+            int iterationsLeft,
+            float grade,
             List<String> correctlyAppliedLaws,
             List<ResponseEntity> responses){
-        //Сохранение интеракции
         this.setQuestion(question);
         this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
         this.setMistakes(mistakes);
         for(val m : mistakes) {
             m.setInteraction(this);
         }
-        this.setOrderNumber(IterationsLeft);//Показатель порядка?
         this.setResponses(responses);
         for(val r : responses) {
             r.setInteraction(this);
         }
-        //ie.setFeedback();Где взять?
+
+        val feedback = FeedbackEntity.builder()
+                .interactionsLeft(iterationsLeft)
+                .grade(grade)
+                .build();
+        this.setFeedback(feedback);
+
         ArrayList<CorrectLawEntity> cles = new ArrayList<>();
         for(int i = 0; i < correctlyAppliedLaws.size(); i++){
             CorrectLawEntity cle = new CorrectLawEntity();

@@ -41,7 +41,6 @@ public class LtiController extends BasicController {
     @RequestMapping(value = {"/launch" }, method = {RequestMethod.POST})
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> params) throws Exception {
         LtiVerifier ltiVerifier = new LtiOauthVerifier();
-        String key = request.getParameter("oauth_consumer_key");
         String secret = this.ltiLaunchSecret;
         LtiVerificationResult ltiResult = ltiVerifier.verify(request, secret);
         if (!ltiResult.getSuccess()) {

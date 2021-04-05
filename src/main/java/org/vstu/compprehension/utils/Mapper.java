@@ -2,6 +2,7 @@ package org.vstu.compprehension.utils;
 
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
+import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.QuestionAnswerDto;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
@@ -28,17 +29,21 @@ public class Mapper {
                 .id(user.getId())
                 .displayName(user.getFirstName() + " " + user.getLastName())
                 .email(user.getEmail())
-                .roles(user.getRoles().stream().map(Enum::toString).collect(Collectors.toList()))
+                .roles(user.getRoles())
                 .build();
     }
 
     public static QuestionDto toDto(QuestionEntity question) {
         // calculate last interaction responses
+        val interactionsCount = Optional.ofNullable(question.getInteractions()).map(List::size).orElse(0);
+        val lastCorrectInteraction = Optional.ofNullable(question.getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getMistakes().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second);
         val lastInteraction = Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
-                .reduce((first, second) -> second)
-                .filter(i -> i.getOrderNumber() >= 0 && i.getMistakes().size() == 0); // select only interactions without mistakes
-        val responses = lastInteraction
+                .reduce((first, second) -> second);
+        val responses = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses()))
                 .map(resps -> {
                     val answers = question.getAnswerObjects();
@@ -56,6 +61,16 @@ public class Mapper {
                             .toArray(Long[][]::new);
                 })
                 .orElse(null);
+        val feedback = lastCorrectInteraction
+                .map(i -> FeedbackDto.builder()
+                        .totalSteps(interactionsCount)
+                        .grade(i.getFeedback().getGrade())
+                        .stepsLeft(i.getFeedback().getInteractionsLeft())
+                        .build())
+                .orElseGet(() -> lastInteraction.map(i -> FeedbackDto.builder()
+                        .totalSteps(interactionsCount)
+                        .grade(i.getFeedback().getGrade())
+                        .stepsLeft(i.getFeedback().getInteractionsLeft()).build()).orElse(null));
 
         switch (question.getQuestionType()) {
             case ORDER:
@@ -67,6 +82,7 @@ public class Mapper {
                         .text(question.getQuestionText())
                         .options(question.getOptions())
                         .responses(responses)
+                        .feedback(feedback)
                         .build();
             case MATCHING:
                 List<AnswerObjectEntity> answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<>(0);
@@ -88,6 +104,7 @@ public class Mapper {
                         .text(question.getQuestionText())
                         .options(question.getOptions())
                         .responses(responses)
+                        .feedback(feedback)
                         .build();
             default:
                 throw new UnsupportedOperationException("Invalid mapping");

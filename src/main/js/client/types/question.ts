@@ -1,5 +1,6 @@
 import { MatchingQuestionOptions, OrderQuestionOptions, QuestionOptions, TMatchingQuestionOptions, TOrderQuestionOptions, TQuestionOptions } from "./question-options";
 import * as io from 'io-ts'
+import { Feedback, TFeedback } from "./feedback";
 
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'MATCHING' | 'ORDER'
 export const TQuestionType : io.Type<QuestionType> = io.keyof({
@@ -29,6 +30,7 @@ type QuestionBase = {
     text: Html,
     answers: QuestionAnswer[],
     responses: [number, number][] | null,
+    feedback: Feedback | null,
 }
 const TQuestionBase : io.Type<QuestionBase> = io.type({
     attemptId: io.number,
@@ -38,6 +40,7 @@ const TQuestionBase : io.Type<QuestionBase> = io.type({
     text: THtml,
     answers: io.array(TQuestionAnswer),
     responses: io.union([io.array(io.tuple([io.number, io.number])), io.null]),
+    feedback: io.union([TFeedback, io.null]),
 });
 
 type OrderQuestionBase = QuestionBase & {

@@ -17,7 +17,7 @@ const Home = observer(() => {
             await store.loadSessionInfo();
             const { questionIds=[] } = store.sessionInfo ?? {};
             if (questionIds.length > 0) {
-                await store.loadQuestion(questionIds[0]);
+                await store.loadQuestion(questionIds[questionIds.length - 1]);
             } else {
                 await store.generateQuestion();
             }           

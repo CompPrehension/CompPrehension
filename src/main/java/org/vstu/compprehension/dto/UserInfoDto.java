@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.vstu.compprehension.models.entities.EnumData.Role;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,5 +16,5 @@ public class UserInfoDto {
     private Long id;
     private String displayName;
     private String email;
-    private List<String> roles = new ArrayList<>(0);
+    private List<Role> roles;
 }
