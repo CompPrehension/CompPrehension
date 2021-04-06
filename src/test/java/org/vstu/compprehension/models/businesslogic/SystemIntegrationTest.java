@@ -89,10 +89,6 @@ public class SystemIntegrationTest {
                     result.correctlyAppliedLaws,
                     question1.getResponses()
             );
-            interactionRepository.save(ie);
-
-
-            ie = interactionRepository.findById(ie.getId()).get();
             ArrayList<InteractionEntity> ies = new ArrayList<>();
             if(question1.questionData.getInteractions() != null) {
                 ies.addAll(question1.questionData.getInteractions());
