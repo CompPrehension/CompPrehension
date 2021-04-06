@@ -10,7 +10,16 @@ export const GenerateNextQuestionBtn = observer(() => {
         store.generateQuestion();
     };
 
-    if (!store.sessionInfo) {
+    const { sessionInfo, questionData } = store;
+    if (!sessionInfo || !questionData) {
+        return null;
+    }
+
+    const { user, questionIds } = sessionInfo;
+
+    // show btn if user is admin or if he is on the last question and has finished it
+    if (!user.roles.includes('ADMIN') && 
+        (questionIds[questionIds.length - 1] !== questionData.questionId || questionData.feedback?.stepsLeft !== 0)) {
         return null;
     }
 
