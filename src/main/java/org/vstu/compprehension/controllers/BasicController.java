@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.vstu.compprehension.Service.ExerciseService;
-import org.vstu.compprehension.Service.InteractionService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
+import org.vstu.compprehension.models.repository.FeedbackRepository;
+import org.vstu.compprehension.models.repository.InteractionRepository;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.SessionInfoDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
@@ -49,7 +50,10 @@ public class BasicController implements AbstractFrontController {
     private Strategy strategy;
 
     @Autowired
-    private InteractionService interactionService;
+    private InteractionRepository interactionRepository;
+
+    @Autowired
+    private FeedbackRepository feedbackRepository;
 
     @Override
     public String launch(HttpServletRequest request) throws Exception {
@@ -76,23 +80,31 @@ public class BasicController implements AbstractFrontController {
         List<Tag> tags = exerciseService.getTags(attempt.getExercise());
         Question question = questionService.getQuestion(questionId);
 
+        // evaluate answer
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answers);
         Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
         List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
-        val grade = strategy.grade(attempt);
 
-        val prevInteractionsCount = question.getQuestionData().getInteractions().size();
-        InteractionEntity ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.IterationsLeft,
-                grade, judgeResult.correctlyAppliedLaws, question.getResponses());
-        interactionService.saveInteraction(ie);
+        // add interaction
+        val existingInteractions = question.getQuestionData().getInteractions();
+        val ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.correctlyAppliedLaws, question.getResponses());
+        existingInteractions.add(ie);
+        val interactionsCount = existingInteractions.size();
+
+        // add feedback
+        val grade = strategy.grade(attempt);
+        ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
+        ie.getFeedback().setGrade(grade);
+        feedbackRepository.save(ie.getFeedback());
 
         return FeedbackDto.builder()
                 .grade(grade)
                 .errors(errors)
                 .stepsLeft(judgeResult.IterationsLeft)
-                .totalSteps(prevInteractionsCount + 1)
+                .totalSteps(interactionsCount)
+                .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getMistakes().size() > 0).count())
                 .build();
     }
 

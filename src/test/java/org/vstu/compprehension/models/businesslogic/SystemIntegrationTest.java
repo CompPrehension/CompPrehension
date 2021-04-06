@@ -2,7 +2,6 @@ package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.Service.DomainService;
-import org.vstu.compprehension.Service.InteractionService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -12,6 +11,7 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
+import org.vstu.compprehension.models.repository.InteractionRepository;
 import org.vstu.compprehension.models.repository.QuestionRepository;
 import org.vstu.compprehension.models.repository.ResponseRepository;
 import org.vstu.compprehension.utils.DomainAdapter;
@@ -42,7 +42,7 @@ public class SystemIntegrationTest {
     DomainService domainService;
 
     @Autowired
-    InteractionService interactionService;
+    private InteractionRepository interactionRepository;
 
 //    @Autowired
 //    PelletBackend backend;
@@ -86,15 +86,13 @@ public class SystemIntegrationTest {
             InteractionEntity ie = new InteractionEntity(
                     question1.questionData,
                     result.mistakes,
-                    result.IterationsLeft,
-                    1.0f,
                     result.correctlyAppliedLaws,
                     question1.getResponses()
             );
-            interactionService.saveInteraction(ie);
+            interactionRepository.save(ie);
 
 
-            ie = interactionService.getInteraction(ie.getId()).get();
+            ie = interactionRepository.findById(ie.getId()).get();
             ArrayList<InteractionEntity> ies = new ArrayList<>();
             if(question1.questionData.getInteractions() != null) {
                 ies.addAll(question1.questionData.getInteractions());
@@ -174,8 +172,8 @@ public class SystemIntegrationTest {
                 cles.add(cle);
             }
             ie.setCorrectLaw(cles);
-            interactionService.saveInteraction(ie);
-            ie = interactionService.getInteraction(ie.getId()).get();
+            interactionRepository.save(ie);
+            ie = interactionRepository.findById(ie.getId()).get();
             ArrayList<InteractionEntity> ies = new ArrayList<>();
             if(question1.questionData.getInteractions() != null) {
                 ies.addAll(question1.questionData.getInteractions());

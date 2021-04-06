@@ -9,6 +9,7 @@ public class FeedbackDto {
     private Float grade;
     private Integer totalSteps;
     private Integer stepsLeft;
+    private Integer stepsWithErrors;
     private String[] errors;
 }
 

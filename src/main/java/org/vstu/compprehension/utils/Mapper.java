@@ -35,13 +35,12 @@ public class Mapper {
 
     public static QuestionDto toDto(QuestionEntity question) {
         // calculate last interaction responses
-        val interactionsCount = Optional.ofNullable(question.getInteractions()).map(List::size).orElse(0);
-        val lastCorrectInteraction = Optional.ofNullable(question.getInteractions()).stream()
-                .flatMap(Collection::stream)
+        val totalInteractionsCount = question.getInteractions().size();
+        val interactionsWithErrorsCount = (int)question.getInteractions().stream().filter(i -> i.getMistakes().size() > 0).count();
+        val lastCorrectInteraction = question.getInteractions().stream()
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getMistakes().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second);
-        val lastInteraction = Optional.ofNullable(question.getInteractions()).stream()
-                .flatMap(Collection::stream)
+        val lastInteraction = question.getInteractions().stream()
                 .reduce((first, second) -> second);
         val responses = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses()))
@@ -63,12 +62,14 @@ public class Mapper {
                 .orElse(null);
         val feedback = lastCorrectInteraction
                 .map(i -> FeedbackDto.builder()
-                        .totalSteps(interactionsCount)
+                        .totalSteps(totalInteractionsCount)
+                        .stepsWithErrors(interactionsWithErrorsCount)
                         .grade(i.getFeedback().getGrade())
                         .stepsLeft(i.getFeedback().getInteractionsLeft())
                         .build())
                 .orElseGet(() -> lastInteraction.map(i -> FeedbackDto.builder()
-                        .totalSteps(interactionsCount)
+                        .totalSteps(totalInteractionsCount)
+                        .stepsWithErrors(interactionsWithErrorsCount)
                         .grade(i.getFeedback().getGrade())
                         .stepsLeft(i.getFeedback().getInteractionsLeft()).build()).orElse(null));
 

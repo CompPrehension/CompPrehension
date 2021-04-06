@@ -30,7 +30,7 @@ public class InteractionEntity {
     private InteractionType interactionType;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "feedback_id", referencedColumnName = "id")
     @NotFound(action = NotFoundAction.IGNORE)
     private FeedbackEntity feedback;
@@ -52,8 +52,6 @@ public class InteractionEntity {
     public InteractionEntity(
             QuestionEntity question,
             List<MistakeEntity> mistakes,
-            int iterationsLeft,
-            float grade,
             List<String> correctlyAppliedLaws,
             List<ResponseEntity> responses){
         this.setQuestion(question);
@@ -66,13 +64,7 @@ public class InteractionEntity {
         for(val r : responses) {
             r.setInteraction(this);
         }
-
-        val feedback = FeedbackEntity.builder()
-                .interactionsLeft(iterationsLeft)
-                .grade(grade)
-                .build();
-        this.setFeedback(feedback);
-
+        this.setFeedback(new FeedbackEntity());
         ArrayList<CorrectLawEntity> cles = new ArrayList<>();
         for(int i = 0; i < correctlyAppliedLaws.size(); i++){
             CorrectLawEntity cle = new CorrectLawEntity();
