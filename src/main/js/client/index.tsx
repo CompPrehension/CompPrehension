@@ -1,41 +1,22 @@
-import { observer } from 'mobx-react-lite'
-import { useEffect } from 'react';
 import { hydrate } from 'react-dom'
-import store from './store';
-import { QuestionFabric } from './components/question/question-fabric';
 import React from 'react';
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { GenerateNextQuestionBtn } from './components/generate-next-question-btn';
-import { Feedback } from './components/feedback';
-import { Loader } from './components/loader';
-import { Header } from './components/header';
+import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
+import { Assessment } from './pages/assessment';
+import { Statistics } from './pages/statistics';
 
-const Home = observer(() => {
-    useEffect(() => {
-        (async () => {
-            await store.loadSessionInfo();
-            const { questionIds=[] } = store.sessionInfo ?? {};
-            if (questionIds.length > 0) {
-                await store.loadQuestion(questionIds[questionIds.length - 1]);
-            } else {
-                await store.generateQuestion();
-            }           
-        })()
-    }, []);
-
-    if (store.isSessionLoading) {
-        return <Loader />;
-    }
-
-    return (
-        <div className="container comp-ph-container">
-            <Header />
-            <QuestionFabric />
-            <Feedback />
-            <GenerateNextQuestionBtn />            
-        </div>
-    );
-})
+const Home = () => (
+    <Router>
+        <Switch>
+            <Route exact path="/**/">
+                <Assessment />
+            </Route>   
+            <Route path="/**/pages/statistics">
+                <Statistics />
+            </Route>                     
+        </Switch>
+    </Router>
+)
 
 hydrate(<Home />, document.getElementById('root'))

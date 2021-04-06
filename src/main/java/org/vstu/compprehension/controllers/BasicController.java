@@ -69,6 +69,11 @@ public class BasicController implements AbstractFrontController {
     }
 
     @Override
+    public String pages(HttpServletRequest request) {
+        return "index";
+    }
+
+    @Override
     public FeedbackDto addAnswer(InteractionDto interaction, HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
         Long questionId = interaction.getQuestionId();

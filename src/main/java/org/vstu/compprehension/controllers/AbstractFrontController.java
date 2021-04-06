@@ -12,6 +12,9 @@ public interface AbstractFrontController {
     @RequestMapping(value = {"/"}, method = { RequestMethod.GET })
     String launch(HttpServletRequest request) throws Exception;
 
+    @RequestMapping(value = {"/pages/**"}, method = { RequestMethod.GET })
+    String pages(HttpServletRequest request);
+
     @RequestMapping(value = {"/addAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
             consumes = "application/json")
     @ResponseBody
