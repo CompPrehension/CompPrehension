@@ -16,6 +16,7 @@ export class Store {
     @observable isQuestionLoading: boolean = false;
     @observable isFeedbackLoading: boolean = false;
     @observable feedback?: Feedback = undefined;
+    endpointPath: string = window.location.pathname;
 
     constructor() {
         makeObservable(this);
@@ -28,7 +29,7 @@ export class Store {
         }
 
         this.isSessionLoading = true;
-        const dataEither = await ajaxGet('loadSessionInfo', TSessionInfo);                                
+        const dataEither = await ajaxGet(`${this.endpointPath}loadSessionInfo`, TSessionInfo);                                
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -44,7 +45,7 @@ export class Store {
         }
 
         this.isQuestionLoading = true;
-        const dataEither = await ajaxGet(`getQuestion?questionId=${questionId}`, TQuestion);            
+        const dataEither = await ajaxGet(`${this.endpointPath}getQuestion?questionId=${questionId}`, TQuestion);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -63,7 +64,7 @@ export class Store {
 
         const { attemptId } = this.sessionInfo;
         this.isQuestionLoading = true;
-        const dataEither = await ajaxGet(`generateQuestion?attemptId=${attemptId}`, TQuestion);            
+        const dataEither = await ajaxGet(`${this.endpointPath}generateQuestion?attemptId=${attemptId}`, TQuestion);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -91,7 +92,7 @@ export class Store {
         })
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ajaxPost('addAnswer', body, TFeedback);
+        const feedbackEither = await ajaxPost(`${this.endpointPath}addAnswer`, body, TFeedback);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {
