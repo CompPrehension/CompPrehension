@@ -60,18 +60,14 @@ public class Mapper {
                             .toArray(Long[][]::new);
                 })
                 .orElse(null);
-        val feedback = lastCorrectInteraction
+        val feedback = lastInteraction
                 .map(i -> FeedbackDto.builder()
                         .totalSteps(totalInteractionsCount)
                         .stepsWithErrors(interactionsWithErrorsCount)
                         .grade(i.getFeedback().getGrade())
                         .stepsLeft(i.getFeedback().getInteractionsLeft())
                         .build())
-                .orElseGet(() -> lastInteraction.map(i -> FeedbackDto.builder()
-                        .totalSteps(totalInteractionsCount)
-                        .stepsWithErrors(interactionsWithErrorsCount)
-                        .grade(i.getFeedback().getGrade())
-                        .stepsLeft(i.getFeedback().getInteractionsLeft()).build()).orElse(null));
+                .orElse(null);
 
         switch (question.getQuestionType()) {
             case ORDER:
