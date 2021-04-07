@@ -208,14 +208,15 @@ public abstract class Domain {
 
     /**
      * Make supplementary question based on mistake in last iteration
-     * TODO: check arguments
+     * @param interpretSentenceResult info about last iteration
+     * @param exerciseAttemptEntity exerciseAttempt (to gain question params) TODO: explicitly get tags and laws
      * @return supplementary question
      */
     public abstract Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity);
 
     /**
-     * Get statistics for current step of question evaluation
-     * TODO: check arguments
+     * Get statistics for initial step of question evaluation
+     * @param solution solution backend facts
      */
     public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
 
