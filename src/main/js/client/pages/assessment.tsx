@@ -25,11 +25,11 @@ export const Assessment = observer(() => {
     }
 
     return (
-        <div className="container comp-ph-container">
+        <>
             <Header />
             <QuestionFabric />
             <Feedback />
             <GenerateNextQuestionBtn />            
-        </div>
+        </>
     );
 })

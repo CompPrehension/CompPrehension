@@ -16,7 +16,6 @@ export class Store {
     @observable isQuestionLoading: boolean = false;
     @observable isFeedbackLoading: boolean = false;
     @observable feedback?: Feedback = undefined;
-    endpointPath: string = window.location.pathname;
 
     constructor() {
         makeObservable(this);

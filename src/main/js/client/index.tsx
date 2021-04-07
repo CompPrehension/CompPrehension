@@ -7,16 +7,18 @@ import { Assessment } from './pages/assessment';
 import { Statistics } from './pages/statistics';
 
 const Home = () => (
-    <Router>
-        <Switch>
-            <Route exact path="/**/">
-                <Assessment />
-            </Route>   
-            <Route path="/**/pages/statistics">
-                <Statistics />
-            </Route>                     
-        </Switch>
-    </Router>
+    <div className="container comp-ph-container">
+        <Router>
+            <Switch>
+                <Route path="/**/pages/statistics">
+                    <Statistics />
+                </Route>
+                <Route exact path="/**/">
+                    <Assessment />
+                </Route>             
+            </Switch>
+        </Router>
+    </div>
 )
 
 hydrate(<Home />, document.getElementById('root'))

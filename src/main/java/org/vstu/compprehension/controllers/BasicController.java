@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
@@ -163,5 +164,42 @@ public class BasicController implements AbstractFrontController {
                 .user(Mapper.toDto(userEntity))
                 .language("EN")
                 .build();
+    }
+
+    @Override
+    public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {
+        val exercise = exerciseService.getExercise(exerciseId);
+
+        val result = exercise.getExerciseAttempts().stream()
+                .map(att -> {
+                    val questionsCount = att.getQuestions().size();
+                    val totalInteractionsCount = att.getQuestions().stream()
+                            .filter(q -> q.getInteractions() != null)
+                            .flatMap(q -> q.getInteractions().stream()).count();
+                    val totalInteractionsWithErrorsCount = att.getQuestions().stream()
+                            .filter(q -> q.getInteractions() != null)
+                            .flatMap(q -> q.getInteractions().stream())
+                            .filter(i -> i.getMistakes().size() > 0).count();
+                    double avgGrade = att.getQuestions().stream()
+                            .filter(q -> q.getInteractions() != null && q.getInteractions().size() > 0)
+                            .mapToDouble(q -> {
+                                val last = q.getInteractions().stream().reduce((f, s) -> s);
+                                val grade = last.map(l -> l.getFeedback()).map(f -> f.getGrade()).orElse(0f);
+                                return grade;
+                            })
+                            .average()
+                            .orElse(0d);
+
+                    return ExerciseStatisticsItemDto.builder()
+                            .attemptId(att.getId())
+                            .averageGrade(avgGrade)
+                            .questionsCount(questionsCount)
+                            .totalInteractionsCount((int)totalInteractionsCount)
+                            .totalInteractionsWithErrorsCount((int)totalInteractionsWithErrorsCount)
+                            .build();
+                })
+                .toArray(ExerciseStatisticsItemDto[]::new);
+
+        return result;
     }
 }
