@@ -35,12 +35,17 @@ public class Mapper {
 
     public static QuestionDto toDto(QuestionEntity question) {
         // calculate last interaction responses
-        val totalInteractionsCount = question.getInteractions().size();
-        val interactionsWithErrorsCount = (int)question.getInteractions().stream().filter(i -> i.getMistakes().size() > 0).count();
-        val lastCorrectInteraction = question.getInteractions().stream()
+        val totalInteractionsCount = Optional.ofNullable(question.getInteractions())
+                .map(is -> is.size()).orElse(0);
+        val interactionsWithErrorsCount = (int)Optional.ofNullable(question.getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getMistakes().size() > 0).count();
+        val lastCorrectInteraction = Optional.ofNullable(question.getInteractions()).stream()
+                .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getMistakes().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second);
-        val lastInteraction = question.getInteractions().stream()
+        val lastInteraction = Optional.ofNullable(question.getInteractions()).stream()
+                .flatMap(Collection::stream)
                 .reduce((first, second) -> second);
         val responses = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses()))
