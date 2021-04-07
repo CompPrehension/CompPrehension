@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Navbar } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import store from '../store';
 import { Optional } from './optional';
 import { Pagination } from './pagination';
@@ -25,7 +26,7 @@ export const Header = observer(() => {
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">
-                    Signed in as: <a href="#login">{user.displayName}</a>
+                    Signed in as: <Link to="pages/statistics">{user.displayName}</Link>{/*<a href="pages/statistics">{user.displayName}</a>*/}
                 </Navbar.Text>
             </Navbar.Collapse>
         </Navbar>
