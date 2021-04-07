@@ -5,7 +5,7 @@ import * as io from "io-ts";
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import { MergeIntersections } from "../types/utils";
 
-type RequestError = {
+export type RequestError = {
     error?: string,
     message: string,
     path?: string,
@@ -14,7 +14,7 @@ type RequestError = {
     trace?: string,
 }
 
-type PromiseEither<E, A> = Promise<Either<E, A>>
+export type PromiseEither<E, A> = Promise<Either<E, A>>
 
 /**
  * Do GET request

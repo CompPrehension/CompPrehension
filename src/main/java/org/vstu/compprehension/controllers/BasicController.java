@@ -156,6 +156,7 @@ public class BasicController implements AbstractFrontController {
         return SessionInfoDto.builder()
                 .sessionId(session.getId())
                 .attemptId(attempt.getId())
+                .exerciseId(exerciseId)
                 .questionIds(attempt.getQuestions().stream()
                         .map(v -> v.getId())
                         .toArray(Long[]::new))

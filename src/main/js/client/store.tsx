@@ -1,10 +1,10 @@
 import { action, computed, makeObservable, observable, runInAction, toJS } from "mobx";
-import { Question, TQuestion } from "./types/question";
-import { SessionInfo, TSessionInfo } from "./types/session-info";
-import { ajaxGet, ajaxPost } from "./utils/ajax";
+import { Question } from "./types/question";
+import { SessionInfo } from "./types/session-info";
 import * as E from "fp-ts/lib/Either";
-import { Feedback, TFeedback } from "./types/feedback";
+import { Feedback } from "./types/feedback";
 import { Interaction } from "./types/interaction";
+import { Api } from "./api";
 
 
 
@@ -29,7 +29,7 @@ export class Store {
         }
 
         this.isSessionLoading = true;
-        const dataEither = await ajaxGet(`${this.endpointPath}loadSessionInfo`, TSessionInfo);                                
+        const dataEither = await Api.loadSessionInfo();                                
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -45,7 +45,7 @@ export class Store {
         }
 
         this.isQuestionLoading = true;
-        const dataEither = await ajaxGet(`${this.endpointPath}getQuestion?questionId=${questionId}`, TQuestion);            
+        const dataEither = await Api.getQuestion(questionId);
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -64,7 +64,7 @@ export class Store {
 
         const { attemptId } = this.sessionInfo;
         this.isQuestionLoading = true;
-        const dataEither = await ajaxGet(`${this.endpointPath}generateQuestion?attemptId=${attemptId}`, TQuestion);            
+        const dataEither = await Api.generateQuestion(attemptId);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -92,7 +92,7 @@ export class Store {
         })
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ajaxPost(`${this.endpointPath}addAnswer`, body, TFeedback);
+        const feedbackEither = await Api.addAnswer(body);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {
