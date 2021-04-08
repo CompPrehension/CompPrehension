@@ -5,9 +5,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.*;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import lombok.val;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.imsglobal.lti.launch.LtiVerificationResult;
@@ -25,7 +23,7 @@ import java.util.*;
 
 @Controller
 @RequestMapping("lti")
-public class LtiController extends BasicController {
+public class LtiExerciseController extends BasicExerciseController {
     @Value("${config.property.lti_launch_secret}")
     private String ltiLaunchSecret;
 
@@ -47,10 +45,16 @@ public class LtiController extends BasicController {
             throw new Exception("Invalid LTI session");
         }
 
-        HttpSession session = request.getSession();
+        val session = request.getSession();
         session.setAttribute("sessionInfo", params);
 
-        return "index";
+        val exerciseIdS = params.getOrDefault("custom_exerciseId", "-1");
+        val exerciseId = NumberUtils.toLong(exerciseIdS, -1L);
+        if (exerciseId == -1) {
+            throw new Exception("Param 'custom_exerciseId' is required");
+        }
+
+        return launch(exerciseId, request);
     }
 
     @Override
@@ -61,37 +65,15 @@ public class LtiController extends BasicController {
             throw new Exception("Couldn't get session info");
         }
 
-        val exerciseId = NumberUtils.toLong(params.getOrDefault("custom_exerciseid", null), -1L);
-        if (exerciseId == -1L) {
-            throw new Exception("Invalid 'exerciseId' format");
-        }
-        val exercise = exerciseService.getExercise(exerciseId);
+        val exerciseId = (Long)session.getAttribute("exerciseId");
 
         // get or create user
         val userEntity = userService.createOrUpdateFromLti(params);
 
-        // check existing attempt
-        // TODO ask user whether use existing attempt or create new
-        val existingAttempt = exerciseAttemptRepository
-                .findFirstByExerciseIdAndUserIdAndAttemptStatus(exerciseId, userEntity.getId(), AttemptStatus.INCOMPLETE);
-        val attempt = existingAttempt
-                .orElseGet(() -> {
-                    val ea = new ExerciseAttemptEntity();
-                    ea.setExercise(exercise);
-                    ea.setUser(userEntity);
-                    ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
-                    ea.setQuestions(new ArrayList<>(0));
-                    return exerciseAttemptRepository.save(ea);
-                });
-
         val language = params.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
         return SessionInfoDto.builder()
             .sessionId(session.getId())
-            .attemptId(attempt.getId())
             .exerciseId(exerciseId)
-            .questionIds(attempt.getQuestions().stream()
-                                        .map(v -> v.getId())
-                                        .toArray(Long[]::new))
             .user(Mapper.toDto(userEntity))
             .language(language)
             .build();

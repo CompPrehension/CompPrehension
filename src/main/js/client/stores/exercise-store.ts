@@ -1,30 +1,34 @@
-import { action, computed, makeObservable, observable, runInAction, toJS } from "mobx";
-import { Question } from "./types/question";
-import { SessionInfo } from "./types/session-info";
+import { action, makeObservable, observable, runInAction, toJS } from "mobx";
+import { Api } from "../api";
+import { Interaction } from "../types/interaction";
+import { Question } from "../types/question";
 import * as E from "fp-ts/lib/Either";
-import { Feedback } from "./types/feedback";
-import { Interaction } from "./types/interaction";
-import { Api } from "./api";
+import { ExerciseAttempt } from "../types/exercise-attempt";
+import { Feedback } from "../types/feedback";
+import { SessionInfo } from "../types/session-info";
 
 
-
-export class Store {
+export class ExerciseStore {
+    @observable isSessionLoading: boolean = false;
     @observable sessionInfo?: SessionInfo = undefined;
-    @observable questionData?: Question = undefined;
-    @observable answersHistory: [number, number][] = [];
-    @observable isSessionLoading: boolean = true;
-    @observable isQuestionLoading: boolean = false;
-    @observable isFeedbackLoading: boolean = false;
+    @observable currentAttempt?: ExerciseAttempt = undefined;
+    @observable currentQuestion?: Question = undefined;
+    @observable answersHistory: [number, number][] = [];    
+    @observable isQuestionLoading?: boolean = false;
+    @observable isFeedbackLoading?: boolean = false;
     @observable feedback?: Feedback = undefined;
 
     constructor() {
-        makeObservable(this);
+        makeObservable(this);        
     }
 
     @action 
     loadSessionInfo = async (): Promise<void> => {
         if (this.sessionInfo) {
             throw new Error("Session exists");
+        }
+        if (this.isSessionLoading) {
+            return;
         }
 
         this.isSessionLoading = true;
@@ -35,6 +39,44 @@ export class Store {
             this.isSessionLoading = false;
             this.sessionInfo = data;
         });
+    }
+
+    @action
+    loadExistingExerciseAttempt = async (): Promise<boolean> => {
+        const { sessionInfo } = this;
+        if (!sessionInfo) {
+            throw new Error("Session is not defined");
+        }
+       
+        const exerciseId = sessionInfo.exerciseId;
+        const resultEither = await Api.getExistingExerciseAttempt(exerciseId);
+        const result = E.getOrElseW(() => undefined)(resultEither);
+
+        if (!result) {
+            return false;
+        }
+
+        runInAction(() => {
+            this.currentAttempt = result;
+        })
+        return true;
+    }
+
+
+    @action
+    createExerciseAttempt = async (): Promise<void> => {
+        const { sessionInfo } = this;
+        if (!sessionInfo) {
+            throw new Error("Session is not defined");
+        }
+
+        const { exerciseId } = sessionInfo;        
+        const resultEither = await Api.createExerciseAttempt(+exerciseId);
+        const result = E.getOrElseW(() => undefined)(resultEither);
+
+        runInAction(() => {
+            this.currentAttempt = result;
+        })
     }
 
     @action 
@@ -49,7 +91,7 @@ export class Store {
 
         runInAction(() => {
             this.isQuestionLoading = false;
-            this.questionData = data;
+            this.currentQuestion = data;
             this.feedback = data?.feedback ?? undefined;
             this.answersHistory = data?.responses ?? [];            
         });        
@@ -57,41 +99,42 @@ export class Store {
 
     @action
     generateQuestion = async (): Promise<void> => {
-        if (!this.sessionInfo) {
-            throw new Error("Session is not defined");
+        const { currentAttempt } = this;
+        if (!currentAttempt) {
+            throw new Error("Attempt not found");
         }
 
-        const { attemptId } = this.sessionInfo;
+        const { attemptId } = currentAttempt;
         this.isQuestionLoading = true;
         const dataEither = await Api.generateQuestion(attemptId);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
             this.isQuestionLoading = false;
-            this.questionData = data;
+            this.currentQuestion = data;
             this.feedback = data?.feedback ?? undefined;
             this.answersHistory = data?.responses ?? [];
             if (data) {
-                this.sessionInfo?.questionIds.push(data?.questionId)
+                this.currentAttempt?.questionIds.push(data?.questionId)
             }
         });        
     }
      
     @action 
     sendAnswers = async () : Promise<void> => {
-        const { questionData, answersHistory } = this;      
-        if (!questionData) {
+        const { currentQuestion, answersHistory } = this;      
+        if (!currentQuestion) {
             return;
         }
         
         const body: Interaction = toJS({
-            attemptId: questionData.attemptId,
-            questionId: questionData.questionId,
+            attemptId: currentQuestion.attemptId,
+            questionId: currentQuestion.questionId,
             answers: answersHistory,
         })
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await Api.addAnswer(body);
+        const feedbackEither = await Api.addQuestionAnswer(body);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {
@@ -121,6 +164,4 @@ export class Store {
     }
 }
 
-
-const storeInstance = new Store();
-export default storeInstance;
+export const exerciseStore = new ExerciseStore();

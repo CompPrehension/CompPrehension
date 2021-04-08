@@ -1,3 +1,4 @@
+import { ExerciseAttempt, TExerciseAttempt, TOptionalExerciseAttemptResult } from "./types/exercise-attempt";
 import { ExerciseStatisticsItem, TExerciseStatisticsItems } from "./types/exercise-statistics";
 import { Feedback, TFeedback } from "./types/feedback";
 import { Interaction } from "./types/interaction";
@@ -29,8 +30,16 @@ export class Api {
         return ajaxGet(`${Api.endpointPath}generateQuestion?attemptId=${attemptId}`, TQuestion); 
     }
 
-    static addAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
-        return ajaxPost(`${Api.endpointPath}addAnswer`, interaction, TFeedback);
+    static addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
+        return ajaxPost(`${Api.endpointPath}addQuestionAnswer`, interaction, TFeedback);
+    }
+
+    static getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''> {
+        return ajaxGet(`${Api.endpointPath}getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult); 
+    }
+
+    static createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        return ajaxGet(`${Api.endpointPath}createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     static getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {

@@ -1,20 +1,20 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Alert, Badge } from 'react-bootstrap';
-import store from '../store';
+import { exerciseStore } from "../stores/exercise-store";
 import { Feedback as FeedbackType } from '../types/feedback';
 import { Loader } from './loader';
 import { Optional } from './optional';
 
 
 export const Feedback = observer(() => {
-    const { feedback, isFeedbackLoading } = store;
+    const { feedback, isFeedbackLoading } = exerciseStore;
     
-    if (store.isFeedbackLoading) {
+    if (exerciseStore.isFeedbackLoading) {
         return <Loader />;
     }
 
-    if (!feedback || store.isQuestionLoading) {
+    if (!feedback || exerciseStore.isQuestionLoading) {
         return null;
     }
 

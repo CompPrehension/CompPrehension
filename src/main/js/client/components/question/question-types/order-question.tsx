@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import store from '../../../store';
+import { exerciseStore } from '../../../stores/exercise-store';
 
 export const OrderQuestion : React.FC = observer(() => {
-    const { questionData, answersHistory, onAnswersChanged } = store;
-    if (!questionData || questionData.type != "ORDER" || !questionData.options.requireContext) {
+    const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type != "ORDER" || !currentQuestion.options.requireContext) {
         return null;
     }
 
-    const { options } = questionData; 
+    const { options } = currentQuestion; 
     const orderNumberOptions = options.orderNumberOptions ?? { delimiter: '/', position: 'SUFFIX', }
     
     const originalText = document.createElement('div');
-    originalText.innerHTML = questionData.text;
+    originalText.innerHTML = currentQuestion.text;
     
     // actions on questionId changed (onInit)
     useEffect(() => {    
@@ -29,7 +29,7 @@ export const OrderQuestion : React.FC = observer(() => {
             e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
         })
 
-    }, [questionData.questionId]);
+    }, [currentQuestion.questionId]);
 
     useEffect(() => {
         // drop all changes, set original qustion text    
@@ -58,12 +58,12 @@ export const OrderQuestion : React.FC = observer(() => {
                 answr.classList.add('disabled');            
             }
         });
-    }, [questionData.questionId, store.answersHistory.length])
+    }, [currentQuestion.questionId, exerciseStore.answersHistory.length])
     
 
     return (
         <div>
-            <div dangerouslySetInnerHTML={{ __html: questionData.text }} />
+            <div dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
         </div>
     );
 });

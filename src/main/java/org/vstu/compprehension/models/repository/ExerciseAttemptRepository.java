@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemptEntity, Long> {
-    Optional<ExerciseAttemptEntity> findFirstByExerciseIdAndUserIdAndAttemptStatus(Long exerciseId, Long userId, AttemptStatus status);
+    Optional<ExerciseAttemptEntity> findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(Long exerciseId, Long userId, AttemptStatus status);
 }
