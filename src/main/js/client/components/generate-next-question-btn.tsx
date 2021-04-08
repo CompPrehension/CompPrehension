@@ -2,24 +2,25 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import store from '../store';
+import { exerciseStore } from "../stores/exercise-store";
 
 
 export const GenerateNextQuestionBtn = observer(() => {
     const onClicked = () => {
-        store.generateQuestion();
+        exerciseStore.generateQuestion();
     };
 
-    const { sessionInfo, questionData } = store;
-    if (!sessionInfo || !questionData) {
+    const { session, currentQuestion, currentAttempt } = exerciseStore;
+    if (!session || !currentQuestion || !session.sessionInfo || !currentAttempt) {
         return null;
     }
 
-    const { user, questionIds } = sessionInfo;
+    const { user } = session.sessionInfo;
+    const { questionIds } = currentAttempt;
 
     // show btn if user is admin or if he is on the last question and has finished it
     if (!user.roles.includes('ADMIN') && !user.roles.includes('TEACHER') &&
-        (questionIds[questionIds.length - 1] !== questionData.questionId || store.feedback?.stepsLeft !== 0)) {
+        (questionIds[questionIds.length - 1] !== currentQuestion.questionId || exerciseStore.feedback?.stepsLeft !== 0)) {
         return null;
     }
 

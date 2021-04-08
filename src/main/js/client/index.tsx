@@ -3,7 +3,7 @@ import React from 'react';
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
-import { Assessment } from './pages/assessment';
+import { Exercise } from './pages/exercise';
 import { Statistics } from './pages/statistics';
 
 const Home = () => (
@@ -14,7 +14,7 @@ const Home = () => (
                     <Statistics />
                 </Route>
                 <Route exact path="/**/">
-                    <Assessment />
+                    <Exercise />
                 </Route>             
             </Switch>
         </Router>

@@ -2,12 +2,14 @@ package org.vstu.compprehension.utils;
 
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
+import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.QuestionAnswerDto;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -111,5 +113,16 @@ public class Mapper {
             default:
                 throw new UnsupportedOperationException("Invalid mapping");
         }
+    }
+
+    public static ExerciseAttemptDto toDto(ExerciseAttemptEntity attempt) {
+        return ExerciseAttemptDto.builder()
+                .exerciseId(attempt.getExercise().getId())
+                .attemptId(attempt.getId())
+                .questionIds(Optional.ofNullable(attempt.getQuestions()).stream()
+                    .flatMap(Collection::stream)
+                    .map(QuestionEntity::getId)
+                    .toArray(Long[]::new))
+                .build();
     }
 }

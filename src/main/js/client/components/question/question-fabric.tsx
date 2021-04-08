@@ -1,16 +1,16 @@
 import * as React from 'react';
-import store from '../../store';
+import { exerciseStore } from '../../stores/exercise-store';
 import { observer } from 'mobx-react';
 import { OrderQuestion } from "./question-types/order-question";
 import { MatchingQuestion } from './question-types/matching-question';
 import { Loader } from '../loader';
 
 export const QuestionFabric = observer(() => {  
-    if (store.isQuestionLoading) {
+    if (exerciseStore.isQuestionLoading) {
         return <Loader />;
     }
 
-    const questionData = store.questionData;
+    const questionData = exerciseStore.currentQuestion;
     if (!questionData) {
         return null;
     }

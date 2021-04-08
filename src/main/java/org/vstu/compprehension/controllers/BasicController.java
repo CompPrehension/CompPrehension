@@ -8,13 +8,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
-import org.vstu.compprehension.dto.FeedbackDto;
-import org.vstu.compprehension.dto.InteractionDto;
+import org.vstu.compprehension.controllers.interfaces.ExerciseAttemptController;
+import org.vstu.compprehension.controllers.interfaces.ExerciseStatisticsController;
+import org.vstu.compprehension.controllers.interfaces.QuestionController;
+import org.vstu.compprehension.controllers.interfaces.SessionController;
+import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
 import org.vstu.compprehension.models.repository.InteractionRepository;
 import org.vstu.compprehension.utils.Mapper;
-import org.vstu.compprehension.dto.SessionInfoDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Strategy;
@@ -33,7 +34,8 @@ import java.util.List;
 
 @Controller
 @RequestMapping("basic")
-public class BasicController implements AbstractFrontController {
+public class BasicController implements SessionController, QuestionController,
+        ExerciseStatisticsController, ExerciseAttemptController {
 
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
@@ -51,21 +53,10 @@ public class BasicController implements AbstractFrontController {
     private Strategy strategy;
 
     @Autowired
-    private InteractionRepository interactionRepository;
-
-    @Autowired
     private FeedbackRepository feedbackRepository;
 
     @Override
     public String launch(HttpServletRequest request) throws Exception {
-        val exerciseIdS = request.getParameter("exerciseId");
-        val exerciseId = NumberUtils.toLong(exerciseIdS, -1L);
-        if (exerciseId == -1L) {
-            throw new Exception("Invalid 'exerciseId' format");
-        }
-        val session = request.getSession();
-        session.setAttribute("exerciseId", exerciseId);
-
         return "index";
     }
 
@@ -75,7 +66,7 @@ public class BasicController implements AbstractFrontController {
     }
 
     @Override
-    public FeedbackDto addAnswer(InteractionDto interaction, HttpServletRequest request) throws Exception {
+    public FeedbackDto addQuestionAnswer(InteractionDto interaction, HttpServletRequest request) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
         Long questionId = interaction.getQuestionId();
         Long[][] answers = interaction.getAnswers();
@@ -115,7 +106,7 @@ public class BasicController implements AbstractFrontController {
     }
 
     @Override
-    public QuestionDto generateQuestion(Long exAttemptId) throws Exception {
+    public QuestionDto generateQuestion(Long exAttemptId, HttpServletRequest request) throws Exception {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         Question question = questionService.generateQuestion(attempt);
@@ -124,7 +115,7 @@ public class BasicController implements AbstractFrontController {
     }
 
     @Override
-    public QuestionDto getQuestion(Long questionId) throws Exception {
+    public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
         val question = questionService.getQuestionEntiity(questionId);
         return Mapper.toDto(question);
     }
@@ -133,34 +124,11 @@ public class BasicController implements AbstractFrontController {
     public SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception {
         // get or create user
         val userEntity = userService.createOrUpdateFromAuthentication();
-
-        // get exercise
         val session = request.getSession();
-        val exerciseIdS = session.getAttribute("exerciseId").toString();
-        val exerciseId = NumberUtils.toLong(exerciseIdS, -1L);
-        val exercise = exerciseService.getExercise(exerciseId);
-
-        // check existing attempt
-        // TODO ask user whether use existing attempt or create new
-        val existingAttempt = exerciseAttemptRepository
-                .findFirstByExerciseIdAndUserIdAndAttemptStatus(exerciseId, userEntity.getId(), AttemptStatus.INCOMPLETE);
-        val attempt = existingAttempt
-                .orElseGet(() -> {
-                    val ea = new ExerciseAttemptEntity();
-                    ea.setExercise(exercise);
-                    ea.setUser(userEntity);
-                    ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
-                    ea.setQuestions(new ArrayList<>(0));
-                    return exerciseAttemptRepository.save(ea);
-                });
+        session.setAttribute("userId", userEntity.getId());
 
         return SessionInfoDto.builder()
                 .sessionId(session.getId())
-                .attemptId(attempt.getId())
-                .exerciseId(exerciseId)
-                .questionIds(attempt.getQuestions().stream()
-                        .map(v -> v.getId())
-                        .toArray(Long[]::new))
                 .user(Mapper.toDto(userEntity))
                 .language("EN")
                 .build();
@@ -201,5 +169,33 @@ public class BasicController implements AbstractFrontController {
                 .toArray(ExerciseStatisticsItemDto[]::new);
 
         return result;
+    }
+
+    @Override
+    public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) {
+        val session = request.getSession();
+        val userId = (Long)session.getAttribute("userId");
+        val existingAttempt = exerciseAttemptRepository
+                .findFirstByExerciseIdAndUserIdAndAttemptStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
+        return existingAttempt
+                .map(Mapper::toDto)
+                .orElse(null);
+    }
+
+    @Override
+    public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) {
+        val session = request.getSession();
+        val userId = (Long)session.getAttribute("userId");
+        val exercise = exerciseService.getExercise(exerciseId);
+        val user = userService.getUser(userId);
+
+        val ea = new ExerciseAttemptEntity();
+        ea.setExercise(exercise);
+        ea.setUser(user);
+        ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
+        ea.setQuestions(new ArrayList<>(0));
+        exerciseAttemptRepository.save(ea);
+
+        return Mapper.toDto(ea);
     }
 }

@@ -1,7 +1,6 @@
 import { observer } from "mobx-react"
 import React, { useEffect, useState } from "react"
 import { Api } from "../api";
-import store from '../store';
 import * as E from "fp-ts/lib/Either";
 import { ExerciseStatisticsItem } from "../types/exercise-statistics";
 
@@ -9,12 +8,18 @@ export const Statistics = () => {
     const [statistics, setStatistics] = useState([] as ExerciseStatisticsItem[]);
     useEffect(() => {
         (async () => {
-            const statistics = await Api.getExerciseStatistics(store.sessionInfo?.exerciseId ?? -1);
+            const urlParams = new URLSearchParams(window.location.search);
+            const exerciseId = urlParams.get('exerciseId');
+            if (exerciseId === null || Number.isNaN(+exerciseId)) {
+                throw new Error("Invalid exerciseId url param");
+            }
+
+            const statistics = await Api.getExerciseStatistics(+exerciseId);
             if (E.isRight(statistics)) {
                 setStatistics(statistics.right);
             }
         })()
-    }, [statistics.length === 0])
+    }, []);
 
 
     return (

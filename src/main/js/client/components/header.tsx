@@ -2,18 +2,18 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Navbar } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import store from '../store';
+import { exerciseStore } from "../stores/exercise-store";
 import { Optional } from './optional';
 import { Pagination } from './pagination';
 
 
 export const Header = observer(() => {
-    const { sessionInfo, } = store;
-    if (!sessionInfo) {
+    const { currentAttempt, session, currentQuestion } = exerciseStore;
+    if (!currentAttempt || !session || !session.sessionInfo) {
         return null;
     }
-    const { user } = sessionInfo;
-    const currentQuestionIdx = sessionInfo.questionIds.findIndex(id => store.questionData?.questionId === id);
+    const { user } = session.sessionInfo;
+    const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion?.questionId === id);
 
     return (
         <Navbar className="px-0">
@@ -22,11 +22,11 @@ export const Header = observer(() => {
                 <Pagination />
                 
                 <Navbar.Text className="px-2">
-                    Language: <a href="#language">{sessionInfo.language}</a>
+                    Language: <a href="#language">{session.sessionInfo.language}</a>
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">
-                    Signed in as: <Link to="pages/statistics">{user.displayName}</Link>{/*<a href="pages/statistics">{user.displayName}</a>*/}
+                    Signed in as: <Link to={`pages/statistics?exerciseId=${exerciseStore.currentAttempt?.exerciseId}`}>{user.displayName}</Link>{/*<a href="pages/statistics">{user.displayName}</a>*/}
                 </Navbar.Text>
             </Navbar.Collapse>
         </Navbar>

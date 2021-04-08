@@ -61,37 +61,12 @@ public class LtiController extends BasicController {
             throw new Exception("Couldn't get session info");
         }
 
-        val exerciseId = NumberUtils.toLong(params.getOrDefault("custom_exerciseid", null), -1L);
-        if (exerciseId == -1L) {
-            throw new Exception("Invalid 'exerciseId' format");
-        }
-        val exercise = exerciseService.getExercise(exerciseId);
-
         // get or create user
         val userEntity = userService.createOrUpdateFromLti(params);
-
-        // check existing attempt
-        // TODO ask user whether use existing attempt or create new
-        val existingAttempt = exerciseAttemptRepository
-                .findFirstByExerciseIdAndUserIdAndAttemptStatus(exerciseId, userEntity.getId(), AttemptStatus.INCOMPLETE);
-        val attempt = existingAttempt
-                .orElseGet(() -> {
-                    val ea = new ExerciseAttemptEntity();
-                    ea.setExercise(exercise);
-                    ea.setUser(userEntity);
-                    ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
-                    ea.setQuestions(new ArrayList<>(0));
-                    return exerciseAttemptRepository.save(ea);
-                });
 
         val language = params.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
         return SessionInfoDto.builder()
             .sessionId(session.getId())
-            .attemptId(attempt.getId())
-            .exerciseId(exerciseId)
-            .questionIds(attempt.getQuestions().stream()
-                                        .map(v -> v.getId())
-                                        .toArray(Long[]::new))
             .user(Mapper.toDto(userEntity))
             .language(language)
             .build();

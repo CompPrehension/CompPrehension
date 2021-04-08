@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
-import store from '../../../store';
+import { exerciseStore } from "../../../stores/exercise-store";
 import Select, { components } from 'react-select';
 import ReactDOM from "react-dom";
 
@@ -9,12 +9,12 @@ import { Droppable } from '@shopify/draggable';
 
 
 export const MatchingQuestion : React.FC = observer(() => {
-    const { questionData } = store;
-    if (!questionData || questionData.type != "MATCHING") {
+    const { currentQuestion } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type != "MATCHING") {
         return null;
     }
 
-    const { options } = questionData;
+    const { options } = currentQuestion;
     switch(true) {
         case options.displayMode === "combobox" && !options.requireContext:
             return <ComboboxMatchingQuestion />;
@@ -29,11 +29,11 @@ export const MatchingQuestion : React.FC = observer(() => {
 
 
 const DragAndDropMatchingQuestion = observer(() => {
-    const { questionData, answersHistory, onAnswersChanged } = store;
-    if (!questionData || questionData.type != "MATCHING") {
+    const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type != "MATCHING") {
         return null;
     }
-    const { groups = [] } = questionData;
+    const { groups = [] } = currentQuestion;
 
 
 
@@ -67,18 +67,18 @@ const DragAndDropMatchingQuestion = observer(() => {
                         const rightId = e?.id.split('_')[1] ?? '';
                         return [+leftId, +rightId];
                     });                        
-                if (store.isHistoryChanged(newHistory)) {
-                    store.updateAnswersHistory(newHistory);
+                if (exerciseStore.isHistoryChanged(newHistory)) {
+                    exerciseStore.updateAnswersHistory(newHistory);
                 }                
             }, 10);
         });
-    }, [questionData.questionId])
+    }, [currentQuestion.questionId])
     
     return (
         <div>
             <div className="row comp-ph-droppable-container">
                 <div className="col-md">
-                    <p dangerouslySetInnerHTML={{ __html: questionData.text }} />
+                    <p dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
                     <div id="answer_0" className="comp-ph-dropzone" style={dropzoneStyle}></div>
                     <div id="answer_1" className="comp-ph-dropzone" style={dropzoneStyle}></div>
                     <div id="answer_2" className="comp-ph-dropzone" style={dropzoneStyle}></div>
@@ -113,11 +113,11 @@ const RawHtmlSelectSingleValue = (props : any) => {
 };
 
 const ComboboxMatchingQuestionWithCtx = observer(() => {
-    const { questionData, answersHistory, onAnswersChanged } = store;
-    if (!questionData || questionData.type != "MATCHING" || !questionData.options.requireContext) {
+    const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type != "MATCHING" || !currentQuestion.options.requireContext) {
         return null;
     }
-    const { groups = [], options } = questionData;      
+    const { groups = [], options } = currentQuestion;      
 
     useEffect(() => {
         // replace all placeholders on first render
@@ -134,31 +134,31 @@ const ComboboxMatchingQuestionWithCtx = observer(() => {
                                             const otherHistoryItems = answersHistory.filter(v => v[0] !== answerId);
                                             const historyItem = [answerId, +v.value] as [number, number];
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
-                                            store.updateAnswersHistory(newAnswersHistory);     
+                                            exerciseStore.updateAnswersHistory(newAnswersHistory);     
                                         })}
                                     />
                 ReactDOM.render(selector, elem);
             });        
-    }, [questionData.questionId]);
+    }, [currentQuestion.questionId]);
 
     return (
         <div>
-            <p dangerouslySetInnerHTML={{ __html: questionData.text }} />
+            <p dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
         </div>
     );
 });
 
 const ComboboxMatchingQuestion = observer(() => {
-    const { questionData, answersHistory, onAnswersChanged } = store;
-    if (!questionData || questionData.type != "MATCHING" || questionData.options.requireContext) {
+    const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type != "MATCHING" || currentQuestion.options.requireContext) {
         return null;
     }
 
-    const { answers = [], groups = [], options } = questionData;   
+    const { answers = [], groups = [], options } = currentQuestion;   
 
     return (
         <div>
-            <p dangerouslySetInnerHTML={{ __html: questionData.text }}>                
+            <p dangerouslySetInnerHTML={{ __html: currentQuestion.text }}>                
             </p>
             <table style={{ minWidth: '50%' }}>
                 <tbody>
@@ -177,7 +177,7 @@ const ComboboxMatchingQuestion = observer(() => {
                                             const otherHistoryItems = answersHistory.filter(v => v[0] !== asw.id);
                                             const historyItem = [asw.id, +v.value] as [number, number];
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
-                                            store.updateAnswersHistory(newAnswersHistory);                                            
+                                            exerciseStore.updateAnswersHistory(newAnswersHistory);                                            
                                         })} />                                
                             </td>
                         </tr>
