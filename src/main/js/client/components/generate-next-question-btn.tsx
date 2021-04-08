@@ -10,12 +10,12 @@ export const GenerateNextQuestionBtn = observer(() => {
         exerciseStore.generateQuestion();
     };
 
-    const { session, currentQuestion, currentAttempt } = exerciseStore;
-    if (!session || !currentQuestion || !session.sessionInfo || !currentAttempt) {
+    const { sessionInfo, currentQuestion, currentAttempt } = exerciseStore;
+    if (!currentQuestion || !sessionInfo || !currentAttempt) {
         return null;
     }
 
-    const { user } = session.sessionInfo;
+    const { user } = sessionInfo;
     const { questionIds } = currentAttempt;
 
     // show btn if user is admin or if he is on the last question and has finished it

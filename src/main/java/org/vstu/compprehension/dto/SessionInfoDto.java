@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SessionInfoDto {
     private String sessionId;
+    private Long exerciseId;
     private UserInfoDto user;
     private String language;
 }

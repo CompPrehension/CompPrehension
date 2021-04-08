@@ -8,11 +8,11 @@ import { Pagination } from './pagination';
 
 
 export const Header = observer(() => {
-    const { currentAttempt, session, currentQuestion } = exerciseStore;
-    if (!currentAttempt || !session || !session.sessionInfo) {
+    const { currentAttempt, sessionInfo, currentQuestion } = exerciseStore;
+    if (!currentAttempt || !sessionInfo) {
         return null;
     }
-    const { user } = session.sessionInfo;
+    const { user } = sessionInfo;
     const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion?.questionId === id);
 
     return (
@@ -22,7 +22,7 @@ export const Header = observer(() => {
                 <Pagination />
                 
                 <Navbar.Text className="px-2">
-                    Language: <a href="#language">{session.sessionInfo.language}</a>
+                    Language: <a href="#language">{sessionInfo.language}</a>
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">

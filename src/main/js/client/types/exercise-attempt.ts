@@ -1,5 +1,5 @@
 import * as io from 'io-ts'
-import { TOptional } from './utils';
+import { TOptionalRequestResult } from './utils';
 
 export type ExerciseAttempt = {
     attemptId: number,
@@ -11,4 +11,4 @@ export const TExerciseAttempt : io.Type<ExerciseAttempt> = io.type({
     exerciseId: io.number,
     questionIds: io.array(io.number),
 });
-export const TExerciseAttemptOrNull = TOptional(TExerciseAttempt);
+export const TOptionalExerciseAttemptResult = TOptionalRequestResult(TExerciseAttempt);

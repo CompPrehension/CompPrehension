@@ -1,20 +1,15 @@
 package org.vstu.compprehension.controllers;
 
 import lombok.val;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.controllers.interfaces.ExerciseAttemptController;
-import org.vstu.compprehension.controllers.interfaces.ExerciseStatisticsController;
-import org.vstu.compprehension.controllers.interfaces.QuestionController;
-import org.vstu.compprehension.controllers.interfaces.SessionController;
+import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
-import org.vstu.compprehension.models.repository.InteractionRepository;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -34,8 +29,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("basic")
-public class BasicController implements SessionController, QuestionController,
-        ExerciseStatisticsController, ExerciseAttemptController {
+public class BasicExerciseController implements ExerciseController {
 
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
@@ -56,7 +50,14 @@ public class BasicController implements SessionController, QuestionController,
     private FeedbackRepository feedbackRepository;
 
     @Override
-    public String launch(HttpServletRequest request) throws Exception {
+    public String launch(Long exerciseId, HttpServletRequest request) throws Exception {
+        val session = request.getSession();
+        session.setAttribute("exerciseId", exerciseId);
+
+        if (exerciseId == null) {
+            throw new Exception("exerciseId param is required");
+        }
+
         return "index";
     }
 
@@ -126,9 +127,11 @@ public class BasicController implements SessionController, QuestionController,
         val userEntity = userService.createOrUpdateFromAuthentication();
         val session = request.getSession();
         session.setAttribute("userId", userEntity.getId());
+        val exerciseId = (Long)session.getAttribute("exerciseId");
 
         return SessionInfoDto.builder()
                 .sessionId(session.getId())
+                .exerciseId(exerciseId)
                 .user(Mapper.toDto(userEntity))
                 .language("EN")
                 .build();
@@ -176,7 +179,7 @@ public class BasicController implements SessionController, QuestionController,
         val session = request.getSession();
         val userId = (Long)session.getAttribute("userId");
         val existingAttempt = exerciseAttemptRepository
-                .findFirstByExerciseIdAndUserIdAndAttemptStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
+                .findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
         return existingAttempt
                 .map(Mapper::toDto)
                 .orElse(null);

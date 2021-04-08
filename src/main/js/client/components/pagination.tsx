@@ -4,7 +4,7 @@ import { exerciseStore } from "../stores/exercise-store";
 import { Pagination as BootstrapPagination } from "react-bootstrap"
 
 export const Pagination = observer(() => {
-    if (!(exerciseStore.currentAttempt?.questionIds.length)) {
+    if (!(exerciseStore.currentAttempt?.questionIds.length) || !exerciseStore.currentQuestion) {
         return null;
     }
 

@@ -24,6 +24,6 @@ export type MergeIntersectionsDeep<T> =
 
 
 
-export const TOptional = <T>(type: io.Type<T>): io.Type<T | null | undefined> =>
-    io.union([type, io.null, io.undefined]);
+export const TOptionalRequestResult = <T>(type: io.Type<T>): io.Type<T | null | undefined | ''> =>
+    io.union([type, io.null, io.undefined, io.literal('')]);
 

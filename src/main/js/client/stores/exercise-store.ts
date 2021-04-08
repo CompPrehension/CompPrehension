@@ -2,15 +2,15 @@ import { action, makeObservable, observable, runInAction, toJS } from "mobx";
 import { Api } from "../api";
 import { Interaction } from "../types/interaction";
 import { Question } from "../types/question";
-import { SessionStore, sessionStore } from "./session-store";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseAttempt } from "../types/exercise-attempt";
 import { Feedback } from "../types/feedback";
+import { SessionInfo } from "../types/session-info";
 
 
 export class ExerciseStore {
-    @observable session: SessionStore;
-
+    @observable isSessionLoading: boolean = false;
+    @observable sessionInfo?: SessionInfo = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion?: Question = undefined;
     @observable answersHistory: [number, number][] = [];    
@@ -18,26 +18,38 @@ export class ExerciseStore {
     @observable isFeedbackLoading?: boolean = false;
     @observable feedback?: Feedback = undefined;
 
-    constructor(session: SessionStore) {
-        this.session = session;
-
+    constructor() {
         makeObservable(this);        
+    }
+
+    @action 
+    loadSessionInfo = async (): Promise<void> => {
+        if (this.sessionInfo) {
+            throw new Error("Session exists");
+        }
+        if (this.isSessionLoading) {
+            return;
+        }
+
+        this.isSessionLoading = true;
+        const dataEither = await Api.loadSessionInfo();                                
+        const data = E.getOrElseW(_ => undefined)(dataEither);
+
+        runInAction(() => {
+            this.isSessionLoading = false;
+            this.sessionInfo = data;
+        });
     }
 
     @action
     loadExistingExerciseAttempt = async (): Promise<boolean> => {
-        const { sessionInfo } = this.session;
+        const { sessionInfo } = this;
         if (!sessionInfo) {
             throw new Error("Session is not defined");
         }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const exerciseId = urlParams.get('exerciseId');
-        if (exerciseId === null || Number.isNaN(+exerciseId)) {
-            throw new Error("Invalid exerciseId url param");
-        }
-
-        const resultEither = await Api.getExistingExerciseAttempt(+exerciseId);
+       
+        const exerciseId = sessionInfo.exerciseId;
+        const resultEither = await Api.getExistingExerciseAttempt(exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
         if (!result) {
@@ -53,17 +65,12 @@ export class ExerciseStore {
 
     @action
     createExerciseAttempt = async (): Promise<void> => {
-        const { sessionInfo } = this.session;
+        const { sessionInfo } = this;
         if (!sessionInfo) {
             throw new Error("Session is not defined");
         }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const exerciseId = urlParams.get('exerciseId');
-        if (exerciseId === null || Number.isNaN(+exerciseId)) {
-            throw new Error("Invalid exerciseId url param");
-        }
-
+        const { exerciseId } = sessionInfo;        
         const resultEither = await Api.createExerciseAttempt(+exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
@@ -74,7 +81,7 @@ export class ExerciseStore {
 
     @action 
     loadQuestion = async (questionId: number): Promise<void> => {
-        if (!this.session.sessionInfo) {
+        if (!this.sessionInfo) {
             throw new Error("Session is not defined");
         }
 
@@ -157,4 +164,4 @@ export class ExerciseStore {
     }
 }
 
-export const exerciseStore = new ExerciseStore(sessionStore);
+export const exerciseStore = new ExerciseStore();

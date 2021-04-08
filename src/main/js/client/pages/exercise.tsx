@@ -11,14 +11,18 @@ import { exerciseStore } from "../stores/exercise-store";
 export const Exercise = observer(() => {
     type State = 'INITIAL' | 'MODAL' | 'EXERCISE';
     const [state, setState] = useState('INITIAL' as State);
-    const { isQuestionLoading } = exerciseStore;
 
     // on first render
     useEffect(() => {
         (async () => {
-            await exerciseStore.session.loadSessionInfo();
-            const existingAttempt = await exerciseStore.loadExistingExerciseAttempt();
-            setState(existingAttempt ? 'MODAL' : 'EXERCISE');            
+            await exerciseStore.loadSessionInfo();
+            const attemptExistis = await exerciseStore.loadExistingExerciseAttempt();
+            if (attemptExistis) {
+                setState('MODAL');
+            } else {
+                setState('EXERCISE');
+                await createAttemptAndLoadQuestion();
+            }
         })()
     }, []);
 
@@ -29,6 +33,12 @@ export const Exercise = observer(() => {
         } else {
             await exerciseStore.generateQuestion();
         }        
+    }
+
+    const createAttemptAndLoadQuestion = async () => {
+        exerciseStore.isQuestionLoading = true;
+        await exerciseStore.createExerciseAttempt();
+        await loadQuestion();
     }
 
     switch(state) {
@@ -45,8 +55,7 @@ export const Exercise = observer(() => {
                        secondaryBtnTitle="New"
                        handleSecondaryBtnClicked={() => {
                             setState('EXERCISE');
-                            exerciseStore.isQuestionLoading = true;
-                            exerciseStore.createExerciseAttempt().then(() => loadQuestion())
+                            createAttemptAndLoadQuestion();
                        }}>
                     <p>Would you like to continue the existing attempt or start a new one?</p>
                 </Modal>
