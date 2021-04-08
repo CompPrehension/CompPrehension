@@ -18,14 +18,14 @@ export const GenerateNextQuestionBtn = observer(() => {
     const { user, questionIds } = sessionInfo;
 
     // show btn if user is admin or if he is on the last question and has finished it
-    if (!user.roles.includes('ADMIN') && 
-        (questionIds[questionIds.length - 1] !== questionData.questionId || questionData.feedback?.stepsLeft !== 0)) {
+    if (!user.roles.includes('ADMIN') && !user.roles.includes('TEACHER') &&
+        (questionIds[questionIds.length - 1] !== questionData.questionId || store.feedback?.stepsLeft !== 0)) {
         return null;
     }
 
     return (
         <div style={{ marginTop: '20px'}}>            
-            <Button onClick={onClicked} variant="primary" >Generate next question</Button>
+            <Button onClick={onClicked} variant="primary" >Next question</Button>
         </div>
     )
 })

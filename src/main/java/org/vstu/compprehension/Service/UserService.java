@@ -72,8 +72,8 @@ public class UserService {
         val lastName = params.get("lis_person_name_family");
         val roles = Stream.of(params.get("roles").split(","))
                 .map(String::trim)
-                .filter(s -> s.length() > 0)
-                .map(s -> s.substring(s.lastIndexOf('/') + 1))
+                .filter(s -> s.length() > 0 && s.matches("^\\w+$"))
+                //.map(s -> s.substring(s.lastIndexOf('/') + 1))
                 .distinct()
                 .collect(Collectors.toList());
         val locale = params.get("launch_presentation_locale").split("-")[0].toUpperCase();
