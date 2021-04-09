@@ -11,7 +11,7 @@ import { ajaxGet, ajaxPost, PromiseEither, RequestError } from "./utils/ajax";
 export class Api {
     static endpointPath: string = Api.initEndpointPath();
     private static initEndpointPath() {
-        const matches = /^\/(?:.+\/)?/.exec(window.location.pathname)
+        const matches = /^\/(?:.+\/(?<!\/pages\/))?/.exec(window.location.pathname)
         if (matches) {
             return matches[0];
         }

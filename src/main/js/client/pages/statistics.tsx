@@ -3,9 +3,12 @@ import React, { useEffect, useState } from "react"
 import { Api } from "../api";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseStatisticsItem } from "../types/exercise-statistics";
+import { Loader } from "../components/loader";
 
 export const Statistics = () => {
     const [statistics, setStatistics] = useState([] as ExerciseStatisticsItem[]);
+    const [isLoading, setIsLoading] = useState(false);
+
     useEffect(() => {
         (async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -14,10 +17,12 @@ export const Statistics = () => {
                 throw new Error("Invalid exerciseId url param");
             }
 
+            setIsLoading(true);
             const statistics = await Api.getExerciseStatistics(+exerciseId);
             if (E.isRight(statistics)) {
                 setStatistics(statistics.right);
             }
+            setIsLoading(false);
         })()
     }, []);
 
@@ -35,15 +40,19 @@ export const Statistics = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {statistics.map(s => (
-                        <tr>
-                            <th scope="row">{s.attemptId}</th>
-                            <td>{s.questionsCount}</td>
-                            <td>{s.totalInteractionsCount}</td>
-                            <td>{s.totalInteractionsWithErrorsCount}</td>
-                            <td>{s.averageGrade}</td>
-                        </tr>
-                    ))}
+                    {
+                        isLoading
+                            ? <Loader />
+                            : statistics.map(s => (
+                                <tr>
+                                    <th scope="row">{s.attemptId}</th>
+                                    <td>{s.questionsCount}</td>
+                                    <td>{s.totalInteractionsCount}</td>
+                                    <td>{s.totalInteractionsWithErrorsCount}</td>
+                                    <td>{s.averageGrade}</td>
+                                </tr>
+                            ))
+                    }
                 </tbody>
             </table>
         </div>
