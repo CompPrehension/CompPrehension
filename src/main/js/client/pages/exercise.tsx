@@ -15,6 +15,11 @@ export const Exercise = observer(() => {
     // on first render
     useEffect(() => {
         (async () => {
+            if (exerciseStore.currentQuestion) {
+                setState('EXERCISE');
+                return;
+            }
+
             await exerciseStore.loadSessionInfo();
             const attemptExistis = await exerciseStore.loadExistingExerciseAttempt();
             if (attemptExistis) {

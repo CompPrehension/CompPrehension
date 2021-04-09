@@ -25,9 +25,9 @@ export const Feedback = observer(() => {
             </p>
             <p>
                 <Optional condition={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
-                <Optional condition={feedback.totalSteps !== null}><Badge variant="success">Total steps: {feedback.totalSteps}</Badge>{' '}</Optional>
+                <Optional condition={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
                 <Optional condition={feedback.stepsWithErrors !== null && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
-                <Optional condition={feedback.stepsLeft !== null}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>
+                <Optional condition={feedback.stepsLeft !== null && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
             </p>              
         </div>
     );

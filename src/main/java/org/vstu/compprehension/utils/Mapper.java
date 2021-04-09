@@ -42,6 +42,9 @@ public class Mapper {
         val interactionsWithErrorsCount = (int)Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getMistakes().size() > 0).count();
+        val correctInteractionsCount = (int)Optional.ofNullable(question.getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getCorrectLaw().size() > 0).count();
         val lastCorrectInteraction = Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getMistakes().size() == 0) // select only interactions without mistakes
@@ -69,7 +72,7 @@ public class Mapper {
                 .orElse(null);
         val feedback = lastInteraction
                 .map(i -> FeedbackDto.builder()
-                        .totalSteps(totalInteractionsCount)
+                        .correctSteps(correctInteractionsCount)
                         .stepsWithErrors(interactionsWithErrorsCount)
                         .grade(i.getFeedback().getGrade())
                         .stepsLeft(i.getFeedback().getInteractionsLeft())
