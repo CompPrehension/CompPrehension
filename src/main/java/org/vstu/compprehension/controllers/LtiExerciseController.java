@@ -69,6 +69,7 @@ public class LtiExerciseController extends BasicExerciseController {
 
         // get or create user
         val userEntity = userService.createOrUpdateFromLti(params);
+        session.setAttribute("userId", userEntity.getId());
 
         val language = params.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
         return SessionInfoDto.builder()
