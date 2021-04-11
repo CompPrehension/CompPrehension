@@ -1,9 +1,9 @@
 import { Fetcher } from "fetcher-ts";
 import { Either, left, right } from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
+import * as E from "fp-ts/lib/Either";
 import * as io from "io-ts";
 import { PathReporter } from 'io-ts/lib/PathReporter';
-import { MergeIntersections } from "../types/utils";
 
 export type RequestError = {
     error?: string,
@@ -29,15 +29,19 @@ export async function ajaxGet<T = unknown>(url: string, validator?: io.Type<T, T
         | { code: 200, payload: T } 
         | { code: 500, payload: RequestError };
     const fetcher = new Fetcher<FetcherResults, Either<RequestError, T>>(url)
-        .handle(200, data => (console.log(data), right(data)), validator)
-        .handle(500, error => (console.error(error), left(error)))
-        .discardRest(() => (console.error("Unhandled request error"), left({ message: "Unhandled request error" })));    
+        .handle(200, data => right(data), validator)
+        .handle(500, error => left(error))
+        .discardRest(() => left({ message: "Unexpected server error" }));    
         
-    const [data, errors] = await fetcher.run();
-    if (O.isSome(errors)) {                
-        const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
+    const [data, validationErrors] = await fetcher.run()
+        .catch(async () => [left<RequestError, T>({ message: "Connection error"}), O.none as O.Option<io.Errors>] as const);
+       
+    if (O.isSome(validationErrors)) {                
+        const error = { message: `Types inconsistency: ${PathReporter.report(left(validationErrors.value)).join("\n")}` };
         return (console.error(error), left(error));      
     }
+
+    E.fold(err => console.error(err), val => console.log(val))(data);
     return data;    
 }
 
@@ -62,14 +66,18 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
         | { code: 200, payload: T } 
         | { code: 500, payload: RequestError };
     const fetcher = new Fetcher<FetcherResults, Either<RequestError, T>>(url, params)
-        .handle(200, data => (console.log(data), right(data)), validator)
-        .handle(500, error => (console.error(error), left(error)))
-        .discardRest(() => (console.error("Unhandled request error"), left({ message: "Unhandled request error" })));
+        .handle(200, data => right(data), validator)
+        .handle(500, error => left(error))
+        .discardRest(() => left({ message: "Unexpected server error" }));
     
-    const [data, errors] = await fetcher.run();
-    if (O.isSome(errors)) {                
-        const error = { message: `Types inconsistency: ${PathReporter.report(left(errors.value)).join("\n")}` };
-        return (console.error(error), left(error));     
+    const [data, validationErrors] = await fetcher.run()
+        .catch(async () => [left<RequestError, T>({ message: "Connection error"}), O.none as O.Option<io.Errors>] as const);
+
+    if (O.isSome(validationErrors)) {                
+        const error = { message: `Types inconsistency: ${PathReporter.report(left(validationErrors.value)).join("\n")}` };
+        return (console.error(error), left(error));      
     }
+
+    E.fold(err => console.error(err), val => console.log(val))(data);
     return data;
 }
