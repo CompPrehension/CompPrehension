@@ -157,6 +157,12 @@ public class QuestionService {
             }
         }
         backendFactRepository.saveAll(newBackendFacts);
+
+        if (question.getInteractions() != null) {
+            for (InteractionEntity interactionEntity : question.getInteractions()) {
+                interactionEntity.setQuestion(question);
+            }
+        }
         questionRepository.save(question);
     }
     

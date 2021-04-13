@@ -121,6 +121,64 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            // double save
+            questionService.saveQuestion(question1.questionData);
+            Long question2 = solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(2, processSolutionResult.IterationsLeft);
+            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2);
+            assertEquals("operator_binary_<", correctAnswer.answer.getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer.lawName);
+            Question question3 = getQuestion(question2);
+            question3.addResponse(makeResponse(correctAnswer.answer));
+            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            //Сохранение интеракции
+            InteractionEntity ie = new InteractionEntity(
+                    question3.questionData,
+                    result.mistakes,
+                    result.correctlyAppliedLaws,
+                    question3.getResponses()
+            );
+            ArrayList<InteractionEntity> ies = new ArrayList<>();
+            if(question3.questionData.getInteractions() != null) {
+                ies.addAll(question3.questionData.getInteractions());
+            }
+            ies.add(ie);
+            question3.questionData.setInteractions(ies);
+            assertTrue(result.mistakes.isEmpty());
+            assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
+            questionService.saveQuestion(question3.questionData);
+
+            Long question4 = question3.getQuestionData().getId();
+            Domain.CorrectAnswer correctAnswer2 = getCorrectAnswer(question4);
+            assertEquals("operator_binary_==", correctAnswer2.answer.getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer2.lawName);
+            Question question5 = getQuestion(question4);
+            question5.addResponse(makeResponse(correctAnswer2.answer));
+            Domain.InterpretSentenceResult result2 = judgeQuestion(question5, tags);
+            //Сохранение интеракции
+            InteractionEntity ie2 = new InteractionEntity(
+                    question5.questionData,
+                    result.mistakes,
+                    result.correctlyAppliedLaws,
+                    question5.getResponses()
+            );
+            ArrayList<InteractionEntity> ies2 = new ArrayList<>();
+            if(question5.questionData.getInteractions() != null) {
+                ies2.addAll(question5.questionData.getInteractions());
+            }
+            ies2.add(ie2);
+            question5.questionData.setInteractions(ies2);
+            questionService.saveQuestion(question5.questionData);
+
+            assertTrue(result2.mistakes.isEmpty());
+            assertTrue(result2.correctlyAppliedLaws.isEmpty());
+        }
+        {
+            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
             assertEquals(1, processSolutionResult.CountCorrectOptions);

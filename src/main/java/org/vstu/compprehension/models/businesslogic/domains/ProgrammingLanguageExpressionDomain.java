@@ -584,7 +584,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(q.getSolutionFacts());
+        List<BackendFactEntity> solution = q.getSolutionFacts();
+        List<InteractionEntity> interactions = q.getQuestionData().getInteractions();
+        if (interactions != null) {
+            for (InteractionEntity interaction : interactions) {
+                solution.addAll(responseToFacts(q.getQuestionDomainType(), interaction.getResponses(), q.getAnswerObjects()));
+            }
+        }
+
+        List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(solution);
 
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
