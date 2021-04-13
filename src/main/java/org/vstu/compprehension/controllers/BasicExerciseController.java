@@ -89,7 +89,7 @@ public class BasicExerciseController implements ExerciseController {
         val existingInteractions = question.getQuestionData().getInteractions();
         val ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.correctlyAppliedLaws, question.getResponses());
         existingInteractions.add(ie);
-        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getCorrectLaw().size() > 0).count();
+        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getMistakes().size() == 0).count();
 
         // add feedback
         val grade = strategy.grade(attempt);
