@@ -2,11 +2,8 @@ package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.models.businesslogic.backend.QuestionBack;
 import org.vstu.compprehension.models.businesslogic.frontend.QuestionFront;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.ArrayList;
@@ -27,6 +24,13 @@ public abstract class Question implements QuestionFront, QuestionBack {
     
     public Question(QuestionEntity questionData) {
         this.questionData = questionData;
+        if (questionData.getInteractions() != null) {
+            for (InteractionEntity interaction : questionData.getInteractions()) {
+                for (ResponseEntity response : interaction.getResponses()) {
+                    addResponse(response);
+                }
+            }
+        }
     }
 
     @Override
@@ -62,7 +66,7 @@ public abstract class Question implements QuestionFront, QuestionBack {
 
     @Override
     public List<ResponseEntity> getResponses() {
-        return Collections.unmodifiableList(studentResponses);
+        return studentResponses;
     }
 
     public void FinalResponse(boolean isFinalResponse) {
