@@ -123,19 +123,40 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception {
-        // get or create user
-        val userEntity = userService.createOrUpdateFromAuthentication();
         val session = request.getSession();
-        session.setAttribute("userId", userEntity.getId());
-        val exerciseId = (Long)session.getAttribute("exerciseId");
+        val currentSessionInfo = (SessionInfoDto)session.getAttribute("sessionInfo");
+        if (currentSessionInfo != null) {
+            return currentSessionInfo;
+        }
 
-        return SessionInfoDto.builder()
+        val user = getCurrentUser(request);
+        val exerciseId = (Long)session.getAttribute("exerciseId");
+        val sessionInfo = SessionInfoDto.builder()
                 .sessionId(session.getId())
                 .exerciseId(exerciseId)
-                .user(Mapper.toDto(userEntity))
+                .user(user)
                 .language("EN")
                 .build();
+        session.setAttribute("sessionInfo", sessionInfo);
+
+        return sessionInfo;
     }
+
+    @Override
+    public UserInfoDto getCurrentUser(HttpServletRequest request) throws Exception {
+        val session = request.getSession();
+        val currentUserInfo = (UserInfoDto)session.getAttribute("currentUserInfo");
+        if (currentUserInfo != null) {
+            return currentUserInfo;
+        }
+
+        val userEntity = userService.createOrUpdateFromAuthentication();
+        val userEntityDto = Mapper.toDto(userEntity);
+        session.setAttribute("currentUserInfo", userEntityDto);
+
+        return userEntityDto;
+    }
+
 
     @Override
     public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {
@@ -175,9 +196,8 @@ public class BasicExerciseController implements ExerciseController {
     }
 
     @Override
-    public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) {
-        val session = request.getSession();
-        val userId = (Long)session.getAttribute("userId");
+    public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+        val userId = getCurrentUser(request).getId();
         val existingAttempt = exerciseAttemptRepository
                 .findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
         return existingAttempt
@@ -186,9 +206,8 @@ public class BasicExerciseController implements ExerciseController {
     }
 
     @Override
-    public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) {
-        val session = request.getSession();
-        val userId = (Long)session.getAttribute("userId");
+    public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+        val userId = getCurrentUser(request).getId();
         val exercise = exerciseService.getExercise(exerciseId);
         val user = userService.getUser(userId);
 

@@ -9,15 +9,15 @@ import javax.servlet.http.HttpServletRequest;
 public interface ExerciseController {
     @RequestMapping(value = {"/getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request);
+    ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception;
 
     @RequestMapping(value = {"/createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request);
+    ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception;
 
     @RequestMapping(value = {"/getExerciseStatistics"}, method = { RequestMethod.GET })
     @ResponseBody
-    ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId);
+    ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) throws Exception;
 
     @RequestMapping(value = {"/addQuestionAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
             consumes = "application/json")
@@ -41,4 +41,8 @@ public interface ExerciseController {
     @RequestMapping(value = {"/loadSessionInfo"}, method = { RequestMethod.GET })
     @ResponseBody
     SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception;
+
+    @RequestMapping(value = {"/getCurrentUser"}, method = { RequestMethod.GET })
+    @ResponseBody
+    UserInfoDto getCurrentUser(HttpServletRequest request) throws Exception;
 }

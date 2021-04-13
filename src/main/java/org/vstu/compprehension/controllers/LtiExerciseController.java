@@ -46,7 +46,7 @@ public class LtiExerciseController extends BasicExerciseController {
         }
 
         val session = request.getSession();
-        session.setAttribute("sessionInfo", params);
+        session.setAttribute("ltiSessionInfo", params);
 
         val exerciseIdS = params.getOrDefault("custom_exerciseId", "-1");
         val exerciseId = NumberUtils.toLong(exerciseIdS, -1L);
@@ -58,25 +58,46 @@ public class LtiExerciseController extends BasicExerciseController {
     }
 
     @Override
-    public SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception {
+    public UserInfoDto getCurrentUser(HttpServletRequest request) throws Exception {
         HttpSession session = request.getSession();
-        val params = (Map<String, String>) session.getAttribute("sessionInfo");
-        if (params == null) {
-            throw new Exception("Couldn't get session info");
+        val currentUserInfo = (UserInfoDto)session.getAttribute("currentUserInfo");
+        if (currentUserInfo != null) {
+            return currentUserInfo;
         }
 
-        val exerciseId = (Long)session.getAttribute("exerciseId");
-
-        // get or create user
+        val params = (Map<String, String>) session.getAttribute("ltiSessionInfo");
+        if (params == null) {
+            throw new Exception("Couldn't get lti session info");
+        }
         val userEntity = userService.createOrUpdateFromLti(params);
-        session.setAttribute("userId", userEntity.getId());
+        val userEntityDto = Mapper.toDto(userEntity);
+        session.setAttribute("currentUserInfo", userEntityDto);
+        return userEntityDto;
+    }
 
-        val language = params.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
-        return SessionInfoDto.builder()
-            .sessionId(session.getId())
-            .exerciseId(exerciseId)
-            .user(Mapper.toDto(userEntity))
-            .language(language)
-            .build();
+    @Override
+    public SessionInfoDto loadSessionInfo(HttpServletRequest request) throws Exception {
+        HttpSession session = request.getSession();
+        val currentSessionInfo = (SessionInfoDto)session.getAttribute("sessionInfo");
+        if (currentSessionInfo != null) {
+            return currentSessionInfo;
+        }
+
+        val ltiParams = (Map<String, String>) session.getAttribute("ltiSessionInfo");
+        if (ltiParams == null) {
+            throw new Exception("Couldn't get session info");
+        }
+        val exerciseId = (Long)session.getAttribute("exerciseId");
+        val user = getCurrentUser(request);
+        val language = ltiParams.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
+        val sessionInfo = SessionInfoDto.builder()
+                .sessionId(session.getId())
+                .exerciseId(exerciseId)
+                .user(user)
+                .language(language)
+                .build();
+        session.setAttribute("sessionInfo", sessionInfo);
+
+        return sessionInfo;
     }
 }
