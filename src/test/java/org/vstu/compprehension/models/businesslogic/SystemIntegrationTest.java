@@ -85,7 +85,7 @@ public class SystemIntegrationTest {
             //Сохранение интеракции
             InteractionEntity ie = new InteractionEntity(
                     question1.questionData,
-                    result.mistakes,
+                    result.violations,
                     result.correctlyAppliedLaws,
                     question1.getResponses()
             );
@@ -99,14 +99,14 @@ public class SystemIntegrationTest {
 
             //interactionService.saveInteraction(ie);
             Question q = questionService.getQuestion(question2);
-            assertEquals(1, result.mistakes.size());
+            assertEquals(1, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(2, result.IterationsLeft);
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-                    result.mistakes.get(0).getLawName());
-            List<HyperText> explanations  = explainMistakes(question3, result.mistakes);
+                    result.violations.get(0).getLawName());
+            List<HyperText> explanations  = explainViolations(question3, result.violations);
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
@@ -136,7 +136,7 @@ public class SystemIntegrationTest {
             //Сохранение интеракции
             InteractionEntity ie = new InteractionEntity(
                     question3.questionData,
-                    result.mistakes,
+                    result.violations,
                     result.correctlyAppliedLaws,
                     question3.getResponses()
             );
@@ -146,7 +146,7 @@ public class SystemIntegrationTest {
             }
             ies.add(ie);
             question3.questionData.setInteractions(ies);
-            assertTrue(result.mistakes.isEmpty());
+            assertTrue(result.violations.isEmpty());
             assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
             questionService.saveQuestion(question3.questionData);
 
@@ -160,7 +160,7 @@ public class SystemIntegrationTest {
             //Сохранение интеракции
             InteractionEntity ie2 = new InteractionEntity(
                     question5.questionData,
-                    result.mistakes,
+                    result.violations,
                     result.correctlyAppliedLaws,
                     question5.getResponses()
             );
@@ -172,7 +172,7 @@ public class SystemIntegrationTest {
             question5.questionData.setInteractions(ies2);
             questionService.saveQuestion(question5.questionData);
 
-            assertTrue(result2.mistakes.isEmpty());
+            assertTrue(result2.violations.isEmpty());
             assertTrue(result2.correctlyAppliedLaws.isEmpty());
         }
         {
@@ -185,13 +185,13 @@ public class SystemIntegrationTest {
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(0, 1));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
-            assertEquals(1, result.mistakes.size());
+            assertEquals(1, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(0, result.CountCorrectOptions);
             assertEquals(1, result.IterationsLeft);
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-                    result.mistakes.get(0).getLawName());
+                    result.violations.get(0).getLawName());
             float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
         {
@@ -205,7 +205,7 @@ public class SystemIntegrationTest {
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(1));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
-            assertEquals(0, result.mistakes.size());
+            assertEquals(0, result.violations.size());
             assertEquals(1, result.correctlyAppliedLaws.size());
             assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
             assertEquals(1, result.CountCorrectOptions);
@@ -215,7 +215,7 @@ public class SystemIntegrationTest {
             InteractionEntity ie = new InteractionEntity();
             ie.setQuestion(question1.questionData);
             ie.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
-            ie.setMistakes(result.mistakes);
+            ie.setViolations(result.violations);
             ie.setOrderNumber(result.IterationsLeft);//Показатель порядка?
             //ie.setFeedback();Где взять?
             ArrayList<CorrectLawEntity> cles = new ArrayList<>();
@@ -248,7 +248,7 @@ public class SystemIntegrationTest {
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(1, 0));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
-            assertEquals(0, result.mistakes.size());
+            assertEquals(0, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(0, result.CountCorrectOptions);
             assertEquals(0, result.IterationsLeft);
@@ -267,7 +267,7 @@ public class SystemIntegrationTest {
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
-            assertEquals(0, result.mistakes.size());
+            assertEquals(0, result.violations.size());
             assertEquals(1, result.correctlyAppliedLaws.size());
             assertEquals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left", result.correctlyAppliedLaws.get(0));
             assertEquals(1, result.CountCorrectOptions);
@@ -286,15 +286,15 @@ public class SystemIntegrationTest {
             assertEquals(2, processSolutionResult.IterationsLeft);
             Question question3 = responseQuestion(question2, List.of(1));
             Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
-            assertEquals(1, result.mistakes.size());
+            assertEquals(1, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(2, result.IterationsLeft);
 
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
-                    result.mistakes.get(0).getLawName());
-            List<HyperText> explanations  = explainMistakes(question3, result.mistakes);
+                    result.violations.get(0).getLawName());
+            List<HyperText> explanations  = explainViolations(question3, result.violations);
             assertEquals(1, explanations.size());
             assertEquals("operator == on pos 2 should be evaluated before operator < on pos 4\n" +
                     " because operator == has the same precedence and left associativity", explanations.get(0).getText());
@@ -306,7 +306,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
+            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -316,7 +316,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
+            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
             expected.add("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
@@ -334,7 +334,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(0));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
+            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -344,7 +344,7 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Long question2 = solveQuestion(question1, tags);
             Question question3 = responseQuestion(question2, List.of(1));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
+            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -360,7 +360,7 @@ public class SystemIntegrationTest {
             Long question2 = solveQuestion(question1, tags);
             Question question3 = getQuestion(question2);
             question3.addResponse(makeResponse(question3.getAnswerObject(2), question3.getAnswerObject(8)));
-            List<MistakeEntity> mistakes = judgeQuestion(question3, tags).mistakes;
+            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
             assertEquals(0, mistakes.size());
         }
     }
@@ -470,9 +470,9 @@ public class SystemIntegrationTest {
         return result;
     }
 
-    List<HyperText> explainMistakes(Question question, List<MistakeEntity> mistakes) {
+    List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
-        return domain.makeExplanation(mistakes, FeedbackType.EXPLANATION);
+        return domain.makeExplanation(violations, FeedbackType.EXPLANATION);
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity testExerciseAttempt) {

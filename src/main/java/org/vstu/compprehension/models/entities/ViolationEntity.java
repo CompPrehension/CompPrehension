@@ -11,8 +11,8 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "Mistake")
-public class MistakeEntity {
+@Table(name = "Violation")
+public class ViolationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +21,7 @@ public class MistakeEntity {
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private InteractionEntity interaction;
 
-    @OneToMany(mappedBy = "mistake", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "violation", fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ExplanationTemplateInfoEntity> explanationTemplateInfo;
 

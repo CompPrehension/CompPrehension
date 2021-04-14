@@ -94,7 +94,7 @@ public class Strategy extends AbstractStrategy {
         int interactionWithMistakes = 0;
         for (InteractionEntity i : interactions) {
 
-            if (i.getMistakes() != null || i.getMistakes().size() != 0) {
+            if (i.getViolations() != null || i.getViolations().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -116,7 +116,7 @@ public class Strategy extends AbstractStrategy {
         int interactionWithMistakes = 0;
         for (InteractionEntity i : interactions) {
 
-            if (i.getMistakes() != null || i.getMistakes().size() != 0) {
+            if (i.getViolations() != null || i.getViolations().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -176,12 +176,12 @@ public class Strategy extends AbstractStrategy {
         Collections.reverse(ies);
 
         for (InteractionEntity ie : ies){
-            ArrayList<MistakeEntity> mistakes = new ArrayList<>();
-            if (ie.getMistakes() != null) {
-                mistakes.addAll(ie.getMistakes());
+            ArrayList<ViolationEntity> mistakes = new ArrayList<>();
+            if (ie.getViolations() != null) {
+                mistakes.addAll(ie.getViolations());
             }
 
-            for(MistakeEntity me : mistakes){
+            for(ViolationEntity me : mistakes){
                 if(conceptAtempt.containsKey(me.getLawName())){
                     conceptAtempt.get(me.getLawName()).add(false);
                 }else{
