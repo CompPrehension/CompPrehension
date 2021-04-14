@@ -4,6 +4,7 @@ import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
@@ -61,7 +62,12 @@ public class BasicExerciseController implements ExerciseController {
         return "index";
     }
 
-    @Override
+    /**
+     * Routes all "/pages/**" requests to the corresponding pages
+     * @param request Current request
+     * @return Html
+     */
+    @RequestMapping(value = {"/pages/**"}, method = { RequestMethod.GET })
     public String pages(HttpServletRequest request) {
         return "index";
     }
