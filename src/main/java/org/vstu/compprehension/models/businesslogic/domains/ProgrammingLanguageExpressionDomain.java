@@ -621,9 +621,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
-        assertFalse(interpretSentenceResult.mistakes.isEmpty());
+        assertFalse(interpretSentenceResult.violations.isEmpty());
         HashSet<String> targetConcepts = new HashSet<>();
-        targetConcepts.add(interpretSentenceResult.mistakes.get(0).getLawName());
+        targetConcepts.add(interpretSentenceResult.violations.get(0).getLawName());
 
         Question res = findQuestion(getTags(exerciseAttemptEntity), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
@@ -634,7 +634,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
-        List<MistakeEntity> mistakes = new ArrayList<>();
+        List<ViolationEntity> mistakes = new ArrayList<>();
 
         // retrieve subjects' info from facts ...
         Map<String, BackendFactEntity> nameToText = new HashMap<>();
@@ -650,34 +650,34 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         // filter facts and fill mistakes list ...
         for (BackendFactEntity violation : violations) {
-            MistakeEntity mistake = new MistakeEntity();
+            ViolationEntity violationEntity = new ViolationEntity();
             if (violation.getVerb().equals("student_error_more_precedence")) {
                 if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
-                    mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_left");
+                    violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_left");
                 } else {
-                    mistake.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
+                    violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
                 }
             } else if (violation.getVerb().equals("student_error_left_assoc")) {
-                mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
+                violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
             } else if (violation.getVerb().equals("student_error_right_assoc")) {
-                mistake.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
+                violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
             } else if (violation.getVerb().equals("wrong_type")) {
-                mistake.setLawName("error_wrong_type");
+                violationEntity.setLawName("error_wrong_type");
             }
-            if (mistake.getLawName() != null) {
-                mistake.setViolationFacts(new ArrayList<>(Arrays.asList(
+            if (violationEntity.getLawName() != null) {
+                violationEntity.setViolationFacts(new ArrayList<>(Arrays.asList(
                         violation,
                         nameToText.get(violation.getObject()),
                         nameToText.get(violation.getSubject()),
                         nameToPos.get(violation.getObject()),
                         nameToPos.get(violation.getSubject())
                 )));
-                mistakes.add(mistake);
+                mistakes.add(violationEntity);
             }
         }
 
         InterpretSentenceResult result = new InterpretSentenceResult();
-        result.mistakes = mistakes;
+        result.violations = mistakes;
         result.correctlyAppliedLaws = calculateCorrectlyAppliedLaws(violations);
 
         ProcessSolutionResult processResult = processSolution(violations);
@@ -726,9 +726,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType) {
+    public ArrayList<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType) {
         ArrayList<HyperText> result = new ArrayList<>();
-        for (MistakeEntity mistake : mistakes) {
+        for (ViolationEntity mistake : mistakes) {
             result.add(makeExplanation(mistake, feedbackType));
         }
         return result;
@@ -745,7 +745,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "operator ";
     }
 
-    private HyperText makeExplanation(MistakeEntity mistake, FeedbackType feedbackType) {
+    private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType) {
 
         // retrieve subjects' info from facts, and find base and third ...
         BackendFactEntity base = null;

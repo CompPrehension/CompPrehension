@@ -23,5 +23,5 @@ public class ExplanationTemplateInfoEntity {
 
     @ManyToOne
     @JoinColumn(name = "violation_id", nullable = false)
-    private MistakeEntity mistake;
+    private ViolationEntity violation;
 }

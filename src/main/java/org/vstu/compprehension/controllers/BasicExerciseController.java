@@ -88,14 +88,14 @@ public class BasicExerciseController implements ExerciseController {
         questionService.solveQuestion(question, tags);
         questionService.responseQuestion(question, answers);
         Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
-        List<HyperText> explanations = questionService.explainMistakes(question, judgeResult.mistakes);
+        List<HyperText> explanations = questionService.explainViolations(question, judgeResult.violations);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(question.getQuestionData(), judgeResult.mistakes, judgeResult.correctlyAppliedLaws, question.getResponses());
+        val ie = new InteractionEntity(question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, question.getResponses());
         existingInteractions.add(ie);
-        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getMistakes().size() == 0).count();
+        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
         // add feedback
         val grade = strategy.grade(attempt);
@@ -108,7 +108,7 @@ public class BasicExerciseController implements ExerciseController {
                 .errors(errors)
                 .stepsLeft(judgeResult.IterationsLeft)
                 .correctSteps(correctInteractionsCount)
-                .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getMistakes().size() > 0).count())
+                .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count())
                 .build();
     }
 
@@ -177,7 +177,7 @@ public class BasicExerciseController implements ExerciseController {
                     val totalInteractionsWithErrorsCount = att.getQuestions().stream()
                             .filter(q -> q.getInteractions() != null)
                             .flatMap(q -> q.getInteractions().stream())
-                            .filter(i -> i.getMistakes().size() > 0).count();
+                            .filter(i -> i.getViolations().size() > 0).count();
                     double avgGrade = att.getQuestions().stream()
                             .filter(q -> q.getInteractions() != null && q.getInteractions().size() > 0)
                             .mapToDouble(q -> {

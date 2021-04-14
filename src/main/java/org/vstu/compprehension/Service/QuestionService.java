@@ -115,9 +115,9 @@ public class QuestionService {
         return domain.interpretSentence(violations);
     }
 
-    public List<HyperText> explainMistakes(Question question, List<MistakeEntity> mistakes) {
+    public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
-        return domain.makeExplanation(mistakes, FeedbackType.EXPLANATION);
+        return domain.makeExplanation(violations, FeedbackType.EXPLANATION);
     }
 
     public Question getQuestion(Long questionId) {

@@ -36,7 +36,7 @@ public class InteractionEntity {
     private FeedbackEntity feedback;
 
     @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
-    private List<MistakeEntity> mistakes;
+    private List<ViolationEntity> violations;
 
     @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
     private List<CorrectLawEntity> correctLaw;
@@ -51,13 +51,13 @@ public class InteractionEntity {
 
     public InteractionEntity(
             QuestionEntity question,
-            List<MistakeEntity> mistakes,
+            List<ViolationEntity> violations,
             List<String> correctlyAppliedLaws,
             List<ResponseEntity> responses){
         this.setQuestion(question);
         this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
-        this.setMistakes(mistakes);
-        for(val m : mistakes) {
+        this.setViolations(violations);
+        for(val m : violations) {
             m.setInteraction(this);
         }
         this.setResponses(responses);

@@ -12,17 +12,13 @@ import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
-import javax.persistence.Tuple;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 public class Mapper {
 
@@ -41,13 +37,13 @@ public class Mapper {
                 .map(is -> is.size()).orElse(0);
         val interactionsWithErrorsCount = (int)Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
-                .filter(i -> i.getMistakes().size() > 0).count();
+                .filter(i -> i.getViolations().size() > 0).count();
         val correctInteractionsCount = (int)Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getCorrectLaw().size() > 0).count();
         val lastCorrectInteraction = Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getMistakes().size() == 0) // select only interactions without mistakes
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second);
         val lastInteraction = Optional.ofNullable(question.getInteractions()).stream()
                 .flatMap(Collection::stream)

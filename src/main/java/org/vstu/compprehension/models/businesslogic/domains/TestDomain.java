@@ -113,7 +113,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType) {
+    public ArrayList<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType) {
         String explanation = "";
         
         if (mistakes.size() == 0) { explanation = "Ответ правильный"; } 
@@ -124,7 +124,7 @@ public class TestDomain extends Domain {
                 explanation = "Ответ неправильный";
             } else if (feedbackType == FeedbackType.EXPLANATION) {
                 
-                for (MistakeEntity m : mistakes) {
+                for (ViolationEntity m : mistakes) {
                 
                     explanation += "Нарушен закон - " + m.getLawName() + ";\n";
                 }

@@ -112,12 +112,12 @@ public abstract class Domain {
     public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
     /**
-     * Generate explanation of mistakes
-     * @param mistakes list of student mistakes
+     * Generate explanation of violations
+     * @param violations list of student violations
      * @param feedbackType TODO: use feedbackType or delete it
-     * @return explanation for each mistake in random order
+     * @return explanation for each violation in random order
      */
-    public abstract ArrayList<HyperText> makeExplanation(List<MistakeEntity> mistakes, FeedbackType feedbackType);
+    public abstract ArrayList<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType);
 
     /**
      * Get all needed (positive and negative) laws in this questionType
@@ -190,24 +190,24 @@ public abstract class Domain {
      */
     public class InterpretSentenceResult extends ProcessSolutionResult {
         /**
-         * All mistakes
+         * All violations
          */
-        public List<MistakeEntity> mistakes;
+        public List<ViolationEntity> violations;
         /**
          * List of all negative laws that not occurred
-         * (all answers where this answer would be the cause of the mistake)
+         * (all answers where this answer would be the cause of the violation)
          */
         public List<String> correctlyAppliedLaws;
     }
 
     /**
-     * Evaluate one iteration, collect info and find mistakes
+     * Evaluate one iteration, collect info and find violations
      * @param violations violation facts
      */
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 
     /**
-     * Make supplementary question based on mistake in last iteration
+     * Make supplementary question based on violation in last iteration
      * @param interpretSentenceResult info about last iteration
      * @param exerciseAttemptEntity exerciseAttempt (to gain question params) TODO: explicitly get tags and laws
      * @return supplementary question
