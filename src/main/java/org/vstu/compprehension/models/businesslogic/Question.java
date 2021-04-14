@@ -25,10 +25,9 @@ public abstract class Question implements QuestionFront, QuestionBack {
     public Question(QuestionEntity questionData) {
         this.questionData = questionData;
         if (questionData.getInteractions() != null) {
-            for (InteractionEntity interaction : questionData.getInteractions()) {
-                for (ResponseEntity response : interaction.getResponses()) {
-                    addResponse(response);
-                }
+            List<InteractionEntity> interactionEntities = questionData.getInteractions();
+            for (ResponseEntity response : interactionEntities.get(interactionEntities.size() - 1).getResponses()) {
+                addResponse(response);
             }
         }
     }
