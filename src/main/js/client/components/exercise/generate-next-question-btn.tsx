@@ -2,7 +2,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import { exerciseStore } from "../stores/exercise-store";
+import { exerciseStore } from "../../stores/exercise-store";
 
 
 export const GenerateNextQuestionBtn = observer(() => {

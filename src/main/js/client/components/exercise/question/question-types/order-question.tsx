@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import { exerciseStore } from '../../../stores/exercise-store';
+import { exerciseStore } from '../../../../stores/exercise-store';
 
 export const OrderQuestion : React.FC = observer(() => {
     const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;

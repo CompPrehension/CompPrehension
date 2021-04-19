@@ -2,8 +2,8 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Navbar } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { exerciseStore } from "../stores/exercise-store";
-import { Optional } from './optional';
+import { exerciseStore } from "../../stores/exercise-store";
+import { Optional } from '../common/optional';
 import { Pagination } from './pagination';
 
 

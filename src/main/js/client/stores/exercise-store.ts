@@ -1,5 +1,5 @@
 import { action, makeObservable, observable, runInAction, toJS } from "mobx";
-import { Api } from "../api";
+import { ExerciseController } from "../controllers/exercise-controller";
 import { Interaction } from "../types/interaction";
 import { Question } from "../types/question";
 import * as E from "fp-ts/lib/Either";
@@ -32,7 +32,7 @@ export class ExerciseStore {
         }
 
         this.isSessionLoading = true;
-        const dataEither = await Api.loadSessionInfo();                                
+        const dataEither = await ExerciseController.loadSessionInfo();                                
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -49,7 +49,7 @@ export class ExerciseStore {
         }
        
         const exerciseId = sessionInfo.exerciseId;
-        const resultEither = await Api.getExistingExerciseAttempt(exerciseId);
+        const resultEither = await ExerciseController.getExistingExerciseAttempt(exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
         if (!result) {
@@ -71,7 +71,7 @@ export class ExerciseStore {
         }
 
         const { exerciseId } = sessionInfo;        
-        const resultEither = await Api.createExerciseAttempt(+exerciseId);
+        const resultEither = await ExerciseController.createExerciseAttempt(+exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
         runInAction(() => {
@@ -86,7 +86,7 @@ export class ExerciseStore {
         }
 
         this.isQuestionLoading = true;
-        const dataEither = await Api.getQuestion(questionId);
+        const dataEither = await ExerciseController.getQuestion(questionId);
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -106,7 +106,7 @@ export class ExerciseStore {
 
         const { attemptId } = currentAttempt;
         this.isQuestionLoading = true;
-        const dataEither = await Api.generateQuestion(attemptId);            
+        const dataEither = await ExerciseController.generateQuestion(attemptId);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -134,7 +134,7 @@ export class ExerciseStore {
         })
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await Api.addQuestionAnswer(body);
+        const feedbackEither = await ExerciseController.addQuestionAnswer(body);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {

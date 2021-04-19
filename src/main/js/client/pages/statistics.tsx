@@ -1,9 +1,9 @@
 import { observer } from "mobx-react"
 import React, { useEffect, useState } from "react"
-import { Api } from "../api";
+import { ExerciseController } from "../controllers/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseStatisticsItem } from "../types/exercise-statistics";
-import { Loader } from "../components/loader";
+import { Loader } from "../components/common/loader";
 
 export const Statistics = () => {
     const [statistics, setStatistics] = useState([] as ExerciseStatisticsItem[]);
@@ -18,7 +18,7 @@ export const Statistics = () => {
             }
 
             setIsLoading(true);
-            const statistics = await Api.getExerciseStatistics(+exerciseId);
+            const statistics = await ExerciseController.getExerciseStatistics(+exerciseId);
             if (E.isRight(statistics)) {
                 setStatistics(statistics.right);
             }

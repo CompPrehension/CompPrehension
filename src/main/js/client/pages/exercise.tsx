@@ -1,11 +1,11 @@
 import { observer } from "mobx-react";
 import React, { useEffect, useState } from "react";
-import { Feedback } from "../components/feedback";
-import { GenerateNextQuestionBtn } from "../components/generate-next-question-btn";
-import { Header } from "../components/header";
-import { Loader } from "../components/loader";
-import { Modal } from "../components/modal";
-import { QuestionFabric } from "../components/question/question-fabric";
+import { Feedback } from "../components/exercise/feedback";
+import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
+import { Header } from "../components/exercise/header";
+import { Loader } from "../components/common/loader";
+import { Modal } from "../components/common/modal";
+import { QuestionFabric } from "../components/exercise/question/question-fabric";
 import { exerciseStore } from "../stores/exercise-store";
 
 export const Exercise = observer(() => {

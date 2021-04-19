@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { exerciseStore } from "../stores/exercise-store";
+import { exerciseStore } from "../../stores/exercise-store";
 import { Pagination as BootstrapPagination } from "react-bootstrap"
 
 export const Pagination = observer(() => {
