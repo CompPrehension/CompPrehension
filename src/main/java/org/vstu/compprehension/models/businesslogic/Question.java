@@ -20,11 +20,9 @@ public abstract class Question implements QuestionFront, QuestionBack {
     protected List<String> concepts;
     protected HashSet<String> tags;
     
-    protected boolean isFinalResponse = false;
-    
     public Question(QuestionEntity questionData) {
         this.questionData = questionData;
-        if (questionData.getInteractions() != null) {
+        if (questionData.getInteractions() != null && questionData.getInteractions().size() > 0) {
             List<InteractionEntity> interactionEntities = questionData.getInteractions();
             for (ResponseEntity response : interactionEntities.get(interactionEntities.size() - 1).getResponses()) {
                 addResponse(response);
@@ -52,33 +50,19 @@ public abstract class Question implements QuestionFront, QuestionBack {
 
     @Override
     public void addResponse(ResponseEntity r) {
-
         studentResponses.add(r);
     }
 
     @Override
-    public void addFullResponse(List<ResponseEntity> responses) {
-
-        studentResponses = responses;
-        isFinalResponse = true;
+    public List<ResponseEntity> getResponses() {
+        return Collections.unmodifiableList(studentResponses);
     }
 
     @Override
-    public List<ResponseEntity> getResponses() {
-        return studentResponses;
+    public void clearResponses() {
+        studentResponses.clear();
     }
 
-    public void FinalResponse(boolean isFinalResponse) {
-
-        this.isFinalResponse = isFinalResponse;
-        
-    }
-    
-    public boolean isFinalResponse() {
-        
-        return isFinalResponse;
-    }
-    
     @Override
     public List<AnswerObjectEntity> getAnswerObjects() {
         

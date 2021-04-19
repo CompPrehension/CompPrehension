@@ -1,5 +1,6 @@
 package org.vstu.compprehension.Service;
 
+import lombok.val;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -86,6 +87,7 @@ public class QuestionService {
     }
 
     public Question responseQuestion(Question question, List<Integer> responses) {
+        question.clearResponses();
         for (Integer response : responses) {
             question.addResponse(makeResponse(question.getAnswerObject(response)));
         }
@@ -93,6 +95,7 @@ public class QuestionService {
     }
 
     public Question responseQuestion(Question question, Long[][] responses) {
+        question.clearResponses();
         for (Long[] pair: responses) {
             AnswerObjectEntity left = question.getAnswerObject(pair[0].intValue());
             AnswerObjectEntity right = question.getAnswerObject(pair[1].intValue());
@@ -159,8 +162,10 @@ public class QuestionService {
         backendFactRepository.saveAll(newBackendFacts);
 
         if (question.getInteractions() != null) {
-            for (InteractionEntity interactionEntity : question.getInteractions()) {
-                interactionEntity.setQuestion(question);
+            for (val interactionEntity : question.getInteractions()) {
+                if (interactionEntity.getQuestion() == null) {
+                    interactionEntity.setQuestion(question);
+                }
             }
         }
         questionRepository.save(question);

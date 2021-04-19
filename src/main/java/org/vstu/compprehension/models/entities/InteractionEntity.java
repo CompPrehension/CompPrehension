@@ -10,6 +10,8 @@ import org.hibernate.annotations.NotFoundAction;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Entity
 @Data
@@ -56,24 +58,26 @@ public class InteractionEntity {
             List<ResponseEntity> responses){
         this.setQuestion(question);
         this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
-        this.setViolations(violations);
-        for(val m : violations) {
+        this.setFeedback(new FeedbackEntity());
+
+        this.setViolations(new ArrayList<>(violations));
+        for(val m : this.getViolations()) {
             m.setInteraction(this);
         }
-        this.setResponses(responses);
-        for(val r : responses) {
+
+        this.setResponses(new ArrayList<>(responses));
+        for(val r : this.getResponses()) {
             r.setInteraction(this);
         }
-        this.setFeedback(new FeedbackEntity());
-        ArrayList<CorrectLawEntity> cles = new ArrayList<>();
-        for(int i = 0; i < correctlyAppliedLaws.size(); i++){
-            CorrectLawEntity cle = new CorrectLawEntity();
-            cle.setLawName(correctlyAppliedLaws.get(i));
-            cle.setInteraction(this);
-            cles.add(cle);
-        }
-        this.setCorrectLaw(cles);
+
+        val correctLaw = correctlyAppliedLaws.stream()
+                .map(correctlyAppliedLaw -> {
+                    CorrectLawEntity cle = new CorrectLawEntity();
+                    cle.setLawName(correctlyAppliedLaw);
+                    cle.setInteraction(this);
+                    return cle;
+                })
+                .collect(Collectors.toList());
+        this.setCorrectLaw(correctLaw);
     }
-
-
 }

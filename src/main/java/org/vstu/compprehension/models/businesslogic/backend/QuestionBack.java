@@ -20,10 +20,10 @@ public interface QuestionBack {
     public void setAnswerObjects(List<AnswerObjectEntity> objects);
     
     public void addResponse(ResponseEntity r);
-    
-    public void addFullResponse(List<ResponseEntity> responses);
 
     public List<ResponseEntity> getResponses();
+
+    public void clearResponses();
 
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
