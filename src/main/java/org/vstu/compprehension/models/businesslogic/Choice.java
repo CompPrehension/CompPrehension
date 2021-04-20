@@ -15,11 +15,10 @@ public class Choice extends Question {
     }
 
     @Override
-    public List<BackendFactEntity> responseToFacts() {
+    public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
 
         List<AnswerObjectEntity> answers = new ArrayList<>(super.
                 getAnswerObjects());
-        List<ResponseEntity> responses = super.studentResponses;
         List<BackendFactEntity> facts = new ArrayList<>();
 //        QuestionConceptChoice questionConcept = questionData.
 //                getQuestionConceptChoices().get(0);

@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.models.entities.BackendFactEntity;
+import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 
@@ -13,10 +14,10 @@ public class Matching extends Question {
     }
 
     @Override
-    public List<BackendFactEntity> responseToFacts() {
+    public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
         return DomainAdapter.getDomain(questionData.getDomainEntity().getName()).responseToFacts(
                 getQuestionDomainType(),
-                super.studentResponses,
+                responses,
                 getAnswerObjects()
         );
 

@@ -86,28 +86,28 @@ public class QuestionService {
         return question;
     }
 
-    public Question responseQuestion(Question question, List<Integer> responses) {
-        question.clearResponses();
+    public List<ResponseEntity> responseQuestion(Question question, List<Integer> responses) {
+        val result = new ArrayList<ResponseEntity>();
         for (Integer response : responses) {
-            question.addResponse(makeResponse(question.getAnswerObject(response)));
+            result.add(makeResponse(question.getAnswerObject(response)));
         }
-        return question;
+        return result;
     }
 
-    public Question responseQuestion(Question question, Long[][] responses) {
-        question.clearResponses();
+    public List<ResponseEntity> responseQuestion(Question question, Long[][] responses) {
+        val result = new ArrayList<ResponseEntity>();
         for (Long[] pair: responses) {
             AnswerObjectEntity left = question.getAnswerObject(pair[0].intValue());
             AnswerObjectEntity right = question.getAnswerObject(pair[1].intValue());
             ResponseEntity response = makeResponse(left, right);
-            question.addResponse(response);
+            result.add(response);
         }
-        return question;
+        return result;
     }
 
-    public Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {
+    public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
-        List<BackendFactEntity> responseFacts = question.responseToFacts();
+        List<BackendFactEntity> responseFacts = question.responseToFacts(responses);
         List<BackendFactEntity> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
