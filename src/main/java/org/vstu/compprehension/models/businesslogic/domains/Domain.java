@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.*;
@@ -225,9 +226,13 @@ public abstract class Domain {
      */
     public class CorrectAnswer {
         /**
-         * Answer object from question
+         * Question
          */
-        public AnswerObjectEntity answer;
+        public QuestionEntity question;
+        /**
+         * Correct answer objects
+         */
+        public List<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers;
         /**
          * Text explanation why it chosen
          */

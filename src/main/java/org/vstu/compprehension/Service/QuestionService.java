@@ -170,6 +170,11 @@ public class QuestionService {
         }
         questionRepository.save(question);
     }
+
+    public Domain.CorrectAnswer getNextCorrectAnswer(Question question) {
+        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        return domain.getAnyNextCorrectAnswer(question);
+    }
     
     public Question generateBusinessLogicQuestion(
             ExerciseAttemptEntity exerciseAttempt) {

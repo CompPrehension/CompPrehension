@@ -2,12 +2,10 @@ package org.vstu.compprehension.utils;
 
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
-import org.vstu.compprehension.dto.ExerciseAttemptDto;
-import org.vstu.compprehension.dto.FeedbackDto;
-import org.vstu.compprehension.dto.QuestionAnswerDto;
-import org.vstu.compprehension.dto.UserInfoDto;
+import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -17,17 +15,42 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 public class Mapper {
 
     public static UserInfoDto toDto(UserEntity user) {
+        val displayName = Stream.of(user.getFirstName(), user.getLastName())
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.joining(" "));
         return UserInfoDto.builder()
                 .id(user.getId())
-                .displayName(user.getFirstName() + " " + user.getLastName())
+                .displayName(displayName)
                 .email(user.getEmail())
                 .roles(user.getRoles())
+                .build();
+    }
+
+    public static CorrectAnswerDto toDto(Domain.CorrectAnswer correctAnswer) {
+        val answers = correctAnswer.question.getAnswerObjects();
+        val frontAnswers = Optional.ofNullable(correctAnswer.answers).stream()
+                .flatMap(Collection::stream)
+                .map(pair -> {
+                    val leftIdx = LongStream.range(0, answers.size())
+                            .filter(i -> answers.get((int) i).getId().equals(pair.getLeft().getId()))
+                            .findFirst();
+                    val rightIdx = LongStream.range(0, answers.size())
+                            .filter(i -> answers.get((int) i).getId().equals(pair.getRight().getId()))
+                            .findFirst();
+                    return List.of(leftIdx.orElse(-1), rightIdx.orElse(-1)).toArray(new Long[2]);
+                }).toArray(Long[][]::new);
+
+        return CorrectAnswerDto.builder()
+                .explanation(correctAnswer.explanation.getText())
+                .answers(frontAnswers)
                 .build();
     }
 
@@ -115,13 +138,14 @@ public class Mapper {
     }
 
     public static ExerciseAttemptDto toDto(ExerciseAttemptEntity attempt) {
+        val questionIds = Optional.ofNullable(attempt.getQuestions()).stream()
+                .flatMap(Collection::stream)
+                .map(QuestionEntity::getId)
+                .toArray(Long[]::new);
         return ExerciseAttemptDto.builder()
                 .exerciseId(attempt.getExercise().getId())
                 .attemptId(attempt.getId())
-                .questionIds(Optional.ofNullable(attempt.getQuestions()).stream()
-                    .flatMap(Collection::stream)
-                    .map(QuestionEntity::getId)
-                    .toArray(Long[]::new))
+                .questionIds(questionIds)
                 .build();
     }
 }

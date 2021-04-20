@@ -78,14 +78,15 @@ public class SystemIntegrationTest {
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2.getQuestionData().getId());
-            assertEquals("operator_binary_<", correctAnswer.answer.getConcept());
+            Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
+            assertEquals("operator_binary_<", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
 
             //Сохранение интеракции
             InteractionEntity ie = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
                     question1.questionData,
                     result.violations,
                     result.correctlyAppliedLaws,
@@ -127,16 +128,17 @@ public class SystemIntegrationTest {
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2.getQuestionData().getId());
-            assertEquals("operator_binary_<", correctAnswer.answer.getConcept());
+            Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
+            assertEquals("operator_binary_<", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
             Question question3 = getQuestion(question2.getQuestionData().getId());
 
             val responses = new ArrayList<ResponseEntity>();
-            responses.add(makeResponse(correctAnswer.answer));
+            responses.add(makeResponse(correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft()));
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question3, responses, tags);
             //Сохранение интеракции
             InteractionEntity ie = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
                     question3.questionData,
                     result.violations,
                     result.correctlyAppliedLaws,
@@ -153,14 +155,15 @@ public class SystemIntegrationTest {
             questionService.saveQuestion(question3.questionData);
 
             Long question4 = question3.getQuestionData().getId();
-            Domain.CorrectAnswer correctAnswer2 = getCorrectAnswer(question4);
-            assertEquals("operator_binary_==", correctAnswer2.answer.getConcept());
+            Domain.CorrectAnswer correctAnswer2 = questionService.getNextCorrectAnswer(question3);
+            assertEquals("operator_binary_<", correctAnswer2.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer2.lawName);
             Question question5 = getQuestion(question4);
-            responses.add(makeResponse(correctAnswer2.answer));
+            responses.add(makeResponse(correctAnswer2.answers.get(correctAnswer.answers.size() - 1).getLeft()));
             Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question5, responses, tags);
             //Сохранение интеракции
             InteractionEntity ie2 = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
                     question5.questionData,
                     result.violations,
                     result.correctlyAppliedLaws,
@@ -404,12 +407,6 @@ public class SystemIntegrationTest {
         Question question = getQuestion(questionId);
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         return domain.processSolution(question.getSolutionFacts());
-    }
-
-    Domain.CorrectAnswer getCorrectAnswer(Long questionId) {
-        Question question = getQuestion(questionId);
-        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
-        return domain.getAnyNextCorrectAnswer(question);
     }
 
     Long generateSupplementaryQuestion(Domain.InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttempt) {

@@ -52,12 +52,13 @@ public class InteractionEntity {
     private QuestionEntity question;
 
     public InteractionEntity(
+            InteractionType type,
             QuestionEntity question,
             List<ViolationEntity> violations,
             List<String> correctlyAppliedLaws,
             List<ResponseEntity> responses){
         this.setQuestion(question);
-        this.setInteractionType(InteractionType.SEND_RESPONSE);//Какой нужен?
+        this.setInteractionType(type);
         this.setFeedback(new FeedbackEntity());
 
         this.setViolations(new ArrayList<>(violations));

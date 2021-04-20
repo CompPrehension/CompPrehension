@@ -30,6 +30,10 @@ export class ExerciseController {
         return ajaxGet(`${ExerciseController.endpointPath}generateQuestion?attemptId=${attemptId}`, TQuestion); 
     }
 
+    static generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
+        return ajaxGet(`${ExerciseController.endpointPath}generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
+    }
+
     static addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
         return ajaxPost(`${ExerciseController.endpointPath}addQuestionAnswer`, interaction, TFeedback);
     }

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.Service.UserService;
@@ -26,7 +27,11 @@ import org.vstu.compprehension.utils.HyperText;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
+import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
 
 @Controller
 @RequestMapping("basic")
@@ -93,7 +98,7 @@ public class BasicExerciseController implements ExerciseController {
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
+        val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
@@ -103,12 +108,18 @@ public class BasicExerciseController implements ExerciseController {
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
 
+        // remove incorrect answers from feedback
+        val correctAnswers = errors.length > 0
+                ? Arrays.copyOf(answers, answers.length - 1)
+                : answers;
+
         return FeedbackDto.builder()
                 .grade(grade)
                 .errors(errors)
                 .stepsLeft(judgeResult.IterationsLeft)
                 .correctSteps(correctInteractionsCount)
                 .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count())
+                .correctAnswers(correctAnswers)
                 .build();
     }
 
@@ -125,6 +136,41 @@ public class BasicExerciseController implements ExerciseController {
     public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
         val question = questionService.getQuestionEntiity(questionId);
         return Mapper.toDto(question);
+    }
+
+    @Override
+    public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
+        Question question = questionService.getQuestion(questionId);
+        val correctAnswer = questionService.getNextCorrectAnswer(question);
+        val correctAnswerDto = Mapper.toDto(correctAnswer);
+
+        // evaluate answer
+        val tags = exerciseService.getTags(question.getQuestionData().getExerciseAttempt().getExercise());
+        questionService.solveQuestion(question, tags);
+        val responses = questionService.responseQuestion(question, correctAnswerDto.getAnswers());
+        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, responses, tags);
+
+        // add interaction
+        val existingInteractions = question.getQuestionData().getInteractions();
+        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
+        existingInteractions.add(ie);
+        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
+
+        // add feedback
+        val grade = strategy.grade(question.getQuestionData().getExerciseAttempt());
+        ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
+        ie.getFeedback().setGrade(grade);
+        feedbackRepository.save(ie.getFeedback());
+
+        return FeedbackDto.builder()
+                .grade(grade)
+                .errors(new String[0])
+                .explanation(correctAnswerDto.getExplanation())
+                .correctAnswers(correctAnswerDto.getAnswers())
+                .stepsLeft(judgeResult.IterationsLeft)
+                .correctSteps(correctInteractionsCount)
+                .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count())
+                .build();
     }
 
     @Override

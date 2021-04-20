@@ -34,11 +34,13 @@ export const Feedback = observer(() => {
 });
 
 const renderFeedback = (feedback: FeedbackType) => {
-    const state = feedback.errors == null ? 'NONE' 
-        : (!feedback.errors.length && feedback.stepsLeft === 0) ? 'DONE'
-        : (!feedback.errors.length) ? 'PARTIALCORRECT' 
-        : 'ERROR' 
+    const state = feedback.explanation ? 'EXPL'
+        : feedback.errors?.length ? 'ERROR'
+        : feedback.stepsLeft === 0 ? 'DONE'
+        : 'PARTIALCORRECT';
     switch(state) {
+        case 'EXPL':
+            return <Alert variant="success">{feedback.explanation}</Alert>;
         case 'DONE':
             return <Alert variant="success">All done!</Alert>;
         case 'PARTIALCORRECT':

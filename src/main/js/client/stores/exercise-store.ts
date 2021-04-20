@@ -119,6 +119,26 @@ export class ExerciseStore {
             }
         });        
     }
+
+    @action
+    generateNextCorrectAnswer = async (): Promise<void> => {
+        const { currentQuestion } = this;
+        if (!currentQuestion) {
+            throw new Error("Current question not found");
+        }
+
+        this.isFeedbackLoading = true;
+        const feedbackEither = await ExerciseController.generateNextCorrectAnswer(currentQuestion.questionId);
+        const feedback = E.getOrElseW(_ => undefined)(feedbackEither);
+
+        runInAction(() => {
+            this.isFeedbackLoading = false;
+            this.feedback = feedback;
+            if (feedback && feedback.correctAnswers && this.isHistoryChanged(feedback.correctAnswers)) {
+                this.answersHistory = feedback.correctAnswers;                    
+            }            
+        });
+    }
      
     @action 
     sendAnswers = async () : Promise<void> => {
@@ -140,9 +160,9 @@ export class ExerciseStore {
         runInAction(() => {
             this.isFeedbackLoading = false;
             this.feedback = feedback;
-            if (this.feedback?.errors?.length) {                
-                this.answersHistory.pop();
-            }
+            if (feedback && feedback.correctAnswers && this.isHistoryChanged(feedback.correctAnswers)) {
+                this.answersHistory = feedback.correctAnswers;                    
+            }            
         });
     }
 

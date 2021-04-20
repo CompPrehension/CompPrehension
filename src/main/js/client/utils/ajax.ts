@@ -24,25 +24,7 @@ export type PromiseEither<E, A> = Promise<Either<E, A>>
  */
 export async function ajaxGet<T = unknown>(url: string, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
     console.log(`ajax get: ${url}`);
-
-    type FetcherResults = 
-        | { code: 200, payload: T } 
-        | { code: 500, payload: RequestError };
-    const fetcher = new Fetcher<FetcherResults, Either<RequestError, T>>(url)
-        .handle(200, data => right(data), validator)
-        .handle(500, error => left(error))
-        .discardRest(() => left({ message: "Unexpected server error" }));    
-        
-    const [data, validationErrors] = await fetcher.run()
-        .catch(async () => [left<RequestError, T>({ message: "Connection error"}), O.none as O.Option<io.Errors>] as const);
-       
-    if (O.isSome(validationErrors)) {                
-        const error = { message: `Types inconsistency: ${PathReporter.report(left(validationErrors.value)).join("\n")}` };
-        return (console.error(error), left(error));      
-    }
-
-    E.fold(err => console.error(err), val => console.log(val))(data);
-    return data;    
+    return await ajax(url, undefined, validator);    
 }
 
 /**
@@ -53,15 +35,18 @@ export async function ajaxGet<T = unknown>(url: string, validator?: io.Type<T, T
  * @returns Pair of either RequestError or ResposeBody
  */
 export async function ajaxPost<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
-    const params = {
+    const params: RequestInit = {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'                
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
     };
+    console.log(`ajax post: ${url}`);
+    return await ajax(url, params, validator);
+}
 
-    console.log(`ajax post: ${url}`, params.body);
+async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: io.Type<T, T, unknown>): PromiseEither<RequestError, T> {
     type FetcherResults = 
         | { code: 200, payload: T } 
         | { code: 500, payload: RequestError };
