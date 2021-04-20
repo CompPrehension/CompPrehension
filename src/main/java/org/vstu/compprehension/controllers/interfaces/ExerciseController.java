@@ -74,6 +74,17 @@ public interface ExerciseController {
     QuestionDto getQuestion(@RequestParam Long questionId, HttpServletRequest request) throws Exception;
 
     /**
+     * Generate next correct answer
+     * @param questionId Question Id
+     * @param request Current request
+     * @return Next correct answer
+     * @throws Exception Something got wrong
+     */
+    @RequestMapping(value = {"/generateNextCorrectAnswer"}, method = { RequestMethod.GET })
+    @ResponseBody
+    FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception;
+
+    /**
      * Root method for launching an exercise
      * @param exerciseId Exercise id
      * @param request Current request

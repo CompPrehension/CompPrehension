@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import lombok.val;
+import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -20,6 +22,7 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.Math.max;
 import static org.junit.jupiter.api.Assertions.*;
@@ -584,21 +587,29 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        List<BackendFactEntity> solution = q.getSolutionFacts();
-        List<InteractionEntity> interactions = q.getQuestionData().getInteractions();
-        if (interactions != null) {
-            for (InteractionEntity interaction : interactions) {
-                solution.addAll(responseToFacts(q.getQuestionDomainType(), interaction.getResponses(), q.getAnswerObjects()));
-            }
-        }
+        val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second);
+        val lastCorrectInteractionAnswers = lastCorrectInteraction
+                .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
+                .flatMap(Collection::stream)
+                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
+                .collect(Collectors.toList());
+
+        val solution = q.getSolutionFacts();
+        lastCorrectInteraction.ifPresent(i -> solution.addAll(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects())));
 
         List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(solution);
-
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
                 if (answerImpl.domainID.equals(answer.getDomainInfo())) {
+                    val answers = new ArrayList<>(lastCorrectInteractionAnswers);
+                    answers.add(Pair.of(answer, answer));
+
                     CorrectAnswer correctAnswer = new CorrectAnswer();
-                    correctAnswer.answer = answer;
+                    correctAnswer.question = q.getQuestionData();
+                    correctAnswer.answers = answers;
                     correctAnswer.lawName = answerImpl.lawName;
                     correctAnswer.explanation = getCorrectExplanation(answerImpl.lawName);
                     return correctAnswer;

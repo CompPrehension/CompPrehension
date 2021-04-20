@@ -7,6 +7,7 @@ import { Loader } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { QuestionFabric } from "../components/exercise/question/question-fabric";
 import { exerciseStore } from "../stores/exercise-store";
+import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
 
 export const Exercise = observer(() => {
     type State = 'INITIAL' | 'MODAL' | 'EXERCISE';
@@ -71,7 +72,8 @@ export const Exercise = observer(() => {
                     <Header />
                     <QuestionFabric />
                     <Feedback />
-                    <GenerateNextQuestionBtn />            
+                    <GenerateNextAnswerBtn /> 
+                    <GenerateNextQuestionBtn />  
                 </>
             );
     }
