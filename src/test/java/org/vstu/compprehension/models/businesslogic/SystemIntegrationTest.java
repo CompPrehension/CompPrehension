@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.val;
 import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
@@ -62,6 +63,7 @@ public class SystemIntegrationTest {
     @Test
     public void generateTest() throws Exception
     {
+
         assertNotNull(strategy);
 
         List<ExerciseAttemptEntity> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
@@ -72,22 +74,22 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            val question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2);
+            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2.getQuestionData().getId());
             assertEquals("operator_binary_<", correctAnswer.answer.getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
-            Question question3 = responseQuestion(question2, List.of(0));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(0));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
 
             //Сохранение интеракции
             InteractionEntity ie = new InteractionEntity(
                     question1.questionData,
                     result.violations,
                     result.correctlyAppliedLaws,
-                    question1.getResponses()
+                    question2Responses
             );
             ArrayList<InteractionEntity> ies = new ArrayList<>();
             if(question1.questionData.getInteractions() != null) {
@@ -98,7 +100,7 @@ public class SystemIntegrationTest {
             questionService.saveQuestion(question1.questionData);
 
             //interactionService.saveInteraction(ie);
-            Question q = questionService.getQuestion(question2);
+            Question q = questionService.getQuestion(question2.getQuestionData().getId());
             assertEquals(1, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
@@ -106,7 +108,7 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     result.violations.get(0).getLawName());
-            List<HyperText> explanations  = explainViolations(question3, result.violations);
+            List<HyperText> explanations  = explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
@@ -114,8 +116,6 @@ public class SystemIntegrationTest {
             Question supQ2 = questionService.getQuestion(supQ);
             assertEquals(QuestionType.MULTI_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
-
-            float grade = strategy.grade(IterableUtils.toList(exerciseAttemptRepository.findAll()).get(0));
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
@@ -123,22 +123,24 @@ public class SystemIntegrationTest {
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2);
+            Domain.CorrectAnswer correctAnswer = getCorrectAnswer(question2.getQuestionData().getId());
             assertEquals("operator_binary_<", correctAnswer.answer.getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
-            Question question3 = getQuestion(question2);
-            question3.addResponse(makeResponse(correctAnswer.answer));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            Question question3 = getQuestion(question2.getQuestionData().getId());
+
+            val responses = new ArrayList<ResponseEntity>();
+            responses.add(makeResponse(correctAnswer.answer));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question3, responses, tags);
             //Сохранение интеракции
             InteractionEntity ie = new InteractionEntity(
                     question3.questionData,
                     result.violations,
                     result.correctlyAppliedLaws,
-                    question3.getResponses()
+                    responses
             );
             ArrayList<InteractionEntity> ies = new ArrayList<>();
             if(question3.questionData.getInteractions() != null) {
@@ -155,14 +157,14 @@ public class SystemIntegrationTest {
             assertEquals("operator_binary_==", correctAnswer2.answer.getConcept());
             assertEquals("single_token_binary_execution", correctAnswer2.lawName);
             Question question5 = getQuestion(question4);
-            question5.addResponse(makeResponse(correctAnswer2.answer));
-            Domain.InterpretSentenceResult result2 = judgeQuestion(question5, tags);
+            responses.add(makeResponse(correctAnswer2.answer));
+            Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question5, responses, tags);
             //Сохранение интеракции
             InteractionEntity ie2 = new InteractionEntity(
                     question5.questionData,
                     result.violations,
                     result.correctlyAppliedLaws,
-                    question5.getResponses()
+                    responses
             );
             ArrayList<InteractionEntity> ies2 = new ArrayList<>();
             if(question5.questionData.getInteractions() != null) {
@@ -179,12 +181,12 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Question question3 = responseQuestion(question2, List.of(0, 1));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(0, 1));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(1, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(0, result.CountCorrectOptions);
@@ -199,12 +201,12 @@ public class SystemIntegrationTest {
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             questionService.saveQuestion(question1.questionData);
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Question question3 = responseQuestion(question2, List.of(1));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(1));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(0, result.violations.size());
             assertEquals(1, result.correctlyAppliedLaws.size());
             assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
@@ -242,12 +244,12 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
             List<Tag> tags = getTags(testExerciseAttemptList.get(0));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Question question3 = responseQuestion(question2, List.of(1, 0));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(1, 0));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(0, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(0, result.CountCorrectOptions);
@@ -261,12 +263,12 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
             List<Tag> tags = getTags(testExerciseAttemptList.get(1));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Question question3 = responseQuestion(question2, List.of(0));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(0));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(0, result.violations.size());
             assertEquals(1, result.correctlyAppliedLaws.size());
             assertEquals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left", result.correctlyAppliedLaws.get(0));
@@ -280,12 +282,12 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
             List<Tag> tags = getTags(testExerciseAttemptList.get(1));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
             assertEquals(2, processSolutionResult.IterationsLeft);
-            Question question3 = responseQuestion(question2, List.of(1));
-            Domain.InterpretSentenceResult result = judgeQuestion(question3, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(1));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(1, result.violations.size());
             assertEquals(0, result.correctlyAppliedLaws.size());
             assertEquals(1, result.CountCorrectOptions);
@@ -294,7 +296,7 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
                     result.violations.get(0).getLawName());
-            List<HyperText> explanations  = explainViolations(question3, result.violations);
+            List<HyperText> explanations  = explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
             assertEquals("operator == on pos 2 should be evaluated before operator < on pos 4\n" +
                     " because operator == has the same precedence and left associativity", explanations.get(0).getText());
@@ -304,9 +306,9 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(2));
             List<Tag> tags = getTags(testExerciseAttemptList.get(2));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Question question3 = responseQuestion(question2, List.of(0));
-            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
+            Question question2 = questionService.solveQuestion(question1, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(0));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -314,9 +316,9 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(2));
             List<Tag> tags = getTags(testExerciseAttemptList.get(2));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Question question3 = responseQuestion(question2, List.of(1));
-            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
+            Question question2 = questionService.solveQuestion(question1, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(1));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
             expected.add("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
@@ -332,9 +334,9 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(3));
             List<Tag> tags = getTags(testExerciseAttemptList.get(3));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Question question3 = responseQuestion(question2, List.of(0));
-            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
+            Question question2 = questionService.solveQuestion(question1, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(0));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
             assertTrue(mistakes.isEmpty());
         }
 
@@ -342,9 +344,9 @@ public class SystemIntegrationTest {
             Question question1 = generateQuestion(testExerciseAttemptList.get(3));
             List<Tag> tags = getTags(testExerciseAttemptList.get(3));
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
-            Long question2 = solveQuestion(question1, tags);
-            Question question3 = responseQuestion(question2, List.of(1));
-            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
+            Question question2 = questionService.solveQuestion(question1, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(1));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
             assertEquals(1, mistakes.size());
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
@@ -357,10 +359,11 @@ public class SystemIntegrationTest {
             tag.setName("type");
             List<Tag> tags = new ArrayList<>(Arrays.asList(tag));
             assertEquals("MATCHING", question1.getQuestionType().name());
-            Long question2 = solveQuestion(question1, tags);
-            Question question3 = getQuestion(question2);
-            question3.addResponse(makeResponse(question3.getAnswerObject(2), question3.getAnswerObject(8)));
-            List<ViolationEntity> mistakes = judgeQuestion(question3, tags).violations;
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Question question3 = getQuestion(question2.getQuestionData().getId());
+            val responses = new ArrayList<ResponseEntity>();
+            responses.add(makeResponse(question3.getAnswerObject(2), question3.getAnswerObject(8)));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question3, responses, tags).violations;
             assertEquals(0, mistakes.size());
         }
     }
@@ -397,28 +400,6 @@ public class SystemIntegrationTest {
         return question;
     }
 
-    Long solveQuestion(Question question, List<Tag> tags) {
-        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
-        assertNotNull(domain);
-        List<BackendFactEntity> solution = backend.solve(
-                new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFacts(),
-                domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
-        assertFalse(solution.isEmpty());
-        question.questionData.setSolutionFacts(solution);
-        questionService.saveQuestion(question.questionData);
-        return question.questionData.getId();
-    }
-
-    Question responseQuestion(Long questionId, List<Integer> responses) {
-        Question question = getQuestion(questionId);
-        for (Integer response : responses) {
-            assertTrue(response < question.getAnswerObjects().size());
-            question.addResponse(makeResponse(question.getAnswerObject(response)));
-        }
-        return question;
-    }
-
     Domain.ProcessSolutionResult getSolveInfo(Long questionId) {
         Question question = getQuestion(questionId);
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
@@ -429,20 +410,6 @@ public class SystemIntegrationTest {
         Question question = getQuestion(questionId);
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         return domain.getAnyNextCorrectAnswer(question);
-    }
-
-    Domain.InterpretSentenceResult judgeQuestion(Question question, List<Tag> tags) {
-        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
-        List<BackendFactEntity> responseFacts = question.responseToFacts();
-        assertFalse(responseFacts.isEmpty());
-        List<BackendFactEntity> violations = backend.judge(
-                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFacts(),
-                question.getSolutionFacts(),
-                responseFacts,
-                domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts())
-        );
-        return domain.interpretSentence(violations);
     }
 
     Long generateSupplementaryQuestion(Domain.InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttempt) {

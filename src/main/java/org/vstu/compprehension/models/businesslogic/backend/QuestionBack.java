@@ -18,19 +18,13 @@ public interface QuestionBack {
     public void addAnswerObject(AnswerObjectEntity newObject);
     
     public void setAnswerObjects(List<AnswerObjectEntity> objects);
-    
-    public void addResponse(ResponseEntity r);
-
-    public List<ResponseEntity> getResponses();
-
-    public void clearResponses();
 
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
      * студента факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    public List<BackendFactEntity> responseToFacts();
+    public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses);
 
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)

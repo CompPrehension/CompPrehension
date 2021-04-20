@@ -86,14 +86,14 @@ public class BasicExerciseController implements ExerciseController {
 
         // evaluate answer
         questionService.solveQuestion(question, tags);
-        questionService.responseQuestion(question, answers);
-        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, tags);
+        val responses = questionService.responseQuestion(question, answers);
+        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, responses, tags);
         List<HyperText> explanations = questionService.explainViolations(question, judgeResult.violations);
         String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, question.getResponses());
+        val ie = new InteractionEntity(question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 

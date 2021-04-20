@@ -14,20 +14,11 @@ import java.util.List;
 public abstract class Question implements QuestionFront, QuestionBack {
     
     protected QuestionEntity questionData;
-
-    protected List<ResponseEntity> studentResponses = new ArrayList<>();
-
     protected List<String> concepts;
     protected HashSet<String> tags;
     
     public Question(QuestionEntity questionData) {
         this.questionData = questionData;
-        if (questionData.getInteractions() != null && questionData.getInteractions().size() > 0) {
-            List<InteractionEntity> interactionEntities = questionData.getInteractions();
-            for (ResponseEntity response : interactionEntities.get(interactionEntities.size() - 1).getResponses()) {
-                addResponse(response);
-            }
-        }
     }
 
     @Override
@@ -46,21 +37,6 @@ public abstract class Question implements QuestionFront, QuestionBack {
     public void setAnswerObjects(List<AnswerObjectEntity> objects) {
 
         questionData.setAnswerObjects(objects);
-    }
-
-    @Override
-    public void addResponse(ResponseEntity r) {
-        studentResponses.add(r);
-    }
-
-    @Override
-    public List<ResponseEntity> getResponses() {
-        return Collections.unmodifiableList(studentResponses);
-    }
-
-    @Override
-    public void clearResponses() {
-        studentResponses.clear();
     }
 
     @Override
