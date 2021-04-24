@@ -598,6 +598,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .collect(Collectors.toList());
 
         val solution = q.getSolutionFacts();
+        assertNotNull(solution, "Call solve question before getAnyNextCorrectAnswer");
         lastCorrectInteraction.ifPresent(i -> solution.addAll(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects())));
 
         List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(solution);
