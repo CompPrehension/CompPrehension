@@ -45,9 +45,6 @@ public class SystemIntegrationTest {
     @Autowired
     private InteractionRepository interactionRepository;
 
-//    @Autowired
-//    PelletBackend backend;
-
     @Autowired
     JenaBackend backend;
 
@@ -69,7 +66,11 @@ public class SystemIntegrationTest {
         List<ExerciseAttemptEntity> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
@@ -119,7 +120,11 @@ public class SystemIntegrationTest {
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
         }
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
@@ -181,7 +186,11 @@ public class SystemIntegrationTest {
             assertTrue(result2.correctlyAppliedLaws.isEmpty());
         }
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -200,7 +209,11 @@ public class SystemIntegrationTest {
             float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             questionService.saveQuestion(question1.questionData);
@@ -244,7 +257,11 @@ public class SystemIntegrationTest {
             float grade = strategy.grade(testExerciseAttemptList.get(0));
         }
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(0));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -263,7 +280,11 @@ public class SystemIntegrationTest {
 
         // Python question. Contrary to C++ "==" and "<" has same precedence
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(1);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -282,7 +303,11 @@ public class SystemIntegrationTest {
 
         // Python question. Contrary to C++ "==" and "<" has same precedence
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(1));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(1);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -306,7 +331,11 @@ public class SystemIntegrationTest {
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(2);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -316,7 +345,11 @@ public class SystemIntegrationTest {
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(2));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(2);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -334,7 +367,11 @@ public class SystemIntegrationTest {
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(3));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(3);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -344,7 +381,11 @@ public class SystemIntegrationTest {
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(3));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(3);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -357,7 +398,11 @@ public class SystemIntegrationTest {
         }
 
         {
-            Question question1 = generateQuestion(testExerciseAttemptList.get(4));
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
             Tag tag = new Tag();
             tag.setName("type");
             List<Tag> tags = new ArrayList<>(Arrays.asList(tag));
@@ -381,19 +426,6 @@ public class SystemIntegrationTest {
         response.setRightAnswerObject(answerR);
         responseRepository.save(response);
         return response;
-    }
-
-    Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
-        assertNotNull(exerciseAttempt);
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        assertNotNull(exerciseAttempt.getExercise());
-        QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
-        assertTrue(checkQuestionRequest(qr, exerciseAttempt));
-        Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
-        assertNotNull(question);
-        //TODO: domain set domainEntity into question
-        question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));
-        return question;
     }
 
     Question getQuestion(Long questionId) {
