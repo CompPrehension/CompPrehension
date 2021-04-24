@@ -72,22 +72,6 @@ public class ExerciseService {
         return emptyForm;
     }
 
-    public List<Tag> getTags(ExerciseEntity exercise) {
-        String[] tags = exercise.getTags().split(",");
-        List<Tag> result = new ArrayList<>();
-        for (String tagString : tags) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        for (String tagString : List.of("basics", "operators", "order", "evaluation")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        return result.stream().distinct().collect(Collectors.toList());
-    }
-
     public ExerciseEntity getExercise(long exerciseId) {
         try {
             return exerciseRepository.findById(exerciseId).orElseThrow(()->

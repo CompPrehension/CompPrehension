@@ -252,6 +252,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (Concept concept : questionRequest.getDeniedConcepts()) {
             deniedConceptNames.add(concept.getName());
         }
+        deniedConceptNames.add("supplementary");
 
         Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames, new HashSet<>());
         if (res != null) {
@@ -620,24 +621,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return null;
     }
 
-    List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
-        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
-        List<Tag> result = new ArrayList<>();
-        for (String tagString : tags) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        return result;
-    }
-
     @Override
     public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
         assertFalse(interpretSentenceResult.violations.isEmpty());
         HashSet<String> targetConcepts = new HashSet<>();
         targetConcepts.add(interpretSentenceResult.violations.get(0).getLawName());
+        targetConcepts.add("supplementary");
 
-        Question res = findQuestion(getTags(exerciseAttemptEntity), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
+        Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
             return makeQuestionCopy(res, exerciseAttemptEntity);
         }

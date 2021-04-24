@@ -86,7 +86,7 @@ public class BasicExerciseController implements ExerciseController {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
 
-        List<Tag> tags = exerciseService.getTags(attempt.getExercise());
+        List<Tag> tags = attempt.getExercise().getTags();
         Question question = questionService.getQuestion(questionId);
 
         // evaluate answer
@@ -143,7 +143,7 @@ public class BasicExerciseController implements ExerciseController {
         Question question = questionService.getQuestion(questionId);
 
         // evaluate answer
-        val tags = exerciseService.getTags(question.getQuestionData().getExerciseAttempt().getExercise());
+        val tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags();
         questionService.solveQuestion(question, tags);
 
         val correctAnswer = questionService.getNextCorrectAnswer(question);
@@ -210,7 +210,6 @@ public class BasicExerciseController implements ExerciseController {
 
         return userEntityDto;
     }
-
 
     @Override
     public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {

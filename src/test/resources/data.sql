@@ -5,16 +5,16 @@ INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'тест', 'те�
 INSERT INTO `backend` (`id`, `name`) VALUES (1, 'test');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
-VALUES (5, 1, 1, 0, 1, '10', 'test', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'C++');
+VALUES (5, 1, 1, 0, 1, '10', 'test', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
-VALUES (6, 1, 1, 0, 1, '10', 'test1', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'C++');
+VALUES (6, 1, 1, 0, 1, '10', 'test1', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
-VALUES (7, 1, 1, 0, 1, '10', 'test2', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'C++');
+VALUES (7, 1, 1, 0, 1, '10', 'test2', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
-VALUES (8, 1, 1, 0, 1, '10', 'test3', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'Python');
+VALUES (8, 1, 1, 0, 1, '10', 'test3', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,Python');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
 VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'type');

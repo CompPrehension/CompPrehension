@@ -3050,10 +3050,15 @@
     "concepts": [
       "precedence",
       "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
-      "SystemIntegrationTest"
+      "SystemIntegrationTest",
+      "supplementary"
     ],
     "tags": [
-      "C++"
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
     ]
   }
 ]
