@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.entities.EnumData.Complexity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -9,7 +10,11 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -38,6 +43,12 @@ public class ExerciseEntity {
 
     @Column(name = "tags")
     private String tags;
+
+    public List<Tag> getTags() {
+        return Arrays.stream(tags.split(","))
+                .map(i -> new Tag(i))
+                .collect(Collectors.toList());
+    }
 
 
     @Column(name = "exerciseType")

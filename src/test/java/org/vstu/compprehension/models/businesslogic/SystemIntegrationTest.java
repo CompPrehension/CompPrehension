@@ -70,7 +70,7 @@ public class SystemIntegrationTest {
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
@@ -109,7 +109,7 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     result.violations.get(0).getLawName());
-            List<HyperText> explanations  = explainViolations(question2, result.violations);
+            List<HyperText> explanations  = questionService.explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
@@ -120,7 +120,7 @@ public class SystemIntegrationTest {
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
@@ -182,7 +182,7 @@ public class SystemIntegrationTest {
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -201,7 +201,7 @@ public class SystemIntegrationTest {
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             questionService.saveQuestion(question1.questionData);
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -245,7 +245,7 @@ public class SystemIntegrationTest {
         }
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(0));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(0));
+            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -264,7 +264,7 @@ public class SystemIntegrationTest {
         // Python question. Contrary to C++ "==" and "<" has same precedence
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(1));
+            List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -283,7 +283,7 @@ public class SystemIntegrationTest {
         // Python question. Contrary to C++ "==" and "<" has same precedence
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(1));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(1));
+            List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -299,7 +299,7 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
                     result.violations.get(0).getLawName());
-            List<HyperText> explanations  = explainViolations(question2, result.violations);
+            List<HyperText> explanations  = questionService.explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
             assertEquals("operator == on pos 2 should be evaluated before operator < on pos 4\n" +
                     " because operator == has the same precedence and left associativity", explanations.get(0).getText());
@@ -307,7 +307,7 @@ public class SystemIntegrationTest {
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(2));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(2));
+            List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
@@ -317,7 +317,7 @@ public class SystemIntegrationTest {
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(2));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(2));
+            List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(1));
@@ -335,7 +335,7 @@ public class SystemIntegrationTest {
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(3));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(3));
+            List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
@@ -345,7 +345,7 @@ public class SystemIntegrationTest {
 
         {
             Question question1 = generateQuestion(testExerciseAttemptList.get(3));
-            List<Tag> tags = getTags(testExerciseAttemptList.get(3));
+            List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
             assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(1));
@@ -389,7 +389,7 @@ public class SystemIntegrationTest {
         assertNotNull(exerciseAttempt.getExercise());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         assertTrue(checkQuestionRequest(qr, exerciseAttempt));
-        Question question = domain.makeQuestion(qr, getTags(exerciseAttempt), exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
         assertNotNull(question);
         //TODO: domain set domainEntity into question
         question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));
