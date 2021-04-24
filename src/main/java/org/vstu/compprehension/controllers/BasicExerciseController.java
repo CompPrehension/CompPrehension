@@ -141,12 +141,14 @@ public class BasicExerciseController implements ExerciseController {
     @Override
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
         Question question = questionService.getQuestion(questionId);
-        val correctAnswer = questionService.getNextCorrectAnswer(question);
-        val correctAnswerDto = Mapper.toDto(correctAnswer);
 
         // evaluate answer
         val tags = exerciseService.getTags(question.getQuestionData().getExerciseAttempt().getExercise());
         questionService.solveQuestion(question, tags);
+
+        val correctAnswer = questionService.getNextCorrectAnswer(question);
+        val correctAnswerDto = Mapper.toDto(correctAnswer);
+
         val responses = questionService.responseQuestion(question, correctAnswerDto.getAnswers());
         Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, responses, tags);
 
