@@ -418,27 +418,6 @@ public class SystemIntegrationTest {
         return question.questionData.getId();
     }
 
-    List<Tag> getTags(ExerciseAttemptEntity exerciseAttempt) {
-        String[] tags = exerciseAttempt.getExercise().getTags().split(",");
-        List<Tag> result = new ArrayList<>();
-        for (String tagString : tags) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        for (String tagString : List.of("basics", "operators", "order", "evaluation")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            result.add(tag);
-        }
-        return result;
-    }
-
-    List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
-        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
-        return domain.makeExplanation(violations, FeedbackType.EXPLANATION);
-    }
-
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity testExerciseAttempt) {
         List<String> deniedConcepts = new ArrayList<>();
         List<String> targetConcepts = new ArrayList<>();
