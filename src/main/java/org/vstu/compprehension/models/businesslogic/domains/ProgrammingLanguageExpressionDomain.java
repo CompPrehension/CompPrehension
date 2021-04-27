@@ -600,7 +600,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         val solution = q.getSolutionFacts();
         assertNotNull(solution, "Call solve question before getAnyNextCorrectAnswer");
-        lastCorrectInteraction.ifPresent(i -> solution.addAll(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects())));
+        solution.addAll(lastCorrectInteraction
+                .flatMap(i -> Optional.ofNullable(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects()))).stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
 
         List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(solution);
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {

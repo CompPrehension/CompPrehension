@@ -112,6 +112,11 @@ public class QuestionService {
         return question;
     }
 
+    public Question getSolvedQuestion(Long questionId) {
+        val question = getQuestion(questionId);
+        return solveQuestion(question, question.getQuestionData().getExerciseAttempt().getExercise().getTags());
+    }
+
     public QuestionEntity getQuestionEntiity(Long questionId) {
         return questionRepository.findById(questionId).get();
     }

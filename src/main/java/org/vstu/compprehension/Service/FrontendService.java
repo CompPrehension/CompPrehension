@@ -10,20 +10,16 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Strategy;
-import org.vstu.compprehension.models.businesslogic.Tag;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
-import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
@@ -57,15 +53,13 @@ public class FrontendService {
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
 
-        List<Tag> tags = attempt.getExercise().getTags();
-        Question question = questionService.getQuestion(questionId);
-
         // evaluate answer
-        questionService.solveQuestion(question, tags);
+        val tags = attempt.getExercise().getTags();
+        val question = questionService.getSolvedQuestion(questionId);
         val responses = questionService.responseQuestion(question, answers);
-        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, responses, tags);
-        List<HyperText> explanations = questionService.explainViolations(question, judgeResult.violations);
-        String[] errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
+        val judgeResult = questionService.judgeQuestion(question, responses, tags);
+        val explanations = questionService.explainViolations(question, judgeResult.violations);
+        val errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
@@ -108,17 +102,15 @@ public class FrontendService {
     }
 
     public FeedbackDto generateNextCorrectAnswer(Long questionId) throws Exception {
-        Question question = questionService.getQuestion(questionId);
-
-        // evaluate answer
-        val tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags();
-        questionService.solveQuestion(question, tags);
-
+        // get next correct answer
+        val question = questionService.getSolvedQuestion(questionId);
         val correctAnswer = questionService.getNextCorrectAnswer(question);
         val correctAnswerDto = Mapper.toDto(correctAnswer);
 
+        // evaluate new answer
+        val tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags();
         val responses = questionService.responseQuestion(question, correctAnswerDto.getAnswers());
-        Domain.InterpretSentenceResult judgeResult = questionService.judgeQuestion(question, responses, tags);
+        val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
