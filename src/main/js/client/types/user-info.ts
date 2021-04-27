@@ -12,4 +12,4 @@ export const TUserInfo : io.Type<UserInfo> = io.type({
     displayName: io.string,
     email: io.union([io.string, io.null]),
     roles: io.array(TRole),
-})
+}, 'UserInfo')

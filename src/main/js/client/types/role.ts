@@ -5,4 +5,4 @@ export const TRole: io.Type<Role> = io.keyof({
     "STUDENT": null,
     "TEACHER": null,
     "ADMIN": null,
-})
+}, 'Role')

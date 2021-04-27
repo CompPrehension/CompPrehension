@@ -5,7 +5,7 @@ export type QuestionOptions = {
 }
 export const TQuestionOptions : io.Type<QuestionOptions> = io.type({
     requireContext: io.boolean,
-});
+}, 'QuestionOptions');
 
 export type OrderQuestionOptions = QuestionOptions & {
     showTrace: boolean,
@@ -39,7 +39,7 @@ export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersec
             })
         ]),
     })
-])
+], 'OrderQuestionOptions')
 
 export type MatchingQuestionOptions = QuestionOptions & {
     displayMode: 'combobox' | 'dragNdrop',
@@ -54,4 +54,4 @@ export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.in
         }),
         multipleSelectionEnabled: io.boolean,
     }),
-])
+], 'MatchingQuestionOptions')

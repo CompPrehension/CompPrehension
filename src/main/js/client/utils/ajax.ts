@@ -3,7 +3,7 @@ import { Either, left, right } from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 import * as E from "fp-ts/lib/Either";
 import * as io from "io-ts";
-import { PathReporter } from 'io-ts/lib/PathReporter';
+import { pipe } from "fp-ts/lib/function";
 
 export type RequestError = {
     error?: string,
@@ -58,11 +58,21 @@ async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: 
     const [data, validationErrors] = await fetcher.run()
         .catch(async () => [left<RequestError, T>({ message: "Connection error"}), O.none as O.Option<io.Errors>] as const);
 
-    if (O.isSome(validationErrors)) {                
-        const error = { message: `Types inconsistency: ${PathReporter.report(left(validationErrors.value)).join("\n")}` };
+    if (O.isSome(validationErrors)) {    
+        const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(left(validationErrors.value)).join(', ')}` };
         return (console.error(error), left(error));      
     }
 
     E.fold(err => console.error(err), val => console.log(val))(data);
     return data;
+}
+
+const getPaths = <A>(v: io.Validation<A>): Array<string> => {
+    return pipe(
+        v,
+        E.fold(
+            (errors) => errors.map((error) => error.context.map(({ key }) => key).join('.')),
+            () => ['no errors']
+        )
+    )
 }

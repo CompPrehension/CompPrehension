@@ -12,4 +12,4 @@ export const TSessionInfo : io.Type<SessionInfo> = io.type({
     exerciseId: io.number,
     user: TUserInfo,
     language: io.string,
-});
+}, 'SessionInfo');

@@ -17,7 +17,7 @@ export const TFeedback : io.Type<Feedback> = io.type({
     correctSteps: io.union([io.number, io.null]),
     stepsLeft: io.union([io.number, io.null]),
     stepsWithErrors: io.union([io.number, io.null]),
-});
+}, 'Feedback');
 
 
 

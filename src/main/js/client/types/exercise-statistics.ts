@@ -13,6 +13,6 @@ export const TExerciseStatisticsItem: io.Type<ExerciseStatisticsItem> = io.type(
     totalInteractionsCount: io.number,
     totalInteractionsWithErrorsCount: io.number,
     averageGrade: io.number,
-})
+}, 'ExerciseStatisticsItem')
 export const TExerciseStatisticsItems: io.Type<ExerciseStatisticsItem[]> = io.array(TExerciseStatisticsItem);
 
