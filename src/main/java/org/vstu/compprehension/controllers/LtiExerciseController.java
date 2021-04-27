@@ -28,12 +28,6 @@ public class LtiExerciseController extends BasicExerciseController {
     private String ltiLaunchSecret;
 
     @Autowired
-    private ExerciseAttemptRepository exerciseAttemptRepository;
-
-    @Autowired
-    private ExerciseService exerciseService;
-
-    @Autowired
     private UserService userService;
 
     @RequestMapping(value = {"/launch" }, method = {RequestMethod.POST})
