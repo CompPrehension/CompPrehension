@@ -88,6 +88,37 @@ export class ExerciseStore {
         this.isQuestionLoading = true;
         const dataEither = await ExerciseController.getQuestion(questionId);
         const data = E.getOrElseW(_ => undefined)(dataEither);
+        /*
+        const data: Question = {
+            type: 'SINGLE_CHOICE',
+            attemptId: -1,
+            questionId: -1,
+            text: 'question text',
+            answers: [
+                { id: 0, text: 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
+                { id: 1, text: 'answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
+            ],
+            responses: [],
+            feedback: null,
+            options: {
+                requireContext: false,
+                displayMode: 'select',              
+            }
+        }
+        const data: Question = {
+            type: 'SINGLE_CHOICE',
+            attemptId: -1,
+            questionId: -1,
+            text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
+            answers: [],
+            responses: [],
+            feedback: null,
+            options: {
+                requireContext: true,
+                displayMode: 'select',              
+            }
+        }
+        */
 
         runInAction(() => {
             this.isQuestionLoading = false;
@@ -167,15 +198,19 @@ export class ExerciseStore {
     }
 
     @action 
-    onAnswersChanged = (answer: [number, number]): void => {
+    onAnswersChanged = (answer: [number, number], sendAnswers: boolean = true): void => {
         this.answersHistory.push(answer);
-        this.sendAnswers();
+        if (sendAnswers) {
+            this.sendAnswers();
+        }
     }
 
     @action
-    updateAnswersHistory = (newHistory: [number, number][]): void => {
+    updateAnswersHistory = (newHistory: [number, number][], sendAnswers: boolean = true): void => {
         this.answersHistory = [ ...newHistory ];
-        this.sendAnswers();
+        if (sendAnswers) {
+            this.sendAnswers();
+        }
     }
 
     isHistoryChanged = (newHistory: [number, number][]): boolean => {

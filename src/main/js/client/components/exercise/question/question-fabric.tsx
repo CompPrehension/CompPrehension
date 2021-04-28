@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { OrderQuestion } from "./question-types/order-question";
 import { MatchingQuestion } from './question-types/matching-question';
 import { Loader } from '../../common/loader';
+import { SingleChoiceQuestion } from './question-types/choice-question';
 
 export const QuestionFabric = observer(() => {  
     if (exerciseStore.isQuestionLoading) {
@@ -20,6 +21,8 @@ export const QuestionFabric = observer(() => {
             return <MatchingQuestion />;
         case questionData.type == "ORDER" && questionData.options.requireContext:
             return <OrderQuestion />;
+        case questionData.type == "SINGLE_CHOICE":
+            return <SingleChoiceQuestion />;
     }
 
     return (<div>Unsupported question type</div>);

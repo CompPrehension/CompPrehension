@@ -9,6 +9,7 @@ export type ModalProps = {
     secondaryBtnTitle?: string,
     handleSecondaryBtnClicked?: () => void,
     children?: React.ReactNode[] | React.ReactNode,
+    closeButton?: boolean,
 }
 
 export const Modal = (props: ModalProps) => {
@@ -17,11 +18,12 @@ export const Modal = (props: ModalProps) => {
         secondaryBtnTitle,
         handleSecondaryBtnClicked,
         children,
+        closeButton,
     } = props;
 
     return (
         <RBModal.Dialog>
-            <RBModal.Header closeButton>
+            <RBModal.Header closeButton={closeButton}>
                 <RBModal.Title>{title}</RBModal.Title>
             </RBModal.Header>
 

@@ -55,3 +55,20 @@ export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.in
         multipleSelectionEnabled: io.boolean,
     }),
 ], 'MatchingQuestionOptions')
+
+export type ChoiceQuestionOptions = QuestionOptions & {
+    displayMode: 'select' | 'dragNdrop',
+    selectorReplacers?: [string, string],
+}
+export const TChoiceQuestionOptions : io.Type<ChoiceQuestionOptions> = io.intersection([
+    TQuestionOptions,
+    io.type({
+        displayMode: io.keyof({
+            'select': null,
+            'dragNdrop': null,
+        }),        
+    }),
+    io.partial({
+        selectorReplacers: io.tuple([io.string, io.string]),
+    }),
+], 'ChoiceQuestionOptions')

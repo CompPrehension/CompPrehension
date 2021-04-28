@@ -1,4 +1,4 @@
-import { MatchingQuestionOptions, OrderQuestionOptions, QuestionOptions, TMatchingQuestionOptions, TOrderQuestionOptions, TQuestionOptions } from "./question-options";
+import { ChoiceQuestionOptions, MatchingQuestionOptions, OrderQuestionOptions, QuestionOptions, TChoiceQuestionOptions, TMatchingQuestionOptions, TOrderQuestionOptions, TQuestionOptions } from "./question-options";
 import * as io from 'io-ts'
 import { Feedback, TFeedback } from "./feedback";
 
@@ -57,21 +57,25 @@ const TOrderQuestionBase : io.Type<OrderQuestionBase> = io.intersection([
 
 type SingleChoiceQuestionBase = QuestionBase & {
     type: 'SINGLE_CHOICE',
+    options: ChoiceQuestionOptions,
 }
 const TSingleChoiceQuestionBase : io.Type<SingleChoiceQuestionBase> = io.intersection([
     TQuestionBase,
     io.type({
-        type: io.literal("SINGLE_CHOICE"),        
+        type: io.literal("SINGLE_CHOICE"),
+        options: TChoiceQuestionOptions,
     })
 ], 'SingleChoiceQuestionBase')
 
 type MultiChoiceQuestionBase = QuestionBase & {
     type: 'MULTI_CHOICE',
+    options: ChoiceQuestionOptions,
 }
 const TMultiChoiceQuestionBase : io.Type<MultiChoiceQuestionBase> = io.intersection([
     TQuestionBase,
     io.type({
-        type: io.literal("MULTI_CHOICE"),        
+        type: io.literal("MULTI_CHOICE"),
+        options: TChoiceQuestionOptions,
     }),
 ], 'MultiChoiceQuestionBase')
 
