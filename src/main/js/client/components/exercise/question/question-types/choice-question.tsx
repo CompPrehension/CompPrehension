@@ -2,7 +2,10 @@ import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import { Form } from "react-bootstrap";
 import ReactDOM from "react-dom";
-import { exerciseStore } from "../../../../stores/exercise-store";
+import { container } from "tsyringe";
+import { ExerciseStore } from "../../../../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 const ChoiceQuestion = observer((props: { isMulti : boolean }) => {
     const { isMulti } = props;

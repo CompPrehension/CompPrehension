@@ -6,8 +6,11 @@ import { Header } from "../components/exercise/header";
 import { Loader } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { QuestionFabric } from "../components/exercise/question/question-fabric";
-import { exerciseStore } from "../stores/exercise-store";
 import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
+import { container } from "tsyringe";
+import { ExerciseStore } from "../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 export const Exercise = observer(() => {
     type State = 'INITIAL' | 'MODAL' | 'EXERCISE';

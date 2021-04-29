@@ -1,10 +1,13 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Alert, Badge } from 'react-bootstrap';
-import { exerciseStore } from "../../stores/exercise-store";
 import { Feedback as FeedbackType } from '../../types/feedback';
 import { Loader } from '../common/loader';
 import { Optional } from '../common/optional';
+import { container } from "tsyringe";
+import { ExerciseStore } from "../../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 
 export const Feedback = observer(() => {

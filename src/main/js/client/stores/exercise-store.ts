@@ -1,13 +1,14 @@
 import { action, makeObservable, observable, runInAction, toJS } from "mobx";
-import { ExerciseController } from "../controllers/exercise-controller";
+import { IExerciseController } from "../controllers/exercise/exercise-controller";
 import { Interaction } from "../types/interaction";
 import { Question } from "../types/question";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseAttempt } from "../types/exercise-attempt";
 import { Feedback } from "../types/feedback";
 import { SessionInfo } from "../types/session-info";
+import { inject, injectable } from "tsyringe";
 
-
+@injectable()
 export class ExerciseStore {
     @observable isSessionLoading: boolean = false;
     @observable sessionInfo?: SessionInfo = undefined;
@@ -18,7 +19,7 @@ export class ExerciseStore {
     @observable isFeedbackLoading?: boolean = false;
     @observable feedback?: Feedback = undefined;
 
-    constructor() {
+    constructor(@inject("ExerciseController") private exerciseController: IExerciseController) {
         makeObservable(this);        
     }
 
@@ -32,7 +33,7 @@ export class ExerciseStore {
         }
 
         this.isSessionLoading = true;
-        const dataEither = await ExerciseController.loadSessionInfo();                                
+        const dataEither = await this.exerciseController.loadSessionInfo();                                
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -49,7 +50,7 @@ export class ExerciseStore {
         }
        
         const exerciseId = sessionInfo.exerciseId;
-        const resultEither = await ExerciseController.getExistingExerciseAttempt(exerciseId);
+        const resultEither = await this.exerciseController.getExistingExerciseAttempt(exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
         if (!result) {
@@ -71,7 +72,7 @@ export class ExerciseStore {
         }
 
         const { exerciseId } = sessionInfo;        
-        const resultEither = await ExerciseController.createExerciseAttempt(+exerciseId);
+        const resultEither = await this.exerciseController.createExerciseAttempt(+exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
         runInAction(() => {
@@ -86,39 +87,8 @@ export class ExerciseStore {
         }
 
         this.isQuestionLoading = true;
-        const dataEither = await ExerciseController.getQuestion(questionId);
+        const dataEither = await this.exerciseController.getQuestion(questionId);
         const data = E.getOrElseW(_ => undefined)(dataEither);
-        /*
-        const data: Question = {
-            type: 'SINGLE_CHOICE',
-            attemptId: -1,
-            questionId: -1,
-            text: 'question text',
-            answers: [
-                { id: 0, text: 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
-                { id: 1, text: 'answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
-            ],
-            responses: [],
-            feedback: null,
-            options: {
-                requireContext: false,
-                displayMode: 'select',              
-            }
-        }
-        const data: Question = {
-            type: 'SINGLE_CHOICE',
-            attemptId: -1,
-            questionId: -1,
-            text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
-            answers: [],
-            responses: [],
-            feedback: null,
-            options: {
-                requireContext: true,
-                displayMode: 'select',              
-            }
-        }
-        */
 
         runInAction(() => {
             this.isQuestionLoading = false;
@@ -137,7 +107,7 @@ export class ExerciseStore {
 
         const { attemptId } = currentAttempt;
         this.isQuestionLoading = true;
-        const dataEither = await ExerciseController.generateQuestion(attemptId);            
+        const dataEither = await this.exerciseController.generateQuestion(attemptId);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
 
         runInAction(() => {
@@ -159,7 +129,7 @@ export class ExerciseStore {
         }
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ExerciseController.generateNextCorrectAnswer(currentQuestion.questionId);
+        const feedbackEither = await this.exerciseController.generateNextCorrectAnswer(currentQuestion.questionId);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither);
 
         runInAction(() => {
@@ -185,7 +155,7 @@ export class ExerciseStore {
         })
 
         this.isFeedbackLoading = true;
-        const feedbackEither = await ExerciseController.addQuestionAnswer(body);
+        const feedbackEither = await this.exerciseController.addQuestionAnswer(body);
         const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
 
         runInAction(() => {
@@ -218,5 +188,3 @@ export class ExerciseStore {
         return newHistory.length !== answersHistory.length || JSON.stringify(newHistory.sort()) !== JSON.stringify(answersHistory.sort());
     }
 }
-
-export const exerciseStore = new ExerciseStore();

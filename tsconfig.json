@@ -2,6 +2,7 @@
   "compilerOptions": {
     "lib": ["dom", "esnext", "es2018.promise"],
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "strict": true,
     "moduleResolution": "Node",
     "module": "esnext",

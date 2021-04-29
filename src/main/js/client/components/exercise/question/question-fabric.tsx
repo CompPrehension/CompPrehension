@@ -1,10 +1,13 @@
 import * as React from 'react';
-import { exerciseStore } from '../../../stores/exercise-store';
 import { observer } from 'mobx-react';
 import { OrderQuestion } from "./question-types/order-question";
 import { MatchingQuestion } from './question-types/matching-question';
 import { Loader } from '../../common/loader';
 import { SingleChoiceQuestion } from './question-types/choice-question';
+import { container } from "tsyringe";
+import { ExerciseStore } from "../../../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 export const QuestionFabric = observer(() => {  
     if (exerciseStore.isQuestionLoading) {

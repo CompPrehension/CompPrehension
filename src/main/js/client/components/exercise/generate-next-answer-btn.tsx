@@ -2,7 +2,10 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import { exerciseStore } from "../../stores/exercise-store";
+import { container } from "tsyringe";
+import { ExerciseStore } from "../../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 export const GenerateNextAnswerBtn = observer(() => {
     const onClicked = () => {

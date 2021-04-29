@@ -1,7 +1,10 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { exerciseStore } from "../../stores/exercise-store";
 import { Pagination as BootstrapPagination } from "react-bootstrap"
+import { container } from "tsyringe";
+import { ExerciseStore } from "../../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 export const Pagination = observer(() => {
     if (!(exerciseStore.currentAttempt?.questionIds.length) || !exerciseStore.currentQuestion) {

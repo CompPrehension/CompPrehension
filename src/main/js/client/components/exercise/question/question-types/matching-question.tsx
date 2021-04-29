@@ -1,8 +1,11 @@
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
-import { exerciseStore } from "../../../../stores/exercise-store";
 import Select, { components } from 'react-select';
 import ReactDOM from "react-dom";
+import { container } from "tsyringe";
+import { ExerciseStore } from "../../../../stores/exercise-store";
+
+const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
 
 // @ts-ignore
 import { Droppable } from '@shopify/draggable';

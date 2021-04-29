@@ -1,5 +1,6 @@
 import { hydrate } from 'react-dom'
 import React from 'react';
+import "./bootstrapper";
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
