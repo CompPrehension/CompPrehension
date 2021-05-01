@@ -6,10 +6,10 @@ import { Loader } from '../../common/loader';
 import { SingleChoiceQuestion } from './question-types/choice-question';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../stores/exercise-store";
-
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
+import { useState } from 'react';
 
 export const QuestionFabric = observer(() => {  
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     if (exerciseStore.isQuestionLoading) {
         return <Loader />;
     }

@@ -57,14 +57,14 @@ export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.in
 ], 'MatchingQuestionOptions')
 
 export type ChoiceQuestionOptions = QuestionOptions & {
-    displayMode: 'select' | 'dragNdrop',
+    displayMode: 'switch' | 'dragNdrop',
     selectorReplacers?: [string, string],
 }
 export const TChoiceQuestionOptions : io.Type<ChoiceQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
         displayMode: io.keyof({
-            'select': null,
+            'switch': null,
             'dragNdrop': null,
         }),        
     }),

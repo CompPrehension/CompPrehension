@@ -6,11 +6,10 @@ import { Optional } from '../common/optional';
 import { Pagination } from './pagination';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
-
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
-
+import { useState } from 'react';
 
 export const Header = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentAttempt, sessionInfo, currentQuestion } = exerciseStore;
     if (!currentAttempt || !sessionInfo) {
         return null;

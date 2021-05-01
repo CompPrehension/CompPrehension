@@ -10,9 +10,8 @@ import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answ
 import { container } from "tsyringe";
 import { ExerciseStore } from "../stores/exercise-store";
 
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
-
 export const Exercise = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     type State = 'INITIAL' | 'MODAL' | 'EXERCISE';
     const [state, setState] = useState('INITIAL' as State);
 

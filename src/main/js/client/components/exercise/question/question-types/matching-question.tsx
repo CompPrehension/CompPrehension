@@ -1,17 +1,15 @@
 import { observer } from "mobx-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Select, { components } from 'react-select';
 import ReactDOM from "react-dom";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
-
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
-
 // @ts-ignore
 import { Droppable } from '@shopify/draggable';
 
 
-export const MatchingQuestion : React.FC = observer(() => {
+export const MatchingQuestion = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion } = exerciseStore;
     if (!currentQuestion || currentQuestion.type != "MATCHING") {
         return null;
@@ -32,6 +30,7 @@ export const MatchingQuestion : React.FC = observer(() => {
 
 
 const DragAndDropMatchingQuestion = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
     if (!currentQuestion || currentQuestion.type != "MATCHING") {
         return null;
@@ -116,6 +115,7 @@ const RawHtmlSelectSingleValue = (props : any) => {
 };
 
 const ComboboxMatchingQuestionWithCtx = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
     if (!currentQuestion || currentQuestion.type != "MATCHING" || !currentQuestion.options.requireContext) {
         return null;
@@ -152,6 +152,7 @@ const ComboboxMatchingQuestionWithCtx = observer(() => {
 });
 
 const ComboboxMatchingQuestion = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
     if (!currentQuestion || currentQuestion.type != "MATCHING" || currentQuestion.options.requireContext) {
         return null;

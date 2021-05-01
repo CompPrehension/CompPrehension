@@ -1,13 +1,13 @@
 
 import { observer } from 'mobx-react';
 import * as React from 'react';
+import { useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
 
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
-
 export const GenerateNextAnswerBtn = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const onClicked = () => {
         exerciseStore.generateNextCorrectAnswer();
     };

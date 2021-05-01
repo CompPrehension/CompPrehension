@@ -6,11 +6,10 @@ import { Loader } from '../common/loader';
 import { Optional } from '../common/optional';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
-
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
-
+import { useState } from 'react';
 
 export const Feedback = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { feedback, isFeedbackLoading } = exerciseStore;
     
     if (exerciseStore.isFeedbackLoading) {

@@ -1,29 +1,30 @@
 import { observer } from "mobx-react";
-import React, { useEffect } from "react";
-import { Form } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
-
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
+//@ts-ignore
+import TriStateToggleSwitch from 'rn-tri-toggle-switch'
 
 const ChoiceQuestion = observer((props: { isMulti : boolean }) => {
     const { isMulti } = props;
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion } = exerciseStore;
     if (!currentQuestion || (currentQuestion.type !== 'SINGLE_CHOICE' && currentQuestion.type !== 'MULTI_CHOICE')) {
         return null;
     }
     const options = currentQuestion.options;
     switch(true) {
-        case options.displayMode == 'select' && !options.requireContext:
-            return <SelectBasedChoiceQuestion isMulti={isMulti}/>;
-        case options.displayMode === 'select' && options.requireContext:
-            return <SelectBasedChoiceQuestionWithCtx isMulti={isMulti}/>;
+        case options.displayMode == 'switch' && !options.requireContext:
+            return <SwitchChoiceQuestion isMulti={isMulti}/>;
+        case options.displayMode === 'switch' && options.requireContext:
+            return <SwitchChoiceQuestionWithCtx isMulti={isMulti}/>;
     }
     return (<div>Not implemented</div>);
 })
 
-const SelectBasedChoiceQuestion = observer((props: { isMulti : boolean }) => {
+const SwitchChoiceQuestion = observer((props: { isMulti : boolean }) => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory } = exerciseStore;
     if (!currentQuestion || (currentQuestion.type !== 'SINGLE_CHOICE' && currentQuestion.type !== 'MULTI_CHOICE')) {
         return null;
@@ -40,7 +41,7 @@ const SelectBasedChoiceQuestion = observer((props: { isMulti : boolean }) => {
                 {currentQuestion.answers.map(a => 
                     <div className="d-flex flex-row mb-3">
                         <div className="mr-2 mt-1">
-                            <SelectBlock id={`anwser_${a.id}`} 
+                            <SwitchBlock id={`anwser_${a.id}`} 
                                          value={answersHistory.filter(h => h[0] === a.id)?.[0]?.[1] ?? ""} 
                                          options={selectorTexts} 
                                          onChange={e => onSelectionChanged(a.id, +e.target.value)} />
@@ -52,7 +53,8 @@ const SelectBasedChoiceQuestion = observer((props: { isMulti : boolean }) => {
     );
 })
 
-const SelectBasedChoiceQuestionWithCtx = observer((props: { isMulti : boolean }) => {
+const SwitchChoiceQuestionWithCtx = observer((props: { isMulti : boolean }) => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory } = exerciseStore;
     if (!currentQuestion || (currentQuestion.type !== 'SINGLE_CHOICE' && currentQuestion.type !== 'MULTI_CHOICE')) {
         return null;
@@ -65,7 +67,7 @@ const SelectBasedChoiceQuestionWithCtx = observer((props: { isMulti : boolean })
         // add button click event handlers
         document.querySelectorAll('[id^="answer_"]').forEach(e => {
             const id = e.id?.split("answer_")[1] ?? -1;
-            const component = <SelectBlock id={e.id} 
+            const component = <SwitchBlock id={e.id} 
                                            value={answersHistory.filter(h => h[0] === +id)?.[0]?.[1] ?? ""} 
                                            options={selectorTexts} 
                                            onChange={e => onSelectionChanged(+id, +e.target.value)} />
@@ -101,13 +103,13 @@ const SelectBasedChoiceQuestionWithCtx = observer((props: { isMulti : boolean })
     );
 })
 
-type SelectBlockProps = {
+type SwitchBlockProps = {
     id: string, 
     value: string | number, 
     options: (string | number)[], 
     onChange: (e: any) => void,
 }
-const SelectBlock = ({ id, value, options, onChange }: SelectBlockProps) => {    
+const SwitchBlock = ({ id, value, options, onChange }: SwitchBlockProps) => {    
     return (
         <select id={id} value={value} onChange={onChange}>
             {<option value="" disabled></option>}
@@ -117,6 +119,7 @@ const SelectBlock = ({ id, value, options, onChange }: SelectBlockProps) => {
 };
 
 const onSelectionChanged = (answerId: number, value: number) => {
+    const exerciseStore = container.resolve(ExerciseStore);
     const newHistory = [ 
         ...exerciseStore.answersHistory.filter(v => v[0] !== answerId),
         [answerId, value] as [number, number],

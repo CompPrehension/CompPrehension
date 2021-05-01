@@ -3,9 +3,8 @@ import { observer } from "mobx-react";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
 
-const exerciseStore = container.resolve<ExerciseStore>(ExerciseStore);
-
-export const OrderQuestion : React.FC = observer(() => {
+export const OrderQuestion = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
     if (!currentQuestion || currentQuestion.type != "ORDER" || !currentQuestion.options.requireContext) {
         return null;
