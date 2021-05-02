@@ -16,22 +16,28 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderQuestionOptionsEntity extends QuestionOptionsEntity {
     /// Show answer trace
+    @Builder.Default
     private boolean showTrace = false;
 
     /// Same answers can be selected several times
+    @Builder.Default
     private boolean multipleSelectionEnabled = true;
 
     /// All answers must be selected
+    @Builder.Default
     private boolean requireAllAnswers = true;
 
     /// Order number options
+    @Builder.Default
     private OrderNumberOptions orderNumberOptions = new OrderNumberOptions();
 
     @Data @NoArgsConstructor @AllArgsConstructor
     @Builder @Jacksonized
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OrderNumberOptions {
+        @Builder.Default
         private String delimiter = "/";
+        @Builder.Default
         private OrderNumberPosition position = OrderNumberPosition.SUFFIX;
         private String[] replacers;
     }
