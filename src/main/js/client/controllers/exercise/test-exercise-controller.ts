@@ -51,7 +51,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: false,
-                    displayMode: 'switch',              
+                    displayMode: 'radio',              
                 }
             }
         }
@@ -86,7 +86,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: true,
-                    displayMode: 'switch',              
+                    displayMode: 'radio',              
                 }
             }
         }

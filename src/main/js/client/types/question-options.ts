@@ -56,11 +56,24 @@ export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.in
     }),
 ], 'MatchingQuestionOptions')
 
-export type ChoiceQuestionOptions = QuestionOptions & {
+export type SingleChoiceQuestionOptions = QuestionOptions & {
+    displayMode: 'radio' | 'dragNdrop',
+}
+export const TSingleChoiceQuestionOptions: io.Type<SingleChoiceQuestionOptions> = io.intersection([
+    TQuestionOptions,
+    io.type({
+        displayMode: io.keyof({
+            'radio': null,
+            'dragNdrop': null,
+        }),        
+    }),
+], 'SingleChoiceQuestionOptions');
+
+export type MultiChoiceQuestionOptions = QuestionOptions & {
     displayMode: 'switch' | 'dragNdrop',
     selectorReplacers?: [string, string],
 }
-export const TChoiceQuestionOptions : io.Type<ChoiceQuestionOptions> = io.intersection([
+export const TMultiChoiceQuestionOptions: io.Type<MultiChoiceQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
         displayMode: io.keyof({
@@ -71,4 +84,4 @@ export const TChoiceQuestionOptions : io.Type<ChoiceQuestionOptions> = io.inters
     io.partial({
         selectorReplacers: io.tuple([io.string, io.string]),
     }),
-], 'ChoiceQuestionOptions')
+], 'MultiChoiceQuestionOptions')

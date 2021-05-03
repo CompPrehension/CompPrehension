@@ -5,8 +5,7 @@ import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
 import { ToggleSwitch } from "../../../common/toggle";
 
-const ChoiceQuestion = observer((props: { isMulti : boolean }) => {
-    const { isMulti } = props;
+export const MultiChoiceQuestion = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion } = exerciseStore;
     if (!currentQuestion || (currentQuestion.type !== 'SINGLE_CHOICE' && currentQuestion.type !== 'MULTI_CHOICE')) {
@@ -15,17 +14,33 @@ const ChoiceQuestion = observer((props: { isMulti : boolean }) => {
     const options = currentQuestion.options;
     switch(true) {
         case options.displayMode == 'switch' && !options.requireContext:
-            return <SwitchChoiceQuestion isMulti={isMulti}/>;
+            return <SwitchMultiChoiceQuestion />;
         case options.displayMode === 'switch' && options.requireContext:
-            return <SwitchChoiceQuestionWithCtx isMulti={isMulti}/>;
+            return <SwitchMultiChoiceQuestionWithCtx />;
     }
     return (<div>Not implemented</div>);
-})
+});
 
-const SwitchChoiceQuestion = observer(({ isMulti }: { isMulti : boolean }) => {
+export const SingleChoiceQuestion = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const { currentQuestion } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type !== 'SINGLE_CHOICE') {
+        return null;
+    }
+    const options = currentQuestion.options;
+    switch(true) {
+        case options.displayMode == 'radio' && !options.requireContext:
+            return <RadioSingleChoiceQuestion />;
+        case options.displayMode === 'radio' && options.requireContext:
+            return <RadioSingleChoiceQuestionWithCtx />;
+    }
+    return (<div>Not implemented</div>);
+});
+
+const SwitchMultiChoiceQuestion = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory } = exerciseStore;
-    if (!currentQuestion || (currentQuestion.type !== 'SINGLE_CHOICE' && currentQuestion.type !== 'MULTI_CHOICE')) {
+    if (!currentQuestion || currentQuestion.type !== 'MULTI_CHOICE') {
         return null;
     }
     const options = currentQuestion.options;
@@ -33,19 +48,11 @@ const SwitchChoiceQuestion = observer(({ isMulti }: { isMulti : boolean }) => {
 
     const onSwitched = (answerId: number, val: string) => {
         const value = selectorTexts.indexOf(val);
-        if (isMulti) {            
-            const newHistory = [ 
-                ...exerciseStore.answersHistory.filter(v => v[0] !== answerId),
-                [answerId, value] as [number, number],
-            ];
-            exerciseStore.updateAnswersHistory(newHistory);
-        } else if (value) {
-            const newHistory = [
-                [answerId, value] as [number, number],
-                ...exerciseStore.currentQuestion?.answers.filter(a => a.id !== answerId).map(a => [a.id, 0] as [number, number]) ?? [],
-            ];
-            exerciseStore.updateAnswersHistory(newHistory);
-        }
+        const newHistory = [ 
+            ...exerciseStore.answersHistory.filter(v => v[0] !== answerId),
+            [answerId, value] as [number, number],
+        ];
+        exerciseStore.updateAnswersHistory(newHistory);
     }
     
     return (
@@ -69,30 +76,21 @@ const SwitchChoiceQuestion = observer(({ isMulti }: { isMulti : boolean }) => {
     );
 })
 
-const SwitchChoiceQuestionWithCtx = observer(({ isMulti }: { isMulti : boolean }) => {
+const SwitchMultiChoiceQuestionWithCtx = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory } = exerciseStore;
-    if (!currentQuestion || (currentQuestion.type !== 'SINGLE_CHOICE' && currentQuestion.type !== 'MULTI_CHOICE')) {
+    if (!currentQuestion || currentQuestion.type !== 'MULTI_CHOICE') {
         return null;
     }
     const options = currentQuestion.options;
     const selectorTexts = options.selectorReplacers ?? ["no", "yes"];
     const onSwitched = (answerId: number, val: string) => {
         const value = selectorTexts.indexOf(val);
-        if (isMulti) {            
-            const newHistory = [ 
-                ...exerciseStore.answersHistory.filter(v => v[0] !== answerId),
-                [answerId, value] as [number, number],
-            ];
-            exerciseStore.updateAnswersHistory(newHistory);
-        } else if (value) {
-            const answers = exerciseStore.currentQuestion?.text.match(/answer_\d(?=\W)/g)?.map(v => +v.split('_')[1]) ?? [];
-            const newHistory = [
-                [answerId, value] as [number, number],
-                ...answers.filter(id => id !== answerId).map(id => [id, 0] as [number, number]) ?? [],
-            ];
-            exerciseStore.updateAnswersHistory(newHistory);
-        }
+        const newHistory = [ 
+            ...exerciseStore.answersHistory.filter(v => v[0] !== answerId),
+            [answerId, value] as [number, number],
+        ];
+        exerciseStore.updateAnswersHistory(newHistory);
     }
 
     // on First Render 
@@ -113,7 +111,10 @@ const SwitchChoiceQuestionWithCtx = observer(({ isMulti }: { isMulti : boolean }
     useEffect(() => {
         // drop all changes
         document.querySelectorAll('input[id^="answer_"]').forEach((e: any) => {
+            const id = +e.id?.split("answer_")[1] ?? -1;
+            //if (!answersHistory.some(h => h[0] === id)) {
             e.checked = undefined;
+            //}                
         });
 
         // apply history changes    
@@ -137,5 +138,94 @@ const SwitchChoiceQuestionWithCtx = observer(({ isMulti }: { isMulti : boolean }
     );
 })
 
-export const SingleChoiceQuestion = () => <ChoiceQuestion isMulti={false} />;
-export const MultiChoiceQuestion = () => <ChoiceQuestion isMulti={true} />;
+
+const RadioSingleChoiceQuestion = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const { currentQuestion, answersHistory } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type !== 'SINGLE_CHOICE') {
+        return null;
+    }
+    const onChange = (answerId: number, checked: boolean) => {
+        if (checked) {
+            exerciseStore.updateAnswersHistory([...exerciseStore.answersHistory, [answerId, answerId]])
+        }        
+    }
+
+    return (
+        <div>
+            <p>
+                <div dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+            </p>
+            <p className="d-flex flex-column">                
+                {currentQuestion.answers.map(a => 
+                    <div className="d-flex flex-row mb-3">
+                        <div className="mr-2 mt-1">
+                            <input id={`answer_${a.id}`} 
+                                   name={`switch_${currentQuestion.questionId}`} 
+                                   type="radio" 
+                                   checked={answersHistory.some(h => h[0] === a.id)}
+                                   onChange={(e) => onChange(a.id, e.target.checked)} />
+                        </div>
+                        <div>{a.text}</div>                        
+                    </div>)}
+            </p>
+        </div>
+    );
+})
+
+const RadioSingleChoiceQuestionWithCtx = observer(() => {
+    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const { currentQuestion, answersHistory } = exerciseStore;
+    if (!currentQuestion || currentQuestion.type !== 'SINGLE_CHOICE') {
+        return null;
+    }
+    const options = currentQuestion.options;
+    const onChange = (answerId: number, checked: boolean) => {
+        if (checked) {
+            exerciseStore.updateAnswersHistory([[answerId, answerId]])
+        }        
+    }
+
+    // on First Render 
+    useEffect(() => {    
+        // add button click event handlers
+        document.querySelectorAll('[id^="answer_"]').forEach(e => {
+            const id = e.id?.split("answer_")[1] ?? -1;
+            const component = (<span>
+                                 <input id={`answer_${id}`} 
+                                        name={`switch_${currentQuestion.questionId}`} 
+                                        type="radio" 
+                                        checked={answersHistory.some(h => h[0] === +id)}
+                                        onChange={(e) => onChange(+id, e.target.checked)} />
+                                 <span dangerouslySetInnerHTML={{ __html: e.innerHTML }}/>
+                               </span>)
+            ReactDOM.render(component, e);
+            e.id = "";   
+        })
+    }, [currentQuestion.questionId]);
+
+    // apply history changes
+    useEffect(() => {
+        // drop all changes
+        document.querySelectorAll('input[id^="answer_"]').forEach((e: any) => {
+            e.checked = undefined;
+        });
+
+        // apply history changes    
+        answersHistory.forEach(([id]) => {
+            const answr: any = document.getElementById(`answer_${id}`);
+            if (!answr) {
+                return;
+            }
+            setTimeout(() => answr.checked = true, 10)
+        });
+    }, [currentQuestion.questionId, exerciseStore.answersHistory])
+
+    return (
+        <div>
+            <p>
+                <div dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+            </p>            
+        </div>
+    );
+})
