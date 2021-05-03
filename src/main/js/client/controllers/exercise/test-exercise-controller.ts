@@ -31,7 +31,7 @@ export class TestExerciseController implements IExerciseController {
         return E.right({
             attemptId: -1,
             exerciseId: -1,
-            questionIds: [1, 2],
+            questionIds: [1, 2, 3, 4],
         });
     }
     async getQuestion(questionId: number): PromiseEither<RequestError, Question> {
@@ -40,11 +40,12 @@ export class TestExerciseController implements IExerciseController {
             result = {
                 type: 'SINGLE_CHOICE',
                 attemptId: -1,
-                questionId: -1,
+                questionId: 1,
                 text: 'question text',
                 answers: [
                     { id: 0, text: 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
                     { id: 1, text: 'answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
+                    { id: 2, text: 'answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
                 ],
                 responses: [],
                 feedback: null,
@@ -56,9 +57,44 @@ export class TestExerciseController implements IExerciseController {
         }
         if (questionId === 2) {
             result = {
+                type: 'MULTI_CHOICE',
+                attemptId: -1,
+                questionId: 2,
+                text: 'question text',
+                answers: [
+                    { id: 0, text: 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
+                    { id: 1, text: 'answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
+                    { id: 2, text: 'answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
+                ],
+                responses: [],
+                feedback: null,
+                options: {
+                    requireContext: false,
+                    displayMode: 'switch',              
+                }
+            }
+        }
+
+        if (questionId === 3) {
+            result = {
                 type: 'SINGLE_CHOICE',
                 attemptId: -1,
-                questionId: -1,
+                questionId: 3,
+                text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
+                answers: [],
+                responses: [],
+                feedback: null,
+                options: {
+                    requireContext: true,
+                    displayMode: 'switch',              
+                }
+            }
+        }
+        if (questionId === 4) {
+            result = {
+                type: 'MULTI_CHOICE',
+                attemptId: -1,
+                questionId: 4,
                 text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
                 answers: [],
                 responses: [],
@@ -74,16 +110,17 @@ export class TestExerciseController implements IExerciseController {
             return E.right(result);
         return E.left({ message: "No such question" });
     }
-    generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
-        throw new Error("Method not implemented.");
+    async generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
+        return E.left({ message:"Method not implemented."});
     }
-    generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
-        throw new Error("Method not implemented.");
+    async generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
+        return E.left({ message:"Method not implemented."});
     }
-    addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
-        throw new Error("Method not implemented.");
+    async addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
+        console.log('addQuestionAnswer', interaction);
+        return E.left({ message:"Method not implemented."});
     }
-    getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
-        throw new Error("Method not implemented.");
+    async getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
+        return E.left({ message:"Method not implemented."});
     }
 }

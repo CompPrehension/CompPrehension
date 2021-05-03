@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import { OrderQuestion } from "./question-types/order-question";
 import { MatchingQuestion } from './question-types/matching-question';
 import { Loader } from '../../common/loader';
-import { SingleChoiceQuestion } from './question-types/choice-question';
+import { MultiChoiceQuestion, SingleChoiceQuestion } from './question-types/choice-question';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../stores/exercise-store";
 import { useState } from 'react';
@@ -26,6 +26,8 @@ export const QuestionFabric = observer(() => {
             return <OrderQuestion />;
         case questionData.type == "SINGLE_CHOICE":
             return <SingleChoiceQuestion />;
+        case questionData.type == "MULTI_CHOICE":
+            return <MultiChoiceQuestion />;
     }
 
     return (<div>Unsupported question type</div>);
