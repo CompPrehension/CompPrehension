@@ -24,6 +24,7 @@ public class Concept {
         if (baseConcepts.contains(concept)) {
             return true;
         } else {
+            // search up along the hierarchy
             for (Concept baseConcept : baseConcepts) {
                 if (baseConcept.hasBaseConcept(concept)) {
                     return true;
