@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
 // @ts-ignore
-import { Droppable } from '@shopify/draggable';
+import { Droppable, DroppableEventNames } from '@shopify/draggable';
 
 
 export const MatchingQuestion = observer(() => {
@@ -36,7 +36,7 @@ const DragAndDropMatchingQuestion = observer(() => {
         return null;
     }
     const { groups = [] } = currentQuestion;
-
+    const { options } = currentQuestion;
 
 
     // on question first render
@@ -49,16 +49,26 @@ const DragAndDropMatchingQuestion = observer(() => {
                 e.style.width = dropzoneStyle.width;
             });
 
-        const droppable = new Droppable(document.querySelectorAll('.comp-ph-droppable-container'), {
+        const droppable = new Droppable<DroppableEventNames>(document.querySelectorAll('.comp-ph-droppable-container'), {
             draggable: '.comp-ph-draggable',
             dropzone: '.comp-ph-dropzone',
         })
 
-        droppable.on('droppable:stop', (e: any) => {             
+        droppable.on('droppable:stop', (e: any) => {
             const draggableId: string | undefined = e?.data?.dragEvent?.data?.source?.id;
             const droppableId: string | undefined = e?.data?.dropzone?.id;
             if (!draggableId || !droppableId) {
                 return;
+            }
+
+            // clone draggable element and return it back
+            if (options.multipleSelectionEnabled) {
+                const wrapperId = `dragAnswerWrapper_${draggableId.split('_')[1] ?? ''}`;
+                const wrapper = document.getElementById(wrapperId);
+                const draggable = document.getElementById(draggableId);
+                if (wrapper && draggable) {
+                    wrapper.innerHTML = draggable.outerHTML;
+                }
             }
 
             // setTimeout is needed to guarantee completion of all dnd events
@@ -81,14 +91,20 @@ const DragAndDropMatchingQuestion = observer(() => {
             <div className="row comp-ph-droppable-container">
                 <div className="col-md">
                     <p dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
-                    <div id="answer_0" className="comp-ph-dropzone" style={dropzoneStyle}></div>
-                    <div id="answer_1" className="comp-ph-dropzone" style={dropzoneStyle}></div>
-                    <div id="answer_2" className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                    <p className="d-flex flex-column">
+                        {currentQuestion.answers.map(a =>
+                            <div className="d-flex flex-row mb-3">
+                                <div className="mr-2 mt-1">
+                                    <div id={`answer_${a.id}`} className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                                </div>
+                                <div>{a.text}</div>
+                            </div>)}
+                    </p>                    
                 </div>
                 <div className="col-md">
                     {groups.map(g => 
-                        (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column" style={dropzoneStyle}>
-                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2 d-flex justify-content-center" dangerouslySetInnerHTML={{ __html: g.text }}/>
+                        (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column mb-2" style={dropzoneStyle}>
+                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2 d-flex justify-content-center align-items-center" dangerouslySetInnerHTML={{ __html: g.text }}/>
                          </div>))}
                 </div>
             </div>

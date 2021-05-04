@@ -12,6 +12,7 @@ import * as E from "fp-ts/lib/Either";
 @injectable()
 export class TestExerciseController implements IExerciseController {
     async loadSessionInfo(): PromiseEither<RequestError, SessionInfo> {
+        console.log(`loadSessionInfo`);
         return E.right({
             sessionId: 'test_session',
             exerciseId: -1,
@@ -25,16 +26,19 @@ export class TestExerciseController implements IExerciseController {
         });
     }
     async getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, "" | ExerciseAttempt | null | undefined> {
+        console.log(`getExistingExerciseAttempt?exerciseId=${exerciseId}`);
         return E.right("");
     }
     async createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        console.log(`createExerciseAttempt?exerciseId=${exerciseId}`);
         return E.right({
             attemptId: -1,
             exerciseId: -1,
-            questionIds: [1, 2, 3, 4],
+            questionIds: [1, 2, 3, 4, 5],
         });
     }
     async getQuestion(questionId: number): PromiseEither<RequestError, Question> {
+        console.log(`getQuestion?questionId=${questionId}`);
         let result: Question | undefined;
         if (questionId === 1) {
             result = {
@@ -105,15 +109,57 @@ export class TestExerciseController implements IExerciseController {
                 }
             }
         }
+        if (questionId === 5) {
+            result = {
+                type: 'MATCHING',
+                attemptId: -1,
+                questionId: 5,
+                text: 'question text ',
+                answers: [
+                    {
+                        id: 0,
+                        text: 'test1'
+                    },
+                    {
+                        id: 1,
+                        text: 'test2'
+                    },
+                    {
+                        id: 3,
+                        text: 'test3'
+                    },
+                ],
+                groups: [
+                    {
+                        id: 0,
+                        text: 'group1'
+                    },
+                    {
+                        id: 1,
+                        text: 'group2'
+                    },
+                ],
+                responses: [],
+                feedback: null,
+                options: {
+                    requireContext: false,
+                    displayMode: 'dragNdrop',
+                    multipleSelectionEnabled: true,  
+                }
+            } 
+        }
+
 
         if (result)
             return E.right(result);
         return E.left({ message: "No such question" });
     }
     async generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
+        console.log(`generateQuestion?attemptId=${attemptId}`);
         return E.left({ message:"Method not implemented."});
     }
     async generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
+        console.log(`generateNextCorrectAnswer?questionId=${questionId}`);
         return E.left({ message:"Method not implemented."});
     }
     async addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
@@ -121,6 +167,7 @@ export class TestExerciseController implements IExerciseController {
         return E.left({ message:"Method not implemented."});
     }
     async getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
+        console.log(`getExerciseStatistics?exerciseId=${exerciseId}`);
         return E.left({ message:"Method not implemented."});
     }
 }

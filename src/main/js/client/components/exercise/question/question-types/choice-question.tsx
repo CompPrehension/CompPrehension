@@ -147,7 +147,7 @@ const RadioSingleChoiceQuestion = observer(() => {
     }
     const onChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            exerciseStore.updateAnswersHistory([...exerciseStore.answersHistory, [answerId, answerId]])
+            exerciseStore.updateAnswersHistory([[answerId, answerId]])
         }        
     }
 
@@ -158,7 +158,7 @@ const RadioSingleChoiceQuestion = observer(() => {
             </p>
             <p className="d-flex flex-column">                
                 {currentQuestion.answers.map(a => 
-                    <div className="d-flex flex-row mb-3">
+                    <label htmlFor={`answer_${a.id}`} className="d-flex flex-row mb-3">
                         <div className="mr-2 mt-1">
                             <input id={`answer_${a.id}`} 
                                    name={`switch_${currentQuestion.questionId}`} 
@@ -167,7 +167,7 @@ const RadioSingleChoiceQuestion = observer(() => {
                                    onChange={(e) => onChange(a.id, e.target.checked)} />
                         </div>
                         <div>{a.text}</div>                        
-                    </div>)}
+                    </label>)}
             </p>
         </div>
     );
@@ -191,14 +191,14 @@ const RadioSingleChoiceQuestionWithCtx = observer(() => {
         // add button click event handlers
         document.querySelectorAll('[id^="answer_"]').forEach(e => {
             const id = e.id?.split("answer_")[1] ?? -1;
-            const component = (<span>
+            const component = (<label htmlFor={`answer_${id}`}>
                                  <input id={`answer_${id}`} 
                                         name={`switch_${currentQuestion.questionId}`} 
                                         type="radio" 
                                         checked={answersHistory.some(h => h[0] === +id)}
                                         onChange={(e) => onChange(+id, e.target.checked)} />
                                  <span dangerouslySetInnerHTML={{ __html: e.innerHTML }}/>
-                               </span>)
+                               </label>)
             ReactDOM.render(component, e);
             e.id = "";   
         })

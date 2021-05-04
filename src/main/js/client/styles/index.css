@@ -95,7 +95,8 @@ body ul {
 }
 
 .comp-ph-dropzone {
-  outline: solid 1px;
+  border: solid 1px;
+  border-radius: 5px; 
 }
 
 .draggable-dropzone--occupied { 

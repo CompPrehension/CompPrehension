@@ -151,7 +151,7 @@ export class ExerciseStore {
         const body: Interaction = toJS({
             attemptId: currentQuestion.attemptId,
             questionId: currentQuestion.questionId,
-            answers: answersHistory,
+            answers: toJS(answersHistory),
         })
 
         this.isFeedbackLoading = true;
