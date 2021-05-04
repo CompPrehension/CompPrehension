@@ -1,0 +1,3280 @@
+[
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderActs",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"4\" id=\"answer_4-started\" act_type=\"started\" data-tooltip=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-position=\"top left\"><i class=\"play small icon\"></i></span>if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"6\" id=\"answer_6-performed\" act_type=\"performed\" data-tooltip=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"5\" id=\"answer_5-started\" act_type=\"started\" data-tooltip=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"7\" id=\"answer_7-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_9-performed\" act_type=\"performed\" data-tooltip=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"8\" id=\"answer_8-started\" act_type=\"started\" data-tooltip=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"10\" id=\"answer_10-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0431\u0435\u0436\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0431\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_11-started\" act_type=\"started\" data-tooltip=\"Start ELSE branch of alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_12-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u043b\u0435\u0436\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u043b\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div>",
+      "areAnswersRequireContext": false,
+      "options": {},
+      "answerObjects": [
+        {
+          "hyperText": "begin program",
+          "domainInfo": "started:3",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end program",
+          "domainInfo": "finished:3",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443'",
+          "domainInfo": "started:4",
+          "isRightCol": false,
+          "concept": "alternative",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443'",
+          "domainInfo": "finished:4",
+          "isRightCol": false,
+          "concept": "alternative",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "evaluate condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "performed:6",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "evaluate condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439'",
+          "domainInfo": "performed:9",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0436\u0434\u0430\u0442\u044c'",
+          "domainInfo": "performed:7",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0431\u0435\u0436\u0430\u0442\u044c'",
+          "domainInfo": "performed:10",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u043b\u0435\u0436\u0430\u0442\u044c'",
+          "domainInfo": "performed:12",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "started:5",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "finished:5",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin ELSE-IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439'",
+          "domainInfo": "started:8",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end ELSE-IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439'",
+          "domainInfo": "finished:8",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin ELSE branch of alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else'",
+          "domainInfo": "started:11",
+          "isRightCol": false,
+          "concept": "else",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end ELSE branch of alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else'",
+          "domainInfo": "finished:11",
+          "isRightCol": false,
+          "concept": "else",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "2_algorithm",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "2_algorithm",
+          "verb": "algorithm_name",
+          "subjectType": "xsd:string",
+          "subject": "alg00_alt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "2_algorithm",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "2_algorithm",
+          "verb": "global_code",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "2_algorithm",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 2
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "2_algorithm",
+          "verb": "entry_point",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 3
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "4_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_3_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_3_global_code",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_3_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_3_global_code",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "alternative"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 4
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "branches_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "branches_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "branches_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_po_tsvetu-else"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "4_po_tsvetu",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_4_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_4_po_tsvetu",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "4_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_4_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_4_po_tsvetu",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "4_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "if"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 5
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "7_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "cond",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "6_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "5_if-sejchas_krasnyj",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_5_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_5_if-sejchas_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_5_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_5_if-sejchas_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "6_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "expr"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "6_sejchas_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 6
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "6_sejchas_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_6_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_6_sejchas_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "6_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_6_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_6_sejchas_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "6_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 7
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0436\u0434\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_7_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_7_zhdat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "7_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_7_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_7_zhdat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "7_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "else-if"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 8
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "10_bezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "elseif-\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "cond",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "9_sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 1
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "8_elseif-sejchas_zelenyj",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_po_tsvetu-else"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_8_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_8_elseif-sejchas_zelenyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_8_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_8_elseif-sejchas_zelenyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "9_sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "expr"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "9_sejchas_zelenyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 9
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "9_sejchas_zelenyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_9_sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_9_sejchas_zelenyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "9_sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_9_sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_9_sejchas_zelenyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "9_sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 10
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0431\u0435\u0436\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_10_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_10_bezhat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "10_bezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_10_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_10_bezhat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "10_bezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "else"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 2
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 11
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "11_po_tsvetu-else",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_lezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_11_po_tsvetu-else",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_11_po_tsvetu-else",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_po_tsvetu-else"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_11_po_tsvetu-else",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_11_po_tsvetu-else",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_po_tsvetu-else"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "12_lezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "12_lezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "12_lezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "12_lezhat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "12_lezhat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 12
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "12_lezhat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043b\u0435\u0436\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_12_lezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_12_lezhat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_lezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_12_lezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_12_lezhat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_lezhat"
+        }
+      ]
+    },
+    "concepts": [
+      "trace",
+      "mistake",
+      "alternative",
+      "else",
+      "else-if",
+      "expr",
+      "if",
+      "sequence",
+      "stmt"
+    ],
+    "tags": [
+      "C++"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderActs",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_15-started\" act_type=\"started\" data-tooltip=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-position=\"top left\"><i class=\"play small icon\"></i></span>if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"17\" id=\"answer_17-performed\" act_type=\"performed\" data-tooltip=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"16\" id=\"answer_16-started\" act_type=\"started\" data-tooltip=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_18-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"20\" id=\"answer_20-performed\" act_type=\"performed\" data-tooltip=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"19\" id=\"answer_19-started\" act_type=\"started\" data-tooltip=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_21-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0431\u0435\u0436\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0431\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div>",
+      "areAnswersRequireContext": false,
+      "options": {},
+      "answerObjects": [
+        {
+          "hyperText": "begin program",
+          "domainInfo": "started:14",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end program",
+          "domainInfo": "finished:14",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443'",
+          "domainInfo": "started:15",
+          "isRightCol": false,
+          "concept": "alternative",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443'",
+          "domainInfo": "finished:15",
+          "isRightCol": false,
+          "concept": "alternative",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "evaluate condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "performed:17",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "evaluate condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439'",
+          "domainInfo": "performed:20",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0436\u0434\u0430\u0442\u044c'",
+          "domainInfo": "performed:18",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0431\u0435\u0436\u0430\u0442\u044c'",
+          "domainInfo": "performed:21",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "started:16",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "finished:16",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin ELSE-IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439'",
+          "domainInfo": "started:19",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end ELSE-IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439'",
+          "domainInfo": "finished:19",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "13_algorithm",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "13_algorithm",
+          "verb": "algorithm_name",
+          "subjectType": "xsd:string",
+          "subject": "alg01_alt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "13_algorithm",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "13_algorithm",
+          "verb": "global_code",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "14_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "13_algorithm",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 13
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "13_algorithm",
+          "verb": "entry_point",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "14_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "14_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "14_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "14_global_code",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "14_global_code",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 14
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "14_global_code",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_14_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_14_global_code",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "14_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_14_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_14_global_code",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "14_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "alternative"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 15
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "branches_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "16_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "branches_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "19_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "15_po_tsvetu",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_15_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_15_po_tsvetu",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_15_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_15_po_tsvetu",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "if"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 16
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "18_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "cond",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "17_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "16_if-sejchas_krasnyj",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "19_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_16_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_16_if-sejchas_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "16_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_16_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_16_if-sejchas_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "16_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "17_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "expr"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "17_sejchas_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 17
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "17_sejchas_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_17_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_17_sejchas_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "17_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_17_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_17_sejchas_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "17_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 18
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0436\u0434\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_18_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_18_zhdat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "18_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_18_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_18_zhdat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "18_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "else-if"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "elseif-\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_bezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "cond",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "20_sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 1
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "19_elseif-sejchas_zelenyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 19
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_19_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_19_elseif-sejchas_zelenyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "19_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_19_elseif-sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_19_elseif-sejchas_zelenyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "19_elseif-sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "20_sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "expr"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "20_sejchas_zelenyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 20
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "20_sejchas_zelenyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_20_sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_20_sejchas_zelenyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "20_sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_20_sejchas_zelenyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_20_sejchas_zelenyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "20_sejchas_zelenyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 21
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0431\u0435\u0436\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_21_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_21_bezhat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_bezhat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_21_bezhat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_21_bezhat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_bezhat"
+        }
+      ]
+    },
+    "concepts": [
+      "trace",
+      "mistake",
+      "alternative",
+      "else-if",
+      "expr",
+      "if",
+      "sequence",
+      "stmt"
+    ],
+    "tags": [
+      "C++"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderActs",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"24\" id=\"answer_24-started\" act_type=\"started\" data-tooltip=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-position=\"top left\"><i class=\"play small icon\"></i></span>if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"26\" id=\"answer_26-performed\" act_type=\"performed\" data-tooltip=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_25-started\" act_type=\"started\" data-tooltip=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"27\" id=\"answer_27-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div>",
+      "areAnswersRequireContext": false,
+      "options": {},
+      "answerObjects": [
+        {
+          "hyperText": "begin program",
+          "domainInfo": "started:23",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end program",
+          "domainInfo": "finished:23",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443'",
+          "domainInfo": "started:24",
+          "isRightCol": false,
+          "concept": "alternative",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end alternative '\u043f\u043e_\u0446\u0432\u0435\u0442\u0443'",
+          "domainInfo": "finished:24",
+          "isRightCol": false,
+          "concept": "alternative",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "evaluate condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "performed:26",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0436\u0434\u0430\u0442\u044c'",
+          "domainInfo": "performed:27",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "started:25",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end IF branch with condition '\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "finished:25",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "22_algorithm",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "22_algorithm",
+          "verb": "algorithm_name",
+          "subjectType": "xsd:string",
+          "subject": "alg02_alt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "22_algorithm",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "22_algorithm",
+          "verb": "global_code",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "23_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "22_algorithm",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 22
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "22_algorithm",
+          "verb": "entry_point",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "23_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "23_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "23_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "23_global_code",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "23_global_code",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 23
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "23_global_code",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "24_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_23_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_23_global_code",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "23_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_23_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_23_global_code",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "23_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "alternative"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 24
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "branches_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "24_po_tsvetu",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_24_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_24_po_tsvetu",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "24_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_24_po_tsvetu",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_24_po_tsvetu",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "24_po_tsvetu"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "if"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "27_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "cond",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "26_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 25
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_25_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_25_if-sejchas_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_25_if-sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_25_if-sejchas_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_if-sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "26_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "expr"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "26_sejchas_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 26
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "26_sejchas_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_26_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_26_sejchas_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "26_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_26_sejchas_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_26_sejchas_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "26_sejchas_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 27
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0436\u0434\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_27_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_27_zhdat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "27_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_27_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_27_zhdat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "27_zhdat"
+        }
+      ]
+    },
+    "concepts": [
+      "trace",
+      "mistake",
+      "alternative",
+      "expr",
+      "if",
+      "sequence",
+      "stmt"
+    ],
+    "tags": [
+      "C++"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderActs",
+      "questionText": "<div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"32\" id=\"answer_32-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0434\u0435\u043b\u0430\u0439_\u0440\u0430\u0437\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0434\u0435\u043b\u0430\u0439_\u0440\u0430\u0437</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"33\" id=\"answer_33-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0434\u0435\u043b\u0430\u0439_\u0434\u0432\u0430\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0434\u0435\u043b\u0430\u0439_\u0434\u0432\u0430</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"34\" id=\"answer_34-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0434\u0435\u043b\u0430\u0439_\u0442\u0440\u0438\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0434\u0435\u043b\u0430\u0439_\u0442\u0440\u0438</span>;</div>",
+      "areAnswersRequireContext": false,
+      "options": {},
+      "answerObjects": [
+        {
+          "hyperText": "begin body of function 'main'",
+          "domainInfo": "started:31",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end body of function 'main'",
+          "domainInfo": "finished:31",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin program",
+          "domainInfo": "started:29",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end program",
+          "domainInfo": "finished:29",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin function 'main'",
+          "domainInfo": "started:30",
+          "isRightCol": false,
+          "concept": "func",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end function 'main'",
+          "domainInfo": "finished:30",
+          "isRightCol": false,
+          "concept": "func",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0434\u0435\u043b\u0430\u0439_\u0440\u0430\u0437'",
+          "domainInfo": "performed:32",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0434\u0435\u043b\u0430\u0439_\u0434\u0432\u0430'",
+          "domainInfo": "performed:33",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0434\u0435\u043b\u0430\u0439_\u0442\u0440\u0438'",
+          "domainInfo": "performed:34",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "functions_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "30_main"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "algorithm_name",
+          "subjectType": "xsd:string",
+          "subject": "alg03_seq3"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "global_code",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "29_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 28
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "28_algorithm",
+          "verb": "entry_point",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "30_main"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "func"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "body",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_main-body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 30
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "main"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_30_main",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_30_main",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "30_main"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_30_main",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_30_main",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "30_main"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "main-body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 31
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_delaj_raz"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "33_delaj_dva"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "34_delaj_tri"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_31_main-body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_31_main-body",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_main-body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_31_main-body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_31_main-body",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_main-body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "32_delaj_raz",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "32_delaj_raz",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "32_delaj_raz",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "32_delaj_raz",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "33_delaj_dva"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "32_delaj_raz",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 32
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "32_delaj_raz",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0434\u0435\u043b\u0430\u0439_\u0440\u0430\u0437"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_32_delaj_raz",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_32_delaj_raz",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_delaj_raz"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_32_delaj_raz",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_32_delaj_raz",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_delaj_raz"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "33_delaj_dva",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "33_delaj_dva",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 1
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "33_delaj_dva",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "34_delaj_tri"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "33_delaj_dva",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 33
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "33_delaj_dva",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0434\u0435\u043b\u0430\u0439_\u0434\u0432\u0430"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_33_delaj_dva",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_33_delaj_dva",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "33_delaj_dva"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_33_delaj_dva",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_33_delaj_dva",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "33_delaj_dva"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "34_delaj_tri",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "34_delaj_tri",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "34_delaj_tri",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 2
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "34_delaj_tri",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 34
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "34_delaj_tri",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0434\u0435\u043b\u0430\u0439_\u0442\u0440\u0438"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_34_delaj_tri",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_34_delaj_tri",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "34_delaj_tri"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_34_delaj_tri",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_34_delaj_tri",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "34_delaj_tri"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "29_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "29_global_code",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 29
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "29_global_code",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_29_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_29_global_code",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "29_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_29_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_29_global_code",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "29_global_code"
+        }
+      ]
+    },
+    "concepts": [
+      "trace",
+      "mistake",
+      "func",
+      "sequence",
+      "stmt"
+    ],
+    "tags": [
+      "C++"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderActs",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"37\" id=\"answer_37-started\" act_type=\"started\" data-tooltip=\"Start loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-position=\"top left\"><i class=\"play small icon\"></i></span>while</span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"38\" id=\"answer_38-performed\" act_type=\"performed\" data-tooltip=\"Perform condition \u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"40\" id=\"answer_40-started\" act_type=\"started\" data-tooltip=\"Start iteration of loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-position=\"top left\"><i class=\"play small icon\"></i></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"39\" id=\"answer_39-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"41\" id=\"answer_41-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"42\" id=\"answer_42-performed\" act_type=\"performed\" data-tooltip=\"Perform statement \u0438\u0434\u0442\u0438\" data-position=\"top left\"><i class=\"play small icon\"></i></span>\u0438\u0434\u0442\u0438</span>;</div>",
+      "areAnswersRequireContext": false,
+      "options": {},
+      "answerObjects": [
+        {
+          "hyperText": "begin program",
+          "domainInfo": "started:36",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end program",
+          "domainInfo": "finished:36",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin iteration of loop '\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435'",
+          "domainInfo": "started:40",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end iteration of loop '\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435'",
+          "domainInfo": "finished:40",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "evaluate condition '\u043a\u0440\u0430\u0441\u043d\u044b\u0439'",
+          "domainInfo": "performed:38",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0436\u0434\u0430\u0442\u044c'",
+          "domainInfo": "performed:39",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)'",
+          "domainInfo": "performed:41",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "execute statement '\u0438\u0434\u0442\u0438'",
+          "domainInfo": "performed:42",
+          "isRightCol": false,
+          "concept": "stmt",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "begin loop '\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435'",
+          "domainInfo": "started:37",
+          "isRightCol": false,
+          "concept": "while_loop",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "hyperText": "end loop '\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435'",
+          "domainInfo": "finished:37",
+          "isRightCol": false,
+          "concept": "while_loop",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "35_algorithm",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "35_algorithm",
+          "verb": "algorithm_name",
+          "subjectType": "xsd:string",
+          "subject": "10_while"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "35_algorithm",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "algorithm"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "35_algorithm",
+          "verb": "global_code",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "36_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "35_algorithm",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 35
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "35_algorithm",
+          "verb": "entry_point",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "36_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 36
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "37_ozhidanie"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "41_zhdat_sekundy3"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "42_idti"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_36_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_36_global_code",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "36_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_36_global_code",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_36_global_code",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "36_global_code"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "while_loop"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "body",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "40_ozhidanie_loop_body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "41_zhdat_sekundy3"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "cond",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "38_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "37_ozhidanie",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 37
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_37_ozhidanie",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_37_ozhidanie",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "37_ozhidanie"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_37_ozhidanie",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_37_ozhidanie",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "37_ozhidanie"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "38_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "expr"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "38_krasnyj",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 38
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "38_krasnyj",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_38_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_38_krasnyj",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "38_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_38_krasnyj",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_38_krasnyj",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "38_krasnyj"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "40_ozhidanie_loop_body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "sequence"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "40_ozhidanie_loop_body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "linked_list"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "40_ozhidanie_loop_body",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435_loop_body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "40_ozhidanie_loop_body",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 40
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "40_ozhidanie_loop_body",
+          "verb": "body_item",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "39_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_40_ozhidanie_loop_body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_40_ozhidanie_loop_body",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "40_ozhidanie_loop_body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_40_ozhidanie_loop_body",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_40_ozhidanie_loop_body",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "40_ozhidanie_loop_body"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "39_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "39_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "first_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "39_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "39_zhdat",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 0
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "39_zhdat",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 39
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "39_zhdat",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0436\u0434\u0430\u0442\u044c"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_39_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_39_zhdat",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "39_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_39_zhdat",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_39_zhdat",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "39_zhdat"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "41_zhdat_sekundy3",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "41_zhdat_sekundy3",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 1
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "41_zhdat_sekundy3",
+          "verb": "next",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "42_idti"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "41_zhdat_sekundy3",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 41
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "41_zhdat_sekundy3",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_41_zhdat_sekundy3",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_41_zhdat_sekundy3",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "41_zhdat_sekundy3"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_41_zhdat_sekundy3",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_41_zhdat_sekundy3",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "41_zhdat_sekundy3"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "42_idti",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "stmt"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "42_idti",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "last_item"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "42_idti",
+          "verb": "item_index",
+          "subjectType": "xsd:int",
+          "subject": 2
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "42_idti",
+          "verb": "id",
+          "subjectType": "xsd:int",
+          "subject": 42
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "42_idti",
+          "verb": "stmt_name",
+          "subjectType": "xsd:string",
+          "subject": "\u0438\u0434\u0442\u0438"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_42_idti",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "begin_of_42_idti",
+          "verb": "begin_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "42_idti"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_42_idti",
+          "verb": "rdf:type",
+          "subjectType": "owl:Class",
+          "subject": "boundary"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "end_of_42_idti",
+          "verb": "end_of",
+          "subjectType": "owl:NamedIndividual",
+          "subject": "42_idti"
+        },
+        {
+          "objectType": "owl:NamedIndividual",
+          "object": "38_krasnyj",
+          "verb": "not-for-reasoner:expr_values",
+          "subjectType": "List<boolean>",
+          "subject": "1,0"
+        }
+      ]
+    },
+    "concepts": [
+      "trace",
+      "mistake",
+      "expr",
+      "sequence",
+      "stmt",
+      "while_loop"
+    ],
+    "tags": [
+      "C++"
+    ]
+  }
+]

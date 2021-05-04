@@ -23,8 +23,6 @@ public class DomainVocabulary {
     String vocabularyPath;
     Model model;
 
-//    String RDF  = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-
     public DomainVocabulary(String vocabularyPath) {
         this.vocabularyPath = vocabularyPath;
         model = ModelFactory.createDefaultModel();
@@ -63,7 +61,14 @@ public class DomainVocabulary {
                 if (bases.isEmpty() || concepts.keySet().containsAll(bases)) {
                     /// System.out.println("Create new: " + name + " - " +  bases);
 
-                    concepts.put(name, new Concept(name, new ArrayList(bases)));
+                    // copy base concepts to new list ...
+                    ArrayList<Concept> baseConcepts = new ArrayList<>();
+                    for (String base : bases) {
+                        baseConcepts.add(concepts.get(base));
+                    }
+                    // create concept with base concepts that already exist
+                    concepts.put(name, new Concept(name, baseConcepts));
+
                     conceptName2bases.remove(name);
                     nothingFound = false;
                 }
@@ -73,7 +78,7 @@ public class DomainVocabulary {
             }
         }
 
-        return new ArrayList(concepts.values());
+        return new ArrayList<>(concepts.values());
     }
 
     /**
@@ -104,6 +109,36 @@ public class DomainVocabulary {
             readConceptFromResource(childConceptNode, conceptName2bases, name);
         }
     }
+
+    /** Find all direct & indirect subclasses of given class
+     *  */
+    public List<String> classDescendants(String className) {
+        ArrayList<String> result = new ArrayList<>();
+        addClassDescendants(className, result, -1);
+        return result;
+    }
+
+    /** Extends given list with local names of subclasses till given depth limit.
+     * Intended for internal use but can be utilized as-is.
+     * maxDepth unlimited search if < 0; get only direct children if == 1.
+     *  */
+    public void addClassDescendants(String className, List<String> classes, int maxDepth) {
+        if (maxDepth == 0)
+            return;
+        // find all child classes
+        String ns = model.getNsPrefixURI("");
+        Resource classNode = model.getResource(ns + className);
+        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, classNode);
+        while (iter.hasNext()) {
+            Resource childClassNode = iter.nextResource();
+            String childClassName = childClassNode.getLocalName();
+            if (!classes.contains(childClassName)) {
+                classes.add(childClassName);
+            }
+            addClassDescendants(childClassName, classes, maxDepth - 1);
+        }
+    }
+
 
     /// debug
     public static void main(String[] args) {

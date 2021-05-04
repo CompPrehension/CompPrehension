@@ -35,8 +35,22 @@
   {
     "name": "stmt_and_expr",
     "positive": true,
-    "tags": [],
-    "concepts": [],
+    "tags": [
+      {
+        "name": "stmt"
+      },
+      {
+        "name": "expr"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "stmt"
+      },
+      {
+        "name": "expr"
+      }
+    ],
     "formulations": [
       {
         "name": "connect_StmtEnd",
@@ -44,7 +58,7 @@
         "backend": "Jena"
       },
       {
-        "name": "]",
+        "name": "connect_ExprEnd",
         "formulation": "(?st rdf:type my:expr), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e),.",
         "backend": "Jena"
       }
@@ -53,8 +67,16 @@
   {
     "name": "helper",
     "positive": true,
-    "tags": [],
-    "concepts": [],
+    "tags": [
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "loop"
+      }
+    ],
     "formulations": [
       {
         "name": "branches_item-o-cond-to-parent_of",
@@ -71,8 +93,25 @@
   {
     "name": "entry_point_and_sequence",
     "positive": true,
-    "tags": [],
-    "concepts": [],
+    "tags": [
+      {
+        "name": "entry_point"
+      },
+      {
+        "name": "sequence"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "last_item"
+      }
+    ],
     "formulations": [
       {
         "name": "start__to__GlobalCode__rule_g4",
@@ -99,8 +138,31 @@
   {
     "name": "alternative",
     "positive": true,
-    "tags": [],
-    "concepts": [],
+    "tags": [
+      {
+        "name": "alternative"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "alt_branch"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "last_item"
+      }
+    ],
     "formulations": [
       {
         "name": "connect_AltBegin",
@@ -137,8 +199,40 @@
   {
     "name": "loop",
     "positive": true,
-    "tags": [],
-    "concepts": [],
+    "tags": [
+      {
+        "name": "loop"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "start_with_cond"
+      },
+      {
+        "name": "start_with_body"
+      },
+      {
+        "name": "cond_then_body"
+      },
+      {
+        "name": "pre_update_loop"
+      },
+      {
+        "name": "conditional_loop"
+      },
+      {
+        "name": "NormalLoopEnd"
+      },
+      {
+        "name": "body_then_cond"
+      },
+      {
+        "name": "start_with_init"
+      },
+      {
+        "name": "post_update_loop"
+      }
+    ],
     "formulations": [
       {
         "name": "connect_LoopBegin-cond",
@@ -207,13 +301,23 @@
     "positive": false,
     "tags": [
       {
+        "name": "trace"
+      },
+      {
         "name": "helper"
       },
       {
         "name": "mistake"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "act_end"
+      }
+    ],
     "formulations": [
       {
         "name": "student_DepthIncr_rule_s6",
@@ -239,6 +343,16 @@
         "name": "student_SameParentOfCorrActs_rule_s10",
         "formulation": "(?a my:student_corresponding_end ?b), (?p my:student_parent_of ?a), -> (?p my:student_parent_of ?b).",
         "backend": "Jena"
+      },
+      {
+        "name": "executes_id-to-executes-begin",
+        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_begin), (?bnd my:begin_of ?st), -> (?a my:executes ?bnd).",
+        "backend": "Jena"
+      },
+      {
+        "name": "executes_id-to-executes-end",
+        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_end), (?bnd my:end_of ?st), -> (?a my:executes ?bnd).",
+        "backend": "Jena"
       }
     ]
   },
@@ -247,10 +361,44 @@
     "positive": false,
     "tags": [
       {
+        "name": "trace"
+      },
+      {
         "name": "mistake"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "expr"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "UpcomingNeighbour"
+      },
+      {
+        "name": "NotNeighbour"
+      },
+      {
+        "name": "WrongCondNeighbour"
+      },
+      {
+        "name": "CorrespondingEndMismatched"
+      },
+      {
+        "name": "WrongContext"
+      },
+      {
+        "name": "OneLevelShallower"
+      },
+      {
+        "name": "EndedDeeper"
+      },
+      {
+        "name": "EndedShallower"
+      }
+    ],
     "formulations": [
       {
         "name": "GenericMisconception_Error",
@@ -349,16 +497,44 @@
     "positive": false,
     "tags": [
       {
-        "name": "mistake"
+        "name": "sequence"
       },
       {
-        "name": "sequence"
+        "name": "mistake"
       },
       {
         "name": "helper"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "DuplicateOfAct"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "TooEarlyInSequence"
+      },
+      {
+        "name": "TooLateInSequence"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "Erroneous"
+      },
+      {
+        "name": "SequenceFinishedTooEarly"
+      },
+      {
+        "name": "SequenceFinishedNotInOrder"
+      }
+    ],
     "formulations": [
       {
         "name": "DuplicateOfAct-seq_Error (b,e)",
@@ -428,7 +604,86 @@
         "name": "mistake"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "NoFirstCondition"
+      },
+      {
+        "name": "ConditionTooEarly"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "BranchOfFalseCondition"
+      },
+      {
+        "name": "BranchWithoutCondition"
+      },
+      {
+        "name": "BranchNotNextToCondition"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "ElseBranchNotNextToLastCondition"
+      },
+      {
+        "name": "ElseBranchAfterTrueCondition"
+      },
+      {
+        "name": "CondtionNotNextToPrevCondition"
+      },
+      {
+        "name": "ConditionTooLate"
+      },
+      {
+        "name": "DuplicateOfCondition"
+      },
+      {
+        "name": "ConditionAfterBranch"
+      },
+      {
+        "name": "AnotherExtraBranch"
+      },
+      {
+        "name": "alt_branch"
+      },
+      {
+        "name": "NoBranchWhenConditionIsTrue"
+      },
+      {
+        "name": "LastConditionIsFalseButNoElse"
+      },
+      {
+        "name": "NoNextCondition"
+      },
+      {
+        "name": "last_item"
+      },
+      {
+        "name": "LastFalseNoEnd"
+      },
+      {
+        "name": "NoAlternativeEndAfterBranch"
+      },
+      {
+        "name": "AlternativeEndAfterTrueCondition"
+      }
+    ],
     "formulations": [
       {
         "name": "NoFirstCondition-alt_Error",
@@ -538,7 +793,68 @@
         "name": "mistake"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "start_with_cond"
+      },
+      {
+        "name": "LoopStartIsNotCondition"
+      },
+      {
+        "name": "start_with_body"
+      },
+      {
+        "name": "LoopStartIsNotIteration"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "cond_then_body"
+      },
+      {
+        "name": "NoIterationAfterSuccessfulCondition"
+      },
+      {
+        "name": "LoopEndAfterSuccessfulCondition"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "NoLoopEndAfterFailedCondition"
+      },
+      {
+        "name": "conditional_loop"
+      },
+      {
+        "name": "LoopEndsWithoutCondition"
+      },
+      {
+        "name": "ConditionMisuse"
+      },
+      {
+        "name": "LoopContinuedAfterFailedCondition"
+      },
+      {
+        "name": "IterationAfterFailedCondition"
+      },
+      {
+        "name": "body_then_cond"
+      },
+      {
+        "name": "NoConditionAfterIteration"
+      },
+      {
+        "name": "NoConditionBetweenIterations"
+      }
+    ],
     "formulations": [
       {
         "name": "LoopStartIsNotCondition-loop_Error",
