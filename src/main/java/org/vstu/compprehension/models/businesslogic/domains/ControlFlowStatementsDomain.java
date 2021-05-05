@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.entities.*;
@@ -175,7 +176,7 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
 
-        // statement facts are prepared already is the Questions JSON
+        // statement facts are already prepared in the Question's JSON
         entity.setStatementFacts(q.getStatementFacts());
         entity.setQuestionType(q.getQuestionType());
 
@@ -360,9 +361,11 @@ public class ControlFlowStatementsDomain extends Domain {
 //            make_triple(trace_obj, onto.depth, 0)  # set to 0 so next is 1
 //            make_triple(trace_obj, onto.in_trace, trace_obj)  # each act
 
+            QuestionEntity q = responses.get(0).getLeftAnswerObject().getQuestion(); // assume that list is never empty
             // iterate responses and make acts
             int student_index = 0;
-            int maxId = 1000;
+            int maxId = 100;
+            HashMap<String, Pair<String, Integer>> id2exprName = new HashMap<>();
             String prevActIRI = trace;
             for (ResponseEntity response : responses) {
                 String[] actInfo = response.getLeftAnswerObject().getDomainInfo().split(":");
@@ -375,11 +378,27 @@ public class ControlFlowStatementsDomain extends Domain {
 
                 if (phase.equals("started") || phase.equals("performed")) {
                     String act_iri = "b_" + act_iri_t;
-                    appendActFacts(result, ++maxId, act_iri, "act_begin", exId, ++student_index, prevActIRI, trace);
+                    appendActFacts(result, ++maxId, act_iri, "act_begin", exId, ++student_index, prevActIRI, trace, null);
                     prevActIRI = act_iri;
                 } if (phase.equals("finished") || phase.equals("performed")) {
+                    Boolean exprValue = null;
+                    if (phase.equals("performed")) {
+                        String exprName = null;
+                        Integer execCount = null;
+                        if (id2exprName.containsKey(exId)) {
+                            Pair<String, Integer> pair = id2exprName.get(exId);
+                            exprName = pair.getLeft();
+                            execCount = pair.getRight();
+                        } else {
+                            exprName = getExpressionNameById(q, Integer.parseInt(exId));
+                            execCount = 0; // set anyway, even not an expression
+                        }
+                        if (exprName != null) {
+                            exprValue = (1 == getValueForExpression(q, exprName, execCount));
+                        }
+                    }
                     String act_iri = "e_" + act_iri_t;
-                    appendActFacts(result, ++maxId, act_iri, "act_end", exId, ++student_index, prevActIRI, trace);
+                    appendActFacts(result, ++maxId, act_iri, "act_end", exId, ++student_index, prevActIRI, trace, exprValue);
                     prevActIRI = act_iri;
                 }
             }
@@ -391,7 +410,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
 
     /** Append specific facts to `factsList` */
-    private void appendActFacts(List<BackendFactEntity> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace) {
+    private void appendActFacts(List<BackendFactEntity> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace, Boolean exprValue) {
         factsList.add(new BackendFactEntity(
                 "owl:NamedIndividual", actIRI,
                 "rdf:type",
@@ -428,6 +447,13 @@ public class ControlFlowStatementsDomain extends Domain {
                 "in_trace",
                 "owl:NamedIndividual", inTrace
         ));
+        if (exprValue != null) {
+            factsList.add(new BackendFactEntity(
+                    "owl:NamedIndividual", actIRI,
+                    "expr_value",
+                    "xsd:boolean", exprValue.toString()
+            ));
+        }
     }
 
     @Override
@@ -519,6 +545,48 @@ public class ControlFlowStatementsDomain extends Domain {
         return QUESTIONS;
     }
 
+    /** return stmt_name or `null` if not an `expr` */
+    private String getExpressionNameById(QuestionEntity question, int actionId) {
+        String instance = null;
+        for (BackendFactEntity fact : question.getStatementFacts()) {
+            if (fact.getVerb().equals("id") && Integer.parseInt(fact.getObject()) == actionId) {
+                instance = fact.getSubject();
+            }
+        }
+        String stmt_name = null;
+        boolean isEXpr = false;
+        for (BackendFactEntity fact : question.getStatementFacts()) {
+            if (fact.getSubject().equals(instance)) {
+                if (fact.getVerb().equals("rdf:type") && fact.getObject().equals("expr")) {
+                    isEXpr = true;
+                }
+                if (fact.getVerb().equals("stmt_name") && fact.getObject().equals("expr")) {
+                    stmt_name = fact.getObject();
+                }
+            }
+        }
+        if (isEXpr)
+            return stmt_name;
+        return null;
+    }
+
+    public int getValueForExpression(QuestionEntity question, String expressionName, int executionTime) {
+        for (BackendFactEntity fact : question.getStatementFacts()) {
+            if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
+                String values = fact.getObject();
+                String[] tokens = values.split(",");
+                if (executionTime <= tokens.length) {
+                    String token = tokens[executionTime - 1];
+                    return Integer.parseInt(token);
+                }
+                // else (out-of-range): go return the default
+                break;
+            }
+        }
+
+        // default is false
+        return 0;
+    }
 
 
     public static void main(String[] args) {
