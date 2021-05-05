@@ -91,12 +91,13 @@ body ul {
 }
 
 .comp-ph-draggable {
-  height: 100%;
+  border: 2px solid black;
+  background-color: white;
 }
 
 .comp-ph-dropzone {
   border: solid 1px;
-  border-radius: 5px; 
+  /*border-radius: 5px; */
 }
 
 .draggable-dropzone--occupied { 
@@ -131,7 +132,7 @@ body ul {
   display: inline-block;
   margin: 0;
   width: 35px;
-  background-color: #e4e4e4;
+  background-color: #fff;
   color: rgba(0, 0, 0, 0.6);
   font-size: 10px;
   font-weight: normal;

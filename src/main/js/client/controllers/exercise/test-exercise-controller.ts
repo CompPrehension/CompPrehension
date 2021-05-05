@@ -34,7 +34,7 @@ export class TestExerciseController implements IExerciseController {
         return E.right({
             attemptId: -1,
             exerciseId: -1,
-            questionIds: [1, 2, 3, 4, 5],
+            questionIds: [1, 2, 3, 4, 5, 6],
         });
     }
     async getQuestion(questionId: number): PromiseEither<RequestError, Question> {
@@ -132,11 +132,11 @@ export class TestExerciseController implements IExerciseController {
                 groups: [
                     {
                         id: 0,
-                        text: 'group1'
+                        text: '<div style="width:70px; height: 40px;">group1<div/>'
                     },
                     {
                         id: 1,
-                        text: 'group2'
+                        text: '<div style="width:50px;">group2 group2 group2 group2<div/>'
                     },
                 ],
                 responses: [],
@@ -144,7 +144,36 @@ export class TestExerciseController implements IExerciseController {
                 options: {
                     requireContext: false,
                     displayMode: 'dragNdrop',
-                    multipleSelectionEnabled: true,  
+                    multipleSelectionEnabled: true,
+                    dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
+                }
+            } 
+        }
+
+        if (questionId === 6) {
+            result = {
+                type: 'MATCHING',
+                attemptId: -1,
+                questionId: 6,
+                text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
+                answers: [],
+                groups: [
+                    {
+                        id: 0,
+                        text: '<div style="width:70px; height: 40px;">group1<div/>'
+                    },
+                    {
+                        id: 1,
+                        text: '<div style="width:50px;">group2 group2 group2 group2<div/>'
+                    },
+                ],
+                responses: [],
+                feedback: null,
+                options: {
+                    requireContext: true,
+                    displayMode: 'dragNdrop',
+                    multipleSelectionEnabled: true,
+                    dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
                 }
             } 
         }

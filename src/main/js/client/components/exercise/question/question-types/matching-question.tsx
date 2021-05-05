@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
 // @ts-ignore
-import { Droppable, DroppableEventNames } from '@shopify/draggable';
+import { Droppable, DroppableEventNames, Plugins } from '@shopify/draggable';
 
 
 export const MatchingQuestion = observer(() => {
@@ -32,7 +32,7 @@ export const MatchingQuestion = observer(() => {
 const DragAndDropMatchingQuestion = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
-    if (!currentQuestion || currentQuestion.type != "MATCHING") {
+    if (!currentQuestion || currentQuestion.type != "MATCHING" || currentQuestion.options.displayMode !== 'dragNdrop') {
         return null;
     }
     const { groups = [] } = currentQuestion;
@@ -40,18 +40,18 @@ const DragAndDropMatchingQuestion = observer(() => {
 
 
     // on question first render
-    const dropzoneStyle = { height: '40px', width: '80px' };
+    const dropzoneStyle = options.dropzoneStyle && JSON.parse(options.dropzoneStyle) || { minHeight: '40px', minWidth: '80px' };
     useEffect(() => {
         document.querySelectorAll('[id^="answer_"]')
             .forEach((e: any) => {
                 e.classList.add("comp-ph-dropzone");
-                e.style.height = dropzoneStyle.height;
-                e.style.width = dropzoneStyle.width;
+                Object.keys(dropzoneStyle).forEach(k => e.style[k] = dropzoneStyle[k]);
             });
 
         const droppable = new Droppable<DroppableEventNames>(document.querySelectorAll('.comp-ph-droppable-container'), {
             draggable: '.comp-ph-draggable',
             dropzone: '.comp-ph-dropzone',
+            plugins: [Plugins.ResizeMirror],
         })
 
         droppable.on('droppable:stop', (e: any) => {
@@ -66,7 +66,7 @@ const DragAndDropMatchingQuestion = observer(() => {
                 const wrapperId = `dragAnswerWrapper_${draggableId.split('_')[1] ?? ''}`;
                 const wrapper = document.getElementById(wrapperId);
                 const draggable = document.getElementById(draggableId);
-                if (wrapper && draggable) {
+                if (wrapperId !== droppableId && wrapper && draggable) {
                     wrapper.innerHTML = draggable.outerHTML;
                 }
             }
@@ -88,23 +88,27 @@ const DragAndDropMatchingQuestion = observer(() => {
     
     return (
         <div>
-            <div className="row comp-ph-droppable-container">
+            <div className="row">
                 <div className="col-md">
-                    <p dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
-                    <p className="d-flex flex-column">
-                        {currentQuestion.answers.map(a =>
-                            <div className="d-flex flex-row mb-3">
-                                <div className="mr-2 mt-1">
-                                    <div id={`answer_${a.id}`} className="comp-ph-dropzone" style={dropzoneStyle}></div>
-                                </div>
-                                <div>{a.text}</div>
-                            </div>)}
-                    </p>                    
+                    <p className="comp-ph-droppable-container" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+                    {
+                        !options.requireContext
+                            ? <p className="d-flex flex-column comp-ph-droppable-container">
+                                {currentQuestion.answers.map(a =>
+                                    <div className="d-flex flex-row mb-3">
+                                        <div className="mr-2 mt-1">
+                                            <div id={`answer_${a.id}`} className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                                        </div>
+                                        <div dangerouslySetInnerHTML={{ __html: a.text}}></div>
+                                    </div>)}
+                            </p>
+                            : null
+                    }
                 </div>
-                <div className="col-md">
+                <div className="col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column">
                     {groups.map(g => 
-                        (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone draggable-dropzone--occupied d-flex flex-column mb-2" style={dropzoneStyle}>
-                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2 d-flex justify-content-center align-items-center" dangerouslySetInnerHTML={{ __html: g.text }}/>
+                        (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone mb-2" style={dropzoneStyle}>
+                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2" dangerouslySetInnerHTML={{ __html: g.text }}/>
                          </div>))}
                 </div>
             </div>

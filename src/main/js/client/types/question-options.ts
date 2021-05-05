@@ -41,19 +41,34 @@ export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersec
     })
 ], 'OrderQuestionOptions')
 
-export type MatchingQuestionOptions = QuestionOptions & {
-    displayMode: 'combobox' | 'dragNdrop',
-    multipleSelectionEnabled: boolean,
+type ComboboxMatchingQuestionOptions = QuestionOptions & {
+    multipleSelectionEnabled: boolean, 
+    displayMode: 'combobox',
 }
-export const TMatchingQuestionOptions : io.Type<MatchingQuestionOptions> = io.intersection([
+type DnDMatchingQuestionOptions = QuestionOptions & {
+    multipleSelectionEnabled: boolean, 
+    displayMode: 'dragNdrop',
+    dropzoneStyle?: string,
+}
+export type MatchingQuestionOptions = ComboboxMatchingQuestionOptions | DnDMatchingQuestionOptions
+export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
-        displayMode: io.keyof({
-            'combobox': null,
-            'dragNdrop': null,
-        }),
         multipleSelectionEnabled: io.boolean,
     }),
+    io.union([
+        io.type({
+            displayMode: io.literal('combobox'),
+        }),
+        io.intersection([
+            io.type({
+                displayMode: io.literal('dragNdrop'),
+            }),
+            io.partial({
+                dropzoneStyle: io.string,
+            }),
+        ]),
+    ]),
 ], 'MatchingQuestionOptions')
 
 export type SingleChoiceQuestionOptions = QuestionOptions & {
