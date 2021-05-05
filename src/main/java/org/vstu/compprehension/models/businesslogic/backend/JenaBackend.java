@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 
+import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
@@ -102,7 +103,7 @@ public class JenaBackend extends Backend {
         } else if (type.equals("owl:Class")) {
             model.createClass(baseIRIPrefix + name);
         } else {
-            throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulations: unknown type:" + type);
+            throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulations: unknown type: " + type);
         }
     }
 
@@ -130,8 +131,12 @@ public class JenaBackend extends Backend {
         assert fact.getVerb() != null;
 
         if (fact.getVerb().equals("rdf:type")) {
-            addOWLLawFormulation(fact.getSubject(), fact.getObject());
-            return;
+            try {
+                addOWLLawFormulation(fact.getSubject(), fact.getObject());
+                return;
+            } catch (UnsupportedOperationException exception) {
+                // continue
+            }
         }
 
         String subj = fact.getSubject();
@@ -139,32 +144,42 @@ public class JenaBackend extends Backend {
         String obj = fact.getObject();
 //        // debug
 //        System.out.println("addStatementFact( subj: " + subj + ", prop: " + prop + ", obj: " + obj + " )");
+        String objType = fact.getObjectType();
 
 //        Individual ind = model.getIndividual(baseIRIPrefix + subj);
         // retrieve or create
         Individual ind = model.createIndividual(baseIRIPrefix + subj, getThingClass());
         assert ind != null;
 
-        if (fact.getObjectType().equals("owl:NamedIndividual")) {
+        if (objType.equals("owl:NamedIndividual")) {
             ObjectProperty p = model.createObjectProperty(baseIRIPrefix + prop);
-            model.add(ind, p, model.getIndividual(baseIRIPrefix + obj));
-        } else if (fact.getObjectType().equals("xsd:int")) {
+            model.add(ind, p, model.createOntResource(baseIRIPrefix + obj));
+        } else if (objType.equals("owl:Class")) {
+            if (prop.equals("rdf:type")) {
+            model.createIndividual(ind.getURI(), model.createClass(baseIRIPrefix + obj));
+            } else {
+                ObjectProperty p = model.createObjectProperty((baseIRIPrefix + prop));
+                model.add(ind, p, model.createClass(baseIRIPrefix + obj));
+            }
+        } else if (objType.equals("xsd:int")) {
             DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Integer.parseInt(obj));
-        } else if (fact.getObjectType().equals("xsd:string")) {
+        } else if (objType.equals("xsd:string")) {
             DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.add(ind, p, obj);
-        } else if (fact.getObjectType().equals("xsd:boolean")) {
+        } else if (objType.equals("xsd:boolean")) {
             DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Boolean.parseBoolean(obj));
-        } else if (fact.getObjectType().equals("xsd:double")) {
+        } else if (objType.equals("xsd:double")) {
             DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Double.parseDouble(obj));
-        } else if (fact.getObjectType().equals("xsd:float")) {
+        } else if (objType.equals("xsd:float")) {
             DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Float.parseFloat(obj));
+        } else if (prop.startsWith("not-for-reasoner:") || objType.equals("List<boolean>")) {
+            // ignore this fact (as it's not for the reasoner)
         } else {
-            throw new UnsupportedOperationException("JenaBackend.addStatementFact: unknown objectType: " + fact.getObjectType());
+            throw new UnsupportedOperationException("JenaBackend.addStatementFact: unknown objectType: " + objType);
         }
     }
 
