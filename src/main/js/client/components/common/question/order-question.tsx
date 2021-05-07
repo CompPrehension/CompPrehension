@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { observer } from "mobx-react";
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../../../stores/exercise-store";
+import React from "react";
+import { useEffect } from "react";
+import { OrderQuestion } from "../../../types/question";
 
-export const OrderQuestion = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const { currentQuestion, answersHistory, onAnswersChanged } = exerciseStore;
-    if (!currentQuestion || currentQuestion.type != "ORDER" || !currentQuestion.options.requireContext) {
+type OrderQuestionComponentProps = {
+    question: OrderQuestion,
+    answers: [number, number][],
+    onChanged: (newAnswers: [number, number][]) => void,
+}
+export const OrderQuestionComponent = ({ question, answers, onChanged }: OrderQuestionComponentProps) => {
+    if (!question.options.requireContext) {
         return null;
     }
-
-    const { options } = currentQuestion; 
+    const { options } = question;
     const orderNumberOptions = options.orderNumberOptions ?? { delimiter: '/', position: 'SUFFIX', }
-    
     const originalText = document.createElement('div');
-    originalText.innerHTML = currentQuestion.text;
-    
+    originalText.innerHTML = question.text;
+
     // actions on questionId changed (onInit)
     useEffect(() => {    
         // add button click event handlers
         document.querySelectorAll('[id^="answer_"]').forEach(e => {
             const idStr = e.id?.split("answer_")[1] ?? ""; 
             const id = +idStr;
-            e.addEventListener('click', () => onAnswersChanged([id, id]));
+            e.addEventListener('click', () => onChanged([...answers, [id, id]]));
         })
 
         // show elements positions
@@ -31,7 +31,7 @@ export const OrderQuestion = observer(() => {
             e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
         })
 
-    }, [currentQuestion.questionId]);
+    }, [question.questionId]);
 
     useEffect(() => {
         // drop all changes, set original qustion text    
@@ -42,7 +42,7 @@ export const OrderQuestion = observer(() => {
         });
 
         // apply history changes    
-        answersHistory.forEach(([h], idx) => {
+        answers.forEach(([h], idx) => {
             const answr = document.querySelector(`#answer_${h}`);
             if (!answr) {
                 return;
@@ -60,12 +60,12 @@ export const OrderQuestion = observer(() => {
                 answr.classList.add('disabled');            
             }
         });
-    }, [currentQuestion.questionId, exerciseStore.answersHistory.length])
+    }, [question.questionId, answers.length])
     
 
     return (
         <div>
-            <div dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+            <div dangerouslySetInnerHTML={{ __html: question.text }} />
         </div>
     );
-});
+}

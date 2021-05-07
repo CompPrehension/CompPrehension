@@ -21,10 +21,7 @@ import org.vstu.compprehension.models.repository.FeedbackRepository;
 import org.vstu.compprehension.models.repository.ViolationRepository;
 import org.vstu.compprehension.utils.Mapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
@@ -69,7 +66,8 @@ public class FrontendService {
         val explanations = questionService.explainViolations(question, judgeResult.violations);
         val errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
         val violationIds = Optional.ofNullable(judgeResult.violations).stream().flatMap(Collection::stream)
-                .map(ViolationEntity::getId).toArray(Long[]::new);
+                .map(ViolationEntity::getId)
+                .filter(Objects::nonNull).toArray(Long[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();

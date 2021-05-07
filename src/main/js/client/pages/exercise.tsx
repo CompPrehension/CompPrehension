@@ -5,10 +5,10 @@ import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-qu
 import { Header } from "../components/exercise/header";
 import { Loader } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
-import { QuestionFabric } from "../components/exercise/question/question-fabric";
 import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../stores/exercise-store";
+import { CurrentQuestion } from "../components/exercise/current-question";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -72,7 +72,7 @@ export const Exercise = observer(() => {
             return (
                 <>
                     <Header />
-                    <QuestionFabric />
+                    <CurrentQuestion />
                     <Feedback />
                     <GenerateNextAnswerBtn /> 
                     <GenerateNextQuestionBtn />  
