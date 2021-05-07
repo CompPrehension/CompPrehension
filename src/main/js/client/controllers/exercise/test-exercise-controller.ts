@@ -8,6 +8,7 @@ import { SessionInfo } from "../../types/session-info";
 import { PromiseEither, RequestError } from "../../utils/ajax";
 import { IExerciseController } from "./exercise-controller";
 import * as E from "fp-ts/lib/Either";
+import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
 
 @injectable()
 export class TestExerciseController implements IExerciseController {
@@ -84,7 +85,7 @@ export class TestExerciseController implements IExerciseController {
                 type: 'SINGLE_CHOICE',
                 attemptId: -1,
                 questionId: 3,
-                text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
+                text: 'question text with <span id="answer_0">select1</span> and <span id="answer_1">select2</span>',
                 answers: [],
                 responses: [],
                 feedback: null,
@@ -136,7 +137,7 @@ export class TestExerciseController implements IExerciseController {
                     },
                     {
                         id: 1,
-                        text: '<div style="width:50px;">group2 group2 group2 group2<div/>'
+                        text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>'
                     },
                 ],
                 responses: [],
@@ -164,7 +165,7 @@ export class TestExerciseController implements IExerciseController {
                     },
                     {
                         id: 1,
-                        text: '<div style="width:50px;">group2 group2 group2 group2<div/>'
+                        text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>'
                     },
                 ],
                 responses: [],
@@ -172,7 +173,7 @@ export class TestExerciseController implements IExerciseController {
                 options: {
                     requireContext: true,
                     displayMode: 'dragNdrop',
-                    multipleSelectionEnabled: true,
+                    multipleSelectionEnabled: false,
                     dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
                 }
             } 
@@ -185,6 +186,10 @@ export class TestExerciseController implements IExerciseController {
     }
     async generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
         console.log(`generateQuestion?attemptId=${attemptId}`);
+        return E.left({ message:"Method not implemented."});
+    }
+    async generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question> {
+        console.log(`generateSupplementaryQuestion`, questionRequest);
         return E.left({ message:"Method not implemented."});
     }
     async generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {

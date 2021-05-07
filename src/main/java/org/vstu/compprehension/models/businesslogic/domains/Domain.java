@@ -175,7 +175,7 @@ public abstract class Domain {
     /**
      * Statistics for current step of question evaluation
      */
-    public class ProcessSolutionResult {
+    public static class ProcessSolutionResult {
         /**
          * Number of correct variants at current step
          */
@@ -189,7 +189,7 @@ public abstract class Domain {
     /**
      * Info about one iteration
      */
-    public class InterpretSentenceResult extends ProcessSolutionResult {
+    public static class InterpretSentenceResult extends ProcessSolutionResult {
         /**
          * All violations
          */

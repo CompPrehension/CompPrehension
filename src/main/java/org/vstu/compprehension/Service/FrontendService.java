@@ -10,16 +10,21 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Strategy;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
+import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
+import org.vstu.compprehension.models.repository.ViolationRepository;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
 
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
@@ -44,6 +49,9 @@ public class FrontendService {
     @Autowired
     private FeedbackRepository feedbackRepository;
 
+    @Autowired
+    private ViolationRepository violationRepository;
+
 
     public FeedbackDto addQuestionAnswer(InteractionDto interaction) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
@@ -60,6 +68,8 @@ public class FrontendService {
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
         val explanations = questionService.explainViolations(question, judgeResult.violations);
         val errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
+        val violationIds = Optional.ofNullable(judgeResult.violations).stream().flatMap(Collection::stream)
+                .map(ViolationEntity::getId).toArray(Long[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
@@ -81,6 +91,7 @@ public class FrontendService {
         return FeedbackDto.builder()
                 .grade(grade)
                 .errors(errors)
+                .violations(violationIds)
                 .stepsLeft(judgeResult.IterationsLeft)
                 .correctSteps(correctInteractionsCount)
                 .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count())
@@ -89,10 +100,22 @@ public class FrontendService {
     }
 
     public QuestionDto generateQuestion(Long exAttemptId) throws Exception {
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
+        val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        Question question = questionService.generateQuestion(attempt);
-        QuestionEntity qData = question.getQuestionData();
+        val question = questionService.generateQuestion(attempt);
+        val qData = question.getQuestionData();
+        return Mapper.toDto(qData);
+    }
+
+    public QuestionDto generateSupplementaryQuestion(Long exAttemptId, Long[] violationIds) throws Exception {
+        val attempt = exerciseAttemptRepository.findById(exAttemptId)
+                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
+        val violations = violationRepository.findByIds(Arrays.asList(violationIds));
+        val judgeResult = new Domain.InterpretSentenceResult();
+        judgeResult.violations = violations;
+
+        val question = questionService.generateSupplementaryQuestion(judgeResult, attempt);
+        val qData = question.getQuestionData();
         return Mapper.toDto(qData);
     }
 

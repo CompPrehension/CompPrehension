@@ -11,6 +11,7 @@ public class FeedbackDto {
     private Integer stepsLeft;
     private Integer stepsWithErrors;
     private String[] errors;
+    private Long[] violations;
     private String explanation;
     private Long[][] correctAnswers;
 }

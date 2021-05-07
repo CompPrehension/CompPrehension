@@ -5,6 +5,7 @@ import { Feedback, TFeedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
 import { Question, TQuestion } from "../../types/question";
 import { SessionInfo, TSessionInfo } from "../../types/session-info";
+import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
 import { ajaxGet, ajaxPost, PromiseEither, RequestError } from "../../utils/ajax";
 
 
@@ -12,6 +13,7 @@ export interface IExerciseController {
     loadSessionInfo(): PromiseEither<RequestError, SessionInfo>;
     getQuestion(questionId: number): PromiseEither<RequestError, Question>;
     generateQuestion(attemptId: number): PromiseEither<RequestError, Question>;
+    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question>;
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback>;
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> ;
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
@@ -40,6 +42,10 @@ export class ExerciseController implements IExerciseController {
 
     generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
         return ajaxGet(`${ExerciseController.endpointPath}generateQuestion?attemptId=${attemptId}`, TQuestion); 
+    }
+
+    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question> {
+        return ajaxPost(`${ExerciseController.endpointPath}generateSupplementaryQuestion`, questionRequest, TQuestion);
     }
 
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {

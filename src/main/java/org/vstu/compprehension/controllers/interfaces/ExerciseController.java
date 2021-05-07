@@ -54,13 +54,23 @@ public interface ExerciseController {
     /**
      * Generate new question for exercise attempt
      * @param exAttemptId Exercise attempt id
-     * @param request
-     * @return Current request
+     * @param request Current request
+     * @return Question
      * @throws Exception Something got wrong
      */
     @RequestMapping(value = {"/generateQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     QuestionDto generateQuestion(@RequestParam(name = "attemptId") Long exAttemptId, HttpServletRequest request) throws Exception;
+
+    /**
+     * Generate new supplementary question
+     * @param questionRequest QuestionRequest
+     * @param request Current request
+     * @return Question
+     * @throws Exception Something got wrong
+     */
+    @RequestMapping(value = {"/generateSupplementaryQuestion"}, method = { RequestMethod.POST })
+    QuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception;
 
     /**
      * Get question by id

@@ -4,7 +4,6 @@ import Select, { components } from 'react-select';
 import ReactDOM from "react-dom";
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../../../stores/exercise-store";
-// @ts-ignore
 import { Droppable, DroppableEventNames, Plugins } from '@shopify/draggable';
 
 

@@ -59,6 +59,14 @@ public class QuestionService {
         return question;
     }
 
+    public Question generateSupplementaryQuestion(Domain.InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttempt) {
+        val domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        val question = domain.makeSupplementaryQuestion(interpretSentenceResult, exerciseAttempt);
+        question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+        saveQuestion(question.getQuestionData());
+        return question;
+    }
+
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> solution = backend.solve(

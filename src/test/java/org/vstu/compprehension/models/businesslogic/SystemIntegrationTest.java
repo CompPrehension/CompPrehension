@@ -114,7 +114,7 @@ public class SystemIntegrationTest {
             assertEquals(1, explanations.size());
             assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
-            Long supQ = generateSupplementaryQuestion(result, testExerciseAttemptList.get(0));
+            Long supQ = questionService.generateSupplementaryQuestion(result, testExerciseAttemptList.get(0)).getQuestionData().getId();
             Question supQ2 = questionService.getQuestion(supQ);
             assertEquals(QuestionType.MULTI_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
@@ -439,15 +439,6 @@ public class SystemIntegrationTest {
         Question question = getQuestion(questionId);
         Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
         return domain.processSolution(question.getSolutionFacts());
-    }
-
-    Long generateSupplementaryQuestion(Domain.InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        Question question = domain.makeSupplementaryQuestion(interpretSentenceResult, exerciseAttempt);
-        assertNotNull(question);
-        question.questionData.setDomainEntity(domainService.getDomainEntity(domain.getName()));
-        questionService.saveQuestion(question.questionData);
-        return question.questionData.getId();
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity testExerciseAttempt) {
