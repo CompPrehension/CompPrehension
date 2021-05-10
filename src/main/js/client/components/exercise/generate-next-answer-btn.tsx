@@ -9,11 +9,12 @@ import { ExerciseStore } from "../../stores/exercise-store";
 export const GenerateNextAnswerBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const onClicked = () => {
-        exerciseStore.generateNextCorrectAnswer();
+        exerciseStore.currentQuestion.generateNextCorrectAnswer();
     };
 
-    const { sessionInfo, currentQuestion, currentAttempt } = exerciseStore;
-    if (!currentQuestion || !sessionInfo || !currentAttempt) {
+    const { sessionInfo, currentAttempt } = exerciseStore;
+    const { question } = exerciseStore.currentQuestion;
+    if (!question || !sessionInfo || !currentAttempt) {
         return null;
     }
 

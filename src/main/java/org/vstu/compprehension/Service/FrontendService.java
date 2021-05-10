@@ -65,15 +65,15 @@ public class FrontendService {
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
         val explanations = questionService.explainViolations(question, judgeResult.violations);
         val errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
-        val violationIds = Optional.ofNullable(judgeResult.violations).stream().flatMap(Collection::stream)
-                .map(ViolationEntity::getId)
-                .filter(Objects::nonNull).toArray(Long[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
         val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
+        val violationIds = Optional.ofNullable(ie.getViolations()).stream().flatMap(Collection::stream)
+                .map(ViolationEntity::getId)
+                .filter(Objects::nonNull).toArray(Long[]::new);
 
         // add feedback
         val grade = strategy.grade(attempt);

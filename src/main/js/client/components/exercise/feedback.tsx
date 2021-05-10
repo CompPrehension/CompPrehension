@@ -10,13 +10,13 @@ import { useState } from 'react';
 
 export const Feedback = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const { feedback, isFeedbackLoading } = exerciseStore;
+    const { feedback, isFeedbackLoading, isQuestionLoading } = exerciseStore.currentQuestion;
     
-    if (exerciseStore.isFeedbackLoading) {
+    if (isFeedbackLoading) {
         return <Loader />;
     }
 
-    if (!feedback || exerciseStore.isQuestionLoading) {
+    if (!feedback || isQuestionLoading) {
         return null;
     }
 

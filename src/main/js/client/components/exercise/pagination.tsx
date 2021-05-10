@@ -18,8 +18,8 @@ export const Pagination = observer(() => {
                 {/*<BootstrapPagination.Prev />*/}
                 {exerciseStore.currentAttempt?.questionIds.map((id, idx) => 
                     (<BootstrapPagination.Item key={idx + 1} 
-                                               active={exerciseStore.currentQuestion?.questionId === id}
-                                               onClick={() => exerciseStore.loadQuestion(id)}>
+                                               active={exerciseStore.currentQuestion.question?.questionId === id}
+                                               onClick={() => exerciseStore.currentQuestion.loadQuestion(id)}>
                         {idx + 1}
                      </BootstrapPagination.Item>))}
                 {/*<BootstrapPagination.Next />*/}

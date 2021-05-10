@@ -3,6 +3,7 @@ import { Button, Modal as RBModal } from "react-bootstrap";
 
 
 export type ModalProps = {
+    show?: boolean,
     title?: string,
     primaryBtnTitle?: string,
     handlePrimaryBtnClicked?: () => void,
@@ -10,6 +11,7 @@ export type ModalProps = {
     handleSecondaryBtnClicked?: () => void,
     children?: React.ReactNode[] | React.ReactNode,
     closeButton?: boolean,
+    handleClose?: () => void,
 }
 
 export const Modal = (props: ModalProps) => {
@@ -19,10 +21,12 @@ export const Modal = (props: ModalProps) => {
         handleSecondaryBtnClicked,
         children,
         closeButton,
+        show,
+        handleClose,
     } = props;
 
     return (
-        <RBModal.Dialog>
+        <RBModal show={show ?? true} onHide={handleClose}>
             <RBModal.Header closeButton={closeButton}>
                 <RBModal.Title>{title}</RBModal.Title>
             </RBModal.Header>
@@ -30,11 +34,12 @@ export const Modal = (props: ModalProps) => {
             <RBModal.Body>
                 {children}
             </RBModal.Body>
-
-            <RBModal.Footer>
-                {secondaryBtnTitle ? <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button> : null}
-                {primaryBtnTitle ? <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button> : null}
-            </RBModal.Footer>
-        </RBModal.Dialog>
+            {(secondaryBtnTitle || primaryBtnTitle)
+                ? <RBModal.Footer>
+                    {secondaryBtnTitle ? <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button> : null}
+                    {primaryBtnTitle ? <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button> : null}
+                  </RBModal.Footer>
+                : null}            
+        </RBModal>
     );
 }

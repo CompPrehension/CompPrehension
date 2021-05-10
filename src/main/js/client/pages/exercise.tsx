@@ -9,6 +9,7 @@ import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answ
 import { container } from "tsyringe";
 import { ExerciseStore } from "../stores/exercise-store";
 import { CurrentQuestion } from "../components/exercise/current-question";
+import { GenerateSupQuestion } from "../components/exercise/generate-sup-question";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -18,7 +19,7 @@ export const Exercise = observer(() => {
     // on first render
     useEffect(() => {
         (async () => {
-            if (exerciseStore.currentQuestion) {
+            if (exerciseStore.currentQuestion.question) {
                 setState('EXERCISE');
                 return;
             }
@@ -37,14 +38,14 @@ export const Exercise = observer(() => {
     const loadQuestion = async () => {        
         if (exerciseStore.currentAttempt?.questionIds.length) {
             const len = exerciseStore.currentAttempt?.questionIds.length;
-            await exerciseStore.loadQuestion(exerciseStore.currentAttempt?.questionIds[len - 1]);
+            await exerciseStore.currentQuestion.loadQuestion(exerciseStore.currentAttempt?.questionIds[len - 1]);
         } else {
-            await exerciseStore.generateQuestion();
+            await exerciseStore.currentQuestion.generateQuestion(exerciseStore.currentAttempt?.attemptId ?? -1);
         }        
     }
 
     const createAttemptAndLoadQuestion = async () => {
-        exerciseStore.isQuestionLoading = true;
+        exerciseStore.currentQuestion.isQuestionLoading = true;
         await exerciseStore.createExerciseAttempt();
         await loadQuestion();
     }
@@ -75,7 +76,8 @@ export const Exercise = observer(() => {
                     <CurrentQuestion />
                     <Feedback />
                     <GenerateNextAnswerBtn /> 
-                    <GenerateNextQuestionBtn />  
+                    <GenerateNextQuestionBtn />
+                    <GenerateSupQuestion />
                 </>
             );
     }

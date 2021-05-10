@@ -6,10 +6,7 @@ import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -95,6 +92,7 @@ public class Mapper {
                         .stepsWithErrors(interactionsWithErrorsCount)
                         .grade(i.getFeedback().getGrade())
                         .stepsLeft(i.getFeedback().getInteractionsLeft())
+                        .violations(i.getViolations().stream().map(ViolationEntity::getId).toArray(Long[]::new))
                         .build())
                 .orElse(null);
 

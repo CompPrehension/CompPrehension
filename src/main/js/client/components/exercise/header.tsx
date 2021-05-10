@@ -15,7 +15,7 @@ export const Header = observer(() => {
         return null;
     }
     const { user } = sessionInfo;
-    const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion?.questionId === id);
+    const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
 
     return (
         <Navbar className="px-0">
