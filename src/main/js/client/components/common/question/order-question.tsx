@@ -5,9 +5,10 @@ import { OrderQuestion } from "../../../types/question";
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
     answers: [number, number][],
+    getAnswers: () => [number, number][],
     onChanged: (newAnswers: [number, number][]) => void,
 }
-export const OrderQuestionComponent = ({ question, answers, onChanged }: OrderQuestionComponentProps) => {
+export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: OrderQuestionComponentProps) => {
     if (!question.options.requireContext) {
         return null;
     }
@@ -22,7 +23,7 @@ export const OrderQuestionComponent = ({ question, answers, onChanged }: OrderQu
         document.querySelectorAll('[id^="answer_"]').forEach(e => {
             const idStr = e.id?.split("answer_")[1] ?? ""; 
             const id = +idStr;
-            e.addEventListener('click', () => onChanged([...answers, [id, id]]));
+            e.addEventListener('click', () => onChanged([...getAnswers(), [id, id]]));
         })
 
         // show elements positions
@@ -42,7 +43,7 @@ export const OrderQuestionComponent = ({ question, answers, onChanged }: OrderQu
         });
 
         // apply history changes    
-        answers.forEach(([h], idx) => {
+        getAnswers().forEach(([h], idx) => {
             const answr = document.querySelector(`#answer_${h}`);
             if (!answr) {
                 return;
@@ -60,7 +61,7 @@ export const OrderQuestionComponent = ({ question, answers, onChanged }: OrderQu
                 answr.classList.add('disabled');            
             }
         });
-    }, [question.questionId, answers.length])
+    }, [question.questionId, getAnswers().length])
     
 
     return (

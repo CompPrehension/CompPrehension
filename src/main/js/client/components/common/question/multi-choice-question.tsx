@@ -6,6 +6,7 @@ import { ToggleSwitch } from "../toggle";
 type MultiChoiceQuestionComponentProps = {
     question: MultiChoiceQuestion,
     answers: [number, number][],
+    getAnswers: () => [number, number][],
     onChanged: (newAnswers: [number, number][]) => void,
 }
 
@@ -22,7 +23,7 @@ export const MultiChoiceQuestionComponent = (props: MultiChoiceQuestionComponent
 };
 
 
-const SwitchMultiChoiceQuestionComponent = ({ question, answers, onChanged }: MultiChoiceQuestionComponentProps) => {    
+const SwitchMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged }: MultiChoiceQuestionComponentProps) => {    
     if (question.options.displayMode !== 'switch') {
         return null;
     }
@@ -32,7 +33,7 @@ const SwitchMultiChoiceQuestionComponent = ({ question, answers, onChanged }: Mu
     const onSwitched = (answerId: number, val: string) => {
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
-            ...answers.filter(v => v[0] !== answerId),
+            ...getAnswers().filter(v => v[0] !== answerId),
             [answerId, value] as [number, number],
         ];
         onChanged(newHistory);
@@ -48,7 +49,7 @@ const SwitchMultiChoiceQuestionComponent = ({ question, answers, onChanged }: Mu
                     <div className="d-flex flex-row mb-3">
                         <div className="mr-2 mt-1">
                             <ToggleSwitch id={`anwser_${a.id}`} 
-                                          selected={selectorTexts[answers.filter(h => h[0] === a.id)?.[0]?.[1]] ?? ""} 
+                                          selected={selectorTexts[getAnswers().filter(h => h[0] === a.id)?.[0]?.[1]] ?? ""} 
                                           values={selectorTexts} 
                                           onChange={val => onSwitched(a.id, val)} />
                         </div>
@@ -59,7 +60,7 @@ const SwitchMultiChoiceQuestionComponent = ({ question, answers, onChanged }: Mu
     );
 }
 
-const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, answers, onChanged }: MultiChoiceQuestionComponentProps) => {
+const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onChanged }: MultiChoiceQuestionComponentProps) => {
     if (question.options.displayMode !== 'switch') {
         return null;
     }
@@ -68,7 +69,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, answers, onChange
     const onSwitched = (answerId: number, val: string) => {
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
-            ...answers.filter(v => v[0] !== answerId),
+            ...getAnswers().filter(v => v[0] !== answerId),
             [answerId, value] as [number, number],
         ];
         onChanged(newHistory);
@@ -80,7 +81,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, answers, onChange
         document.querySelectorAll('[id^="answer_"]').forEach(e => {
             const id = e.id?.split("answer_")[1] ?? -1;
             const component = <ToggleSwitch id={e.id} 
-                                            selected={selectorTexts[answers.filter(h => h[0] === +id)?.[0]?.[1]] ?? ""} 
+                                            selected={selectorTexts[getAnswers().filter(h => h[0] === +id)?.[0]?.[1]] ?? ""} 
                                             values={selectorTexts} 
                                             onChange={val => onSwitched(+id, val)} />
             ReactDOM.render(component, e);
@@ -99,7 +100,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, answers, onChange
         });
 
         // apply history changes    
-        answers.forEach(([id, value]) => {
+        getAnswers().forEach(([id, value]) => {
             const inputId = `answer_${id}_${selectorTexts[value]}_checkbox`;
             const answr: any = document.getElementById(inputId);
             if (!answr) {
@@ -108,7 +109,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, answers, onChange
             setTimeout(() => answr.checked = true, 10)
             //answr.value = value;
         });
-    }, [question.questionId, answers])
+    }, [question.questionId, getAnswers().map(v => `${v[0]}${v[1]}`).join('')])
     
     return (
         <div>

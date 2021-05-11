@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import React, { useEffect, useState } from "react";
-import { Feedback } from "../components/exercise/feedback";
 import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
 import { Header } from "../components/exercise/header";
 import { Loader } from "../components/common/loader";
@@ -74,7 +73,6 @@ export const Exercise = observer(() => {
                 <>
                     <Header />
                     <CurrentQuestion />
-                    <Feedback />
                     <GenerateNextAnswerBtn /> 
                     <GenerateNextQuestionBtn />
                     <GenerateSupQuestion />

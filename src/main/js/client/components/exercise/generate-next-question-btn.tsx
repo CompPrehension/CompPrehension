@@ -9,7 +9,7 @@ import { ExerciseStore } from "../../stores/exercise-store";
 export const GenerateNextQuestionBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const onClicked = () => {
-        exerciseStore.currentQuestion.generateQuestion(exerciseStore.currentAttempt?.attemptId ?? -1);
+        exerciseStore.generateQuestion();
     };
 
     const { sessionInfo, currentAttempt } = exerciseStore;

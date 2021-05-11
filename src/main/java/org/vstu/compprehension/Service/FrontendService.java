@@ -86,9 +86,15 @@ public class FrontendService {
                 ? Arrays.copyOf(answers, answers.length - 1)
                 : answers;
 
+        // build feedback message
+        val message = errors.length > 0 ? FeedbackDto.Message.Error(errors)
+                : judgeResult.IterationsLeft == 0 ? FeedbackDto.Message.Success("All done!")
+                : judgeResult.IterationsLeft > 0 ? FeedbackDto.Message.Success("Correct, keep doing...")
+                : null;
+
         return FeedbackDto.builder()
                 .grade(grade)
-                .errors(errors)
+                .message(message)
                 .violations(violationIds)
                 .stepsLeft(judgeResult.IterationsLeft)
                 .correctSteps(correctInteractionsCount)
@@ -145,10 +151,12 @@ public class FrontendService {
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
 
+        // build feedback message
+        val message = FeedbackDto.Message.Success(correctAnswerDto.getExplanation());
+
         return FeedbackDto.builder()
                 .grade(grade)
-                .errors(new String[0])
-                .explanation(correctAnswerDto.getExplanation())
+                .message(message)
                 .correctAnswers(correctAnswerDto.getAnswers())
                 .stepsLeft(judgeResult.IterationsLeft)
                 .correctSteps(correctInteractionsCount)

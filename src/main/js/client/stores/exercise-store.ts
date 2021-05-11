@@ -80,4 +80,15 @@ export class ExerciseStore {
             this.currentAttempt = result;
         })
     }
+
+    @action
+    generateQuestion = async (): Promise<void> => {
+        const { sessionInfo, currentAttempt } = this;
+        if (!sessionInfo || !currentAttempt) {
+            throw new Error("Session is not defined");
+        }
+
+        await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
+        currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+    }
 }

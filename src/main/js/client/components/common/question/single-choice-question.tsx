@@ -5,6 +5,7 @@ import { SingleChoiceQuestion } from "../../../types/question";
 type SingleChoiceQuestionComponentProps = {
     question: SingleChoiceQuestion,
     answers: [number, number][],
+    getAnswers: () => [number, number][],
     onChanged: (newAnswers: [number, number][]) => void,
 }
 
@@ -19,7 +20,7 @@ export const SingleChoiceQuestionComponent = (props: SingleChoiceQuestionCompone
     return (<div>Not implemented</div>);
 }
 
-const RadioSingleChoiceQuestionComponent = ({ question, answers, onChanged }: SingleChoiceQuestionComponentProps) => {
+const RadioSingleChoiceQuestionComponent = ({ question, getAnswers, onChanged }: SingleChoiceQuestionComponentProps) => {
     if (question.options.displayMode !== 'radio') {
         return null;
     }
@@ -41,7 +42,7 @@ const RadioSingleChoiceQuestionComponent = ({ question, answers, onChanged }: Si
                             <input id={`answer_${a.id}`} 
                                    name={`switch_${question.questionId}`} 
                                    type="radio" 
-                                   checked={answers.some(h => h[0] === a.id)}
+                                   checked={getAnswers().some(h => h[0] === a.id)}
                                    onChange={(e) => selfOnChange(a.id, e.target.checked)} />
                         </div>
                         <div>{a.text}</div>                        
@@ -52,7 +53,7 @@ const RadioSingleChoiceQuestionComponent = ({ question, answers, onChanged }: Si
 }
 
 
-const RadioSingleChoiceQuestionWithCtxComponent = ({ question, answers, onChanged }: SingleChoiceQuestionComponentProps) => {
+const RadioSingleChoiceQuestionWithCtxComponent = ({ question, getAnswers, onChanged }: SingleChoiceQuestionComponentProps) => {
     if (question.options.displayMode !== 'radio') {
         return null;
     }
@@ -72,7 +73,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = ({ question, answers, onChange
                                  <input id={`answer_${id}`} 
                                         name={`switch_${question.questionId}`} 
                                         type="radio" 
-                                        checked={answers.some(h => h[0] === +id)}
+                                        checked={getAnswers().some(h => h[0] === +id)}
                                         onChange={(e) => selfOnChange(+id, e.target.checked)} />
                                  <span dangerouslySetInnerHTML={{ __html: e.innerHTML }}/>
                                </label>)
@@ -89,14 +90,14 @@ const RadioSingleChoiceQuestionWithCtxComponent = ({ question, answers, onChange
         });
 
         // apply history changes    
-        answers.forEach(([id]) => {
+        getAnswers().forEach(([id]) => {
             const answr: any = document.getElementById(`answer_${id}`);
             if (!answr) {
                 return;
             }
             setTimeout(() => answr.checked = true, 10)
         });
-    }, [question.questionId, answers])
+    }, [question.questionId, getAnswers()])
 
     return (
         <div>

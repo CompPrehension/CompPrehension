@@ -7,6 +7,7 @@ import { MatchingQuestion } from "../../../types/question";
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
     answers: [number, number][],
+    getAnswers: () => [number, number][],
     onChanged: (newAnswers: [number, number][]) => void,
 }
 
@@ -24,7 +25,7 @@ export const MatchingQuestionComponent = (props: MatchingQuestionComponentProps)
     return (<div>Not Implemented</div>);
 };
 
-const DragAndDropMatchingQuestionComponent = ({ question, answers, onChanged }: MatchingQuestionComponentProps) => {
+const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -105,7 +106,7 @@ const DragAndDropMatchingQuestionComponent = ({ question, answers, onChanged }: 
         </div>);
 };
 
-const ComboboxMatchingQuestionComponent = ({ question, answers, onChanged }: MatchingQuestionComponentProps) => {    
+const ComboboxMatchingQuestionComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {    
     if (question.options.displayMode !== 'combobox') {
         return null;
     }
@@ -122,7 +123,7 @@ const ComboboxMatchingQuestionComponent = ({ question, answers, onChanged }: Mat
                         <tr>
                             <td dangerouslySetInnerHTML={{ __html: question.text}}></td>
                             <td>
-                                <Select defaultValue={(answers.find(v => v[0] === asw.id)?.[1] ?? null) as any}
+                                <Select defaultValue={(getAnswers().find(v => v[0] === asw.id)?.[1] ?? null) as any}
                                         options={groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
                                                        .map(g => ({ value: g.id, label: g.text }))}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
@@ -130,7 +131,7 @@ const ComboboxMatchingQuestionComponent = ({ question, answers, onChanged }: Mat
                                             if (!v) {
                                                return;
                                             }
-                                            const otherHistoryItems = answers.filter(v => v[0] !== asw.id);
+                                            const otherHistoryItems = getAnswers().filter(v => v[0] !== asw.id);
                                             const historyItem = [asw.id, +v.value] as [number, number];
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);                                            
@@ -144,7 +145,7 @@ const ComboboxMatchingQuestionComponent = ({ question, answers, onChanged }: Mat
     );
 };
 
-const ComboboxMatchingQuestionWithCtxComponent = ({ question, answers, onChanged }: MatchingQuestionComponentProps) => {
+const ComboboxMatchingQuestionWithCtxComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {
     if (question.options.displayMode !== 'combobox') {
         return null;
     }
@@ -162,7 +163,7 @@ const ComboboxMatchingQuestionWithCtxComponent = ({ question, answers, onChanged
                                                return;
                                             }
 
-                                            const otherHistoryItems = answers.filter(v => v[0] !== answerId);
+                                            const otherHistoryItems = getAnswers().filter(v => v[0] !== answerId);
                                             const historyItem = [answerId, +v.value] as [number, number];
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);     
