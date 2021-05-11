@@ -86,7 +86,7 @@ export const TSingleChoiceQuestionOptions: io.Type<SingleChoiceQuestionOptions> 
 
 export type MultiChoiceQuestionOptions = QuestionOptions & {
     displayMode: 'switch' | 'dragNdrop',
-    selectorReplacers?: [string, string],
+    selectorReplacers?: [string, string] | null,
 }
 export const TMultiChoiceQuestionOptions: io.Type<MultiChoiceQuestionOptions> = io.intersection([
     TQuestionOptions,
@@ -97,6 +97,6 @@ export const TMultiChoiceQuestionOptions: io.Type<MultiChoiceQuestionOptions> = 
         }),        
     }),
     io.partial({
-        selectorReplacers: io.tuple([io.string, io.string]),
+        selectorReplacers: io.union([io.tuple([io.string, io.string]), io.null]),
     }),
 ], 'MultiChoiceQuestionOptions')

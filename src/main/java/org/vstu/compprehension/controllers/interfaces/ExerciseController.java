@@ -70,6 +70,7 @@ public interface ExerciseController {
      * @throws Exception Something got wrong
      */
     @RequestMapping(value = {"/generateSupplementaryQuestion"}, method = { RequestMethod.POST })
+    @ResponseBody
     QuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception;
 
     /**

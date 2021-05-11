@@ -59,6 +59,7 @@ export class QuestionStore {
                 O.getOrElse(() => [-1] as NEArray.NonEmptyArray<number>)
             ),
         };
+        this.isQuestionLoading = true;
         const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
         this.onQuestionLoaded(data); 

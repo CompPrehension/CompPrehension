@@ -21,6 +21,7 @@ import java.io.Serializable;
     // defines mapping to subtypes
     @JsonSubTypes.Type(value = OrderQuestionOptionsEntity.class, name = "OrderQuestionOptionsEntity"),
     @JsonSubTypes.Type(value = MatchingQuestionOptionsEntity.class, name = "MatchingQuestionOptionsEntity"),
+    @JsonSubTypes.Type(value = MultiChoiceOptionsEntity.class, name = "MultiChoiceOptionsEntity"),
 })
 @Data
 @AllArgsConstructor @NoArgsConstructor

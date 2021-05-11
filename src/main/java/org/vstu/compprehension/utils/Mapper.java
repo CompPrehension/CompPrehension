@@ -98,11 +98,17 @@ public class Mapper {
 
         switch (question.getQuestionType()) {
             case ORDER:
+            case MULTI_CHOICE:
+                val mulChoiceAnswers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
+                val mulChoiceAnswerDtos = IntStream.range(0, mulChoiceAnswers.size())
+                        .mapToObj(i -> new QuestionAnswerDto((long)i, mulChoiceAnswers.get(i).getHyperText()))
+                        .toArray(QuestionAnswerDto[]::new);
+
                 return QuestionDto.builder()
                         .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
-                        .answers(new QuestionAnswerDto[0])
+                        .answers(mulChoiceAnswerDtos)
                         .text(question.getQuestionText())
                         .options(question.getOptions())
                         .responses(responses)

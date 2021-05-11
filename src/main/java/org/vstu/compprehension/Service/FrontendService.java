@@ -71,15 +71,16 @@ public class FrontendService {
         val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
-        val violationIds = Optional.ofNullable(ie.getViolations()).stream().flatMap(Collection::stream)
-                .map(ViolationEntity::getId)
-                .filter(Objects::nonNull).toArray(Long[]::new);
 
         // add feedback
         val grade = strategy.grade(attempt);
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
+
+        val violationIds = Optional.ofNullable(ie.getViolations()).stream().flatMap(Collection::stream)
+                .map(ViolationEntity::getId)
+                .filter(Objects::nonNull).toArray(Long[]::new);
 
         // remove incorrect answers from feedback
         val correctAnswers = errors.length > 0

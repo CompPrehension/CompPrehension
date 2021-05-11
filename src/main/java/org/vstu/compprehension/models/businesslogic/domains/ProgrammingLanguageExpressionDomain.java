@@ -7,6 +7,7 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionOptions.MultiChoiceOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.utils.HyperText;
@@ -189,7 +190,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
                 .build();
 
-        QuestionOptionsEntity multiChoiceQuestionOptions = QuestionOptionsEntity.builder()
+        QuestionOptionsEntity multiChoiceQuestionOptions = MultiChoiceOptionsEntity.builder()
                 .requireContext(false)
                 .build();
 
