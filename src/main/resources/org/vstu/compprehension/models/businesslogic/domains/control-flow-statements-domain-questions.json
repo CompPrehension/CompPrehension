@@ -4,7 +4,7 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"4\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"6\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"5\" id=\"answer_9\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"7\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"8\" id=\"answer_11\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"10\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0431\u0435\u0436\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0431\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_13\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE branch of alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_8\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u043b\u0435\u0436\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u043b\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"4\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"4\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"6\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"5\" id=\"answer_9\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"7\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"5\" id=\"answer_9\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"8\" id=\"answer_11\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"10\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0431\u0435\u0436\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0431\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"8\" id=\"answer_11\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_13\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE branch of alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_8\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u043b\u0435\u0436\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u043b\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_13\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE branch of alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
@@ -147,16 +147,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 2
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "2_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -168,9 +161,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "3_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 2
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "2_algorithm",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -189,6 +189,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "3_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 3
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "4_po_tsvetu"
@@ -199,13 +206,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "global_code"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "3_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 3
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -259,9 +259,23 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_po_tsvetu",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 4
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "4_po_tsvetu",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "4_po_tsvetu",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -283,20 +297,6 @@
           "verb": "branches_item",
           "objectType": "owl:NamedIndividual",
           "object": "11_po_tsvetu-else"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "4_po_tsvetu",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "4_po_tsvetu",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 4
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -350,6 +350,27 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_if-sejchas_krasnyj",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_if-sejchas_krasnyj",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "6_sejchas_krasnyj"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_if-sejchas_krasnyj",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "7_zhdat"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_if-sejchas_krasnyj",
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "8_elseif-sejchas_zelenyj"
@@ -367,27 +388,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "5_if-sejchas_krasnyj",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "7_zhdat"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "5_if-sejchas_krasnyj",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "6_sejchas_krasnyj"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "5_if-sejchas_krasnyj",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -427,16 +427,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_sejchas_krasnyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 6
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_sejchas_krasnyj",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 6
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -490,6 +490,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "7_zhdat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 7
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "7_zhdat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -500,13 +507,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0436\u0434\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "7_zhdat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 7
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -553,6 +553,27 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "8_elseif-sejchas_zelenyj",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 1
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "9_sejchas_zelenyj"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "10_bezhat"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_elseif-sejchas_zelenyj",
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "11_po_tsvetu-else"
@@ -570,27 +591,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "elseif-\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "8_elseif-sejchas_zelenyj",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "10_bezhat"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "8_elseif-sejchas_zelenyj",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "9_sejchas_zelenyj"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "8_elseif-sejchas_zelenyj",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -630,16 +630,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_sejchas_zelenyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 9
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_sejchas_zelenyj",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 9
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -693,6 +693,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "10_bezhat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 10
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "10_bezhat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -703,13 +710,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0431\u0435\u0436\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "10_bezhat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 10
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -763,6 +763,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "11_po_tsvetu-else",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 11
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_po_tsvetu-else",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "12_lezhat"
@@ -780,13 +787,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443-else"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "11_po_tsvetu-else",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 11
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -840,6 +840,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_lezhat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 12
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_lezhat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -850,13 +857,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u043b\u0435\u0436\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_lezhat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 12
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -908,7 +908,7 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"17\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"16\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"20\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"19\" id=\"answer_10\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0431\u0435\u0436\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0431\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"17\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"16\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"16\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"20\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"19\" id=\"answer_10\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0431\u0435\u0436\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0431\u0435\u0436\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"19\" id=\"answer_10\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
@@ -1027,16 +1027,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "13_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 13
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "13_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "14_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1048,9 +1041,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "13_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "14_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 13
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "13_algorithm",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1069,6 +1069,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "14_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 14
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "14_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "15_po_tsvetu"
@@ -1079,13 +1086,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "global_code"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "14_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 14
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1139,9 +1139,23 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_po_tsvetu",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 15
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_po_tsvetu",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_po_tsvetu",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1156,20 +1170,6 @@
           "verb": "branches_item",
           "objectType": "owl:NamedIndividual",
           "object": "19_elseif-sejchas_zelenyj"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "15_po_tsvetu",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u043f\u043e_\u0446\u0432\u0435\u0442\u0443"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "15_po_tsvetu",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 15
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1223,6 +1223,27 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "16_if-sejchas_krasnyj",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "16_if-sejchas_krasnyj",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "17_sejchas_krasnyj"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "16_if-sejchas_krasnyj",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "18_zhdat"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "16_if-sejchas_krasnyj",
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "19_elseif-sejchas_zelenyj"
@@ -1240,27 +1261,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "16_if-sejchas_krasnyj",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "18_zhdat"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "16_if-sejchas_krasnyj",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "17_sejchas_krasnyj"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "16_if-sejchas_krasnyj",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1300,16 +1300,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_sejchas_krasnyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 17
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_sejchas_krasnyj",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 17
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1363,6 +1363,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "18_zhdat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 18
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "18_zhdat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -1373,13 +1380,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0436\u0434\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "18_zhdat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 18
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1433,23 +1433,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_elseif-sejchas_zelenyj",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 19
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "19_elseif-sejchas_zelenyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "elseif-\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "19_elseif-sejchas_zelenyj",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "21_bezhat"
+          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1461,9 +1447,23 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_elseif-sejchas_zelenyj",
-          "verb": "item_index",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "21_bezhat"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "19_elseif-sejchas_zelenyj",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 1
+          "object": 19
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "19_elseif-sejchas_zelenyj",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "elseif-\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1503,16 +1503,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "20_sejchas_zelenyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 20
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "20_sejchas_zelenyj",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 20
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u0437\u0435\u043b\u0451\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1566,6 +1566,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "21_bezhat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 21
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_bezhat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -1576,13 +1583,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0431\u0435\u0436\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_bezhat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 21
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1633,7 +1633,7 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"24\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"26\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_6\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"27\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"24\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"24\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative \u043f\u043e_\u0446\u0432\u0435\u0442\u0443\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"26\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043f\u043e_\u0446\u0432\u0435\u0442\u0443</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_6\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"27\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_6\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition \u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
@@ -1720,16 +1720,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 22
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "23_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1741,9 +1734,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "23_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 22
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_algorithm",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1762,6 +1762,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "23_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 23
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "23_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "24_po_tsvetu"
@@ -1772,13 +1779,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "global_code"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "23_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 23
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1832,16 +1832,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_po_tsvetu",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 24
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_po_tsvetu",
-          "verb": "branches_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "25_if-sejchas_krasnyj"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1853,9 +1853,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_po_tsvetu",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 24
+          "verb": "branches_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "25_if-sejchas_krasnyj"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1916,23 +1916,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_if-sejchas_krasnyj",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 25
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_if-sejchas_krasnyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_if-sejchas_krasnyj",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "27_zhdat"
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1944,9 +1930,23 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_if-sejchas_krasnyj",
-          "verb": "item_index",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "27_zhdat"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_if-sejchas_krasnyj",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 25
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_if-sejchas_krasnyj",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "if-\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1986,16 +1986,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "26_sejchas_krasnyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 26
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "26_sejchas_krasnyj",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 26
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u0441\u0435\u0439\u0447\u0430\u0441_\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2049,6 +2049,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "27_zhdat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 27
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "27_zhdat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -2059,13 +2066,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0436\u0434\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "27_zhdat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 27
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2217,16 +2217,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 28
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "28_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "30_main"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2238,9 +2231,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "30_main"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 28
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "28_algorithm",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2266,16 +2266,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_main",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 30
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_main",
-          "verb": "body",
-          "objectType": "owl:NamedIndividual",
-          "object": "31_main-body"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2287,9 +2287,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_main",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 30
+          "verb": "body",
+          "objectType": "owl:NamedIndividual",
+          "object": "31_main-body"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2336,6 +2336,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "31_main-body",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 31
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_main-body",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "32_delaj_raz"
@@ -2360,13 +2367,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "main-body"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "31_main-body",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 31
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2413,6 +2413,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_delaj_raz",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 32
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_delaj_raz",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -2430,13 +2437,6 @@
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "33_delaj_dva"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "32_delaj_raz",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 32
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2476,6 +2476,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "33_delaj_dva",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 33
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "33_delaj_dva",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 1
@@ -2493,13 +2500,6 @@
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "34_delaj_tri"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "33_delaj_dva",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 33
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2546,6 +2546,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "34_delaj_tri",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 34
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "34_delaj_tri",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 2
@@ -2556,13 +2563,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0434\u0435\u043b\u0430\u0439_\u0442\u0440\u0438"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "34_delaj_tri",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 34
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2602,16 +2602,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_global_code",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 29
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 29
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2659,7 +2659,7 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"37\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>while</span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"38\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"40\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"39\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}&nbsp;&nbsp;</span></div></div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"41\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"42\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0438\u0434\u0442\u0438\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0438\u0434\u0442\u0438</span>;</div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"37\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>while<span class=\"alg_button\" algorithm_element_id=\"37\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span></span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"38\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition \u043a\u0440\u0430\u0441\u043d\u044b\u0439\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u043a\u0440\u0430\u0441\u043d\u044b\u0439</span>)&nbsp;&nbsp;<span class=\"comment\">// \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"40\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"39\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"40\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"41\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0436\u0434\u0430\u0442\u044c_\u0441\u0435\u043a\u0443\u043d\u0434\u044b(3)</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"42\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement \u0438\u0434\u0442\u0438\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>\u0438\u0434\u0442\u0438</span>;</div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
@@ -2762,16 +2762,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "35_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 35
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "35_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "36_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2783,9 +2776,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "35_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "36_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 35
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "35_algorithm",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2800,6 +2800,13 @@
           "verb": "rdf:type",
           "objectType": "owl:Class",
           "object": "linked_list"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "36_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 36
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2828,13 +2835,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "global_code"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "36_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 36
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2881,6 +2881,20 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_ozhidanie",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "37_ozhidanie",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "38_krasnyj"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "37_ozhidanie",
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "41_zhdat_sekundy3"
@@ -2895,13 +2909,6 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_ozhidanie",
-          "verb": "body",
-          "objectType": "owl:NamedIndividual",
-          "object": "40_ozhidanie_loop_body"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "37_ozhidanie",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435"
@@ -2909,16 +2916,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_ozhidanie",
-          "verb": "cond",
+          "verb": "body",
           "objectType": "owl:NamedIndividual",
-          "object": "38_krasnyj"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "37_ozhidanie",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "object": "40_ozhidanie_loop_body"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2958,16 +2958,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "38_krasnyj",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 38
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "38_krasnyj",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 38
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "\u043a\u0440\u0430\u0441\u043d\u044b\u0439"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -3014,6 +3014,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "40_ozhidanie_loop_body",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 40
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "40_ozhidanie_loop_body",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "39_zhdat"
@@ -3024,13 +3031,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u043e\u0436\u0438\u0434\u0430\u043d\u0438\u0435_loop_body"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "40_ozhidanie_loop_body",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 40
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -3084,6 +3084,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "39_zhdat",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 39
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "39_zhdat",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
@@ -3094,13 +3101,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0436\u0434\u0430\u0442\u044c"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "39_zhdat",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 39
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -3140,6 +3140,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "41_zhdat_sekundy3",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 41
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "41_zhdat_sekundy3",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 1
@@ -3157,13 +3164,6 @@
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "42_idti"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "41_zhdat_sekundy3",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 41
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -3210,6 +3210,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "42_idti",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 42
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "42_idti",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 2
@@ -3220,13 +3227,6 @@
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "\u0438\u0434\u0442\u0438"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "42_idti",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 42
         },
         {
           "subjectType": "owl:NamedIndividual",
