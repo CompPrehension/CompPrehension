@@ -42,12 +42,12 @@ public class Strategy extends AbstractStrategy {
             }
         }
 
-        if(targetConcepts.contains(domain.getConcept("precedence"))){
-            allowedConcepts.add(domain.getConcept("operator_binary_*"));
-            allowedConcepts.add(domain.getConcept("operator_binary_+"));
-        }else{
-            allowedConcepts.add(domain.getConcept("operator_binary_+"));
-        }
+//        if(targetConcepts.contains(domain.getConcept("precedence"))){
+//            allowedConcepts.add(domain.getConcept("operator_binary_*"));
+//            allowedConcepts.add(domain.getConcept("operator_binary_+"));
+//        }else{
+//            allowedConcepts.add(domain.getConcept("operator_binary_+"));
+//        }
 
         qr.setComplexity(1);
         qr.setDeniedConcepts(deniedConcepts);

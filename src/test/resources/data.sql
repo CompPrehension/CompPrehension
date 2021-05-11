@@ -1,6 +1,6 @@
 INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ProgrammingLanguageExpressionDomain');
 
-INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'тест', 'тест');
+INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'test', 'test');
 
 INSERT INTO `backend` (`id`, `name`) VALUES (1, 'test');
 
@@ -53,3 +53,23 @@ INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_i
 INSERT INTO `exercise_attempt` (`id`, `attempt_status`, `exercise_id`, `user_id` ) VALUES (13,1,8,1);
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('precedence', 2, 8);
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('associativity', 2, 8);
+
+
+
+INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ControlFlowStatementsDomain');
+
+INSERT INTO `exercise` (
+       `id`,
+          `complexity`,
+             `exercise_type`,
+                `hidden`,
+                   `language_id`,
+                      `max_retries`,
+                             `name`,`time_limit`,
+                                       `use_guiding_questions`,
+                                          `backend_id`,
+                                             `course_id`,
+                                                `domain_id`,                   `tags`)
+VALUES (15,1, 1, 0, 1, '10', 'test', 8, 1, 1, 1, 'ControlFlowStatementsDomain', 'C++');
+
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('trace', 0, 15);
