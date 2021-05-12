@@ -118,7 +118,7 @@ public abstract class Domain {
      * @param feedbackType TODO: use feedbackType or delete it
      * @return explanation for each violation in random order
      */
-    public abstract ArrayList<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType);
+    public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType);
 
     /**
      * Get all needed (positive and negative) laws in this questionType

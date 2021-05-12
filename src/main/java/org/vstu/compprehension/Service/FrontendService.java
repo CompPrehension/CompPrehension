@@ -8,17 +8,16 @@ import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Strategy;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
 import org.vstu.compprehension.models.repository.ViolationRepository;
+import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.*;
@@ -64,7 +63,9 @@ public class FrontendService {
         val responses = questionService.responseQuestion(question, answers);
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
         val explanations = questionService.explainViolations(question, judgeResult.violations);
-        val errors = explanations.stream().map(s -> s.getText()).toArray(String[]::new);
+        val errors = Optional.ofNullable(explanations).stream()
+                .flatMap(Collection::stream)
+                .map(HyperText::getText).toArray(String[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();

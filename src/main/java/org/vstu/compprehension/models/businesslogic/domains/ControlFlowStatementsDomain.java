@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
@@ -85,7 +86,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
@@ -207,8 +208,8 @@ public class ControlFlowStatementsDomain extends Domain {
      * @return explanation for each violation in random order
      */
     @Override
-    public ArrayList<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType) {
-        return null;
+    public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType) {
+        return new ArrayList<>();
     }
 
     // filter positive laws by question type and tags
@@ -498,7 +499,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
