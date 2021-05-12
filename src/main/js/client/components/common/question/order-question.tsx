@@ -38,7 +38,7 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: Orde
         // drop all changes, set original qustion text    
         document.querySelectorAll('[id^="answer_"]').forEach(e => {
             const pos = e.getAttribute("data-comp-ph-pos");
-            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + `<span class="comp-ph-expr-top-hint">${pos}</span>`
+            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '')
             e.classList.remove('disabled');
         });
 
