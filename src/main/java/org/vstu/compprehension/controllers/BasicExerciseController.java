@@ -1,6 +1,7 @@
 package org.vstu.compprehension.controllers;
 
 import lombok.val;
+import lombok.var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,12 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public String launch(Long exerciseId, HttpServletRequest request) throws Exception {
-        val session = request.getSession();
+        var session = request.getSession();
+        if (!session.isNew()) {
+            session.invalidate();
+            session = request.getSession();
+        }
+
         session.setAttribute("exerciseId", exerciseId);
 
         if (exerciseId == null) {

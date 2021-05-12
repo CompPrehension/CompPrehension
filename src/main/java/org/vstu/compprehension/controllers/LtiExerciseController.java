@@ -1,6 +1,7 @@
 package org.vstu.compprehension.controllers;
 
 
+import lombok.var;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
@@ -39,7 +40,11 @@ public class LtiExerciseController extends BasicExerciseController {
             throw new Exception("Invalid LTI session");
         }
 
-        val session = request.getSession();
+        var session = request.getSession();
+        if (!session.isNew()) {
+            session.invalidate();
+            session = request.getSession();
+        }
         session.setAttribute("ltiSessionInfo", params);
 
         val exerciseIdS = params.getOrDefault("custom_exerciseId", "-1");
