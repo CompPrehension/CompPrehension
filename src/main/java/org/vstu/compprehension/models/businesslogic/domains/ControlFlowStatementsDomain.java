@@ -489,7 +489,7 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         result.violations = mistakes;
-//        result.correctlyAppliedLaws = calculateCorrectlyAppliedLaws(violations);
+        result.correctlyAppliedLaws = new ArrayList<>(); // TODO
 
         ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = processResult.CountCorrectOptions;
