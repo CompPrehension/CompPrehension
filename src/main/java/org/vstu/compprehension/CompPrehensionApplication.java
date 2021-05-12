@@ -119,6 +119,8 @@ public class CompPrehensionApplication {
 		userCourseRoles.add(userCourseRole);
 		
 		//userService
+		
+		System.out.println("initialDB() completed.");
 	}
 
 }
