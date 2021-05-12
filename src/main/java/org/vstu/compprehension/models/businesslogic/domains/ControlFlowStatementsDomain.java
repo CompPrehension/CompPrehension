@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
@@ -212,8 +213,11 @@ public class ControlFlowStatementsDomain extends Domain {
     public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType) {
         if (violations.isEmpty())
             return new ArrayList<>();
-        else
-            return new ArrayList<>(Arrays.asList(new HyperText("A dummy explanation")));
+        else {
+            ArrayList<HyperText> explanation = new ArrayList<>();
+            violations.forEach(ve -> explanation.add(new HyperText(ve.getLawName() + " violated... ")));
+            return explanation;
+        }
     }
 
     // filter positive laws by question type and tags
@@ -333,21 +337,11 @@ public class ControlFlowStatementsDomain extends Domain {
 
             // trace object
             String trace = "comp-ph-trace";
-            result.add(new BackendFactEntity(
-                    "owl:NamedIndividual",
-                    trace,
-                    "rdf:type",
-                    "owl:Class",
-                    "trace"
-            ));
+            appendActFacts(result, 0, trace, "trace", null, 0, null, trace, null);
+
             result.add(new BackendFactEntity(
                     "owl:NamedIndividual", trace,
                     "index",
-                    "xsd:int", "0"
-            ));
-            result.add(new BackendFactEntity(
-                    "owl:NamedIndividual", trace,
-                    "student_index",
                     "xsd:int", "0"
             ));
 //            make_triple(trace_obj, onto.exec_time, 0)  # set to 0 so next is 1
@@ -355,11 +349,6 @@ public class ControlFlowStatementsDomain extends Domain {
                     "owl:NamedIndividual", trace,
                     "depth",
                     "xsd:int", "0"
-            ));
-            result.add(new BackendFactEntity(
-                    "owl:NamedIndividual", trace,
-                    "in_trace",
-                    "owl:NamedIndividual", trace
             ));
 //            make_triple(trace_obj, onto.index, 0)
 //            make_triple(trace_obj, onto.student_index, 0)
@@ -369,17 +358,19 @@ public class ControlFlowStatementsDomain extends Domain {
             QuestionEntity q = responses.get(0).getLeftAnswerObject().getQuestion(); // assume that list is never empty
             // iterate responses and make acts
             int student_index = 0;
+            int trace_index = 0;
             int maxId = 100;
-            HashMap<String, Pair<String, Integer>> id2exprName = new HashMap<>();
+            HashMap<String, MutablePair<String, Integer>> id2exprName = new HashMap<>();
             String prevActIRI = trace;
             for (ResponseEntity response : responses) {
+                trace_index ++;
                 String[] actInfo = response.getLeftAnswerObject().getDomainInfo().split(":");
                 assert(actInfo.length == 2);
                 String phase = actInfo[0];
                 String exId = actInfo[1];
 //              int exId = Integer.parseInt(actInfo[1]);
 
-                String act_iri_t = exId + "_" + exId;
+                String act_iri_t = exId + "_n" + trace_index;
 
                 if (phase.equals("started") || phase.equals("performed")) {
                     String act_iri = "b_" + act_iri_t;
@@ -391,12 +382,20 @@ public class ControlFlowStatementsDomain extends Domain {
                         String exprName = null;
                         Integer execCount = null;
                         if (id2exprName.containsKey(exId)) {
-                            Pair<String, Integer> pair = id2exprName.get(exId);
+                            // get the entry from the map
+                            MutablePair<String, Integer> pair = id2exprName.get(exId);
                             exprName = pair.getLeft();
                             execCount = pair.getRight();
+                            // we encounter the expr one more time
+                            ++execCount;
+                            pair.setRight(execCount);
                         } else {
                             exprName = getExpressionNameById(q, Integer.parseInt(exId));
-                            execCount = 0; // set anyway, even not an expression
+                            if (exprName != null) {
+                                execCount = 1;
+                                // add the entry to the map
+                                id2exprName.put(exId, new MutablePair<>(exprName, execCount));
+                            }
                         }
                         if (exprName != null) {
                             exprValue = (1 == getValueForExpression(q, exprName, execCount));
@@ -602,6 +601,6 @@ public class ControlFlowStatementsDomain extends Domain {
     public static void main(String[] args) {
         ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
         d.getQuestionTemplates();
-        d.VOCAB.classDescendants("Erroneous");
+        VOCAB.classDescendants("Erroneous");
     }
 }
