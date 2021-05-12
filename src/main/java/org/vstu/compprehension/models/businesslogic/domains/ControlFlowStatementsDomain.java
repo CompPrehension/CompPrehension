@@ -209,7 +209,10 @@ public class ControlFlowStatementsDomain extends Domain {
      */
     @Override
     public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType) {
-        return new ArrayList<>();
+        if (violations.isEmpty())
+            return new ArrayList<>();
+        else
+            return new ArrayList<>(Arrays.asList(new HyperText("A dummy explanation")));
     }
 
     // filter positive laws by question type and tags
