@@ -1,5 +1,5 @@
 import * as io from 'io-ts'
-import { TOptionalRequestResult } from './utils';
+import { TOptionalRequestResult } from '../utils/helpers';
 
 export type ExerciseAttempt = {
     attemptId: number,

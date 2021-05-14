@@ -102,7 +102,7 @@ public interface ExerciseController {
      * @return Html page
      * @throws Exception Something got wrong
      */
-    @RequestMapping(value = {"/"}, method = { RequestMethod.GET })
+    @RequestMapping(value = {"/pages/exercise"}, method = { RequestMethod.GET })
     String launch(Long exerciseId, HttpServletRequest request) throws Exception;
 
     /**

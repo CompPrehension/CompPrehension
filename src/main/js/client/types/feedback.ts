@@ -13,15 +13,15 @@ const TFeedbackMessage: io.Type<FeedbackMessage> = io.type({
 })
 
 export type Feedback = {
-    grade: number | null,
-    violations: number[] | null,    
-    correctAnswers: [number, number][] | null,
-    correctSteps: number | null,
-    stepsLeft: number | null,
-    stepsWithErrors: number | null,
-    message: FeedbackMessage | null,
+    grade?: number | null,
+    violations?: number[] | null,    
+    correctAnswers?: [number, number][] | null,
+    correctSteps?: number | null,
+    stepsLeft?: number | null,
+    stepsWithErrors?: number | null,
+    message?: FeedbackMessage | null,
 } 
-export const TFeedback : io.Type<Feedback> = io.type({
+export const TFeedback: io.Type<Feedback> = io.partial({
     grade: io.union([io.number, io.null]),
     violations: io.union([io.array(io.number), io.null]),
     correctAnswers: io.union([io.array(io.tuple([io.number, io.number])), io.null]),
@@ -30,7 +30,4 @@ export const TFeedback : io.Type<Feedback> = io.type({
     stepsWithErrors: io.union([io.number, io.null]),
     message: io.union([TFeedbackMessage, io.null]),
 }, 'Feedback');
-
-
-
 

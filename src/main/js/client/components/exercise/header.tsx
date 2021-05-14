@@ -28,7 +28,7 @@ export const Header = observer(() => {
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">
-                    Signed in as: <Link to={`pages/statistics?exerciseId=${exerciseStore.currentAttempt?.exerciseId}`}>{user.displayName}</Link>{/*<a href="pages/statistics">{user.displayName}</a>*/}
+                    Signed in as: <Link to={`statistics?exerciseId=${exerciseStore.currentAttempt?.exerciseId}`}>{user.displayName}</Link>{/*<a href="pages/statistics">{user.displayName}</a>*/}
                 </Navbar.Text>
             </Navbar.Collapse>
         </Navbar>

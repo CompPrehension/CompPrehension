@@ -14,7 +14,7 @@ const Home = () => (
                 <Route path="/**/pages/statistics">
                     <Statistics />
                 </Route>
-                <Route exact path="/**/">
+                <Route path="/**/pages/exercise">
                     <Exercise />
                 </Route>             
             </Switch>

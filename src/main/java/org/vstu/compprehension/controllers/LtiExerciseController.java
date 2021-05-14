@@ -31,7 +31,7 @@ public class LtiExerciseController extends BasicExerciseController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = {"/launch" }, method = {RequestMethod.POST})
+    @RequestMapping(value = {"/pages/exercise" }, method = { RequestMethod.POST })
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> params) throws Exception {
         LtiVerifier ltiVerifier = new LtiOauthVerifier();
         String secret = this.ltiLaunchSecret;
@@ -53,7 +53,7 @@ public class LtiExerciseController extends BasicExerciseController {
             throw new Exception("Param 'custom_exerciseId' is required");
         }
 
-        return launch(exerciseId, request);
+        return super.launch(exerciseId, request);
     }
 
     @Override
