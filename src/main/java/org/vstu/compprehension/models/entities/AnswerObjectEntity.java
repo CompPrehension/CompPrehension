@@ -9,11 +9,22 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "AnswerObject")
+@Table(
+    name = "AnswerObject",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name="uk_answerId__questionId",
+            columnNames = {"answer_id", "question_id"}
+        )
+    }
+)
 public class AnswerObjectEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "answer_id", nullable = false)
+    private int answerId;
 
     @Column(name = "hyperText")
     private String hyperText;
@@ -36,7 +47,7 @@ public class AnswerObjectEntity {
 
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "answerObject_id")
+    @JoinColumn(name = "question_id")
     private QuestionEntity question;
     
     

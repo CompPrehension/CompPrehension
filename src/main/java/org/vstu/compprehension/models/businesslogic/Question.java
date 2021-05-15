@@ -52,9 +52,11 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
 
     @Override
-    public AnswerObjectEntity getAnswerObject(int index) {
-        
-        return questionData.getAnswerObjects().get(index);
+    public AnswerObjectEntity getAnswerObject(int answerId) {
+        return questionData.getAnswerObjects().stream()
+                .filter(a -> a.getAnswerId() == answerId)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

@@ -100,6 +100,7 @@ public class TestDomain extends Domain {
         for (int i = 0; i < DEFAULT_ANSWERS_COUNT; i++) {
             
             AnswerObjectEntity answerObject = new AnswerObjectEntity();
+            answerObject.setAnswerId(i);
             answerObject.setRightCol(true);
             answerObject.setConcept("Concept " + i);
             answerObject.setHyperText("Concept " + i);

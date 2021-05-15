@@ -42,6 +42,7 @@ public class QuestionEntity {
     private QuestionOptionsEntity options;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
+    @OrderBy("answerId")
     private List<AnswerObjectEntity> answerObjects;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

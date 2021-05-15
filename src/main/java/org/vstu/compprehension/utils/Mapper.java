@@ -32,19 +32,9 @@ public class Mapper {
     }
 
     public static CorrectAnswerDto toDto(Domain.CorrectAnswer correctAnswer) {
-        val answers = correctAnswer.question.getAnswerObjects();
         val frontAnswers = Optional.ofNullable(correctAnswer.answers).stream()
                 .flatMap(Collection::stream)
-                .map(pair -> {
-                    val leftIdx = LongStream.range(0, answers.size())
-                            .filter(i -> answers.get((int) i).getId().equals(pair.getLeft().getId()))
-                            .findFirst();
-                    val rightIdx = LongStream.range(0, answers.size())
-                            .filter(i -> answers.get((int) i).getId().equals(pair.getRight().getId()))
-                            .findFirst();
-                    return List.of(leftIdx.orElse(-1), rightIdx.orElse(-1)).toArray(new Long[2]);
-                }).toArray(Long[][]::new);
-
+                .map(pair -> List.of((long)pair.getLeft().getAnswerId(), (long)pair.getRight().getAnswerId()).toArray(new Long[2])).toArray(Long[][]::new);
         return CorrectAnswerDto.builder()
                 .explanation(correctAnswer.explanation.getText())
                 .answers(frontAnswers)
@@ -69,23 +59,12 @@ public class Mapper {
                 .flatMap(Collection::stream)
                 .reduce((first, second) -> second);
         val responses = lastCorrectInteraction
-                .flatMap(i -> Optional.ofNullable(i.getResponses()))
-                .map(resps -> {
-                    val answers = question.getAnswerObjects();
-                    return resps.stream()
-                            .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
-                            .map(pair -> {
-                                val leftIdx = LongStream.range(0, answers.size())
-                                        .filter(i -> answers.get((int) i).getId().equals(pair.getLeft().getId()))
-                                        .findFirst();
-                                val rightIdx = LongStream.range(0, answers.size())
-                                        .filter(i -> answers.get((int) i).getId().equals(pair.getRight().getId()))
-                                        .findFirst();
-                                return List.of(leftIdx.orElse(-1), rightIdx.orElse(-1)).toArray(new Long[2]);
-                            })
-                            .toArray(Long[][]::new);
-                })
-                .orElse(null);
+                .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
+                .flatMap(Collection::stream)
+                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
+                .map(pair -> List.of((long)pair.getLeft().getAnswerId(), (long)pair.getRight().getAnswerId()).toArray(new Long[2]))
+                .toArray(Long[][]::new);
+
         val feedback = lastInteraction
                 .map(i -> FeedbackDto.builder()
                         .correctSteps(correctInteractionsCount)
