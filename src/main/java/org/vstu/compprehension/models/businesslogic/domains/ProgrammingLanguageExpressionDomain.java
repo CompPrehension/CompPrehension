@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.val;
+import lombok.var;
 import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -198,6 +199,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
             AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
             newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
             newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
@@ -268,15 +270,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         question.setQuestionDomainType("ChooseAssociativity");
         question.setAreAnswersRequireContext(true);
         question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                createAnswerObject(question, "left", "left_associativity", "left", true),
-                createAnswerObject(question, "right", "right_associativity", "right", true),
-                createAnswerObject(question, "no associativity", "absent_associativity", "no associativity", true)
+                createAnswerObject(question, 0, "left", "left_associativity", "left", true),
+                createAnswerObject(question, 1, "right", "right_associativity", "right", true),
+                createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
         )));
         return new SingleChoice(question);
     }
 
-    private AnswerObjectEntity createAnswerObject(QuestionEntity question, String text, String concept, String domainInfo, boolean isLeft) {
+    private AnswerObjectEntity createAnswerObject(QuestionEntity question, int id, String text, String concept, String domainInfo, boolean isLeft) {
         AnswerObjectEntity answerObject = new AnswerObjectEntity();
+        answerObject.setAnswerId(id);
         answerObject.setHyperText(text);
         answerObject.setRightCol(!isLeft);
         answerObject.setDomainInfo(domainInfo);

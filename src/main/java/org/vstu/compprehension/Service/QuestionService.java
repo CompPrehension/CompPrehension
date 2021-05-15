@@ -22,10 +22,10 @@ import java.util.List;
 
 @Service
 public class QuestionService {
-    
-    private QuestionRepository questionRepository;
-
     private Core core = new Core();
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @Autowired
     AnswerObjectRepository answerObjectRepository;
@@ -44,11 +44,6 @@ public class QuestionService {
 
     @Autowired
     ResponseRepository responseRepository;
-    
-    @Autowired
-    public QuestionService(QuestionRepository questionRepository) {
-        this.questionRepository = questionRepository;
-    }
 
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
@@ -80,8 +75,8 @@ public class QuestionService {
 
     public List<ResponseEntity> responseQuestion(Question question, List<Integer> responses) {
         val result = new ArrayList<ResponseEntity>();
-        for (Integer response : responses) {
-            result.add(makeResponse(question.getAnswerObject(response)));
+        for (val answerId : responses) {
+            result.add(makeResponse(question.getAnswerObject(answerId)));
         }
         return result;
     }

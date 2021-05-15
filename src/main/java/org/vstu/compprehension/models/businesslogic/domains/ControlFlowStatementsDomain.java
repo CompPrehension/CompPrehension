@@ -163,6 +163,7 @@ public class ControlFlowStatementsDomain extends Domain {
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
             AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
             newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
             newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
