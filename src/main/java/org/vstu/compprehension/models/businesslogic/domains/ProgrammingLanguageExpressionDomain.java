@@ -665,16 +665,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
 
         Map<String, List<String>> before = new HashMap<>();
-        Map<String, String> studentPos = new HashMap<>();
-        Map<String, String> operatorLawName = new HashMap<>();
         Map<String, String> texts = new HashMap<>();
         Map<String, String> indexes = new HashMap<>();
         MultiValuedMap<String, String> highPrecedence = new HashSetValuedHashMap<>();
         MultiValuedMap<String, String> samePrecedenceLeftAssoc = new HashSetValuedHashMap<>();
         MultiValuedMap<String, String> samePrecedenceRightAssoc = new HashSetValuedHashMap<>();
-        HashSet<String> isOperand = new HashSet<>();
         HashSet<String> used = new HashSet<>();
-        HashSet<String> allTokens = new HashSet<>();
 
         for (BackendFactEntity fact : originalQuestion.getSolutionFacts()) {
             if (fact.getVerb().equals("before_direct")) {
@@ -682,12 +678,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     before.put(fact.getObject(), new ArrayList<>());
                 }
                 before.get(fact.getObject()).add(fact.getSubject());
-                allTokens.add(fact.getObject());
-                allTokens.add(fact.getSubject());
-            } else if (fact.getVerb().equals("student_pos_number")) {
-                studentPos.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("is_operand")) {
-                isOperand.add(fact.getSubject());
             } else if (fact.getVerb().equals("text")) {
                 texts.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("index")) {
@@ -698,8 +688,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 samePrecedenceLeftAssoc.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("high_precedence_right_assoc")) {
                 samePrecedenceRightAssoc.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("law_name")) {
-                operatorLawName.put(fact.getSubject(), fact.getObject());
             }
         }
         for (InteractionEntity interaction : originalQuestion.getInteractions()) {
