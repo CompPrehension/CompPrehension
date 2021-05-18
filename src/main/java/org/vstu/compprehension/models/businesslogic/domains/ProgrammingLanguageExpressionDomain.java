@@ -775,68 +775,68 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                 if (failedLaw.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_left")
                         || failedLaw.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right")) {
-                    if (answer.getDomainInfo().equals("select_reason_left_priority") && templates.get("left_operator_reason").equals("high_precedence_diff_precedence")) {
-                        newAnswer.setDomainInfo("select_highest_priority_left_operator");
+                    if (answer.getDomainInfo().equals("select_reason_left_precedence") && templates.get("left_operator_reason").equals("high_precedence_diff_precedence")) {
+                        newAnswer.setDomainInfo("select_highest_precedence_left_operator");
                     } else if (answer.getDomainInfo().equals("select_reason_left_associativity") && !templates.get("left_operator_reason").equals("high_precedence_left_assoc")) {
-                        newAnswer.setDomainInfo("select_priority_or_associativity_left_influence");
-                    } else if (answer.getDomainInfo().equals("select_reason_right_priority") && templates.get("right_operator_reason").equals("high_precedence_diff_precedence")) {
-                        newAnswer.setDomainInfo("select_highest_priority_right_operator");
+                        newAnswer.setDomainInfo("select_precedence_or_associativity_left_influence");
+                    } else if (answer.getDomainInfo().equals("select_reason_right_precedence") && templates.get("right_operator_reason").equals("high_precedence_diff_precedence")) {
+                        newAnswer.setDomainInfo("select_highest_precedence_right_operator");
                     } else if (answer.getDomainInfo().equals("select_reason_right_associativity") && !templates.get("right_operator_reason").equals("high_precedence_right_assoc")) {
-                        newAnswer.setDomainInfo("select_priority_or_associativity_right_influence");
+                        newAnswer.setDomainInfo("select_precedence_or_associativity_right_influence");
                     }
                     //TODO: variants for inner operand
                     //TODO: variants for left/right parenthesis
-                } else if (failedLaw.equals("select_highest_priority_left_operator")) {
-                    if (answer.getDomainInfo().equals("select_highest_priority_operator_left")) {
+                } else if (failedLaw.equals("select_highest_precedence_left_operator")) {
+                    if (answer.getDomainInfo().equals("select_highest_precedence_operator_left")) {
                         if (highPrecedence.containsMapping(templates.get("left_operator_domain_info"), failedAnswer.getDomainInfo())) {
                             newAnswer.setDomainInfo(null);
                         } else {
                             newAnswer.setDomainInfo(failedLaw);
                         }
-                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_operator")) {
+                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_operator")) {
                         if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), templates.get("left_operator_domain_info"))) {
                             newAnswer.setDomainInfo(null);
                         } else {
                             newAnswer.setDomainInfo(failedLaw);
                         }
-                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_same")) {
+                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_same")) {
                         if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), templates.get("left_operator_domain_info"))) {
                             newAnswer.setDomainInfo(null);
                         } else {
                             newAnswer.setDomainInfo(failedLaw);
                         }
                     }
-                } else if (failedLaw.equals("select_highest_priority_right_operator")) {
-                    if (answer.getDomainInfo().equals("select_highest_priority_operator_right")) {
+                } else if (failedLaw.equals("select_highest_precedence_right_operator")) {
+                    if (answer.getDomainInfo().equals("select_highest_precedence_operator_right")) {
                         if (highPrecedence.containsMapping(templates.get("right_operator_domain_info"), failedAnswer.getDomainInfo())) {
                             newAnswer.setDomainInfo(null);
                         } else {
                             newAnswer.setDomainInfo(failedLaw);
                         }
-                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_operator")) {
+                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_operator")) {
                         if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), templates.get("right_operator_domain_info"))) {
                             newAnswer.setDomainInfo(null);
                         } else {
                             newAnswer.setDomainInfo(failedLaw);
                         }
-                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_same")) {
+                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_same")) {
                         if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), templates.get("right_operator_domain_info"))) {
                             newAnswer.setDomainInfo(null);
                         } else {
                             newAnswer.setDomainInfo(failedLaw);
                         }
                     }
-                } else if (failedLaw.equals("select_priority_or_associativity_left_influence")) {
-                    if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_priority")) {
-                        newAnswer.setDomainInfo("select_highest_priority_left_operator");
-                    } else if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_associativity")) {
-                        newAnswer.setDomainInfo("select_priority_or_associativity_left_influence");
+                } else if (failedLaw.equals("select_precedence_or_associativity_left_influence")) {
+                    if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_precedence")) {
+                        newAnswer.setDomainInfo("select_highest_precedence_left_operator");
+                    } else if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_associativity")) {
+                        newAnswer.setDomainInfo("select_precedence_or_associativity_left_influence");
                     }
-                } else if (failedLaw.equals("select_priority_or_associativity_right_influence")) {
-                    if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_priority")) {
-                        newAnswer.setDomainInfo("select_highest_priority_right_operator");
-                    } else if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_associativity")) {
-                        newAnswer.setDomainInfo("select_priority_or_associativity_right_influence");
+                } else if (failedLaw.equals("select_precedence_or_associativity_right_influence")) {
+                    if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_precedence")) {
+                        newAnswer.setDomainInfo("select_highest_precedence_right_operator");
+                    } else if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_associativity")) {
+                        newAnswer.setDomainInfo("select_precedence_or_associativity_right_influence");
                     }
                 }
                 answers.add(newAnswer);

@@ -3204,8 +3204,8 @@
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "priority of operator ${left_operator} on pos ${left_operator_pos}",
-          "domainInfo": "select_reason_left_priority",
+          "hyperText": "precedence of operator ${left_operator} on pos ${left_operator_pos}",
+          "domainInfo": "select_reason_left_precedence",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3231,8 +3231,8 @@
         },
         {
           "answerId": 3,
-          "hyperText": "priority of operator ${right_operator} on pos ${right_operator_pos}",
-          "domainInfo": "select_reason_right_priority",
+          "hyperText": "precedence of operator ${right_operator} on pos ${right_operator_pos}",
+          "domainInfo": "select_reason_right_precedence",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3280,15 +3280,15 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What operator has highest priority?",
+      "questionText": "What operator has highest precedence?",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "priority of operator ${left_operator}",
-          "domainInfo": "select_highest_priority_operator_left",
+          "hyperText": "precedence of operator ${left_operator}",
+          "domainInfo": "select_highest_precedence_operator_left",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3296,8 +3296,8 @@
         },
         {
           "answerId": 1,
-          "hyperText": "priority of operator ${operator}",
-          "domainInfo": "select_highest_priority_operator_operator",
+          "hyperText": "precedence of operator ${operator}",
+          "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3305,8 +3305,8 @@
         },
         {
           "answerId": 2,
-          "hyperText": "same priority",
-          "domainInfo": "select_highest_priority_operator_same",
+          "hyperText": "same precedence",
+          "domainInfo": "select_highest_precedence_operator_same",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3318,7 +3318,7 @@
     },
     "concepts": [
       "precedence",
-      "select_highest_priority_left_operator",
+      "select_highest_precedence_left_operator",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3335,15 +3335,15 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What operator has highest priority?",
+      "questionText": "What operator has highest precedence?",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "priority of operator ${right_operator}",
-          "domainInfo": "select_highest_priority_operator_right",
+          "hyperText": "precedence of operator ${right_operator}",
+          "domainInfo": "select_highest_precedence_operator_right",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3351,8 +3351,8 @@
         },
         {
           "answerId": 1,
-          "hyperText": "priority of operator ${operator}",
-          "domainInfo": "select_highest_priority_operator_operator",
+          "hyperText": "precedence of operator ${operator}",
+          "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3360,8 +3360,8 @@
         },
         {
           "answerId": 2,
-          "hyperText": "same priority",
-          "domainInfo": "select_highest_priority_operator_same",
+          "hyperText": "same precedence",
+          "domainInfo": "select_highest_precedence_operator_same",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3373,7 +3373,7 @@
     },
     "concepts": [
       "precedence",
-      "select_highest_priority_right_operator",
+      "select_highest_precedence_right_operator",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3397,8 +3397,8 @@
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "priority",
-          "domainInfo": "select_priority_or_associativity_influence_priority",
+          "hyperText": "precedence",
+          "domainInfo": "select_precedence_or_associativity_influence_precedence",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3407,7 +3407,7 @@
         {
           "answerId": 1,
           "hyperText": "associativity",
-          "domainInfo": "select_priority_or_associativity_influence_associativity",
+          "domainInfo": "select_precedence_or_associativity_influence_associativity",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3419,7 +3419,7 @@
     },
     "concepts": [
       "precedence",
-      "select_priority_or_associativity_left_influence",
+      "select_precedence_or_associativity_left_influence",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3443,8 +3443,8 @@
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "priority",
-          "domainInfo": "select_priority_or_associativity_influence_priority",
+          "hyperText": "precedence",
+          "domainInfo": "select_precedence_or_associativity_influence_precedence",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3453,7 +3453,7 @@
         {
           "answerId": 1,
           "hyperText": "associativity",
-          "domainInfo": "select_priority_or_associativity_influence_associativity",
+          "domainInfo": "select_precedence_or_associativity_influence_associativity",
           "isRightCol": false,
           "concept": "",
           "responsesLeft": [],
@@ -3465,7 +3465,7 @@
     },
     "concepts": [
       "precedence",
-      "select_priority_or_associativity_right_influence",
+      "select_precedence_or_associativity_right_influence",
       "SystemIntegrationTest",
       "supplementary"
     ],
