@@ -8,6 +8,8 @@ import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.Ordering;
+import org.vstu.compprehension.models.businesslogic.SingleChoice;
 import org.vstu.compprehension.models.businesslogic.Strategy;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
@@ -22,6 +24,7 @@ import org.vstu.compprehension.utils.Mapper;
 
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
 
@@ -119,6 +122,7 @@ public class FrontendService {
         val violations = violationRepository.findByIds(Arrays.asList(violationIds));
         val judgeResult = new Domain.InterpretSentenceResult();
         judgeResult.violations = violations;
+        assertFalse(violations.isEmpty());
 
         val question = questionService.generateSupplementaryQuestion(judgeResult, attempt);
         val qData = question.getQuestionData();

@@ -507,6 +507,11 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
+    public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
         InterpretSentenceResult result = new InterpretSentenceResult();
         result.CountCorrectOptions = 1;

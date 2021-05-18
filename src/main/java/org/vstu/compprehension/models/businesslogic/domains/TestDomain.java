@@ -178,6 +178,11 @@ public class TestDomain extends Domain {
     }
 
     @Override
+    public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
+        return null;
+    }
+
+    @Override
     public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {return null;}
 
     @Override

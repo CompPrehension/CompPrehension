@@ -161,7 +161,7 @@ public class JenaBackend extends Backend {
                 ObjectProperty p = model.createObjectProperty((baseIRIPrefix + prop));
                 model.add(ind, p, model.createClass(baseIRIPrefix + obj));
             }
-        } else if (objType.equals("xsd:int")) {
+        } else if (objType.equals("xsd:int") || objType.equals("xsd:integer")) {
             DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
             model.addLiteral(ind, p, Integer.parseInt(obj));
         } else if (objType.equals("xsd:string")) {

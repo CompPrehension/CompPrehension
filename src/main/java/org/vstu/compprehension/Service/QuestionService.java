@@ -62,6 +62,11 @@ public class QuestionService {
         return question;
     }
 
+    public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer, ExerciseAttemptEntity exerciseAttempt) {
+        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        return domain.judgeSupplementaryQuestion(question, answer);
+    }
+
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> solution = backend.solve(
