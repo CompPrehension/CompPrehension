@@ -118,6 +118,28 @@ public class SystemIntegrationTest {
             Question supQ2 = questionService.getQuestion(supQ);
             assertEquals(QuestionType.MULTI_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
+            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, supQ2.getAnswerObject(3), testExerciseAttemptList.get(0));
+            assertEquals("select_highest_priority_right_operator", resSup.violations.get(0).getLawName());
+
+            Long supQ3 = questionService.generateSupplementaryQuestion(resSup, testExerciseAttemptList.get(0)).getQuestionData().getId();
+            Question supQ4 = questionService.getQuestion(supQ3);
+            Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, supQ4.getAnswerObject(1), testExerciseAttemptList.get(0));
+            assertEquals("select_highest_priority_right_operator", resSup2.violations.get(0).getLawName());
+
+            Long supQ5 = questionService.generateSupplementaryQuestion(result, testExerciseAttemptList.get(0)).getQuestionData().getId();
+            Question supQ6 = questionService.getQuestion(supQ5);
+            Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, supQ6.getAnswerObject(4), testExerciseAttemptList.get(0));
+            assertEquals("select_priority_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
+
+            Long supQ7 = questionService.generateSupplementaryQuestion(resSup3, testExerciseAttemptList.get(0)).getQuestionData().getId();
+            Question supQ8 = questionService.getQuestion(supQ7);
+            Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, supQ8.getAnswerObject(0), testExerciseAttemptList.get(0));
+            assertEquals("select_highest_priority_right_operator", resSup2.violations.get(0).getLawName());
+
+            Long supQ9 = questionService.generateSupplementaryQuestion(resSup4, testExerciseAttemptList.get(0)).getQuestionData().getId();
+            Question supQ10 = questionService.getQuestion(supQ9);
+            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, supQ10.getAnswerObject(0), testExerciseAttemptList.get(0));
+            assertNull(resSup5.violations);
         }
         {
             ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);

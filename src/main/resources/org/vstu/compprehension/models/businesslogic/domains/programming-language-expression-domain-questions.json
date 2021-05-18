@@ -3180,7 +3180,292 @@
     },
     "concepts": [
       "precedence",
+      "select_binary_operators",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "MULTI_CHOICE",
+    "questionData": {
+      "questionType": "MULTI_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Select reason that stop evaluation of operator ${operator} on pos ${pos}",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "priority of operator ${left_operator} on pos ${left_operator_pos}",
+          "domainInfo": "select_reason_left_priority",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "associativity of operator ${left_operator} on pos ${left_operator_pos}",
+          "domainInfo": "select_reason_left_associativity",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "unevaluated parenthesis on pos ${left_parenthesis_pos}",
+          "domainInfo": "select_reason_left_parenthesis",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 3,
+          "hyperText": "priority of operator ${right_operator} on pos ${right_operator_pos}",
+          "domainInfo": "select_reason_right_priority",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 4,
+          "hyperText": "associativity of operator ${right_operator} on pos ${right_operator_pos}",
+          "domainInfo": "select_reason_right_associativity",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 5,
+          "hyperText": "unevaluated parenthesis on pos ${right_parenthesis_pos}",
+          "domainInfo": "select_reason_right_parenthesis",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
       "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What operator has highest priority?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "priority of operator ${left_operator}",
+          "domainInfo": "select_highest_priority_operator_left",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "priority of operator ${operator}",
+          "domainInfo": "select_highest_priority_operator_operator",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "same priority",
+          "domainInfo": "select_highest_priority_operator_same",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_highest_priority_left_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What operator has highest priority?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "priority of operator ${right_operator}",
+          "domainInfo": "select_highest_priority_operator_right",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "priority of operator ${operator}",
+          "domainInfo": "select_highest_priority_operator_operator",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "same priority",
+          "domainInfo": "select_highest_priority_operator_same",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_highest_priority_right_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What influence evaluation order at first?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "priority",
+          "domainInfo": "select_priority_or_associativity_influence_priority",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "associativity",
+          "domainInfo": "select_priority_or_associativity_influence_associativity",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_priority_or_associativity_left_influence",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What influence evaluation order at first?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "priority",
+          "domainInfo": "select_priority_or_associativity_influence_priority",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "associativity",
+          "domainInfo": "select_priority_or_associativity_influence_associativity",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_priority_or_associativity_right_influence",
       "SystemIntegrationTest",
       "supplementary"
     ],

@@ -215,6 +215,9 @@ public abstract class Domain {
      */
     public abstract Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity);
 
+    public abstract InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer);
+
+
     /**
      * Get statistics for initial step of question evaluation
      * @param solution solution backend facts

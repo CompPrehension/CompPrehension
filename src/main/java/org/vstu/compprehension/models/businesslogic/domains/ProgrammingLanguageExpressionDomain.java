@@ -2,7 +2,10 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.val;
 import lombok.var;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.StringSubstitutor;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -235,6 +238,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
                 entity.setOptions(multiChoiceQuestionOptions);
                 return new MultiChoice(entity);
+            case SINGLE_CHOICE:
+                entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
+                entity.setOptions(multiChoiceQuestionOptions);
+                return new SingleChoice(entity);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -399,7 +406,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "high_precedence_left_assoc",
                     "high_precedence_right_assoc",
                     "is_operand",
-                    "law_name"
+                    "law_name",
+                    "text",
+                    "index"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -632,14 +641,224 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
         assertFalse(interpretSentenceResult.violations.isEmpty());
         HashSet<String> targetConcepts = new HashSet<>();
-        targetConcepts.add(interpretSentenceResult.violations.get(0).getLawName());
+        String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
+        targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
+
+        val question = exerciseAttemptEntity.getQuestions().get(exerciseAttemptEntity.getQuestions().size() - 1);
+        val baseViolations = question.getInteractions().get(question.getInteractions().size() - 1).getViolations();
+        val previousInterpretSentenceResult = new Domain.InterpretSentenceResult();
+        previousInterpretSentenceResult.violations = baseViolations;
+        assertFalse(baseViolations.isEmpty());
 
         Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            return makeQuestionCopy(res, exerciseAttemptEntity);
+            Question copy = makeQuestionCopy(res, exerciseAttemptEntity);
+            fillSupplementaryAnswerObjects(question, interpretSentenceResult, previousInterpretSentenceResult, copy);
+            return copy;
         }
+
         return null;
+    }
+
+    void fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, InterpretSentenceResult interpretSentenceResult, InterpretSentenceResult baseInterpretSentenceResult, Question supplementaryQuestion) {
+        String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
+
+        Map<String, List<String>> before = new HashMap<>();
+        Map<String, String> studentPos = new HashMap<>();
+        Map<String, String> operatorLawName = new HashMap<>();
+        Map<String, String> texts = new HashMap<>();
+        Map<String, String> indexes = new HashMap<>();
+        MultiValuedMap<String, String> highPrecedence = new HashSetValuedHashMap<>();
+        MultiValuedMap<String, String> samePrecedenceLeftAssoc = new HashSetValuedHashMap<>();
+        MultiValuedMap<String, String> samePrecedenceRightAssoc = new HashSetValuedHashMap<>();
+        HashSet<String> isOperand = new HashSet<>();
+        HashSet<String> used = new HashSet<>();
+        HashSet<String> allTokens = new HashSet<>();
+
+        for (BackendFactEntity fact : originalQuestion.getSolutionFacts()) {
+            if (fact.getVerb().equals("before_direct")) {
+                if (!before.containsKey(fact.getObject())) {
+                    before.put(fact.getObject(), new ArrayList<>());
+                }
+                before.get(fact.getObject()).add(fact.getSubject());
+                allTokens.add(fact.getObject());
+                allTokens.add(fact.getSubject());
+            } else if (fact.getVerb().equals("student_pos_number")) {
+                studentPos.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("is_operand")) {
+                isOperand.add(fact.getSubject());
+            } else if (fact.getVerb().equals("text")) {
+                texts.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("index")) {
+                indexes.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("high_precedence_diff_precedence")) {
+                highPrecedence.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("high_precedence_left_assoc")) {
+                samePrecedenceLeftAssoc.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("high_precedence_right_assoc")) {
+                samePrecedenceRightAssoc.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("law_name")) {
+                operatorLawName.put(fact.getSubject(), fact.getObject());
+            }
+        }
+        for (InteractionEntity interaction : originalQuestion.getInteractions()) {
+            if (interaction.getViolations() == null || interaction.getViolations().isEmpty()) {
+                for (ResponseEntity response : interaction.getResponses()) {
+                    used.add(response.getLeftAnswerObject().getDomainInfo());
+                }
+            }
+        }
+
+        List<ResponseEntity> responses = baseInterpretSentenceResult.violations.get(0).getInteraction().getResponses();
+        AnswerObjectEntity failedAnswer = responses.get(responses.size() - 1).getLeftAnswerObject();
+        Integer failedIndex = Integer.parseInt(indexes.get(failedAnswer.getDomainInfo()));
+
+        HashMap<String, String> templates = new HashMap<>();
+        for (AnswerObjectEntity origAnswer : originalQuestion.getAnswerObjects()) {
+            String text = texts.get(origAnswer.getDomainInfo());
+            Integer index = Integer.parseInt(indexes.get(origAnswer.getDomainInfo()));
+            String domainInfo = origAnswer.getDomainInfo();
+
+            if (origAnswer.getDomainInfo().equals(failedAnswer.getDomainInfo())) {
+                templates.put("operator", text);
+                templates.put("pos", index.toString());
+            } else if (index < failedIndex && !used.contains(origAnswer.getDomainInfo())) {
+                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())
+                        || highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
+                    templates.put("left_operator", text);
+                    templates.put("left_operator_pos", index.toString());
+                    templates.put("left_operator_reason", "high_precedence_diff_precedence");
+                    templates.put("left_operator_domain_info", domainInfo);
+                } else if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
+                    templates.put("left_operator", text);
+                    templates.put("left_operator_pos", index.toString());
+                    templates.put("left_operator_reason", "high_precedence_left_assoc");
+                    templates.put("left_operator_domain_info", domainInfo);
+                } else if (samePrecedenceRightAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
+                    templates.put("left_operator", text);
+                    templates.put("left_operator_pos", index.toString());
+                    templates.put("left_operator_reason", "high_precedence_right_assoc");
+                    templates.put("left_operator_domain_info", domainInfo);
+                }
+            } else if (index > failedIndex && !used.contains(origAnswer.getDomainInfo()) && !templates.containsKey("right_operator")) {
+                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())
+                        || highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
+                    templates.put("right_operator", text);
+                    templates.put("right_operator_pos", index.toString());
+                    templates.put("right_operator_reason", "high_precedence_diff_precedence");
+                    templates.put("right_operator_domain_info", domainInfo);
+                } else if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
+                    templates.put("right_operator", text);
+                    templates.put("right_operator_pos", index.toString());
+                    templates.put("right_operator_reason", "high_precedence_left_assoc");
+                    templates.put("right_operator_domain_info", domainInfo);
+                } else if (samePrecedenceRightAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
+                    templates.put("right_operator", text);
+                    templates.put("right_operator_pos", index.toString());
+                    templates.put("right_operator_reason", "high_precedence_right_assoc");
+                    templates.put("right_operator_domain_info", domainInfo);
+                }
+            }
+        }
+
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(templates);
+        stringSubstitutor.setEnableUndefinedVariableException(true);
+
+        List<AnswerObjectEntity> answers = new ArrayList<>();
+        for (AnswerObjectEntity answer : supplementaryQuestion.getAnswerObjects()) {
+            try {
+                String result = stringSubstitutor.replace(answer.getHyperText());
+                AnswerObjectEntity newAnswer = new AnswerObjectEntity();
+                newAnswer.setHyperText(result);
+                newAnswer.setAnswerId(answer.getAnswerId());
+
+                if (failedLaw.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_left")
+                        || failedLaw.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right")) {
+                    if (answer.getDomainInfo().equals("select_reason_left_priority") && templates.get("left_operator_reason").equals("high_precedence_diff_precedence")) {
+                        newAnswer.setDomainInfo("select_highest_priority_left_operator");
+                    } else if (answer.getDomainInfo().equals("select_reason_left_associativity") && !templates.get("left_operator_reason").equals("high_precedence_left_assoc")) {
+                        newAnswer.setDomainInfo("select_priority_or_associativity_left_influence");
+                    } else if (answer.getDomainInfo().equals("select_reason_right_priority") && templates.get("right_operator_reason").equals("high_precedence_diff_precedence")) {
+                        newAnswer.setDomainInfo("select_highest_priority_right_operator");
+                    } else if (answer.getDomainInfo().equals("select_reason_right_associativity") && !templates.get("right_operator_reason").equals("high_precedence_right_assoc")) {
+                        newAnswer.setDomainInfo("select_priority_or_associativity_right_influence");
+                    }
+                    //TODO: variants for inner operand
+                    //TODO: variants for left/right parenthesis
+                } else if (failedLaw.equals("select_highest_priority_left_operator")) {
+                    if (answer.getDomainInfo().equals("select_highest_priority_operator_left")) {
+                        if (highPrecedence.containsMapping(templates.get("left_operator_domain_info"), failedAnswer.getDomainInfo())) {
+                            newAnswer.setDomainInfo(null);
+                        } else {
+                            newAnswer.setDomainInfo(failedLaw);
+                        }
+                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_operator")) {
+                        if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), templates.get("left_operator_domain_info"))) {
+                            newAnswer.setDomainInfo(null);
+                        } else {
+                            newAnswer.setDomainInfo(failedLaw);
+                        }
+                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_same")) {
+                        if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), templates.get("left_operator_domain_info"))) {
+                            newAnswer.setDomainInfo(null);
+                        } else {
+                            newAnswer.setDomainInfo(failedLaw);
+                        }
+                    }
+                } else if (failedLaw.equals("select_highest_priority_right_operator")) {
+                    if (answer.getDomainInfo().equals("select_highest_priority_operator_right")) {
+                        if (highPrecedence.containsMapping(templates.get("right_operator_domain_info"), failedAnswer.getDomainInfo())) {
+                            newAnswer.setDomainInfo(null);
+                        } else {
+                            newAnswer.setDomainInfo(failedLaw);
+                        }
+                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_operator")) {
+                        if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), templates.get("right_operator_domain_info"))) {
+                            newAnswer.setDomainInfo(null);
+                        } else {
+                            newAnswer.setDomainInfo(failedLaw);
+                        }
+                    } else if (answer.getDomainInfo().equals("select_highest_priority_operator_same")) {
+                        if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), templates.get("right_operator_domain_info"))) {
+                            newAnswer.setDomainInfo(null);
+                        } else {
+                            newAnswer.setDomainInfo(failedLaw);
+                        }
+                    }
+                } else if (failedLaw.equals("select_priority_or_associativity_left_influence")) {
+                    if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_priority")) {
+                        newAnswer.setDomainInfo("select_highest_priority_left_operator");
+                    } else if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_associativity")) {
+                        newAnswer.setDomainInfo("select_priority_or_associativity_left_influence");
+                    }
+                } else if (failedLaw.equals("select_priority_or_associativity_right_influence")) {
+                    if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_priority")) {
+                        newAnswer.setDomainInfo("select_highest_priority_right_operator");
+                    } else if (answer.getDomainInfo().equals("select_priority_or_associativity_influence_associativity")) {
+                        newAnswer.setDomainInfo("select_priority_or_associativity_right_influence");
+                    }
+                }
+                answers.add(newAnswer);
+            } catch (IllegalArgumentException ex) {
+                // pass, this variant should not be used
+            }
+        }
+        supplementaryQuestion.setAnswerObjects(answers);
+    }
+
+    @Override
+    public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
+        InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
+
+        if (answer.getDomainInfo() != null) {
+            interpretSentenceResult.violations = new ArrayList<>();
+            ViolationEntity violationEntity = new ViolationEntity();
+            violationEntity.setLawName(answer.getDomainInfo());
+            interpretSentenceResult.violations.add(violationEntity);
+        }
+
+        return interpretSentenceResult;
     }
 
     @Override
