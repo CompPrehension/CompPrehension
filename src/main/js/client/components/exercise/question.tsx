@@ -57,10 +57,10 @@ const Feedback = observer(({ store }: { store: QuestionStore }) => {
                 {renderFeedback(feedback)}                
             </p>
             <p>
-                <Optional condition={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
-                <Optional condition={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
-                <Optional condition={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
-                <Optional condition={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
+                <Optional isVisible={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
+                <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
+                <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
+                <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
             </p>              
         </div>
     );

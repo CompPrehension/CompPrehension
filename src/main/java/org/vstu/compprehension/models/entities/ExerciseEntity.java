@@ -98,7 +98,6 @@ public class ExerciseEntity {
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
 
-
-    @ManyToMany(mappedBy = "exercises")
+    @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
     private List<UserEntity> users;
 }

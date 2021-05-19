@@ -1,4 +1,5 @@
 import * as io from 'io-ts'
+import { MergeIntersections } from './utils';
 
 export type QuestionOptions = {
     requireContext: boolean,
@@ -41,15 +42,17 @@ export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersec
     })
 ], 'OrderQuestionOptions')
 
-type ComboboxMatchingQuestionOptions = QuestionOptions & {
+type ComboboxMatchingQuestionOptions = MergeIntersections<QuestionOptions & {
     multipleSelectionEnabled: boolean, 
     displayMode: 'combobox',
-}
-type DnDMatchingQuestionOptions = QuestionOptions & {
+}>
+type DnDMatchingQuestionOptions = MergeIntersections<QuestionOptions & {
     multipleSelectionEnabled: boolean, 
     displayMode: 'dragNdrop',
-    dropzoneStyle?: string,
-}
+    draggableStyle: string,
+    dropzoneStyle: string,
+    dropzoneHtml: string,
+}>
 export type MatchingQuestionOptions = ComboboxMatchingQuestionOptions | DnDMatchingQuestionOptions
 export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.intersection([
     TQuestionOptions,
@@ -60,14 +63,12 @@ export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.int
         io.type({
             displayMode: io.literal('combobox'),
         }),
-        io.intersection([
-            io.type({
-                displayMode: io.literal('dragNdrop'),
-            }),
-            io.partial({
-                dropzoneStyle: io.string,
-            }),
-        ]),
+        io.type({
+            displayMode: io.literal('dragNdrop'),
+            draggableStyle: io.string,
+            dropzoneStyle: io.string,
+            dropzoneHtml: io.string,
+        }),
     ]),
 ], 'MatchingQuestionOptions')
 
@@ -84,19 +85,34 @@ export const TSingleChoiceQuestionOptions: io.Type<SingleChoiceQuestionOptions> 
     }),
 ], 'SingleChoiceQuestionOptions');
 
-export type MultiChoiceQuestionOptions = QuestionOptions & {
-    displayMode: 'switch' | 'dragNdrop',
+
+type SwitchMultiChoiceQuestionOptions = MergeIntersections<QuestionOptions & {
+    displayMode: 'switch',
     selectorReplacers?: [string, string] | null,
-}
+}>
+type DnDMultiChoiceQuestionOptions = MergeIntersections<QuestionOptions & {
+    displayMode: 'dragNdrop',
+    dropzoneHtml: string,
+    dropzoneStyle: string,
+    draggableStyle: string,
+}>
+export type MultiChoiceQuestionOptions = SwitchMultiChoiceQuestionOptions | DnDMultiChoiceQuestionOptions
 export const TMultiChoiceQuestionOptions: io.Type<MultiChoiceQuestionOptions> = io.intersection([
     TQuestionOptions,
-    io.type({
-        displayMode: io.keyof({
-            'switch': null,
-            'dragNdrop': null,
-        }),        
-    }),
-    io.partial({
-        selectorReplacers: io.union([io.tuple([io.string, io.string]), io.null]),
-    }),
+    io.union([
+        io.intersection([
+            io.type({
+                displayMode: io.literal('switch'),
+            }),
+            io.partial({
+                selectorReplacers: io.union([io.tuple([io.string, io.string]), io.null]),
+            }),
+        ]),
+        io.type({
+            displayMode: io.literal('dragNdrop'),
+            dropzoneHtml: io.string,
+            dropzoneStyle: io.string,
+            draggableStyle: io.string,
+        }),
+    ]),
 ], 'MultiChoiceQuestionOptions')

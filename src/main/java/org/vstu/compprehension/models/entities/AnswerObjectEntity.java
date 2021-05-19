@@ -24,7 +24,7 @@ public class AnswerObjectEntity {
     private Long id;
 
     @Column(name = "answer_id", nullable = false)
-    private int answerId;
+    private Integer answerId;
 
     @Column(name = "hyperText")
     private String hyperText;

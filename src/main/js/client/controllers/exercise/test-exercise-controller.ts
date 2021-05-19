@@ -35,7 +35,7 @@ export class TestExerciseController implements IExerciseController {
         return E.right({
             attemptId: -1,
             exerciseId: -1,
-            questionIds: [1, 2, 3, 4, 5, 6],
+            questionIds: [1, 2, 3, 4, 5, 6, 7],
         });
     }
     async getQuestion(questionId: number): PromiseEither<RequestError, Question> {
@@ -147,6 +147,8 @@ export class TestExerciseController implements IExerciseController {
                     displayMode: 'dragNdrop',
                     multipleSelectionEnabled: true,
                     dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
+                    dropzoneHtml: 'drop',
+                    draggableStyle: '{ "padding": "10px", "border": "5px solid", "borderRadius": "5px", "borderColor": "black", "backgroundColor": "white" }',
                 }
             } 
         }
@@ -156,7 +158,7 @@ export class TestExerciseController implements IExerciseController {
                 type: 'MATCHING',
                 attemptId: -1,
                 questionId: 6,
-                text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
+                text: 'question text with <span id="answer_0">drop</span> and <span id="answer_1">drop</span>',
                 answers: [],
                 groups: [
                     {
@@ -175,8 +177,29 @@ export class TestExerciseController implements IExerciseController {
                     displayMode: 'dragNdrop',
                     multipleSelectionEnabled: false,
                     dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
+                    dropzoneHtml: 'drop',
+                    draggableStyle: '{ "padding": "10px", "border": "5px solid", "borderRadius": "5px", "borderColor": "black", "backgroundColor": "white" }',
                 }
             } 
+        }
+
+        if (questionId === 7) {
+            result = {
+                type: 'MULTI_CHOICE',
+                attemptId: -1,
+                questionId: 7,
+                text: `question text with <span id="answer_0"></span> and <span id="answer_1"></span>`,
+                answers: [],
+                responses: [],
+                feedback: null,
+                options: {
+                    requireContext: true,
+                    displayMode: 'dragNdrop',
+                    dropzoneStyle: '{ "display": "inline-block", "height": "20px", "width": "20px" }',
+                    dropzoneHtml: '',
+                    draggableStyle: '{ "height": "20px", "width": "20px" }',
+                }
+            }
         }
 
 

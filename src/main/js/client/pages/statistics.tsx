@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react"
 import { IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseStatisticsItem } from "../types/exercise-statistics";
-import { Loader } from "../components/common/loader";
+import { LoadingWrapper } from "../components/common/loader";
 import { container } from "tsyringe";
 
 export const Statistics = () => {
@@ -42,19 +42,17 @@ export const Statistics = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {
-                        isLoading
-                            ? <Loader />
-                            : statistics.map(s => (
-                                <tr>
-                                    <th scope="row">{s.attemptId}</th>
-                                    <td>{s.questionsCount}</td>
-                                    <td>{s.totalInteractionsCount}</td>
-                                    <td>{s.totalInteractionsWithErrorsCount}</td>
-                                    <td>{s.averageGrade}</td>
-                                </tr>
-                            ))
-                    }
+                    <LoadingWrapper isLoading={isLoading}>
+                        {statistics.map(s => (
+                            <tr>
+                                <th scope="row">{s.attemptId}</th>
+                                <td>{s.questionsCount}</td>
+                                <td>{s.totalInteractionsCount}</td>
+                                <td>{s.totalInteractionsWithErrorsCount}</td>
+                                <td>{s.averageGrade}</td>
+                            </tr>
+                        ))}
+                    </LoadingWrapper>
                 </tbody>
             </table>
         </div>

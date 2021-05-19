@@ -37,10 +37,10 @@ public class InteractionEntity {
     @NotFound(action = NotFoundAction.IGNORE)
     private FeedbackEntity feedback;
 
-    @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ViolationEntity> violations;
 
-    @OneToMany(mappedBy = "interaction", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<CorrectLawEntity> correctLaw;
 
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)

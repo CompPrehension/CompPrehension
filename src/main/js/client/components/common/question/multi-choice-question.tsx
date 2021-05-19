@@ -1,7 +1,8 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
-import { MultiChoiceQuestion } from "../../../types/question";
+import { MatchingQuestion, MultiChoiceQuestion } from "../../../types/question";
 import { ToggleSwitch } from "../toggle";
+import { DragAndDropMatchingQuestionComponent } from "./matching-question";
 
 type MultiChoiceQuestionComponentProps = {
     question: MultiChoiceQuestion,
@@ -18,6 +19,8 @@ export const MultiChoiceQuestionComponent = (props: MultiChoiceQuestionComponent
             return <SwitchMultiChoiceQuestionComponent {...props}/>;
         case options.displayMode === 'switch' && options.requireContext:
             return <SwitchMultiChoiceQuestionWithCtxComponent {...props}/>;
+        case options.displayMode === 'dragNdrop':
+            return <DndMultiChoiceQuestionComponent {...props}/>;
     }
     return (<div>Not implemented</div>);
 };
@@ -118,4 +121,32 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
             </p>            
         </div>
     );
+}
+
+
+const DndMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged, answers }: MultiChoiceQuestionComponentProps) => {
+    if (question.options.displayMode !== 'dragNdrop') {
+        return null;
+    }
+    
+    const matchingQuestion: MatchingQuestion = {
+        ...question,
+        type: 'MATCHING',
+        options: {
+            ...question.options,
+            multipleSelectionEnabled: true,
+        },
+        groups: [
+            {
+                id: 0,
+                text: `<span class="badge badge-success" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">✓</span>`,
+            },
+            {
+                id: 1,
+                text: `<span class="badge badge-danger" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">x</span>`,
+            },
+        ],
+    }
+
+    return (<DragAndDropMatchingQuestionComponent question={matchingQuestion} getAnswers={getAnswers} onChanged={onChanged} answers={answers}/>)
 }

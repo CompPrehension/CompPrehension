@@ -91,16 +91,43 @@ body ul {
 }
 
 .comp-ph-draggable {
-  border: 2px solid black;
-  background-color: white;
+  position: relative;
+  cursor: pointer;
 }
+.comp-ph-draggable:hover {
+  border-color: #007bff;
+}
+/*.comp-ph-draggable.draggable-source--is-dragging {
+  border-color: #007bff;
+  color: #FFF;
+  background-color: #007bff;
+}*/
+
 
 .comp-ph-dropzone {
-  border: solid 1px;
-  /*border-radius: 5px; */
+  position: relative;
 }
 
-.draggable-dropzone--occupied { 
+.comp-ph-dropzone .comp-ph-dropzone-placeholder {
+  border: solid 3px;
+  color: #d2d2d2;
+  border-radius: 5px;
+  /*font-size: 12px;*/
+  
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+}
+
+.comp-ph-dropzone.draggable-dropzone--occupied { 
   background: lightgreen; 
 }
 

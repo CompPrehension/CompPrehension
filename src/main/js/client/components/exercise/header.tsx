@@ -19,7 +19,7 @@ export const Header = observer(() => {
 
     return (
         <Navbar className="px-0">
-            <Optional condition={currentQuestionIdx !== -1}><h5>Question #{currentQuestionIdx + 1}</h5></Optional>            
+            <Optional isVisible={currentQuestionIdx !== -1}><h5>Question #{currentQuestionIdx + 1}</h5></Optional>            
             <Navbar.Collapse className="justify-content-end">   
                 <Pagination />
                 

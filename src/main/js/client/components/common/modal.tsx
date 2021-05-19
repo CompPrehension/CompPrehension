@@ -5,6 +5,7 @@ import { Button, Modal as RBModal } from "react-bootstrap";
 export type ModalProps = {
     show?: boolean,
     title?: string,
+    type?: 'MODAL' | 'DIALOG',
     primaryBtnTitle?: string,
     handlePrimaryBtnClicked?: () => void,
     secondaryBtnTitle?: string,
@@ -23,10 +24,11 @@ export const Modal = (props: ModalProps) => {
         closeButton,
         show,
         handleClose,
+        type,
     } = props;
 
     return (
-        <RBModal show={show ?? true} onHide={handleClose}>
+        <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose}>
             <RBModal.Header closeButton={closeButton}>
                 <RBModal.Title>{title}</RBModal.Title>
             </RBModal.Header>
@@ -40,6 +42,23 @@ export const Modal = (props: ModalProps) => {
                     {primaryBtnTitle ? <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button> : null}
                   </RBModal.Footer>
                 : null}            
-        </RBModal>
+        </ModalWrapper>
+    );
+}
+
+const ModalWrapper = (props: { type: 'MODAL' | 'DIALOG', show: boolean, onHide?: () => void, children: React.ReactNode[] | React.ReactNode, }) => {
+    const { 
+        type,
+        show,
+        onHide,
+        children
+    } = props;
+    if (type === 'DIALOG') {
+        return (
+            <RBModal.Dialog>{children}</RBModal.Dialog>
+        );
+    }
+    return (
+        <RBModal show={show} onHide={onHide}>{children}</RBModal>
     );
 }

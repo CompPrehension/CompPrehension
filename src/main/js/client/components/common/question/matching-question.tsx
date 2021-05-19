@@ -1,8 +1,10 @@
 import { Droppable, DroppableEventNames, Plugins } from "@shopify/draggable";
+import { DraggableEventNames } from "@shopify/draggable/lib/draggable.bundle.legacy";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import Select, { components } from "react-select";
 import { MatchingQuestion } from "../../../types/question";
+import { Optional } from "../optional";
 
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
@@ -25,7 +27,7 @@ export const MatchingQuestionComponent = (props: MatchingQuestionComponentProps)
     return (<div>Not Implemented</div>);
 };
 
-const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {
+export const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -33,19 +35,26 @@ const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged 
     const { options } = question;
 
     // on question first render
-    const dropzoneStyle = options.dropzoneStyle && JSON.parse(options.dropzoneStyle) || { minHeight: '40px', minWidth: '80px' };
+    const dropzoneStyle = options.dropzoneStyle && JSON.parse(options.dropzoneStyle) || {};
+    const draggableStyle = options.dropzoneStyle && JSON.parse(options.draggableStyle) || {};
     useEffect(() => {
-        document.querySelectorAll('[id^="answer_"]')
-            .forEach((e: any) => {
+        (document.querySelectorAll('[id^="answer_"]') as unknown as HTMLSpanElement[])
+            .forEach(e => {
                 e.classList.add("comp-ph-dropzone");
-                Object.keys(dropzoneStyle).forEach(k => e.style[k] = dropzoneStyle[k]);
+                Object.keys(dropzoneStyle).forEach(k => e.style[k as any] = dropzoneStyle[k]);
+                e.innerHTML = `<div class="comp-ph-dropzone-placeholder">${options.dropzoneHtml}</div>`;
             });
 
-        const droppable = new Droppable<DroppableEventNames>(document.querySelectorAll('.comp-ph-droppable-container'), {
+        const droppable = new Droppable<DroppableEventNames | DraggableEventNames>(document.querySelectorAll('.comp-ph-droppable-container'), {
             draggable: '.comp-ph-draggable',
             dropzone: '.comp-ph-dropzone',
             plugins: [Plugins.ResizeMirror],
+            mirror: {
+                constrainDimensions: true,
+            },
         })
+
+        droppable.on('drag:over', () => console.log('is out'));
 
         droppable.on('droppable:stop', (e: any) => {
             const draggableId: string | undefined = e?.data?.dragEvent?.data?.source?.id;
@@ -88,7 +97,7 @@ const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged 
                                 {question.answers.map(a =>
                                     <div className="d-flex flex-row mb-3">
                                         <div className="mr-2 mt-1">
-                                            <div id={`answer_${a.id}`} className="comp-ph-dropzone" style={dropzoneStyle}></div>
+                                            <div id={`answer_${a.id}`}></div>
                                         </div>
                                         <div dangerouslySetInnerHTML={{ __html: a.text}}></div>
                                     </div>)}
@@ -99,8 +108,10 @@ const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged 
                 <div className="col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column">
                     {groups.map(g => 
                         (<div id={`dragAnswerWrapper_${g.id}`} className="comp-ph-dropzone mb-2" style={dropzoneStyle}>
-                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable p-2" dangerouslySetInnerHTML={{ __html: g.text }}/>
+                            <div className="comp-ph-dropzone-placeholder" dangerouslySetInnerHTML={{ __html: options.dropzoneHtml }}></div>
+                            <div id={`dragAnswer_${g.id}`} className="comp-ph-draggable" style={draggableStyle} dangerouslySetInnerHTML={{ __html: g.text }}/>
                          </div>))}
+                    
                 </div>
             </div>
         </div>);

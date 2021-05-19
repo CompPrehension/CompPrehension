@@ -28,6 +28,6 @@ public class ExerciseAttemptEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @OneToMany(mappedBy = "exerciseAttempt")
+    @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
     private List<QuestionEntity> questions;
 }
