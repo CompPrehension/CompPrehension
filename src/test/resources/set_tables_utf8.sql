@@ -1,3 +1,7 @@
+CREATE SCHEMA `new_schema` DEFAULT CHARACTER SET utf8mb4 ;
+
+
+
 /* https://mdex-nn.ru/page/izmenit-mysql-codepage-1251-utf8.html */
 
 -- query to generate ALTER commands for each table (see below)
