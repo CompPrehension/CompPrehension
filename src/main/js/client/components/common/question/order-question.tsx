@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
 import { OrderQuestion } from "../../../types/question";
+import { Optional } from "../optional";
 
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
@@ -67,6 +68,11 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: Orde
     return (
         <div>
             <div dangerouslySetInnerHTML={{ __html: question.text }} />
+            <Optional isVisible={options.showTrace && question.trace !== null && question.trace?.length > 0}>
+                <p>
+                    {question.trace?.map(t => <div dangerouslySetInnerHTML={{ __html: t }}></div>)}
+                </p>
+            </Optional>
         </div>
     );
 }

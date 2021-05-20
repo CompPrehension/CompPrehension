@@ -19,6 +19,7 @@ import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
 import org.vstu.compprehension.models.repository.ViolationRepository;
+import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
@@ -112,8 +113,8 @@ public class FrontendService {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val question = questionService.generateQuestion(attempt);
-        val qData = question.getQuestionData();
-        return Mapper.toDto(qData);
+        val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        return Mapper.toDto(question, domain);
     }
 
     public QuestionDto generateSupplementaryQuestion(Long exAttemptId, Long[] violationIds) throws Exception {
@@ -125,13 +126,14 @@ public class FrontendService {
         assertFalse(violations.isEmpty());
 
         val question = questionService.generateSupplementaryQuestion(judgeResult, attempt);
-        val qData = question.getQuestionData();
-        return Mapper.toDto(qData);
+        val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        return Mapper.toDto(question, domain);
     }
 
     public QuestionDto getQuestion(Long questionId) throws Exception {
-        val question = questionService.getQuestionEntiity(questionId);
-        return Mapper.toDto(question);
+        val question = questionService.getQuestion(questionId);
+        val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        return Mapper.toDto(question, domain);
     }
 
     public FeedbackDto generateNextCorrectAnswer(Long questionId) throws Exception {

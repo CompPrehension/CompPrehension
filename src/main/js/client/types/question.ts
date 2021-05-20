@@ -1,6 +1,7 @@
 import { MatchingQuestionOptions, MultiChoiceQuestionOptions, OrderQuestionOptions, QuestionOptions, SingleChoiceQuestionOptions, TMatchingQuestionOptions, TMultiChoiceQuestionOptions, TOrderQuestionOptions, TQuestionOptions, TSingleChoiceQuestionOptions } from "./question-options";
 import * as io from 'io-ts'
 import { Feedback, TFeedback } from "./feedback";
+import { MergeIntersectionsDeep } from "./utils";
 
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'MATCHING' | 'ORDER'
 export const TQuestionType : io.Type<QuestionType> = io.keyof({
@@ -43,22 +44,24 @@ const TQuestionBase : io.Type<QuestionBase> = io.type({
     feedback: io.union([TFeedback, io.null]),
 }, 'QuestionBase');
 
-export type OrderQuestion = QuestionBase & {
+export type OrderQuestion = MergeIntersectionsDeep<QuestionBase & {
     type: 'ORDER',
     options: OrderQuestionOptions,
-}
+    trace: Html[] | null,
+}>
 const TOrderQuestion : io.Type<OrderQuestion> = io.intersection([
     TQuestionBase,
     io.type({
         type: io.literal("ORDER"),
         options: TOrderQuestionOptions,
+        trace: io.union([io.array(THtml), io.null]),
     }),
 ], 'OrderQuestion')
 
-export type SingleChoiceQuestion = QuestionBase & {
+export type SingleChoiceQuestion = MergeIntersectionsDeep<QuestionBase & {
     type: 'SINGLE_CHOICE',
     options: SingleChoiceQuestionOptions,
-}
+}>
 const TSingleChoiceQuestion : io.Type<SingleChoiceQuestion> = io.intersection([
     TQuestionBase,
     io.type({
@@ -67,10 +70,10 @@ const TSingleChoiceQuestion : io.Type<SingleChoiceQuestion> = io.intersection([
     })
 ], 'SingleChoiceQuestion')
 
-export type MultiChoiceQuestion = QuestionBase & {
+export type MultiChoiceQuestion = MergeIntersectionsDeep<QuestionBase & {
     type: 'MULTI_CHOICE',
     options: MultiChoiceQuestionOptions,
-}
+}>
 const TMultiChoiceQuestion : io.Type<MultiChoiceQuestion> = io.intersection([
     TQuestionBase,
     io.type({
@@ -79,12 +82,12 @@ const TMultiChoiceQuestion : io.Type<MultiChoiceQuestion> = io.intersection([
     }),
 ], 'MultiChoiceQuestion')
 
-export type MatchingQuestion = QuestionBase & {
+export type MatchingQuestion = MergeIntersectionsDeep<QuestionBase & {
     type: 'MATCHING',
     answers: QuestionAnswer[],
     groups: QuestionAnswer[],
     options: MatchingQuestionOptions,
-}
+}>
 const TMatchingQuestion : io.Type<MatchingQuestion> = io.intersection([
     TQuestionBase,
     io.type({

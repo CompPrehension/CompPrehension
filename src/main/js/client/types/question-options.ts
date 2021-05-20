@@ -8,7 +8,7 @@ export const TQuestionOptions : io.Type<QuestionOptions> = io.type({
     requireContext: io.boolean,
 }, 'QuestionOptions');
 
-export type OrderQuestionOptions = QuestionOptions & {
+export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
     showTrace: boolean,
     multipleSelectionEnabled: boolean,
     requireAllAnswers: boolean,
@@ -17,7 +17,7 @@ export type OrderQuestionOptions = QuestionOptions & {
         position: 'PREFIX' | 'SUFFIX' | 'NONE',
         replacers?: string[] | null,
     }
-};
+}>;
 export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
@@ -72,9 +72,9 @@ export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.int
     ]),
 ], 'MatchingQuestionOptions')
 
-export type SingleChoiceQuestionOptions = QuestionOptions & {
+export type SingleChoiceQuestionOptions = MergeIntersections<QuestionOptions & {
     displayMode: 'radio' | 'dragNdrop',
-}
+}>
 export const TSingleChoiceQuestionOptions: io.Type<SingleChoiceQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({

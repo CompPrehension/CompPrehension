@@ -4,7 +4,9 @@ import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
+import org.vstu.compprehension.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 
@@ -41,7 +43,9 @@ public class Mapper {
                 .build();
     }
 
-    public static QuestionDto toDto(QuestionEntity question) {
+    public static QuestionDto toDto(Question questionObject, Domain domain) {
+        val question = questionObject.getQuestionData();
+
         // calculate last interaction responses
         val totalInteractionsCount = Optional.ofNullable(question.getInteractions())
                 .map(is -> is.size()).orElse(0);
@@ -75,33 +79,46 @@ public class Mapper {
                         .build())
                 .orElse(null);
 
+        val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
+        val answerDtos = answers.stream()
+                .map(a -> new QuestionAnswerDto((long)a.getAnswerId(), a.getHyperText()))
+                .toArray(QuestionAnswerDto[]::new);
         switch (question.getQuestionType()) {
             case ORDER:
+                val trace = Optional.ofNullable(domain.getFullSolutionTrace(questionObject)).stream()
+                        .flatMap(Collection::stream)
+                        .map(h -> h.getText())
+                        .toArray(String[]::new);
+                return OrderQuestionDto.builder()
+                        .attemptId(question.getExerciseAttempt().getId())
+                        .questionId(question.getId())
+                        .type(question.getQuestionType().toString())
+                        .answers(answerDtos)
+                        .text(question.getQuestionText())
+                        .options(question.getOptions())
+                        .responses(responses)
+                        .feedback(feedback)
+                        .trace(trace)
+                        .build();
             case MULTI_CHOICE:
-                val mulChoiceAnswers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
-                val mulChoiceAnswerDtos = IntStream.range(0, mulChoiceAnswers.size())
-                        .mapToObj(i -> new QuestionAnswerDto((long)i, mulChoiceAnswers.get(i).getHyperText()))
-                        .toArray(QuestionAnswerDto[]::new);
-
                 return QuestionDto.builder()
                         .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
-                        .answers(mulChoiceAnswerDtos)
+                        .answers(answerDtos)
                         .text(question.getQuestionText())
                         .options(question.getOptions())
                         .responses(responses)
                         .feedback(feedback)
                         .build();
             case MATCHING:
-                List<AnswerObjectEntity> answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<>(0);
                 QuestionAnswerDto[] left = IntStream.range(0, answers.size())
                         .filter(i -> !answers.get(i).isRightCol())
-                        .mapToObj(i -> new QuestionAnswerDto((long)i, answers.get(i).getHyperText()))
+                        .mapToObj(i -> new QuestionAnswerDto((long)answers.get(i).getAnswerId(), answers.get(i).getHyperText()))
                         .toArray(QuestionAnswerDto[]::new);
                 QuestionAnswerDto[] right = IntStream.range(0, answers.size())
                         .filter(i -> answers.get(i).isRightCol())
-                        .mapToObj(i -> new QuestionAnswerDto((long)i, answers.get(i).getHyperText()))
+                        .mapToObj(i -> new QuestionAnswerDto((long)answers.get(i).getAnswerId(), answers.get(i).getHyperText()))
                         .toArray(QuestionAnswerDto[]::new);
 
                 return MatchingQuestionDto.builder()
