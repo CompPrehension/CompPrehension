@@ -1,4 +1,5 @@
 CREATE SCHEMA `new_schema` DEFAULT CHARACTER SET utf8mb4 ;
+CREATE DATABASE `test_comppr` DEFAULT CHARACTER SET utf8mb4 ;
 
 
 
