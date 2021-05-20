@@ -1,7 +1,7 @@
 INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ProgrammingLanguageExpressionDomain');
 INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ControlFlowStatementsDomain');
 
-INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'test', 'test');
+INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'тест', 'тест');
 
 INSERT INTO `backend` (`id`, `name`) VALUES (1, 'test');
 
