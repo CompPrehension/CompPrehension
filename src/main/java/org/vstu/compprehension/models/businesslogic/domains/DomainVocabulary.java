@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResIterator;
@@ -32,6 +34,10 @@ public class DomainVocabulary {
 
         ////    If the syntax is not as the file extension, a language can be declared:
         //    model.read("data.foo", "TURTLE") ;
+    }
+
+    public Model getModel() {
+        return model;
     }
 
     public List<Concept> readConcepts() {
@@ -139,6 +145,49 @@ public class DomainVocabulary {
         }
     }
 
+
+//    def get_base_classes(classes) -> set:
+//            return {sup for cl in classes for sup in cl.is_a}
+//
+//
+//    def get_leaf_classes(classes) -> set:
+//            # print(classes, "-" ,base_classes)
+//		return set(classes) - get_base_classes(classes)
+
+    /** Get set-like list of base class names */
+    public List<String> getBaseClasses(List<String> classes) {
+        ArrayList<String> result = new ArrayList<>();
+        for (String cls : classes) {
+            for (String base : classDescendants(cls)) {
+                if (!result.contains(base))
+                    result.add(base);
+            }
+        }
+        return result;
+    }
+    public List<String> getBaseClasses(String cls) {
+        return classDescendants(cls);
+    }
+    public List<String> getLeafClasses(List<String> classes) {
+        HashSet<String> set = new HashSet<>();
+        for (String cls : classes) {
+            set.addAll(classDescendants(cls));
+        }
+        ArrayList<String> result = new ArrayList<>(classes);
+        result.removeAll(set);
+        result.sort(String::compareTo);
+        return result;
+    }
+
+    public static List<OntClass> getLeafOntClasses(List<OntClass> classes) {
+        HashSet<OntClass> set = new HashSet<>();
+        for (OntClass cls : classes) {
+            set.addAll(cls.listSubClasses(false).toSet());
+        }
+        ArrayList<OntClass> result = new ArrayList<>(classes);
+        result.removeAll(set);
+        return result;
+    }
 
     /// debug
     public static void main(String[] args) {
