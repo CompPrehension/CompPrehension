@@ -35,20 +35,24 @@ public class JenaBackend extends Backend {
     OntModel model;
     ArrayList<Rule> domainRules = new ArrayList<>();
 
+/*
     String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     String RDFS = "http://www.w3.org/2000/01/rdf-schema#";
-    // use also    model.getNsPrefixURI("owl")   and so to get a standard prefix
+*/
+    // use also    model.getNsPrefixURI("owl")   to get a standard prefix
 
 
-    void createOntology() {
-        createOntology("http://www.test/test.owl");
+    public void createOntology() {
+        createOntology("http://vstu.ru/poas/code");
+        //// createOntology("http://www.test/test.owl");
     }
-    void createOntology(String base) {
+    public void createOntology(String base) {
 
         baseIRIPrefix = base + "#";
         PrintUtil.registerPrefix("my", baseIRIPrefix); //?
 
         model = ModelFactory.createOntologyModel(OWL_MEM);  // createDefaultModel();
+        model.setNsPrefix("my", base);
 
         domainRules.clear();
     }
