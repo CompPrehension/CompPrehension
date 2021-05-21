@@ -1,0 +1,736 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:owl="http://www.w3.org/2002/07/owl#"
+         xml:base="http://vstu.ru/poas/ctrl_structs_2020-05_v1"
+         xmlns="http://vstu.ru/poas/ctrl_structs_2020-05_v1#">
+
+<owl:Ontology rdf:about="http://vstu.ru/poas/ctrl_structs_2020-05_v1"/>
+
+<owl:ObjectProperty rdf:about="#boundary_of">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="#boundary"/>
+  <rdfs:range rdf:resource="#action"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#begin_of">
+  <rdfs:subPropertyOf rdf:resource="#boundary_of"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#end_of">
+  <rdfs:subPropertyOf rdf:resource="#boundary_of"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#gathered_child_exec_till">
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="#act"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#gather_child_exec_till">
+  <rdfs:subPropertyOf rdf:resource="#gathered_child_exec_till"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#child_executes">
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="#boundary"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#consequent">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#has_upcoming">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  <rdfs:domain rdf:resource="#boundary"/>
+  <rdfs:range rdf:resource="#boundary"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#normal_consequent">
+  <rdfs:subPropertyOf rdf:resource="#consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#always_consequent">
+  <rdfs:subPropertyOf rdf:resource="#normal_consequent"/>
+  <rdfs:subPropertyOf rdf:resource="#has_upcoming"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#on_true_consequent">
+  <rdfs:subPropertyOf rdf:resource="#normal_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#on_false_consequent">
+  <rdfs:subPropertyOf rdf:resource="#normal_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#body">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:subPropertyOf rdf:resource="#parent_of"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#cond">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#init">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#update">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#executes">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#next">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#next_act">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+  <rdfs:domain rdf:resource="#correct_act"/>
+  <rdfs:range rdf:resource="#correct_act"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#student_next">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="#act"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#next_sibling">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#in_trace">
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="#trace"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#after_act">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="#act"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#corresponding_end">
+  <rdfs:domain rdf:resource="#act_begin"/>
+  <rdfs:range rdf:resource="#act_end"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#student_corresponding_end">
+  <rdfs:domain rdf:resource="#act_begin"/>
+  <rdfs:range rdf:resource="#act_end"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#hasPartTransitive">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#parent_of">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+  <rdfs:subPropertyOf rdf:resource="#hasPartTransitive"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#student_parent_of">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#branches_item">
+  <rdfs:subPropertyOf rdf:resource="#parent_of"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#precursor">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#cause">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#has_causing_condition">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#should_be">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#should_be_before">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#should_be_after">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#context_should_be">
+  <rdfs:domain rdf:resource="#Erroneous"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#StmtEnd">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#ExprEnd">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#GlobalCodeBegin">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#SequenceBegin">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#SequenceNext">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#SequenceEnd">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#AltBegin">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#AltBranchBegin">
+  <rdfs:subPropertyOf rdf:resource="#on_true_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#NextAltCondition">
+  <rdfs:subPropertyOf rdf:resource="#on_false_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#AltElseBranchBegin">
+  <rdfs:subPropertyOf rdf:resource="#on_false_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#AltEndAllFalse">
+  <rdfs:subPropertyOf rdf:resource="#on_false_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#AltEndAfterBranch">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#PreCondLoopBegin">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#PostCondLoopBegin">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#IterationBeginOnTrueCond">
+  <rdfs:subPropertyOf rdf:resource="#on_true_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#LoopEndOnFalseCond">
+  <rdfs:subPropertyOf rdf:resource="#on_false_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#LoopCondBeginAfterIteration">
+  <rdfs:subPropertyOf rdf:resource="#always_consequent"/>
+</owl:ObjectProperty>
+
+<owl:DatatypeProperty rdf:about="#id">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#item_index">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#expr_value">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#stmt_name">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#index">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#student_index">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#student_iteration_n">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#iteration_n">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#exec_time">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#depth">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#text_line">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#error_priority">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+</owl:DatatypeProperty>
+
+<owl:Class rdf:about="http://www.w3.org/2004/02/skos/core#Concept">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#act">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+</owl:Class>
+
+<owl:Class rdf:about="#act_begin">
+  <rdfs:subClassOf rdf:resource="#act"/>
+</owl:Class>
+
+<owl:Class rdf:about="#trace">
+  <rdfs:subClassOf rdf:resource="#act_begin"/>
+</owl:Class>
+
+<owl:Class rdf:about="#act_end">
+  <rdfs:subClassOf rdf:resource="#act"/>
+</owl:Class>
+
+<owl:Class rdf:about="#correct_act">
+  <rdfs:subClassOf rdf:resource="#act"/>
+</owl:Class>
+
+<owl:Class rdf:about="#normal_flow_correct_act">
+  <rdfs:subClassOf rdf:resource="#correct_act"/>
+</owl:Class>
+
+<owl:Class rdf:about="#linked_list">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#action">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+</owl:Class>
+
+<owl:Class rdf:about="#algorithm">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+</owl:Class>
+
+<owl:Class rdf:about="#boundary">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#sequence">
+  <rdfs:subClassOf rdf:resource="#action"/>
+</owl:Class>
+
+<owl:Class rdf:about="#first_item">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#last_item">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#loop">
+  <rdfs:subClassOf rdf:resource="#action"/>
+</owl:Class>
+
+<owl:Class rdf:about="#conditional_loop">
+  <rdfs:subClassOf rdf:resource="#loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#unconditional_loop">
+  <rdfs:subClassOf rdf:resource="#loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#infinite_loop">
+  <rdfs:subClassOf rdf:resource="#unconditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ntimes_loop">
+  <rdfs:subClassOf rdf:resource="#unconditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#start_with_cond">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#start_with_body">
+  <rdfs:subClassOf rdf:resource="#loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#start_with_init">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#pre_update_loop">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+  <owl:disjointWith rdf:resource="#post_update_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#post_update_loop">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#cond_then_body">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#body_then_cond">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#while_loop">
+  <rdfs:subClassOf rdf:resource="#start_with_cond"/>
+  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
+  <rdfs:subClassOf rdf:resource="#cond_then_body"/>
+</owl:Class>
+
+<owl:Class rdf:about="#do_while_loop">
+  <rdfs:subClassOf rdf:resource="#start_with_body"/>
+  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
+  <rdfs:subClassOf rdf:resource="#cond_then_body"/>
+</owl:Class>
+
+<owl:Class rdf:about="#for_loop">
+  <rdfs:subClassOf rdf:resource="#post_update_loop"/>
+  <rdfs:subClassOf rdf:resource="#start_with_init"/>
+  <rdfs:subClassOf rdf:resource="#cond_then_body"/>
+</owl:Class>
+
+<owl:Class rdf:about="#foreach_loop">
+  <rdfs:subClassOf rdf:resource="#pre_update_loop"/>
+  <rdfs:subClassOf rdf:resource="#start_with_cond"/>
+  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
+</owl:Class>
+
+<owl:Class rdf:about="#alt_branch">
+  <rdfs:subClassOf rdf:resource="#sequence"/>
+</owl:Class>
+
+<owl:Class rdf:about="#func">
+  <rdfs:subClassOf rdf:resource="#action"/>
+</owl:Class>
+
+<owl:Class rdf:about="#alternative">
+  <rdfs:subClassOf rdf:resource="#action"/>
+</owl:Class>
+
+<owl:Class rdf:about="#expr">
+  <rdfs:subClassOf rdf:resource="#action"/>
+</owl:Class>
+
+<owl:Class rdf:about="#stmt">
+  <rdfs:subClassOf rdf:resource="#action"/>
+</owl:Class>
+
+<owl:Class rdf:about="#if">
+  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+</owl:Class>
+
+<owl:Class rdf:about="#else-if">
+  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+</owl:Class>
+
+<owl:Class rdf:about="#else">
+  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+</owl:Class>
+
+<owl:Class rdf:about="#Erroneous">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#CorrespondingEndMismatched">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#WrongNext">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ConditionMisuse">
+  <rdfs:subClassOf rdf:resource="#WrongNext"/>
+</owl:Class>
+
+<owl:Class rdf:about="#WrongContext">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#MisplacedDeeper">
+  <rdfs:subClassOf rdf:resource="#WrongContext"/>
+</owl:Class>
+
+<owl:Class rdf:about="#EndedDeeper">
+  <rdfs:subClassOf rdf:resource="#WrongContext"/>
+  <rdfs:subClassOf rdf:resource="#CorrespondingEndMismatched"/>
+</owl:Class>
+
+<owl:Class rdf:about="#EndedShallower">
+  <rdfs:subClassOf rdf:resource="#WrongContext"/>
+  <rdfs:subClassOf rdf:resource="#CorrespondingEndMismatched"/>
+</owl:Class>
+
+<owl:Class rdf:about="#OneLevelShallower">
+  <rdfs:subClassOf rdf:resource="#WrongContext"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NeighbourhoodError">
+  <rdfs:subClassOf rdf:resource="#WrongNext"/>
+</owl:Class>
+
+<owl:Class rdf:about="#UpcomingNeighbour">
+  <rdfs:subClassOf rdf:resource="#NeighbourhoodError"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NotNeighbour">
+  <rdfs:subClassOf rdf:resource="#NeighbourhoodError"/>
+</owl:Class>
+
+<owl:Class rdf:about="#WrongCondNeighbour">
+  <rdfs:subClassOf rdf:resource="#NotNeighbour"/>
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DuplicateOfAct">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TooLateInSequence">
+  <rdfs:subClassOf rdf:resource="#WrongNext"/>
+</owl:Class>
+
+<owl:Class rdf:about="#TooEarlyInSequence">
+  <rdfs:subClassOf rdf:resource="#WrongNext"/>
+</owl:Class>
+
+<owl:Class rdf:about="#SequenceFinishedNotInOrder">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#SequenceFinishedTooEarly">
+  <rdfs:subClassOf rdf:resource="#SequenceFinishedNotInOrder"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoFirstCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoAlternativeEndAfterBranch">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#CondtionNotNextToPrevCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ConditionAfterBranch">
+  <rdfs:subClassOf rdf:resource="#NoAlternativeEndAfterBranch"/>
+  <rdfs:subClassOf rdf:resource="#CondtionNotNextToPrevCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#DuplicateOfCondition">
+  <rdfs:subClassOf rdf:resource="#ConditionAfterBranch"/>
+  <rdfs:subClassOf rdf:resource="#CondtionNotNextToPrevCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BranchOfFalseCondition">
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#AnotherExtraBranch">
+  <rdfs:subClassOf rdf:resource="#NoAlternativeEndAfterBranch"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BranchWithoutCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BranchNotNextToCondition">
+  <rdfs:subClassOf rdf:resource="#BranchWithoutCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ElseBranchNotNextToLastCondition">
+  <rdfs:subClassOf rdf:resource="#BranchWithoutCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ElseBranchAfterTrueCondition">
+  <rdfs:subClassOf rdf:resource="#BranchWithoutCondition"/>
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoBranchWhenConditionIsTrue">
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LastConditionIsFalseButNoElse">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoNextCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ConditionTooLate">
+  <rdfs:subClassOf rdf:resource="#NoNextCondition"/>
+  <rdfs:subClassOf rdf:resource="#CondtionNotNextToPrevCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ConditionTooEarly">
+  <rdfs:subClassOf rdf:resource="#NoFirstCondition"/>
+  <rdfs:subClassOf rdf:resource="#NoNextCondition"/>
+  <rdfs:subClassOf rdf:resource="#CondtionNotNextToPrevCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LastFalseNoEnd">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#AlternativeEndAfterTrueCondition">
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoLoopEndAfterFailedCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LoopContinuedAfterFailedCondition">
+  <rdfs:subClassOf rdf:resource="#NoLoopEndAfterFailedCondition"/>
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#IterationAfterFailedCondition">
+  <rdfs:subClassOf rdf:resource="#LoopContinuedAfterFailedCondition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LoopEndsWithoutCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LoopStartIsNotCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LoopStartIsNotIteration">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoIterationAfterSuccessfulCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LoopEndAfterSuccessfulCondition">
+  <rdfs:subClassOf rdf:resource="#NoIterationAfterSuccessfulCondition"/>
+  <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoConditionAfterIteration">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoConditionBetweenIterations">
+  <rdfs:subClassOf rdf:resource="#NoConditionAfterIteration"/>
+</owl:Class>
+
+<owl:Class rdf:about="#LoopStartsNotWithInit">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#InitNotAtLoopStart">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoConditionAfterForInit">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#IterationAfterForInit">
+  <rdfs:subClassOf rdf:resource="#NoConditionAfterForInit"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoUpdateAfterIteration">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#UpdateNotAfterIteration">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ForConditionAfterIteration">
+  <rdfs:subClassOf rdf:resource="#UpdateNotAfterIteration"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoConditionAfterForUpdate">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoForeachUpdateAfterSuccessfulCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#ForeachUpdateNotAfterSuccessfulCondition">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#NoIterationAfterForeachUpdate">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#IterationNotAfterForeachUpdate">
+  <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+
+</rdf:RDF>
