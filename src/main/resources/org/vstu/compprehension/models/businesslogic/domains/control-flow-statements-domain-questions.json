@@ -9,6 +9,7 @@
       "options": {},
       "answerObjects": [
         {
+          "answerId": 0,
           "hyperText": "begin program",
           "domainInfo": "started:3",
           "isRightCol": false,
@@ -17,6 +18,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 1,
           "hyperText": "end program",
           "domainInfo": "finished:3",
           "isRightCol": false,
@@ -25,6 +27,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 2,
           "hyperText": "execute statement 'do_one()'",
           "domainInfo": "performed:4",
           "isRightCol": false,
@@ -33,6 +36,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 3,
           "hyperText": "execute statement 'do_two()'",
           "domainInfo": "performed:5",
           "isRightCol": false,
@@ -41,6 +45,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 4,
           "hyperText": "execute statement 'do_three()'",
           "domainInfo": "performed:6",
           "isRightCol": false,
@@ -74,16 +79,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "stmt_name",
+          "verb": "algorithm_name",
           "objectType": "xsd:string",
-          "object": "algorithm"
+          "object": "alg03_seq3"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "algorithm_name",
+          "verb": "stmt_name",
           "objectType": "xsd:string",
-          "object": "alg03_seq3"
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -186,16 +191,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "do_one()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "do_one()"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 4
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -207,9 +212,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 4
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -249,16 +254,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "do_two()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "do_two()"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 5
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -270,9 +275,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 5
+          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -326,16 +331,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_do_three",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 2
+          "object": 6
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_do_three",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 6
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -387,6 +392,7 @@
       "options": {},
       "answerObjects": [
         {
+          "answerId": 0,
           "hyperText": "begin program",
           "domainInfo": "started:8",
           "isRightCol": false,
@@ -395,6 +401,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 1,
           "hyperText": "end program",
           "domainInfo": "finished:8",
           "isRightCol": false,
@@ -403,6 +410,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 2,
           "hyperText": "begin iteration of loop 'waiting'",
           "domainInfo": "started:18",
           "isRightCol": false,
@@ -411,6 +419,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 3,
           "hyperText": "end iteration of loop 'waiting'",
           "domainInfo": "finished:18",
           "isRightCol": false,
@@ -419,6 +428,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 4,
           "hyperText": "begin alternative 'over_color'",
           "domainInfo": "started:11",
           "isRightCol": false,
@@ -427,6 +437,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 5,
           "hyperText": "end alternative 'over_color'",
           "domainInfo": "finished:11",
           "isRightCol": false,
@@ -435,6 +446,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 6,
           "hyperText": "evaluate condition '(not_green)'",
           "domainInfo": "performed:10",
           "isRightCol": false,
@@ -443,6 +455,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 7,
           "hyperText": "evaluate condition 'red'",
           "domainInfo": "performed:13",
           "isRightCol": false,
@@ -451,6 +464,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 8,
           "hyperText": "evaluate condition 'yellow'",
           "domainInfo": "performed:16",
           "isRightCol": false,
@@ -459,6 +473,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 9,
           "hyperText": "execute statement 'wait()'",
           "domainInfo": "performed:14",
           "isRightCol": false,
@@ -467,6 +482,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 10,
           "hyperText": "execute statement 'get_ready()'",
           "domainInfo": "performed:17",
           "isRightCol": false,
@@ -475,6 +491,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 11,
           "hyperText": "begin IF branch with condition 'red'",
           "domainInfo": "started:12",
           "isRightCol": false,
@@ -483,6 +500,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 12,
           "hyperText": "end IF branch with condition 'red'",
           "domainInfo": "finished:12",
           "isRightCol": false,
@@ -491,6 +509,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 13,
           "hyperText": "begin ELSE-IF branch with condition 'yellow'",
           "domainInfo": "started:15",
           "isRightCol": false,
@@ -499,6 +518,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 14,
           "hyperText": "end ELSE-IF branch with condition 'yellow'",
           "domainInfo": "finished:15",
           "isRightCol": false,
@@ -507,6 +527,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 15,
           "hyperText": "begin loop 'waiting'",
           "domainInfo": "started:9",
           "isRightCol": false,
@@ -515,6 +536,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 16,
           "hyperText": "end loop 'waiting'",
           "domainInfo": "finished:9",
           "isRightCol": false,
@@ -548,16 +570,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "7_algorithm",
-          "verb": "stmt_name",
+          "verb": "algorithm_name",
           "objectType": "xsd:string",
-          "object": "algorithm"
+          "object": "alg_wie"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "7_algorithm",
-          "verb": "algorithm_name",
+          "verb": "stmt_name",
           "objectType": "xsd:string",
-          "object": "alg_wie"
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -653,9 +675,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "body",
-          "objectType": "owl:NamedIndividual",
-          "object": "18_waiting_loop_body"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "waiting"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -674,16 +696,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "waiting"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 9
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 9
+          "verb": "body",
+          "objectType": "owl:NamedIndividual",
+          "object": "18_waiting_loop_body"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -849,23 +871,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "11_over_color",
-          "verb": "branches_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "12_if-red"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "11_over_color",
-          "verb": "branches_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "15_elseif-yellow"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "11_over_color",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "over_color"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_over_color",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 11
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -877,9 +892,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "11_over_color",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 11
+          "verb": "branches_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "12_if-red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_over_color",
+          "verb": "branches_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "15_elseif-yellow"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -933,23 +955,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_if-red",
-          "verb": "next",
+          "verb": "body_item",
           "objectType": "owl:NamedIndividual",
-          "object": "15_elseif-yellow"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_if-red",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "13_red"
+          "object": "14_wait"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -961,6 +969,20 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_if-red",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "13_red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_if-red",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 12
@@ -968,9 +990,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
-          "verb": "body_item",
+          "verb": "next",
           "objectType": "owl:NamedIndividual",
-          "object": "14_wait"
+          "object": "15_elseif-yellow"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1080,16 +1102,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "14_wait",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 14
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "14_wait",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 14
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1143,6 +1165,20 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "17_get_ready"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_elseif-yellow",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "elseif-yellow"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "15_elseif-yellow",
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 1
@@ -1157,23 +1193,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "elseif-yellow"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "15_elseif-yellow",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 15
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "15_elseif-yellow",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "17_get_ready"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1283,16 +1305,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_get_ready",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 17
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_get_ready",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 17
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1349,6 +1371,7 @@
       "options": {},
       "answerObjects": [
         {
+          "answerId": 0,
           "hyperText": "begin program",
           "domainInfo": "started:20",
           "isRightCol": false,
@@ -1357,6 +1380,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 1,
           "hyperText": "end program",
           "domainInfo": "finished:20",
           "isRightCol": false,
@@ -1365,6 +1389,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 2,
           "hyperText": "begin alternative 'over_color'",
           "domainInfo": "started:21",
           "isRightCol": false,
@@ -1373,6 +1398,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 3,
           "hyperText": "end alternative 'over_color'",
           "domainInfo": "finished:21",
           "isRightCol": false,
@@ -1381,6 +1407,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 4,
           "hyperText": "evaluate condition 'red'",
           "domainInfo": "performed:23",
           "isRightCol": false,
@@ -1389,6 +1416,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 5,
           "hyperText": "evaluate condition 'green'",
           "domainInfo": "performed:26",
           "isRightCol": false,
@@ -1397,6 +1425,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 6,
           "hyperText": "execute statement 'wait()'",
           "domainInfo": "performed:24",
           "isRightCol": false,
@@ -1405,6 +1434,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 7,
           "hyperText": "execute statement 'run()'",
           "domainInfo": "performed:27",
           "isRightCol": false,
@@ -1413,6 +1443,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 8,
           "hyperText": "execute statement 'get_ready()'",
           "domainInfo": "performed:29",
           "isRightCol": false,
@@ -1421,6 +1452,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 9,
           "hyperText": "begin IF branch with condition 'red'",
           "domainInfo": "started:22",
           "isRightCol": false,
@@ -1429,6 +1461,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 10,
           "hyperText": "end IF branch with condition 'red'",
           "domainInfo": "finished:22",
           "isRightCol": false,
@@ -1437,6 +1470,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 11,
           "hyperText": "begin ELSE-IF branch with condition 'green'",
           "domainInfo": "started:25",
           "isRightCol": false,
@@ -1445,6 +1479,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 12,
           "hyperText": "end ELSE-IF branch with condition 'green'",
           "domainInfo": "finished:25",
           "isRightCol": false,
@@ -1453,6 +1488,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 13,
           "hyperText": "begin ELSE branch of alternative 'over_color-else'",
           "domainInfo": "started:28",
           "isRightCol": false,
@@ -1461,6 +1497,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 14,
           "hyperText": "end ELSE branch of alternative 'over_color-else'",
           "domainInfo": "finished:28",
           "isRightCol": false,
@@ -1494,16 +1531,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_algorithm",
-          "verb": "stmt_name",
+          "verb": "algorithm_name",
           "objectType": "xsd:string",
-          "object": "algorithm"
+          "object": "alg00_alt"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_algorithm",
-          "verb": "algorithm_name",
+          "verb": "stmt_name",
           "objectType": "xsd:string",
-          "object": "alg00_alt"
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1599,6 +1636,27 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "21_over_color",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "over_color"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_over_color",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 21
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_over_color",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_over_color",
           "verb": "branches_item",
           "objectType": "owl:NamedIndividual",
           "object": "22_if-red"
@@ -1616,27 +1674,6 @@
           "verb": "branches_item",
           "objectType": "owl:NamedIndividual",
           "object": "28_over_color-else"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_over_color",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "over_color"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_over_color",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_over_color",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 21
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1690,23 +1727,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_if-red",
-          "verb": "next",
+          "verb": "body_item",
           "objectType": "owl:NamedIndividual",
-          "object": "25_elseif-green"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_if-red",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "23_red"
+          "object": "24_wait"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1718,6 +1741,20 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_if-red",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "23_red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_if-red",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 22
@@ -1725,9 +1762,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
-          "verb": "body_item",
+          "verb": "next",
           "objectType": "owl:NamedIndividual",
-          "object": "24_wait"
+          "object": "25_elseif-green"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1837,16 +1874,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_wait",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 24
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_wait",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 24
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1893,23 +1930,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_elseif-green",
-          "verb": "next",
+          "verb": "body_item",
           "objectType": "owl:NamedIndividual",
-          "object": "28_over_color-else"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_elseif-green",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "26_green"
+          "object": "27_run"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1921,6 +1944,20 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 1
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_elseif-green",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "26_green"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_elseif-green",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 25
@@ -1928,9 +1965,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
-          "verb": "body_item",
+          "verb": "next",
           "objectType": "owl:NamedIndividual",
-          "object": "27_run"
+          "object": "28_over_color-else"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2040,16 +2077,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "27_run",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 27
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "27_run",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 27
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2110,13 +2147,6 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "28_over_color-else",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "29_get_ready"
@@ -2127,6 +2157,13 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 28
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "28_over_color-else",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2187,16 +2224,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_get_ready",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 29
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_get_ready",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 29
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2253,6 +2290,7 @@
       "options": {},
       "answerObjects": [
         {
+          "answerId": 0,
           "hyperText": "begin program",
           "domainInfo": "started:31",
           "isRightCol": false,
@@ -2261,6 +2299,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 1,
           "hyperText": "end program",
           "domainInfo": "finished:31",
           "isRightCol": false,
@@ -2269,6 +2308,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 2,
           "hyperText": "begin iteration of loop 'waiting'",
           "domainInfo": "started:35",
           "isRightCol": false,
@@ -2277,6 +2317,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 3,
           "hyperText": "end iteration of loop 'waiting'",
           "domainInfo": "finished:35",
           "isRightCol": false,
@@ -2285,6 +2326,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 4,
           "hyperText": "evaluate condition 'red'",
           "domainInfo": "performed:33",
           "isRightCol": false,
@@ -2293,6 +2335,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 5,
           "hyperText": "execute statement 'wait()'",
           "domainInfo": "performed:34",
           "isRightCol": false,
@@ -2301,6 +2344,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 6,
           "hyperText": "execute statement 'wait_seconds(3)'",
           "domainInfo": "performed:36",
           "isRightCol": false,
@@ -2309,6 +2353,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 7,
           "hyperText": "execute statement 'go()'",
           "domainInfo": "performed:37",
           "isRightCol": false,
@@ -2317,6 +2362,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 8,
           "hyperText": "begin loop 'waiting'",
           "domainInfo": "started:32",
           "isRightCol": false,
@@ -2325,6 +2371,7 @@
           "responsesRight": []
         },
         {
+          "answerId": 9,
           "hyperText": "end loop 'waiting'",
           "domainInfo": "finished:32",
           "isRightCol": false,
@@ -2358,16 +2405,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_algorithm",
-          "verb": "stmt_name",
+          "verb": "algorithm_name",
           "objectType": "xsd:string",
-          "object": "algorithm"
+          "object": "10_while"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_algorithm",
-          "verb": "algorithm_name",
+          "verb": "stmt_name",
           "objectType": "xsd:string",
-          "object": "10_while"
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2470,9 +2517,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "body",
-          "objectType": "owl:NamedIndividual",
-          "object": "35_waiting_loop_body"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "waiting"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2484,13 +2531,6 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "36_wait_seconds3"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "32_waiting",
           "verb": "cond",
           "objectType": "owl:NamedIndividual",
           "object": "33_red"
@@ -2498,16 +2538,23 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "waiting"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 32
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 32
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "36_wait_seconds3"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_waiting",
+          "verb": "body",
+          "objectType": "owl:NamedIndividual",
+          "object": "35_waiting_loop_body"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2680,16 +2727,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "34_wait",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 34
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "34_wait",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 34
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2729,16 +2776,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "wait_seconds(3)"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "wait_seconds(3)"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 36
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2750,9 +2797,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 36
+          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2806,16 +2853,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_go",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 2
+          "object": 37
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_go",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 37
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",

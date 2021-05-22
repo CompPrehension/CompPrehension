@@ -1,6 +1,6 @@
 [
   {
-    "name": "rdfs_subset",
+    "name": "rdfs_subset_positive",
     "positive": true,
     "concepts": [],
     "tags": [],
@@ -27,6 +27,39 @@
       },
       {
         "name": "autogen_5",
+        "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "rdfs_subset_negative",
+    "positive": false,
+    "concepts": [],
+    "tags": [],
+    "formulations": [
+      {
+        "name": "autogen_6",
+        "formulation": "(?x ?p ?y), (?p rdfs:domain ?c) -> (?x rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_7",
+        "formulation": "(?x ?p ?y), (?p rdfs:range ?c) -> (?y rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_8",
+        "formulation": "(?a ?p ?b), (?p rdfs:subPropertyOf ?q) -> (?a ?q ?b) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_9",
+        "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_10",
         "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
         "backend": "Jena"
       }
@@ -505,22 +538,22 @@
         "backend": "Jena"
       },
       {
-        "name": "autogen_6",
+        "name": "autogen_11",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_7",
+        "name": "autogen_12",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_corresponding_end ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_8",
+        "name": "autogen_13",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?par_e), -> (?par_e my:gathered_child_exec_till ?par_e), drop(0).",
         "backend": "Jena"
       },
       {
-        "name": "autogen_9",
+        "name": "autogen_14",
         "formulation": "(?child_act my:gathered_child_exec_till ?par_e), (?par_b my:gather_child_exec_till ?par_e), (?child_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), -> drop(0).",
         "backend": "Jena"
       },
