@@ -396,7 +396,7 @@ public class ControlFlowStatementsDomain extends Domain {
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
 
             // get question
-            QuestionEntity q = responses.get(0).getLeftAnswerObject().getQuestion(); // assume that list of responses is never empty
+            QuestionEntity q = answerObjects.get(0).getQuestion();
 
             // init result facts with solution facts
             List<BackendFactEntity> result = new ArrayList<>();
@@ -431,10 +431,10 @@ public class ControlFlowStatementsDomain extends Domain {
             String prevActIRI = trace;
             for (ResponseEntity response : responses) {
                 trace_index ++;
-                String[] actInfo = response.getLeftAnswerObject().getDomainInfo().split(":");
-                assert(actInfo.length == 2);
-                String phase = actInfo[0];
-                String exId = actInfo[1];
+                String domainInfo = response.getLeftAnswerObject().getDomainInfo();
+                AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
+                String phase = answerDomainInfo.getPhase();
+                String exId = answerDomainInfo.getExId();
 //              int exId = Integer.parseInt(actInfo[1]);
 
                 String act_iri_t = exId + "_n" + trace_index;
@@ -740,10 +740,12 @@ public class ControlFlowStatementsDomain extends Domain {
 
         AnswerObjectEntity lastAnswer =
                 lastCorrectInteractionAnswers.get(lastCorrectInteractionAnswers.size() - 1).getLeft();
-        String[] actInfo = lastAnswer.getDomainInfo().split(":");
-        assert(actInfo.length == 2);
-        String phase = actInfo[0];
-        String exId = actInfo[1];
+
+        String domainInfo = lastAnswer.getDomainInfo();
+        AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
+        String phase = answerDomainInfo.getPhase();
+        String exId = answerDomainInfo.getExId();
+
 
         val solution = q.getSolutionFacts();
         assertNotNull(solution, "Call solve question before getAnyNextCorrectAnswer");
@@ -875,5 +877,40 @@ public class ControlFlowStatementsDomain extends Domain {
         ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
         d.getQuestionTemplates();
         VOCAB.classDescendants("Erroneous");
+    }
+
+    private static class AnswerDomainInfo {
+        private final String domainInfo;
+        private String phase;
+        private String exId;
+        private String traceActHypertext = null;
+
+        public AnswerDomainInfo(String domainInfo) {
+            this.domainInfo = domainInfo;
+        }
+
+        public String getPhase() {
+            return phase;
+        }
+
+        public String getExId() {
+            return exId;
+        }
+
+        public String getTraceActHypertext() {
+            return traceActHypertext;
+        }
+
+        public AnswerDomainInfo invoke() {
+            String[] actInfo = domainInfo.split(":");
+            if (actInfo.length >= 2) {
+                phase = actInfo[0];
+                exId = actInfo[1];
+            }
+            if (actInfo.length >= 3) {
+                traceActHypertext = actInfo[2];
+            }
+            return this;
+        }
     }
 }

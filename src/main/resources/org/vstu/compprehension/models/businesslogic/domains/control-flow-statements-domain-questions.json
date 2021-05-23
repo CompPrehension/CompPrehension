@@ -11,7 +11,7 @@
         {
           "answerId": 0,
           "hyperText": "begin program",
-          "domainInfo": "started:3",
+          "domainInfo": "started:3:program began",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -20,7 +20,7 @@
         {
           "answerId": 1,
           "hyperText": "end program",
-          "domainInfo": "finished:3",
+          "domainInfo": "finished:3:program ended",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -29,7 +29,7 @@
         {
           "answerId": 2,
           "hyperText": "execute statement 'do_one()'",
-          "domainInfo": "performed:4",
+          "domainInfo": "performed:4:statement 'do_one()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -38,7 +38,7 @@
         {
           "answerId": 3,
           "hyperText": "execute statement 'do_two()'",
-          "domainInfo": "performed:5",
+          "domainInfo": "performed:5:statement 'do_two()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -47,7 +47,7 @@
         {
           "answerId": 4,
           "hyperText": "execute statement 'do_three()'",
-          "domainInfo": "performed:6",
+          "domainInfo": "performed:6:statement 'do_three()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -65,9 +65,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "3_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -86,16 +86,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "3_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "2_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 2
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -121,6 +121,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "3_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 3
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "4_do_one"
@@ -138,13 +145,6 @@
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "6_do_three"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "3_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 3
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -191,6 +191,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "4_do_one",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "do_one()"
@@ -208,13 +215,6 @@
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "5_do_two"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "4_do_one",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -254,6 +254,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 1
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "5_do_two",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "do_two()"
@@ -271,13 +278,6 @@
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "6_do_three"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "5_do_two",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -324,6 +324,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_do_three",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "6_do_three",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "do_three()"
@@ -334,13 +341,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 6
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "6_do_three",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -387,104 +387,104 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_15\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>while<span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_16\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"10\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition (not_green)\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>(not_green)</span>)&nbsp;&nbsp;<span class=\"comment\">// waiting</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_4\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_5\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"13\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>red</span>)&nbsp;&nbsp;<span class=\"comment\">// over_color</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_11\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"14\" id=\"answer_9\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_12\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"16\" id=\"answer_8\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition yellow\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>yellow</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_13\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition yellow\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"17\" id=\"answer_10\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement get_ready()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>get_ready()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_14\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish ELSE-IF branch with condition yellow\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_3\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_15\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>while<span class=\"alg_button\" algorithm_element_id=\"9\" id=\"answer_16\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"10\" id=\"answer_0\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition (not_green)\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>(not_green)</span>)&nbsp;&nbsp;<span class=\"comment\">// waiting</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_11\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_1\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"11\" id=\"answer_2\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"13\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>red</span>)&nbsp;&nbsp;<span class=\"comment\">// over_color</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_3\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"14\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"12\" id=\"answer_4\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"16\" id=\"answer_9\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition yellow\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>yellow</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_7\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition yellow\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"17\" id=\"answer_10\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement get_ready()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>get_ready()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"15\" id=\"answer_8\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish ELSE-IF branch with condition yellow\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"18\" id=\"answer_12\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "begin program",
-          "domainInfo": "started:8",
+          "hyperText": "evaluate condition '(not_green)'",
+          "domainInfo": "performed:10:condition '(not_green)' evaluated",
           "isRightCol": false,
-          "concept": "sequence",
+          "concept": "expr",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 1,
-          "hyperText": "end program",
-          "domainInfo": "finished:8",
+          "hyperText": "begin alternative 'over_color'",
+          "domainInfo": "started:11:alternative 'over_color' began",
           "isRightCol": false,
-          "concept": "sequence",
+          "concept": "alternative",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 2,
-          "hyperText": "begin iteration of loop 'waiting'",
-          "domainInfo": "started:18",
+          "hyperText": "end alternative 'over_color'",
+          "domainInfo": "finished:11:alternative 'over_color' ended",
           "isRightCol": false,
-          "concept": "sequence",
+          "concept": "alternative",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 3,
-          "hyperText": "end iteration of loop 'waiting'",
-          "domainInfo": "finished:18",
+          "hyperText": "begin IF branch with condition 'red'",
+          "domainInfo": "started:12:IF branch with condition 'red' began",
           "isRightCol": false,
-          "concept": "sequence",
+          "concept": "if",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 4,
-          "hyperText": "begin alternative 'over_color'",
-          "domainInfo": "started:11",
+          "hyperText": "end IF branch with condition 'red'",
+          "domainInfo": "finished:12:IF branch with condition 'red' ended",
           "isRightCol": false,
-          "concept": "alternative",
+          "concept": "if",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 5,
-          "hyperText": "end alternative 'over_color'",
-          "domainInfo": "finished:11",
+          "hyperText": "evaluate condition 'red'",
+          "domainInfo": "performed:13:condition 'red' evaluated",
           "isRightCol": false,
-          "concept": "alternative",
+          "concept": "expr",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 6,
-          "hyperText": "evaluate condition '(not_green)'",
-          "domainInfo": "performed:10",
-          "isRightCol": false,
-          "concept": "expr",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "answerId": 7,
-          "hyperText": "evaluate condition 'red'",
-          "domainInfo": "performed:13",
-          "isRightCol": false,
-          "concept": "expr",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "answerId": 8,
-          "hyperText": "evaluate condition 'yellow'",
-          "domainInfo": "performed:16",
-          "isRightCol": false,
-          "concept": "expr",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "answerId": 9,
           "hyperText": "execute statement 'wait()'",
-          "domainInfo": "performed:14",
+          "domainInfo": "performed:14:statement 'wait()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
+          "answerId": 7,
+          "hyperText": "begin ELSE-IF branch with condition 'yellow'",
+          "domainInfo": "started:15:ELSE-IF branch with condition 'yellow' began",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 8,
+          "hyperText": "end ELSE-IF branch with condition 'yellow'",
+          "domainInfo": "finished:15:ELSE-IF branch with condition 'yellow' ended",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 9,
+          "hyperText": "evaluate condition 'yellow'",
+          "domainInfo": "performed:16:condition 'yellow' evaluated",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
           "answerId": 10,
           "hyperText": "execute statement 'get_ready()'",
-          "domainInfo": "performed:17",
+          "domainInfo": "performed:17:statement 'get_ready()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -492,44 +492,44 @@
         },
         {
           "answerId": 11,
-          "hyperText": "begin IF branch with condition 'red'",
-          "domainInfo": "started:12",
+          "hyperText": "begin iteration of loop 'waiting'",
+          "domainInfo": "started:18:iteration of loop 'waiting' began",
           "isRightCol": false,
-          "concept": "if",
+          "concept": "sequence",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 12,
-          "hyperText": "end IF branch with condition 'red'",
-          "domainInfo": "finished:12",
+          "hyperText": "end iteration of loop 'waiting'",
+          "domainInfo": "finished:18:iteration of loop 'waiting' ended",
           "isRightCol": false,
-          "concept": "if",
+          "concept": "sequence",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 13,
-          "hyperText": "begin ELSE-IF branch with condition 'yellow'",
-          "domainInfo": "started:15",
+          "hyperText": "begin program",
+          "domainInfo": "started:8:program began",
           "isRightCol": false,
-          "concept": "else-if",
+          "concept": "sequence",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 14,
-          "hyperText": "end ELSE-IF branch with condition 'yellow'",
-          "domainInfo": "finished:15",
+          "hyperText": "end program",
+          "domainInfo": "finished:8:program ended",
           "isRightCol": false,
-          "concept": "else-if",
+          "concept": "sequence",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 15,
           "hyperText": "begin loop 'waiting'",
-          "domainInfo": "started:9",
+          "domainInfo": "started:9:loop 'waiting' began",
           "isRightCol": false,
           "concept": "while_loop",
           "responsesLeft": [],
@@ -538,7 +538,7 @@
         {
           "answerId": 16,
           "hyperText": "end loop 'waiting'",
-          "domainInfo": "finished:9",
+          "domainInfo": "finished:9:loop 'waiting' ended",
           "isRightCol": false,
           "concept": "while_loop",
           "responsesLeft": [],
@@ -556,9 +556,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "7_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "8_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 7
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -577,16 +577,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "7_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "8_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "7_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 7
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -612,16 +612,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "8_global_code",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "9_waiting"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 8
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "8_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 8
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "9_waiting"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -675,9 +675,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "waiting"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 9
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -689,6 +689,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
+          "verb": "body",
+          "objectType": "owl:NamedIndividual",
+          "object": "18_waiting_loop_body"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "9_waiting",
           "verb": "cond",
           "objectType": "owl:NamedIndividual",
           "object": "10_not_green"
@@ -696,16 +703,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 9
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "9_waiting",
-          "verb": "body",
-          "objectType": "owl:NamedIndividual",
-          "object": "18_waiting_loop_body"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "waiting"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -808,16 +808,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "18_waiting_loop_body",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "11_over_color"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 18
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "18_waiting_loop_body",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 18
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "11_over_color"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -871,6 +871,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "11_over_color",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_over_color",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "over_color"
@@ -881,13 +888,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 11
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "11_over_color",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -955,16 +955,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "14_wait"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 12
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "if-red"
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "14_wait"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -976,6 +976,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "15_elseif-yellow"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_if-red",
           "verb": "cond",
           "objectType": "owl:NamedIndividual",
           "object": "13_red"
@@ -983,16 +990,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 12
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_if-red",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "15_elseif-yellow"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "if-red"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1095,6 +1095,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "14_wait",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "14_wait",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "wait()"
@@ -1105,13 +1112,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 14
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "14_wait",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1165,16 +1165,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "17_get_ready"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 15
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "elseif-yellow"
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "17_get_ready"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1193,9 +1193,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 15
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "elseif-yellow"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1298,6 +1298,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_get_ready",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "17_get_ready",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "get_ready()"
@@ -1308,13 +1315,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 17
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "17_get_ready",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1366,14 +1366,14 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_3\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"23\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>red</span>)&nbsp;&nbsp;<span class=\"comment\">// over_color</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"22\" id=\"answer_9\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"24\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"22\" id=\"answer_10\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"26\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition green\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>green</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_11\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition green\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"27\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement run()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>run()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_12\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish ELSE-IF branch with condition green\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"28\" id=\"answer_13\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE branch of alternative over_color-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"29\" id=\"answer_8\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement get_ready()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>get_ready()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"28\" id=\"answer_14\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish ELSE branch of alternative over_color-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>if<span class=\"alg_button\" algorithm_element_id=\"21\" id=\"answer_3\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish alternative over_color\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"23\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>red</span>)&nbsp;&nbsp;<span class=\"comment\">// over_color</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"22\" id=\"answer_4\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"24\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"22\" id=\"answer_5\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish IF branch with condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else if</span> (<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"26\" id=\"answer_10\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition green\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>green</span>)</div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE-IF branch with condition green\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"27\" id=\"answer_11\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement run()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>run()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"25\" id=\"answer_9\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish ELSE-IF branch with condition green\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-line\" style=\"\"><span class=\"keyword\">else</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"28\" id=\"answer_12\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start ELSE branch of alternative over_color-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"29\" id=\"answer_14\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement get_ready()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>get_ready()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"28\" id=\"answer_13\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish ELSE branch of alternative over_color-else\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
         {
           "answerId": 0,
           "hyperText": "begin program",
-          "domainInfo": "started:20",
+          "domainInfo": "started:20:program began",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -1382,7 +1382,7 @@
         {
           "answerId": 1,
           "hyperText": "end program",
-          "domainInfo": "finished:20",
+          "domainInfo": "finished:20:program ended",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -1391,7 +1391,7 @@
         {
           "answerId": 2,
           "hyperText": "begin alternative 'over_color'",
-          "domainInfo": "started:21",
+          "domainInfo": "started:21:alternative 'over_color' began",
           "isRightCol": false,
           "concept": "alternative",
           "responsesLeft": [],
@@ -1400,7 +1400,7 @@
         {
           "answerId": 3,
           "hyperText": "end alternative 'over_color'",
-          "domainInfo": "finished:21",
+          "domainInfo": "finished:21:alternative 'over_color' ended",
           "isRightCol": false,
           "concept": "alternative",
           "responsesLeft": [],
@@ -1408,35 +1408,35 @@
         },
         {
           "answerId": 4,
-          "hyperText": "evaluate condition 'red'",
-          "domainInfo": "performed:23",
+          "hyperText": "begin IF branch with condition 'red'",
+          "domainInfo": "started:22:IF branch with condition 'red' began",
           "isRightCol": false,
-          "concept": "expr",
+          "concept": "if",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 5,
-          "hyperText": "evaluate condition 'green'",
-          "domainInfo": "performed:26",
+          "hyperText": "end IF branch with condition 'red'",
+          "domainInfo": "finished:22:IF branch with condition 'red' ended",
+          "isRightCol": false,
+          "concept": "if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 6,
+          "hyperText": "evaluate condition 'red'",
+          "domainInfo": "performed:23:condition 'red' evaluated",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
-          "answerId": 6,
-          "hyperText": "execute statement 'wait()'",
-          "domainInfo": "performed:24",
-          "isRightCol": false,
-          "concept": "stmt",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
           "answerId": 7,
-          "hyperText": "execute statement 'run()'",
-          "domainInfo": "performed:27",
+          "hyperText": "execute statement 'wait()'",
+          "domainInfo": "performed:24:statement 'wait()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -1444,53 +1444,53 @@
         },
         {
           "answerId": 8,
-          "hyperText": "execute statement 'get_ready()'",
-          "domainInfo": "performed:29",
+          "hyperText": "begin ELSE-IF branch with condition 'green'",
+          "domainInfo": "started:25:ELSE-IF branch with condition 'green' began",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 9,
+          "hyperText": "end ELSE-IF branch with condition 'green'",
+          "domainInfo": "finished:25:ELSE-IF branch with condition 'green' ended",
+          "isRightCol": false,
+          "concept": "else-if",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 10,
+          "hyperText": "evaluate condition 'green'",
+          "domainInfo": "performed:26:condition 'green' evaluated",
+          "isRightCol": false,
+          "concept": "expr",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 11,
+          "hyperText": "execute statement 'run()'",
+          "domainInfo": "performed:27:statement 'run()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
-          "answerId": 9,
-          "hyperText": "begin IF branch with condition 'red'",
-          "domainInfo": "started:22",
-          "isRightCol": false,
-          "concept": "if",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "answerId": 10,
-          "hyperText": "end IF branch with condition 'red'",
-          "domainInfo": "finished:22",
-          "isRightCol": false,
-          "concept": "if",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "answerId": 11,
-          "hyperText": "begin ELSE-IF branch with condition 'green'",
-          "domainInfo": "started:25",
-          "isRightCol": false,
-          "concept": "else-if",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
           "answerId": 12,
-          "hyperText": "end ELSE-IF branch with condition 'green'",
-          "domainInfo": "finished:25",
+          "hyperText": "begin ELSE branch of alternative 'over_color-else'",
+          "domainInfo": "started:28:ELSE branch of alternative 'over_color-else' began",
           "isRightCol": false,
-          "concept": "else-if",
+          "concept": "else",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 13,
-          "hyperText": "begin ELSE branch of alternative 'over_color-else'",
-          "domainInfo": "started:28",
+          "hyperText": "end ELSE branch of alternative 'over_color-else'",
+          "domainInfo": "finished:28:ELSE branch of alternative 'over_color-else' ended",
           "isRightCol": false,
           "concept": "else",
           "responsesLeft": [],
@@ -1498,10 +1498,10 @@
         },
         {
           "answerId": 14,
-          "hyperText": "end ELSE branch of alternative 'over_color-else'",
-          "domainInfo": "finished:28",
+          "hyperText": "execute statement 'get_ready()'",
+          "domainInfo": "performed:29:statement 'get_ready()' executed",
           "isRightCol": false,
-          "concept": "else",
+          "concept": "stmt",
           "responsesLeft": [],
           "responsesRight": []
         }
@@ -1517,9 +1517,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "20_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 19
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1538,16 +1538,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "20_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "19_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 19
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1573,16 +1573,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "20_global_code",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "21_over_color"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 20
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "20_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 20
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "21_over_color"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1636,6 +1636,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "21_over_color",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_over_color",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "over_color"
@@ -1646,13 +1653,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 21
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_over_color",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1727,16 +1727,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "24_wait"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 22
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "if-red"
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "24_wait"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1748,6 +1748,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "25_elseif-green"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_if-red",
           "verb": "cond",
           "objectType": "owl:NamedIndividual",
           "object": "23_red"
@@ -1755,16 +1762,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 22
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_if-red",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "25_elseif-green"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "if-red"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1867,6 +1867,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_wait",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "24_wait",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "wait()"
@@ -1877,13 +1884,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 24
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "24_wait",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1930,16 +1930,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "27_run"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 25
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "elseif-green"
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "27_run"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1951,6 +1951,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "28_over_color-else"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_elseif-green",
           "verb": "cond",
           "objectType": "owl:NamedIndividual",
           "object": "26_green"
@@ -1958,16 +1965,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 25
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_elseif-green",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "28_over_color-else"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "elseif-green"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2070,6 +2070,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "27_run",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "27_run",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "run()"
@@ -2080,13 +2087,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 27
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "27_run",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2140,16 +2140,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "over_color-else"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "29_get_ready"
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "over_color-else"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2161,9 +2161,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "29_get_ready"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2217,6 +2217,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_get_ready",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "29_get_ready",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "get_ready()"
@@ -2227,13 +2234,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 29
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "29_get_ready",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2285,14 +2285,14 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderActs",
-      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"32\" id=\"answer_8\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>while<span class=\"alg_button\" algorithm_element_id=\"32\" id=\"answer_9\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"33\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>red</span>)&nbsp;&nbsp;<span class=\"comment\">// waiting</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"35\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"34\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"35\" id=\"answer_3\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"36\" id=\"answer_6\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait_seconds(3)\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait_seconds(3)</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"37\" id=\"answer_7\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement go()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>go()</span>;</div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
+      "questionText": "<div class=\"code-line\" style=\"\"><div class=\"code-line\" style=\"\"><span class=\"keyword\"><span class=\"alg_button\" algorithm_element_id=\"32\" id=\"answer_2\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>while<span class=\"alg_button\" algorithm_element_id=\"32\" id=\"answer_3\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span></span>&nbsp;(<span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"33\" id=\"answer_4\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform condition red\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>red</span>)&nbsp;&nbsp;<span class=\"comment\">// waiting</span></div><div class=\"code-line\" style=\"\"><span class=\"\">{<span class=\"alg_button\" algorithm_element_id=\"35\" id=\"answer_6\" act_type=\"started\" data-toggle=\"tooltip\" title=\"Start iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>&nbsp;&nbsp;</span></div><div class=\"code-block\" style=\"padding-left: 2em;\"><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"34\" id=\"answer_5\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait()</span>;</div></div><div class=\"code-line\" style=\"\"><span class=\"\">}<span class=\"alg_button\" algorithm_element_id=\"35\" id=\"answer_7\" act_type=\"finished\" data-toggle=\"tooltip\" title=\"Finish iteration of loop waiting\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"22\"></span>&nbsp;&nbsp;</span></div></div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"36\" id=\"answer_8\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement wait_seconds(3)\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>wait_seconds(3)</span>;</div><div class=\"code-line\" style=\"\"><span class=\"variable\"><span class=\"alg_button\" algorithm_element_id=\"37\" id=\"answer_9\" act_type=\"performed\" data-toggle=\"tooltip\" title=\"Perform statement go()\" data-placement=\"top\"><img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\"></span>go()</span>;</div><style type=\"text/css\" media=\"screen\">\n\tdiv.code-line {\n\t  font-family: courier;\n\t  font-size: 10pt;\n\t}\n\n\tspan.string, span.atom { color: #f08; font-style: italic; font-weight: bold; }\n\tspan.comment { color: #262; font-style: italic; line-height: 1em; }\n\tspan.meta { color: #555; font-style: italic; line-height: 1em; }\n\tspan.variable { color: #700; text-decoration: underline; }\n\tspan.variable-2 { color: #b11; }\n\tspan.struct { color: #07c; font-weight: bold; }\n\tspan.number { color: #f00; font-weight: bold; }\n\tspan.program { color: #f70; font-weight: bold; }\n\tspan.function { color: #707; font-weight: bold; }\n\tspan.action { color: #077; font-weight: bold; }\n\tspan.qualifier { color: #555; }\n\tspan.keyword { color: #00a; font-weight: bold; }\n\tspan.builtin { color: #30a; }\n\tspan.link { color: #762; }\n\n\tspan.warning { background-color: #ff9; }\n\tspan.error { background-color: #fdd; }\n\tspan.button { background-color: #add; }\n\n</style>\n",
       "areAnswersRequireContext": false,
       "options": {},
       "answerObjects": [
         {
           "answerId": 0,
           "hyperText": "begin program",
-          "domainInfo": "started:31",
+          "domainInfo": "started:31:program began",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -2301,7 +2301,7 @@
         {
           "answerId": 1,
           "hyperText": "end program",
-          "domainInfo": "finished:31",
+          "domainInfo": "finished:31:program ended",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -2309,26 +2309,26 @@
         },
         {
           "answerId": 2,
-          "hyperText": "begin iteration of loop 'waiting'",
-          "domainInfo": "started:35",
+          "hyperText": "begin loop 'waiting'",
+          "domainInfo": "started:32:loop 'waiting' began",
           "isRightCol": false,
-          "concept": "sequence",
+          "concept": "while_loop",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 3,
-          "hyperText": "end iteration of loop 'waiting'",
-          "domainInfo": "finished:35",
+          "hyperText": "end loop 'waiting'",
+          "domainInfo": "finished:32:loop 'waiting' ended",
           "isRightCol": false,
-          "concept": "sequence",
+          "concept": "while_loop",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 4,
           "hyperText": "evaluate condition 'red'",
-          "domainInfo": "performed:33",
+          "domainInfo": "performed:33:condition 'red' evaluated",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -2337,7 +2337,7 @@
         {
           "answerId": 5,
           "hyperText": "execute statement 'wait()'",
-          "domainInfo": "performed:34",
+          "domainInfo": "performed:34:statement 'wait()' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -2345,37 +2345,37 @@
         },
         {
           "answerId": 6,
-          "hyperText": "execute statement 'wait_seconds(3)'",
-          "domainInfo": "performed:36",
+          "hyperText": "begin iteration of loop 'waiting'",
+          "domainInfo": "started:35:iteration of loop 'waiting' began",
           "isRightCol": false,
-          "concept": "stmt",
+          "concept": "sequence",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
           "answerId": 7,
-          "hyperText": "execute statement 'go()'",
-          "domainInfo": "performed:37",
+          "hyperText": "end iteration of loop 'waiting'",
+          "domainInfo": "finished:35:iteration of loop 'waiting' ended",
+          "isRightCol": false,
+          "concept": "sequence",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 8,
+          "hyperText": "execute statement 'wait_seconds(3)'",
+          "domainInfo": "performed:36:statement 'wait_seconds(3)' executed",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
           "responsesRight": []
         },
         {
-          "answerId": 8,
-          "hyperText": "begin loop 'waiting'",
-          "domainInfo": "started:32",
-          "isRightCol": false,
-          "concept": "while_loop",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
           "answerId": 9,
-          "hyperText": "end loop 'waiting'",
-          "domainInfo": "finished:32",
+          "hyperText": "execute statement 'go()'",
+          "domainInfo": "performed:37:statement 'go()' executed",
           "isRightCol": false,
-          "concept": "while_loop",
+          "concept": "stmt",
           "responsesLeft": [],
           "responsesRight": []
         }
@@ -2391,9 +2391,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_algorithm",
-          "verb": "entry_point",
-          "objectType": "owl:NamedIndividual",
-          "object": "31_global_code"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 30
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2412,16 +2412,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_algorithm",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "algorithm"
+          "verb": "entry_point",
+          "objectType": "owl:NamedIndividual",
+          "object": "31_global_code"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "30_algorithm",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 30
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "algorithm"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2447,6 +2447,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "31_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 31
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "32_waiting"
@@ -2464,13 +2471,6 @@
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "37_go"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "31_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 31
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2517,9 +2517,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "waiting"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 32
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2531,16 +2531,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "cond",
+          "verb": "body",
           "objectType": "owl:NamedIndividual",
-          "object": "33_red"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "32_waiting",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 32
+          "object": "35_waiting_loop_body"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2552,9 +2545,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "body",
+          "verb": "cond",
           "objectType": "owl:NamedIndividual",
-          "object": "35_waiting_loop_body"
+          "object": "33_red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_waiting",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "waiting"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2657,16 +2657,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "35_waiting_loop_body",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "34_wait"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 35
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "35_waiting_loop_body",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 35
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "34_wait"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2720,6 +2720,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "34_wait",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "34_wait",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "wait()"
@@ -2730,13 +2737,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 34
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "34_wait",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2776,6 +2776,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 1
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "36_wait_seconds3",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "wait_seconds(3)"
@@ -2793,13 +2800,6 @@
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "37_go"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "36_wait_seconds3",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2846,6 +2846,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_go",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "37_go",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "go()"
@@ -2856,13 +2863,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 37
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "37_go",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",

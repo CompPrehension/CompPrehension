@@ -379,7 +379,7 @@ public class JenaBackend extends Backend {
             }
 
             ///
-            System.out.println("get relations of prop: " + p.getURI());
+//            System.out.println("get relations of prop: " + p.getURI());
             ///
             List<BackendFactEntity> verbFacts = getPropertyRelations(p);
             result.addAll(verbFacts);
