@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -318,6 +319,7 @@ public class ControlFlowStatementsDomain extends Domain {
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     "rdf:type",
+                    "id",
                     "boundary_of",
                     "begin_of",
                     "end_of",
@@ -359,7 +361,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     "rdf:type",
                     "rdfs:subClassOf",
                     "rdfs:subPropertyOf",
-                    // "id",
+                     "id",
                     // "name",
                     "next_act",
                     "student_next_act",
@@ -530,32 +532,47 @@ public class ControlFlowStatementsDomain extends Domain {
         InterpretSentenceResult result = new InterpretSentenceResult();
         List<ViolationEntity> mistakes = new ArrayList<>();
 
-//        List<String> errorClasses = VOCAB.classDescendants("Erroneous");
-
         OntModel model = factsToOntModel(violations);
 
         OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-        ExtendedIterator<? extends OntResource> instIter = Erroneous.listInstances();
-        while (instIter.hasNext()) {
-            OntResource inst = instIter.next();
+        Property stmt_name = model.getProperty(model.expandPrefix(":stmt_name"));
+        Property executes = model.getProperty(model.expandPrefix(":executes"));
+        Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
+
+        Set<? extends OntResource> instSet = Erroneous.listInstances().toSet();
+        for (OntResource inst : instSet) {
+            // inst = instSet.next();
 
             // find the most specific error class
             if (inst instanceof Individual) {
-                Individual individual = (Individual) inst;
+                Individual act_individual = (Individual) inst;
 
-                List<OntClass> errorOntClasses = getLeafOntClasses(individual.listOntClasses(true).toList());
+                List<OntClass> errorOntClasses = getLeafOntClasses(act_individual.listOntClasses(true).toList());
                 //     properties_to_extract = ("id", "name", onto.precursor, onto.cause, onto.should_be,
                 //     onto.should_be_before, onto.should_be_after, onto.context_should_be, onto.text_line, )
 
-                String stmt_name = inst.getPropertyValue(model.getProperty(model.expandPrefix(":stmt_name"))).asLiteral().getString();
+                Individual action = act_individual.getPropertyResourceValue(executes).getPropertyResourceValue(boundary_of).as(Individual.class);
+
+                String act_stmt_name = action.getPropertyValue(stmt_name).asLiteral().getString();
 
                 for (OntClass errClass : errorOntClasses) {
+                    // filter out not-error classes
+                    if (!errClass.hasSuperClass(Erroneous, false))
+                        continue;
+
                     ViolationEntity violationEntity = new ViolationEntity();
                     violationEntity.setLawName(errClass.getLocalName());
+
+                    ExplanationTemplateInfoEntity explT = new ExplanationTemplateInfoEntity();
+                    explT.setValue("it was happened..!");
+                    violationEntity.setExplanationTemplateInfo(Arrays.asList(
+                            explT
+                    ));
+
                     violationEntity.setViolationFacts(new ArrayList<>(Arrays.asList(
-                            new BackendFactEntity("owl:NamedIndividual", individual.getLocalName(),
+                            new BackendFactEntity("owl:NamedIndividual", act_individual.getLocalName(),
                                     "stmt_name",
-                                    "string", stmt_name) //,
+                                    "string", act_stmt_name) //,
                             // TODO: add more (mistake-specific?) facts
                     )));
                     mistakes.add(violationEntity);
