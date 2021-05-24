@@ -10,10 +10,7 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.MultiChoiceOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.utils.HyperText;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -229,6 +226,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .requireContext(false)
                 .build();
 
+        QuestionOptionsEntity singleChoiceQuestionOptions = SingleChoiceOptionsEntity.builder()
+                .requireContext(false)
+                .build();
+
         QuestionEntity entity = new QuestionEntity();
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
@@ -271,7 +272,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 return new MultiChoice(entity);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
-                entity.setOptions(multiChoiceQuestionOptions);
+                entity.setOptions(singleChoiceQuestionOptions);
                 return new SingleChoice(entity);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());

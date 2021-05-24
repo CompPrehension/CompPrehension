@@ -63,9 +63,14 @@ public class FrontendService {
 
         // evaluate answer
         val tags = attempt.getExercise().getTags();
-        val question = questionService.getSolvedQuestion(questionId);
+        val question = questionService.getQuestion(questionId);
+        if (!question.isSupplementary()) {
+            questionService.solveQuestion(question, tags);
+        }
         val responses = questionService.responseQuestion(question, answers);
-        val judgeResult = questionService.judgeQuestion(question, responses, tags);
+        val judgeResult = question.isSupplementary()
+                ? questionService.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject(), attempt)
+                : questionService.judgeQuestion(question, responses, tags);
         val explanations = questionService.explainViolations(question, judgeResult.violations);
         val errors = Optional.ofNullable(explanations).stream()
                 .flatMap(Collection::stream)

@@ -98,4 +98,9 @@ public abstract class Question implements QuestionFront, QuestionBack {
     public String getQuestionDomainType() {
         return questionData.getQuestionDomainType();
     }
+
+    @Override
+    public boolean isSupplementary() {
+        return this.questionData != null && this.questionData.getQuestionDomainType().contains("Supplementary");
+    }
 }

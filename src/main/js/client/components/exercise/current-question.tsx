@@ -7,5 +7,5 @@ import { Question } from './question';
 
 export const CurrentQuestion = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    return <Question store={exerciseStore.currentQuestion} />;
+    return <Question store={exerciseStore.currentQuestion} showExtendedFeedback={true}/>;
 });

@@ -99,6 +99,7 @@ public class Mapper {
                         .initialTrace(trace)
                         .build();
             case MULTI_CHOICE:
+            case SINGLE_CHOICE:
                 return QuestionDto.builder()
                         .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
@@ -138,6 +139,7 @@ public class Mapper {
     public static ExerciseAttemptDto toDto(ExerciseAttemptEntity attempt) {
         val questionIds = Optional.ofNullable(attempt.getQuestions()).stream()
                 .flatMap(Collection::stream)
+                .filter(q -> !q.getQuestionDomainType().contains("Supplementary"))
                 .map(QuestionEntity::getId)
                 .toArray(Long[]::new);
         return ExerciseAttemptDto.builder()

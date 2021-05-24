@@ -22,6 +22,7 @@ import java.io.Serializable;
     @JsonSubTypes.Type(value = OrderQuestionOptionsEntity.class, name = "OrderQuestionOptionsEntity"),
     @JsonSubTypes.Type(value = MatchingQuestionOptionsEntity.class, name = "MatchingQuestionOptionsEntity"),
     @JsonSubTypes.Type(value = MultiChoiceOptionsEntity.class, name = "MultiChoiceOptionsEntity"),
+    @JsonSubTypes.Type(value = SingleChoiceOptionsEntity.class, name = "SingleChoiceOptionsEntity"),
 })
 @Data
 @AllArgsConstructor @NoArgsConstructor

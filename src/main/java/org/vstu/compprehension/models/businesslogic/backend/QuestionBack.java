@@ -43,4 +43,5 @@ public interface QuestionBack {
 
     public String getQuestionDomainType();
 
+    public boolean isSupplementary();
 }

@@ -4,12 +4,14 @@ import { QuestionStore } from "../../stores/question-store";
 import { Loader } from "../common/loader";
 import { Optional } from "../common/optional";
 import { QuestionComponent } from "../common/question/question";
-import { Feedback as FeedbackType } from '../../types/feedback';
+import { Feedback as FeedbackType, FeedbackMessage } from '../../types/feedback';
 import { Alert, Badge } from "react-bootstrap";
 import { toJS } from "mobx";
 import { notNullOrUndefinded } from "../../utils/helpers";
+import { boolean } from "io-ts";
+import { GenerateSupQuestion } from "./generate-sup-question";
 
-export const Question = observer(({ store }: { store: QuestionStore }) => {
+export const Question = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
     const questionData = store.question;
     if (store.isQuestionLoading) {
         return <Loader />;
@@ -27,12 +29,12 @@ export const Question = observer(({ store }: { store: QuestionStore }) => {
     return (
         <>
             <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={() => store.answersHistory} onChanged={onChanged} />
-            <Feedback store={store}/>
+            <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );
 })
 
-const Feedback = observer(({ store }: { store: QuestionStore }) => {
+const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
     const { feedback, isFeedbackLoading, isQuestionLoading } = store;
     
     if (isFeedbackLoading) {
@@ -56,12 +58,14 @@ const Feedback = observer(({ store }: { store: QuestionStore }) => {
             <p>
                 {renderFeedback(feedback)}                
             </p>
-            <p>
-                <Optional isVisible={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
-                <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
-                <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
-                <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
-            </p>              
+            <Optional isVisible={showExtendedFeedback}>
+                <p>
+                    <Optional isVisible={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
+                    <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
+                    <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
+                    <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
+                </p>
+            </Optional>
         </div>
     );
 });

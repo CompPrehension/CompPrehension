@@ -32,7 +32,7 @@ export const GenerateSupQuestion = observer(() => {
                    closeButton={true} 
                    handleClose={() => setIsModalVisible(false)}
                    title={`Supplementary question`}>
-                <Question store={exerciseStore.supplementaryQuestion} />
+                <Question store={exerciseStore.supplementaryQuestion} showExtendedFeedback={false} />
             </Modal>
         </div>
     )
