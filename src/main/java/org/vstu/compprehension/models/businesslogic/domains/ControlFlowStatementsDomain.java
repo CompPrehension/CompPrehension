@@ -101,7 +101,71 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        return new ArrayList<>();
+        ///
+        System.out.println("\t\tGetting the trace ...");
+
+        ArrayList<HyperText> result = new ArrayList<>();
+
+        HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
+
+        String qType = question.getQuestionData().getQuestionDomainType();
+        if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
+            List<InteractionEntity> interactions = question.getQuestionData().getInteractions();
+            if (interactions != null)
+            for (InteractionEntity interaction : interactions) {
+                if (!interaction.getViolations().isEmpty())
+                    // skip erroneous interaction
+                    continue;
+
+                AnswerObjectEntity answerObj = interaction.getResponses().get(0).getLeftAnswerObject();
+                String domainInfo = answerObj.getDomainInfo();
+                AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
+                String line;
+                if (info.getTraceActHypertext() != null) {
+                    line = info.getTraceActHypertext();
+                } else {
+                    line = "(" + domainInfo + ")";
+                }
+                // add expression value if necessary
+                if (answerObj.getConcept().equals("expr")) {
+                    String phase = info.getPhase();
+                    String exId = info.getExId();
+                    String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
+                    int execTime = 1 + exprName2ExecTime.getOrDefault(exprName, 0);
+                    int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
+                    exprName2ExecTime.put(exprName, execTime);
+
+                    String valueStr = (value == 1) ? "true" : "false";
+                    // TODO: add HTML styling
+                    line = line + " -> " + valueStr;
+                }
+                result.add(new HyperText(line));
+                ///
+                System.out.println(result.get(result.size() - 1).getText());
+            }
+        } else {
+            ///
+            result.addAll(Arrays.asList(
+                    new HyperText("debugging trace line #1 for unknown question Type" + question.getQuestionData().getQuestionDomainType()),
+                    new HyperText("trace <b>line</b> #2"),
+                    new HyperText("trace <i>line</i> #3")
+            ));
+        }
+
+        if (result.isEmpty()) {
+            // add initial tip
+            result.add(new HyperText("Solve this question by clicking " +
+                    "<img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\">" +
+                    " play and " +
+                    "<img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"20\">" +
+                    " stop buttons"));
+        }
+
+        ///
+        System.out.println("\t\tObtained the trace. Last line is:");
+        System.out.println(result.get(result.size() - 1).getText());
+
+        return result;
     }
 
     @Override
@@ -364,7 +428,7 @@ public class ControlFlowStatementsDomain extends Domain {
                      "id",
                     // "name",
                     "next_act",
-                    "student_next_act",
+                    "student_next",
                     "corresponding_end",
                     "student_corresponding_end",
                     "parent_of",
@@ -430,8 +494,15 @@ public class ControlFlowStatementsDomain extends Domain {
             HashMap<String, MutablePair<String, Integer>> id2exprName = new HashMap<>();
             String prevActIRI = trace;
             for (ResponseEntity response : responses) {
+                if (response.getInteraction() != null && !response.getInteraction().getViolations().isEmpty())
+                    // skip erroneous responses
+                    continue;
+
                 trace_index ++;
                 String domainInfo = response.getLeftAnswerObject().getDomainInfo();
+                ///
+                System.out.println("Adding act from response: " + domainInfo);
+
                 AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
                 String phase = answerDomainInfo.getPhase();
                 String exId = answerDomainInfo.getExId();
@@ -665,7 +736,13 @@ public class ControlFlowStatementsDomain extends Domain {
             List<Resource> prevActAsList =
                     model.listResourcesWithProperty(student_next, lastAct).toList();
             Resource prevAct = prevActAsList.isEmpty() ? null : prevActAsList.get(0);
-            lastAct = (Individual) prevAct;
+            try {
+                lastAct = (Individual) prevAct;
+            } catch (ClassCastException exception) {
+                ///
+                System.out.println("Warning: Cannot cast " + prevAct.getURI() + " to Individual ...");
+                lastAct = null;
+            }
         }
         Individual actionInd = null;
         if (lastAct != null) {
@@ -781,12 +858,15 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         // next correct answer found: question answer domain info
-        String qaInfo = idTo + ":" + phaseTo;
+        String qaInfoPrefix = idTo + ":" + phaseTo;
+
+        ///
+        System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
         ArrayList<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
-            if (qaInfo.equals(answer.getDomainInfo())) {
+            if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
                 answers.add(Pair.of(answer, answer));
             }
         }
