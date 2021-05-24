@@ -116,30 +116,37 @@ public class SystemIntegrationTest {
                     " because operator < has higher precedence", explanations.get(0).getText());
             Long supQ = questionService.generateSupplementaryQuestion(result, testExerciseAttemptList.get(0)).getQuestionData().getId();
             Question supQ2 = questionService.getQuestion(supQ);
-            assertEquals(QuestionType.MULTI_CHOICE, supQ2.getQuestionType());
+            assertEquals(QuestionType.SINGLE_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
             Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, supQ2.getAnswerObject(3), testExerciseAttemptList.get(0));
             assertEquals("select_highest_precedence_right_operator", resSup.violations.get(0).getLawName());
+            assertNull(resSup.violations.get(0).getDetailedLawName());
 
             Long supQ3 = questionService.generateSupplementaryQuestion(resSup, testExerciseAttemptList.get(0)).getQuestionData().getId();
             Question supQ4 = questionService.getQuestion(supQ3);
             Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, supQ4.getAnswerObject(1), testExerciseAttemptList.get(0));
-            assertEquals("select_highest_precedence_right_operator", resSup2.violations.get(0).getLawName());
+            assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getLawName());
+            assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getDetailedLawName());
+            List<HyperText> explanationsSup  = questionService.explainViolations(supQ4, resSup2.violations);
+            assertEquals(1, explanationsSup.size());
+            assertEquals("Wrong, precedence of operator < is higher", explanationsSup.get(0).getText());
 
             Long supQ5 = questionService.generateSupplementaryQuestion(result, testExerciseAttemptList.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, supQ6.getAnswerObject(4), testExerciseAttemptList.get(0));
             assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
+            assertNull(resSup.violations.get(0).getDetailedLawName());
 
             Long supQ7 = questionService.generateSupplementaryQuestion(resSup3, testExerciseAttemptList.get(0)).getQuestionData().getId();
             Question supQ8 = questionService.getQuestion(supQ7);
             Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, supQ8.getAnswerObject(0), testExerciseAttemptList.get(0));
-            assertEquals("select_highest_precedence_right_operator", resSup2.violations.get(0).getLawName());
+            assertEquals("select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
+            assertNull(resSup.violations.get(0).getDetailedLawName());
 
             Long supQ9 = questionService.generateSupplementaryQuestion(resSup4, testExerciseAttemptList.get(0)).getQuestionData().getId();
             Question supQ10 = questionService.getQuestion(supQ9);
             Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, supQ10.getAnswerObject(0), testExerciseAttemptList.get(0));
-            assertNull(resSup5.violations);
+            assertTrue(resSup5.violations.isEmpty());
         }
         {
             ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
