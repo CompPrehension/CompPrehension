@@ -11,6 +11,7 @@ import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.question.QuestionDto;
 

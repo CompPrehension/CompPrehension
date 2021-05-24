@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect } from "react";
 import { OrderQuestion } from "../../../types/question";
+import { notNullOrUndefinded } from "../../../utils/helpers";
 import { Optional } from "../optional";
 
 type OrderQuestionComponentProps = {
@@ -64,13 +65,15 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: Orde
         });
     }, [question.questionId, getAnswers().length])
     
+    const trace = question.feedback?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
+    const isTraceVisible = options.showTrace && notNullOrUndefinded(trace) && trace.length > 0;
 
     return (
         <div>
             <div dangerouslySetInnerHTML={{ __html: question.text }} />
-            <Optional isVisible={options.showTrace && question.trace !== null && question.trace?.length > 0}>
+            <Optional isVisible={isTraceVisible}>
                 <p>
-                    {question.trace?.map(t => <div dangerouslySetInnerHTML={{ __html: t }}></div>)}
+                    {trace?.map(t => <div dangerouslySetInnerHTML={{ __html: t }}></div>)}
                 </p>
             </Optional>
         </div>

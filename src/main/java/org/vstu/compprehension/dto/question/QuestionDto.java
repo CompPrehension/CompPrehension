@@ -1,6 +1,6 @@
 package org.vstu.compprehension.dto.question;
 
-import org.vstu.compprehension.dto.FeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.QuestionAnswerDto;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import lombok.AllArgsConstructor;

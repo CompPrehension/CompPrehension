@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
-import org.vstu.compprehension.dto.FeedbackDto;
 import org.vstu.compprehension.dto.InteractionDto;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Ordering;
 import org.vstu.compprehension.models.businesslogic.SingleChoice;
@@ -98,23 +98,19 @@ public class FrontendService {
                 : judgeResult.IterationsLeft > 0 ? FeedbackDto.Message.Success("Correct, keep doing...")
                 : null;
 
-        return FeedbackDto.builder()
-                .grade(grade)
-                .message(message)
-                .violations(violationIds)
-                .stepsLeft(judgeResult.IterationsLeft)
-                .correctSteps(correctInteractionsCount)
-                .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count())
-                .correctAnswers(correctAnswers)
-                .build();
+        return Mapper.toFeedbackDto(question,
+                ie,
+                message,
+                correctInteractionsCount,
+                (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
+                correctAnswers);
     }
 
     public QuestionDto generateQuestion(Long exAttemptId) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val question = questionService.generateQuestion(attempt);
-        val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
-        return Mapper.toDto(question, domain);
+        return Mapper.toDto(question);
     }
 
     public QuestionDto generateSupplementaryQuestion(Long exAttemptId, Long[] violationIds) throws Exception {
@@ -126,14 +122,12 @@ public class FrontendService {
         assertFalse(violations.isEmpty());
 
         val question = questionService.generateSupplementaryQuestion(judgeResult, attempt);
-        val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
-        return Mapper.toDto(question, domain);
+        return Mapper.toDto(question);
     }
 
     public QuestionDto getQuestion(Long questionId) throws Exception {
         val question = questionService.getQuestion(questionId);
-        val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
-        return Mapper.toDto(question, domain);
+        return Mapper.toDto(question);
     }
 
     public FeedbackDto generateNextCorrectAnswer(Long questionId) throws Exception {
@@ -162,14 +156,12 @@ public class FrontendService {
         // build feedback message
         val message = FeedbackDto.Message.Success(correctAnswerDto.getExplanation());
 
-        return FeedbackDto.builder()
-                .grade(grade)
-                .message(message)
-                .correctAnswers(correctAnswerDto.getAnswers())
-                .stepsLeft(judgeResult.IterationsLeft)
-                .correctSteps(correctInteractionsCount)
-                .stepsWithErrors((int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count())
-                .build();
+        return Mapper.toFeedbackDto(question,
+                ie,
+                message,
+                correctInteractionsCount,
+                (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
+                null);
     }
 
     public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {

@@ -1,13 +1,17 @@
-package org.vstu.compprehension.dto;
+package org.vstu.compprehension.dto.feedback;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 
 @Data
-@Builder
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FeedbackDto {
     private Float grade;
     private Integer correctSteps;

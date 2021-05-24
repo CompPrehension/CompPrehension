@@ -3,12 +3,15 @@ package org.vstu.compprehension.utils;
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.dto.*;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.dto.feedback.OrderQuestionFeedbackDto;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +46,7 @@ public class Mapper {
                 .build();
     }
 
-    public static QuestionDto toDto(Question questionObject, Domain domain) {
+    public static QuestionDto toDto(Question questionObject) {
         val question = questionObject.getQuestionData();
 
         // calculate last interaction responses
@@ -70,13 +73,7 @@ public class Mapper {
                 .toArray(Long[][]::new);
 
         val feedback = lastInteraction
-                .map(i -> FeedbackDto.builder()
-                        .correctSteps(correctInteractionsCount)
-                        .stepsWithErrors(interactionsWithErrorsCount)
-                        .grade(i.getFeedback().getGrade())
-                        .stepsLeft(i.getFeedback().getInteractionsLeft())
-                        .violations(i.getViolations().stream().map(ViolationEntity::getId).toArray(Long[]::new))
-                        .build())
+                .map(i -> Mapper.toFeedbackDto(questionObject, i, null, correctInteractionsCount, interactionsWithErrorsCount, null))
                 .orElse(null);
 
         val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
@@ -85,9 +82,10 @@ public class Mapper {
                 .toArray(QuestionAnswerDto[]::new);
         switch (question.getQuestionType()) {
             case ORDER:
+                val domain = DomainAdapter.getDomain(question.getDomainEntity().getName());
                 val trace = Optional.ofNullable(domain.getFullSolutionTrace(questionObject)).stream()
                         .flatMap(Collection::stream)
-                        .map(h -> h.getText())
+                        .map(HyperText::getText)
                         .toArray(String[]::new);
                 return OrderQuestionDto.builder()
                         .attemptId(question.getExerciseAttempt().getId())
@@ -98,7 +96,7 @@ public class Mapper {
                         .options(question.getOptions())
                         .responses(responses)
                         .feedback(feedback)
-                        .trace(trace)
+                        .initialTrace(trace)
                         .build();
             case MULTI_CHOICE:
                 return QuestionDto.builder()
@@ -146,6 +144,42 @@ public class Mapper {
                 .exerciseId(attempt.getExercise().getId())
                 .attemptId(attempt.getId())
                 .questionIds(questionIds)
+                .build();
+    }
+
+    public static FeedbackDto toFeedbackDto(
+            Question question,
+            InteractionEntity interaction,
+            FeedbackDto.Message message,
+            Integer correctSteps,
+            Integer stepsWithErrors,
+            Long[][] correctAnswers
+    ) {
+        if (interaction.getQuestion().getQuestionType() == QuestionType.ORDER) {
+            val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+            val trace = Optional.ofNullable(domain.getFullSolutionTrace(question)).stream()
+                    .flatMap(Collection::stream)
+                    .map(HyperText::getText)
+                    .toArray(String[]::new);
+            return OrderQuestionFeedbackDto.builder()
+                    .correctSteps(correctSteps)
+                    .stepsWithErrors(stepsWithErrors)
+                    .grade(interaction.getFeedback().getGrade())
+                    .message(message)
+                    .correctAnswers(correctAnswers)
+                    .stepsLeft(interaction.getFeedback().getInteractionsLeft())
+                    .violations(interaction.getViolations().stream().map(ViolationEntity::getId).toArray(Long[]::new))
+                    .trace(trace)
+                    .build();
+        }
+        return FeedbackDto.builder()
+                .correctSteps(correctSteps)
+                .stepsWithErrors(stepsWithErrors)
+                .grade(interaction.getFeedback().getGrade())
+                .message(message)
+                .correctAnswers(correctAnswers)
+                .stepsLeft(interaction.getFeedback().getInteractionsLeft())
+                .violations(interaction.getViolations().stream().map(ViolationEntity::getId).toArray(Long[]::new))
                 .build();
     }
 }

@@ -42,7 +42,7 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
         },
         body: JSON.stringify(body),
     };
-    console.log(`ajax post: ${url}`);
+    console.log(`ajax post: ${url}`, body);
     return await ajax(url, params, validator);
 }
 

@@ -2,6 +2,7 @@ package org.vstu.compprehension.controllers.interfaces;
 
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.dto.*;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 
 import javax.servlet.http.HttpServletRequest;

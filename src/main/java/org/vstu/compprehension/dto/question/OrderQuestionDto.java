@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @SuperBuilder
-public class OrderQuestionDto extends QuestionDto{
-    private String[] trace;
+public class OrderQuestionDto extends QuestionDto {
+    private String[] initialTrace;
 }

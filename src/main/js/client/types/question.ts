@@ -1,6 +1,6 @@
 import { MatchingQuestionOptions, MultiChoiceQuestionOptions, OrderQuestionOptions, QuestionOptions, SingleChoiceQuestionOptions, TMatchingQuestionOptions, TMultiChoiceQuestionOptions, TOrderQuestionOptions, TQuestionOptions, TSingleChoiceQuestionOptions } from "./question-options";
 import * as io from 'io-ts'
-import { Feedback, TFeedback } from "./feedback";
+import { Feedback, OrderQuestionFeedback, TFeedback, TOrderQuestionFeedback } from "./feedback";
 import { MergeIntersectionsDeep } from "./utils";
 
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'MATCHING' | 'ORDER'
@@ -47,14 +47,18 @@ const TQuestionBase : io.Type<QuestionBase> = io.type({
 export type OrderQuestion = MergeIntersectionsDeep<QuestionBase & {
     type: 'ORDER',
     options: OrderQuestionOptions,
-    trace: Html[] | null,
+    initialTrace?: string[] | null,
+    feedback: OrderQuestionFeedback | null,
 }>
 const TOrderQuestion : io.Type<OrderQuestion> = io.intersection([
     TQuestionBase,
     io.type({
         type: io.literal("ORDER"),
         options: TOrderQuestionOptions,
-        trace: io.union([io.array(THtml), io.null]),
+        feedback: io.union([TOrderQuestionFeedback, io.null]),
+    }),
+    io.partial({
+        initialTrace: io.union([io.array(io.string), io.null]),
     }),
 ], 'OrderQuestion')
 

@@ -1,4 +1,5 @@
 import * as io from 'io-ts'
+import { MergeIntersections } from './utils';
 
 export type FeedbackMessage = {
     messageType: 'ERROR' | 'SUCCESS',
@@ -31,3 +32,12 @@ export const TFeedback: io.Type<Feedback> = io.partial({
     message: io.union([TFeedbackMessage, io.null]),
 }, 'Feedback');
 
+export type OrderQuestionFeedback = MergeIntersections<Feedback & {
+    trace?: string[] | null,
+}>
+export const TOrderQuestionFeedback: io.Type<Feedback> = io.intersection([
+    TFeedback,
+    io.partial({
+        trace: io.union([io.array(io.string), io.null]),
+    }),
+]);
