@@ -1,11 +1,13 @@
 import React from "react";
 import { Button, Modal as RBModal } from "react-bootstrap";
+import { Optional } from "./optional";
 
 
 export type ModalProps = {
     show?: boolean,
     title?: string,
     type?: 'MODAL' | 'DIALOG',
+    size?: 'sm' | 'lg' | 'xl',
     primaryBtnTitle?: string,
     handlePrimaryBtnClicked?: () => void,
     secondaryBtnTitle?: string,
@@ -25,40 +27,44 @@ export const Modal = (props: ModalProps) => {
         show,
         handleClose,
         type,
+        size,
     } = props;
 
     return (
-        <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose}>
-            <RBModal.Header closeButton={closeButton}>
-                <RBModal.Title>{title}</RBModal.Title>
-            </RBModal.Header>
+        <Optional isVisible={show ?? true}>
+            <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose} size={size}>
+                <RBModal.Header closeButton={closeButton}>
+                    <RBModal.Title>{title}</RBModal.Title>
+                </RBModal.Header>
 
-            <RBModal.Body>
-                {children}
-            </RBModal.Body>
-            {(secondaryBtnTitle || primaryBtnTitle)
-                ? <RBModal.Footer>
-                    {secondaryBtnTitle ? <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button> : null}
-                    {primaryBtnTitle ? <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button> : null}
-                  </RBModal.Footer>
-                : null}            
-        </ModalWrapper>
+                <RBModal.Body>
+                    {children}
+                </RBModal.Body>
+                {(secondaryBtnTitle || primaryBtnTitle)
+                    ? <RBModal.Footer>
+                        {secondaryBtnTitle ? <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button> : null}
+                        {primaryBtnTitle ? <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button> : null}
+                    </RBModal.Footer>
+                    : null}            
+            </ModalWrapper>
+        </Optional>        
     );
 }
 
-const ModalWrapper = (props: { type: 'MODAL' | 'DIALOG', show: boolean, onHide?: () => void, children: React.ReactNode[] | React.ReactNode, }) => {
+const ModalWrapper = (props: { type: 'MODAL' | 'DIALOG', size?: 'sm' | 'lg' | 'xl', show: boolean, onHide?: () => void, children: React.ReactNode[] | React.ReactNode, }) => {
     const { 
         type,
         show,
         onHide,
-        children
+        children,
+        size,
     } = props;
     if (type === 'DIALOG') {
         return (
-            <RBModal.Dialog>{children}</RBModal.Dialog>
+            <RBModal.Dialog size={size}>{children}</RBModal.Dialog>
         );
     }
     return (
-        <RBModal show={show} onHide={onHide}>{children}</RBModal>
+        <RBModal size={size} show={show} onHide={onHide}>{children}</RBModal>
     );
 }

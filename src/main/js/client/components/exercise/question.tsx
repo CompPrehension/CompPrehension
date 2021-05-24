@@ -6,9 +6,7 @@ import { Optional } from "../common/optional";
 import { QuestionComponent } from "../common/question/question";
 import { Feedback as FeedbackType, FeedbackMessage } from '../../types/feedback';
 import { Alert, Badge } from "react-bootstrap";
-import { toJS } from "mobx";
 import { notNullOrUndefinded } from "../../utils/helpers";
-import { boolean } from "io-ts";
 import { GenerateSupQuestion } from "./generate-sup-question";
 
 export const Question = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
@@ -45,18 +43,10 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
         return null;
     }
 
-    const renderFeedback = (feedback: FeedbackType) => {
-        if (!feedback.message) {
-            return null;
-        }
-        const variant = feedback.message.messageType === 'SUCCESS' ? 'success' : 'danger';
-        return feedback.message.strings?.map(m => <Alert variant={variant}>{m}</Alert>);
-    }
-
     return (
         <div className="comp-ph-feedback-wrapper">            
             <p>
-                {renderFeedback(feedback)}                
+                {feedback.messages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback} />)}                
             </p>
             <Optional isVisible={showExtendedFeedback}>
                 <p>
@@ -69,3 +59,15 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
         </div>
     );
 });
+
+const FeedbackAlert = ({ message, showGenerateSupQuestion }: { message: FeedbackMessage, showGenerateSupQuestion: boolean }) => {
+    const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
+    return(
+        <Alert variant={variant}>
+            {message.message}
+            <Optional isVisible={showGenerateSupQuestion}>
+                <GenerateSupQuestion violations={message.type === 'ERROR' && message.violations || []}/>
+            </Optional>
+        </Alert>
+    )
+}

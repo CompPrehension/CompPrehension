@@ -17,9 +17,8 @@ public class FeedbackDto {
     private Integer correctSteps;
     private Integer stepsLeft;
     private Integer stepsWithErrors;
-    private Long[] violations;
     private Long[][] correctAnswers;
-    private Message message;
+    private Message[] messages;
 
     public enum MessageType {
         @JsonProperty("ERROR")
@@ -31,20 +30,15 @@ public class FeedbackDto {
     @Data
     @AllArgsConstructor
     public static class Message {
-        private MessageType messageType;
-        private String[] strings;
+        private MessageType type;
+        private String message;
+        private Long[] violations;
 
-        public static Message Success(String[] strings) {
-            return new Message(MessageType.SUCCESS, strings);
-        }
         public static Message Success(String message) {
-            return new Message(MessageType.SUCCESS, new String[]{ message });
+            return new Message(MessageType.SUCCESS, message, null);
         }
-        public static Message Error(String[] strings) {
-            return new Message(MessageType.ERROR, strings);
-        }
-        public static Message Error(String message) {
-            return new Message(MessageType.ERROR, new String[]{ message });
+        public static Message Error(String message, Long[] violations) {
+            return new Message(MessageType.ERROR, message, violations);
         }
     }
 }

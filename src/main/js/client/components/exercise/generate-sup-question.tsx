@@ -7,29 +7,31 @@ import { ExerciseStore } from "../../stores/exercise-store";
 import { Modal } from '../common/modal';
 import { Question } from './question';
 
-export const GenerateSupQuestion = observer(() => {
+export const GenerateSupQuestion = observer(({ violations } : { violations: number[] }) => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const [isModalVisible, setIsModalVisible] = useState(false);
     const onClicked = (e: React.MouseEvent<HTMLElement>) => {
         (async () => {
             setIsModalVisible(true);
-            if (!exerciseStore.currentAttempt?.attemptId || !exerciseStore.currentQuestion.feedback?.violations?.length) {
+            if (!exerciseStore.currentAttempt?.attemptId || !violations.length) {
                 return;
             }
             await exerciseStore.supplementaryQuestion.generateSupplementaryQuestion(
                 exerciseStore.currentAttempt.attemptId,
-                exerciseStore.currentQuestion.feedback.violations);
+                violations);
         })();
     }
 
-    if (!exerciseStore.currentQuestion.feedback?.violations?.length) {
+    if (!violations.length) {
         return null;
     }
     return (
         <div style={{ marginTop: '20px'}}>            
             <Button onClick={onClicked} variant="primary">Supplementary question</Button>
-            <Modal show={isModalVisible} 
-                   closeButton={true} 
+            <Modal type={'DIALOG'}
+                   size={'xl'}
+                   show={isModalVisible} 
+                   closeButton={false} 
                    handleClose={() => setIsModalVisible(false)}
                    title={`Supplementary question`}>
                 <Question store={exerciseStore.supplementaryQuestion} showExtendedFeedback={false} />

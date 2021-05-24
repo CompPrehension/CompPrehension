@@ -1,26 +1,36 @@
 import * as io from 'io-ts'
 import { MergeIntersections } from './utils';
 
-export type FeedbackMessage = {
-    messageType: 'ERROR' | 'SUCCESS',
-    strings: string[],
+export type FeedbackSuccessMessage = {
+    type: 'SUCCESS',
+    message: string,
 }
-const TFeedbackMessage: io.Type<FeedbackMessage> = io.type({
-    messageType: io.keyof({
-        'ERROR': null,
-        'SUCCESS': null,
+export type FeedbackErrorMessage = {
+    type: 'ERROR',
+    message: string,
+    violations: number[],
+}
+
+export type FeedbackMessage = FeedbackSuccessMessage | FeedbackErrorMessage
+const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
+    io.type({
+        type: io.literal('SUCCESS'),
+        message: io.string,
     }),
-    strings: io.array(io.string),
-})
+    io.type({
+        type: io.literal('ERROR'),
+        message: io.string,
+        violations: io.array(io.number),
+    }),
+]);
 
 export type Feedback = {
-    grade?: number | null,
-    violations?: number[] | null,    
+    grade?: number | null,   
     correctAnswers?: [number, number][] | null,
     correctSteps?: number | null,
     stepsLeft?: number | null,
     stepsWithErrors?: number | null,
-    message?: FeedbackMessage | null,
+    messages?: FeedbackMessage[] | null,
 } 
 export const TFeedback: io.Type<Feedback> = io.partial({
     grade: io.union([io.number, io.null]),
@@ -29,7 +39,7 @@ export const TFeedback: io.Type<Feedback> = io.partial({
     correctSteps: io.union([io.number, io.null]),
     stepsLeft: io.union([io.number, io.null]),
     stepsWithErrors: io.union([io.number, io.null]),
-    message: io.union([TFeedbackMessage, io.null]),
+    message: io.union([io.array(TFeedbackMessage), io.null]),
 }, 'Feedback');
 
 export type OrderQuestionFeedback = MergeIntersections<Feedback & {

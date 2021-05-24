@@ -152,7 +152,7 @@ public class Mapper {
     public static FeedbackDto toFeedbackDto(
             Question question,
             InteractionEntity interaction,
-            FeedbackDto.Message message,
+            FeedbackDto.Message[] messages,
             Integer correctSteps,
             Integer stepsWithErrors,
             Long[][] correctAnswers
@@ -167,10 +167,9 @@ public class Mapper {
                     .correctSteps(correctSteps)
                     .stepsWithErrors(stepsWithErrors)
                     .grade(interaction.getFeedback().getGrade())
-                    .message(message)
+                    .messages(messages)
                     .correctAnswers(correctAnswers)
                     .stepsLeft(interaction.getFeedback().getInteractionsLeft())
-                    .violations(interaction.getViolations().stream().map(ViolationEntity::getId).toArray(Long[]::new))
                     .trace(trace)
                     .build();
         }
@@ -178,10 +177,9 @@ public class Mapper {
                 .correctSteps(correctSteps)
                 .stepsWithErrors(stepsWithErrors)
                 .grade(interaction.getFeedback().getGrade())
-                .message(message)
+                .messages(messages)
                 .correctAnswers(correctAnswers)
                 .stepsLeft(interaction.getFeedback().getInteractionsLeft())
-                .violations(interaction.getViolations().stream().map(ViolationEntity::getId).toArray(Long[]::new))
                 .build();
     }
 }

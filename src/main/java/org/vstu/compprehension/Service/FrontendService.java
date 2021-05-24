@@ -1,6 +1,8 @@
 package org.vstu.compprehension.Service;
 
 import lombok.val;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.ext.com.google.common.collect.Streams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
@@ -24,6 +26,8 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
@@ -71,10 +75,6 @@ public class FrontendService {
         val judgeResult = question.isSupplementary()
                 ? questionService.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject(), attempt)
                 : questionService.judgeQuestion(question, responses, tags);
-        val explanations = questionService.explainViolations(question, judgeResult.violations);
-        val errors = Optional.ofNullable(explanations).stream()
-                .flatMap(Collection::stream)
-                .map(HyperText::getText).toArray(String[]::new);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
@@ -88,24 +88,25 @@ public class FrontendService {
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
 
-        val violationIds = Optional.ofNullable(ie.getViolations()).stream().flatMap(Collection::stream)
-                .map(ViolationEntity::getId)
-                .filter(Objects::nonNull).toArray(Long[]::new);
+        // calculate error message
+        val violationIds = judgeResult.violations.stream().map(ViolationEntity::getId)
+                .filter(Objects::nonNull);
+        val explanations = questionService.explainViolations(question, judgeResult.violations).stream().map(HyperText::getText);
+        val errors = Streams.zip(violationIds, explanations, Pair::of)
+                .collect(Collectors.toList());
+        val messages = errors.size() > 0 ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), new Long[] { pair.getKey() })).toArray(FeedbackDto.Message[]::new)
+                : judgeResult.IterationsLeft == 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("All done!") }
+                : judgeResult.IterationsLeft > 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...") }
+                : null;
 
         // remove incorrect answers from feedback
-        val correctAnswers = errors.length > 0
+        val correctAnswers = errors.size() > 0
                 ? Arrays.copyOf(answers, answers.length - 1)
                 : answers;
 
-        // build feedback message
-        val message = errors.length > 0 ? FeedbackDto.Message.Error(errors)
-                : judgeResult.IterationsLeft == 0 ? FeedbackDto.Message.Success("All done!")
-                : judgeResult.IterationsLeft > 0 ? FeedbackDto.Message.Success("Correct, keep doing...")
-                : null;
-
         return Mapper.toFeedbackDto(question,
                 ie,
-                message,
+                messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
                 correctAnswers);
@@ -159,11 +160,11 @@ public class FrontendService {
         feedbackRepository.save(ie.getFeedback());
 
         // build feedback message
-        val message = FeedbackDto.Message.Success(correctAnswerDto.getExplanation());
+        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation()) };
 
         return Mapper.toFeedbackDto(question,
                 ie,
-                message,
+                messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
                 null);

@@ -8,7 +8,6 @@ import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answ
 import { container } from "tsyringe";
 import { ExerciseStore } from "../stores/exercise-store";
 import { CurrentQuestion } from "../components/exercise/current-question";
-import { GenerateSupQuestion } from "../components/exercise/generate-sup-question";
 import { Optional } from "../components/common/optional";
 
 export const Exercise = observer(() => {
@@ -57,7 +56,6 @@ export const Exercise = observer(() => {
                 <CurrentQuestion />
                 <GenerateNextAnswerBtn /> 
                 <GenerateNextQuestionBtn />
-                <GenerateSupQuestion />
             </Optional>
             <Optional isVisible={state === 'MODAL'}>
                 <Modal  type={'DIALOG'}
