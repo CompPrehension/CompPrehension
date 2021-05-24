@@ -28,6 +28,9 @@ public class ViolationEntity {
     @Column(name = "law_name", nullable = false)
     private String lawName;
 
+    @Column(name = "detailed_law_name")
+    private String detailedLawName;
+
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<BackendFactEntity> violationFacts;
 }

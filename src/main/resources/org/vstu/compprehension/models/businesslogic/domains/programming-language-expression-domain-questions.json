@@ -3193,9 +3193,9 @@
     ]
   },
   {
-    "questionType": "MULTI_CHOICE",
+    "questionType": "SINGLE_CHOICE",
     "questionData": {
-      "questionType": "MULTI_CHOICE",
+      "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "Select reason that stop evaluation of operator ${operator} on pos ${pos}",
       "areAnswersRequireContext": false,

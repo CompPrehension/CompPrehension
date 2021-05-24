@@ -39,12 +39,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
+    static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
+        readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
 
     private void fillConcepts() {
@@ -104,6 +106,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept concept = new Concept(name);
         concepts.add(concept);
         return concept;
+    }
+
+    class SupplementaryAnswerConfig {
+        String name;
+        String correct;
+        String wrong;
+        String detailed_law;
+        String correct_check;
+    }
+
+    class SupplementaryConfig {
+        String name;
+        List<SupplementaryAnswerConfig> answers;
+    }
+
+    HashMap<String, HashMap<String, SupplementaryAnswerConfig>> supplementaryConfig;
+    private void readSupplementaryConfig(InputStream inputStream) {
+        supplementaryConfig = new HashMap<>();
+
+        SupplementaryConfig[] configs = new Gson().fromJson(
+                new InputStreamReader(inputStream),
+                SupplementaryConfig[].class);
+
+        for (SupplementaryConfig config : configs) {
+            supplementaryConfig.put(config.name, new HashMap<>());
+            for (SupplementaryAnswerConfig answer : config.answers) {
+                supplementaryConfig.get(config.name).put(answer.name, answer);
+            }
+        }
     }
 
     private void readLaws(InputStream inputStream) {
@@ -397,18 +428,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     "has_operand",
+                    "before",
                     "before_direct",
                     "before_by_third_operator",
                     "before_third_operator",
                     "before_as_operand",
                     "is_operator_with_strict_operands_order",
+                    "high_precedence",
                     "high_precedence_diff_precedence",
                     "high_precedence_left_assoc",
                     "high_precedence_right_assoc",
                     "is_operand",
                     "law_name",
                     "text",
-                    "index"
+                    "index",
+                    "precedence",
+                    "associativity"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -665,6 +700,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
 
         Map<String, List<String>> before = new HashMap<>();
+        MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
         Map<String, String> texts = new HashMap<>();
         Map<String, String> indexes = new HashMap<>();
         MultiValuedMap<String, String> highPrecedence = new HashSetValuedHashMap<>();
@@ -678,6 +714,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     before.put(fact.getObject(), new ArrayList<>());
                 }
                 before.get(fact.getObject()).add(fact.getSubject());
+            } else if (fact.getVerb().equals("before")) {
+                beforeIndirect.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("text")) {
                 texts.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("index")) {
@@ -698,6 +736,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
+        List<BackendFactEntity> possibleViolationFacts = new ArrayList<>();
+        {
+            BackendFactEntity factOriginalMistake = new BackendFactEntity("","","original_mistake", "", failedLaw);
+            possibleViolationFacts.add(factOriginalMistake);
+        }
+
         List<ResponseEntity> responses = baseInterpretSentenceResult.violations.get(0).getInteraction().getResponses();
         AnswerObjectEntity failedAnswer = responses.get(responses.size() - 1).getLeftAnswerObject();
         Integer failedIndex = Integer.parseInt(indexes.get(failedAnswer.getDomainInfo()));
@@ -708,46 +752,60 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             Integer index = Integer.parseInt(indexes.get(origAnswer.getDomainInfo()));
             String domainInfo = origAnswer.getDomainInfo();
 
+            possibleViolationFacts.add(new BackendFactEntity(String.valueOf(origAnswer.getAnswerId()), "text", text));
+            possibleViolationFacts.add(new BackendFactEntity(String.valueOf(origAnswer.getAnswerId()), "index", String.valueOf(index)));
+
             if (origAnswer.getDomainInfo().equals(failedAnswer.getDomainInfo())) {
                 templates.put("operator", text);
                 templates.put("pos", index.toString());
-            } else if (index < failedIndex && !used.contains(origAnswer.getDomainInfo())) {
-                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())
-                        || highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("left_operator", text);
-                    templates.put("left_operator_pos", index.toString());
-                    templates.put("left_operator_reason", "high_precedence_diff_precedence");
-                    templates.put("left_operator_domain_info", domainInfo);
-                } else if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("left_operator", text);
-                    templates.put("left_operator_pos", index.toString());
-                    templates.put("left_operator_reason", "high_precedence_left_assoc");
-                    templates.put("left_operator_domain_info", domainInfo);
-                } else if (samePrecedenceRightAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("left_operator", text);
-                    templates.put("left_operator_pos", index.toString());
-                    templates.put("left_operator_reason", "high_precedence_right_assoc");
-                    templates.put("left_operator_domain_info", domainInfo);
-                }
-            } else if (index > failedIndex && !used.contains(origAnswer.getDomainInfo()) && !templates.containsKey("right_operator")) {
-                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())
-                        || highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("right_operator", text);
-                    templates.put("right_operator_pos", index.toString());
-                    templates.put("right_operator_reason", "high_precedence_diff_precedence");
-                    templates.put("right_operator_domain_info", domainInfo);
-                } else if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("right_operator", text);
-                    templates.put("right_operator_pos", index.toString());
-                    templates.put("right_operator_reason", "high_precedence_left_assoc");
-                    templates.put("right_operator_domain_info", domainInfo);
-                } else if (samePrecedenceRightAssoc.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("right_operator", text);
-                    templates.put("right_operator_pos", index.toString());
-                    templates.put("right_operator_reason", "high_precedence_right_assoc");
-                    templates.put("right_operator_domain_info", domainInfo);
+                templates.put("operator_domain_info", domainInfo);
+            }
+
+            if (index < failedIndex && !used.contains(origAnswer.getDomainInfo())) {
+                templates.put("left_operator", text);
+                templates.put("left_operator_pos", index.toString());
+                templates.put("left_operator_domain_info", domainInfo);
+
+                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
+                    templates.put("left_operator_priority", "low");
+                    templates.put("left_operator_correct", "wrong");
+                } else if (highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
+                    templates.put("left_operator_priority", "high");
+                    templates.put("left_operator_correct", "correct");
+                } else if (samePrecedenceLeftAssoc.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
+                    templates.put("left_operator_priority", "same");
+                    templates.put("left_operator_associativity", "L");
+                    templates.put("left_operator_correct", "correct");
+                } else {
+                    templates.put("left_operator_priority", "same");
+                    templates.put("left_operator_associativity", "R");
+                    templates.put("left_operator_correct", "wrong");
                 }
             }
+            if (index > failedIndex && !used.contains(origAnswer.getDomainInfo()) && !templates.containsKey("right_operator")) {
+                templates.put("right_operator", text);
+                templates.put("right_operator_pos", index.toString());
+                templates.put("right_operator_domain_info", domainInfo);
+
+                if (highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
+                    templates.put("right_operator_priority", "high");
+                    templates.put("right_operator_correct", "correct");
+                } else if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
+                    templates.put("right_operator_priority", "low");
+                    templates.put("right_operator_correct", "wrong");
+                } else if (samePrecedenceRightAssoc.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
+                    templates.put("right_operator_priority", "same");
+                    templates.put("right_operator_associativity", "R");
+                    templates.put("right_operator_correct", "correct");
+                } else {
+                    templates.put("right_operator_priority", "same");
+                    templates.put("right_operator_associativity", "L");
+                    templates.put("right_operator_correct", "wrong");
+                }
+            }
+            //TODO: check in parenthesis left/right
+            //TODO: check is failed complex beginning and have inner unused
+            //TODO: check operator with strict order
         }
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(templates);
@@ -761,88 +819,76 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 newAnswer.setHyperText(result);
                 newAnswer.setAnswerId(answer.getAnswerId());
 
-                if (failedLaw.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_left")
-                        || failedLaw.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right")) {
-                    if (answer.getDomainInfo().equals("select_reason_left_precedence") && templates.get("left_operator_reason").equals("high_precedence_diff_precedence")) {
-                        newAnswer.setDomainInfo("select_highest_precedence_left_operator");
-                    } else if (answer.getDomainInfo().equals("select_reason_left_associativity") && !templates.get("left_operator_reason").equals("high_precedence_left_assoc")) {
-                        newAnswer.setDomainInfo("select_precedence_or_associativity_left_influence");
-                    } else if (answer.getDomainInfo().equals("select_reason_right_precedence") && templates.get("right_operator_reason").equals("high_precedence_diff_precedence")) {
-                        newAnswer.setDomainInfo("select_highest_precedence_right_operator");
-                    } else if (answer.getDomainInfo().equals("select_reason_right_associativity") && !templates.get("right_operator_reason").equals("high_precedence_right_assoc")) {
-                        newAnswer.setDomainInfo("select_precedence_or_associativity_right_influence");
+                SupplementaryAnswerConfig answerConfig = supplementaryConfig.get(failedLaw).get(answer.getDomainInfo());
+                String[] answerCorrectCheckParts = answerConfig.correct_check.split(";");
+
+                boolean isAnswerCorrect = true; //TODO: somehow check at least one branch work
+                if (answerConfig.correct_check.equals("correct")) {
+                    isAnswerCorrect = true;
+                } else if (answerConfig.correct_check.equals("wrong")) {
+                    isAnswerCorrect = false;
+                } else if (answerCorrectCheckParts.length == 3) {
+                    String subject = templates.get(answerCorrectCheckParts[0] + "_domain_info");
+                    String object = templates.get(answerCorrectCheckParts[2] + "_domain_info");
+                    if (answerCorrectCheckParts[1].equals("before")) {
+                        isAnswerCorrect = beforeIndirect.containsMapping(subject, object);
+                    } else if (answerCorrectCheckParts[1].equals("high_precedence")) {
+                        isAnswerCorrect = highPrecedence.containsMapping(subject, object);
+                    } else if (answerCorrectCheckParts[1].equals("same_precedence")) {
+                        isAnswerCorrect = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object);
+                    } else {
+                        throw new IllegalStateException("Supplementary answer correctness check verb is not supported");
                     }
-                    //TODO: variants for inner operand
-                    //TODO: variants for left/right parenthesis
-                } else if (failedLaw.equals("select_highest_precedence_left_operator")) {
-                    if (answer.getDomainInfo().equals("select_highest_precedence_operator_left")) {
-                        if (highPrecedence.containsMapping(templates.get("left_operator_domain_info"), failedAnswer.getDomainInfo())) {
-                            newAnswer.setDomainInfo(null);
-                        } else {
-                            newAnswer.setDomainInfo(failedLaw);
-                        }
-                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_operator")) {
-                        if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), templates.get("left_operator_domain_info"))) {
-                            newAnswer.setDomainInfo(null);
-                        } else {
-                            newAnswer.setDomainInfo(failedLaw);
-                        }
-                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_same")) {
-                        if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), templates.get("left_operator_domain_info"))) {
-                            newAnswer.setDomainInfo(null);
-                        } else {
-                            newAnswer.setDomainInfo(failedLaw);
-                        }
-                    }
-                } else if (failedLaw.equals("select_highest_precedence_right_operator")) {
-                    if (answer.getDomainInfo().equals("select_highest_precedence_operator_right")) {
-                        if (highPrecedence.containsMapping(templates.get("right_operator_domain_info"), failedAnswer.getDomainInfo())) {
-                            newAnswer.setDomainInfo(null);
-                        } else {
-                            newAnswer.setDomainInfo(failedLaw);
-                        }
-                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_operator")) {
-                        if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), templates.get("right_operator_domain_info"))) {
-                            newAnswer.setDomainInfo(null);
-                        } else {
-                            newAnswer.setDomainInfo(failedLaw);
-                        }
-                    } else if (answer.getDomainInfo().equals("select_highest_precedence_operator_same")) {
-                        if (samePrecedenceLeftAssoc.containsMapping(failedAnswer.getDomainInfo(), templates.get("right_operator_domain_info"))) {
-                            newAnswer.setDomainInfo(null);
-                        } else {
-                            newAnswer.setDomainInfo(failedLaw);
-                        }
-                    }
-                } else if (failedLaw.equals("select_precedence_or_associativity_left_influence")) {
-                    if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_precedence")) {
-                        newAnswer.setDomainInfo("select_highest_precedence_left_operator");
-                    } else if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_associativity")) {
-                        newAnswer.setDomainInfo("select_precedence_or_associativity_left_influence");
-                    }
-                } else if (failedLaw.equals("select_precedence_or_associativity_right_influence")) {
-                    if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_precedence")) {
-                        newAnswer.setDomainInfo("select_highest_precedence_right_operator");
-                    } else if (answer.getDomainInfo().equals("select_precedence_or_associativity_influence_associativity")) {
-                        newAnswer.setDomainInfo("select_precedence_or_associativity_right_influence");
-                    }
+                } else {
+                    throw new IllegalStateException("Supplementary answer correctness check failed");
                 }
+
+                if (isAnswerCorrect) {
+                    newAnswer.setDomainInfo(answerConfig.correct);
+                } else {
+                    newAnswer.setDomainInfo(answerConfig.wrong);
+                    BackendFactEntity mistake = new BackendFactEntity(String.valueOf(answer.getAnswerId()), "detailed_law", answerConfig.detailed_law);
+                    possibleViolationFacts.add(mistake);
+                }
+
                 answers.add(newAnswer);
             } catch (IllegalArgumentException ex) {
                 // pass, this variant should not be used
             }
         }
         supplementaryQuestion.setAnswerObjects(answers);
+        supplementaryQuestion.getQuestionData().setSolutionFacts(possibleViolationFacts);
     }
 
     @Override
     public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
         InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
 
+        interpretSentenceResult.violations = new ArrayList<>();
+        ViolationEntity violationEntity = new ViolationEntity();
+
         if (answer.getDomainInfo() != null) {
-            interpretSentenceResult.violations = new ArrayList<>();
-            ViolationEntity violationEntity = new ViolationEntity();
             violationEntity.setLawName(answer.getDomainInfo());
+        }
+
+        List<BackendFactEntity> violationFacts = new ArrayList<>();
+        violationFacts.addAll(question.getSolutionFacts());
+
+        for (BackendFactEntity fact : question.getSolutionFacts()) {
+            if (fact.getSubject().equals(String.valueOf(answer.getAnswerId()))) {
+                if (fact.getVerb().equals("detailed_law")) {
+                    violationEntity.setDetailedLawName(fact.getObject());
+                    if (violationEntity.getLawName() == null) {
+                        violationEntity.setLawName(fact.getObject());
+                    }
+                } else if (fact.getVerb().equals("text") || fact.getVerb().equals("index")) {
+                    violationFacts.add(fact);
+                }
+            }
+        }
+
+        violationEntity.setViolationFacts(question.getSolutionFacts());
+        if (violationEntity.getLawName() != null || violationEntity.getDetailedLawName() != null) {
             interpretSentenceResult.violations.add(violationEntity);
         }
 
@@ -963,6 +1009,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType) {
+        if (mistake.getLawName().equals("error_select_precedence_or_associativity")) {
+            return new HyperText("Wrong, precedence checked before associativity");
+        } else if (mistake.getLawName().equals("error_select_highest_precedence")) {
+            String text = "";
+            String index;
+            for (BackendFactEntity fact : mistake.getViolationFacts()) {
+                if (fact.getVerb().equals("text")) {
+                    text = fact.getObject();
+                } else if (fact.getVerb().equals("index")) {
+                    index = fact.getObject();
+                }
+            }
+            return new HyperText("Wrong, precedence of operator " + text + " is higher");
+        }
 
         // retrieve subjects' info from facts, and find base and third ...
         BackendFactEntity base = null;

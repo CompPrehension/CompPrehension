@@ -1,0 +1,186 @@
+[
+  {
+    "name": "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
+    "answers": [
+      {
+        "name": "select_reason_left_precedence",
+        "correct": "select_highest_precedence_left_operator",
+        "wrong": "select_highest_precedence_left_operator",
+        "detailed_law": null,
+        "correct_check": "left_operator;before;operator"
+      },
+      {
+        "name": "select_reason_left_associativity",
+        "correct": "select_precedence_or_associativity_left_influence",
+        "wrong": "select_precedence_or_associativity_left_influence",
+        "detailed_law": null,
+        "correct_check": "left_operator;before;operator"
+      },
+      {
+        "name": "select_reason_left_parenthesis",
+        "correct": "",
+        "wrong": "",
+        "detailed_law": "",
+        "correct_check": "left_parenthesis;before;operator"
+      },
+      {
+        "name": "select_reason_right_precedence",
+        "correct": "select_highest_precedence_right_operator",
+        "wrong": "select_highest_precedence_right_operator",
+        "detailed_law": null,
+        "correct_check": "right_operator;before;operator"
+      },
+      {
+        "name": "select_reason_right_associativity",
+        "correct": "select_precedence_or_associativity_right_influence",
+        "wrong": "select_precedence_or_associativity_right_influence",
+        "detailed_law": null,
+        "correct_check": "right_operator;before;operator"
+      },
+      {
+        "name": "select_reason_right_parenthesis",
+        "correct": "",
+        "wrong": "",
+        "detailed_law": "",
+        "correct_check": "right_parenthesis;before;operator"
+      }
+    ]
+  },
+  {
+    "name": "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+    "answers": [
+      {
+        "name": "select_reason_left_precedence",
+        "correct": "select_highest_precedence_left_operator",
+        "wrong": "select_highest_precedence_left_operator",
+        "detailed_law": null,
+        "correct_check": "left_operator;before;operator"
+      },
+      {
+        "name": "select_reason_left_associativity",
+        "correct": "select_precedence_or_associativity_left_influence",
+        "wrong": "select_precedence_or_associativity_left_influence",
+        "detailed_law": null,
+        "correct_check": "left_operator;before;operator"
+      },
+      {
+        "name": "select_reason_left_parenthesis",
+        "correct": "",
+        "wrong": "",
+        "detailed_law": "",
+        "correct_check": "left_parenthesis;before;operator"
+      },
+      {
+        "name": "select_reason_right_precedence",
+        "correct": "select_highest_precedence_right_operator",
+        "wrong": "select_highest_precedence_right_operator",
+        "detailed_law": null,
+        "correct_check": "right_operator;before;operator"
+      },
+      {
+        "name": "select_reason_right_associativity",
+        "correct": "select_precedence_or_associativity_right_influence",
+        "wrong": "select_precedence_or_associativity_right_influence",
+        "detailed_law": null,
+        "correct_check": "right_operator;before;operator"
+      },
+      {
+        "name": "select_reason_right_parenthesis",
+        "correct": "",
+        "wrong": "",
+        "detailed_law": "",
+        "correct_check": "right_parenthesis;before;operator"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_left_operator",
+    "answers": [
+      {
+        "name": "select_highest_precedence_operator_left",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "left_operator;high_precedence;operator"
+      },
+      {
+        "name": "select_highest_precedence_operator_operator",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "operator;high_precedence;left_operator"
+      },
+      {
+        "name": "select_highest_precedence_operator_same",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "operator;same_precedence;left_operator"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_right_operator",
+    "answers": [
+      {
+        "name": "select_highest_precedence_operator_right",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "right_operator;high_precedence;operator"
+      },
+      {
+        "name": "select_highest_precedence_operator_operator",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "operator;high_precedence;right_operator"
+      },
+      {
+        "name": "select_highest_precedence_operator_same",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "operator;same_precedence;right_operator"
+      }
+    ]
+  },
+  {
+    "name": "select_precedence_or_associativity_left_influence",
+    "answers": [
+      {
+        "name": "select_precedence_or_associativity_influence_precedence",
+        "correct": "select_highest_precedence_left_operator",
+        "wrong": null,
+        "detailed_law": null,
+        "correct_check": "correct"
+      },
+      {
+        "name": "select_precedence_or_associativity_influence_associativity",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_precedence_or_associativity",
+        "correct_check": "wrong"
+      }
+    ]
+  },
+  {
+    "name": "select_precedence_or_associativity_right_influence",
+    "answers": [
+      {
+        "name": "select_precedence_or_associativity_influence_precedence",
+        "correct": "select_highest_precedence_right_operator",
+        "wrong": null,
+        "detailed_law": "error_select_highest_precedence",
+        "correct_check": "correct"
+      },
+      {
+        "name": "select_precedence_or_associativity_influence_associativity",
+        "correct": null,
+        "wrong": null,
+        "detailed_law": "error_select_precedence_or_associativity",
+        "correct_check": "wrong"
+      }
+    ]
+  }
+]
