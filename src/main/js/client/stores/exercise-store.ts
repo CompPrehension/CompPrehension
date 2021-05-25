@@ -12,15 +12,12 @@ export class ExerciseStore {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion: QuestionStore;
-    @observable supplementaryQuestion: QuestionStore;
 
     constructor(
         @inject("ExerciseController") private readonly exerciseController: IExerciseController,
-        @inject(QuestionStore) currentQuestion: QuestionStore,
-        @inject(QuestionStore) supplementaryQuestion: QuestionStore
+        @inject(QuestionStore) currentQuestion: QuestionStore
     ) {
         this.currentQuestion = currentQuestion;
-        this.supplementaryQuestion = supplementaryQuestion;
         makeObservable(this);        
     }
 

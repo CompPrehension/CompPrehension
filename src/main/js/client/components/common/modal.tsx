@@ -1,5 +1,6 @@
 import React from "react";
 import { Button, Modal as RBModal } from "react-bootstrap";
+import { notNullOrUndefinded } from "../../utils/helpers";
 import { Optional } from "./optional";
 
 
@@ -33,10 +34,11 @@ export const Modal = (props: ModalProps) => {
     return (
         <Optional isVisible={show ?? true}>
             <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose} size={size}>
-                <RBModal.Header closeButton={closeButton}>
-                    <RBModal.Title>{title}</RBModal.Title>
-                </RBModal.Header>
-
+                <Optional isVisible={notNullOrUndefinded(title) && title.length > 0}>
+                    <RBModal.Header closeButton={closeButton}>
+                        <RBModal.Title>{title}</RBModal.Title>
+                    </RBModal.Header>
+                </Optional>      
                 <RBModal.Body>
                     {children}
                 </RBModal.Body>
