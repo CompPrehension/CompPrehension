@@ -432,7 +432,7 @@ public class SystemIntegrationTest {
             Question supQ6 = questionService.getQuestion(supQ5);
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, supQ6.getAnswerObject(4), testExerciseAttemptList.get(0));
             assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
-            assertNull(resSup.violations.get(0).getDetailedLawName());
+            assertNull(resSup3.violations.get(0).getDetailedLawName());
         }
 
         {
