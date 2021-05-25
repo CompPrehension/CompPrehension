@@ -675,7 +675,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
-        assertFalse(interpretSentenceResult.violations.isEmpty());
+        if (interpretSentenceResult.violations.isEmpty()) {
+            return null;
+        }
+
         HashSet<String> targetConcepts = new HashSet<>();
         String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
         targetConcepts.add(failedLaw);
