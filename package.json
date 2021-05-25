@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/polyfill": "7.2.5",
-    "bootstrap": "5.0.1",
+    "bootstrap": "^4.6.0",
     "cross-fetch": "^3.1.4",
     "fetcher-ts": "^1.1.1",
     "fp-ts": "^2.10.5",
