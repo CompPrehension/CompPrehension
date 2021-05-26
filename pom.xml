@@ -138,32 +138,12 @@
 			<version>2.10.2</version>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>org.apache.jena</groupId>-->
-<!--			<artifactId>apache-jena-libs</artifactId>-->
-<!--			<version>3.17.0</version>-->
-<!--			<type>pom</type>-->
-<!--		</dependency>-->
-
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-<!--			A development builds from Apache Snapshot Repository -->
-			<version>4.0.0</version>
-			<type>pom</type>
-		</dependency>
-
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
 			<version>1.9</version>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>org.apache.jena</groupId>-->
-<!--			<artifactId>jena-core</artifactId>-->
-<!--			<version>3.17.0</version>-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>jena-core</artifactId>
@@ -195,16 +175,6 @@
 			<version>2.4.5</version>
 		</dependency>
     </dependencies>
-
-	<repositories>
-		<repository>
-			<id>apache.snapshots</id>
-			<name>Apache Snapshot Repository</name>
-			<url>https://repository.apache.org/snapshots</url>
-			<releases><enabled>false</enabled></releases>
-			<snapshots><enabled>true</enabled></snapshots>
-		</repository>
-	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
