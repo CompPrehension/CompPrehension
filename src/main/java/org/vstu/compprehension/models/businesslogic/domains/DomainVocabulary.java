@@ -182,11 +182,29 @@ public class DomainVocabulary {
     public static List<OntClass> getLeafOntClasses(List<OntClass> classes) {
         HashSet<OntClass> set = new HashSet<>();
         for (OntClass cls : classes) {
-            set.addAll(cls.listSubClasses(false).toSet());
+            set.addAll(cls.listSuperClasses(false).toSet());
         }
         ArrayList<OntClass> result = new ArrayList<>(classes);
         result.removeAll(set);
         return result;
+    }
+
+    public static boolean testSubClassOfTransitive(OntClass a, OntClass b) {
+        if (a.equals(b))
+            return true; /// ???
+
+        HashSet<OntClass> supers = new HashSet<>(a.listSuperClasses(false).toSet());
+        boolean found = supers.contains(b);
+        while (!found && !supers.isEmpty()) {
+            HashSet<OntClass> tested = (HashSet<OntClass>) supers.clone();
+            // add all supers of tested
+            tested.forEach(ontClass -> supers.addAll(ontClass.listSuperClasses(false).toSet()));
+            // remove tested
+            supers.removeAll(tested);
+            // check again
+            found = supers.contains(b);
+        }
+        return found;
     }
 
     /// debug

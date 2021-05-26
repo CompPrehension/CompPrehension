@@ -91,12 +91,12 @@
   <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:ObjectProperty>
 
-<owl:ObjectProperty rdf:about="#student_next_act">
+<owl:ObjectProperty rdf:about="#body_item">
   <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:ObjectProperty>
 
-<owl:ObjectProperty rdf:about="#body_item">
+<owl:ObjectProperty rdf:about="#wrong_next_act">
   <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:ObjectProperty>
@@ -457,14 +457,14 @@
 
 <owl:Class rdf:about="#while_loop">
   <rdfs:subClassOf rdf:resource="#start_with_cond"/>
-  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
   <rdfs:subClassOf rdf:resource="#cond_then_body"/>
+  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
 </owl:Class>
 
 <owl:Class rdf:about="#do_while_loop">
   <rdfs:subClassOf rdf:resource="#start_with_body"/>
-  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
   <rdfs:subClassOf rdf:resource="#cond_then_body"/>
+  <rdfs:subClassOf rdf:resource="#body_then_cond"/>
 </owl:Class>
 
 <owl:Class rdf:about="#for_loop">

@@ -1,9 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.*;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
@@ -16,7 +14,6 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.VCARD;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -56,21 +53,24 @@ public class JenaBackend extends Backend {
 
         baseIRIPrefix = base + "#";
         PrintUtil.registerPrefix("my", baseIRIPrefix); //?
+        PrintUtil.registerPrefix("skos", "http://www.w3.org/2004/02/skos/core"); //?
 
         model = ModelFactory.createOntologyModel(OWL_MEM);  // createDefaultModel();
         model.setNsPrefix("my", base);
+        model.setNsPrefix("skos", "http://www.w3.org/2004/02/skos/core#");
+        //                                  http://www.w3.org/2004/02/skos/core#Concept
 
         // polyfill some RDF/OWL entries
-        model.createObjectProperty(RDF.type.getURI());
-        model.createObjectProperty(RDFS.subClassOf.getURI());
-        model.createObjectProperty(RDFS.subPropertyOf.getURI());
+        model.createObjectProperty(RDF.type.getURI());  // already here by default?
+        model.createObjectProperty(RDFS.subClassOf.getURI());  // already here by default?
+        model.createObjectProperty(RDFS.subPropertyOf.getURI());  // already here by default?
 //        model.createProperty(RDF.Property.getURI());
         model.createProperty(OWL.DatatypeProperty.getURI());
         model.createProperty(OWL.ObjectProperty.getURI());
         model.createProperty(OWL.FunctionalProperty.getURI());
         model.createProperty(OWL.InverseFunctionalProperty.getURI());
         model.createProperty(OWL.TransitiveProperty.getURI());
-        model.createClass(OWL.Class.getURI());
+        model.createClass(OWL.Class.getURI());  // already here by default?
 
         domainRules.clear();
     }
@@ -114,35 +114,28 @@ public class JenaBackend extends Backend {
 //    }
 
     public OntClass getThingClass() {
-        return model.createClass(model.getNsPrefixURI("owl") + "Thing");
+        return model.createClass(OWL.Thing.getURI());
     }
 
-    void addOWLLawFormulation(String name, String type) {
+    Resource addOWLLawFormulation(String name, String type) {
 //        // debug
 //        System.out.println("addOWLLawFormulation( name: " + name + ", type: " + type + " )");
 
         switch (type) {
             case "owl:NamedIndividual":
-                model.createIndividual(baseIRIPrefix + name, getThingClass());
-                break;
+                return model.createIndividual(termToUri(name), getThingClass());
             case "owl:ObjectProperty":
-                model.createObjectProperty(baseIRIPrefix + name);
-                break;
+                return model.createObjectProperty(termToUri(name));
             case "owl:TransitiveProperty":
-                model.createTransitiveProperty(baseIRIPrefix + name);
-                break;
+                return model.createTransitiveProperty(termToUri(name));
             case "owl:FunctionalProperty":
-                model.createProperty(baseIRIPrefix + name);
-                break;
+                return model.createProperty(termToUri(name));
             case "owl:InverseFunctionalProperty":
-                model.createInverseFunctionalProperty(baseIRIPrefix + name);
-                break;
+                return model.createInverseFunctionalProperty(termToUri(name));
             case "owl:DatatypeProperty":
-                model.createDatatypeProperty(baseIRIPrefix + name);
-                break;
+                return model.createDatatypeProperty(termToUri(name));
             case "owl:Class":
-                model.createClass(baseIRIPrefix + name);
-                break;
+                return model.createClass(termToUri(name));
             default:
                 throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulations: unknown type: " + type);
         }
@@ -189,7 +182,14 @@ public class JenaBackend extends Backend {
             return;
         }
 
-        OntResource ind = model.createOntResource(termToUri(subj));
+        OntResource ind = addOWLLawFormulation(subj, fact.getSubjectType()).as(OntResource.class);
+//        if (fact.getSubjectType().equals("owl:NamedIndividual")) {
+//            ind = model.createIndividual(termToUri(subj), getThingClass());
+//        } else if (fact.getSubjectType().equals("owl:Class")) {
+//            ind = model.createClass(termToUri(subj));
+//        } else {
+//            ind = model.createOntResource(termToUri(subj));
+//        }
         assert ind != null;
 
         if (objType.startsWith("xsd:")) {
@@ -236,7 +236,8 @@ public class JenaBackend extends Backend {
             }
             if (objType.equals("owl:NamedIndividual")) {
                 ObjectProperty p = model.createObjectProperty(termToUri(prop));
-                model.add(ind, p, model.createOntResource(termToUri(obj)));
+                model.add(ind, p, model.createIndividual(termToUri(obj), OWL.Thing));
+
             } else if (objType.equals("owl:Class") && prop.equals("rdf:type")) {
                     model.createIndividual(ind.getURI(), model.createClass(termToUri(obj)));
             } else {
@@ -271,14 +272,21 @@ public class JenaBackend extends Backend {
 
     /** Expand simple name as local, prefixed name as special */
     private String termToUri(String s) {
-        String uri = model.expandPrefix(s);
-        if (uri.equals(s)) {
-            // not a standard name
-            uri = baseIRIPrefix + s;
+        String uri;
+        if (s.startsWith("http://")) {
+            uri = s;
+        }
+        else {
+            uri = model.expandPrefix(s);
+            if (uri.equals(s)) {
+                // not a standard name
+                uri = baseIRIPrefix + s;
+            }
         }
 
         ///
-        // System.out.println("termToUri: " + s + " -> " + uri);
+        // if (s.contains(":"))
+        //     System.out.println("termToUri: " + s + " -> " + uri);
         ///
         return uri;
     }

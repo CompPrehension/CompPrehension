@@ -9,11 +9,11 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ontology.*;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -25,6 +25,8 @@ import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOpti
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.utils.HyperText;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.getLeafOntClasses;
+import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 
 @Component
 public class ControlFlowStatementsDomain extends Domain {
@@ -429,6 +432,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     // "name",
                     "next_act",
                     "student_next",
+                    "wrong_next_act",
                     "corresponding_end",
                     "student_corresponding_end",
                     "parent_of",
@@ -609,16 +613,31 @@ public class ControlFlowStatementsDomain extends Domain {
         Property stmt_name = model.getProperty(model.expandPrefix(":stmt_name"));
         Property executes = model.getProperty(model.expandPrefix(":executes"));
         Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
+        Property wrong_next_act = model.getProperty(model.expandPrefix(":wrong_next_act"));
 
-        Set<? extends OntResource> instSet = Erroneous.listInstances().toSet();
-        for (OntResource inst : instSet) {
+//        Set<? extends OntResource> instSet = Erroneous.listInstances().toSet();
+        Set<RDFNode> instSet = model.listObjectsOfProperty(wrong_next_act).toSet();
+        for (RDFNode inst : instSet) {
             // inst = instSet.next();
 
             // find the most specific error class
-            if (inst instanceof Individual) {
-                Individual act_individual = (Individual) inst;
+            if (inst instanceof Resource) {
+                Resource act_individual = inst.asResource();
 
-                List<OntClass> errorOntClasses = getLeafOntClasses(act_individual.listOntClasses(true).toList());
+
+                // filter classNodes
+                OntClass OwlClass = model.getOntClass(OWL.Class.getURI());
+                List<OntClass> classes = new ArrayList<>();
+                List<RDFNode> classNodes = model.listObjectsOfProperty(inst.asResource(), RDF.type).toList();
+                classNodes.forEach(rdfNode -> {
+                    if (rdfNode instanceof Resource && rdfNode.asResource().hasProperty(RDF.type, OwlClass))
+                        classes.add(model.createClass(rdfNode.asResource().getURI()));
+                });
+
+                List<OntClass> errorOntClasses = getLeafOntClasses(
+                        // act_individual.listOntClasses(true).toList()
+                        classes
+                );
                 //     properties_to_extract = ("id", "name", onto.precursor, onto.cause, onto.should_be,
                 //     onto.should_be_before, onto.should_be_after, onto.context_should_be, onto.text_line, )
 
@@ -628,8 +647,12 @@ public class ControlFlowStatementsDomain extends Domain {
 
                 for (OntClass errClass : errorOntClasses) {
                     // filter out not-error classes
-                    if (!errClass.hasSuperClass(Erroneous, false))
+                    if (!testSubClassOfTransitive(errClass, Erroneous))
                         continue;
+
+                    ///
+                    System.out.println("<>- Mistake for action " + act_stmt_name + ": " + errClass.getLocalName());
+
 
                     ViolationEntity violationEntity = new ViolationEntity();
                     violationEntity.setLawName(errClass.getLocalName());
@@ -648,6 +671,9 @@ public class ControlFlowStatementsDomain extends Domain {
                     )));
                     mistakes.add(violationEntity);
                 }
+            } else {
+                ///
+                System.out.println("Cannot treat obj as Resource: " + inst);
             }
         }
 
@@ -669,13 +695,6 @@ public class ControlFlowStatementsDomain extends Domain {
     @Override
     public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
         throw new NotImplementedException();
-    }
-
-    @Override
-    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
-        OntModel model = factsToOntModel(solution);
-
-        return processSolution(model);
     }
 
     private static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
@@ -713,6 +732,13 @@ public class ControlFlowStatementsDomain extends Domain {
         return jback.getFacts(getViolationVerbsStatic(EXECUTION_ORDER_QUESTION_TYPE, null));
     }
 
+    @Override
+    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
+        OntModel model = factsToOntModel(solution);
+
+        return processSolution(model);
+    }
+
     /** receive solution as model */
     private ProcessSolutionResult processSolution(OntModel model) {
         InterpretSentenceResult result = new InterpretSentenceResult();
@@ -720,80 +746,91 @@ public class ControlFlowStatementsDomain extends Domain {
         result.CountCorrectOptions = 1;
 
         // retrieving full solution path ...
-        // 1) find last act of partial trace (the one having no student_next prop) ...
-        Individual lastAct = null;
-        OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
-        var acts = model.getOntClass(model.expandPrefix(":act")).listInstances(false);
-        while (lastAct == null && acts.hasNext()) {
-            Individual act = (Individual) acts.next();
-            if (!act.hasProperty(student_next)) {
-                lastAct = act;
-            }
-        }
-        // if last act is wrong, roll back to correct one
-        OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-        while (lastAct != null && lastAct.hasOntClass(Erroneous)) {
-            List<Resource> prevActAsList =
-                    model.listResourcesWithProperty(student_next, lastAct).toList();
-            Resource prevAct = prevActAsList.isEmpty() ? null : prevActAsList.get(0);
-            try {
-                lastAct = (Individual) prevAct;
-            } catch (ClassCastException exception) {
-                ///
-                System.out.println("Warning: Cannot cast " + prevAct.getURI() + " to Individual ...");
-                lastAct = null;
-            }
-        }
-        Individual actionInd = null;
-        if (lastAct != null) {
-            // get action of last act
-            actionInd = lastAct.getPropertyResourceValue(model.getOntProperty(model.expandPrefix(":executes")))
-                    .getPropertyResourceValue(model.getOntProperty(model.expandPrefix(":boundary_of"))).as(Individual.class);
-        } else {
-            // retrieve entry point of algorithm
-            ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
-            List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
-
-            assertFalse(entryAsList.isEmpty(), "Missing entry point in the algorithm!");
-
-            actionInd = entryAsList.get(0).as(Individual.class);
-        }
-
-        /// assert actionInd != null;  // did not get last act correctly ?
-        assertNotNull(actionInd, "did last act retrieved correctly?");
-
-        // 2) find length of shortest path over algorithm to the end ...
-        // get shortcuts to properties
-        OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
-        OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
-        OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
-        OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
-        OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
-        // get boundary of the initial action
-        List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd.getPropertyResourceValue(boundary_of);
-        assertFalse(bounds.isEmpty(), "no bounds found for entry point!");
-        Individual bound = bounds.get(0).as(Individual.class);
-
         int pathLen = 0;
-        // boolean endOfPath = false;
-        while (bound != null) {
-            Individual nextBound = null;
-            // move along on_false_consequent, or along "consequent" if absent
-            if (bound.hasProperty(on_false_consequent)) {
-                ++pathLen;
-                // move to next bound
-                nextBound = bound.getPropertyResourceValue(on_false_consequent).as(Individual.class);
-            } else if (bound.hasProperty(consequent)) {
-                ++pathLen;
-                // move to next bound
-                nextBound = bound.getPropertyResourceValue(consequent).as(Individual.class);
-                // check if simple action (stmt or expr)
-                if (bound.hasProperty(begin_of) && nextBound.hasProperty(end_of)) {
-                    // ignore this link as simple statements show as a whole
-                    --pathLen;
+        try {
+            // 1) find last act of partial trace (the one having no student_next prop) ...
+            Individual lastAct = null;
+            OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
+            var acts = model.getOntClass(model.expandPrefix(":act")).listInstances(false);
+            while (lastAct == null && acts.hasNext()) {
+                Individual act = (Individual) acts.next();
+                if (!act.hasProperty(student_next)) {
+                    lastAct = act;
                 }
             }
-            bound = nextBound;
+            // if last act is wrong, roll back to correct one
+            OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
+            while (lastAct != null && lastAct.hasOntClass(Erroneous)) {
+                List<Resource> prevActAsList =
+                        model.listResourcesWithProperty(student_next, lastAct).toList();
+                Resource prevAct = prevActAsList.isEmpty() ? null : prevActAsList.get(0);
+                try {
+                    lastAct = (Individual) prevAct;
+                } catch (ClassCastException exception) {
+                    ///
+                    System.out.println("Warning: Cannot cast " + prevAct.getURI() + " to Individual ...");
+                    lastAct = null;
+                }
+            }
+            Individual actionInd = null;
+            if (lastAct != null) {
+                OntProperty executes = model.createOntProperty(model.expandPrefix(":executes"));
+                OntProperty boundary_of = model.createOntProperty(model.expandPrefix(":boundary_of"));
+                // get action of last act
+                Resource bound = lastAct.getPropertyResourceValue(executes);
+                if (bound != null) {
+                    actionInd = bound.getPropertyResourceValue(boundary_of).as(Individual.class);
+                }
+            }
+            if (lastAct == null || actionInd == null) {
+                ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
+                List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
+                // retrieve entry point of algorithm
+
+                assertFalse(entryAsList.isEmpty(), "Missing entry point in the algorithm!");
+
+                actionInd = entryAsList.get(0).as(Individual.class);
+            }
+
+            /// assert actionInd != null;  // did not get last act correctly ?
+            assertNotNull(actionInd, "did last act retrieved correctly?");
+
+            // 2) find length of shortest path over algorithm to the end ...
+            // get shortcuts to properties
+            OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
+            OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
+            OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
+            OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
+            OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
+            // get boundary of the initial action
+            List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd
+            // .getPropertyResourceValue(boundary_of);
+            assertFalse(bounds.isEmpty(), "no bounds found for entry point!");
+            Individual bound = bounds.get(0).as(Individual.class);
+
+            // boolean endOfPath = false;
+            while (bound != null) {
+                Individual nextBound = null;
+                // move along on_false_consequent, or along "consequent" if absent
+                if (bound.hasProperty(on_false_consequent)) {
+                    ++pathLen;
+                    // move to next bound
+                    nextBound = bound.getPropertyResourceValue(on_false_consequent).as(Individual.class);
+                } else if (bound.hasProperty(consequent)) {
+                    ++pathLen;
+                    // move to next bound
+                    nextBound = bound.getPropertyResourceValue(consequent).as(Individual.class);
+                    // check if simple action (stmt or expr)
+                    if (bound.hasProperty(begin_of) && nextBound.hasProperty(end_of)) {
+                        // ignore this link as simple statements show as a whole
+                        --pathLen;
+                    }
+                }
+                bound = nextBound;
+            }
+        } catch (AssertionFailedError error) {
+            pathLen = 99;
+            System.out.println("WARN: processSolution(): cannot find entry_point, fallback to: pathLen = " + pathLen);
         }
 
         result.IterationsLeft = pathLen;
