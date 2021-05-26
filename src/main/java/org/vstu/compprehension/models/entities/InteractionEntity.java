@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.entities;
 
 import lombok.val;
+import org.nfunk.jep.function.Str;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,8 @@ public class InteractionEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int orderNumber;
 
+    @Column(name = "lastSupplementaryQuestion")
+    private String lastSupplementaryQuestion;
 
     @Column(name = "interactionType")
     @Enumerated(EnumType.STRING)
@@ -71,14 +74,18 @@ public class InteractionEntity {
             r.setInteraction(this);
         }
 
-        val correctLaw = correctlyAppliedLaws.stream()
-                .map(correctlyAppliedLaw -> {
-                    CorrectLawEntity cle = new CorrectLawEntity();
-                    cle.setLawName(correctlyAppliedLaw);
-                    cle.setInteraction(this);
-                    return cle;
-                })
-                .collect(Collectors.toList());
-        this.setCorrectLaw(correctLaw);
+        if(correctlyAppliedLaws == null){
+            this.setCorrectLaw(new ArrayList<>());
+        } else {
+            val correctLaw = correctlyAppliedLaws.stream()
+                    .map(correctlyAppliedLaw -> {
+                        CorrectLawEntity cle = new CorrectLawEntity();
+                        cle.setLawName(correctlyAppliedLaw);
+                        cle.setInteraction(this);
+                        return cle;
+                    })
+                    .collect(Collectors.toList());
+            this.setCorrectLaw(correctLaw);
+        }
     }
 }
