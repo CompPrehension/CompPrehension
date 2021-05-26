@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -114,37 +115,46 @@ public class ControlFlowStatementsDomain extends Domain {
         String qType = question.getQuestionData().getQuestionDomainType();
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             List<InteractionEntity> interactions = question.getQuestionData().getInteractions();
-            if (interactions != null)
-            for (InteractionEntity interaction : interactions) {
-                if (!interaction.getViolations().isEmpty())
-                    // skip erroneous interaction
-                    continue;
-
-                AnswerObjectEntity answerObj = interaction.getResponses().get(0).getLeftAnswerObject();
-                String domainInfo = answerObj.getDomainInfo();
-                AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
-                String line;
-                if (info.getTraceActHypertext() != null) {
-                    line = info.getTraceActHypertext();
-                } else {
-                    line = "(" + domainInfo + ")";
+            if (interactions != null && !interactions.isEmpty()) {
+                InteractionEntity interaction = null;
+                for (InteractionEntity i : Lists.reverse(interactions)) {
+                    interaction = i;
+                    if (i.getViolations().isEmpty()) {
+                        break;
+                    }
                 }
-                // add expression value if necessary
-                if (answerObj.getConcept().equals("expr")) {
-                    String phase = info.getPhase();
-                    String exId = info.getExId();
-                    String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
-                    int execTime = 1 + exprName2ExecTime.getOrDefault(exprName, 0);
-                    int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
-                    exprName2ExecTime.put(exprName, execTime);
+                assertNotNull(interaction, "Reverse() nulled the list?");
+                for (ResponseEntity response : interaction.getResponses()) {
+//                    if (!interaction.getViolations().isEmpty())
+//                        // skip erroneous interaction
+//                        continue;
 
-                    String valueStr = (value == 1) ? "true" : "false";
-                    // TODO: add HTML styling
-                    line = line + " -> " + valueStr;
+                    AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                    String domainInfo = answerObj.getDomainInfo();
+                    AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
+                    String line;
+                    if (info.getTraceActHypertext() != null) {
+                        line = info.getTraceActHypertext();
+                    } else {
+                        line = "(" + domainInfo + ")";
+                    }
+                    // add expression value if necessary
+                    if (answerObj.getConcept().equals("expr")) {
+                        String phase = info.getPhase();
+                        String exId = info.getExId();
+                        String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
+                        int execTime = 1 + exprName2ExecTime.getOrDefault(exprName, 0);
+                        int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
+                        exprName2ExecTime.put(exprName, execTime);
+
+                        String valueStr = (value == 1) ? "true" : "false";
+                        // TODO: add HTML styling
+                        line = line + " -> " + valueStr;
+                    }
+                    result.add(new HyperText(line));
+                    ///
+                    System.out.println(result.get(result.size() - 1).getText());
                 }
-                result.add(new HyperText(line));
-                ///
-                System.out.println(result.get(result.size() - 1).getText());
             }
         } else {
             ///
@@ -269,7 +279,7 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setQuestionDomainType(q.getQuestionDomainType());
 
         // statement facts are already prepared in the Question's JSON
-        List<BackendFactEntity> facts = q.getStatementFacts();
+        List<BackendFactEntity> facts = new ArrayList<>(q.getStatementFacts());
         // add schema facts!
         facts.addAll(getSchemaFacts());
         entity.setStatementFacts(facts);
