@@ -680,11 +680,19 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
+        if (exerciseAttemptEntity.getQuestions().isEmpty()) {
+            return null;
+        }
         val question = exerciseAttemptEntity.getQuestions().get(exerciseAttemptEntity.getQuestions().size() - 1);
+        if (question.getInteractions().isEmpty()) {
+            return null;
+        }
         val baseViolations = question.getInteractions().get(question.getInteractions().size() - 1).getViolations();
         val previousInterpretSentenceResult = new Domain.InterpretSentenceResult();
         previousInterpretSentenceResult.violations = baseViolations;
-        assertFalse(baseViolations.isEmpty());
+        if (baseViolations.isEmpty()) {
+            return null;
+        }
 
         Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
