@@ -502,7 +502,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
+    public Question makeSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttemptEntity) {
         throw new NotImplementedException();
     }
 

@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 @Service
 public class QuestionService {
     private Core core = new Core();
@@ -54,17 +56,18 @@ public class QuestionService {
         return question;
     }
 
-    public Question generateSupplementaryQuestion(Domain.InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttempt) {
+    public Question generateSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttempt) {
         val domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        val question = domain.makeSupplementaryQuestion(interpretSentenceResult, exerciseAttempt);
+        val question = domain.makeSupplementaryQuestion(violation, exerciseAttempt);
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
         return question;
     }
 
-    public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer, ExerciseAttemptEntity exerciseAttempt) {
+    public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        return domain.judgeSupplementaryQuestion(question, answer);
+        assertEquals(1, responses.size());
+        return domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {
