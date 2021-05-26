@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import lombok.ToString;
 import lombok.val;
 import org.nfunk.jep.function.Str;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
@@ -40,16 +41,20 @@ public class InteractionEntity {
     @NotFound(action = NotFoundAction.IGNORE)
     private FeedbackEntity feedback;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ViolationEntity> violations;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<CorrectLawEntity> correctLaw;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
     private List<ResponseEntity> responses;
 
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private QuestionEntity question;

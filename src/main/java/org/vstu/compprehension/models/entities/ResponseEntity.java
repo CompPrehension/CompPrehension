@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.SpecValue;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class ResponseEntity {
     @JoinColumn(name = "rightObject_id")
     private AnswerObjectEntity rightAnswerObject;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "interaction_id")
     private InteractionEntity interaction;

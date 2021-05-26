@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -18,6 +19,7 @@ public class ViolationEntity {
     private Long id;
 
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private InteractionEntity interaction;
 
@@ -31,6 +33,7 @@ public class ViolationEntity {
     @Column(name = "detailed_law_name")
     private String detailedLawName;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     private List<BackendFactEntity> violationFacts;
 }

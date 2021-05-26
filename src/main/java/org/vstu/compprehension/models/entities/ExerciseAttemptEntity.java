@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,10 +25,12 @@ public class ExerciseAttemptEntity {
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
     private List<QuestionEntity> questions;
 }

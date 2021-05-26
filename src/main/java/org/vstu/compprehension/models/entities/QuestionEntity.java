@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
@@ -41,17 +42,21 @@ public class QuestionEntity {
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     @OrderBy("answerId")
     private List<AnswerObjectEntity> answerObjects;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<InteractionEntity> interactions;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "exerciseAttempt_id", nullable = false)
     private ExerciseAttemptEntity exerciseAttempt;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
