@@ -75,7 +75,13 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedba
             <div dangerouslySetInnerHTML={{ __html: question.text }} />
             <Optional isVisible={isTraceVisible}>
                 <p>
-                    {trace?.map(t => <div dangerouslySetInnerHTML={{ __html: t }}></div>)}
+                    <table className="comp-ph-trace">
+                        <tbody>
+                            <tr>
+                                {trace?.map(t => <td dangerouslySetInnerHTML={{ __html: t }}></td>)}
+                            </tr>
+                        </tbody>
+                    </table>
                 </p>
             </Optional>
         </div>

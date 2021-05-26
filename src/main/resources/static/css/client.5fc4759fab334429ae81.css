@@ -184,3 +184,33 @@ body ul {
   transition:         all 1s ease;
 }
 
+table.comp-ph-trace {
+  font-family: courier;
+  width: 100%;
+  background: #fff;
+  margin: 1em 0;
+  border: 1px solid rgba(34,36,38,.15);  
+  box-shadow: none;
+  border-radius: .28571429rem;
+  text-align: left;
+  color: rgba(0,0,0,.87);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+table.comp-ph-trace td {
+  background: rgba(0,0,0,.03);
+  font-weight: 700;
+  color: rgba(0,0,0,.95);    
+  font-size: 12px;
+  padding: .4em .6em;
+}
+
+table.comp-ph-trace tr td {
+  border-top: 1px solid rgba(34,36,38,.1);
+}
+
+table.comp-ph-trace tr:first-child td {
+  border-top: none;
+}
+
