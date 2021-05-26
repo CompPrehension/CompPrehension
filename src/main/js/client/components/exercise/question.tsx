@@ -26,7 +26,7 @@ export const Question = observer(({ store, showExtendedFeedback }: { store: Ques
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={() => store.answersHistory} onChanged={onChanged} />
+            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={() => store.answersHistory} onChanged={onChanged} feedback={store.feedback}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );

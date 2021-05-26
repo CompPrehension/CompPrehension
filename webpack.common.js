@@ -1,7 +1,34 @@
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const path = require('path');
+
 module.exports = {  
+  plugins: [
+    new CleanWebpackPlugin({
+      cleanOnceBeforeBuildPatterns: [
+        'js/*',
+        'css/*',
+      ],
+    }),
+    new HtmlWebpackPlugin({
+      template: __dirname + '/src/main/html/index.html',
+      filename: '../templates/index.html',
+      inject: 'body',
+      publicPath: '/',
+      minify: false,
+    }),
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].[contenthash].css',
+    }),      
+  ],
+  entry: {
+    client: './src/main/js/client/index.tsx',
+  },
   output: {
-    path: __dirname,
-    filename: '[name]'
+    filename: 'js/[name].[contenthash].js',
+    path: path.join(__dirname, './src/main/resources/static/'),    
+    chunkFilename: 'js/[name].[contenthash].js',
   },
   module: {
     rules: [
@@ -17,7 +44,7 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        use: ['style-loader', 'css-loader'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
     ]
   },
@@ -26,5 +53,17 @@ module.exports = {
   },
   performance: {
     hints: false
-  },  
+  },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /node_modules/,
+          chunks: 'initial',
+          name: 'vendor',
+          enforce: true
+        },
+      }
+    }
+  }
 }

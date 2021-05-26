@@ -1,4 +1,5 @@
 import React from "react";
+import { Feedback } from "../../../types/feedback";
 import { Question } from "../../../types/question"
 import { MatchingQuestionComponent } from "./matching-question";
 import { MultiChoiceQuestionComponent } from "./multi-choice-question";
@@ -7,13 +8,14 @@ import { SingleChoiceQuestionComponent } from "./single-choice-question";
 
 type QuestionComponentProps = {
     question: Question,
+    feedback?: Feedback, 
     answers: [number, number][],
     getAnswers: () => [number, number][],
     onChanged: (x: [number, number][]) => void,
 }
 
 export const QuestionComponent = (props: QuestionComponentProps) => {
-    const { question, answers, onChanged, getAnswers } = props;
+    const { question, answers, onChanged, getAnswers, feedback } = props;
     switch(question.type) {
         case 'MATCHING':                
             return <MatchingQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
@@ -22,7 +24,7 @@ export const QuestionComponent = (props: QuestionComponentProps) => {
         case 'SINGLE_CHOICE':
             return <SingleChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
         case 'ORDER':
-            return <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            return <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} feedback={feedback}/>;
     }
     return (<div>Not implemented</div>);
 }

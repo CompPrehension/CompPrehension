@@ -1,16 +1,18 @@
 import React from "react";
 import { useEffect } from "react";
+import { OrderQuestionFeedback } from "../../../types/feedback";
 import { OrderQuestion } from "../../../types/question";
 import { notNullOrUndefinded } from "../../../utils/helpers";
 import { Optional } from "../optional";
 
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
+    feedback?: OrderQuestionFeedback,
     answers: [number, number][],
     getAnswers: () => [number, number][],
     onChanged: (newAnswers: [number, number][]) => void,
 }
-export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: OrderQuestionComponentProps) => {
+export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedback }: OrderQuestionComponentProps) => {
     if (!question.options.requireContext) {
         return null;
     }
@@ -48,7 +50,7 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: Orde
         getAnswers().forEach(([h], idx) => {
             const answr = document.querySelector(`#answer_${h}`);
             if (!answr) {
-                return;
+                return 0;
             }
 
             // add pos hint        
@@ -65,7 +67,7 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged }: Orde
         });
     }, [question.questionId, getAnswers().length])
     
-    const trace = question.feedback?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
+    const trace = feedback?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
     const isTraceVisible = options.showTrace && notNullOrUndefinded(trace) && trace.length > 0;
 
     return (
