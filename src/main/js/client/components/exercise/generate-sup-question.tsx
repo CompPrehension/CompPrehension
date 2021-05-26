@@ -8,21 +8,21 @@ import { QuestionStore } from '../../stores/question-store';
 import { Modal } from '../common/modal';
 import { Question } from './question';
 
-export const GenerateSupQuestion = observer(({ violations } : { violations: number[] }) => {
+export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws: string[] }) => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const [questionStore] = useState(() => container.resolve(QuestionStore));
     const [isModalVisible, setIsModalVisible] = useState(false);
     const onClicked = (e: React.MouseEvent<HTMLElement>) => {
         (async () => {
             setIsModalVisible(true);
-            if (!exerciseStore.currentAttempt?.attemptId || !violations.length) {
+            if (!exerciseStore.currentAttempt?.attemptId || !violationLaws.length || !exerciseStore.currentQuestion.question) {
                 return;
             }
-            await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, violations);
+            await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, violationLaws);
         })();
     }
 
-    if (!violations.length) {
+    if (!violationLaws.length) {
         return null;
     }
     return (

@@ -8,7 +8,7 @@ export type FeedbackSuccessMessage = {
 export type FeedbackErrorMessage = {
     type: 'ERROR',
     message: string,
-    violations: number[],
+    violationLaws: string[],
 }
 
 export type FeedbackMessage = FeedbackSuccessMessage | FeedbackErrorMessage
@@ -20,7 +20,7 @@ const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
     io.type({
         type: io.literal('ERROR'),
         message: io.string,
-        violations: io.array(io.number),
+        violationLaws: io.array(io.string),
     }),
 ]);
 

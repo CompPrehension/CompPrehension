@@ -32,13 +32,13 @@ public class FeedbackDto {
     public static class Message {
         private MessageType type;
         private String message;
-        private Long[] violations;
+        private String[] violationLaws;
 
         public static Message Success(String message) {
             return new Message(MessageType.SUCCESS, message, null);
         }
-        public static Message Error(String message, Long[] violations) {
-            return new Message(MessageType.ERROR, message, violations);
+        public static Message Error(String message, String[] violationLaws) {
+            return new Message(MessageType.ERROR, message, violationLaws);
         }
     }
 }

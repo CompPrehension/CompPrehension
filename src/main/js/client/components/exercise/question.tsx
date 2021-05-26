@@ -66,7 +66,7 @@ const FeedbackAlert = ({ message, showGenerateSupQuestion }: { message: Feedback
         <Alert variant={variant}>
             {message.message}
             <Optional isVisible={showGenerateSupQuestion}>
-                <GenerateSupQuestion violations={message.type === 'ERROR' && message.violations || []}/>
+                <GenerateSupQuestion violationLaws={message.type === 'ERROR' && message.violationLaws || []}/>
             </Optional>
         </Alert>
     )

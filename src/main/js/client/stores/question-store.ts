@@ -51,12 +51,13 @@ export class QuestionStore {
     }
 
     @action
-    generateSupplementaryQuestion = async (attemptId: number, violations: number[]): Promise<void> => {
+    generateSupplementaryQuestion = async (attemptId: number, questionId: number, violationLaws: string[]): Promise<void> => {
         const questionRequest: SupplementaryQuestionRequest = {
             exerciseAttemptId: attemptId,
-            violations: pipe(
-                NEArray.fromArray(violations), 
-                O.getOrElse(() => [-1] as NEArray.NonEmptyArray<number>)
+            questionId: questionId,
+            violationLaws: pipe(
+                NEArray.fromArray(violationLaws), 
+                O.getOrElse(() => ["invalid_law"] as NEArray.NonEmptyArray<string>),
             ),
         };
         this.isQuestionLoading = true;

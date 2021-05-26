@@ -9,5 +9,6 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class SupplementaryQuestionRequestDto {
     private Long exerciseAttemptId;
-    private Long[] violations;
+    private Long questionId;
+    private String[] violationLaws;
 }

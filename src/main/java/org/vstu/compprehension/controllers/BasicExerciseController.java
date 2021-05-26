@@ -66,7 +66,7 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public QuestionDto generateSupplementaryQuestion(SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        return frontendService.generateSupplementaryQuestion(questionRequest.getExerciseAttemptId(), questionRequest.getViolations());
+        return frontendService.generateSupplementaryQuestion(questionRequest.getExerciseAttemptId(), questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
     @Override
