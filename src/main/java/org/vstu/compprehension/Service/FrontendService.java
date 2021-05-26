@@ -56,8 +56,37 @@ public class FrontendService {
     @Autowired
     private ViolationRepository violationRepository;
 
-
     public FeedbackDto addQuestionAnswer(InteractionDto interaction) throws Exception {
+        val questionId = interaction.getQuestionId();
+        val question = questionService.getQuestion(questionId);
+        return question.isSupplementary()
+                ? addSupplementaryQuestionAnswer(interaction)
+                : addOrdinaryQuestionAnswer(interaction);
+    }
+
+    private FeedbackDto addSupplementaryQuestionAnswer(InteractionDto interaction) throws Exception {
+        val exAttemptId = interaction.getAttemptId();
+        val questionId = interaction.getQuestionId();
+        val answers = interaction.getAnswers();
+
+        val attempt = exerciseAttemptRepository.findById(exAttemptId)
+                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
+        val question = questionService.getQuestion(questionId);
+        if (!question.isSupplementary()) {
+            throw new Exception("Question with id" + questionId + " isn't supplementary");
+        }
+
+        val responses = questionService.responseQuestion(question, answers);
+        val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
+        val messages = judgeResult.violations.size() > 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", judgeResult.violations.stream().map(ViolationEntity::getId).toArray(Long[]::new)) }
+                : judgeResult.IterationsLeft == 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!") }
+                : (FeedbackDto.Message[])null;
+        return FeedbackDto.builder()
+                .messages(messages)
+                .build();
+    }
+
+    private FeedbackDto addOrdinaryQuestionAnswer(InteractionDto interaction) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
         Long questionId = interaction.getQuestionId();
         Long[][] answers = interaction.getAnswers();
@@ -67,14 +96,9 @@ public class FrontendService {
 
         // evaluate answer
         val tags = attempt.getExercise().getTags();
-        val question = questionService.getQuestion(questionId);
-        if (!question.isSupplementary()) {
-            questionService.solveQuestion(question, tags);
-        }
+        val question = questionService.getSolvedQuestion(questionId);
         val responses = questionService.responseQuestion(question, answers);
-        val judgeResult = question.isSupplementary()
-                ? questionService.judgeSupplementaryQuestion(question, responses, attempt)
-                : questionService.judgeQuestion(question, responses, tags);
+        val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
@@ -123,11 +147,7 @@ public class FrontendService {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val violations = violationRepository.findByIds(Arrays.asList(violationIds));
-        val judgeResult = new Domain.InterpretSentenceResult();
-        judgeResult.violations = violations;
-        assertFalse(violations.isEmpty());
         val violation = violations.get(0); //TODO: make normal choice
-
         val question = questionService.generateSupplementaryQuestion(violation, attempt);
         return Mapper.toDto(question);
     }
