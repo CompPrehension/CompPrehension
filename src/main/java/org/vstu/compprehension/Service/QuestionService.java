@@ -58,9 +58,9 @@ public class QuestionService {
         return question;
     }
 
-    public @Nullable Question generateSupplementaryQuestion(@NotNull ViolationEntity violation, @NotNull ExerciseAttemptEntity exerciseAttempt) {
-        val domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        val question = domain.makeSupplementaryQuestion(violation, exerciseAttempt);
+    public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation) {
+        val domain = DomainAdapter.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
+        val question = domain.makeSupplementaryQuestion(sourceQuestion, violation);
         if (question == null) {
             return null;
         }

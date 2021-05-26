@@ -173,7 +173,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttemptEntity) {
+    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
         return null;
     }
 

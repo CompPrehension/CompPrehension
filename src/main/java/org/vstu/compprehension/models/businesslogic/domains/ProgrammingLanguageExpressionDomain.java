@@ -674,16 +674,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttemptEntity) {
+    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
         HashSet<String> targetConcepts = new HashSet<>();
         String failedLaw = violation.getLawName();
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
-        if (exerciseAttemptEntity.getQuestions().isEmpty()) {
+        ExerciseAttemptEntity exerciseAttemptEntity = question.getExerciseAttempt();
+        if (exerciseAttemptEntity == null || exerciseAttemptEntity.getQuestions().isEmpty()) {
             return null;
         }
-        val question = exerciseAttemptEntity.getQuestions().get(exerciseAttemptEntity.getQuestions().size() - 1);
+
         if (question.getInteractions().isEmpty()) {
             return null;
         }
@@ -872,7 +873,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 }
 
                 answers.add(newAnswer);
-            } catch (IllegalArgumentException ex) {
+            } catch (Exception ex) {
                 // pass, this variant should not be used
             }
         }

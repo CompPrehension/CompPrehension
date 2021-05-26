@@ -210,10 +210,10 @@ public abstract class Domain {
     /**
      * Make supplementary question based on violation in last iteration
      * @param violation info about mistake
-     * @param exerciseAttemptEntity exerciseAttempt (to gain question params) TODO: explicitly get tags and laws
+     * @param sourceQuestion source question
      * @return supplementary question
      */
-    public abstract Question makeSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttemptEntity);
+    public abstract Question makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation);
 
     public abstract InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer);
 
