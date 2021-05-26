@@ -77,7 +77,7 @@ class Expression {
 
 }
 
-@SpringBootTest
+//@SpringBootTest
 class PelletBackendTest {
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
@@ -161,19 +161,19 @@ class PelletBackendTest {
         checkObjectProperty(object, objectProperty);
     }
 
-    @ParameterizedTest
+//    @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../before-test-data.json")
     public void BeforeTest(javax.json.JsonObject object) {
         checkObjectProperty(object, "before");
     }
 
-    @ParameterizedTest
+//    @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
     public void HasOperandTest(javax.json.JsonObject object) {
         checkObjectProperty(object, "ast_edge");
     }
 
-    @ParameterizedTest
+//    @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
     public void SimpleOntologyTest(javax.json.JsonObject object) {
         checkObjectProperty(object);
