@@ -396,15 +396,17 @@ public class JenaBackend extends Backend {
     }
 
     private void debug_dump_model(String name) {
-        String out_rdf_path = "c:/temp/" + name + ".n3";
-        FileOutputStream out = null;
-        try {
-            out = new FileOutputStream(out_rdf_path);
-            RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-            System.out.println("Debug written: " + out_rdf_path);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("Cannot write to file: " + out_rdf_path);
+        if (false) {
+            String out_rdf_path = "c:/temp/" + name + ".n3";
+            FileOutputStream out = null;
+            try {
+                out = new FileOutputStream(out_rdf_path);
+                RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
+                System.out.println("Debug written: " + out_rdf_path);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                System.out.println("Cannot write to file: " + out_rdf_path);
+            }
         }
     }
 

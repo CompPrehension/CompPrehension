@@ -994,6 +994,14 @@ public class ControlFlowStatementsDomain extends Domain {
         ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
         d.getQuestionTemplates();
         VOCAB.classDescendants("Erroneous");
+
+
+        JenaBackend jBack = new JenaBackend();
+        jBack.createOntology();
+        // jBack.getModel().add(VOCAB.getModel());
+        jBack.addFacts(modelToFacts(VOCAB.getModel()));
+        jBack.addFacts(QUESTIONS.get(0).getStatementFacts());
+//        jBack.debug_dump_model("question");
     }
 
     private static class AnswerDomainInfo {
