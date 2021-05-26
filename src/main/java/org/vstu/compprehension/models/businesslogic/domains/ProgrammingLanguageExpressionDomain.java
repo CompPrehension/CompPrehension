@@ -674,13 +674,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(InterpretSentenceResult interpretSentenceResult, ExerciseAttemptEntity exerciseAttemptEntity) {
-        if (interpretSentenceResult.violations.isEmpty()) {
-            return null;
-        }
-
+    public Question makeSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttemptEntity) {
         HashSet<String> targetConcepts = new HashSet<>();
-        String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
+        String failedLaw = violation.getLawName();
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
@@ -693,15 +689,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
             Question copy = makeQuestionCopy(res, exerciseAttemptEntity);
-            fillSupplementaryAnswerObjects(question, interpretSentenceResult, previousInterpretSentenceResult, copy);
-            return copy;
+            return fillSupplementaryAnswerObjects(question, violation, copy);
         }
 
         return null;
     }
 
-    void fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, InterpretSentenceResult interpretSentenceResult, InterpretSentenceResult baseInterpretSentenceResult, Question supplementaryQuestion) {
-        String failedLaw = interpretSentenceResult.violations.get(0).getLawName();
+    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, ViolationEntity violation, Question supplementaryQuestion) {
+        String failedLaw = violation.getLawName();
 
         Map<String, List<String>> before = new HashMap<>();
         MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
@@ -732,12 +727,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 samePrecedenceRightAssoc.put(fact.getSubject(), fact.getObject());
             }
         }
+
+        AnswerObjectEntity failedAnswer = null;
         for (InteractionEntity interaction : originalQuestion.getInteractions()) {
             if (interaction.getViolations() == null || interaction.getViolations().isEmpty()) {
                 for (ResponseEntity response : interaction.getResponses()) {
                     used.add(response.getLeftAnswerObject().getDomainInfo());
                 }
+            } else if (!interaction.getResponses().isEmpty()) {
+                failedAnswer = interaction.getResponses().get(0).getLeftAnswerObject();
             }
+        }
+
+        if (failedAnswer == null) {
+            return null;
         }
 
         List<BackendFactEntity> possibleViolationFacts = new ArrayList<>();
@@ -746,8 +749,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             possibleViolationFacts.add(factOriginalMistake);
         }
 
-        List<ResponseEntity> responses = baseInterpretSentenceResult.violations.get(0).getInteraction().getResponses();
-        AnswerObjectEntity failedAnswer = responses.get(responses.size() - 1).getLeftAnswerObject();
         Integer failedIndex = Integer.parseInt(indexes.get(failedAnswer.getDomainInfo()));
 
         HashMap<String, String> templates = new HashMap<>();
@@ -815,6 +816,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         StringSubstitutor stringSubstitutor = new StringSubstitutor(templates);
         stringSubstitutor.setEnableUndefinedVariableException(true);
 
+        try {
+            String text = stringSubstitutor.replace(supplementaryQuestion.getQuestionText());
+            supplementaryQuestion.getQuestionData().setQuestionText(text);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+
         List<AnswerObjectEntity> answers = new ArrayList<>();
         for (AnswerObjectEntity answer : supplementaryQuestion.getAnswerObjects()) {
             try {
@@ -862,6 +870,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         supplementaryQuestion.setAnswerObjects(answers);
         supplementaryQuestion.getQuestionData().setSolutionFacts(possibleViolationFacts);
+        return supplementaryQuestion;
     }
 
     @Override

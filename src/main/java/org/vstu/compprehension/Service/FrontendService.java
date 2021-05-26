@@ -73,7 +73,7 @@ public class FrontendService {
         }
         val responses = questionService.responseQuestion(question, answers);
         val judgeResult = question.isSupplementary()
-                ? questionService.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject(), attempt)
+                ? questionService.judgeSupplementaryQuestion(question, responses, attempt)
                 : questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
@@ -126,8 +126,9 @@ public class FrontendService {
         val judgeResult = new Domain.InterpretSentenceResult();
         judgeResult.violations = violations;
         assertFalse(violations.isEmpty());
+        val violation = violations.get(0); //TODO: make normal choice
 
-        val question = questionService.generateSupplementaryQuestion(judgeResult, attempt);
+        val question = questionService.generateSupplementaryQuestion(violation, attempt);
         return Mapper.toDto(question);
     }
 
