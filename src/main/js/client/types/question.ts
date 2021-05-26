@@ -2,6 +2,7 @@ import { MatchingQuestionOptions, MultiChoiceQuestionOptions, OrderQuestionOptio
 import * as io from 'io-ts'
 import { Feedback, OrderQuestionFeedback, TFeedback, TOrderQuestionFeedback } from "./feedback";
 import { MergeIntersectionsDeep } from "./utils";
+import { TOptionalRequestResult } from "../utils/helpers";
 
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'MATCHING' | 'ORDER'
 export const TQuestionType : io.Type<QuestionType> = io.keyof({
@@ -104,4 +105,5 @@ const TMatchingQuestion : io.Type<MatchingQuestion> = io.intersection([
 
 export type Question = OrderQuestion | SingleChoiceQuestion | MultiChoiceQuestion | MatchingQuestion
 export const TQuestion : io.Type<Question> = io.union([TOrderQuestion, TSingleChoiceQuestion, TMultiChoiceQuestion, TMatchingQuestion], 'Question')
+export const TOptionalQuestion: io.Type<Question | null | undefined | ''> = TOptionalRequestResult(TQuestion);
 

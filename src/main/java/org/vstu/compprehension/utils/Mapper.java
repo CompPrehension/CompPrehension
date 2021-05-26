@@ -2,6 +2,8 @@ package org.vstu.compprehension.utils;
 
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.OrderQuestionFeedbackDto;
@@ -24,7 +26,7 @@ import java.util.stream.Stream;
 
 public class Mapper {
 
-    public static UserInfoDto toDto(UserEntity user) {
+    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user) {
         val displayName = Stream.of(user.getFirstName(), user.getLastName())
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.joining(" "));
@@ -36,7 +38,7 @@ public class Mapper {
                 .build();
     }
 
-    public static CorrectAnswerDto toDto(Domain.CorrectAnswer correctAnswer) {
+    public static @NotNull CorrectAnswerDto toDto(@NotNull Domain.CorrectAnswer correctAnswer) {
         val frontAnswers = Optional.ofNullable(correctAnswer.answers).stream()
                 .flatMap(Collection::stream)
                 .map(pair -> List.of((long)pair.getLeft().getAnswerId(), (long)pair.getRight().getAnswerId()).toArray(new Long[2])).toArray(Long[][]::new);
@@ -46,7 +48,7 @@ public class Mapper {
                 .build();
     }
 
-    public static QuestionDto toDto(Question questionObject) {
+    public static @NotNull QuestionDto toDto(@NotNull Question questionObject) {
         val question = questionObject.getQuestionData();
 
         // calculate last interaction responses
@@ -136,7 +138,7 @@ public class Mapper {
         }
     }
 
-    public static ExerciseAttemptDto toDto(ExerciseAttemptEntity attempt) {
+    public static @NotNull ExerciseAttemptDto toDto(@NotNull ExerciseAttemptEntity attempt) {
         val questionIds = Optional.ofNullable(attempt.getQuestions()).stream()
                 .flatMap(Collection::stream)
                 .filter(q -> !q.getQuestionDomainType().contains("Supplementary"))
@@ -149,13 +151,13 @@ public class Mapper {
                 .build();
     }
 
-    public static FeedbackDto toFeedbackDto(
-            Question question,
-            InteractionEntity interaction,
-            FeedbackDto.Message[] messages,
-            Integer correctSteps,
-            Integer stepsWithErrors,
-            Long[][] correctAnswers
+    public static @NotNull FeedbackDto toFeedbackDto(
+            @NotNull Question question,
+            @NotNull InteractionEntity interaction,
+            @Nullable FeedbackDto.Message[] messages,
+            @Nullable Integer correctSteps,
+            @Nullable Integer stepsWithErrors,
+            @Nullable Long[][] correctAnswers
     ) {
         if (interaction.getQuestion().getQuestionType() == QuestionType.ORDER) {
             val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());

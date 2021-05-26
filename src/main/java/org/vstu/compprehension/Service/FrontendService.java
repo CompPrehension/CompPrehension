@@ -1,10 +1,13 @@
 package org.vstu.compprehension.Service;
 
+import com.google.common.collect.Iterables;
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ext.com.google.common.collect.Streams;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.InteractionDto;
@@ -143,13 +146,18 @@ public class FrontendService {
         return Mapper.toDto(question);
     }
 
-    public QuestionDto generateSupplementaryQuestion(Long exAttemptId, Long questionId, String[] violationLaws) throws Exception {
+    public @Nullable QuestionDto generateSupplementaryQuestion(Long exAttemptId, Long questionId, String[] violationLaws) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        val violations = violationRepository.findByLawNames(questionId, Arrays.asList(violationLaws));
-        val violation = violations.get(0); //TODO: make normal choice
-        val question = questionService.generateSupplementaryQuestion(violation, attempt);
-        return Mapper.toDto(question);
+        val question = attempt.getQuestions().stream().filter(q -> q.getId().equals(questionId)).findFirst()
+                .orElseThrow(() -> new Exception("Can't find question with id " + questionId));
+        val lastInteraction = Iterables.getLast(question.getInteractions());
+
+        val violation = new ViolationEntity(); //TODO: make normal choice
+        violation.setLawName(violationLaws[0]);
+
+        val supQuestion = questionService.generateSupplementaryQuestion(violation, attempt);
+        return supQuestion != null ? Mapper.toDto(supQuestion) : null;
     }
 
     public QuestionDto getQuestion(Long questionId) throws Exception {

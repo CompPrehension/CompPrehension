@@ -9,7 +9,12 @@ import { Alert, Badge } from "react-bootstrap";
 import { notNullOrUndefinded } from "../../utils/helpers";
 import { GenerateSupQuestion } from "./generate-sup-question";
 
-export const Question = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
+type QuestionOptions = {
+    store: QuestionStore, 
+    showExtendedFeedback: boolean,
+    onChanged?: (newHistory: [number, number][]) => void,
+}
+export const Question = observer(({ store, showExtendedFeedback, onChanged:ParentOnChanged }: QuestionOptions) => {
     const questionData = store.question;
     if (store.isQuestionLoading) {
         return <Loader />;
@@ -18,9 +23,10 @@ export const Question = observer(({ store, showExtendedFeedback }: { store: Ques
         return null;
     }    
 
-    const onChanged = (newHistory: [number, number][]) => {
+    const onChanged = async (newHistory: [number, number][]) => {
         if (store.isHistoryChanged(newHistory)) {
-            store.updateAnswersHistory(newHistory);
+            await store.updateAnswersHistory(newHistory);
+            ParentOnChanged?.(newHistory);
         }
     }
 

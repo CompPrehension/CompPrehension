@@ -12,6 +12,6 @@ import java.util.List;
 public interface ViolationRepository extends CrudRepository<ViolationEntity, Long> {
     @Query("select ve from ViolationEntity ve where ve.id in :ids")
     List<ViolationEntity> findByIds(@Param("ids") Iterable<Long> ids);
-    @Query("select ve from ViolationEntity ve where ve.interaction.question.id = :qId and ve.lawName in :lawNames")
-    List<ViolationEntity> findByLawNames(@Param("qId") Long questionId, @Param("lawNames") Iterable<String> lawNames);
+    @Query("select ve from ViolationEntity ve where ve.interaction.id = :iId and ve.lawName in :lawNames")
+    List<ViolationEntity> findByLawNames(@Param("iId") Long interactionId, @Param("lawNames") Iterable<String> lawNames);
 }

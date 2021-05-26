@@ -63,7 +63,7 @@ export class QuestionStore {
         this.isQuestionLoading = true;
         const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);            
         const data = E.getOrElseW(_ => undefined)(dataEither);
-        this.onQuestionLoaded(data); 
+        this.onQuestionLoaded(data || undefined); 
     }
 
     @action
@@ -117,18 +117,18 @@ export class QuestionStore {
     }
 
     @action 
-    onAnswersChanged = (answer: [number, number], sendAnswers: boolean = true): void => {
+    onAnswersChanged = async (answer: [number, number], sendAnswers: boolean = true): Promise<void> => {
         this.answersHistory.push(answer);
         if (sendAnswers) {
-            this.sendAnswers();
+            await this.sendAnswers();
         }
     }
 
     @action
-    updateAnswersHistory = (newHistory: [number, number][], sendAnswers: boolean = true): void => {
+    updateAnswersHistory = async (newHistory: [number, number][], sendAnswers: boolean = true): Promise<void> => {
         this.answersHistory = [ ...newHistory ];
         if (sendAnswers) {
-            this.sendAnswers();
+            await this.sendAnswers();
         }
     }
 

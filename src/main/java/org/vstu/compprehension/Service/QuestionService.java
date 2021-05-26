@@ -1,6 +1,8 @@
 package org.vstu.compprehension.Service;
 
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -56,9 +58,12 @@ public class QuestionService {
         return question;
     }
 
-    public Question generateSupplementaryQuestion(ViolationEntity violation, ExerciseAttemptEntity exerciseAttempt) {
+    public @Nullable Question generateSupplementaryQuestion(@NotNull ViolationEntity violation, @NotNull ExerciseAttemptEntity exerciseAttempt) {
         val domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         val question = domain.makeSupplementaryQuestion(violation, exerciseAttempt);
+        if (question == null) {
+            return null;
+        }
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
         return question;
