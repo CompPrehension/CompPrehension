@@ -706,6 +706,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, ViolationEntity violation, Question supplementaryQuestion) {
         String failedLaw = violation.getLawName();
+        if (!supplementaryConfig.containsKey(failedLaw)) {
+            return null;
+        }
 
         Map<String, List<String>> before = new HashMap<>();
         MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
@@ -873,7 +876,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 }
 
                 answers.add(newAnswer);
-            } catch (Exception ex) {
+            } catch (IllegalArgumentException ex) {
                 // pass, this variant should not be used
             }
         }
