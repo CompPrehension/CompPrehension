@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
@@ -29,7 +30,7 @@ public class AnswerObjectEntity {
     @Column(name = "hyperText")
     private String hyperText;
 
-    @Column(name = "domainInfo")
+    @Column(name = "domainInfo", length = 1000)
     private String domainInfo;
 
     @Column(name = "isRightCol")
@@ -39,9 +40,11 @@ public class AnswerObjectEntity {
     private String concept;
 
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "leftAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesLeft;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "rightAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesRight;
 

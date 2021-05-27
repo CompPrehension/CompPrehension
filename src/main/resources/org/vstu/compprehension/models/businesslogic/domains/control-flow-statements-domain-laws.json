@@ -1,6 +1,6 @@
 [
   {
-    "name": "rdfs_subset",
+    "name": "rdfs_subset_positive",
     "positive": true,
     "concepts": [],
     "tags": [],
@@ -22,11 +22,54 @@
       },
       {
         "name": "autogen_4",
-        "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
+        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
         "backend": "Jena"
       },
       {
         "name": "autogen_5",
+        "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_6",
+        "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "rdfs_subset_negative",
+    "positive": false,
+    "concepts": [],
+    "tags": [],
+    "formulations": [
+      {
+        "name": "autogen_7",
+        "formulation": "(?x ?p ?y), (?p rdfs:domain ?c) -> (?x rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_8",
+        "formulation": "(?x ?p ?y), (?p rdfs:range ?c) -> (?y rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_9",
+        "formulation": "(?a ?p ?b), (?p rdfs:subPropertyOf ?q) -> (?a ?q ?b) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_10",
+        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_11",
+        "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_12",
         "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
         "backend": "Jena"
       }
@@ -54,12 +97,12 @@
     "formulations": [
       {
         "name": "connect_StmtEnd",
-        "formulation": "(?st rdf:type my:stmt), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e),.",
+        "formulation": "(?st rdf:type my:stmt), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e), (?b my:StmtEnd ?e),.",
         "backend": "Jena"
       },
       {
         "name": "connect_ExprEnd",
-        "formulation": "(?st rdf:type my:expr), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e),.",
+        "formulation": "(?st rdf:type my:expr), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e), (?b my:ExprEnd ?e),.",
         "backend": "Jena"
       }
     ]
@@ -115,22 +158,22 @@
     "formulations": [
       {
         "name": "start__to__GlobalCode__rule_g4",
-        "formulation": "(?alg my:entry_point ?gc ), (?gc rdf:type my:sequence ), (?b my:begin_of ?gc), -> (?alg my:always_consequent ?b),.",
+        "formulation": "(?alg my:entry_point ?gc ), (?gc rdf:type my:sequence ), (?b my:begin_of ?gc), -> (?alg my:always_consequent ?b), (?alg my:GlobalCodeBegin ?b),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceBegin_rule_g2",
-        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2),.",
+        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceNext",
-        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), -> (?e my:always_consequent ?b),.",
+        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), -> (?e my:always_consequent ?b), (?e my:SequenceNext ?b),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceEnd",
-        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), -> (?e1 my:always_consequent ?e),.",
+        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e),.",
         "backend": "Jena"
       }
     ]
@@ -166,32 +209,32 @@
     "formulations": [
       {
         "name": "connect_AltBegin",
-        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2),.",
+        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltBranchBegin_CondTrue",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), -> (?e my:on_true_consequent ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), -> (?e my:on_true_consequent ?b), (?e my:AltBranchBegin ?b),.",
         "backend": "Jena"
       },
       {
         "name": "connect_NextAltCondition",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), -> (?e my:on_false_consequent ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltElseBranch",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), -> (?e my:on_false_consequent ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), -> (?e my:on_false_consequent ?b), (?e my:AltElseBranchBegin ?b),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltEndAllFalse",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), -> (?e1 my:on_false_consequent ?e),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltEndAfterBranch",
-        "formulation": "(?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?br), -> (?e1 my:always_consequent ?e),.",
+        "formulation": "(?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?br), -> (?e1 my:always_consequent ?e), (?e1 my:AltEndAfterBranch ?e),.",
         "backend": "Jena"
       }
     ]
@@ -215,83 +258,36 @@
         "name": "cond_then_body"
       },
       {
-        "name": "pre_update_loop"
-      },
-      {
         "name": "conditional_loop"
       },
       {
-        "name": "NormalLoopEnd"
-      },
-      {
         "name": "body_then_cond"
-      },
-      {
-        "name": "start_with_init"
-      },
-      {
-        "name": "post_update_loop"
       }
     ],
     "formulations": [
       {
         "name": "connect_LoopBegin-cond",
-        "formulation": "(?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?b my:begin_of ?Loop), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2),.",
+        "formulation": "(?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?b my:begin_of ?Loop), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2), (?b my:PreCondLoopBegin ?b2),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopBegin-body",
-        "formulation": "(?Loop rdf:type my:start_with_body), (?Loop my:body ?st), (?b my:begin_of ?Loop), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2),.",
+        "formulation": "(?Loop rdf:type my:start_with_body), (?Loop my:body ?st), (?b my:begin_of ?Loop), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:PostCondLoopBegin ?b2),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopCond1-BodyBegin",
-        "formulation": "(?Loop rdf:type my:cond_then_body), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?e my:end_of ?cnd), (?b my:begin_of ?st), -> (?e my:on_true_consequent ?b),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopCond1-update",
-        "formulation": "(?Loop rdf:type my:pre_update_loop), (?Loop my:cond ?cnd), (?Loop my:update ?upd), (?e my:end_of ?cnd), (?b my:begin_of ?upd), -> (?e my:on_true_consequent ?b),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopUpdate-body",
-        "formulation": "(?Loop rdf:type my:pre_update_loop), (?Loop my:update ?upd), (?Loop my:body ?st), (?e my:end_of ?upd), (?b my:begin_of ?st), -> (?e my:always_consequent ?b),.",
+        "formulation": "(?Loop rdf:type my:cond_then_body), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?e my:end_of ?cnd), (?b my:begin_of ?st), -> (?e my:on_true_consequent ?b), (?e my:IterationBeginOnTrueCond ?b),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopCond0-LoopEnd",
-        "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e my:end_of ?Loop), (?e1 my:end_of ?cnd), -> (?e1 my:on_false_consequent ?e),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopCond0-LoopEnd-expl",
-        "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e1 my:end_of ?cnd), (?e2 my:end_of ?Loop), makeSkolem(?trs, ?e1, \"on_false_consequent\", ?e2) -> (?e1 my:on_false_consequent ?e2), (?trs rdf:type rdf:Statement), (?trs rdf:subject ?e1), (?trs rdf:predicate my:on_false_consequent), (?trs rdf:object ?e2), (?trs rdf:type my:NormalLoopEnd),.",
+        "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e my:end_of ?Loop), (?e1 my:end_of ?cnd), -> (?e1 my:on_false_consequent ?e), (?e1 my:LoopEndOnFalseCond ?e),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopBody-cond",
-        "formulation": "(?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopBegin-init",
-        "formulation": "(?Loop rdf:type my:start_with_init), (?Loop my:init ?st), (?b my:begin_of ?Loop), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopInit-cond",
-        "formulation": "(?Loop rdf:type my:start_with_init), (?Loop my:init ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopBody-update",
-        "formulation": "(?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?e my:end_of ?st), (?b my:begin_of ?upd), -> (?e my:always_consequent ?b),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "connect_LoopUpdate-cond",
-        "formulation": "(?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?e my:end_of ?upd), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b),.",
+        "formulation": "(?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterIteration ?b),.",
         "backend": "Jena"
       }
     ]
@@ -316,6 +312,9 @@
       },
       {
         "name": "act_end"
+      },
+      {
+        "name": "Erroneous"
       }
     ],
     "formulations": [
@@ -352,6 +351,11 @@
       {
         "name": "executes_id-to-executes-end",
         "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_end), (?bnd my:end_of ?st), -> (?a my:executes ?bnd).",
+        "backend": "Jena"
+      },
+      {
+        "name": "Erroneous-class-to-wrong_next_act",
+        "formulation": "(?b rdf:type my:Erroneous), (?a my:student_next ?b), -> (?a my:wrong_next_act ?b).",
         "backend": "Jena"
       }
     ]
@@ -552,22 +556,22 @@
         "backend": "Jena"
       },
       {
-        "name": "autogen_6",
+        "name": "autogen_13",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_7",
+        "name": "autogen_14",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_corresponding_end ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_8",
+        "name": "autogen_15",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?par_e), -> (?par_e my:gathered_child_exec_till ?par_e), drop(0).",
         "backend": "Jena"
       },
       {
-        "name": "autogen_9",
+        "name": "autogen_16",
         "formulation": "(?child_act my:gathered_child_exec_till ?par_e), (?par_b my:gather_child_exec_till ?par_e), (?child_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), -> drop(0).",
         "backend": "Jena"
       },

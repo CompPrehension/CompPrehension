@@ -1,7 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 
-import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.*;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
@@ -14,15 +14,18 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.VCARD;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.StringWriter;
 import java.util.*;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Primary
@@ -35,23 +38,47 @@ public class JenaBackend extends Backend {
     OntModel model;
     ArrayList<Rule> domainRules = new ArrayList<>();
 
+/*
     String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     String RDFS = "http://www.w3.org/2000/01/rdf-schema#";
-    // use also    model.getNsPrefixURI("owl")   and so to get a standard prefix
+*/
+    // use also    model.getNsPrefixURI("owl")   to get a standard prefix
 
 
-    void createOntology() {
-        createOntology("http://www.test/test.owl");
+    public void createOntology() {
+        createOntology("http://vstu.ru/poas/code");
+        //// createOntology("http://www.test/test.owl");
     }
-    void createOntology(String base) {
+    public void createOntology(String base) {
 
         baseIRIPrefix = base + "#";
         PrintUtil.registerPrefix("my", baseIRIPrefix); //?
+        PrintUtil.registerPrefix("skos", "http://www.w3.org/2004/02/skos/core"); //?
 
         model = ModelFactory.createOntologyModel(OWL_MEM);  // createDefaultModel();
+        model.setNsPrefix("my", base);
+        model.setNsPrefix("skos", "http://www.w3.org/2004/02/skos/core#");
+        //                                  http://www.w3.org/2004/02/skos/core#Concept
+
+        // polyfill some RDF/OWL entries
+        model.createObjectProperty(RDF.type.getURI());  // already here by default?
+        model.createObjectProperty(RDFS.subClassOf.getURI());  // already here by default?
+        model.createObjectProperty(RDFS.subPropertyOf.getURI());  // already here by default?
+//        model.createProperty(RDF.Property.getURI());
+        model.createProperty(OWL.DatatypeProperty.getURI());
+        model.createProperty(OWL.ObjectProperty.getURI());
+        model.createProperty(OWL.FunctionalProperty.getURI());
+        model.createProperty(OWL.InverseFunctionalProperty.getURI());
+        model.createProperty(OWL.TransitiveProperty.getURI());
+        model.createClass(OWL.Class.getURI());  // already here by default?
 
         domainRules.clear();
     }
+
+    public OntModel getModel() {
+        return model;
+    }
+
 
 //    static void runReasoning(String in_rdf_url, String rules_path, String out_rdf_path) {
 //        // Register a namespace for use in the rules
@@ -87,29 +114,43 @@ public class JenaBackend extends Backend {
 //    }
 
     public OntClass getThingClass() {
-        return model.createClass(model.getNsPrefixURI("owl") + "Thing");
+        return model.createClass(OWL.Thing.getURI());
     }
 
-    void addOWLLawFormulation(String name, String type) {
+    Resource addOWLLawFormulation(String name, String type) {
 //        // debug
 //        System.out.println("addOWLLawFormulation( name: " + name + ", type: " + type + " )");
 
-        if (type.equals("owl:NamedIndividual")) {
-            model.createIndividual(baseIRIPrefix + name, getThingClass());
-        } else if (type.equals("owl:ObjectProperty")) {
-            model.createObjectProperty(baseIRIPrefix + name);
-        } else if (type.equals("owl:DatatypeProperty")) {
-            model.createDatatypeProperty(baseIRIPrefix + name);
-        } else if (type.equals("owl:Class")) {
-            model.createClass(baseIRIPrefix + name);
-        } else {
-            throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulations: unknown type: " + type);
+        switch (type) {
+            case "owl:NamedIndividual":
+                return model.createIndividual(termToUri(name), getThingClass());
+            case "owl:ObjectProperty":
+                return model.createObjectProperty(termToUri(name));
+            case "owl:TransitiveProperty":
+                return model.createTransitiveProperty(termToUri(name));
+            case "owl:FunctionalProperty":
+                return model.createProperty(termToUri(name));
+            case "owl:InverseFunctionalProperty":
+                return model.createInverseFunctionalProperty(termToUri(name));
+            case "owl:DatatypeProperty":
+                return model.createDatatypeProperty(termToUri(name));
+            case "owl:Class":
+                return model.createClass(termToUri(name));
+            case "":
+                // empty type - create ordinal resource
+                return model.createResource(termToUri(name));
+            default:
+                throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulation: unknown type: " + type);
         }
     }
 
     void addLaw(Law law) {
         assert law != null;
+
         for (LawFormulation lawFormulation : law.getFormulations()) {
+//        /// debug
+//            System.out.println("addLaw() : " + lawFormulation.getName());
+
             if (lawFormulation.getBackend().equals("OWL")) {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             } else if (lawFormulation.getBackend().equals(BACKEND_TYPE)) {
@@ -128,58 +169,85 @@ public class JenaBackend extends Backend {
 
     void addStatementFact(BackendFactEntity fact) {
         assert fact != null;
-        assert fact.getVerb() != null;
-
-        if (fact.getVerb().equals("rdf:type")) {
-            try {
-                addOWLLawFormulation(fact.getSubject(), fact.getObject());
-                return;
-            } catch (UnsupportedOperationException exception) {
-                // continue
-            }
-        }
 
         String subj = fact.getSubject();
         String prop = fact.getVerb();
         String obj = fact.getObject();
+        String objType = fact.getObjectType();
+        assert prop != null;
+
 //        // debug
 //        System.out.println("addStatementFact( subj: " + subj + ", prop: " + prop + ", obj: " + obj + " )");
-        String objType = fact.getObjectType();
 
-//        Individual ind = model.getIndividual(baseIRIPrefix + subj);
-        // retrieve or create
-        Individual ind = model.createIndividual(baseIRIPrefix + subj, getThingClass());
+        // TODO: save this info somehow?
+        if (prop.startsWith("not-for-reasoner:") || objType.equals("List<boolean>")) {
+            // ignore this fact (as it's not for the reasoner)
+            return;
+        }
+
+        OntResource ind = addOWLLawFormulation(subj, fact.getSubjectType()).as(OntResource.class);
+//        if (fact.getSubjectType().equals("owl:NamedIndividual")) {
+//            ind = model.createIndividual(termToUri(subj), getThingClass());
+//        } else if (fact.getSubjectType().equals("owl:Class")) {
+//            ind = model.createClass(termToUri(subj));
+//        } else {
+//            ind = model.createOntResource(termToUri(subj));
+//        }
         assert ind != null;
 
-        if (objType.equals("owl:NamedIndividual")) {
-            ObjectProperty p = model.createObjectProperty(baseIRIPrefix + prop);
-            model.add(ind, p, model.createOntResource(baseIRIPrefix + obj));
-        } else if (objType.equals("owl:Class")) {
-            if (prop.equals("rdf:type")) {
-            model.createIndividual(ind.getURI(), model.createClass(baseIRIPrefix + obj));
-            } else {
-                ObjectProperty p = model.createObjectProperty((baseIRIPrefix + prop));
-                model.add(ind, p, model.createClass(baseIRIPrefix + obj));
+        if (objType.startsWith("xsd:")) {
+            // datatype relation
+            switch (objType) {
+                case "xsd:int":
+                case "xsd:integer": {
+                    DatatypeProperty p = model.createDatatypeProperty(termToUri(prop));
+                    model.addLiteral(ind, p, Integer.parseInt(obj));
+                    break;
+                }
+                case "xsd:string": {
+                    DatatypeProperty p = model.createDatatypeProperty(termToUri(prop));
+                    model.add(ind, p, obj);
+                    break;
+                }
+                case "xsd:boolean": {
+                    DatatypeProperty p = model.createDatatypeProperty(termToUri(prop));
+                    model.addLiteral(ind, p, Boolean.parseBoolean(obj));
+                    break;
+                }
+                case "xsd:double": {
+                    DatatypeProperty p = model.createDatatypeProperty(termToUri(prop));
+                    model.addLiteral(ind, p, Double.parseDouble(obj));
+                    break;
+                }
+                case "xsd:float": {
+                    DatatypeProperty p = model.createDatatypeProperty(termToUri(prop));
+                    model.addLiteral(ind, p, Float.parseFloat(obj));
+                    break;
+                }
+                default:
+                    throw new UnsupportedOperationException("JenaBackend.addStatementFact(): unknown datatype in objectType: " + objType);
             }
-        } else if (objType.equals("xsd:int") || objType.equals("xsd:integer")) {
-            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
-            model.addLiteral(ind, p, Integer.parseInt(obj));
-        } else if (objType.equals("xsd:string")) {
-            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
-            model.add(ind, p, obj);
-        } else if (objType.equals("xsd:boolean")) {
-            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
-            model.addLiteral(ind, p, Boolean.parseBoolean(obj));
-        } else if (objType.equals("xsd:double")) {
-            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
-            model.addLiteral(ind, p, Double.parseDouble(obj));
-        } else if (objType.equals("xsd:float")) {
-            DatatypeProperty p = model.createDatatypeProperty(baseIRIPrefix + prop);
-            model.addLiteral(ind, p, Float.parseFloat(obj));
-        } else if (prop.startsWith("not-for-reasoner:") || objType.equals("List<boolean>")) {
-            // ignore this fact (as it's not for the reasoner)
         } else {
-            throw new UnsupportedOperationException("JenaBackend.addStatementFact: unknown objectType: " + objType);
+            // object relation
+            if (prop.equals("rdf:type")) {
+                try {
+                    addOWLLawFormulation(fact.getSubject(), fact.getObject());
+                    return;
+                } catch (UnsupportedOperationException exception) {
+                    // continue if not a basic OWL assertion
+                }
+            }
+            if (objType.equals("owl:NamedIndividual")) {
+                ObjectProperty p = model.createObjectProperty(termToUri(prop));
+                model.add(ind, p, model.createIndividual(termToUri(obj), OWL.Thing));
+
+            } else if (objType.equals("owl:Class") && prop.equals("rdf:type")) {
+                    model.createIndividual(ind.getURI(), model.createClass(termToUri(obj)));
+            } else {
+                // common case
+                Property p = model.createProperty((termToUri(prop)));
+                model.add(ind, p, model.createOntResource(termToUri(obj)));
+            }
         }
     }
 
@@ -194,33 +262,92 @@ public class JenaBackend extends Backend {
 
         long estimatedTime = System.nanoTime() - startTime;
         // print time report. TODO: remove the print
-        System.out.println("Time Jena spent on reasoning: " + String.valueOf((float) (estimatedTime / 1000 / 1000) / 1000) + " seconds.");
+        System.out.println("Time Jena spent on reasoning: " + String.valueOf((float) (estimatedTime / 1000) / 1000 / 1000) + " seconds.");
 
         // use the inferred results (inf) ...
         model.add( inf );
     }
 
-    String convertDatatype(String jenaType) {
-        String[] typeParts = jenaType.split("\\.|]");
+    private String convertDatatype(String jenaType) {
+        String[] typeParts = jenaType.split("[.\\]]");
         return "xsd:" + typeParts[typeParts.length-1].toLowerCase();
     }
 
-    public List<BackendFactEntity> getPropertyRelations(Property property) {
+    /** Expand simple name as local, prefixed name as special */
+    private String termToUri(String s) {
+        String uri;
+        if (s.startsWith("http://")) {
+            uri = s;
+        }
+        else {
+            uri = model.expandPrefix(s);
+            if (uri.equals(s)) {
+                // not a standard name
+                uri = baseIRIPrefix + s;
+            }
+        }
+
+        ///
+        // if (s.contains(":"))
+        //     System.out.println("termToUri: " + s + " -> " + uri);
+        ///
+        return uri;
+    }
+
+    /** Returns local name or prefixed special name */
+    private String uriToTerm(String uri) {
+        String s = uri.replace(baseIRIPrefix, "");
+        if (s.equals(uri)) {
+            // not a local name
+            s = model.qnameFor(uri);
+            if (s == null) {
+                // no qName available
+                s = uri;
+            }
+        }
+
+        ///
+        // System.out.println("uriToTerm: " + uri + " -> " + s);
+        ///
+        return s;
+    }
+
+    private List<BackendFactEntity> getPropertyRelations(Property property) {
         List<BackendFactEntity> facts = new ArrayList<>();
 
         boolean isObjectProp = property instanceof ObjectProperty;
+
         String objType = isObjectProp ? "owl:NamedIndividual" : null;
-        String propName = property.getLocalName();
+        String subjType = null;
+        String propName = uriToTerm(property.getURI());
 
         StmtIterator it = model.listStatements(null, property, (RDFNode) null);
         while (it.hasNext()) {
             Statement stmt = it.next();
 
+            Resource subjResource = stmt.getSubject().asResource();
+            if (subjResource.hasProperty(RDF.type, OWL.Class))
+                subjType = "owl:Class";
+            else if (subjResource.hasProperty(RDF.type, RDF.Property))
+                subjType = "rdf:Property";
+            else
+                subjType = "owl:NamedIndividual";
+
+
             RDFNode objNode = stmt.getObject();
             String obj;
 
             if (isObjectProp) {
-                obj = objNode.asResource().getLocalName();
+                Resource resource = objNode.asResource();
+                obj = uriToTerm(resource.getURI());
+
+                if (resource.hasProperty(RDF.type, OWL.Class))
+                    objType = "owl:Class";
+                else if (resource.hasProperty(RDF.type, RDF.Property))
+                    objType = "rdf:Property";
+                else
+                    objType = "owl:NamedIndividual";
+
             } else {
                 if (objType == null) {
                     RDFDatatype dt = objNode.asLiteral().getDatatype();
@@ -230,8 +357,8 @@ public class JenaBackend extends Backend {
             }
 
             facts.add(new BackendFactEntity(
-                    "owl:NamedIndividual",
-                    stmt.getSubject().getLocalName(),
+                    subjType,
+                    uriToTerm(subjResource.getURI()),
                     propName,
                     objType,
                     obj
@@ -240,32 +367,49 @@ public class JenaBackend extends Backend {
         return facts;
     }
 
-    List<BackendFactEntity> getFacts(List<String> verbs) {
+    public List<BackendFactEntity> getFacts(List<String> verbs) {
 
         List<BackendFactEntity> result = new ArrayList<>();
 
-        ExtendedIterator<OntProperty> props = model.listAllOntProperties();  // try listAllOntProperties if incomplete
-        while (props.hasNext()) {
-            Property p = props.next();
-            String propName = p.getLocalName();
-            if (verbs.contains(propName)) {
-                List<BackendFactEntity> verbFacts = getPropertyRelations(p);
-                result.addAll(verbFacts);
+        for (String verb : verbs) {
+
+            // find property by verb name
+            OntProperty p;
+
+            String uri = termToUri(verb);
+            OntResource resource = model.getOntResource(uri);
+            if (resource == null) {
+                System.out.println("JenaBack.getFacts() WARNING: Cannot find resource for verb: " + verb);
+                continue;
             }
+            try {
+                p = resource.asProperty();
+            } catch (ConversionException exception) {
+                System.out.println("JenaBack.getFacts() WARNING: Cannot find property for verb: " + verb);
+                continue;
+            }
+
+            ///
+//            System.out.println("get relations of prop: " + p.getURI());
+            ///
+            List<BackendFactEntity> verbFacts = getPropertyRelations(p);
+            result.addAll(verbFacts);
         }
         return result;
     }
 
     private void debug_dump_model(String name) {
-        String out_rdf_path = "c:/temp/" + name + ".n3";
-        FileOutputStream out = null;
-        try {
-            out = new FileOutputStream(out_rdf_path);
-            RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-            System.out.println("Debug written: " + out_rdf_path);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("Cannot write to file: " + out_rdf_path);
+        if (false) {
+            String out_rdf_path = "c:/temp/" + name + ".n3";
+            FileOutputStream out = null;
+            try {
+                out = new FileOutputStream(out_rdf_path);
+                RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
+                System.out.println("Debug written: " + out_rdf_path);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                System.out.println("Cannot write to file: " + out_rdf_path);
+            }
         }
     }
 
@@ -276,13 +420,21 @@ public class JenaBackend extends Backend {
             addLaw(law);
         }
 
-        for (BackendFactEntity fact : statement) {
-            addStatementFact(fact);
-        }
+        addFacts(statement);
+
+        debug_dump_model("solve");
 
         callReasoner();
 
+        debug_dump_model("solved");
+
         return getFacts(solutionVerbs);
+    }
+
+    public void addFacts(List<BackendFactEntity> facts) {
+        for (BackendFactEntity fact : facts) {
+            addStatementFact(fact);
+        }
     }
 
     @Override
@@ -293,17 +445,15 @@ public class JenaBackend extends Backend {
             addLaw(law);
         }
 
-        for (BackendFactEntity fact : statement) {
-            addStatementFact(fact);
-        }
-        for (BackendFactEntity fact : response) {
-            addStatementFact(fact);
-        }
-        for (BackendFactEntity fact : correctAnswer) {
-            addStatementFact(fact);
-        }
+        addFacts(statement);
+        addFacts(response);
+        addFacts(correctAnswer);
+
+        debug_dump_model("judge");
 
         callReasoner();
+
+        debug_dump_model("judged");
 
         return getFacts(violationVerbs);
     }
@@ -329,6 +479,7 @@ public class JenaBackend extends Backend {
         JenaBackend b = new JenaBackend();
         b.createOntology();
         b.getFacts(new ArrayList<>());
+        String uri = b.model.expandPrefix("type");
     }
 
     public static void main(String ... args) {

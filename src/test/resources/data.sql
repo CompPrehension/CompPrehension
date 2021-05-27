@@ -1,7 +1,7 @@
 INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ProgrammingLanguageExpressionDomain');
 INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ControlFlowStatementsDomain');
 
-INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'test', 'test');
+INSERT INTO `course` (`id`, `description`, `name`) VALUES (1, 'тест', 'тест');
 
 INSERT INTO `backend` (`id`, `name`) VALUES (1, 'test');
 
@@ -21,7 +21,7 @@ INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language
 VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'type');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
-VALUES (10, 1, 1, 0, 1, '10', 'test', 8, 1, 1, 1, 'ControlFlowStatementsDomain', 'C++');
+VALUES (10, 1, 1, 0, 1, '10', 'test', 8, 1, 1, 1, 'ControlFlowStatementsDomain', 'trace,mistake,entry_point,sequence,alternative,loop,stmt,expr,helper,C++');
 
 INSERT INTO `user` (`id`, `email`, `first_name`, `last_name`, `login`, `password`, `preferred_language`)
 VALUES (1, 'test', 'test', 'test', 'test', 'test', 0);

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import lombok.ToString;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.entities.EnumData.Complexity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
@@ -63,6 +64,7 @@ public class ExerciseEntity {
     private Language language;
 
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;

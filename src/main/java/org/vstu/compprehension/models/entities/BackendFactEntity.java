@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 
@@ -28,6 +29,7 @@ public class BackendFactEntity {
     @Column(name = "verb")
     private String verb;
 
+    @ToString.Exclude
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "BackendFact_id")
     private QuestionEntity question;
