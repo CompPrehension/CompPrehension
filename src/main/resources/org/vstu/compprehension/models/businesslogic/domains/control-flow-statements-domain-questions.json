@@ -11,7 +11,7 @@
         {
           "answerId": 0,
           "hyperText": "begin program",
-          "domainInfo": "started:3:program began",
+          "domainInfo": "started:3:<span class=\"program\">program</span> <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -20,7 +20,7 @@
         {
           "answerId": 1,
           "hyperText": "end program",
-          "domainInfo": "finished:3:program ended",
+          "domainInfo": "finished:3:<span class=\"program\">program</span> <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -29,7 +29,7 @@
         {
           "answerId": 2,
           "hyperText": "execute statement 'do_one()'",
-          "domainInfo": "performed:4:statement 'do_one()' executed",
+          "domainInfo": "performed:4:<span class=\"action\">statement</span> '<span class=\"variable\">do_one</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -38,7 +38,7 @@
         {
           "answerId": 3,
           "hyperText": "execute statement 'do_two()'",
-          "domainInfo": "performed:5:statement 'do_two()' executed",
+          "domainInfo": "performed:5:<span class=\"action\">statement</span> '<span class=\"variable\">do_two</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -47,7 +47,7 @@
         {
           "answerId": 4,
           "hyperText": "execute statement 'do_three()'",
-          "domainInfo": "performed:6:statement 'do_three()' executed",
+          "domainInfo": "performed:6:<span class=\"action\">statement</span> '<span class=\"variable\">do_three</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -114,20 +114,6 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "3_global_code",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "global_code"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "3_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 3
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "3_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "4_do_one"
@@ -145,6 +131,20 @@
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "6_do_three"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "global_code"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "3_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 3
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -191,9 +191,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "5_do_two"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -205,16 +205,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 4
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "4_do_one",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "5_do_two"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 4
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -254,9 +254,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "6_do_three"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -268,16 +268,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 5
+          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "5_do_two",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "6_do_three"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 5
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -324,16 +324,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_do_three",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "do_three()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "6_do_three",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "do_three()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -394,7 +394,7 @@
         {
           "answerId": 0,
           "hyperText": "evaluate condition '(not_green)'",
-          "domainInfo": "performed:10:condition '(not_green)' evaluated",
+          "domainInfo": "performed:10:<span class=\"struct\">condition</span> '(<span class=\"variable\">not_green</span>)' <span class=\"keyword\">evaluated</span>",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -403,7 +403,7 @@
         {
           "answerId": 1,
           "hyperText": "begin alternative 'over_color'",
-          "domainInfo": "started:11:alternative 'over_color' began",
+          "domainInfo": "started:11:<span class=\"struct\">alternative</span> '<span class=\"variable\">over_color</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "alternative",
           "responsesLeft": [],
@@ -412,7 +412,7 @@
         {
           "answerId": 2,
           "hyperText": "end alternative 'over_color'",
-          "domainInfo": "finished:11:alternative 'over_color' ended",
+          "domainInfo": "finished:11:<span class=\"struct\">alternative</span> '<span class=\"variable\">over_color</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "alternative",
           "responsesLeft": [],
@@ -421,7 +421,7 @@
         {
           "answerId": 3,
           "hyperText": "begin IF branch with condition 'red'",
-          "domainInfo": "started:12:IF branch with condition 'red' began",
+          "domainInfo": "started:12:<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "if",
           "responsesLeft": [],
@@ -430,7 +430,7 @@
         {
           "answerId": 4,
           "hyperText": "end IF branch with condition 'red'",
-          "domainInfo": "finished:12:IF branch with condition 'red' ended",
+          "domainInfo": "finished:12:<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "if",
           "responsesLeft": [],
@@ -439,7 +439,7 @@
         {
           "answerId": 5,
           "hyperText": "evaluate condition 'red'",
-          "domainInfo": "performed:13:condition 'red' evaluated",
+          "domainInfo": "performed:13:<span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">evaluated</span>",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -448,7 +448,7 @@
         {
           "answerId": 6,
           "hyperText": "execute statement 'wait()'",
-          "domainInfo": "performed:14:statement 'wait()' executed",
+          "domainInfo": "performed:14:<span class=\"action\">statement</span> '<span class=\"variable\">wait</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -457,7 +457,7 @@
         {
           "answerId": 7,
           "hyperText": "begin ELSE-IF branch with condition 'yellow'",
-          "domainInfo": "started:15:ELSE-IF branch with condition 'yellow' began",
+          "domainInfo": "started:15:<span class=\"keyword\">ELSE</span>-<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">yellow</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "else-if",
           "responsesLeft": [],
@@ -466,7 +466,7 @@
         {
           "answerId": 8,
           "hyperText": "end ELSE-IF branch with condition 'yellow'",
-          "domainInfo": "finished:15:ELSE-IF branch with condition 'yellow' ended",
+          "domainInfo": "finished:15:<span class=\"keyword\">ELSE</span>-<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">yellow</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "else-if",
           "responsesLeft": [],
@@ -475,7 +475,7 @@
         {
           "answerId": 9,
           "hyperText": "evaluate condition 'yellow'",
-          "domainInfo": "performed:16:condition 'yellow' evaluated",
+          "domainInfo": "performed:16:<span class=\"struct\">condition</span> '<span class=\"variable\">yellow</span>' <span class=\"keyword\">evaluated</span>",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -484,7 +484,7 @@
         {
           "answerId": 10,
           "hyperText": "execute statement 'get_ready()'",
-          "domainInfo": "performed:17:statement 'get_ready()' executed",
+          "domainInfo": "performed:17:<span class=\"action\">statement</span> '<span class=\"variable\">get_ready</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -493,7 +493,7 @@
         {
           "answerId": 11,
           "hyperText": "begin iteration of loop 'waiting'",
-          "domainInfo": "started:18:iteration of loop 'waiting' began",
+          "domainInfo": "started:18:<span class=\"struct\">iteration</span> <span class=\"struct\">of</span> <span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -502,7 +502,7 @@
         {
           "answerId": 12,
           "hyperText": "end iteration of loop 'waiting'",
-          "domainInfo": "finished:18:iteration of loop 'waiting' ended",
+          "domainInfo": "finished:18:<span class=\"struct\">iteration</span> <span class=\"struct\">of</span> <span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -511,7 +511,7 @@
         {
           "answerId": 13,
           "hyperText": "begin program",
-          "domainInfo": "started:8:program began",
+          "domainInfo": "started:8:<span class=\"program\">program</span> <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -520,7 +520,7 @@
         {
           "answerId": 14,
           "hyperText": "end program",
-          "domainInfo": "finished:8:program ended",
+          "domainInfo": "finished:8:<span class=\"program\">program</span> <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -529,7 +529,7 @@
         {
           "answerId": 15,
           "hyperText": "begin loop 'waiting'",
-          "domainInfo": "started:9:loop 'waiting' began",
+          "domainInfo": "started:9:<span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "while_loop",
           "responsesLeft": [],
@@ -538,7 +538,7 @@
         {
           "answerId": 16,
           "hyperText": "end loop 'waiting'",
-          "domainInfo": "finished:9:loop 'waiting' ended",
+          "domainInfo": "finished:9:<span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "while_loop",
           "responsesLeft": [],
@@ -605,6 +605,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "8_global_code",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "9_waiting"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "8_global_code",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "global_code"
@@ -615,13 +622,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 8
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "8_global_code",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "9_waiting"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -675,16 +675,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 9
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "10_not_green"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 9
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -696,9 +696,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "9_waiting",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "10_not_green"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -801,6 +801,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "18_waiting_loop_body",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "11_over_color"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "18_waiting_loop_body",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "waiting_loop_body"
@@ -811,13 +818,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 18
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "18_waiting_loop_body",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "11_over_color"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -871,23 +871,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "11_over_color",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "11_over_color",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "over_color"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "11_over_color",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 11
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -902,6 +888,20 @@
           "verb": "branches_item",
           "objectType": "owl:NamedIndividual",
           "object": "15_elseif-yellow"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_over_color",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "11_over_color",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 11
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -955,9 +955,30 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "12_if-red",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "13_red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_if-red",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 12
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_if-red",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "if-red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "12_if-red",
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "15_elseif-yellow"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -972,27 +993,6 @@
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_if-red",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "15_elseif-yellow"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_if-red",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "13_red"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "12_if-red",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "if-red"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1095,16 +1095,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "14_wait",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "wait()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "14_wait",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "wait()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1165,16 +1165,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 15
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "16_yellow"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "17_get_ready"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 15
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1186,9 +1186,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "15_elseif-yellow",
-          "verb": "cond",
+          "verb": "body_item",
           "objectType": "owl:NamedIndividual",
-          "object": "16_yellow"
+          "object": "17_get_ready"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1298,16 +1298,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_get_ready",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "get_ready()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "17_get_ready",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "get_ready()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1373,7 +1373,7 @@
         {
           "answerId": 0,
           "hyperText": "begin program",
-          "domainInfo": "started:20:program began",
+          "domainInfo": "started:20:<span class=\"program\">program</span> <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -1382,7 +1382,7 @@
         {
           "answerId": 1,
           "hyperText": "end program",
-          "domainInfo": "finished:20:program ended",
+          "domainInfo": "finished:20:<span class=\"program\">program</span> <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -1391,7 +1391,7 @@
         {
           "answerId": 2,
           "hyperText": "begin alternative 'over_color'",
-          "domainInfo": "started:21:alternative 'over_color' began",
+          "domainInfo": "started:21:<span class=\"struct\">alternative</span> '<span class=\"variable\">over_color</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "alternative",
           "responsesLeft": [],
@@ -1400,7 +1400,7 @@
         {
           "answerId": 3,
           "hyperText": "end alternative 'over_color'",
-          "domainInfo": "finished:21:alternative 'over_color' ended",
+          "domainInfo": "finished:21:<span class=\"struct\">alternative</span> '<span class=\"variable\">over_color</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "alternative",
           "responsesLeft": [],
@@ -1409,7 +1409,7 @@
         {
           "answerId": 4,
           "hyperText": "begin IF branch with condition 'red'",
-          "domainInfo": "started:22:IF branch with condition 'red' began",
+          "domainInfo": "started:22:<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "if",
           "responsesLeft": [],
@@ -1418,7 +1418,7 @@
         {
           "answerId": 5,
           "hyperText": "end IF branch with condition 'red'",
-          "domainInfo": "finished:22:IF branch with condition 'red' ended",
+          "domainInfo": "finished:22:<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "if",
           "responsesLeft": [],
@@ -1427,7 +1427,7 @@
         {
           "answerId": 6,
           "hyperText": "evaluate condition 'red'",
-          "domainInfo": "performed:23:condition 'red' evaluated",
+          "domainInfo": "performed:23:<span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">evaluated</span>",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -1436,7 +1436,7 @@
         {
           "answerId": 7,
           "hyperText": "execute statement 'wait()'",
-          "domainInfo": "performed:24:statement 'wait()' executed",
+          "domainInfo": "performed:24:<span class=\"action\">statement</span> '<span class=\"variable\">wait</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -1445,7 +1445,7 @@
         {
           "answerId": 8,
           "hyperText": "begin ELSE-IF branch with condition 'green'",
-          "domainInfo": "started:25:ELSE-IF branch with condition 'green' began",
+          "domainInfo": "started:25:<span class=\"keyword\">ELSE</span>-<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">green</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "else-if",
           "responsesLeft": [],
@@ -1454,7 +1454,7 @@
         {
           "answerId": 9,
           "hyperText": "end ELSE-IF branch with condition 'green'",
-          "domainInfo": "finished:25:ELSE-IF branch with condition 'green' ended",
+          "domainInfo": "finished:25:<span class=\"keyword\">ELSE</span>-<span class=\"keyword\">IF</span> <span class=\"struct\">branch</span> <span class=\"variable\">with</span> <span class=\"struct\">condition</span> '<span class=\"variable\">green</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "else-if",
           "responsesLeft": [],
@@ -1463,7 +1463,7 @@
         {
           "answerId": 10,
           "hyperText": "evaluate condition 'green'",
-          "domainInfo": "performed:26:condition 'green' evaluated",
+          "domainInfo": "performed:26:<span class=\"struct\">condition</span> '<span class=\"variable\">green</span>' <span class=\"keyword\">evaluated</span>",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -1472,7 +1472,7 @@
         {
           "answerId": 11,
           "hyperText": "execute statement 'run()'",
-          "domainInfo": "performed:27:statement 'run()' executed",
+          "domainInfo": "performed:27:<span class=\"action\">statement</span> '<span class=\"variable\">run</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -1481,7 +1481,7 @@
         {
           "answerId": 12,
           "hyperText": "begin ELSE branch of alternative 'over_color-else'",
-          "domainInfo": "started:28:ELSE branch of alternative 'over_color-else' began",
+          "domainInfo": "started:28:<span class=\"keyword\">ELSE</span> <span class=\"struct\">branch</span> <span class=\"struct\">of</span> <span class=\"struct\">alternative</span> '<span class=\"variable\">over_color</span>-<span class=\"keyword\">else</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "else",
           "responsesLeft": [],
@@ -1490,7 +1490,7 @@
         {
           "answerId": 13,
           "hyperText": "end ELSE branch of alternative 'over_color-else'",
-          "domainInfo": "finished:28:ELSE branch of alternative 'over_color-else' ended",
+          "domainInfo": "finished:28:<span class=\"keyword\">ELSE</span> <span class=\"struct\">branch</span> <span class=\"struct\">of</span> <span class=\"struct\">alternative</span> '<span class=\"variable\">over_color</span>-<span class=\"keyword\">else</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "else",
           "responsesLeft": [],
@@ -1499,7 +1499,7 @@
         {
           "answerId": 14,
           "hyperText": "execute statement 'get_ready()'",
-          "domainInfo": "performed:29:statement 'get_ready()' executed",
+          "domainInfo": "performed:29:<span class=\"action\">statement</span> '<span class=\"variable\">get_ready</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -1566,6 +1566,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "20_global_code",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "21_over_color"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "20_global_code",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "global_code"
@@ -1576,13 +1583,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 20
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "20_global_code",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "21_over_color"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1636,23 +1636,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "21_over_color",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_over_color",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "over_color"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "21_over_color",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 21
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1674,6 +1660,20 @@
           "verb": "branches_item",
           "objectType": "owl:NamedIndividual",
           "object": "28_over_color-else"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_over_color",
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "21_over_color",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 21
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1727,9 +1727,30 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "22_if-red",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "23_red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_if-red",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 22
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_if-red",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "if-red"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "22_if-red",
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "25_elseif-green"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1744,27 +1765,6 @@
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 0
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_if-red",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "25_elseif-green"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_if-red",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "23_red"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "22_if-red",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "if-red"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1867,16 +1867,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_wait",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "wait()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "24_wait",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "wait()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1930,9 +1930,30 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "25_elseif-green",
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "26_green"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_elseif-green",
           "verb": "id",
           "objectType": "xsd:int",
           "object": 25
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_elseif-green",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "elseif-green"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "25_elseif-green",
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "28_over_color-else"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -1947,27 +1968,6 @@
           "verb": "item_index",
           "objectType": "xsd:int",
           "object": 1
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_elseif-green",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "28_over_color-else"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_elseif-green",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "26_green"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "25_elseif-green",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "elseif-green"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2070,16 +2070,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "27_run",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "run()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "27_run",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "run()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2140,13 +2140,6 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "28_over_color-else",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "over_color-else"
@@ -2154,16 +2147,23 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 28
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "29_get_ready"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "28_over_color-else",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "29_get_ready"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "28_over_color-else",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 28
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2217,16 +2217,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_get_ready",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "get_ready()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "29_get_ready",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "get_ready()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2292,7 +2292,7 @@
         {
           "answerId": 0,
           "hyperText": "begin program",
-          "domainInfo": "started:31:program began",
+          "domainInfo": "started:31:<span class=\"program\">program</span> <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -2301,7 +2301,7 @@
         {
           "answerId": 1,
           "hyperText": "end program",
-          "domainInfo": "finished:31:program ended",
+          "domainInfo": "finished:31:<span class=\"program\">program</span> <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -2310,7 +2310,7 @@
         {
           "answerId": 2,
           "hyperText": "begin loop 'waiting'",
-          "domainInfo": "started:32:loop 'waiting' began",
+          "domainInfo": "started:32:<span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "while_loop",
           "responsesLeft": [],
@@ -2319,7 +2319,7 @@
         {
           "answerId": 3,
           "hyperText": "end loop 'waiting'",
-          "domainInfo": "finished:32:loop 'waiting' ended",
+          "domainInfo": "finished:32:<span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "while_loop",
           "responsesLeft": [],
@@ -2328,7 +2328,7 @@
         {
           "answerId": 4,
           "hyperText": "evaluate condition 'red'",
-          "domainInfo": "performed:33:condition 'red' evaluated",
+          "domainInfo": "performed:33:<span class=\"struct\">condition</span> '<span class=\"variable\">red</span>' <span class=\"keyword\">evaluated</span>",
           "isRightCol": false,
           "concept": "expr",
           "responsesLeft": [],
@@ -2337,7 +2337,7 @@
         {
           "answerId": 5,
           "hyperText": "execute statement 'wait()'",
-          "domainInfo": "performed:34:statement 'wait()' executed",
+          "domainInfo": "performed:34:<span class=\"action\">statement</span> '<span class=\"variable\">wait</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -2346,7 +2346,7 @@
         {
           "answerId": 6,
           "hyperText": "begin iteration of loop 'waiting'",
-          "domainInfo": "started:35:iteration of loop 'waiting' began",
+          "domainInfo": "started:35:<span class=\"struct\">iteration</span> <span class=\"struct\">of</span> <span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">began</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -2355,7 +2355,7 @@
         {
           "answerId": 7,
           "hyperText": "end iteration of loop 'waiting'",
-          "domainInfo": "finished:35:iteration of loop 'waiting' ended",
+          "domainInfo": "finished:35:<span class=\"struct\">iteration</span> <span class=\"struct\">of</span> <span class=\"struct\">loop</span> '<span class=\"variable\">waiting</span>' <span class=\"keyword\">ended</span>",
           "isRightCol": false,
           "concept": "sequence",
           "responsesLeft": [],
@@ -2364,7 +2364,7 @@
         {
           "answerId": 8,
           "hyperText": "execute statement 'wait_seconds(3)'",
-          "domainInfo": "performed:36:statement 'wait_seconds(3)' executed",
+          "domainInfo": "performed:36:<span class=\"action\">statement</span> '<span class=\"variable\">wait_seconds</span>(<span class=\"number\">3</span>)' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -2373,7 +2373,7 @@
         {
           "answerId": 9,
           "hyperText": "execute statement 'go()'",
-          "domainInfo": "performed:37:statement 'go()' executed",
+          "domainInfo": "performed:37:<span class=\"action\">statement</span> '<span class=\"variable\">go</span>()' <span class=\"keyword\">executed</span>",
           "isRightCol": false,
           "concept": "stmt",
           "responsesLeft": [],
@@ -2440,20 +2440,6 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "31_global_code",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "global_code"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "31_global_code",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 31
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "31_global_code",
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "32_waiting"
@@ -2471,6 +2457,20 @@
           "verb": "body_item",
           "objectType": "owl:NamedIndividual",
           "object": "37_go"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_global_code",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "global_code"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "31_global_code",
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 31
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2517,16 +2517,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "id",
-          "objectType": "xsd:int",
-          "object": 32
+          "verb": "cond",
+          "objectType": "owl:NamedIndividual",
+          "object": "33_red"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "item_index",
+          "verb": "id",
           "objectType": "xsd:int",
-          "object": 0
+          "object": 32
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2538,6 +2538,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "waiting"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "32_waiting",
           "verb": "next",
           "objectType": "owl:NamedIndividual",
           "object": "36_wait_seconds3"
@@ -2545,16 +2552,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "32_waiting",
-          "verb": "cond",
-          "objectType": "owl:NamedIndividual",
-          "object": "33_red"
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "32_waiting",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "waiting"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2650,6 +2650,13 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "35_waiting_loop_body",
+          "verb": "body_item",
+          "objectType": "owl:NamedIndividual",
+          "object": "34_wait"
+        },
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "35_waiting_loop_body",
           "verb": "stmt_name",
           "objectType": "xsd:string",
           "object": "waiting_loop_body"
@@ -2660,13 +2667,6 @@
           "verb": "id",
           "objectType": "xsd:int",
           "object": 35
-        },
-        {
-          "subjectType": "owl:NamedIndividual",
-          "subject": "35_waiting_loop_body",
-          "verb": "body_item",
-          "objectType": "owl:NamedIndividual",
-          "object": "34_wait"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2720,16 +2720,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "34_wait",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 0
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "wait()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "34_wait",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "wait()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 0
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2776,9 +2776,9 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 1
+          "verb": "next",
+          "objectType": "owl:NamedIndividual",
+          "object": "37_go"
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2790,16 +2790,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
-          "verb": "id",
+          "verb": "item_index",
           "objectType": "xsd:int",
-          "object": 36
+          "object": 1
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "36_wait_seconds3",
-          "verb": "next",
-          "objectType": "owl:NamedIndividual",
-          "object": "37_go"
+          "verb": "id",
+          "objectType": "xsd:int",
+          "object": 36
         },
         {
           "subjectType": "owl:NamedIndividual",
@@ -2846,16 +2846,16 @@
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_go",
-          "verb": "item_index",
-          "objectType": "xsd:int",
-          "object": 2
+          "verb": "stmt_name",
+          "objectType": "xsd:string",
+          "object": "go()"
         },
         {
           "subjectType": "owl:NamedIndividual",
           "subject": "37_go",
-          "verb": "stmt_name",
-          "objectType": "xsd:string",
-          "object": "go()"
+          "verb": "item_index",
+          "objectType": "xsd:int",
+          "object": 2
         },
         {
           "subjectType": "owl:NamedIndividual",
