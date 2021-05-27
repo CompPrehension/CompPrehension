@@ -681,17 +681,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         targetConcepts.add("supplementary");
 
         ExerciseAttemptEntity exerciseAttemptEntity = question.getExerciseAttempt();
-        if (exerciseAttemptEntity == null || exerciseAttemptEntity.getQuestions().isEmpty()) {
-            return null;
-        }
-
-        if (question.getInteractions().isEmpty()) {
-            return null;
-        }
-        val baseViolations = question.getInteractions().get(question.getInteractions().size() - 1).getViolations();
-        val previousInterpretSentenceResult = new Domain.InterpretSentenceResult();
-        previousInterpretSentenceResult.violations = baseViolations;
-        if (baseViolations.isEmpty()) {
+        if (exerciseAttemptEntity == null) {
             return null;
         }
 
@@ -741,6 +731,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         AnswerObjectEntity failedAnswer = null;
+        if (originalQuestion.getInteractions() == null) {
+            return null;
+        }
         for (InteractionEntity interaction : originalQuestion.getInteractions()) {
             if (interaction.getViolations() == null || interaction.getViolations().isEmpty()) {
                 for (ResponseEntity response : interaction.getResponses()) {
@@ -890,8 +883,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
 
         interpretSentenceResult.violations = new ArrayList<>();
-        ViolationEntity violationEntity = new ViolationEntity();
+        interpretSentenceResult.isAnswerCorrect = true;
 
+        ViolationEntity violationEntity = new ViolationEntity();
         if (answer.getDomainInfo() != null) {
             violationEntity.setLawName(answer.getDomainInfo());
         }
@@ -903,6 +897,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (fact.getSubject().equals(String.valueOf(answer.getAnswerId()))) {
                 if (fact.getVerb().equals("detailed_law")) {
                     violationEntity.setDetailedLawName(fact.getObject());
+                    interpretSentenceResult.isAnswerCorrect = false;
                     if (violationEntity.getLawName() == null) {
                         violationEntity.setLawName(fact.getObject());
                     }
@@ -967,10 +962,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         InterpretSentenceResult result = new InterpretSentenceResult();
         result.violations = mistakes;
         result.correctlyAppliedLaws = calculateCorrectlyAppliedLaws(violations);
+        result.isAnswerCorrect = mistakes.isEmpty();
 
         ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = processResult.CountCorrectOptions;
-        result.IterationsLeft = processResult.IterationsLeft + (mistakes.isEmpty() ? 0 : 1);
+        result.IterationsLeft = processResult.IterationsLeft + (result.isAnswerCorrect ? 0 : 1);
         return result;
     }
 
