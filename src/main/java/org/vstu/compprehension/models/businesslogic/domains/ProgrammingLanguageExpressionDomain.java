@@ -828,11 +828,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return null;
         }
 
+        HashSet<String> answerTexts = new HashSet<>();
         List<AnswerObjectEntity> answers = new ArrayList<>();
         for (AnswerObjectEntity answer : supplementaryQuestion.getAnswerObjects()) {
             try {
                 String result = stringSubstitutor.replace(answer.getHyperText());
+                if (answerTexts.contains(result)) {
+                    continue;
+                }
                 AnswerObjectEntity newAnswer = new AnswerObjectEntity();
+                answerTexts.add(result);
                 newAnswer.setHyperText(result);
                 newAnswer.setAnswerId(answer.getAnswerId());
 
