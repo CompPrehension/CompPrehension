@@ -39,7 +39,7 @@ export const Exercise = observer(() => {
             const len = exerciseStore.currentAttempt?.questionIds.length;
             await exerciseStore.currentQuestion.loadQuestion(exerciseStore.currentAttempt?.questionIds[len - 1]);
         } else {
-            await exerciseStore.currentQuestion.generateQuestion(exerciseStore.currentAttempt?.attemptId ?? -1);
+            await exerciseStore.generateQuestion();
         }        
     }
 
