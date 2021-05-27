@@ -5,6 +5,7 @@ import { Button } from 'react-bootstrap';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
 import { QuestionStore } from '../../stores/question-store';
+import { delayPromise } from '../../utils/helpers';
 import { Modal } from '../common/modal';
 import { Optional } from '../common/optional';
 import { Question } from './question';
@@ -28,7 +29,13 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
         })();
     }
     const OnAnswered = async () => {
-        const newViolationLaws = questionStore.feedback?.messages && questionStore.feedback.messages?.[0].type === 'ERROR' && questionStore.feedback.messages?.[0].violationLaws || [];
+        console.log(`show feedback for 3 seconds`);
+        await delayPromise(3000);
+        //console.log(`hide feedback and wait for 1 seconds`);        
+        //questionStore.isFeedbackVisible = false;
+        //await delayPromise(1000);
+
+        const newViolationLaws = questionStore.feedback?.messages && questionStore.feedback.messages?.[0].violationLaws || [];
         if (!newViolationLaws.length) {
             console.log(`empty violation laws`);
             setAllVisible(false);

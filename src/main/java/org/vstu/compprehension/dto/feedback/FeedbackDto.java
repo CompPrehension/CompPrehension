@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 
 @Data
@@ -30,14 +31,14 @@ public class FeedbackDto {
     @Data
     @AllArgsConstructor
     public static class Message {
-        private MessageType type;
-        private String message;
-        private String[] violationLaws;
+        @NotNull private MessageType type;
+        @NotNull private String message;
+        @NotNull private String[] violationLaws;
 
-        public static Message Success(String message) {
-            return new Message(MessageType.SUCCESS, message, null);
+        public static Message Success(@NotNull String message, @NotNull String[] violationLaws) {
+            return new Message(MessageType.SUCCESS, message, violationLaws);
         }
-        public static Message Error(String message, String[] violationLaws) {
+        public static Message Error(@NotNull String message, @NotNull String[] violationLaws) {
             return new Message(MessageType.ERROR, message, violationLaws);
         }
     }

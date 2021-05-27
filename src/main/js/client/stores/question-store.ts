@@ -18,6 +18,7 @@ export class QuestionStore {
     @observable isQuestionLoading?: boolean = false;
     @observable answersHistory: [number, number][] = [];
     @observable isFeedbackLoading?: boolean = false;
+    @observable isFeedbackVisible: boolean = true;
     @observable feedback?: Feedback = undefined;
     @observable question?: Question = undefined;
 
@@ -30,6 +31,7 @@ export class QuestionStore {
             this.isQuestionLoading = false;
             this.question = question;
             this.feedback = question?.feedback ?? undefined;
+            this.isFeedbackVisible = true;
             this.answersHistory = question?.responses ?? [];            
         });
     }
@@ -80,6 +82,7 @@ export class QuestionStore {
         runInAction(() => {
             this.isFeedbackLoading = false;
             this.feedback = feedback;
+            this.isFeedbackVisible = true;
             if (feedback && feedback.correctAnswers && this.isHistoryChanged(feedback.correctAnswers)) {
                 this.answersHistory = feedback.correctAnswers;                    
             }            
@@ -101,6 +104,7 @@ export class QuestionStore {
         runInAction(() => {
             this.isFeedbackLoading = false;
             this.feedback = feedback;
+            this.isFeedbackVisible = true;
             if (feedback && feedback.correctAnswers && this.isHistoryChanged(feedback.correctAnswers)) {
                 this.answersHistory = feedback.correctAnswers;                    
             }            

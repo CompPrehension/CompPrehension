@@ -2,8 +2,9 @@ import * as io from 'io-ts'
 import { MergeIntersections } from './utils';
 
 export type FeedbackSuccessMessage = {
-    type: 'SUCCESS',
+    type: 'SUCCESS' | 'ERROR',
     message: string,
+    violationLaws: string[],
 }
 export type FeedbackErrorMessage = {
     type: 'ERROR',
@@ -12,17 +13,14 @@ export type FeedbackErrorMessage = {
 }
 
 export type FeedbackMessage = FeedbackSuccessMessage | FeedbackErrorMessage
-const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
-    io.type({
-        type: io.literal('SUCCESS'),
-        message: io.string,
+const TFeedbackMessage: io.Type<FeedbackMessage> = io.type({
+    type: io.keyof({
+        'SUCCESS': null,
+        'ERROR': null,
     }),
-    io.type({
-        type: io.literal('ERROR'),
-        message: io.string,
-        violationLaws: io.array(io.string),
-    }),
-]);
+    message: io.string,
+    violationLaws: io.array(io.string),
+});
 
 export type Feedback = {
     grade?: number | null,   

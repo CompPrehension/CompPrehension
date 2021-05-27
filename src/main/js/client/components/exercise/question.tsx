@@ -39,7 +39,7 @@ export const Question = observer(({ store, showExtendedFeedback, onChanged:Paren
 })
 
 const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
-    const { feedback, isFeedbackLoading, isQuestionLoading } = store;
+    const { feedback, isFeedbackLoading, isFeedbackVisible, isQuestionLoading } = store;
     
     if (isFeedbackLoading) {
         return <Loader />;
@@ -50,18 +50,20 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
     }
 
     return (
-        <div className="comp-ph-feedback-wrapper">            
-            <p>
-                {feedback.messages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback} />)}                
-            </p>
-            <Optional isVisible={showExtendedFeedback}>
+        <div className="comp-ph-feedback-wrapper">
+            <Optional isVisible={isFeedbackVisible}>
                 <p>
-                    <Optional isVisible={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
-                    <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
-                    <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
-                    <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
+                    {feedback.messages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback} />)}                
                 </p>
-            </Optional>
+                <Optional isVisible={showExtendedFeedback}>
+                    <p>
+                        <Optional isVisible={feedback.grade !== null}><Badge variant="primary">Grade: {feedback.grade}</Badge>{' '}</Optional>
+                        <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">Correct steps: {feedback.correctSteps}</Badge>{' '}</Optional>
+                        <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">Steps with errors: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
+                        <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">Steps left: {feedback.stepsLeft}</Badge>{' '}</Optional>                
+                    </p>
+                </Optional>
+            </Optional>            
         </div>
     );
 });

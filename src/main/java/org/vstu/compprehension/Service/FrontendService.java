@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ext.com.google.common.collect.Streams;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class FrontendService {
     @Autowired
     private ViolationRepository violationRepository;
 
-    public FeedbackDto addQuestionAnswer(InteractionDto interaction) throws Exception {
+    public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
         val question = questionService.getQuestion(questionId);
         return question.isSupplementary()
@@ -67,7 +68,7 @@ public class FrontendService {
                 : addOrdinaryQuestionAnswer(interaction);
     }
 
-    private FeedbackDto addSupplementaryQuestionAnswer(InteractionDto interaction) throws Exception {
+    private @NotNull FeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
@@ -81,15 +82,16 @@ public class FrontendService {
 
         val responses = questionService.responseQuestion(question, answers);
         val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
-        val messages = judgeResult.violations.size() > 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", judgeResult.violations.stream().map(ViolationEntity::getLawName).toArray(String[]::new)) }
-                : judgeResult.IterationsLeft == 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!") }
-                : (FeedbackDto.Message[])null;
+        val violations = judgeResult.violations.stream().map(ViolationEntity::getLawName).toArray(String[]::new);
+        val messages = judgeResult.isAnswerCorrect
+                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!", violations) }
+                : new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", violations) };
         return FeedbackDto.builder()
                 .messages(messages)
                 .build();
     }
 
-    private FeedbackDto addOrdinaryQuestionAnswer(InteractionDto interaction) throws Exception {
+    private @NotNull FeedbackDto addOrdinaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         Long exAttemptId = interaction.getAttemptId();
         Long questionId = interaction.getQuestionId();
         Long[][] answers = interaction.getAnswers();
@@ -121,9 +123,9 @@ public class FrontendService {
         val explanations = questionService.explainViolations(question, judgeResult.violations).stream().map(HyperText::getText);
         val errors = Streams.zip(violationIds, explanations, Pair::of)
                 .collect(Collectors.toList());
-        val messages = errors.size() > 0 ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), new String[] { pair.getKey() })).toArray(FeedbackDto.Message[]::new)
-                : judgeResult.IterationsLeft == 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("All done!") }
-                : judgeResult.IterationsLeft > 0 ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...") }
+        val messages = errors.size() > 0 && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), new String[] { pair.getKey() })).toArray(FeedbackDto.Message[]::new)
+                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("All done!", new String[0]) }
+                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...", new String[0]) }
                 : null;
 
         // remove incorrect answers from feedback
@@ -139,14 +141,14 @@ public class FrontendService {
                 correctAnswers);
     }
 
-    public QuestionDto generateQuestion(Long exAttemptId) throws Exception {
+    public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val question = questionService.generateQuestion(attempt);
         return Mapper.toDto(question);
     }
 
-    public @Nullable QuestionDto generateSupplementaryQuestion(Long exAttemptId, Long questionId, String[] violationLaws) throws Exception {
+    public @Nullable QuestionDto generateSupplementaryQuestion(@NotNull Long exAttemptId, @NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val question = attempt.getQuestions().stream().filter(q -> q.getId().equals(questionId)).findFirst()
@@ -160,12 +162,12 @@ public class FrontendService {
         return supQuestion != null ? Mapper.toDto(supQuestion) : null;
     }
 
-    public QuestionDto getQuestion(Long questionId) throws Exception {
+    public @NotNull QuestionDto getQuestion(@NotNull Long questionId) throws Exception {
         val question = questionService.getQuestion(questionId);
         return Mapper.toDto(question);
     }
 
-    public FeedbackDto generateNextCorrectAnswer(Long questionId) throws Exception {
+    public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) throws Exception {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
         val correctAnswer = questionService.getNextCorrectAnswer(question);
@@ -189,7 +191,7 @@ public class FrontendService {
         feedbackRepository.save(ie.getFeedback());
 
         // build feedback message
-        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation()) };
+        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation(), new String[0]) };
 
         return Mapper.toFeedbackDto(question,
                 ie,
@@ -199,7 +201,7 @@ public class FrontendService {
                 null);
     }
 
-    public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {
+    public @NotNull ExerciseStatisticsItemDto[] getExerciseStatistics(@NotNull Long exerciseId) {
         val exercise = exerciseService.getExercise(exerciseId);
 
         val result = exercise.getExerciseAttempts().stream()
@@ -235,7 +237,7 @@ public class FrontendService {
         return result;
     }
 
-    public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, Long userId) throws Exception {
+    public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         val existingAttempt = exerciseAttemptRepository
                 .findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
         return existingAttempt
@@ -243,7 +245,7 @@ public class FrontendService {
                 .orElse(null);
     }
 
-    public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, Long userId) throws Exception {
+    public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         val exercise = exerciseService.getExercise(exerciseId);
         val user = userService.getUser(userId);
 
