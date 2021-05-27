@@ -3476,5 +3476,167 @@
       "order",
       "evaluation"
     ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence of operator ${operator} is higher",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_highest_precedence_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence of operator ${left_operator} is higher",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_highest_precedence_left_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence of operator ${right_operator} is higher",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_highest_precedence_right_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, precedence of operator ${operator} is higher",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_highest_precedence_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, precedence of operator ${left_operator} is higher",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_highest_precedence_left_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, precedence of operator ${right_operator} is higher",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_highest_precedence_right_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
   }
 ]

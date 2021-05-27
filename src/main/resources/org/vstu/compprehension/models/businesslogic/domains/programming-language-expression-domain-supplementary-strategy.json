@@ -193,21 +193,21 @@
       {
         "name": "select_highest_precedence_operator_left",
         "correct": null,
-        "wrong": null,
+        "wrong": "error_select_highest_precedence_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "left_operator;high_precedence;operator"
       },
       {
         "name": "select_highest_precedence_operator_operator",
-        "correct": null,
-        "wrong": null,
+        "correct": "correct_select_highest_precedence_left_operator",
+        "wrong": "error_select_highest_precedence_left_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "operator;high_precedence;left_operator"
       },
       {
         "name": "select_highest_precedence_operator_same",
         "correct": null,
-        "wrong": null,
+        "wrong": "error_select_highest_precedence_left_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "operator;same_precedence;left_operator"
       }
@@ -218,22 +218,22 @@
     "answers": [
       {
         "name": "select_highest_precedence_operator_right",
-        "correct": null,
-        "wrong": null,
+        "correct": "correct_select_highest_precedence_right_operator",
+        "wrong": "error_select_highest_precedence_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "right_operator;high_precedence;operator"
       },
       {
         "name": "select_highest_precedence_operator_operator",
-        "correct": null,
-        "wrong": null,
+        "correct": "correct_select_highest_precedence_operator",
+        "wrong": "error_select_highest_precedence_right_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "operator;high_precedence;right_operator"
       },
       {
         "name": "select_highest_precedence_operator_same",
         "correct": null,
-        "wrong": null,
+        "wrong": "error_select_highest_precedence_right_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "operator;same_precedence;right_operator"
       }
@@ -252,7 +252,7 @@
       {
         "name": "select_precedence_or_associativity_influence_associativity",
         "correct": null,
-        "wrong": null,
+        "wrong": "select_highest_precedence_left_operator",
         "detailed_law": "error_select_precedence_or_associativity",
         "correct_check": "wrong"
       }
@@ -271,10 +271,34 @@
       {
         "name": "select_precedence_or_associativity_influence_associativity",
         "correct": null,
-        "wrong": null,
+        "wrong": "select_highest_precedence_right_operator",
         "detailed_law": "error_select_precedence_or_associativity",
         "correct_check": "wrong"
       }
     ]
+  },
+  {
+    "name": "error_select_highest_precedence_operator",
+    "answers": []
+  },
+  {
+    "name": "error_select_highest_precedence_left_operator",
+    "answers": []
+  },
+  {
+    "name": "error_select_highest_precedence_right_operator",
+    "answers": []
+  },
+  {
+    "name": "correct_select_highest_precedence_operator",
+    "answers": []
+  },
+  {
+    "name": "correct_select_highest_precedence_left_operator",
+    "answers": []
+  },
+  {
+    "name": "correct_select_highest_precedence_right_operator",
+    "answers": []
   }
 ]

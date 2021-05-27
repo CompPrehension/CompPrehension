@@ -121,36 +121,43 @@ public class SystemIntegrationTest {
             Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(0));
             assertEquals("select_highest_precedence_right_operator", resSup.violations.get(0).getLawName());
             assertNull(resSup.violations.get(0).getDetailedLawName());
+            assertTrue(resSup.isAnswerCorrect);
 
             Long supQ3 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup.violations.get(0)).getQuestionData().getId();
             Question supQ4 = questionService.getQuestion(supQ3);
             val question2Responses3 = questionService.responseQuestion(supQ4, List.of(1));
             Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(0));
-            assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getLawName());
+            assertEquals("error_select_highest_precedence_right_operator", resSup2.violations.get(0).getLawName());
             assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getDetailedLawName());
-            List<HyperText> explanationsSup  = questionService.explainViolations(supQ4, resSup2.violations);
-            assertEquals(1, explanationsSup.size());
-            assertEquals("Wrong, precedence of operator < is higher", explanationsSup.get(0).getText());
+            assertFalse(resSup2.isAnswerCorrect);
+
+            Long supQ31 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup2.violations.get(0)).getQuestionData().getId();
+            Question supQ41 = questionService.getQuestion(supQ31);
+            assertTrue(supQ41.getAnswerObjects().isEmpty());
+            assertEquals("<div class='comp-ph-question'>Wrong, precedence of operator < is higher</div>", supQ41.getQuestionText().toString());
 
             Long supQ5 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
             val question2Responses4 = questionService.responseQuestion(supQ6, List.of(4));
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
             assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
-            assertNull(resSup.violations.get(0).getDetailedLawName());
+            assertNull(resSup3.violations.get(0).getDetailedLawName());
+            assertTrue(resSup3.isAnswerCorrect);
 
             Long supQ7 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup3.violations.get(0)).getQuestionData().getId();
             Question supQ8 = questionService.getQuestion(supQ7);
             val question2Responses5 = questionService.responseQuestion(supQ8, List.of(0));
             Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(0));
             assertEquals("select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
-            assertNull(resSup.violations.get(0).getDetailedLawName());
+            assertNull(resSup4.violations.get(0).getDetailedLawName());
+            assertTrue(resSup4.isAnswerCorrect);
 
             Long supQ9 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup4.violations.get(0)).getQuestionData().getId();
             Question supQ10 = questionService.getQuestion(supQ9);
             val question2Responses6 = questionService.responseQuestion(supQ10, List.of(0));
             Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(0));
-            assertTrue(resSup5.violations.isEmpty());
+            assertEquals("correct_select_highest_precedence_right_operator", resSup5.violations.get(0).getLawName());
+            assertTrue(resSup5.isAnswerCorrect);
         }
         {
             ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
@@ -423,16 +430,20 @@ public class SystemIntegrationTest {
             Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(0));
             assertEquals("select_highest_precedence_right_operator", resSup.violations.get(0).getLawName());
             assertNull(resSup.violations.get(0).getDetailedLawName());
+            assertTrue(resSup.isAnswerCorrect);
 
             Long supQ3 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup.violations.get(0)).getQuestionData().getId();
             Question supQ4 = questionService.getQuestion(supQ3);
             val question2Responses3 = questionService.responseQuestion(supQ4, List.of(1));
             Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(0));
-            assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getLawName());
+            assertEquals("error_select_highest_precedence_right_operator", resSup2.violations.get(0).getLawName());
             assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getDetailedLawName());
-            List<HyperText> explanationsSup  = questionService.explainViolations(supQ4, resSup2.violations);
-            assertEquals(1, explanationsSup.size());
-            assertEquals("Wrong, precedence of operator * is higher", explanationsSup.get(0).getText());
+            assertFalse(resSup2.isAnswerCorrect);
+
+            Long supQ31 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup2.violations.get(0)).getQuestionData().getId();
+            Question supQ41 = questionService.getQuestion(supQ31);
+            assertTrue(supQ41.getAnswerObjects().isEmpty());
+            assertEquals("<div class='comp-ph-question'>Wrong, precedence of operator * is higher</div>Ьфлу ", supQ41.getQuestionText().toString());
 
             Long supQ5 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);

@@ -199,6 +199,11 @@ public abstract class Domain {
          * (all answers where this answer would be the cause of the violation)
          */
         public List<String> correctlyAppliedLaws;
+        /**
+         * Is answer on question is correct.
+         * Supplementary can generate new violations even on correct variant.
+         */
+        public boolean isAnswerCorrect;
     }
 
     /**
