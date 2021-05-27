@@ -140,24 +140,17 @@ public class SystemIntegrationTest {
             Question supQ6 = questionService.getQuestion(supQ5);
             val question2Responses4 = questionService.responseQuestion(supQ6, List.of(4));
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
-            assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
+            assertEquals("select_highest_precedence_right_operator", resSup3.violations.get(0).getLawName());
             assertNull(resSup3.violations.get(0).getDetailedLawName());
-            assertTrue(resSup3.isAnswerCorrect);
+            assertFalse(resSup3.isAnswerCorrect);
 
             Long supQ7 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup3.violations.get(0)).getQuestionData().getId();
             Question supQ8 = questionService.getQuestion(supQ7);
             val question2Responses5 = questionService.responseQuestion(supQ8, List.of(0));
             Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(0));
-            assertEquals("select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
+            assertEquals("correct_select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
             assertNull(resSup4.violations.get(0).getDetailedLawName());
             assertTrue(resSup4.isAnswerCorrect);
-
-            Long supQ9 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup4.violations.get(0)).getQuestionData().getId();
-            Question supQ10 = questionService.getQuestion(supQ9);
-            val question2Responses6 = questionService.responseQuestion(supQ10, List.of(0));
-            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(0));
-            assertEquals("correct_select_highest_precedence_right_operator", resSup5.violations.get(0).getLawName());
-            assertTrue(resSup5.isAnswerCorrect);
         }
         {
             ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
@@ -449,7 +442,7 @@ public class SystemIntegrationTest {
             Question supQ6 = questionService.getQuestion(supQ5);
             val question2Responses4 = questionService.responseQuestion(supQ6, List.of(4));
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
-            assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
+            assertEquals("select_highest_precedence_right_operator", resSup3.violations.get(0).getLawName());
             assertNull(resSup3.violations.get(0).getDetailedLawName());
         }
 
