@@ -136,8 +136,11 @@ public class JenaBackend extends Backend {
                 return model.createDatatypeProperty(termToUri(name));
             case "owl:Class":
                 return model.createClass(termToUri(name));
+            case "":
+                // empty type - create ordinal resource
+                return model.createResource(termToUri(name));
             default:
-                throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulations: unknown type: " + type);
+                throw new UnsupportedOperationException("JenaBackend.addOWLLawFormulation: unknown type: " + type);
         }
     }
 
