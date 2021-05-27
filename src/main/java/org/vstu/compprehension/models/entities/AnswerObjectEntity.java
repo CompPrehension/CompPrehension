@@ -29,7 +29,7 @@ public class AnswerObjectEntity {
     @Column(name = "hyperText")
     private String hyperText;
 
-    @Column(name = "domainInfo")
+    @Column(name = "domainInfo", length = 1000)
     private String domainInfo;
 
     @Column(name = "isRightCol")
