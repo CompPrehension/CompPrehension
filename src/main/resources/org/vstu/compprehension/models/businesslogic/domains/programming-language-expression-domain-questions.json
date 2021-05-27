@@ -3644,7 +3644,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence checks before associativity",
+      "questionText": "Wrong, precedence is checked before associativity",
       "areAnswersRequireContext": false,
       "options": {
       },
