@@ -443,7 +443,7 @@ public class SystemIntegrationTest {
             Long supQ31 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup2.violations.get(0)).getQuestionData().getId();
             Question supQ41 = questionService.getQuestion(supQ31);
             assertTrue(supQ41.getAnswerObjects().isEmpty());
-            assertEquals("<div class='comp-ph-question'>Wrong, precedence of operator * is higher</div>Ьфлу ", supQ41.getQuestionText().toString());
+            assertEquals("<div class='comp-ph-question'>Wrong, precedence of operator * is higher</div>", supQ41.getQuestionText().toString());
 
             Long supQ5 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
