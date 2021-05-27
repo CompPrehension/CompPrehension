@@ -3287,7 +3287,7 @@
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "precedence of operator ${left_operator}",
+          "hyperText": "operator ${left_operator}",
           "domainInfo": "select_highest_precedence_operator_left",
           "isRightCol": false,
           "concept": "",
@@ -3296,7 +3296,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "precedence of operator ${operator}",
+          "hyperText": "operator ${operator}",
           "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
@@ -3342,7 +3342,7 @@
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "precedence of operator ${right_operator}",
+          "hyperText": "operator ${right_operator}",
           "domainInfo": "select_highest_precedence_operator_right",
           "isRightCol": false,
           "concept": "",
@@ -3351,7 +3351,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "precedence of operator ${operator}",
+          "hyperText": "operator ${operator}",
           "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
@@ -3628,6 +3628,133 @@
     },
     "concepts": [
       "correct_select_highest_precedence_right_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence checks before associativity",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_precedence_or_associativity",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What influence evaluation order at first?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "arity",
+          "domainInfo": "select_associativity_or_arity_influence_arity",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "associativity",
+          "domainInfo": "select_associativity_or_arity_influence_associativity",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_associativity_or_arity_influence",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, associativity influence evaluation order",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_associativity_or_arity_influence_associativity",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, associativity influence evaluation order",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_associativity_or_arity_influence_arity",
       "SystemIntegrationTest",
       "supplementary"
     ],

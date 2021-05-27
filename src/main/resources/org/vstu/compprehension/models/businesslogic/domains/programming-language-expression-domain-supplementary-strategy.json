@@ -5,16 +5,16 @@
       {
         "name": "select_reason_left_precedence",
         "correct": "select_highest_precedence_left_operator",
-        "wrong": "select_highest_precedence_left_operator",
+        "wrong": "select_precedence_or_associativity_left_influence",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_left_associativity",
         "correct": "select_precedence_or_associativity_left_influence",
-        "wrong": "select_precedence_or_associativity_left_influence",
+        "wrong": "select_highest_precedence_left_operator",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_left_parenthesis",
@@ -26,16 +26,16 @@
       {
         "name": "select_reason_right_precedence",
         "correct": "select_highest_precedence_right_operator",
-        "wrong": "select_highest_precedence_right_operator",
+        "wrong": "select_precedence_or_associativity_right_influence",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_right_associativity",
         "correct": "select_precedence_or_associativity_right_influence",
-        "wrong": "select_precedence_or_associativity_right_influence",
+        "wrong": "select_highest_precedence_right_operator",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_right_parenthesis",
@@ -52,16 +52,16 @@
       {
         "name": "select_reason_left_precedence",
         "correct": "select_highest_precedence_left_operator",
-        "wrong": "select_highest_precedence_left_operator",
+        "wrong": "select_precedence_or_associativity_left_influence",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_left_associativity",
         "correct": "select_precedence_or_associativity_left_influence",
-        "wrong": "select_precedence_or_associativity_left_influence",
+        "wrong": "select_highest_precedence_left_operator",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_left_parenthesis",
@@ -73,16 +73,16 @@
       {
         "name": "select_reason_right_precedence",
         "correct": "select_highest_precedence_right_operator",
-        "wrong": "select_highest_precedence_right_operator",
+        "wrong": "select_precedence_or_associativity_right_influence",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_right_associativity",
         "correct": "select_precedence_or_associativity_right_influence",
-        "wrong": "select_precedence_or_associativity_right_influence",
+        "wrong": "select_highest_precedence_right_operator",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_right_parenthesis",
@@ -99,16 +99,16 @@
       {
         "name": "select_reason_left_precedence",
         "correct": "select_highest_precedence_left_operator",
-        "wrong": "select_highest_precedence_left_operator",
+        "wrong": "select_precedence_or_associativity_left_influence",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_left_associativity",
         "correct": "select_precedence_or_associativity_left_influence",
-        "wrong": "select_precedence_or_associativity_left_influence",
+        "wrong": "select_highest_precedence_left_operator",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_left_parenthesis",
@@ -120,16 +120,16 @@
       {
         "name": "select_reason_right_precedence",
         "correct": "select_highest_precedence_right_operator",
-        "wrong": "select_highest_precedence_right_operator",
+        "wrong": "select_precedence_or_associativity_right_influence",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_right_associativity",
         "correct": "select_precedence_or_associativity_right_influence",
-        "wrong": "select_precedence_or_associativity_right_influence",
+        "wrong": "select_highest_precedence_right_operator",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_right_parenthesis",
@@ -146,16 +146,16 @@
       {
         "name": "select_reason_left_precedence",
         "correct": "select_highest_precedence_left_operator",
-        "wrong": "select_highest_precedence_left_operator",
+        "wrong": "select_precedence_or_associativity_left_influence",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_left_associativity",
         "correct": "select_precedence_or_associativity_left_influence",
-        "wrong": "select_precedence_or_associativity_left_influence",
+        "wrong": "select_highest_precedence_left_operator",
         "detailed_law": null,
-        "correct_check": "left_operator;before;operator"
+        "correct_check": "left_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_left_parenthesis",
@@ -167,16 +167,16 @@
       {
         "name": "select_reason_right_precedence",
         "correct": "select_highest_precedence_right_operator",
-        "wrong": "select_highest_precedence_right_operator",
+        "wrong": "select_precedence_or_associativity_right_influence",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;high_precedence;operator"
       },
       {
         "name": "select_reason_right_associativity",
         "correct": "select_precedence_or_associativity_right_influence",
-        "wrong": "select_precedence_or_associativity_right_influence",
+        "wrong": "select_highest_precedence_right_operator",
         "detailed_law": null,
-        "correct_check": "right_operator;before;operator"
+        "correct_check": "right_operator;same_precedence;operator"
       },
       {
         "name": "select_reason_right_parenthesis",
@@ -192,7 +192,7 @@
     "answers": [
       {
         "name": "select_highest_precedence_operator_left",
-        "correct": null,
+        "correct": "correct_select_highest_precedence_left_operator",
         "wrong": "error_select_highest_precedence_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "left_operator;high_precedence;operator"
@@ -206,7 +206,7 @@
       },
       {
         "name": "select_highest_precedence_operator_same",
-        "correct": null,
+        "correct": "select_associativity_or_arity_influence",
         "wrong": "error_select_highest_precedence_left_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "operator;same_precedence;left_operator"
@@ -232,7 +232,7 @@
       },
       {
         "name": "select_highest_precedence_operator_same",
-        "correct": null,
+        "correct": "select_associativity_or_arity_influence",
         "wrong": "error_select_highest_precedence_right_operator",
         "detailed_law": "error_select_highest_precedence",
         "correct_check": "operator;same_precedence;right_operator"
@@ -252,7 +252,7 @@
       {
         "name": "select_precedence_or_associativity_influence_associativity",
         "correct": null,
-        "wrong": "select_highest_precedence_left_operator",
+        "wrong": "error_select_precedence_or_associativity",
         "detailed_law": "error_select_precedence_or_associativity",
         "correct_check": "wrong"
       }
@@ -271,7 +271,7 @@
       {
         "name": "select_precedence_or_associativity_influence_associativity",
         "correct": null,
-        "wrong": "select_highest_precedence_right_operator",
+        "wrong": "error_select_precedence_or_associativity",
         "detailed_law": "error_select_precedence_or_associativity",
         "correct_check": "wrong"
       }
@@ -299,6 +299,37 @@
   },
   {
     "name": "correct_select_highest_precedence_right_operator",
+    "answers": []
+  },
+  {
+    "name": "error_select_precedence_or_associativity",
+    "answers": []
+  },
+  {
+    "name": "select_associativity_or_arity_influence",
+    "answers": [
+      {
+        "name": "select_associativity_or_arity_influence_associativity",
+        "correct": "correct_select_associativity_or_arity_influence_associativity",
+        "wrong": null,
+        "detailed_law": null,
+        "correct_check": "correct"
+      },
+      {
+        "name": "select_associativity_or_arity_influence_arity",
+        "correct": null,
+        "wrong": "error_select_associativity_or_arity_influence_arity",
+        "detailed_law": "error_select_arity_or_associativity",
+        "correct_check": "wrong"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_or_arity_influence_arity",
+    "answers": []
+  },
+  {
+    "name": "correct_select_associativity_or_arity_influence_associativity",
     "answers": []
   }
 ]
