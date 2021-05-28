@@ -918,7 +918,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-        violationEntity.setViolationFacts(question.getSolutionFacts());
+        violationFacts.addAll(question.getSolutionFacts());
+        violationEntity.setViolationFacts(violationFacts);
         if (violationEntity.getLawName() != null || violationEntity.getDetailedLawName() != null) {
             interpretSentenceResult.violations.add(violationEntity);
         }
