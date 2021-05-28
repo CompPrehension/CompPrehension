@@ -11,15 +11,12 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
-import org.vstu.compprehension.models.repository.InteractionRepository;
-import org.vstu.compprehension.models.repository.QuestionRepository;
-import org.vstu.compprehension.models.repository.ResponseRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.apache.commons.collections4.IterableUtils;
 
 import javax.transaction.Transactional;
@@ -55,6 +52,9 @@ public class SystemIntegrationTest {
 
     @Autowired
     ResponseRepository responseRepository;
+
+    @Autowired
+    FeedbackRepository feedbackRepository;
 
     @Test
     public void generateTest() throws Exception
@@ -127,20 +127,20 @@ public class SystemIntegrationTest {
             Question supQ4 = questionService.getQuestion(supQ3);
             val question2Responses3 = questionService.responseQuestion(supQ4, List.of(1));
             Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(0));
-            assertEquals("error_select_highest_precedence_right_operator", resSup2.violations.get(0).getLawName());
+            assertEquals("error_select_highest_precedence_operator_right", resSup2.violations.get(0).getLawName());
             assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getDetailedLawName());
             assertFalse(resSup2.isAnswerCorrect);
 
             Long supQ31 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup2.violations.get(0)).getQuestionData().getId();
             Question supQ41 = questionService.getQuestion(supQ31);
             assertTrue(supQ41.getAnswerObjects().isEmpty());
-            assertEquals("<div class='comp-ph-question'>Wrong, precedence of operator < is higher</div>", supQ41.getQuestionText().toString());
+            assertTrue(supQ41.getQuestionText().toString().startsWith("<div class='comp-ph-question'>Wrong, precedence of operator < is higher than operator =="));
 
             Long supQ5 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
             val question2Responses4 = questionService.responseQuestion(supQ6, List.of(4));
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
-            assertEquals("select_highest_precedence_right_operator", resSup3.violations.get(0).getLawName());
+            assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
             assertNull(resSup3.violations.get(0).getDetailedLawName());
             assertFalse(resSup3.isAnswerCorrect);
 
@@ -148,9 +148,17 @@ public class SystemIntegrationTest {
             Question supQ8 = questionService.getQuestion(supQ7);
             val question2Responses5 = questionService.responseQuestion(supQ8, List.of(0));
             Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(0));
-            assertEquals("correct_select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
+            assertEquals("select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
             assertNull(resSup4.violations.get(0).getDetailedLawName());
             assertTrue(resSup4.isAnswerCorrect);
+
+            Long supQ9 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup4.violations.get(0)).getQuestionData().getId();
+            Question supQ10 = questionService.getQuestion(supQ9);
+            val question2Responses6 = questionService.responseQuestion(supQ10, List.of(0));
+            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(0));
+            assertEquals("correct_select_highest_precedence_operator_right", resSup5.violations.get(0).getLawName());
+            assertNull(resSup5.violations.get(0).getDetailedLawName());
+            assertTrue(resSup5.isAnswerCorrect);
         }
         {
             ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
@@ -419,31 +427,114 @@ public class SystemIntegrationTest {
             Question supQ2 = questionService.getQuestion(supQ);
             assertEquals(QuestionType.SINGLE_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
-            val question2Responses2 = questionService.responseQuestion(supQ2, List.of(3));
+            val question2Responses2 = questionService.responseQuestion(supQ2, List.of(1));
             Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(0));
-            assertEquals("select_highest_precedence_right_operator", resSup.violations.get(0).getLawName());
+            assertEquals("select_associativity_type_left", resSup.violations.get(0).getLawName());
             assertNull(resSup.violations.get(0).getDetailedLawName());
             assertTrue(resSup.isAnswerCorrect);
 
             Long supQ3 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup.violations.get(0)).getQuestionData().getId();
             Question supQ4 = questionService.getQuestion(supQ3);
-            val question2Responses3 = questionService.responseQuestion(supQ4, List.of(1));
+            val question2Responses3 = questionService.responseQuestion(supQ4, List.of(0));
             Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(0));
-            assertEquals("error_select_highest_precedence_right_operator", resSup2.violations.get(0).getLawName());
-            assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getDetailedLawName());
-            assertFalse(resSup2.isAnswerCorrect);
+            assertEquals("correct_select_associativity_type_left_left", resSup2.violations.get(0).getLawName());
+            assertNull(resSup2.violations.get(0).getDetailedLawName());
+            assertTrue(resSup2.isAnswerCorrect);
 
             Long supQ31 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup2.violations.get(0)).getQuestionData().getId();
             Question supQ41 = questionService.getQuestion(supQ31);
             assertTrue(supQ41.getAnswerObjects().isEmpty());
-            assertEquals("<div class='comp-ph-question'>Wrong, precedence of operator * is higher</div>", supQ41.getQuestionText().toString());
+            assertTrue(supQ41.getQuestionText().toString().startsWith("<div class='comp-ph-question'>Yes, operators + and + have same precedence and left associativity"));
 
             Long supQ5 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
-            val question2Responses4 = questionService.responseQuestion(supQ6, List.of(4));
+            val question2Responses4 = questionService.responseQuestion(supQ6, List.of(0));
             Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
-            assertEquals("select_highest_precedence_right_operator", resSup3.violations.get(0).getLawName());
+            assertEquals("select_precedence_or_associativity_left_influence", resSup3.violations.get(0).getLawName());
             assertNull(resSup3.violations.get(0).getDetailedLawName());
+
+            Long supQ7 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup3.violations.get(0)).getQuestionData().getId();
+            Question supQ8 = questionService.getQuestion(supQ7);
+            val question2Responses5 = questionService.responseQuestion(supQ8, List.of(0));
+            Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(0));
+            assertEquals("select_highest_precedence_left_operator", resSup4.violations.get(0).getLawName());
+            assertNull(resSup4.violations.get(0).getDetailedLawName());
+
+            Long supQ9 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup4.violations.get(0)).getQuestionData().getId();
+            Question supQ10 = questionService.getQuestion(supQ9);
+            val question2Responses6 = questionService.responseQuestion(supQ10, List.of(0));
+            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(0));
+            assertEquals("error_select_associativity_or_arity_influence_left", resSup5.violations.get(0).getLawName());
+            assertEquals("error_select_arity_or_associativity", resSup5.violations.get(0).getDetailedLawName());
+        }
+
+        {
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(2);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
+            List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
+            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
+            Question question2 = questionService.solveQuestion(question1, tags);
+            val question2Responses = questionService.responseQuestion(question2, List.of(0));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
+            assertTrue(result.violations.isEmpty());
+
+            //Сохранение интеракции
+            InteractionEntity ie = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question2.questionData,
+                    result.violations,
+                    result.correctlyAppliedLaws,
+                    question2Responses
+            );
+
+            ArrayList<InteractionEntity> ies = new ArrayList<>();
+            if(question2.questionData.getInteractions() != null) {
+                ies.addAll(question1.questionData.getInteractions());
+            }
+            ies.add(ie);
+            question2.questionData.setInteractions(ies);
+            questionService.saveQuestion(question2.questionData);
+
+            // add feedback
+            val grade = strategy.grade(attempt);
+            ie.getFeedback().setInteractionsLeft(result.IterationsLeft);
+            ie.getFeedback().setGrade(grade);
+            feedbackRepository.save(ie.getFeedback());
+
+            question2Responses.addAll(questionService.responseQuestion(question2, List.of(1)));
+            Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question2, question2Responses, tags);
+            assertEquals(1, result2.violations.size());
+            assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result2.violations.get(0).getLawName());
+
+            //Сохранение интеракции
+            InteractionEntity ie2 = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question2.questionData,
+                    result2.violations,
+                    result2.correctlyAppliedLaws,
+                    question2Responses
+            );
+
+            ArrayList<InteractionEntity> ies2 = new ArrayList<>();
+            if(question2.questionData.getInteractions() != null) {
+                ies2.addAll(question2.questionData.getInteractions());
+            }
+            ies2.add(ie2);
+            question2.questionData.setInteractions(ies2);
+            questionService.saveQuestion(question2.questionData);
+
+            Long supQ = questionService.generateSupplementaryQuestion(question2.getQuestionData(), result2.violations.get(0)).getQuestionData().getId();
+            Question supQ2 = questionService.getQuestion(supQ);
+            assertEquals(QuestionType.SINGLE_CHOICE, supQ2.getQuestionType());
+            assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
+            val question2Responses3 = questionService.responseQuestion(supQ2, List.of(4));
+            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses3, testExerciseAttemptList.get(0));
+            assertEquals("select_precedence_or_associativity_right_influence", resSup.violations.get(0).getLawName());
+            assertNull(resSup.violations.get(0).getDetailedLawName());
+            assertFalse(resSup.isAnswerCorrect);
         }
 
         {
