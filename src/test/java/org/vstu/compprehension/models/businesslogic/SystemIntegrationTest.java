@@ -71,7 +71,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
             val question2 = questionService.solveQuestion(question1, tags);
@@ -167,7 +167,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -233,7 +233,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -256,7 +256,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             questionService.saveQuestion(question1.questionData);
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -304,7 +304,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -327,7 +327,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -350,7 +350,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
             assertEquals(1, processSolutionResult.CountCorrectOptions);
@@ -378,7 +378,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
             List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
@@ -392,7 +392,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(1));
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
@@ -475,7 +475,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
@@ -544,7 +544,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
             List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
@@ -558,7 +558,7 @@ public class SystemIntegrationTest {
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
             List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
-            assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
+            assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(1));
             List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
