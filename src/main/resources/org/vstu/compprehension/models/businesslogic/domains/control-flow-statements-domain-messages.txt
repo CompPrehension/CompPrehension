@@ -1,24 +1,24 @@
-UpcomingNeighbour Oжидаемый-рано	Почему вы пропустили <list-A> ?	Why did you skip <list-A> ?
+UpcomingNeighbour Oжидаемый-рано	Почему вы пропустили <list-MISSING> ?	Why did you skip <list-MISSING> ?
 		
 NotNeighbour Hеожиданно	Почему вы выполнили <A> ?	Why did you execute <A> ?
 		
-WrongCondNeighbour Hе-при-том-условии	Почему вы выполнили <A>, когда условие <C> <TrueFalse>?	Why did you execute <A>, when the condition <C> <TrueFalse>?
+WrongCondNeighbour Hе-при-том-условии	Почему вы выполнили <A>, когда условие <COND> <TrueFalse>?	Why did you execute <A>, when the condition <COND> is <TrueFalse>?
 		
-MisplacedBefore Раньше-объемлющего-акта	<B> не может выполняться до начала <A>, потому что <B> входит в <A>.	<B> is a part of <A> so <B> can't be executed before <A> starts
+MisplacedBefore Раньше-объемлющего-акта	<A> не может выполняться до начала <B>, потому что <A> входит в <B>.	<A> is a part of <B> so <A> can't be executed before <B> starts
 		
 MisplacedAfter Позже-объемлющего-акта	<B> не может выполняться после окончания <A>, потому что <B> входит в <A>	<B> is a part of <A> so <B> can't be executed after <A> ends
 		
-EndedDeeper Конец-внутри-вложенного-акта	Действие не может завершиться до окончания всех вложенных действий, поэтому <A> не может закончиться до окончания действия <B>, которое входит в <A>	An action ends only when all its nested actions have ended, so <A> cannot end until <B> ends as <B> is a part of <A>
+EndedDeeper Конец-внутри-вложенного-акта	Действие не может завершиться до окончания всех вложенных действий, поэтому <A> не может закончиться до окончания действия <INNER>, которое входит в <A>	An action ends only when all its nested actions have ended, so <A> cannot end until <INNER> ends as <INNER> is a part of <A>
 		
-WrongContext Вне-контекста	<B> не может выполняться в рамках <EX>, потому что <B> не является непосредственной частью <EX>	<B> can't be executed inside of <EX> because <B> is not a direct part of "<EX>".
+WrongContext Вне-контекста	<A> не может выполняться в рамках <OUTER>, потому что <A> не является непосредственной частью <OUTER>	<A> can't be executed inside of <OUTER> because <A> is not a direct part of "<OUTER>".
 		
-OneLevelShallower Через-уровень	<B> не может выполняться в рамках <EX>, потому что <B> является элементом <A_gent>, начните сначала <A>.	<B> cannot be executed within <EX> because <B> is an element of <A>, so start <A> first.
+OneLevelShallower Через-уровень	<A> не может выполняться в рамках <OUTER>, потому что <A> является элементом <PARENT>, начните сначала <PARENT>.	<A> cannot be executed within <OUTER> because <A> is an element of <PARENT>, so start <PARENT> first.
 		
-TooEarlyInSequence Не-в-порядке-следования-рано	Следование выполняет все свои действия по порядку, поэтому <A> не может выполняться перед <B>.	A sequence executes its nested actions in order, so <A> cannot be executed before <B>
+TooEarlyInSequence Не-в-порядке-следования-рано	Следование выполняет все свои действия по порядку, поэтому <A> не может выполняться перед <MISSING>.	A sequence executes its nested actions in order, so <A> cannot be executed before <MISSING>
 		
-TooLateInSequence Не-в-порядке-следования-поздно	Следование выполняет все свои действия по порядку, поэтому <A> не может выполняться после <B>.	A sequence executes its nested actions in order, so <A> cannot be executed after <B>
+TooLateInSequence Не-в-порядке-следования-поздно	Следование выполняет все свои действия по порядку, поэтому <A> не может выполняться после <PREVIOUS>.	A sequence executes its nested actions in order, so <A> cannot be executed after <PREVIOUS>
 		
-SequenceFinishedTooEarly Следование-прервано	Следование выполняет все свои действия: нельзя закончить следование <A> не выполнив действия: <B1..Bn>.	A sequence always executes all its actions. The sequence <A> cannot finish until actions: <B1..Bn> are executed.
+SequenceFinishedTooEarly Следование-прервано	Следование выполняет все свои действия: нельзя закончить следование <A> не выполнив действия: <list-MISSING>.	A sequence always executes all its actions. The sequence <A> cannot finish until actions: <list-MISSING> are executed.
 		
 DuplicateOfAct Дубликат (sequence only)	Следование выполняет все свои действия ровно по 1 разу, поэтому во время выполнения действия <A> действие <B> должно выполниться ровно один раз.	A sequence executes each its action once, so each execution of <A> can contain only one execution of <B>
 		
