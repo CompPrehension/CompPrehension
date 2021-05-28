@@ -3436,7 +3436,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${left_operator} is higher than operator ${operator}, so the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "Wrong, precedence of operator ${left_operator} is higher than operator ${operator}, so operator ${left_operator} should be evaluated first and the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3463,7 +3463,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${left_operator} is higher than operator ${operator}, so the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "Yes, precedence of operator ${left_operator} is higher than operator ${operator}, so operator ${left_operator} should be evaluated first and the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3490,7 +3490,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${left_operator}, so the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${left_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3517,7 +3517,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${left_operator}, so the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${left_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3544,7 +3544,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${right_operator} is higher than operator ${operator}, so the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "Wrong, precedence of operator ${right_operator} is higher than operator ${operator}, so operator ${right_operator} should be evaluated first and the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3571,7 +3571,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${right_operator} is higher than operator ${operator}, so the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "Yes, precedence of operator ${right_operator} is higher than operator ${operator}, so operator ${right_operator} should be evaluated first and the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3598,7 +3598,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${right_operator}, so the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${right_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3625,7 +3625,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${right_operator}, so the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${right_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4025,7 +4025,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
+      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4052,7 +4052,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
+      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4080,7 +4080,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
+      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4107,7 +4107,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
+      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
