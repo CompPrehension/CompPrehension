@@ -181,7 +181,7 @@
     "answers": [
       {
         "name": "select_associativity_or_arity_influence_associativity",
-        "correct": "correct_select_associativity_or_arity_influence_left",
+        "correct": "select_associativity_type_left",
         "wrong": null,
         "detailed_law": null,
         "correct_check": "correct"
@@ -200,7 +200,7 @@
     "answers": [
       {
         "name": "select_associativity_or_arity_influence_associativity",
-        "correct": "correct_select_associativity_or_arity_influence_right",
+        "correct": "select_associativity_type_right",
         "wrong": null,
         "detailed_law": null,
         "correct_check": "correct"
