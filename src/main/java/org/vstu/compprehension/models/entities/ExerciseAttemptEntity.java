@@ -21,6 +21,7 @@ public class ExerciseAttemptEntity {
     @Enumerated(EnumType.ORDINAL)
     private AttemptStatus attemptStatus;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
