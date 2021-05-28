@@ -4080,6 +4080,114 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} on pos ${operator_pos} will block the operator ${left_operator} on pos ${left_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_associativity_type_left_right_assoc",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} on pos ${operator_pos} will block the operator ${left_operator} on pos ${left_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_associativity_type_left_right_assoc",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} on pos ${operator_pos} will block the operator ${right_operator} on pos ${right_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_associativity_type_right_left_assoc",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} on pos ${operator_pos} will block the operator ${right_operator} on pos ${right_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_associativity_type_right_left_assoc",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
