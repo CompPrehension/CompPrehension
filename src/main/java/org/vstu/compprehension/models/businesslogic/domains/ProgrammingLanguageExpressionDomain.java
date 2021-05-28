@@ -260,10 +260,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setStatementFacts(getBackendFacts(tokens));
         entity.setQuestionType(q.getQuestionType());
 
-
         switch (q.getQuestionType()) {
             case ORDER:
-                entity.setQuestionText(ExpressionToHtml(q.getQuestionText().getText()));
+                val baseQuestionText = "<p>Press the operators in the expression in the order they are evaluated</p>";
+                entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getQuestionText().getText()));
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
             case MATCHING:
