@@ -105,12 +105,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return concept;
     }
 
-    class SupplementaryAnswerConfig {
-        String name;
-        String correct;
-        String wrong;
-        String detailed_law;
-        String correct_check;
+    public static class SupplementaryAnswerConfig {
+        public String name;
+        public String correct;
+        public String wrong;
+        public String detailed_law;
+        public String correct_check;
     }
 
     class SupplementaryConfig {
@@ -118,7 +118,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         List<SupplementaryAnswerConfig> answers;
     }
 
-    HashMap<String, HashMap<String, SupplementaryAnswerConfig>> supplementaryConfig;
+    public HashMap<String, HashMap<String, SupplementaryAnswerConfig>> supplementaryConfig;
     private void readSupplementaryConfig(InputStream inputStream) {
         supplementaryConfig = new HashMap<>();
 
@@ -676,7 +676,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
         HashSet<String> targetConcepts = new HashSet<>();
-        String failedLaw = violation.getLawName();
+        String failedLaw = violation.getLawName().startsWith("error_single_token_binary_operator") ? "first_OrderOperatorsSupplementary" : violation.getLawName();
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
@@ -684,22 +684,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (exerciseAttemptEntity == null) {
             return null;
         }
+        if (!supplementaryConfig.containsKey(failedLaw)) {
+            return null;
+        }
 
         Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
             Question copy = makeQuestionCopy(res, exerciseAttemptEntity);
-            return fillSupplementaryAnswerObjects(question, violation, copy);
+            return fillSupplementaryAnswerObjects(question, failedLaw, copy);
         }
 
         return null;
     }
 
-    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, ViolationEntity violation, Question supplementaryQuestion) {
-        String failedLaw = violation.getLawName();
-        if (!supplementaryConfig.containsKey(failedLaw)) {
-            return null;
-        }
-
+    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion) {
         Map<String, List<String>> before = new HashMap<>();
         MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
         Map<String, String> texts = new HashMap<>();
@@ -731,17 +729,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         AnswerObjectEntity failedAnswer = null;
-        if (originalQuestion.getInteractions() == null) {
+        if (originalQuestion.getInteractions() == null || originalQuestion.getInteractions().size() == 0) {
             return null;
         }
-        for (InteractionEntity interaction : originalQuestion.getInteractions()) {
-            if (interaction.getViolations() == null || interaction.getViolations().isEmpty()) {
-                for (ResponseEntity response : interaction.getResponses()) {
-                    used.add(response.getLeftAnswerObject().getDomainInfo());
-                }
-            } else if (!interaction.getResponses().isEmpty()) {
-                failedAnswer = interaction.getResponses().get(0).getLeftAnswerObject();
-            }
+        InteractionEntity interaction = originalQuestion.getInteractions().get(originalQuestion.getInteractions().size() - 1);
+        for (ResponseEntity response : interaction.getResponses()) {
+            used.add(response.getLeftAnswerObject().getDomainInfo());
+            failedAnswer = response.getLeftAnswerObject();
         }
 
         if (failedAnswer == null) {
@@ -828,14 +822,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return null;
         }
 
+        boolean sameAnswers = false;
         HashSet<String> answerTexts = new HashSet<>();
         List<AnswerObjectEntity> answers = new ArrayList<>();
         for (AnswerObjectEntity answer : supplementaryQuestion.getAnswerObjects()) {
             try {
                 String result = stringSubstitutor.replace(answer.getHyperText());
                 if (answerTexts.contains(result)) {
-                    continue;
+                    sameAnswers = true;
                 }
+
                 AnswerObjectEntity newAnswer = new AnswerObjectEntity();
                 answerTexts.add(result);
                 newAnswer.setHyperText(result);
@@ -857,12 +853,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     } else if (answerCorrectCheckParts[1].equals("high_precedence")) {
                         isAnswerCorrect = highPrecedence.containsMapping(subject, object);
                     } else if (answerCorrectCheckParts[1].equals("same_precedence")) {
-                        isAnswerCorrect = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object);
+                        isAnswerCorrect = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object)
+                            || samePrecedenceLeftAssoc.containsMapping(object, subject) || samePrecedenceRightAssoc.containsMapping(object, subject);
                     } else {
                         throw new IllegalStateException("Supplementary answer correctness check verb is not supported");
                     }
                 } else {
                     throw new IllegalStateException("Supplementary answer correctness check failed");
+                }
+
+                // skip question with same answers
+                if (sameAnswers && isAnswerCorrect) {
+                    ViolationEntity violationEntity = new ViolationEntity();
+                    violationEntity.setLawName(answerConfig.correct);
+                    return makeSupplementaryQuestion(originalQuestion, violationEntity);
                 }
 
                 if (isAnswerCorrect) {

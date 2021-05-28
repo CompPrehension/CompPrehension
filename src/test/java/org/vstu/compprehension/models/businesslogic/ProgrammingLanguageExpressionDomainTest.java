@@ -1,16 +1,17 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.val;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,6 +30,32 @@ public class ProgrammingLanguageExpressionDomainTest {
     public void testLaws() {
         assertNotNull(domain.getPositiveLaw("single_token_binary_execution"));
         assertTrue(domain.getPositiveLaw("single_token_binary_execution").isPositiveLaw());
+    }
+
+    @Test
+    public void TestSupplementaryConfig() {
+        for (val entry : domain.supplementaryConfig.entrySet()) {
+            String supName = entry.getKey();
+            HashSet<String> supNameSet = new HashSet<>();
+            supNameSet.add(supName);
+            supNameSet.add("supplementary");
+            Question sup = domain.findQuestion(new ArrayList<>(), supNameSet, new HashSet<>(), new HashSet<>(), new HashSet<>());
+            assertNotNull(sup);
+            for (AnswerObjectEntity answer : sup.getAnswerObjects()) {
+                assertTrue(entry.getValue().containsKey(answer.getDomainInfo()), answer.getDomainInfo());
+            }
+            for (val answer : entry.getValue().entrySet()) {
+                val configP = answer.getValue();
+                if (!configP.correct_check.equals("wrong")) {
+                    assertNotNull(configP.correct);
+                    assertTrue(domain.supplementaryConfig.containsKey(configP.correct), configP.correct);
+                }
+                if (!configP.correct_check.equals("correct")) {
+                    assertNotNull(configP.wrong);
+                    assertTrue(domain.supplementaryConfig.containsKey(configP.wrong), configP.wrong);
+                }
+            }
+        }
     }
 
     @Test

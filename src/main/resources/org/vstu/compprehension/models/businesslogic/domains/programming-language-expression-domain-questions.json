@@ -3262,8 +3262,7 @@
     },
     "concepts": [
       "precedence",
-      "error_single_token_binary_operator_has_unevaluated_higher_precedence_left",
-      "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+      "first_OrderOperatorsSupplementary",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3280,7 +3279,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What operator has highest precedence?",
+      "questionText": "What operator has higher precedence?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3335,7 +3334,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What operator has highest precedence?",
+      "questionText": "What operator has higher precedence?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3420,51 +3419,6 @@
     "concepts": [
       "precedence",
       "select_precedence_or_associativity_left_influence",
-      "SystemIntegrationTest",
-      "supplementary"
-    ],
-    "tags": [
-      "C++",
-      "basics",
-      "operators",
-      "order",
-      "evaluation"
-    ]
-  },
-  {
-    "questionType": "SINGLE_CHOICE",
-    "questionData": {
-      "questionType": "SINGLE_CHOICE",
-      "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What influence evaluation order at first?",
-      "areAnswersRequireContext": false,
-      "options": {
-      },
-      "answerObjects": [
-        {
-          "answerId": 0,
-          "hyperText": "precedence",
-          "domainInfo": "select_precedence_or_associativity_influence_precedence",
-          "isRightCol": false,
-          "concept": "",
-          "responsesLeft": [],
-          "responsesRight": []
-        },
-        {
-          "answerId": 1,
-          "hyperText": "associativity",
-          "domainInfo": "select_precedence_or_associativity_influence_associativity",
-          "isRightCol": false,
-          "concept": "",
-          "responsesLeft": [],
-          "responsesRight": []
-        }
-      ],
-      "statementFacts": [
-      ]
-    },
-    "concepts": [
-      "precedence",
       "select_precedence_or_associativity_right_influence",
       "SystemIntegrationTest",
       "supplementary"
@@ -3482,7 +3436,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${operator} is higher",
+      "questionText": "Wrong, precedence of operator ${left_operator} is higher than operator ${operator}, so the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3492,7 +3446,7 @@
       ]
     },
     "concepts": [
-      "error_select_highest_precedence_operator",
+      "error_select_highest_precedence_operator_left",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3509,7 +3463,34 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${left_operator} is higher",
+      "questionText": "Yes, precedence of operator ${left_operator} is higher than operator ${operator}, so the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_highest_precedence_operator_left",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${left_operator}, so the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3536,61 +3517,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${right_operator} is higher",
-      "areAnswersRequireContext": false,
-      "options": {
-      },
-      "answerObjects": [
-      ],
-      "statementFacts": [
-      ]
-    },
-    "concepts": [
-      "error_select_highest_precedence_right_operator",
-      "SystemIntegrationTest",
-      "supplementary"
-    ],
-    "tags": [
-      "C++",
-      "basics",
-      "operators",
-      "order",
-      "evaluation"
-    ]
-  },
-  {
-    "questionType": "SINGLE_CHOICE",
-    "questionData": {
-      "questionType": "SINGLE_CHOICE",
-      "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${operator} is higher",
-      "areAnswersRequireContext": false,
-      "options": {
-      },
-      "answerObjects": [
-      ],
-      "statementFacts": [
-      ]
-    },
-    "concepts": [
-      "correct_select_highest_precedence_operator",
-      "SystemIntegrationTest",
-      "supplementary"
-    ],
-    "tags": [
-      "C++",
-      "basics",
-      "operators",
-      "order",
-      "evaluation"
-    ]
-  },
-  {
-    "questionType": "SINGLE_CHOICE",
-    "questionData": {
-      "questionType": "SINGLE_CHOICE",
-      "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${left_operator} is higher",
+      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${left_operator}, so the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3617,7 +3544,88 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${right_operator} is higher",
+      "questionText": "Wrong, precedence of operator ${right_operator} is higher than operator ${operator}, so the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_highest_precedence_operator_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, precedence of operator ${right_operator} is higher than operator ${operator}, so the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_highest_precedence_operator_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${right_operator}, so the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_highest_precedence_right_operator",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${right_operator}, so the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3644,7 +3652,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence is checked before associativity",
+      "questionText": "Wrong, precedence is checked before associativity, so operator ${left_operator} at pos ${left_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3654,7 +3662,7 @@
       ]
     },
     "concepts": [
-      "error_select_precedence_or_associativity",
+      "error_select_precedence_or_associativity_left",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3671,7 +3679,88 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What influence evaluation order at first?",
+      "questionText": "Yes, precedence is checked before associativity, so operator ${left_operator} at pos ${left_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_precedence_or_associativity_left",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence is checked before associativity, so operator ${right_operator} at pos ${right_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_precedence_or_associativity_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, precedence is checked before associativity, so operator ${right_operator} at pos ${right_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_precedence_or_associativity_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What influence evaluation order at operators with same precedence?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3700,7 +3789,8 @@
     },
     "concepts": [
       "precedence",
-      "select_associativity_or_arity_influence",
+      "select_associativity_or_arity_influence_left",
+      "select_associativity_or_arity_influence_right",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3717,7 +3807,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, associativity influence evaluation order",
+      "questionText": "Wrong, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3727,7 +3817,7 @@
       ]
     },
     "concepts": [
-      "correct_select_associativity_or_arity_influence_associativity",
+      "error_select_associativity_or_arity_influence_left",
       "SystemIntegrationTest",
       "supplementary"
     ],
@@ -3744,7 +3834,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order",
+      "questionText": "Yes, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3754,7 +3844,281 @@
       ]
     },
     "concepts": [
-      "error_select_associativity_or_arity_influence_arity",
+      "correct_select_associativity_or_arity_influence_left",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "wrong_select_associativity_or_arity_influence_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_associativity_or_arity_influence_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What associativity has operator ${left_operator}?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "left",
+          "domainInfo": "select_associativity_type_left_left",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "right",
+          "domainInfo": "select_associativity_type_left_right",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "nonassoc",
+          "domainInfo": "select_associativity_type_left_nonassoc",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_associativity_type_left",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "What associativity has operator ${right_operator}?",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "left",
+          "domainInfo": "select_associativity_type_right_left",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "right",
+          "domainInfo": "select_associativity_type_right_right",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "nonassoc",
+          "domainInfo": "select_associativity_type_right_nonassoc",
+          "isRightCol": false,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "select_associativity_type_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_associativity_type_left_left",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_associativity_type_left_right",
+      "error_select_associativity_type_left_nonassoc",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "correct_select_associativity_type_right_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_associativity_type_right_left",
+      "error_select_associativity_type_right_nonassoc",
       "SystemIntegrationTest",
       "supplementary"
     ],
