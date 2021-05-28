@@ -45,14 +45,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 assertTrue(entry.getValue().containsKey(answer.getDomainInfo()), answer.getDomainInfo());
             }
             for (val answer : entry.getValue().entrySet()) {
-                val configP = answer.getValue();
-                if (!configP.correct_check.equals("wrong")) {
-                    assertNotNull(configP.correct);
-                    assertTrue(domain.supplementaryConfig.containsKey(configP.correct), configP.correct);
-                }
-                if (!configP.correct_check.equals("correct")) {
-                    assertNotNull(configP.wrong);
-                    assertTrue(domain.supplementaryConfig.containsKey(configP.wrong), configP.wrong);
+                for (val transition : answer.getValue()) {
+                    assertTrue(domain.supplementaryConfig.containsKey(transition.question), transition.question);
                 }
             }
         }

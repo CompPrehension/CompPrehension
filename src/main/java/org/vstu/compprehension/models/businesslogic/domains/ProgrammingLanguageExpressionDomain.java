@@ -105,12 +105,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return concept;
     }
 
+    public static class SupplementaryAnswerTransition {
+        public String check;
+        public String question;
+        public String detailed_law;
+        public boolean correct;
+    }
+
     public static class SupplementaryAnswerConfig {
         public String name;
-        public String correct;
-        public String wrong;
-        public String detailed_law;
-        public String correct_check;
+        public List<SupplementaryAnswerTransition> transitions;
     }
 
     class SupplementaryConfig {
@@ -118,7 +122,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         List<SupplementaryAnswerConfig> answers;
     }
 
-    public HashMap<String, HashMap<String, SupplementaryAnswerConfig>> supplementaryConfig;
+    public HashMap<String, HashMap<String, List<SupplementaryAnswerTransition>>> supplementaryConfig;
     private void readSupplementaryConfig(InputStream inputStream) {
         supplementaryConfig = new HashMap<>();
 
@@ -129,7 +133,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (SupplementaryConfig config : configs) {
             supplementaryConfig.put(config.name, new HashMap<>());
             for (SupplementaryAnswerConfig answer : config.answers) {
-                supplementaryConfig.get(config.name).put(answer.name, answer);
+                supplementaryConfig.get(config.name).put(answer.name, answer.transitions);
             }
         }
     }
@@ -839,44 +843,53 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 newAnswer.setHyperText(result);
                 newAnswer.setAnswerId(answer.getAnswerId());
 
-                SupplementaryAnswerConfig answerConfig = supplementaryConfig.get(failedLaw).get(answer.getDomainInfo());
-                String[] answerCorrectCheckParts = answerConfig.correct_check.split(";");
+                List<SupplementaryAnswerTransition> transitions = supplementaryConfig.get(failedLaw).get(answer.getDomainInfo());
 
-                boolean isAnswerCorrect = true; //TODO: somehow check at least one branch work
-                if (answerConfig.correct_check.equals("correct")) {
-                    isAnswerCorrect = true;
-                } else if (answerConfig.correct_check.equals("wrong")) {
-                    isAnswerCorrect = false;
-                } else if (answerCorrectCheckParts.length == 3) {
-                    String subject = templates.get(answerCorrectCheckParts[0] + "_domain_info");
-                    String object = templates.get(answerCorrectCheckParts[2] + "_domain_info");
-                    if (answerCorrectCheckParts[1].equals("before")) {
-                        isAnswerCorrect = beforeIndirect.containsMapping(subject, object);
-                    } else if (answerCorrectCheckParts[1].equals("high_precedence")) {
-                        isAnswerCorrect = highPrecedence.containsMapping(subject, object);
-                    } else if (answerCorrectCheckParts[1].equals("same_precedence")) {
-                        isAnswerCorrect = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object)
-                            || samePrecedenceLeftAssoc.containsMapping(object, subject) || samePrecedenceRightAssoc.containsMapping(object, subject);
-                    } else {
-                        throw new IllegalStateException("Supplementary answer correctness check verb is not supported");
+                boolean isAnswerCorrect = false;
+                for (SupplementaryAnswerTransition transition : transitions) {
+                    String[] transitionCheckParts = transition.check.split(";");
+                    boolean transitionSuit = false;
+                    if (transition.check.equals("correct")) {
+                        transitionSuit = true;
+                    } else if (transitionCheckParts.length == 3) {
+                        String subject = templates.get(transitionCheckParts[0] + "_domain_info");
+                        String object = templates.get(transitionCheckParts[2] + "_domain_info");
+                        if (transitionCheckParts[1].equals("before")) {
+                            transitionSuit = beforeIndirect.containsMapping(subject, object);
+                        } else if (transitionCheckParts[1].equals("high_precedence")) {
+                            transitionSuit = highPrecedence.containsMapping(subject, object);
+                        } else if (transitionCheckParts[1].equals("same_precedence")) {
+                            transitionSuit = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object)
+                                    || samePrecedenceLeftAssoc.containsMapping(object, subject) || samePrecedenceRightAssoc.containsMapping(object, subject);
+                        } else if (transitionCheckParts[1].equals("same_precedence_left_assoc")) {
+                            transitionSuit = samePrecedenceLeftAssoc.containsMapping(subject, object);
+                        } else if (transitionCheckParts[1].equals("same_precedence_right_assoc")) {
+                            transitionSuit = samePrecedenceRightAssoc.containsMapping(subject, object);
+                        } else {
+                            throw new IllegalStateException("Supplementary answer correctness check verb is not supported");
+                        }
                     }
-                } else {
+
+                    if (transitionSuit) {
+                        newAnswer.setDomainInfo(transition.question);
+                        isAnswerCorrect = transition.correct;
+                        if (!isAnswerCorrect) {
+                            BackendFactEntity mistake = new BackendFactEntity(String.valueOf(answer.getAnswerId()), "detailed_law", transition.detailed_law);
+                            possibleViolationFacts.add(mistake);
+                        }
+                        break;
+                    }
+                }
+
+                if (newAnswer.getDomainInfo() == null) {
                     throw new IllegalStateException("Supplementary answer correctness check failed");
                 }
 
                 // skip question with same answers
                 if (sameAnswers && isAnswerCorrect) {
                     ViolationEntity violationEntity = new ViolationEntity();
-                    violationEntity.setLawName(answerConfig.correct);
+                    violationEntity.setLawName(newAnswer.getDomainInfo());
                     return makeSupplementaryQuestion(originalQuestion, violationEntity);
-                }
-
-                if (isAnswerCorrect) {
-                    newAnswer.setDomainInfo(answerConfig.correct);
-                } else {
-                    newAnswer.setDomainInfo(answerConfig.wrong);
-                    BackendFactEntity mistake = new BackendFactEntity(String.valueOf(answer.getAnswerId()), "detailed_law", answerConfig.detailed_law);
-                    possibleViolationFacts.add(mistake);
                 }
 
                 answers.add(newAnswer);

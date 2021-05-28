@@ -444,7 +444,7 @@ public class SystemIntegrationTest {
             Long supQ31 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup2.violations.get(0)).getQuestionData().getId();
             Question supQ41 = questionService.getQuestion(supQ31);
             assertTrue(supQ41.getAnswerObjects().isEmpty());
-            assertTrue(supQ41.getQuestionText().toString().startsWith("<div class='comp-ph-question'>Yes, operators + and + have same precedence and left associativity"));
+            assertTrue(supQ41.getQuestionText().toString().startsWith("<div class='comp-ph-question'>Yes, operator + has left associativity"));
 
             Long supQ5 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
