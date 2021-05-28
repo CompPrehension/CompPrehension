@@ -53,6 +53,7 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
     private static List<String> reasonPropertiesCache = null;
+    private static List<String> fieldPropertiesCache = null;
 
     private static HashMap<String, String> MESSAGES = null;
 
@@ -170,14 +171,14 @@ public class ControlFlowStatementsDomain extends Domain {
             ));
         }
 
-        if (result.isEmpty()) {
-            // add initial tip
-            result.add(new HyperText("Solve this question by clicking " +
-                    "<img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\">" +
-                    " play and " +
-                    "<img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"20\">" +
-                    " stop buttons"));
-        }
+//        if (result.isEmpty()) {
+//            // add initial tip
+//            result.add(new HyperText("Solve this question by clicking " +
+//                    "<img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"22\">" +
+//                    " play and " +
+//                    "<img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"20\">" +
+//                    " stop buttons"));
+//        }
 
         ///
 //        System.out.println("\t\tObtained the trace. Last line is:");
@@ -282,7 +283,10 @@ public class ControlFlowStatementsDomain extends Domain {
         Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames, new HashSet<>());
         if (res == null) {
             // get anything. TODO: make it input-dependent
-            res = QUESTIONS.get(0);
+            int index = 0;
+            // get (a random?) int
+            index = QUESTIONS.size() - 1;
+            res = QUESTIONS.get(index);
         }
         return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
     }
@@ -360,7 +364,12 @@ public class ControlFlowStatementsDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                entity.setQuestionText((q.getQuestionText().getText()));
+                val baseQuestionText = "<p>Press the actions of the algorithm in the order they are evaluated. Activate actions with play"+
+                        "<img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"18\">" +
+                        " and stop" +
+                        "<img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"16\">" +
+                        " buttons.</p>";
+                entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
             case MATCHING:
@@ -406,11 +415,23 @@ public class ControlFlowStatementsDomain extends Domain {
     public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType) {
 
         String lawName = violation.getLawName();
+        String msg = getFrontMessages().get(lawName);
 
-        String msgTemplate = getFrontMessages().get(lawName);
-        // todo: fill placeholders
+        if (msg == null) {
+            return new HyperText("[Empty explanation] for " + lawName);
+        }
 
-        return new HyperText(Optional.ofNullable(msgTemplate).orElse("[Empty explanation] for " + lawName));
+        // fill placeholders
+        for (ExplanationTemplateInfoEntity template : violation.getExplanationTemplateInfo()) {
+            String pattern = "<" + template.getFieldName() + ">";
+            if (!msg.contains(pattern)) {
+                pattern = "<list-" + template.getFieldName() + ">";
+            }
+            String replacement = template.getValue();
+            msg = msg.replaceAll(pattern, replacement);
+        }
+
+        return new HyperText(msg);
     }
 
     // filter positive laws by question type and tags
@@ -553,6 +574,9 @@ public class ControlFlowStatementsDomain extends Domain {
             ));
             // add solution verbs too!
             verbs.addAll(getSolutionVerbsStatic(questionDomainType, statementFacts));
+            if (fieldPropertiesCache == null)
+                fieldPropertiesCache = VOCAB.propertyDescendants("string_placeholder");
+            verbs.addAll(fieldPropertiesCache);
             return new ArrayList<>(verbs);
 //        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
 //            return new ArrayList<>(Arrays.asList(
@@ -649,7 +673,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 AnswerObjectEntity ao = response.getLeftAnswerObject();
                 String domainInfo = ao.getDomainInfo();
                 ///
-                System.out.println("Adding act from response: " + ao.getHyperText());
+                /// System.out.println("Adding act from response: " + ao.getHyperText());
 
                 AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
                 String phase = answerDomainInfo.getPhase();
@@ -804,10 +828,33 @@ public class ControlFlowStatementsDomain extends Domain {
 
                 String act_stmt_name = action.getPropertyValue(stmt_name).asLiteral().getString();
 
+                // extract ALL field_* facts, no matter what law they belong to.
+                List<Statement> actLinks = model.listStatements(act_individual, null, (String) null).toList();
+                HashMap<String, String> placeholders = new HashMap<>();
+                for (Statement statement : actLinks) {
+                    String verb = statement.getPredicate().getLocalName();
+                    if (fieldPropertiesCache.contains(verb)) {
+                        String fieldName = verb.replaceAll("field_", "");
+                        String value = statement.getString();
+                        value = "\"" + value + "\"";
+                        if (placeholders.containsKey(fieldName)) {
+                            // append to previous data
+                            value = placeholders.get(fieldName) + ", " + value;
+                            //// System.out.println((":: WARNING :: retrieving field_* facts: clash at key '" + fieldName + "'.\n\tValues:\n\told: " + placeholders.get(fieldName) + "\n\tnew: " + value));
+                        }
+                        placeholders.put(fieldName, value);
+                    }
+                }
+
+                ///
+                System.out.println("\nPlaceholders:");
+                System.out.println(placeholders);
+
                 for (OntClass errClass : errorOntClasses) {
                     // filter out not-error classes
-                    if (!testSubClassOfTransitive(errClass, Erroneous))
+                    if (!testSubClassOfTransitive(errClass, Erroneous)) {
                         continue;
+                    }
 
                     ///
                     System.out.println("<>- Mistake for action " + act_stmt_name + ": " + errClass.getLocalName());
@@ -816,13 +863,15 @@ public class ControlFlowStatementsDomain extends Domain {
                     ViolationEntity violationEntity = new ViolationEntity();
                     violationEntity.setLawName(errClass.getLocalName());
 
-                    ExplanationTemplateInfoEntity explT = new ExplanationTemplateInfoEntity();
-                    explT.setFieldName("A");
-                    explT.setValue("it was happened..!");
-                    explT.setViolation(violationEntity);
-                    violationEntity.setExplanationTemplateInfo(Arrays.asList(
-                            explT
-                    ));
+                    List<ExplanationTemplateInfoEntity> templates = new ArrayList<>();
+                    placeholders.forEach((name, value) -> {
+                        ExplanationTemplateInfoEntity explT = new ExplanationTemplateInfoEntity();
+                        explT.setFieldName(name);
+                        explT.setValue(value);
+                        explT.setViolation(violationEntity);
+                        templates.add(explT);
+                    });
+                    violationEntity.setExplanationTemplateInfo(templates);
 
                     violationEntity.setViolationFacts(new ArrayList<>(Arrays.asList(
                             new BackendFactEntity("owl:NamedIndividual", act_individual.getLocalName(),
