@@ -198,7 +198,7 @@ public class FrontendService {
                 messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
-                null);
+                correctAnswerDto.getAnswers());
     }
 
     public @NotNull ExerciseStatisticsItemDto[] getExerciseStatistics(@NotNull Long exerciseId) {
