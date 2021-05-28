@@ -52,6 +52,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
+    private static List<String> reasonPropertiesCache = null;
 
     public ControlFlowStatementsDomain() {
         super();
@@ -463,7 +464,8 @@ public class ControlFlowStatementsDomain extends Domain {
 
     public static List<String> getSolutionVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            Set<String> verbs = new HashSet<>(Arrays.asList(
+//            return new ArrayList<>(Arrays.asList(
                     "rdf:type",
                     "id",
                     "boundary_of",
@@ -487,6 +489,10 @@ public class ControlFlowStatementsDomain extends Domain {
                     "executes_id",
                     "executes"
             ));
+            if (reasonPropertiesCache == null)
+                reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
+            verbs.addAll(reasonPropertiesCache);
+            return new ArrayList<>(verbs);
 //        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
 //            return new ArrayList<>(Arrays.asList(
 //                    "wrong_type"
@@ -742,11 +748,19 @@ public class ControlFlowStatementsDomain extends Domain {
 
         OntModel model = factsToOntModel(violations);
 
+//        ///
+//        try {
+//            model.write(new FileOutputStream("c:/temp/interpret.n3"), Lang.NTRIPLES.getName());
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+
         OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
         Property stmt_name = model.getProperty(model.expandPrefix(":stmt_name"));
         Property executes = model.getProperty(model.expandPrefix(":executes"));
         Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
         Property wrong_next_act = model.getProperty(model.expandPrefix(":wrong_next_act"));
+        Property reason = model.getProperty(model.expandPrefix(":reason"));
 
 //        Set<? extends OntResource> instSet = Erroneous.listInstances().toSet();
         Set<RDFNode> instSet = model.listObjectsOfProperty(wrong_next_act).toSet();
@@ -811,7 +825,14 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         result.violations = mistakes;
-        result.correctlyAppliedLaws = new ArrayList<>(); // TODO: проследовать по связи consequent
+
+        // reason - наследник связи consequent (вычисляется ризонером для latest акта)
+        List<RDFNode> reasons = model.listObjectsOfProperty(reason).toList();
+        ArrayList<String> correctlyAppliedLaws = new ArrayList<>();
+        for (RDFNode reasonClass : reasons) {
+            correctlyAppliedLaws.add(reasonClass.asResource().getLocalName());
+        }
+        result.correctlyAppliedLaws = correctlyAppliedLaws;
 
         ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = processResult.CountCorrectOptions;
