@@ -3834,6 +3834,33 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_associativity_or_arity_influence_right",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "Yes, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
@@ -4227,6 +4254,34 @@
     "concepts": [
       "error_select_associativity_type_right_left",
       "error_select_associativity_type_right_nonassoc",
+      "SystemIntegrationTest",
+      "supplementary"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "SINGLE_CHOICE",
+    "questionData": {
+      "questionType": "SINGLE_CHOICE",
+      "questionDomainType": "OrderOperatorsSupplementary",
+      "questionText": "Wrong, precedence is checked before associativity, but in this case the precedence is the same, so it's irrelevant and you should have checked associativity",
+      "areAnswersRequireContext": false,
+      "options": {
+      },
+      "answerObjects": [
+      ],
+      "statementFacts": [
+      ]
+    },
+    "concepts": [
+      "error_select_precedence_or_associativity_same_precedence_left",
+      "error_select_precedence_or_associativity_same_precedence_right",
       "SystemIntegrationTest",
       "supplementary"
     ],
