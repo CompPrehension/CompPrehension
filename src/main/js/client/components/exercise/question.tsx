@@ -39,13 +39,13 @@ export const Question = observer(({ store, showExtendedFeedback, onChanged:Paren
 })
 
 const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
-    const { feedback, isFeedbackLoading, isFeedbackVisible, isQuestionLoading } = store;
+    const { feedback, isFeedbackLoading, isFeedbackVisible, isQuestionLoading, question } = store;
     
     if (isFeedbackLoading) {
         return <Loader />;
     }
 
-    if (!feedback || isQuestionLoading) {
+    if (!feedback || isQuestionLoading || !question) {
         return null;
     }
 
@@ -53,7 +53,7 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
         <div className="comp-ph-feedback-wrapper">
             <Optional isVisible={isFeedbackVisible}>
                 <p>
-                    {feedback.messages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback} />)}                
+                    {feedback.messages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions} />)}                
                 </p>
                 <Optional isVisible={showExtendedFeedback}>
                     <p>

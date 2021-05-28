@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities.QuestionOptions;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -30,4 +31,6 @@ import java.io.Serializable;
 public class QuestionOptionsEntity implements Serializable {
     /// Question text contains answers
     private boolean requireContext;
+    @Builder.Default
+    private boolean showSupplementaryQuestions = true;
 }

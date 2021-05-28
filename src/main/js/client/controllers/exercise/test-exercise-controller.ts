@@ -56,6 +56,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: false,
+                    showSupplementaryQuestions: true,
                     displayMode: 'radio',              
                 }
             }
@@ -75,6 +76,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: false,
+                    showSupplementaryQuestions: true,
                     displayMode: 'switch',              
                 }
             }
@@ -91,6 +93,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: true,
+                    showSupplementaryQuestions: true,
                     displayMode: 'radio',              
                 }
             }
@@ -106,6 +109,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: true,
+                    showSupplementaryQuestions: true,
                     displayMode: 'switch',              
                 }
             }
@@ -144,6 +148,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: false,
+                    showSupplementaryQuestions: true,
                     displayMode: 'dragNdrop',
                     multipleSelectionEnabled: true,
                     dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
@@ -174,6 +179,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: true,
+                    showSupplementaryQuestions: true,
                     displayMode: 'dragNdrop',
                     multipleSelectionEnabled: false,
                     dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
@@ -194,6 +200,7 @@ export class TestExerciseController implements IExerciseController {
                 feedback: null,
                 options: {
                     requireContext: true,
+                    showSupplementaryQuestions: true,
                     displayMode: 'dragNdrop',
                     dropzoneStyle: '{ "display": "inline-block", "height": "20px", "width": "20px" }',
                     dropzoneHtml: '',

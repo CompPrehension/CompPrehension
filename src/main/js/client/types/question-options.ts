@@ -3,9 +3,11 @@ import { MergeIntersections } from './utils';
 
 export type QuestionOptions = {
     requireContext: boolean,
+    showSupplementaryQuestions: boolean,
 }
 export const TQuestionOptions : io.Type<QuestionOptions> = io.type({
     requireContext: io.boolean,
+    showSupplementaryQuestions: io.boolean,
 }, 'QuestionOptions');
 
 export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
