@@ -1,19 +1,17 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.riot.Lang;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.jetbrains.annotations.NotNull;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
@@ -26,12 +24,13 @@ import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOpti
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.utils.HyperText;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -45,14 +44,17 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
 //    static final String LAWS_CONFIG_PATH = "file:c:/D/Work/YDev/CompPr/c_owl/jena/domain_laws.json";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-laws.json";
+    static final String MESSAGES_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-messages.txt";
 
-    /// TODO: copy the dictionary to CompPrehension repository
+    // dictionary
     static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
     private static DomainVocabulary VOCAB = null;
 
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
     private static List<String> reasonPropertiesCache = null;
+
+    private static HashMap<String, String> MESSAGES = null;
 
     public ControlFlowStatementsDomain() {
         super();
@@ -384,15 +386,31 @@ public class ControlFlowStatementsDomain extends Domain {
     @Override
     public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType) {
 
+//        if (feedbackType != FeedbackType.EXPLANATION) {
+//            //
+//        }
+
         violations.forEach(System.out::println);
 
         if (violations.isEmpty())
             return new ArrayList<>();
         else {
+            // rearrange mistakes ..?
+
             ArrayList<HyperText> explanation = new ArrayList<>();
-            violations.forEach(ve -> explanation.add(new HyperText(ve.getLawName() + " violated... ")));
+            violations.forEach(ve -> explanation.add(makeExplanation(ve, feedbackType)));
             return explanation;
         }
+    }
+
+    public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType) {
+
+        String lawName = violation.getLawName();
+
+        String msgTemplate = getFrontMessages().get(lawName);
+        // todo: fill placeholders
+
+        return new HyperText(Optional.ofNullable(msgTemplate).orElse("[Empty explanation] for " + lawName));
     }
 
     // filter positive laws by question type and tags
@@ -593,12 +611,6 @@ public class ControlFlowStatementsDomain extends Domain {
                     //// null,
                     entryPointIri.split("_", 2)[0],
                     0, null, trace, null, false);
-
-//            result.add(new BackendFactEntity(
-//                    "owl:NamedIndividual", trace,
-//                    "executes",
-//                    "owl:NamedIndividual", entryPointIri  // look to the algorithm as to a bound of global code
-//            ));
             result.add(new BackendFactEntity(
                     "owl:NamedIndividual", trace,
                     "index",
@@ -805,7 +817,9 @@ public class ControlFlowStatementsDomain extends Domain {
                     violationEntity.setLawName(errClass.getLocalName());
 
                     ExplanationTemplateInfoEntity explT = new ExplanationTemplateInfoEntity();
+                    explT.setFieldName("A");
                     explT.setValue("it was happened..!");
+                    explT.setViolation(violationEntity);
                     violationEntity.setExplanationTemplateInfo(Arrays.asList(
                             explT
                     ));
@@ -1143,6 +1157,34 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
+    private Map<String, String> getFrontMessages() {
+        if (MESSAGES == null) {
+            MESSAGES = new HashMap<>();
+
+            try(BufferedReader br = new BufferedReader(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(MESSAGES_CONFIG_PATH), StandardCharsets.UTF_8))) {
+
+                for(String line; (line = br.readLine()) != null; ) {
+                    // format-specific parsing
+                    line = line.trim();
+                    if (!line.isEmpty()) {
+                        String[] parts = line.split("\t", 3);
+                        assert parts.length == 3;
+
+                        String[] names = parts[0].split(" ", 2);
+                        String name = names[0];  // get EN name; RU at [1]
+
+                        String msg = parts[2];  // get EN msg; RU at [1]
+
+                        MESSAGES.put(name, msg);
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("ERROR reading messages from file: " + MESSAGES_CONFIG_PATH);
+                e.printStackTrace();
+            }
+        }
+        return MESSAGES;
+    }
 
     public static void main(String[] args) {
         ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
