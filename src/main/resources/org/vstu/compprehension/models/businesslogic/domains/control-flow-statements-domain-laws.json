@@ -357,6 +357,11 @@
         "name": "Erroneous-class-to-wrong_next_act",
         "formulation": "(?b rdf:type my:Erroneous), (?a my:student_next ?b), -> (?a my:wrong_next_act ?b).",
         "backend": "Jena"
+      },
+      {
+        "name": "Reason-4-correct-transition-4-student_next_latest",
+        "formulation": "(?a my:student_next_latest ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_a my:consequent ?bnd_b), (?bnd_a ?p ?bnd_b), noValue(?such_p rdfs:subPropertyOf ?p) -> (?b my:reason ?p).",
+        "backend": "Jena"
       }
     ]
   },

@@ -114,47 +114,49 @@ public class ControlFlowStatementsDomain extends Domain {
 
         String qType = question.getQuestionData().getQuestionDomainType();
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
-            List<InteractionEntity> interactions = question.getQuestionData().getInteractions();
-            if (interactions != null && !interactions.isEmpty()) {
-                InteractionEntity interaction = null;
-                for (InteractionEntity i : Lists.reverse(interactions)) {
-                    interaction = i;
-                    if (i.getViolations().isEmpty()) {
-                        break;
-                    }
-                }
-                assertNotNull(interaction, "Reverse() nulled the list?");
-                for (ResponseEntity response : interaction.getResponses()) {
-//                    if (!interaction.getViolations().isEmpty())
-//                        // skip erroneous interaction
-//                        continue;
+            for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+                boolean responseIsWrong = ! response.getInteraction().getViolations().isEmpty();
 
-                    AnswerObjectEntity answerObj = response.getLeftAnswerObject();
-                    String domainInfo = answerObj.getDomainInfo();
-                    AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
-                    String line;
-                    if (info.getTraceActHypertext() != null) {
-                        line = info.getTraceActHypertext();
-                    } else {
-                        line = "(" + domainInfo + ")";
-                    }
-                    // add expression value if necessary
-                    if (answerObj.getConcept().equals("expr")) {
+                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                String domainInfo = answerObj.getDomainInfo();
+                AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
+                String line;
+                if (info.getTraceActHypertext() != null) {
+                    line = info.getTraceActHypertext();
+                } else {
+                    line = "(" + domainInfo + ")";
+                }
+
+                int execTime = 1 + exprName2ExecTime.getOrDefault(domainInfo, 0);
+                line = line + " " + nthTimeByN(execTime);
+                exprName2ExecTime.put(domainInfo, execTime);
+
+                // add expression value if necessary
+                if (answerObj.getConcept().equals("expr")) {
+                    String valueStr;
+                    if (responseIsWrong)
+                        valueStr = "not evaluated";
+                    else {
                         String phase = info.getPhase();
                         String exId = info.getExId();
                         String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
-                        int execTime = 1 + exprName2ExecTime.getOrDefault(exprName, 0);
                         int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
-                        exprName2ExecTime.put(exprName, execTime);
 
-                        String valueStr = (value == 1) ? "true" : "false";
-                        // TODO: add HTML styling
-                        line = line + " -> " + valueStr;
+                        valueStr = (value == 1) ? "true" : "false";
                     }
-                    result.add(new HyperText(line));
-                    ///
-                    System.out.println(result.get(result.size() - 1).getText());
+                    // add HTML styling
+                    line = line + " -> " + htmlStyled("atom", valueStr);
                 }
+
+                // check if this line is wrong
+                if (responseIsWrong) {
+                    // add background color
+                    line = htmlStyled("warning", line);
+                }
+
+                result.add(new HyperText(line));
+                ///
+//                System.out.println(result.get(result.size() - 1).getText());
             }
         } else {
             ///
@@ -175,10 +177,76 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         ///
-        System.out.println("\t\tObtained the trace. Last line is:");
-        System.out.println(result.get(result.size() - 1).getText());
+//        System.out.println("\t\tObtained the trace. Last line is:");
+//        System.out.println(result.get(result.size() - 1).getText());
 
         return result;
+    }
+
+    private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+
+        ArrayList<ResponseEntity> responses = new ArrayList<ResponseEntity>();
+
+        List<InteractionEntity> interactions = q.getInteractions();
+
+        if (interactions == null || interactions.isEmpty()) {
+            return responses; // empty so far
+            // early exit: no further checks for emptiness
+        }
+
+        for (InteractionEntity i : interactions) {
+            if (i.getViolations().isEmpty()) {
+                // this is correct interaction, so it appends one more correct response, - get it
+                List<ResponseEntity> currentResponses = i.getResponses();
+                if (currentResponses != null && !currentResponses.isEmpty()) {
+                    ResponseEntity lastResponse = currentResponses.get(currentResponses.size() - 1);
+
+                    responses.add(lastResponse);
+                }
+            }
+        }
+
+        /*  prev variant
+        InteractionEntity lastCorrectInteraction = null;
+        for (InteractionEntity i : Lists.reverse(interactions)) {
+            if (i.getViolations().isEmpty()) {
+                lastCorrectInteraction = i;
+                break;
+            }
+        }
+        if (lastCorrectInteraction != null) {
+            responses.addAll(lastCorrectInteraction.getResponses());
+        }
+        */
+
+        if (allowLastIncorrect) {
+            InteractionEntity lastInteraction = interactions.get(interactions.size() - 1);
+            // lastInteraction is wrong
+            if (!lastInteraction.getViolations().isEmpty()) {
+                List<ResponseEntity> lastResponses = lastInteraction.getResponses();
+                if (lastResponses != null && !lastResponses.isEmpty()) {
+                    ResponseEntity lastResponse = lastResponses.get(lastResponses.size() - 1);
+
+                    responses.add(lastResponse);
+                }
+            }
+        }
+        return responses;
+    }
+
+    private String htmlStyled(String styleClass, String text) {
+        return "<span class=\"" + styleClass + "\">" + text + "</span>";
+    }
+
+    private String nthTimeByN(int n) {
+        String suffix;
+        switch (n) {
+            case 1: suffix = "st"; break;
+            case 2: suffix = "nd"; break;
+            case 3: suffix = "rd"; break;
+            default: suffix = "th";
+        }
+        return htmlStyled("number", n + suffix) + " time";
     }
 
     @Override
@@ -263,6 +331,7 @@ public class ControlFlowStatementsDomain extends Domain {
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
             AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
             newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
@@ -442,6 +511,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     // "name",
                     "next_act",
                     "student_next",
+                    "student_next_latest",
                     "wrong_next_act",
                     "corresponding_end",
                     "student_corresponding_end",
@@ -476,15 +546,53 @@ public class ControlFlowStatementsDomain extends Domain {
             // get question
             QuestionEntity q = answerObjects.get(0).getQuestion();
 
+            // obtain correct only responses (in different way!)
+            List<ResponseEntity> responsesByQ = responsesForTrace(q, false);
+
+            // append latest response to list of correct responses
+            if (!responses.isEmpty()) {
+                ResponseEntity latestResponse = responses.get(responses.size() - 1);
+                responsesByQ.add(latestResponse);
+            }
+
+            // reassign responses to [[correct] + new]
+            responses = responsesByQ;
+
             // init result facts with solution facts
             List<BackendFactEntity> result = new ArrayList<>();
-            result.addAll(getSchemaFacts());
+//            result.addAll(getSchemaFacts());
+            result.addAll(q.getStatementFacts());
             result.addAll(q.getSolutionFacts());
 
+            // find algorithm id
+            String entryPointIri = null;
+            // extract ID from local name (having format <id>_<name>)
+            for (BackendFactEntity fact : q.getStatementFacts()) {
+//                {
+//                    "subjectType": "owl:NamedIndividual",
+//                        "subject": "30_algorithm",
+//                        "verb": "entry_point",
+//                        "objectType": "owl:NamedIndividual",
+//                        "object": "31_global_code"
+//                },
+                if (fact.getVerb().equals("entry_point")) {
+                    entryPointIri = fact.getObject();  //// .split("_", 2)[0];
+                    break;
+                }
+            }
+            assertNotNull(entryPointIri, "No entry point declared among q.statementFacts");
             // trace object
             String trace = "comp-ph-trace";
-            appendActFacts(result, 0, trace, "trace", null, 0, null, trace, null);
+            appendActFacts(result, 0, trace, "trace",
+                    //// null,
+                    entryPointIri.split("_", 2)[0],
+                    0, null, trace, null, false);
 
+//            result.add(new BackendFactEntity(
+//                    "owl:NamedIndividual", trace,
+//                    "executes",
+//                    "owl:NamedIndividual", entryPointIri  // look to the algorithm as to a bound of global code
+//            ));
             result.add(new BackendFactEntity(
                     "owl:NamedIndividual", trace,
                     "index",
@@ -507,15 +615,23 @@ public class ControlFlowStatementsDomain extends Domain {
             int maxId = 100;
             HashMap<String, MutablePair<String, Integer>> id2exprName = new HashMap<>();
             String prevActIRI = trace;
+
+            ResponseEntity latestResponse = null;
+            if (!responses.isEmpty()) {
+                latestResponse = responses.get(responses.size() - 1);
+            }
+
             for (ResponseEntity response : responses) {
-                if (response.getInteraction() != null && !response.getInteraction().getViolations().isEmpty())
-                    // skip erroneous responses
-                    continue;
+//                if (response.getInteraction() != null && !response.getInteraction().getViolations().isEmpty())
+//                    // skip responses known to be  erroneous
+//                    continue;
+                boolean isLatest = (response == latestResponse);
 
                 trace_index ++;
-                String domainInfo = response.getLeftAnswerObject().getDomainInfo();
+                AnswerObjectEntity ao = response.getLeftAnswerObject();
+                String domainInfo = ao.getDomainInfo();
                 ///
-                System.out.println("Adding act from response: " + domainInfo);
+                System.out.println("Adding act from response: " + ao.getHyperText());
 
                 AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
                 String phase = answerDomainInfo.getPhase();
@@ -526,7 +642,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
                 if (phase.equals("started") || phase.equals("performed")) {
                     String act_iri = "b_" + act_iri_t;
-                    appendActFacts(result, ++maxId, act_iri, "act_begin", exId, ++student_index, prevActIRI, trace, null);
+                    appendActFacts(result, ++maxId, act_iri, "act_begin", exId, ++student_index, prevActIRI, trace, null, isLatest);
                     prevActIRI = act_iri;
                 } if (phase.equals("finished") || phase.equals("performed")) {
                     Boolean exprValue = null;
@@ -554,7 +670,7 @@ public class ControlFlowStatementsDomain extends Domain {
                         }
                     }
                     String act_iri = "e_" + act_iri_t;
-                    appendActFacts(result, ++maxId, act_iri, "act_end", exId, ++student_index, prevActIRI, trace, exprValue);
+                    appendActFacts(result, ++maxId, act_iri, "act_end", exId, ++student_index, prevActIRI, trace, exprValue, isLatest && !phase.equals("performed"));
                     prevActIRI = act_iri;
                 }
             }
@@ -566,7 +682,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
 
     /** Append specific facts to `factsList` */
-    private void appendActFacts(List<BackendFactEntity> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace, Boolean exprValue) {
+    private void appendActFacts(List<BackendFactEntity> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace, Boolean exprValue, boolean isLatest) {
         factsList.add(new BackendFactEntity(
                 "owl:NamedIndividual", actIRI,
                 "rdf:type",
@@ -597,6 +713,13 @@ public class ControlFlowStatementsDomain extends Domain {
                     prevActIRI,                     "student_next",
                     "owl:NamedIndividual", actIRI
             ));
+            if (isLatest) {
+                factsList.add(new BackendFactEntity(
+                        "owl:NamedIndividual",
+                        prevActIRI, "student_next_latest",
+                        "owl:NamedIndividual", actIRI
+                ));
+            }
         }
         factsList.add(new BackendFactEntity(
                 "owl:NamedIndividual", actIRI,
@@ -687,7 +810,6 @@ public class ControlFlowStatementsDomain extends Domain {
             }
         }
 
-
         result.violations = mistakes;
         result.correctlyAppliedLaws = new ArrayList<>(); // TODO: проследовать по связи consequent
 
@@ -759,43 +881,38 @@ public class ControlFlowStatementsDomain extends Domain {
         int pathLen = 0;
         try {
             // 1) find last act of partial trace (the one having no student_next prop) ...
-            Individual lastAct = null;
             OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
-            var acts = model.getOntClass(model.expandPrefix(":act")).listInstances(false);
-            while (lastAct == null && acts.hasNext()) {
-                Individual act = (Individual) acts.next();
-                if (!act.hasProperty(student_next)) {
-                    lastAct = act;
-                }
-            }
-            // if last act is wrong, roll back to correct one
+            OntProperty student_next_latest = model.getOntProperty(model.expandPrefix(":student_next_latest"));
+
+            List<Statement> tripleLastInTraceAsList =
+                    model.listStatements(null, student_next_latest, (RDFNode) null).toList();
+
+            assertFalse(tripleLastInTraceAsList.isEmpty());
+            Statement tripleLastInTrace = tripleLastInTraceAsList.get(0);
+
+            Individual lastAct = tripleLastInTrace.getObject().as(Individual.class);
+
+            // if last act is wrong, roll back to previous (the correct one)
             OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-            while (lastAct != null && lastAct.hasOntClass(Erroneous)) {
-                List<Resource> prevActAsList =
-                        model.listResourcesWithProperty(student_next, lastAct).toList();
-                Resource prevAct = prevActAsList.isEmpty() ? null : prevActAsList.get(0);
-                try {
-                    lastAct = (Individual) prevAct;
-                } catch (ClassCastException exception) {
-                    ///
-                    System.out.println("Warning: Cannot cast " + prevAct.getURI() + " to Individual ...");
-                    lastAct = null;
-                }
+            if (lastAct.hasOntClass(Erroneous)) {
+                lastAct = tripleLastInTrace.getSubject().as(Individual.class);
             }
+
             Individual actionInd = null;
+            Resource boundRes = null;
             if (lastAct != null) {
                 OntProperty executes = model.createOntProperty(model.expandPrefix(":executes"));
                 OntProperty boundary_of = model.createOntProperty(model.expandPrefix(":boundary_of"));
                 // get action of last act
-                Resource bound = lastAct.getPropertyResourceValue(executes);
-                if (bound != null) {
-                    actionInd = bound.getPropertyResourceValue(boundary_of).as(Individual.class);
+                boundRes = lastAct.getPropertyResourceValue(executes);
+                if (boundRes != null) {
+                    actionInd = boundRes.getPropertyResourceValue(boundary_of).as(Individual.class);
                 }
             }
             if (lastAct == null || actionInd == null) {
+                // retrieve entry point of algorithm
                 ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
                 List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
-                // retrieve entry point of algorithm
 
                 assertFalse(entryAsList.isEmpty(), "Missing entry point in the algorithm!");
 
@@ -813,10 +930,14 @@ public class ControlFlowStatementsDomain extends Domain {
             OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
             OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
             // get boundary of the initial action
-            List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd
-            // .getPropertyResourceValue(boundary_of);
-            assertFalse(bounds.isEmpty(), "no bounds found for entry point!");
-            Individual bound = bounds.get(0).as(Individual.class);
+            Individual bound;
+            if (boundRes == null) {
+                List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd
+                // .getPropertyResourceValue(boundary_of);
+                assertFalse(bounds.isEmpty(), "no bounds found for entry point!");
+                boundRes = bounds.get(0);
+            }
+            bound = boundRes.as(Individual.class);
 
             // boolean endOfPath = false;
             while (bound != null) {
@@ -838,6 +959,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 }
                 bound = nextBound;
             }
+            // the last transition (to PROGRAM ENDED) exists in the graph but not shown in GUI - skip it
+            --pathLen;
         } catch (AssertionFailedError error) {
             pathLen = 99;
             System.out.println("WARN: processSolution(): cannot find entry_point, fallback to: pathLen = " + pathLen);
@@ -971,7 +1094,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 if (fact.getVerb().equals("rdf:type") && fact.getObject().equals("expr")) {
                     isEXpr = true;
                 }
-                if (fact.getVerb().equals("stmt_name") && fact.getObject().equals("expr")) {
+                if (fact.getVerb().equals("stmt_name")) {
                     stmt_name = fact.getObject();
                 }
             }
