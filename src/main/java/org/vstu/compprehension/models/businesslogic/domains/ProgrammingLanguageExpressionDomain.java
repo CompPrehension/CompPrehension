@@ -817,6 +817,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         try {
             String text = stringSubstitutor.replace(supplementaryQuestion.getQuestionText());
+            text = text.replaceAll("operators (.) and \\1 have same precedence and", "operator $1 has");
+
             supplementaryQuestion.getQuestionData().setQuestionText(text);
         } catch (IllegalArgumentException ex) {
             return null;
