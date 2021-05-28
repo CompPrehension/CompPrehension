@@ -3197,7 +3197,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Select reason that stop evaluation of operator ${operator} on pos ${pos}",
+      "questionText": "What prevents evaluation of operator ${operator} on pos ${pos} ?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3389,7 +3389,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What influence evaluation order at first?",
+      "questionText": "What influences evaluation order at first?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3760,7 +3760,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What influence evaluation order at operators with same precedence?",
+      "questionText": "What influences evaluation order at operators with same precedence?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3807,7 +3807,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "Wrong, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with the same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3834,7 +3834,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3861,7 +3861,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "Yes, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with the same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3888,7 +3888,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3915,7 +3915,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "Yes, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3942,7 +3942,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What associativity has operator ${left_operator}?",
+      "questionText": "What is the associativity of operator ${left_operator}?",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3997,7 +3997,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What associativity has operator ${right_operator}?",
+      "questionText": "What is the associativity of operator ${right_operator}?",
       "areAnswersRequireContext": false,
       "options": {
       },
