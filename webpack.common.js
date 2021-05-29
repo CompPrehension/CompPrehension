@@ -12,7 +12,7 @@ module.exports = {
       ],
     }),
     new HtmlWebpackPlugin({
-      template: __dirname + '/src/main/html/index.html',
+      template: __dirname + '/src/main/js/templates/index.html',
       filename: '../templates/index.html',
       inject: 'body',
       publicPath: '/',
@@ -23,7 +23,7 @@ module.exports = {
     }),      
   ],
   entry: {
-    client: './src/main/js/client/index.tsx',
+    client: './src/main/js/index.tsx',
   },
   output: {
     filename: 'js/[name].[contenthash].js',
