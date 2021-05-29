@@ -320,13 +320,16 @@ public class ControlFlowStatementsDomain extends Domain {
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
+                .showSupplementaryQuestions(false)
                 .showTrace(true)
                 .multipleSelectionEnabled(true)
+                //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
                 .requireContext(false)
+                // .showSupplementaryQuestions(false)
                 .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
                 .build();
 
