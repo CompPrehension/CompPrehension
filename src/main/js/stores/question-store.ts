@@ -26,14 +26,27 @@ export class QuestionStore {
         makeObservable(this);        
     }
 
-    private onQuestionLoaded = (question?: Question)  => {
+    private onQuestionLoaded = (question?: Question) => {
         runInAction(() => {
+            // preprocess question text
+            question = this.processLoadedQuestion(question)
+
             this.isQuestionLoading = false;
             this.question = question;
             this.feedback = question?.feedback ?? undefined;
             this.isFeedbackVisible = true;
             this.answersHistory = question?.responses ?? [];            
         });
+    }
+
+    private processLoadedQuestion = (question?: Question): Question | undefined => {
+        // add question id to answers
+        if (question?.options.requireContext) {
+            // regex searchs all tags with id='answer_id' and prepends them with question id
+            question.text = question.text.replaceAll(/(\<.*?\sid\s*?\=([\'\"]))\s*(answer_.+?\2)(.*?\>)/igm, `$1question_${question.questionId}_$3$4`)
+        }
+
+        return question;
     }
     
     @action 

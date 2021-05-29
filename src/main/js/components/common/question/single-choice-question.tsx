@@ -37,9 +37,9 @@ const RadioSingleChoiceQuestionComponent = ({ question, getAnswers, onChanged }:
             </p>
             <p className="d-flex flex-column">                
                 {question.answers.map(a => 
-                    <label htmlFor={`answer_${a.id}`} className="d-flex flex-row mb-3">
+                    <label htmlFor={`question_${question.questionId}_answer_${a.id}`} className="d-flex flex-row mb-3">
                         <div className="mr-2 mt-1">
-                            <input id={`answer_${a.id}`} 
+                            <input id={`question_${question.questionId}_answer_${a.id}`} 
                                    name={`switch_${question.questionId}`} 
                                    type="radio" 
                                    checked={getAnswers().some(h => h[0] === a.id)}
@@ -67,10 +67,10 @@ const RadioSingleChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
     // on First Render 
     useEffect(() => {    
         // add button click event handlers
-        document.querySelectorAll('[id^="answer_"]').forEach(e => {
-            const id = e.id?.split("answer_")[1] ?? -1;
-            const component = (<label htmlFor={`answer_${id}`}>
-                                 <input id={`answer_${id}`} 
+        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
+            const id = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
+            const component = (<label htmlFor={`question_${question.questionId}_answer_${id}`}>
+                                 <input id={`question_${question.questionId}_answer_${id}`} 
                                         name={`switch_${question.questionId}`} 
                                         type="radio" 
                                         checked={getAnswers().some(h => h[0] === +id)}
@@ -85,13 +85,13 @@ const RadioSingleChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
     // apply history changes
     useEffect(() => {
         // drop all changes
-        document.querySelectorAll('input[id^="answer_"]').forEach((e: any) => {
+        document.querySelectorAll(`input[id^="question_${question.questionId}_answer_"]`).forEach((e: any) => {
             e.checked = undefined;
         });
 
         // apply history changes    
         getAnswers().forEach(([id]) => {
-            const answr: any = document.getElementById(`answer_${id}`);
+            const answr: any = document.getElementById(`question_${question.questionId}_answer_${id}`);
             if (!answr) {
                 return;
             }

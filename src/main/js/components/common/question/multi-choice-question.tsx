@@ -51,7 +51,7 @@ const SwitchMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged }:
                 {question.answers.map(a => 
                     <div className="d-flex flex-row mb-3">
                         <div className="mr-2 mt-1">
-                            <ToggleSwitch id={`anwser_${a.id}`} 
+                            <ToggleSwitch id={`question_${question.questionId}_anwser_${a.id}`} 
                                           selected={selectorTexts[getAnswers().filter(h => h[0] === a.id)?.[0]?.[1]] ?? ""} 
                                           values={selectorTexts} 
                                           onChange={val => onSwitched(a.id, val)} />
@@ -81,8 +81,8 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
     // on First Render 
     useEffect(() => {    
         // add button click event handlers
-        document.querySelectorAll('[id^="answer_"]').forEach(e => {
-            const id = e.id?.split("answer_")[1] ?? -1;
+        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
+            const id = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
             const component = <ToggleSwitch id={e.id} 
                                             selected={selectorTexts[getAnswers().filter(h => h[0] === +id)?.[0]?.[1]] ?? ""} 
                                             values={selectorTexts} 
@@ -95,8 +95,8 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
     // apply history changes
     useEffect(() => {
         // drop all changes
-        document.querySelectorAll('input[id^="answer_"]').forEach((e: any) => {
-            const id = +e.id?.split("answer_")[1] ?? -1;
+        document.querySelectorAll(`input[id^="question_${question.questionId}_answer_"]`).forEach((e: any) => {
+            const id = +e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
             //if (!answersHistory.some(h => h[0] === id)) {
             e.checked = undefined;
             //}                
@@ -104,7 +104,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
 
         // apply history changes    
         getAnswers().forEach(([id, value]) => {
-            const inputId = `answer_${id}_${selectorTexts[value]}_checkbox`;
+            const inputId = `question_${question.questionId}_answer_${id}_${selectorTexts[value]}_checkbox`;
             const answr: any = document.getElementById(inputId);
             if (!answr) {
                 return;

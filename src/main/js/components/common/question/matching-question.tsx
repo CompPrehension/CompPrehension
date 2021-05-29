@@ -38,7 +38,7 @@ export const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onC
     const dropzoneStyle = options.dropzoneStyle && JSON.parse(options.dropzoneStyle) || {};
     const draggableStyle = options.dropzoneStyle && JSON.parse(options.draggableStyle) || {};
     useEffect(() => {
-        (document.querySelectorAll('[id^="answer_"]') as unknown as HTMLSpanElement[])
+        (document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`) as unknown as HTMLSpanElement[])
             .forEach(e => {
                 e.classList.add("comp-ph-dropzone");
                 Object.keys(dropzoneStyle).forEach(k => e.style[k as any] = dropzoneStyle[k]);
@@ -75,10 +75,10 @@ export const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onC
 
             // setTimeout is needed to guarantee completion of all dnd events
             setTimeout(() => {
-                const newHistory = [...(document.querySelectorAll('[id^="answer_"] > [id^="dragAnswer_"]') as unknown as Element[])]
+                const newHistory = [...(document.querySelectorAll(`[id^="question_${question.questionId}_answer_"] > [id^="dragAnswer_"]`) as unknown as Element[])]
                     .map<[number, number]>(e => {
-                        const leftId = e.parentElement?.id.split('_')[1] ?? '';
-                        const rightId = e?.id.split('_')[1] ?? '';
+                        const leftId = e.parentElement?.id.split(`question_${question.questionId}_answer_`)[1] ?? '';
+                        const rightId = e?.id.split('dragAnswer_')[1] ?? '';
                         return [+leftId, +rightId];
                     });                        
                 onChanged(newHistory);
@@ -97,7 +97,7 @@ export const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onC
                                 {question.answers.map(a =>
                                     <div className="d-flex flex-row mb-3">
                                         <div className="mr-2 mt-1">
-                                            <div id={`answer_${a.id}`}></div>
+                                            <div id={`question_${question.questionId}_answer_${a.id}`}></div>
                                         </div>
                                         <div dangerouslySetInnerHTML={{ __html: a.text}}></div>
                                     </div>)}
@@ -164,9 +164,9 @@ const ComboboxMatchingQuestionWithCtxComponent = ({ question, getAnswers, onChan
 
     useEffect(() => {
         // replace all placeholders on first render
-        document.querySelectorAll('[id^="answer_"]')
+        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`)
             .forEach(elem => {
-                const answerId = +elem.id?.split("answer_")[1];
+                const answerId = +elem.id?.split(`question_${question.questionId}_answer_`)[1];
                 const selector = <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
                                          components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }} 
                                          onChange={(v => {

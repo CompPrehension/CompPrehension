@@ -24,8 +24,8 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedba
     // actions on questionId changed (onInit)
     useEffect(() => {    
         // add button click event handlers
-        document.querySelectorAll('[id^="answer_"]').forEach(e => {
-            const idStr = e.id?.split("answer_")[1] ?? ""; 
+        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
+            const idStr = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? ""; 
             const id = +idStr;
             e.addEventListener('click', () => onChanged([...getAnswers(), [id, id]]));
         })
@@ -40,7 +40,7 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedba
 
     useEffect(() => {
         // drop all changes, set original qustion text    
-        document.querySelectorAll('[id^="answer_"]').forEach(e => {
+        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const pos = e.getAttribute("data-comp-ph-pos");
             e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '')
             e.classList.remove('disabled');
@@ -48,7 +48,7 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedba
 
         // apply history changes    
         getAnswers().forEach(([h], idx) => {
-            const answr = document.querySelector(`#answer_${h}`);
+            const answr = document.querySelector(`#question_${question.questionId}_answer_${h}`);
             if (!answr) {
                 return 0;
             }
