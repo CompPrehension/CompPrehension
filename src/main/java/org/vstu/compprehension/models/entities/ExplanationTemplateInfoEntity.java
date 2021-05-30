@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.*;
 
@@ -20,7 +21,7 @@ public class ExplanationTemplateInfoEntity {
     @Column(name = "value")
     private String value;
 
-
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "violation_id", nullable = false)
     private ViolationEntity violation;

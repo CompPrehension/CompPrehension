@@ -1,21 +1,13 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.apache.jena.ontology.OntClass;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.ResIterator;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.vocabulary.VCARD;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFSyntax;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Concept;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -120,7 +112,7 @@ public class DomainVocabulary {
      *  */
     public List<String> classDescendants(String className) {
         ArrayList<String> result = new ArrayList<>();
-        addClassDescendants(className, result, -1);
+        addDescendants(className, result, -1, RDFS.subClassOf);
         return result;
     }
 
@@ -128,21 +120,27 @@ public class DomainVocabulary {
      * Intended for internal use but can be utilized as-is.
      * maxDepth unlimited search if < 0; get only direct children if == 1.
      *  */
-    public void addClassDescendants(String className, List<String> classes, int maxDepth) {
+    public void addDescendants(String className, List<String> classes, int maxDepth, Property childOf) {
         if (maxDepth == 0)
             return;
         // find all child classes
         String ns = model.getNsPrefixURI("");
         Resource classNode = model.getResource(ns + className);
-        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, classNode);
+        ResIterator iter = model.listSubjectsWithProperty(childOf, classNode);
         while (iter.hasNext()) {
             Resource childClassNode = iter.nextResource();
             String childClassName = childClassNode.getLocalName();
             if (!classes.contains(childClassName)) {
                 classes.add(childClassName);
             }
-            addClassDescendants(childClassName, classes, maxDepth - 1);
+            addDescendants(childClassName, classes, maxDepth - 1, childOf);
         }
+    }
+
+    public List<String> propertyDescendants(String propertyName) {
+        ArrayList<String> result = new ArrayList<>();
+        addDescendants(propertyName, result, -1, RDFS.subPropertyOf);
+        return result;
     }
 
 
