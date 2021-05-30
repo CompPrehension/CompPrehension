@@ -968,7 +968,7 @@ public class ControlFlowStatementsDomain extends Domain {
         int pathLen = 0;
         try {
             // 1) find last act of partial trace (the one having no student_next prop) ...
-            OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
+//            OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
             OntProperty student_next_latest = model.getOntProperty(model.expandPrefix(":student_next_latest"));
 
             List<Statement> tripleLastInTraceAsList =
