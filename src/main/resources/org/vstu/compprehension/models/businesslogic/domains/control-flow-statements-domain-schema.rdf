@@ -411,6 +411,26 @@
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
+<owl:DatatypeProperty rdf:about="#field_LOOP_COND">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_ALT">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_ALT_COND">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_ALT_COND2">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_BRANCH">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
 <owl:DatatypeProperty rdf:about="#error_priority">
   <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>

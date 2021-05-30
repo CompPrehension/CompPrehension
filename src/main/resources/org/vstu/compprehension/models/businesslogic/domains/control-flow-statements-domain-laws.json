@@ -629,6 +629,9 @@
         "name": "WrongNext"
       },
       {
+        "name": "first_item"
+      },
+      {
         "name": "NoFirstCondition"
       },
       {
@@ -701,7 +704,7 @@
     "formulations": [
       {
         "name": "NoFirstCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), -> (?b rdf:type my:NoFirstCondition).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition) (?b my:field_ALT ?a_name), (?b my:field_ALT_COND ?c_name),.",
         "backend": "Jena"
       },
       {
@@ -711,7 +714,7 @@
       },
       {
         "name": "BranchOfFalseCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?b rdf:type my:act_begin), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br), (?a my:student_index ?i1), (?b my:student_index ?i2), lessThan(?i1, ?i2), -> (?b my:should_be ?alt), (?b my:cause ?a), (?b rdf:type my:BranchOfFalseCondition).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?b rdf:type my:act_begin), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br), (?a my:student_index ?i1), (?b my:student_index ?i2), lessThan(?i1, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b my:cause ?a), (?b rdf:type my:BranchOfFalseCondition) (?b my:field_ALT ?a_name), (?b my:field_ALT_COND ?c_name), (?b my:field_BRANCH ?b_name),.",
         "backend": "Jena"
       },
       {
@@ -776,7 +779,7 @@
       },
       {
         "name": "NoNextCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?a my:student_next ?b), (?b rdf:type my:WrongNext), -> (?b my:should_be ?cnd2), (?b rdf:type my:NoNextCondition).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?cnd2 my:stmt_name ?c2_name), -> (?b my:should_be ?cnd2), (?b rdf:type my:NoNextCondition) (?b my:field_ALT ?a_name), (?b my:field_ALT_COND ?c_name), (?b my:field_ALT_COND2 ?c2_name),.",
         "backend": "Jena"
       },
       {
@@ -882,17 +885,17 @@
       },
       {
         "name": "NoIterationAfterSuccessfulCondition-1-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?Loop my:body ?Body), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Body), -> (?b rdf:type my:NoIterationAfterSuccessfulCondition).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?Loop my:body ?Body), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Body), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoIterationAfterSuccessfulCondition) (?b my:field_A ?a_name), (?b my:field_LOOP_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "LoopEndAfterSuccessfulCondition-1-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?Loop), -> (?b rdf:type my:LoopEndAfterSuccessfulCondition).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?Loop), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopEndAfterSuccessfulCondition), (?b my:field_A ?a_name), (?b my:field_LOOP_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "NoLoopEndAfterFailedCondition-0-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:loop), (?Loop my:cond ?cnd), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:student_next ?b), (?b rdf:type my:WrongNext), -> (?b rdf:type my:NoLoopEndAfterFailedCondition).",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:loop), (?Loop my:cond ?cnd), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoLoopEndAfterFailedCondition) (?b my:field_A ?a_name), (?b my:field_LOOP_COND ?c_name),.",
         "backend": "Jena"
       },
       {
