@@ -611,7 +611,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
             // init result facts with solution facts
             List<BackendFactEntity> result = new ArrayList<>();
-//            result.addAll(getSchemaFacts());
+            result.addAll(getSchemaFacts());
             result.addAll(q.getStatementFacts());
             result.addAll(q.getSolutionFacts());
 
@@ -784,6 +784,7 @@ public class ControlFlowStatementsDomain extends Domain {
     public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
         InterpretSentenceResult result = new InterpretSentenceResult();
         List<ViolationEntity> mistakes = new ArrayList<>();
+        HashSet<String> mistakeTypes = new HashSet<>();
 
         OntModel model = factsToOntModel(violations);
 
@@ -859,12 +860,21 @@ public class ControlFlowStatementsDomain extends Domain {
                         continue;
                     }
 
+                    String mistakeType = errClass.getLocalName();
+
+                    // skip mistake of the type that's already here
+                    if (mistakeTypes.contains(mistakeType)) {
+                        continue;
+                    }
+
+                    mistakeTypes.add(mistakeType);
+
                     ///
-                    System.out.println("<>- Mistake for action " + act_stmt_name + ": " + errClass.getLocalName());
+                    System.out.println("<>- Mistake for action " + act_stmt_name + ": " + mistakeType);
 
 
                     ViolationEntity violationEntity = new ViolationEntity();
-                    violationEntity.setLawName(errClass.getLocalName());
+                    violationEntity.setLawName(mistakeType);
 
                     List<ExplanationTemplateInfoEntity> templates = new ArrayList<>();
                     placeholders.forEach((name, value) -> {
@@ -882,7 +892,14 @@ public class ControlFlowStatementsDomain extends Domain {
                                     "string", act_stmt_name) //,
                             // TODO: add more (mistake-specific?) facts
                     )));
-                    mistakes.add(violationEntity);
+
+                    if (mistakeType.toLowerCase().contains("neighbour")) {
+                        // prepend
+                        mistakes.add(0, violationEntity);
+                    } else {
+                        // append
+                        mistakes.add(violationEntity);
+                    }
                 }
             } else {
                 ///
@@ -891,6 +908,7 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         result.violations = mistakes;
+        mistakeTypes.clear();
 
         // reason - наследник связи consequent (вычисляется ризонером для latest акта)
         List<RDFNode> reasons = model.listObjectsOfProperty(reason).toList();
@@ -1220,14 +1238,15 @@ public class ControlFlowStatementsDomain extends Domain {
                     line = line.trim();
                     if (!line.isEmpty()) {
                         String[] parts = line.split("\t", 3);
-                        assert parts.length == 3;
+                        if (parts.length == 3) {
 
-                        String[] names = parts[0].split(" ", 2);
-                        String name = names[0];  // get EN name; RU at [1]
+                            String[] names = parts[0].split(" ", 2);
+                            String name = names[0];  // get EN name; RU at [1]
 
-                        String msg = parts[2];  // get EN msg; RU at [1]
+                            String msg = parts[2];  // get EN msg; RU at [1]
 
-                        MESSAGES.put(name, msg);
+                            MESSAGES.put(name, msg);
+                        }
                     }
                 }
             } catch (IOException e) {
