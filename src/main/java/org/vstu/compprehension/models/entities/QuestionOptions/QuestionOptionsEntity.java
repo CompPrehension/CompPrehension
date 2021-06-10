@@ -30,7 +30,7 @@ import java.io.Serializable;
 @SuperBuilder @Jacksonized
 public class QuestionOptionsEntity implements Serializable {
     /// Question text contains answers
-    private boolean requireContext;
+    protected boolean requireContext;
     @Builder.Default
     private boolean showSupplementaryQuestions = true;
 }
