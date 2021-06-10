@@ -1238,14 +1238,15 @@ public class ControlFlowStatementsDomain extends Domain {
                     line = line.trim();
                     if (!line.isEmpty()) {
                         String[] parts = line.split("\t", 3);
-                        assert parts.length == 3;
+                        if (parts.length == 3) {
 
-                        String[] names = parts[0].split(" ", 2);
-                        String name = names[0];  // get EN name; RU at [1]
+                            String[] names = parts[0].split(" ", 2);
+                            String name = names[0];  // get EN name; RU at [1]
 
-                        String msg = parts[2];  // get EN msg; RU at [1]
+                            String msg = parts[2];  // get EN msg; RU at [1]
 
-                        MESSAGES.put(name, msg);
+                            MESSAGES.put(name, msg);
+                        }
                     }
                 }
             } catch (IOException e) {

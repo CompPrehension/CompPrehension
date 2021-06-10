@@ -296,6 +296,11 @@ public class JenaBackend extends Backend {
 
     /** Returns local name or prefixed special name */
     private String uriToTerm(String uri) {
+        if (uri == null) {
+            System.out.println("uriToTerm(): Encountered NULL uri! Defaulting to '[]'");
+            return "[]";
+        }
+
         String s = uri.replace(baseIRIPrefix, "");
         if (s.equals(uri)) {
             // not a local name

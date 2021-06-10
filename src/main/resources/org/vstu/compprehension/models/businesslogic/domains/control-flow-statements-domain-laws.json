@@ -396,6 +396,9 @@
         "name": "CorrespondingEndMismatched"
       },
       {
+        "name": "act_begin"
+      },
+      {
         "name": "WrongContext"
       },
       {
@@ -425,13 +428,23 @@
         "backend": "Jena"
       },
       {
+        "name": "UpcomingNeighbour-find-all-missing-on-1-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_true_consequent ?bx), (?b my:executes ?by), (?bx   my:has_upcoming ?some), (?some my:has_upcoming ?by), (?some my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:should_be_after ?some), (?b my:field_MISSING ?name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-all-missing-on-0-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_false_consequent ?bx), (?b my:executes ?by), (?bx   my:has_upcoming ?some), (?some my:has_upcoming ?by), (?some my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:should_be_after ?some), (?b my:field_MISSING ?name),.",
+        "backend": "Jena"
+      },
+      {
         "name": "NotNeighbour-not-cond-Error",
-        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:always_consequent ?some_bnd), noValue(?bx my:has_upcoming ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b rdf:type my:NotNeighbour), (?b my:field_A ?name),.",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:always_consequent ?some_bnd), noValue(?bx my:has_upcoming ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b rdf:type my:NotNeighbour), (?b my:field_EXTRA ?name),.",
         "backend": "Jena"
       },
       {
         "name": "GenericMisconceptionWhenTrue_Error",
-        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), noValue(?bx my:consequent ?by), (?bx my:boundary_of ?x), (?x rdf:type my:expr), (?bx my:on_true_consequent ?on1), (?on1 my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
+        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), noValue(?bx my:on_true_consequent ?by), (?bx my:boundary_of ?x), (?x rdf:type my:expr), (?bx my:on_true_consequent ?on1), (?on1 my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
         "backend": "Jena"
       },
       {
@@ -441,7 +454,7 @@
       },
       {
         "name": "GenericMisconceptionWhenFalse_Error",
-        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), noValue(?bx my:consequent ?by), (?bx my:boundary_of ?x), (?x rdf:type my:expr), (?bx my:on_false_consequent ?on0), (?on0 my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
+        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), noValue(?bx my:on_false_consequent ?by), (?bx my:boundary_of ?x), (?x rdf:type my:expr), (?bx my:on_false_consequent ?on0), (?on0 my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
         "backend": "Jena"
       },
       {
@@ -476,22 +489,22 @@
       },
       {
         "name": "NotNeighbour-cond-Error",
-        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?on0), (?bx my:on_true_consequent ?on1), noValue(?bx my:consequent ?by), noValue(?on0 my:has_upcoming ?by), noValue(?on1 my:has_upcoming ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b rdf:type my:NotNeighbour), (?b my:field_A ?name),.",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?on0), (?bx my:on_true_consequent ?on1), noValue(?bx my:consequent ?by), noValue(?on0 my:has_upcoming ?by), noValue(?on1 my:has_upcoming ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b rdf:type my:NotNeighbour), (?b my:field_EXTRA ?name),.",
         "backend": "Jena"
       },
       {
         "name": "CorrespondingEndMismatched-Error",
-        "formulation": "(?a my:student_corresponding_end ?b), (?a my:executes ?s1), (?b my:executes ?s2), (?s1 my:boundary_of ?st), noValue(?s2 my:boundary_of ?st), -> (?b rdf:type my:CorrespondingEndMismatched), (?b my:cause ?a).",
+        "formulation": "(?a my:student_corresponding_end ?b), (?a my:executes ?bnd1), (?b my:executes ?bnd2), (?bnd1 my:boundary_of ?st1), noValue(?bnd2 my:boundary_of ?st1), (?bnd2 my:boundary_of ?st2), (?st1 my:stmt_name ?a_name), (?st2 my:stmt_name ?b_name), -> (?b rdf:type my:CorrespondingEndMismatched), (?b my:cause ?a) (?b my:field_BEGIN ?a_name), (?b my:field_A ?b_name),.",
         "backend": "Jena"
       },
       {
         "name": "GenericWrongStmtParent_Error",
-        "formulation": "(?p my:student_parent_of ?a), (?p my:executes ?bp), (?a my:executes ?ba), (?bp my:boundary_of ?sp), (?ba my:boundary_of ?sa), noValue(?sp my:parent_of ?sa), (?pa my:parent_of ?sa), (?sp my:stmt_name ?p_name), (?sa my:stmt_name ?a_name), -> (?a my:cause ?p), (?a my:context_should_be ?pa), (?a rdf:type my:WrongContext), (?a my:field_A ?p_name), (?a my:field_OUTER ?a_name),.",
+        "formulation": "(?a rdf:type my:act_begin), (?p my:student_parent_of ?a), (?p my:executes ?bp), (?a my:executes ?ba), (?bp my:boundary_of ?sp), (?ba my:boundary_of ?sa), noValue(?sp my:parent_of ?sa), (?pa my:parent_of ?sa), (?sp my:stmt_name ?p_name), (?sa my:stmt_name ?a_name), -> (?a my:cause ?p), (?a my:context_should_be ?pa), (?a rdf:type my:WrongContext), (?a my:field_A ?a_name), (?a my:field_CONTEXT ?p_name),.",
         "backend": "Jena"
       },
       {
         "name": "OneLevelShallower-Error",
-        "formulation": "(?a rdf:type my:WrongContext), (?a my:context_should_be ?pa), (?p my:student_parent_of ?a), (?p my:executes ?bp), (?bp my:begin_of ?sp), (?sp my:parent_of ?pa), (?pa my:stmt_name ?a_name), -> (?a rdf:type my:OneLevelShallower), (?a my:field_PARENT ?p_name),.",
+        "formulation": "(?a rdf:type my:WrongContext), (?a my:context_should_be ?pa), (?p my:student_parent_of ?a), (?p my:executes ?bp), (?bp my:begin_of ?sp), (?sp my:parent_of ?pa), (?pa my:stmt_name ?p_name), -> (?a rdf:type my:OneLevelShallower), (?a my:field_PARENT ?p_name),.",
         "backend": "Jena"
       },
       {
@@ -552,12 +565,12 @@
     "formulations": [
       {
         "name": "DuplicateOfAct-seq_Error (b,e)",
-        "formulation": "(?p my:student_parent_of ?a1), (?p my:student_parent_of ?a2), (?p my:executes ?bb), (?bb my:boundary_of ?block), (?block rdf:type my:sequence), (?block my:body_item ?st), (?bnd my:boundary_of ?st), (?a1 my:executes ?bnd), (?a2 my:executes ?bnd), (?a1 my:student_index ?i1), (?a2 my:student_index ?i2), lessThan(?i1, ?i2), -> (?a2 my:cause ?a1), (?a2 rdf:type my:DuplicateOfAct).",
+        "formulation": "(?p my:student_parent_of ?a1), (?p my:student_parent_of ?a2), (?p my:executes ?bb), (?bb my:boundary_of ?block), (?block rdf:type my:sequence), (?block my:body_item ?st), (?bnd my:boundary_of ?st), (?a1 my:executes ?bnd), (?a2 my:executes ?bnd), (?a1 my:student_index ?i1), (?a2 my:student_index ?i2), lessThan(?i1, ?i2), (?st my:stmt_name ?a_name), (?block my:stmt_name ?p_name), -> (?a2 my:cause ?a1), (?a2 rdf:type my:DuplicateOfAct) (?a2 my:field_A ?a_name), (?a2 my:field_PARENT ?p_name),.",
         "backend": "Jena"
       },
       {
         "name": "TooEarlyInSequence-Seq_error",
-        "formulation": "(?b rdf:type my:WrongNext), (?b my:should_be ?correct_b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st_b), (?p my:student_parent_of ?b), (?p my:executes ?bnd_p), (?bnd_p my:boundary_of ?seq), (?seq rdf:type my:sequence), (?seq my:body_item ?correct_b), (?correct_b my:item_index ?index_c), (?st_b my:item_index ?index_b), lessThan(?index_c, ?index_b), (?st_b my:stmt_name ?b_name), (?correct_b my:stmt_name ?c_name), -> (?b my:should_be_after ?correct_b), (?b rdf:type my:TooEarlyInSequence), (?b my:field_A ?b_name), (?b my:field_MISSING ?c_name),.",
+        "formulation": "(?b rdf:type my:WrongNext), (?b my:should_be ?correct_b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st_b), (?p my:student_parent_of ?b), (?p my:executes ?bnd_p), (?bnd_p my:boundary_of ?seq), (?seq rdf:type my:sequence), (?seq my:body_item ?st_b), (?seq my:body_item ?correct_b), (?correct_b my:item_index ?index_c), (?st_b my:item_index ?index_b), lessThan(?index_c, ?index_b), (?st_b my:stmt_name ?b_name), (?correct_b my:stmt_name ?c_name), -> (?b my:should_be_after ?correct_b), (?b rdf:type my:TooEarlyInSequence), (?b my:field_A ?b_name), (?b my:field_MISSING ?c_name),.",
         "backend": "Jena"
       },
       {
@@ -602,7 +615,7 @@
       },
       {
         "name": "SequenceFinishedNotInOrder-Seq_error",
-        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?st_b my:consequent ?seq_e), (?a my:student_next ?b), noValue(?a my:executes ?st_b), (?st_b my:boundary_of ?st), -> (?b my:should_be_after ?st), (?b rdf:type my:SequenceFinishedNotInOrder),.",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?st_b my:consequent ?seq_e), (?st_b my:boundary_of ?st), (?a my:student_next ?b), (?a my:executes ?bnd), (?bnd my:boundary_of ?sa), (?st my:id ?id1), (?sa my:id ?id2), notEqual(?id1, ?id2), (?seq my:stmt_name ?a_name), -> (?b my:should_be_after ?st), (?b rdf:type my:SequenceFinishedNotInOrder), (?b my:field_A ?a_name),.",
         "backend": "Jena"
       }
     ]
@@ -704,97 +717,107 @@
     "formulations": [
       {
         "name": "NoFirstCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition) (?b my:field_ALT ?a_name), (?b my:field_ALT_COND ?c_name),.",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition), (?b my:field_ALT ?a_name), (?b my:field_REQUIRED_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "ConditionTooEarly-atAltBegin-alt_Error",
-        "formulation": "(?b rdf:type my:NoFirstCondition), (?b my:executes ?bnd), (?bnd my:begin_of ?cnd), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br my:item_index ?br_i), greaterThan(?br_i, 0), -> (?b rdf:type my:ConditionTooEarly).",
+        "formulation": "(?b rdf:type my:NoFirstCondition), (?b my:executes ?bnd), (?bnd my:begin_of ?cnd), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br my:item_index ?br_i), greaterThan(?br_i, 0), (?cnd my:stmt_name ?c2_name), -> (?b rdf:type my:ConditionTooEarly), (?b my:field_CURRENT_ALT_COND ?c2_name),.",
         "backend": "Jena"
       },
       {
         "name": "BranchOfFalseCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?b rdf:type my:act_begin), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br), (?a my:student_index ?i1), (?b my:student_index ?i2), lessThan(?i1, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b my:cause ?a), (?b rdf:type my:BranchOfFalseCondition) (?b my:field_ALT ?a_name), (?b my:field_ALT_COND ?c_name), (?b my:field_BRANCH ?b_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?b rdf:type my:act_begin), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br), (?a my:student_index ?i1), (?b my:student_index ?i2), lessThan(?i1, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b my:cause ?a), (?b rdf:type my:BranchOfFalseCondition), (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name), (?b my:field_UNEXPECTED_BRANCH ?b_name),.",
         "backend": "Jena"
       },
       {
         "name": "BranchWithoutCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br my:cond ?cnd), (?st my:id ?i), (?cnd my:id ?i2), notEqual(?i, ?i2), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:BranchWithoutCondition).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br my:cond ?cnd), (?st my:id ?i), (?cnd my:id ?i2), notEqual(?i, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:BranchWithoutCondition), (?a my:field_ALT ?a_name), (?a my:field_REQUIRED_COND ?c_name), (?a my:field_UNEXPECTED_BRANCH ?b_name),.",
         "backend": "Jena"
       },
       {
         "name": "BranchNotNextToCondition-alt_Error",
-        "formulation": "(?a rdf:type my:BranchWithoutCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br my:cond ?cnd), (?alt_act my:student_parent_of ?a), (?c my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?a my:in_trace ?trace), (?c my:in_trace ?trace), (?alt_act my:student_index ?ia), (?c my:student_index ?ic), lessThan(?ia, ?ic), (?a my:student_index ?ib), lessThan(?ic, ?ib), -> (?a rdf:type my:BranchNotNextToCondition).",
+        "formulation": "(?a rdf:type my:BranchWithoutCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br my:cond ?cnd), (?alt_act my:student_parent_of ?a), (?c my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?a my:in_trace ?trace), (?c my:in_trace ?trace), (?alt_act my:student_index ?ia), (?c my:student_index ?ic), lessThan(?ia, ?ic), (?a my:student_index ?ib), lessThan(?ic, ?ib), -> (?a rdf:type my:BranchNotNextToCondition),.",
         "backend": "Jena"
       },
       {
         "name": "ElseBranchNotNextToLastCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br rdf:type my:else), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br1 my:next ?br), (?br1 my:cond ?cnd), (?st my:id ?i), (?cnd my:id ?i2), notEqual(?i, ?i2), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:ElseBranchNotNextToLastCondition).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br rdf:type my:else), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br1 my:next ?br), (?br1 my:cond ?cnd), (?st my:id ?i), (?cnd my:id ?i2), notEqual(?i, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:ElseBranchNotNextToLastCondition), (?a my:field_ALT ?a_name), (?a my:field_REQUIRED_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "ElseBranchAfterTrueCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br rdf:type my:else), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br1 my:next ?br), (?br1 my:cond ?cnd), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?b my:expr_value \"true\"^^xsd:boolean), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:ElseBranchAfterTrueCondition).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br rdf:type my:else), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br1 my:next ?br), (?br1 my:cond ?cnd), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?b my:expr_value \"true\"^^xsd:boolean), (?alt_act my:student_parent_of ?a), (?alt_act my:executes ?bnd_alt), (?bnd_alt my:boundary_of ?alt), (?alt_act my:student_index ?alt_i), (?b my:student_index ?b_i), lessThan(?alt_i, ?b_i), (?a my:student_index ?a_i), lessThan(?b_i, ?a_i), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:ElseBranchAfterTrueCondition), (?a my:field_ALT ?a_name), (?a my:field_LATEST_ALT_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "CondtionNotNextToPrevCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?br2 my:cond ?cnd2), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br1 my:next ?br2), (?br1 my:cond ?cnd1), (?st my:id ?i), (?cnd1 my:id ?i2), notEqual(?i, ?i2), -> (?a my:should_be_after ?cnd1), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:CondtionNotNextToPrevCondition).",
+        "formulation": "(?a rdf:type my:act_begin), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?br2 my:cond ?cnd2), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br1 my:next ?br2), (?br1 my:cond ?cnd1), (?st my:id ?i), (?cnd1 my:id ?i2), notEqual(?i, ?i2), (?alt my:stmt_name ?a_name), (?cnd1 my:stmt_name ?c_name), (?cnd2 my:stmt_name ?c2_name), -> (?a my:should_be_after ?cnd1), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:field_ALT ?a_name), (?a my:field_REQUIRED_COND ?c_name), (?a my:field_CURRENT_ALT_COND ?c2_name),.",
         "backend": "Jena"
       },
       {
         "name": "ConditionTooEarly-afterCond-alt_Error",
-        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?br2 my:cond ?cnd2), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd1), (?br1 my:cond ?cnd1), (?alt my:branches_item ?br1), (?br1 my:item_index ?br1_i), (?br2 my:item_index ?br2_i), greaterThan(?br2_i, ?br1_i), -> (?a rdf:type my:ConditionTooEarly).",
+        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?br2 my:cond ?cnd2), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd1), (?br1 my:cond ?cnd1), (?alt my:branches_item ?br1), (?br1 my:item_index ?br1_i), (?br2 my:item_index ?br2_i), greaterThan(?br2_i, ?br1_i), -> (?a rdf:type my:ConditionTooEarly),.",
         "backend": "Jena"
       },
       {
         "name": "ConditionTooLate-alt_Error",
-        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?br2 my:cond ?cnd2), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd1), (?br1 my:cond ?cnd1), (?alt my:branches_item ?br1), (?br1 my:item_index ?br1_i), (?br2 my:item_index ?br2_i), lessThan(?br2_i, ?br1_i), -> (?a rdf:type my:ConditionTooLate).",
+        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?br2 my:cond ?cnd2), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd1), (?br1 my:cond ?cnd1), (?alt my:branches_item ?br1), (?br1 my:item_index ?br1_i), (?br2 my:item_index ?br2_i), lessThan(?br2_i, ?br1_i), -> (?a rdf:type my:ConditionTooLate),.",
         "backend": "Jena"
       },
       {
         "name": "DuplicateOfCondition-alt_Error",
-        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?br2 my:cond ?cnd), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?p my:student_parent_of ?a), (?p my:student_parent_of ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?b my:student_index ?i1), (?a my:student_index ?i2), lessThan(?i1, ?i2), -> (?a rdf:type my:DuplicateOfCondition).",
+        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?br2 my:cond ?cnd), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?p my:student_parent_of ?a), (?p my:student_parent_of ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?b my:student_index ?i1), (?a my:student_index ?i2), lessThan(?i1, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?a rdf:type my:DuplicateOfCondition), (?a my:field_ALT ?a_name), (?a my:field_CURRENT_ALT_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "ConditionAfterBranch-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?cnd rdf:type my:expr), -> (?b my:should_be ?alt), (?b rdf:type my:ConditionAfterBranch).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b rdf:type my:ConditionAfterBranch), (?b my:field_ALT ?a_name), (?b my:field_UNEXPECTED_ALT_COND ?c_name), (?b my:field_BRANCH ?b_name),.",
         "backend": "Jena"
       },
       {
         "name": "AnotherExtraBranch-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br2), (?alt my:branches_item ?br2), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?a my:student_index ?sia), (?b my:student_index ?sib), greaterThan(?sib, ?sia), -> (?b my:cause ?a), (?b rdf:type my:AnotherExtraBranch).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br2), (?alt my:branches_item ?br2), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?a my:student_index ?sia), (?b my:student_index ?sib), greaterThan(?sib, ?sia), (?alt my:stmt_name ?a_name), (?br my:stmt_name ?b_name), (?br2 my:stmt_name ?b2_name), -> (?b my:cause ?a), (?b rdf:type my:AnotherExtraBranch), (?b my:field_ALT ?a_name), (?b my:field_BRANCH ?b_name), (?b my:field_UNEXPECTED_BRANCH ?b2_name),.",
         "backend": "Jena"
       },
       {
         "name": "NoBranchWhenConditionIsTrue-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"true\"^^xsd:boolean), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?br), -> (?b my:should_be ?br), (?b rdf:type my:NoBranchWhenConditionIsTrue).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"true\"^^xsd:boolean), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?br), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?br), (?b rdf:type my:NoBranchWhenConditionIsTrue), (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name), (?b my:field_EXPECTED_BRANCH ?b_name),.",
         "backend": "Jena"
       },
       {
         "name": "LastConditionIsFalseButNoElse-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?br my:next ?br2), (?br2 rdf:type my:else), (?a my:student_next ?b), (?b rdf:type my:WrongNext), -> (?b my:should_be ?br2), (?b rdf:type my:LastConditionIsFalseButNoElse).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?br my:next ?br2), (?br2 rdf:type my:else), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:should_be ?br2), (?b rdf:type my:LastConditionIsFalseButNoElse), (?b my:field_ALT ?a_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LastConditionIsFalseButNoElse-helper-alt_Error",
+        "formulation": "(?b rdf:type my:LastConditionIsFalseButNoElse), (?b my:should_be ?br2), (?alt my:branches_item ?br2), (?alt my:branches_item ?br), (?br my:cond ?cnd), (?cnd my:stmt_name ?c_name), -> (?b my:field_ALT_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "NoNextCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?cnd2 my:stmt_name ?c2_name), -> (?b my:should_be ?cnd2), (?b rdf:type my:NoNextCondition) (?b my:field_ALT ?a_name), (?b my:field_ALT_COND ?c_name), (?b my:field_ALT_COND2 ?c2_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?cnd2 my:stmt_name ?c2_name), -> (?b my:should_be ?cnd2), (?b rdf:type my:NoNextCondition), (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name), (?b my:field_EXPECTED_ALT_COND ?c2_name),.",
         "backend": "Jena"
       },
       {
         "name": "LastFalseNoEnd-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br rdf:type my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), -> (?b my:precursor ?a), (?b rdf:type my:LastFalseNoEnd).",
+        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br rdf:type my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:precursor ?a), (?b my:should_be ?alt), (?b rdf:type my:LastFalseNoEnd), (?b my:field_ALT ?a_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LastFalseNoEnd-helper-alt_Error",
+        "formulation": "(?b rdf:type my:LastFalseNoEnd), (?b my:should_be ?alt), (?alt my:branches_item ?br), (?br my:cond ?cnd), (?cnd my:stmt_name ?c_name), -> (?b my:field_ALT_COND ?c_name),.",
         "backend": "Jena"
       },
       {
         "name": "NoAlternativeEndAfterBranch-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), -> (?b my:should_be ?alt), (?b rdf:type my:NoAlternativeEndAfterBranch).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b rdf:type my:NoAlternativeEndAfterBranch), (?b my:field_ALT ?a_name), (?b my:field_BRANCH ?b_name),.",
         "backend": "Jena"
       },
       {
         "name": "AlternativeEndAfterTrueCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?alt), -> (?b my:should_be ?br), (?b my:precursor ?a), (?b rdf:type my:AlternativeEndAfterTrueCondition).",
+        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?alt), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:should_be ?br), (?b my:precursor ?a), (?b rdf:type my:AlternativeEndAfterTrueCondition) (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name),.",
         "backend": "Jena"
       }
     ]
@@ -811,6 +834,12 @@
       }
     ],
     "concepts": [
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "do_while_loop"
+      },
       {
         "name": "act_begin"
       },
@@ -874,33 +903,43 @@
     ],
     "formulations": [
       {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:while_loop), -> drop(0), (?a my:field_kind_of_loop \"WHILE\"),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:do_while_loop), -> drop(0), (?a my:field_kind_of_loop \"DO-WHILE\"),.",
+        "backend": "Jena"
+      },
+      {
         "name": "LoopStartIsNotCondition-loop_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Loop), noValue(?bnd_b my:boundary_of ?cnd), -> (?b rdf:type my:LoopStartIsNotCondition).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:end_of ?Loop), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopStartIsNotCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
         "name": "LoopStartIsNotIteration-loop_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_body), (?Loop my:body ?Body), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Loop), noValue(?bnd_b my:boundary_of ?Body), -> (?b rdf:type my:LoopStartIsNotIteration).",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_body), (?Loop my:body ?Body), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Loop), noValue(?bnd_b my:boundary_of ?Body), (?Loop my:stmt_name ?a_name), -> (?b rdf:type my:LoopStartIsNotIteration), (?b my:field_LOOP ?a_name),.",
         "backend": "Jena"
       },
       {
         "name": "NoIterationAfterSuccessfulCondition-1-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?Loop my:body ?Body), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Body), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoIterationAfterSuccessfulCondition) (?b my:field_A ?a_name), (?b my:field_LOOP_COND ?c_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?Loop my:body ?Body), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Body), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoIterationAfterSuccessfulCondition) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
         "name": "LoopEndAfterSuccessfulCondition-1-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?Loop), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopEndAfterSuccessfulCondition), (?b my:field_A ?a_name), (?b my:field_LOOP_COND ?c_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?Loop), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopEndAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
         "name": "NoLoopEndAfterFailedCondition-0-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:loop), (?Loop my:cond ?cnd), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoLoopEndAfterFailedCondition) (?b my:field_A ?a_name), (?b my:field_LOOP_COND ?c_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:loop), (?Loop my:cond ?cnd), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoLoopEndAfterFailedCondition) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
         "name": "LoopEndsWithoutCondition-loop_Error",
-        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?Loop), (?Loop rdf:type my:conditional_loop), (?a my:student_next ?b), (?Loop my:cond ?cnd), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?cnd), -> (?b rdf:type my:LoopEndsWithoutCondition).",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?Loop), (?Loop rdf:type my:conditional_loop), (?a my:student_next ?b), (?Loop my:cond ?cnd), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b rdf:type my:LoopEndsWithoutCondition).",
         "backend": "Jena"
       },
       {
@@ -915,12 +954,12 @@
       },
       {
         "name": "NoConditionAfterIteration-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd), (?bnd my:boundary_of ?st), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?cnd), -> (?b rdf:type my:NoConditionAfterIteration).",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd), (?bnd my:boundary_of ?st), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoConditionAfterIteration) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
         "name": "NoConditionBetweenIterations-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st), (?a my:student_next ?b), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?Loop my:cond ?cnd), -> (?b my:should_be_after ?cnd), (?b rdf:type my:NoConditionBetweenIterations).",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st), (?a my:student_next ?b), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?Loop my:cond ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:should_be_after ?cnd), (?b rdf:type my:NoConditionBetweenIterations) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       }
     ]
