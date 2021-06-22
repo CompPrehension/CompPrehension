@@ -969,6 +969,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
             } else if (violation.getVerb().equals("student_error_right_assoc")) {
                 violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
+            } else if (violation.getVerb().equals("student_error_strict_operands_order_base")) {
+                violationEntity.setLawName("error_student_error_strict_operands_order_base");
+            } else if (violation.getVerb().equals("student_error_in_complex")) {
+                violationEntity.setLawName("error_student_error_in_complex");
             } else if (violation.getVerb().equals("wrong_type")) {
                 violationEntity.setLawName("error_wrong_type");
             }
@@ -1113,16 +1117,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has right associativity and is evaluated from right to left";
         } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right")) {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and right associativity";
-//        } else if (error.Type == StudentErrorType.IN_COMPLEX && errorText.equals("(")) {
-//            reason = " because function arguments are evaluated before function call​";
-//        } else if (error.Type == StudentErrorType.IN_COMPLEX && errorText.equals("[")) {
-//            reason = " because expression in brackets is evaluated before brackets";
-//        } else if (error.Type == StudentErrorType.IN_COMPLEX && thirdOperatorText.equals("(")) {
-//            reason = " because expression in parenthesis is evaluated before operators​ outside of them";
-//        } else if (error.Type == StudentErrorType.IN_COMPLEX && thirdOperatorText.equals("[")) {
-//            reason = " because expression in brackets is evaluated before operator outside of them​​";
-//        } else if (error.Type == StudentErrorType.STRICT_OPERANDS_ORDER) {
-//            reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " on pos " + thirdOperatorPos + " must be evaluated before its right operand​";
+        } else if (errorType.equals("error_student_error_in_complex") && errorText.equals("(")) {
+            reason = " because function arguments are evaluated before function call​";
+        } else if (errorType.equals("error_student_error_in_complex") && errorText.equals("[")) {
+            reason = " because expression in brackets is evaluated before brackets";
+        } else if (errorType.equals("error_student_error_in_complex") && thirdOperatorText.equals("(")) {
+            reason = " because expression in parenthesis is evaluated before operators​ outside of them";
+        } else if (errorType.equals("error_student_error_in_complex") && thirdOperatorText.equals("[")) {
+            reason = " because expression in brackets is evaluated before operator outside of them​​";
+        } else if (errorType.equals("error_student_error_strict_operands_order_base")) {
+            reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " on pos " + thirdOperatorPos + " must be evaluated before its right operand​";
         } else {
             reason = " because unknown error";
         }
