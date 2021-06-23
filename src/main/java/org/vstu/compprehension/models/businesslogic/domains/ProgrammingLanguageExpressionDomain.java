@@ -33,6 +33,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
+    static final String PRECEDENCE_TYPE_QUESTION_TYPE = "PrecedenceType";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
@@ -91,6 +92,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", new ArrayList<>(Arrays.asList(singleTokenUnaryConcept, postfixOperatorConcept)));
         Concept typeConcept = addConcept("type");
         Concept operandsTypeConcept = addConcept("operands_type");
+        Concept precedenceTypeConcept = addConcept("precedence_type");
         Concept systemIntegrationTestConcept = addConcept("SystemIntegrationTest");
     }
 
@@ -389,7 +391,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     // filter positive laws by question type and tags
     @Override
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
-        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
+        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)
+            || questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
                 boolean needLaw = true;
@@ -410,7 +413,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             return positiveLaws;
         }
-        return new ArrayList<>(Arrays.asList());
+        return new ArrayList<>();
     }
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
@@ -428,6 +431,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
             for (NegativeLaw law : getNegativeLaws()) {
                 boolean needLaw = true;
+                if (needLaw) {
+                    negativeLaws.add(law);
+                }
+            }
+            return negativeLaws;
+        }
+        else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+            List<NegativeLaw> negativeLaws = new ArrayList<>();
+            for (NegativeLaw law : getNegativeLaws()) {
+                boolean needLaw = law.getName().equals("precedence_basics") || law.getName().equals("precedence_type");
                 if (needLaw) {
                     negativeLaws.add(law);
                 }
@@ -463,6 +476,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     "get_type"
+            ));
+        } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+            return new ArrayList<>(Arrays.asList(
+                    "high_precedence_diff_precedence"
             ));
         }
         return new ArrayList<>();
@@ -501,7 +518,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "complex_beginning",
                     "index"
             ));
-        }
+        } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+        return new ArrayList<>(Arrays.asList(
+                "high_precedence_diff_precedence",
+                "text",
+                "index",
+                "target_operator",
+                "student_precedence_type"
+        ));
+    }
         return new ArrayList<>();
     }
 
@@ -565,6 +590,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
                         "student_operand_type",
+                        "xsd:string",
+                        response.getRightAnswerObject().getDomainInfo()
+                ));
+            }
+            return result;
+        } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+            List<BackendFactEntity> result = new ArrayList<>();
+            for (ResponseEntity response : responses) {
+                result.add(new BackendFactEntity(
+                        "owl:NamedIndividual",
+                        response.getLeftAnswerObject().getDomainInfo(),
+                        "student_precedence_type",
                         "xsd:string",
                         response.getRightAnswerObject().getDomainInfo()
                 ));
@@ -980,6 +1017,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (BackendFactEntity violation : violations) {
             if (violation.getVerb().equals("student_operand_type")) {
                 questionType = OPERANDS_TYPE_QUESTION_TYPE;
+            } else if (violation.getVerb().equals("student_precedence_type")) {
+                questionType = PRECEDENCE_TYPE_QUESTION_TYPE;
             } else if (violation.getVerb().equals("student_error_more_precedence")
                     || violation.getVerb().equals("student_error_left_assoc")
                     || violation.getVerb().equals("student_error_right_assoc")
@@ -1116,6 +1155,50 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     mistakes.add(violationEntity);
                 }
             }
+        } else if (questionType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+            MultiValuedMap<String, String> morePrecedence = new HashSetValuedHashMap<>();
+            Map<String, String> studentPrecedenceType = new HashMap<>();
+            Map<String, String> precedenceType = new HashMap<>();
+            Map<String, Integer> nameToPos = new HashMap<>();
+            String targetOperator = "";
+
+            for (BackendFactEntity violation : violations) {
+                if (!violation.getSubject().startsWith("op__0")) {
+                    continue;
+                }
+                if (violation.getVerb().equals("high_precedence_diff_precedence")) {
+                    morePrecedence.put(violation.getObject(), violation.getSubject());
+                } else if (violation.getVerb().equals("student_precedence_type")) {
+                    studentPrecedenceType.put(violation.getSubject(), violation.getObject());
+                } else if (violation.getVerb().equals("target_operator")) {
+                    targetOperator = violation.getSubject();
+                } else if (violation.getVerb().equals("index")) {
+                    nameToPos.put(violation.getSubject(), Integer.valueOf(violation.getObject()));
+                }
+            }
+
+            for (String operator : nameToPos.keySet()) {
+                if (morePrecedence.containsMapping(targetOperator, operator)) {
+                    precedenceType.put(operator, "higher_precedence");
+                } else if (morePrecedence.containsMapping(operator, targetOperator)) {
+                    precedenceType.put(operator, "lower_precedence");
+                } else {
+                    precedenceType.put(operator, "same_precedence");
+                }
+            }
+
+            for (Map.Entry<String, String> kv : studentPrecedenceType.entrySet()) {
+                if (!precedenceType.get(kv.getKey()).equals(kv.getValue())) {
+                    ViolationEntity violationEntity = new ViolationEntity();
+                    violationEntity.setLawName("wrong_precedence_type");
+                    ArrayList<BackendFactEntity> violationFacts = new ArrayList<>();
+                    violationFacts.add(new BackendFactEntity(kv.getKey(), "student_precedence_type", kv.getValue()));
+                    violationFacts.add(new BackendFactEntity(kv.getKey(), "real_precedence_type", precedenceType.get(kv.getKey())));
+                    violationFacts.add(new BackendFactEntity(kv.getKey(), "index", String.valueOf(nameToPos.get(kv.getKey()))));
+                    violationEntity.setViolationFacts(new ArrayList<>());
+                    mistakes.add(violationEntity);
+                }
+            }
         }
 
         InterpretSentenceResult result = new InterpretSentenceResult();
@@ -1216,6 +1299,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 }
             }
             return new HyperText("Wrong, operand type of operator on pos " + index + " is '" + realType + "', not '" + studentType + "'");
+        }  else if (mistake.getLawName().equals("wrong_precedence_type")) {
+            String realType = "";
+            String studentType = "";
+            String index = "";
+            for (BackendFactEntity fact : mistake.getViolationFacts()) {
+                if (fact.getVerb().equals("student_precedence_type")) {
+                    studentType = fact.getObject();
+                } else if (fact.getVerb().equals("real_precedence_type")) {
+                    realType = fact.getObject();
+                } else if (fact.getVerb().equals("index")) {
+                    index = fact.getObject();
+                }
+            }
+            return new HyperText("Wrong, precedence type of operator on pos " + index + " is '" + realType + "', not '" + studentType + "'");
         }
 
         // retrieve subjects' info from facts, and find base and third ...
