@@ -2450,7 +2450,8 @@
       {"name": "C++"}
     ],
     "tags": [
-      {"name": "basics"}
+      {"name": "basics"},
+      {"name": "C++"}
     ]
   },
   {
@@ -3130,7 +3131,8 @@
       {"name": "Python"}
     ],
     "tags": [
-      {"name": "basics"}
+      {"name": "basics"},
+      {"name": "Python"}
     ]
   },
   {
@@ -3669,6 +3671,51 @@
     "concepts": [],
     "tags": [
       {"name": "type"}
+    ]
+  },
+  {
+    "name": "operand_type",
+    "positive": false,
+    "formulations": [
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_operand_type",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "target_operator",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand_part",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_operand_recursive_begin",
+        "formulation": "(?a my:has_operand ?b) -> (?a my:has_operand_part ?b).",
+        "backend": "Jena"
+      },
+      {
+        "name": "has_operand_recursive",
+        "formulation": "(?a my:has_operand_part ?b), (?b my:has_operand ?c) -> (?a my:has_operand_part ?c).",
+        "backend": "Jena"
+      }
+    ],
+    "concepts": [],
+    "tags": [
+      {"name": "operand_type"}
     ]
   }
 ]

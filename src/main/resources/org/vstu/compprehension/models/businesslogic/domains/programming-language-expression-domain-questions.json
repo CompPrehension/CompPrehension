@@ -4292,5 +4292,295 @@
       "order",
       "evaluation"
     ]
+  },
+  {
+    "questionType": "MATCHING",
+    "questionData": {
+      "questionType": "MATCHING",
+      "questionDomainType": "OperandsType",
+      "questionText": "Given expression: ! a + - b * c == d / e\n For each operation except + on pos 3 classify operands relations to + on pos 3",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "!",
+          "domainInfo": "op__0__1",
+          "isRightCol": false,
+          "concept": "operator_unary_!",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "-",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_unary_-",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "*",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 3,
+          "hyperText": "==",
+          "domainInfo": "op__0__8",
+          "isRightCol": false,
+          "concept": "operator_binary_==",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 4,
+          "hyperText": "/",
+          "domainInfo": "op__0__10",
+          "isRightCol": false,
+          "concept": "operator_binary_/",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 5,
+          "hyperText": "is part of left operand",
+          "domainInfo": "left_operand",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 6,
+          "hyperText": "is part of inner operand",
+          "domainInfo": "inner_operand",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 7,
+          "hyperText": "is part of right operand",
+          "domainInfo": "right_operand",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 8,
+          "hyperText": "+ is part of operand of this",
+          "domainInfo": "operator",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 9,
+          "hyperText": "unrelated",
+          "domainInfo": "unrelated",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "!"
+        },
+        {
+          "object": "a"
+        },
+        {
+          "object": "+",
+          "verb": "target_operator",
+          "subject": "true",
+          "subjectType": "xsd:boolean"
+        },
+        {
+          "object": "-"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "=="
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "/"
+        },
+        {
+          "object": "e"
+        }
+      ]
+    },
+    "concepts": [
+      "binary",
+      "operands_type",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation",
+      "operand_type"
+    ]
+  },
+  {
+    "questionType": "MATCHING",
+    "questionData": {
+      "questionType": "MATCHING",
+      "questionDomainType": "OperandsType",
+      "questionText": "Given expression: b + d ? e + f : g + h \n For each operation except ? on pos 8 classify operands relations to ? on pos 8",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "+",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "+",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "+",
+          "domainInfo": "op__0__10",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 3,
+          "hyperText": "is part of left operand",
+          "domainInfo": "left_operand",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 4,
+          "hyperText": "is part of inner operand",
+          "domainInfo": "inner_operand",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 5,
+          "hyperText": "is part of right operand",
+          "domainInfo": "right_operand",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 6,
+          "hyperText": "+ is part of operand of this",
+          "domainInfo": "operator",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 7,
+          "hyperText": "unrelated",
+          "domainInfo": "unrelated",
+          "isRightCol": true,
+          "concept": "",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "b"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "?",
+          "verb": "target_operator",
+          "subject": "true",
+          "subjectType": "xsd:boolean"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "f"
+        },
+        {
+          "object": ":"
+        },
+        {
+          "object": "g"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "h"
+        }
+      ]
+    },
+    "concepts": [
+      "ternary",
+      "operands_type",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation",
+      "operand_type"
+    ]
   }
 ]
