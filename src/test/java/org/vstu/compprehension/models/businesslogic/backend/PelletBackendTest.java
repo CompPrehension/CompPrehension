@@ -150,7 +150,11 @@ class PelletBackendTest {
                 laws.add(law);
             }
         }
-        List<BackendFactEntity> statement = domain.getBackendFacts(expression.getTokens());
+        ArrayList<BackendFactEntity> facts = new ArrayList<>();
+        for (String token : expression.getTokens()) {
+            facts.add(new BackendFactEntity(null, null, token));
+        }
+        List<BackendFactEntity> statement = domain.getBackendFacts(facts);
         List<BackendFactEntity> solution = backend.solve(laws, statement, List.of(objectProperty));
 
         checkObjectProperty(solution, jsonRelations, expression.size());

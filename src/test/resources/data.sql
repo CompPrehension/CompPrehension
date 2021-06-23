@@ -32,6 +32,12 @@ VALUES (12, 1, 1, 0, 1, '10', 'test_if', 8, 0, 1, 1, 'ControlFlowStatementsDomai
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
 VALUES (13, 1, 1, 0, 1, '10', 'test_if', 8, 0, 1, 1, 'ControlFlowStatementsDomain', 'do_while_loop,C++');
 
+INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
+VALUES (11, 1, 1, 0, 1, '10', 'test_operands1', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++,operand_type');
+
+INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `course_id`, `domain_id`, `tags` )
+VALUES (12, 1, 1, 0, 1, '10', 'test_operands2', 8, 1, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++,operand_type');
+
 INSERT INTO `user` (`id`, `email`, `first_name`, `last_name`, `login`, `password`, `preferred_language`)
 VALUES (1, 'test', 'test', 'test', 'test', 'test', 0);
 
@@ -68,3 +74,13 @@ INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_i
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('associativity', 2, 8);
 
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('trace', 0, 10);
+
+INSERT INTO `exercise_attempt` (`id`, `attempt_status`, `exercise_id`, `user_id` ) VALUES (14,1,11,1);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('SystemIntegrationTest', 0, 11);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('operands_type', 0, 11);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('binary', 0, 11);
+
+INSERT INTO `exercise_attempt` (`id`, `attempt_status`, `exercise_id`, `user_id` ) VALUES (15,1,12,1);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('SystemIntegrationTest', 0, 12);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('operands_type', 0, 12);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('ternary', 0, 12);
