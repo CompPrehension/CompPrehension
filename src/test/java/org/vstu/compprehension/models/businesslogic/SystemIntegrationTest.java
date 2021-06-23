@@ -658,6 +658,44 @@ public class SystemIntegrationTest {
             List<ViolationEntity> mistakes = questionService.judgeQuestion(question3, responses, tags).violations;
             assertEquals(3, mistakes.size());
         }
+        {
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(9);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
+            List<Tag> tags = testExerciseAttemptList.get(9).getExercise().getTags();
+            assertEquals("MATCHING", question1.getQuestionType().name());
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Question question3 = getQuestion(question2.getQuestionData().getId());
+            val responses = new ArrayList<ResponseEntity>();
+            responses.add(makeResponse(question3.getAnswerObject(0), question3.getAnswerObject(5)));
+            responses.add(makeResponse(question3.getAnswerObject(1), question3.getAnswerObject(5)));
+            responses.add(makeResponse(question3.getAnswerObject(2), question3.getAnswerObject(5)));
+            responses.add(makeResponse(question3.getAnswerObject(3), question3.getAnswerObject(6)));
+            responses.add(makeResponse(question3.getAnswerObject(4), question3.getAnswerObject(7)));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question3, responses, tags).violations;
+            assertEquals(0, mistakes.size());
+        }
+        {
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(9);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
+            List<Tag> tags = testExerciseAttemptList.get(9).getExercise().getTags();
+            assertEquals("MATCHING", question1.getQuestionType().name());
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Question question3 = getQuestion(question2.getQuestionData().getId());
+            val responses = new ArrayList<ResponseEntity>();
+            responses.add(makeResponse(question3.getAnswerObject(0), question3.getAnswerObject(6)));
+            responses.add(makeResponse(question3.getAnswerObject(1), question3.getAnswerObject(7)));
+            responses.add(makeResponse(question3.getAnswerObject(2), question3.getAnswerObject(6)));
+            responses.add(makeResponse(question3.getAnswerObject(3), question3.getAnswerObject(5)));
+            responses.add(makeResponse(question3.getAnswerObject(4), question3.getAnswerObject(6)));
+            List<ViolationEntity> mistakes = questionService.judgeQuestion(question3, responses, tags).violations;
+            assertEquals(5, mistakes.size());
+        }
     }
 
     ResponseEntity makeResponse(AnswerObjectEntity answer) {

@@ -3717,5 +3717,25 @@
     "tags": [
       {"name": "operand_type"}
     ]
+  },
+  {
+    "name": "precedence_type",
+    "positive": false,
+    "formulations": [
+      {
+        "name": "student_precedence_type",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "target_operator",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      }
+    ],
+    "concepts": [],
+    "tags": [
+      {"name": "precedence_type"}
+    ]
   }
 ]
