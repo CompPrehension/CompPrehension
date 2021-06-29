@@ -123,35 +123,36 @@ const ComboboxMatchingQuestionComponent = ({ question, getAnswers, onChanged }: 
     }
 
     const { groups = [], } = question;   
-
+    const groupsMaxLength = groups.reduce((len, g) => g.text.length > len ? g.text.length : len, 0);
     return (
         <div>
-            <p dangerouslySetInnerHTML={{ __html: question.text }}>                
+            <p className="mb-5" dangerouslySetInnerHTML={{ __html: question.text }}>                
             </p>
-            <table style={{ minWidth: '50%' }}>
-                <tbody>
-                    {question.answers.map(asw => 
-                        <tr>
-                            <td dangerouslySetInnerHTML={{ __html: question.text}}></td>
-                            <td>
+            <div>
+                {question.answers.map(asw => 
+                    <div className="row mb-3">
+                        <div className="col-md-6" dangerouslySetInnerHTML={{ __html: question.text}}>
+                        </div>
+                        <div className="col-md-auto">
+                            <div style={{width: `${(8*groupsMaxLength) + 100}px`}}>
                                 <Select defaultValue={(getAnswers().find(v => v[0] === asw.id)?.[1] ?? null) as any}
                                         options={groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
-                                                       .map(g => ({ value: g.id, label: g.text }))}
+                                                        .map(g => ({ value: g.id, label: g.text }))}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
                                         onChange={(v => {
                                             if (!v) {
-                                               return;
+                                                return;
                                             }
                                             const otherHistoryItems = getAnswers().filter(v => v[0] !== asw.id);
                                             const historyItem = [asw.id, +v.value] as [number, number];
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);                                            
-                                        })} />                                
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>            
+                                        })} /> 
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

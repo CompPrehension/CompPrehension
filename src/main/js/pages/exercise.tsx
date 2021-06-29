@@ -53,9 +53,11 @@ export const Exercise = observer(() => {
         <LoadingWrapper isLoading={state === 'INITIAL'}>
             <Optional isVisible={state === 'EXERCISE'}>
                 <Header />
-                <CurrentQuestion />
-                <GenerateNextAnswerBtn /> 
-                <GenerateNextQuestionBtn />
+                <div className="mt-5">
+                    <CurrentQuestion />
+                    <GenerateNextAnswerBtn /> 
+                    <GenerateNextQuestionBtn />
+                </div>                
             </Optional>
             <Optional isVisible={state === 'MODAL'}>
                 <Modal  type={'DIALOG'}
