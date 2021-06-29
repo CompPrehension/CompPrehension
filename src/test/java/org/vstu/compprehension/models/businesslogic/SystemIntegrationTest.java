@@ -62,15 +62,17 @@ public class SystemIntegrationTest {
 
         assertNotNull(strategy);
 
-        List<ExerciseAttemptEntity> testExerciseAttemptList = IterableUtils.toList( exerciseAttemptRepository.findAll());//Заполнить все значимые поля
-
+        val testExerciseAttemptList = IterableUtils
+                .toList(exerciseAttemptRepository.findAll())
+                .stream()
+                .collect(Collectors.toMap(v -> v.getId().intValue(), v -> v, (prev, next) -> next, HashMap::new));
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(4).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
@@ -118,7 +120,7 @@ public class SystemIntegrationTest {
             assertEquals(QuestionType.SINGLE_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
             val question2Responses2 = questionService.responseQuestion(supQ2, List.of(3));
-            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(4));
             assertEquals("select_highest_precedence_right_operator", resSup.violations.get(0).getLawName());
             assertNull(resSup.violations.get(0).getDetailedLawName());
             assertTrue(resSup.isAnswerCorrect);
@@ -126,7 +128,7 @@ public class SystemIntegrationTest {
             Long supQ3 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup.violations.get(0)).getQuestionData().getId();
             Question supQ4 = questionService.getQuestion(supQ3);
             val question2Responses3 = questionService.responseQuestion(supQ4, List.of(1));
-            Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(4));
             assertEquals("error_select_highest_precedence_operator_right", resSup2.violations.get(0).getLawName());
             assertEquals("error_select_highest_precedence", resSup2.violations.get(0).getDetailedLawName());
             assertFalse(resSup2.isAnswerCorrect);
@@ -139,7 +141,7 @@ public class SystemIntegrationTest {
             Long supQ5 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
             val question2Responses4 = questionService.responseQuestion(supQ6, List.of(4));
-            Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(4));
             assertEquals("select_precedence_or_associativity_right_influence", resSup3.violations.get(0).getLawName());
             assertNull(resSup3.violations.get(0).getDetailedLawName());
             assertFalse(resSup3.isAnswerCorrect);
@@ -147,7 +149,7 @@ public class SystemIntegrationTest {
             Long supQ7 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup3.violations.get(0)).getQuestionData().getId();
             Question supQ8 = questionService.getQuestion(supQ7);
             val question2Responses5 = questionService.responseQuestion(supQ8, List.of(0));
-            Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(4));
             assertEquals("select_highest_precedence_right_operator", resSup4.violations.get(0).getLawName());
             assertNull(resSup4.violations.get(0).getDetailedLawName());
             assertTrue(resSup4.isAnswerCorrect);
@@ -155,18 +157,18 @@ public class SystemIntegrationTest {
             Long supQ9 = questionService.generateSupplementaryQuestion(question2.getQuestionData(), resSup4.violations.get(0)).getQuestionData().getId();
             Question supQ10 = questionService.getQuestion(supQ9);
             val question2Responses6 = questionService.responseQuestion(supQ10, List.of(0));
-            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(4));
             assertEquals("correct_select_highest_precedence_operator_right", resSup5.violations.get(0).getLawName());
             assertNull(resSup5.violations.get(0).getDetailedLawName());
             assertTrue(resSup5.isAnswerCorrect);
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(4).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             // double save
             questionService.saveQuestion(question1.questionData);
@@ -227,12 +229,12 @@ public class SystemIntegrationTest {
             assertTrue(result2.correctlyAppliedLaws.isEmpty());
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(4).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -247,15 +249,15 @@ public class SystemIntegrationTest {
             assertEquals(
                     "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
                     result.violations.get(0).getLawName());
-            float grade = strategy.grade(testExerciseAttemptList.get(0));
+            float grade = strategy.grade(testExerciseAttemptList.get(4));
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(4).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             questionService.saveQuestion(question1.questionData);
             Question question2 = questionService.solveQuestion(question1, tags);
@@ -295,15 +297,15 @@ public class SystemIntegrationTest {
             question1.questionData.setInteractions(ies);
             questionService.saveQuestion(question1.questionData);
 
-            float grade = strategy.grade(testExerciseAttemptList.get(0));
+            float grade = strategy.grade(testExerciseAttemptList.get(4));
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(0);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(0).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(4).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -316,17 +318,17 @@ public class SystemIntegrationTest {
             assertEquals(0, result.CountCorrectOptions);
             assertEquals(0, result.IterationsLeft);
 
-            float grade = strategy.grade(testExerciseAttemptList.get(0));
+            float grade = strategy.grade(testExerciseAttemptList.get(4));
         }
 
         // Python question. Contrary to C++ "==" and "<" has same precedence
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(1);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(5);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(5).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -344,12 +346,12 @@ public class SystemIntegrationTest {
 
         // Python question. Contrary to C++ "==" and "<" has same precedence
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(1);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(5);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(1).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(5).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
@@ -372,12 +374,12 @@ public class SystemIntegrationTest {
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(2);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(7);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(7).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
@@ -386,12 +388,12 @@ public class SystemIntegrationTest {
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(2);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(7);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(7).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(1));
@@ -428,7 +430,7 @@ public class SystemIntegrationTest {
             assertEquals(QuestionType.SINGLE_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
             val question2Responses2 = questionService.responseQuestion(supQ2, List.of(1));
-            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses2, testExerciseAttemptList.get(4));
             assertEquals("select_associativity_type_left", resSup.violations.get(0).getLawName());
             assertNull(resSup.violations.get(0).getDetailedLawName());
             assertTrue(resSup.isAnswerCorrect);
@@ -436,7 +438,7 @@ public class SystemIntegrationTest {
             Long supQ3 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup.violations.get(0)).getQuestionData().getId();
             Question supQ4 = questionService.getQuestion(supQ3);
             val question2Responses3 = questionService.responseQuestion(supQ4, List.of(0));
-            Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup2 = questionService.judgeSupplementaryQuestion(supQ4, question2Responses3, testExerciseAttemptList.get(4));
             assertEquals("correct_select_associativity_type_left_left", resSup2.violations.get(0).getLawName());
             assertNull(resSup2.violations.get(0).getDetailedLawName());
             assertTrue(resSup2.isAnswerCorrect);
@@ -449,32 +451,32 @@ public class SystemIntegrationTest {
             Long supQ5 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ6 = questionService.getQuestion(supQ5);
             val question2Responses4 = questionService.responseQuestion(supQ6, List.of(0));
-            Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup3 = questionService.judgeSupplementaryQuestion(supQ6, question2Responses4, testExerciseAttemptList.get(4));
             assertEquals("select_precedence_or_associativity_left_influence", resSup3.violations.get(0).getLawName());
             assertNull(resSup3.violations.get(0).getDetailedLawName());
 
             Long supQ7 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup3.violations.get(0)).getQuestionData().getId();
             Question supQ8 = questionService.getQuestion(supQ7);
             val question2Responses5 = questionService.responseQuestion(supQ8, List.of(0));
-            Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup4 = questionService.judgeSupplementaryQuestion(supQ8, question2Responses5, testExerciseAttemptList.get(4));
             assertEquals("select_highest_precedence_left_operator", resSup4.violations.get(0).getLawName());
             assertNull(resSup4.violations.get(0).getDetailedLawName());
 
             Long supQ9 = questionService.generateSupplementaryQuestion(question1.getQuestionData(), resSup4.violations.get(0)).getQuestionData().getId();
             Question supQ10 = questionService.getQuestion(supQ9);
             val question2Responses6 = questionService.responseQuestion(supQ10, List.of(0));
-            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup5 = questionService.judgeSupplementaryQuestion(supQ10, question2Responses6, testExerciseAttemptList.get(4));
             assertEquals("error_select_associativity_or_arity_influence_left", resSup5.violations.get(0).getLawName());
             assertEquals("error_select_arity_or_associativity", resSup5.violations.get(0).getDetailedLawName());
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(2);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(7);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(2).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(7).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
@@ -531,19 +533,19 @@ public class SystemIntegrationTest {
             assertEquals(QuestionType.SINGLE_CHOICE, supQ2.getQuestionType());
             assertEquals("OrderOperatorsSupplementary", supQ2.getQuestionDomainType());
             val question2Responses3 = questionService.responseQuestion(supQ2, List.of(4));
-            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses3, testExerciseAttemptList.get(0));
+            Domain.InterpretSentenceResult resSup = questionService.judgeSupplementaryQuestion(supQ2, question2Responses3, testExerciseAttemptList.get(4));
             assertEquals("select_precedence_or_associativity_right_influence", resSup.violations.get(0).getLawName());
             assertNull(resSup.violations.get(0).getDetailedLawName());
             assertFalse(resSup.isAnswerCorrect);
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(3);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(9);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(9).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
@@ -552,12 +554,12 @@ public class SystemIntegrationTest {
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(3);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(9);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(3).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(9).getExercise().getTags();
             assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), question1.getQuestionText().getText());
             Question question2 = questionService.solveQuestion(question1, tags);
             val question2Responses = questionService.responseQuestion(question2, List.of(1));
@@ -569,7 +571,7 @@ public class SystemIntegrationTest {
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(4);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(11);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
@@ -587,12 +589,12 @@ public class SystemIntegrationTest {
         }
 
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(7);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(14);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(7).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(14).getExercise().getTags();
             assertEquals("MATCHING", question1.getQuestionType().name());
             Question question2 = questionService.solveQuestion(question1, tags);
             Question question3 = getQuestion(question2.getQuestionData().getId());
@@ -606,12 +608,12 @@ public class SystemIntegrationTest {
             assertEquals(0, mistakes.size());
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(7);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(14);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(7).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(14).getExercise().getTags();
             assertEquals("MATCHING", question1.getQuestionType().name());
             Question question2 = questionService.solveQuestion(question1, tags);
             Question question3 = getQuestion(question2.getQuestionData().getId());
@@ -625,12 +627,12 @@ public class SystemIntegrationTest {
             assertEquals(5, mistakes.size());
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(8);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(15);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(8).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(15).getExercise().getTags();
             assertEquals("MATCHING", question1.getQuestionType().name());
             Question question2 = questionService.solveQuestion(question1, tags);
             Question question3 = getQuestion(question2.getQuestionData().getId());
@@ -642,12 +644,12 @@ public class SystemIntegrationTest {
             assertEquals(0, mistakes.size());
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(8);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(15);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(8).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(15).getExercise().getTags();
             assertEquals("MATCHING", question1.getQuestionType().name());
             Question question2 = questionService.solveQuestion(question1, tags);
             Question question3 = getQuestion(question2.getQuestionData().getId());
@@ -659,12 +661,12 @@ public class SystemIntegrationTest {
             assertEquals(3, mistakes.size());
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(9);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(16);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(9).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(16).getExercise().getTags();
             assertEquals("MATCHING", question1.getQuestionType().name());
             Question question2 = questionService.solveQuestion(question1, tags);
             Question question3 = getQuestion(question2.getQuestionData().getId());
@@ -678,12 +680,12 @@ public class SystemIntegrationTest {
             assertEquals(0, mistakes.size());
         }
         {
-            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(9);
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(16);
             QuestionRequest qr = strategy.generateQuestionRequest(attempt);
             checkQuestionRequest(qr, attempt);
             Question question1 = questionService.generateQuestion(attempt);
             assertNotNull(question1);
-            List<Tag> tags = testExerciseAttemptList.get(9).getExercise().getTags();
+            List<Tag> tags = testExerciseAttemptList.get(16).getExercise().getTags();
             assertEquals("MATCHING", question1.getQuestionType().name());
             Question question2 = questionService.solveQuestion(question1, tags);
             Question question3 = getQuestion(question2.getQuestionData().getId());
