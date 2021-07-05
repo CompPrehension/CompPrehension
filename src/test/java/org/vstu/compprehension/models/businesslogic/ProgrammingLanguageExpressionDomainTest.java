@@ -84,7 +84,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("operator_binary_+")
         ));
         qr2.setDeniedConcepts(List.of(
-                domain.getConcept("precedence")
+                domain.getConcept("precedence"),
+                domain.getConcept("operator_evaluating_left_operand_first")
         ));
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c"), domain.makeQuestion(qr2, tags, Language.ENGLISH).getQuestionText().getText());
 
