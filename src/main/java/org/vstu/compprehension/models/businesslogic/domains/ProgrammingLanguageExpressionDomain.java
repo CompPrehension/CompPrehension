@@ -749,7 +749,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = answerText + " on pos " + answerPos;
+        String answerTemplate = answerText + " at pos " + answerPos;
         posToExplanation.put(-1, "Operator " + answerTemplate + " evaluates ");
 
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
@@ -776,11 +776,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = text + " on pos " + pos;
+                        String template = text + " at pos " + pos;
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = thirdText + " on pos " + thirdPos;
+                        String thirdTemplate = thirdText + " at pos " + thirdPos;
 
                         if (isStrict.containsKey(thirdOperator)) {
                             posToExplanation.put(pos, "before operator " + template + ": operator " +
@@ -796,11 +796,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = text + " on pos " + pos;
+                        String template = text + " at pos " + pos;
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = thirdText + " on pos " + thirdPos;
+                        String thirdTemplate = thirdText + " at pos " + thirdPos;
 
                         if (isStrict.containsKey(thirdOperator)) {
                             posToExplanation.put(pos, "after operator " + template + ": operator " +
@@ -821,7 +821,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (AnswerObjectEntity reason : explain) {
             int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
             String text = texts.get(reason.getDomainInfo());
-            String template = text  + " on pos " + pos;
+            String template = text  + " at pos " + pos;
 
             if (beforeHighPriority.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, "before operator " + template + ": operator " +
@@ -1442,7 +1442,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     index = fact.getObject();
                 }
             }
-            return new HyperText("Wrong, operand type of operator on pos " + index + " is '" + realType + "', not '" + studentType + "'");
+            return new HyperText("Wrong, operand type of operator at pos " + index + " is '" + realType + "', not '" + studentType + "'");
         }  else if (mistake.getLawName().equals("wrong_precedence_type")) {
             String realType = "";
             String studentType = "";
@@ -1456,7 +1456,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     index = fact.getObject();
                 }
             }
-            return new HyperText("Wrong, precedence type of operator on pos " + index + " is '" + realType + "', not '" + studentType + "'");
+            return new HyperText("Wrong, precedence type of operator at pos " + index + " is '" + realType + "', not '" + studentType + "'");
         }
 
         // retrieve subjects' info from facts, and find base and third ...
@@ -1485,8 +1485,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         String reasonPos = nameToPos.get(base.getObject());
         String errorPos = nameToPos.get(base.getSubject());
 
-        String what = getOperatorTextDescription(reasonText) + reasonText + " on pos " + reasonPos
-                + " should be evaluated before " + getOperatorTextDescription(errorText) + errorText + " on pos " + errorPos;
+        String what = getOperatorTextDescription(reasonText) + reasonText + " at pos " + reasonPos
+                + " should be evaluated before " + getOperatorTextDescription(errorText) + errorText + " at pos " + errorPos;
         String reason = "";
 
         String errorType = mistake.getLawName();
@@ -1511,7 +1511,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         } else if (errorType.equals("error_student_error_in_complex") && thirdOperatorText.equals("[")) {
             reason = " because expression in brackets is evaluated before operator outside of them​​";
         } else if (errorType.equals("error_student_error_strict_operands_order_base")) {
-            reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " on pos " + thirdOperatorPos + " must be evaluated before its right operand​";
+            reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " at pos " + thirdOperatorPos + " must be evaluated before its right operand​";
         } else {
             reason = " because unknown error";
         }

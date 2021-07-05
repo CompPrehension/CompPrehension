@@ -3306,14 +3306,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What prevents evaluation of operator ${operator} on pos ${pos} ?",
+      "questionText": "What prevents evaluation of operator ${operator} at pos ${pos} ?",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "precedence of operator ${left_operator} on pos ${left_operator_pos}",
+          "hyperText": "precedence of operator ${left_operator} at pos ${left_operator_pos}",
           "domainInfo": "select_reason_left_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3322,7 +3322,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "associativity of operator ${left_operator} on pos ${left_operator_pos}",
+          "hyperText": "associativity of operator ${left_operator} at pos ${left_operator_pos}",
           "domainInfo": "select_reason_left_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3331,7 +3331,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "unevaluated parenthesis on pos ${left_parenthesis_pos}",
+          "hyperText": "unevaluated parenthesis at pos ${left_parenthesis_pos}",
           "domainInfo": "select_reason_left_parenthesis",
           "isRightCol": false,
           "concept": "operator_binary_+",
@@ -3340,7 +3340,7 @@
         },
         {
           "answerId": 3,
-          "hyperText": "precedence of operator ${right_operator} on pos ${right_operator_pos}",
+          "hyperText": "precedence of operator ${right_operator} at pos ${right_operator_pos}",
           "domainInfo": "select_reason_right_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3349,7 +3349,7 @@
         },
         {
           "answerId": 4,
-          "hyperText": "associativity of operator ${right_operator} on pos ${right_operator_pos}",
+          "hyperText": "associativity of operator ${right_operator} at pos ${right_operator_pos}",
           "domainInfo": "select_reason_right_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3358,7 +3358,7 @@
         },
         {
           "answerId": 5,
-          "hyperText": "unevaluated parenthesis on pos ${right_parenthesis_pos}",
+          "hyperText": "unevaluated parenthesis at pos ${right_parenthesis_pos}",
           "domainInfo": "select_reason_right_parenthesis",
           "isRightCol": false,
           "concept": "",
@@ -4161,7 +4161,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
+      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4188,7 +4188,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} on pos ${left_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${left_operator} on pos ${left_operator_pos} is evaluated",
+      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4216,7 +4216,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} on pos ${operator_pos} will block the operator ${left_operator} on pos ${left_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} at pos ${operator_pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4243,7 +4243,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} on pos ${operator_pos} will block the operator ${left_operator} on pos ${left_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} at pos ${operator_pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4270,7 +4270,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} on pos ${operator_pos} will block the operator ${right_operator} on pos ${right_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} at pos ${operator_pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4297,7 +4297,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} on pos ${operator_pos} will block the operator ${right_operator} on pos ${right_operator_pos} until the operator ${operator} on pos ${pos} is evaluated",
+      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} at pos ${operator_pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4324,7 +4324,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
+      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4351,7 +4351,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} on pos ${right_operator_pos} will block the operator ${operator} on pos ${pos} until the operator ${right_operator} on pos ${right_operator_pos} is evaluated",
+      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4407,7 +4407,7 @@
     "questionData": {
       "questionType": "MATCHING",
       "questionDomainType": "OperandsType",
-      "questionText": "Given expression: ! a + - b * c == d / e\n For each operation except + on pos 3 classify operands relations to + on pos 3",
+      "questionText": "Given expression: ! a + - b * c == d / e\n For each operation except + at pos 3 classify operands relations to + at pos 3",
       "areAnswersRequireContext": true,
       "options": {
       },
@@ -4561,7 +4561,7 @@
     "questionData": {
       "questionType": "MATCHING",
       "questionDomainType": "OperandsType",
-      "questionText": "Given expression: b + d ? e + f : g + h \n For each operation except ? on pos 8 classify operands relations to ? on pos 8",
+      "questionText": "Given expression: b + d ? e + f : g + h \n For each operation except ? at pos 8 classify operands relations to ? at pos 8",
       "areAnswersRequireContext": true,
       "options": {
       },
@@ -4697,7 +4697,7 @@
     "questionData": {
       "questionType": "MATCHING",
       "questionDomainType": "PrecedenceType",
-      "questionText": "Given expression: ! a + - b * c == d - e\n For each operation except + on pos 3 classify precedence relative to + on pos 3",
+      "questionText": "Given expression: ! a + - b * c == d - e\n For each operation except + at pos 3 classify precedence relative to + at pos 3",
       "areAnswersRequireContext": true,
       "options": {
       },

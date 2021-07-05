@@ -83,8 +83,8 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
             assertEquals("operator_binary_<", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
-            assertEquals("Operator < on pos 4 evaluates \n" +
-                    "before operator == on pos 2: operator < has higher precedence than operator ==\n", correctAnswer.explanation.toString());
+            assertEquals("Operator < at pos 4 evaluates \n" +
+                    "before operator == at pos 2: operator < has higher precedence than operator ==\n", correctAnswer.explanation.toString());
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
 
@@ -115,7 +115,7 @@ public class SystemIntegrationTest {
                     result.violations.get(0).getLawName());
             List<HyperText> explanations  = questionService.explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
-            assertEquals("operator < on pos 4 should be evaluated before operator == on pos 2\n" +
+            assertEquals("operator < at pos 4 should be evaluated before operator == at pos 2\n" +
                     " because operator < has higher precedence", explanations.get(0).getText());
             Long supQ = questionService.generateSupplementaryQuestion(question2.getQuestionData(), result.violations.get(0)).getQuestionData().getId();
             Question supQ2 = questionService.getQuestion(supQ);
@@ -181,8 +181,8 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
             assertEquals("operator_binary_<", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
-            assertEquals("Operator < on pos 4 evaluates \n" +
-                    "before operator == on pos 2: operator < has higher precedence than operator ==\n", correctAnswer.explanation.toString());
+            assertEquals("Operator < at pos 4 evaluates \n" +
+                    "before operator == at pos 2: operator < has higher precedence than operator ==\n", correctAnswer.explanation.toString());
             Question question3 = getQuestion(question2.getQuestionData().getId());
 
             val responses = new ArrayList<ResponseEntity>();
@@ -210,8 +210,8 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer2 = questionService.getNextCorrectAnswer(question3);
             assertEquals("operator_binary_<", correctAnswer2.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer2.lawName);
-            assertEquals("Operator == on pos 2 evaluates \n" +
-                    "after operator < on pos 4: operator == has lower precedence than operator <\n", correctAnswer2.explanation.toString());
+            assertEquals("Operator == at pos 2 evaluates \n" +
+                    "after operator < at pos 4: operator == has lower precedence than operator <\n", correctAnswer2.explanation.toString());
             Question question5 = getQuestion(question4);
             responses.add(makeResponse(correctAnswer2.answers.get(correctAnswer.answers.size() - 1).getLeft()));
             Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question5, responses, tags);
@@ -375,7 +375,7 @@ public class SystemIntegrationTest {
                     result.violations.get(0).getLawName());
             List<HyperText> explanations  = questionService.explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
-            assertEquals("operator == on pos 2 should be evaluated before operator < on pos 4\n" +
+            assertEquals("operator == at pos 2 should be evaluated before operator < at pos 4\n" +
                     " because operator == has the same precedence and left associativity", explanations.get(0).getText());
         }
 
@@ -719,11 +719,11 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
             assertEquals("operator_binary_*", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
-            assertEquals("Operator * on pos 4 evaluates \n" +
-                    "before operator + on pos 2: operator * has higher precedence than operator +\n" +
-                    "before operator || on pos 6: operator * has higher precedence than operator ||\n" +
-                    "before operator + on pos 8: operator * on pos 4 belongs to the left operand of operator || on pos 6 " +
-                    "while operator + on pos 8 to its right operand, and the left operand of operator || " +
+            assertEquals("Operator * at pos 4 evaluates \n" +
+                    "before operator + at pos 2: operator * has higher precedence than operator +\n" +
+                    "before operator || at pos 6: operator * has higher precedence than operator ||\n" +
+                    "before operator + at pos 8: operator * at pos 4 belongs to the left operand of operator || at pos 6 " +
+                    "while operator + at pos 8 to its right operand, and the left operand of operator || " +
                     "evaluates before its right operand\n", correctAnswer.explanation.toString());
             Question question3 = getQuestion(question2.getQuestionData().getId());
 
@@ -751,10 +751,10 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer2 = questionService.getNextCorrectAnswer(question3);
             assertEquals("operator_binary_+", correctAnswer2.answers.get(correctAnswer2.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer2.lawName);
-            assertEquals("Operator + on pos 2 evaluates \n" +
-                    "after operator * on pos 4: operator + has lower precedence than operator *\n" +
-                    "before operator + on pos 8: operator + on pos 2 belongs to the left operand of operator || on pos 6 " +
-                    "while operator + on pos 8 to its right operand, and the left operand of operator || " +
+            assertEquals("Operator + at pos 2 evaluates \n" +
+                    "after operator * at pos 4: operator + has lower precedence than operator *\n" +
+                    "before operator + at pos 8: operator + at pos 2 belongs to the left operand of operator || at pos 6 " +
+                    "while operator + at pos 8 to its right operand, and the left operand of operator || " +
                     "evaluates before its right operand\n",
                     correctAnswer2.explanation.toString());
             Question question5 = getQuestion(question4);
@@ -782,11 +782,11 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer3 = questionService.getNextCorrectAnswer(question5);
             assertEquals("operator_binary_*", correctAnswer3.answers.get(correctAnswer3.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer3.lawName);
-            assertEquals("Operator * on pos 10 evaluates \n" +
-                    "after operator + on pos 2: operator * on pos 10 belongs to the right operand of operator || on pos 6 " +
-                    "while operator + on pos 2 to its left operand, and the left operand of operator || " +
+            assertEquals("Operator * at pos 10 evaluates \n" +
+                    "after operator + at pos 2: operator * at pos 10 belongs to the right operand of operator || at pos 6 " +
+                    "while operator + at pos 2 to its left operand, and the left operand of operator || " +
                     "evaluates before its right operand\n" +
-                    "before operator + on pos 8: operator * has higher precedence than operator +\n",
+                    "before operator + at pos 8: operator * has higher precedence than operator +\n",
                     correctAnswer3.explanation.toString());
             Question question7 = getQuestion(question6);
             responses.add(makeResponse(correctAnswer3.answers.get(correctAnswer3.answers.size() - 1).getLeft()));
@@ -813,12 +813,12 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer4 = questionService.getNextCorrectAnswer(question7);
             assertEquals("operator_binary_+", correctAnswer4.answers.get(correctAnswer4.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer4.lawName);
-            assertEquals("Operator + on pos 8 evaluates \n" +
-                            "after operator + on pos 2: operator + on pos 8 belongs to the right operand of operator || on pos 6 " +
-                            "while operator + on pos 2 to its left operand, and the left operand of operator || " +
+            assertEquals("Operator + at pos 8 evaluates \n" +
+                            "after operator + at pos 2: operator + at pos 8 belongs to the right operand of operator || at pos 6 " +
+                            "while operator + at pos 2 to its left operand, and the left operand of operator || " +
                             "evaluates before its right operand\n" +
-                            "before operator || on pos 6: operator + has higher precedence than operator ||\n" +
-                            "after operator * on pos 10: operator + has lower precedence than operator *\n",
+                            "before operator || at pos 6: operator + has higher precedence than operator ||\n" +
+                            "after operator * at pos 10: operator + has lower precedence than operator *\n",
                     correctAnswer4.explanation.toString());
             Question question9 = getQuestion(question8);
             responses.add(makeResponse(correctAnswer4.answers.get(correctAnswer4.answers.size() - 1).getLeft()));
@@ -845,9 +845,9 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer5 = questionService.getNextCorrectAnswer(question9);
             assertEquals("operator_binary_||", correctAnswer5.answers.get(correctAnswer5.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer5.lawName);
-            assertEquals("Operator || on pos 6 evaluates \n" +
-                            "after operator * on pos 4: operator || has lower precedence than operator *\n" +
-                            "after operator + on pos 8: operator || has lower precedence than operator +\n",
+            assertEquals("Operator || at pos 6 evaluates \n" +
+                            "after operator * at pos 4: operator || has lower precedence than operator *\n" +
+                            "after operator + at pos 8: operator || has lower precedence than operator +\n",
                     correctAnswer5.explanation.toString());
             Question question11 = getQuestion(question10);
             responses.add(makeResponse(correctAnswer5.answers.get(correctAnswer5.answers.size() - 1).getLeft()));
