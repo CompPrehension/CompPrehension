@@ -83,6 +83,8 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
             assertEquals("operator_binary_<", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
+            assertEquals("Operator < on pos 4 evaluates \n" +
+                    "before operator == on pos 2: operator < has higher precedence than operator ==\n", correctAnswer.explanation.toString());
             val question2Responses = questionService.responseQuestion(question2, List.of(0));
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
 
@@ -179,6 +181,8 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
             assertEquals("operator_binary_<", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer.lawName);
+            assertEquals("Operator < on pos 4 evaluates \n" +
+                    "before operator == on pos 2: operator < has higher precedence than operator ==\n", correctAnswer.explanation.toString());
             Question question3 = getQuestion(question2.getQuestionData().getId());
 
             val responses = new ArrayList<ResponseEntity>();
@@ -206,6 +210,8 @@ public class SystemIntegrationTest {
             Domain.CorrectAnswer correctAnswer2 = questionService.getNextCorrectAnswer(question3);
             assertEquals("operator_binary_<", correctAnswer2.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
             assertEquals("single_token_binary_execution", correctAnswer2.lawName);
+            assertEquals("Operator == on pos 2 evaluates \n" +
+                    "after operator < on pos 4: operator == has lower precedence than operator <\n", correctAnswer2.explanation.toString());
             Question question5 = getQuestion(question4);
             responses.add(makeResponse(correctAnswer2.answers.get(correctAnswer.answers.size() - 1).getLeft()));
             Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question5, responses, tags);
@@ -697,6 +703,173 @@ public class SystemIntegrationTest {
             responses.add(makeResponse(question3.getAnswerObject(4), question3.getAnswerObject(6)));
             List<ViolationEntity> mistakes = questionService.judgeQuestion(question3, responses, tags).violations;
             assertEquals(5, mistakes.size());
+        }
+        {
+            ExerciseAttemptEntity attempt = testExerciseAttemptList.get(17);
+            QuestionRequest qr = strategy.generateQuestionRequest(attempt);
+            checkQuestionRequest(qr, attempt);
+            Question question1 = questionService.generateQuestion(attempt);
+            assertNotNull(question1);
+            List<Tag> tags = testExerciseAttemptList.get(4).getExercise().getTags();
+            questionService.saveQuestion(question1.questionData);
+            Question question2 = questionService.solveQuestion(question1, tags);
+            Domain.ProcessSolutionResult processSolutionResult = getSolveInfo(question2.getQuestionData().getId());
+            assertEquals(1, processSolutionResult.CountCorrectOptions);
+            assertEquals(5, processSolutionResult.IterationsLeft);
+            Domain.CorrectAnswer correctAnswer = questionService.getNextCorrectAnswer(question2);
+            assertEquals("operator_binary_*", correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft().getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer.lawName);
+            assertEquals("Operator * on pos 4 evaluates \n" +
+                    "before operator + on pos 2: operator * has higher precedence than operator +\n" +
+                    "before operator || on pos 6: operator * has higher precedence than operator ||\n" +
+                    "before operator + on pos 8: operator * on pos 4 belongs to the left operand of operator || on pos 6 " +
+                    "while operator + on pos 8 to its right operand, and the left operand of operator || " +
+                    "evaluates before its right operand\n", correctAnswer.explanation.toString());
+            Question question3 = getQuestion(question2.getQuestionData().getId());
+
+            val responses = new ArrayList<ResponseEntity>();
+            responses.add(makeResponse(correctAnswer.answers.get(correctAnswer.answers.size() - 1).getLeft()));
+            Domain.InterpretSentenceResult result = questionService.judgeQuestion(question3, responses, tags);
+            //Сохранение интеракции
+            InteractionEntity ie = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question3.questionData,
+                    result.violations,
+                    result.correctlyAppliedLaws,
+                    responses
+            );
+            ArrayList<InteractionEntity> ies = new ArrayList<>();
+            if(question3.questionData.getInteractions() != null) {
+                ies.addAll(question3.questionData.getInteractions());
+            }
+            ies.add(ie);
+            question3.questionData.setInteractions(ies);
+            assertTrue(result.violations.isEmpty());
+            questionService.saveQuestion(question3.questionData);
+
+            Long question4 = question3.getQuestionData().getId();
+            Domain.CorrectAnswer correctAnswer2 = questionService.getNextCorrectAnswer(question3);
+            assertEquals("operator_binary_+", correctAnswer2.answers.get(correctAnswer2.answers.size() - 1).getLeft().getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer2.lawName);
+            assertEquals("Operator + on pos 2 evaluates \n" +
+                    "after operator * on pos 4: operator + has lower precedence than operator *\n" +
+                    "before operator + on pos 8: operator + on pos 2 belongs to the left operand of operator || on pos 6 " +
+                    "while operator + on pos 8 to its right operand, and the left operand of operator || " +
+                    "evaluates before its right operand\n",
+                    correctAnswer2.explanation.toString());
+            Question question5 = getQuestion(question4);
+            responses.add(makeResponse(correctAnswer2.answers.get(correctAnswer2.answers.size() - 1).getLeft()));
+            Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question5, responses, tags);
+            //Сохранение интеракции
+            InteractionEntity ie2 = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question5.questionData,
+                    result2.violations,
+                    result2.correctlyAppliedLaws,
+                    responses
+            );
+            ArrayList<InteractionEntity> ies2 = new ArrayList<>();
+            if(question5.questionData.getInteractions() != null) {
+                ies2.addAll(question5.questionData.getInteractions());
+            }
+            ies2.add(ie2);
+            question5.questionData.setInteractions(ies2);
+            questionService.saveQuestion(question5.questionData);
+
+            assertTrue(result2.violations.isEmpty());
+
+            Long question6 = question5.getQuestionData().getId();
+            Domain.CorrectAnswer correctAnswer3 = questionService.getNextCorrectAnswer(question5);
+            assertEquals("operator_binary_*", correctAnswer3.answers.get(correctAnswer3.answers.size() - 1).getLeft().getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer3.lawName);
+            assertEquals("Operator * on pos 10 evaluates \n" +
+                    "after operator + on pos 2: operator * on pos 10 belongs to the right operand of operator || on pos 6 " +
+                    "while operator + on pos 2 to its left operand, and the left operand of operator || " +
+                    "evaluates before its right operand\n" +
+                    "before operator + on pos 8: operator * has higher precedence than operator +\n",
+                    correctAnswer3.explanation.toString());
+            Question question7 = getQuestion(question6);
+            responses.add(makeResponse(correctAnswer3.answers.get(correctAnswer3.answers.size() - 1).getLeft()));
+            Domain.InterpretSentenceResult result3 = questionService.judgeQuestion(question7, responses, tags);
+            //Сохранение интеракции
+            InteractionEntity ie3 = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question5.questionData,
+                    result3.violations,
+                    result3.correctlyAppliedLaws,
+                    responses
+            );
+            ArrayList<InteractionEntity> ies3 = new ArrayList<>();
+            if(question7.questionData.getInteractions() != null) {
+                ies3.addAll(question7.questionData.getInteractions());
+            }
+            ies3.add(ie3);
+            question7.questionData.setInteractions(ies3);
+            questionService.saveQuestion(question7.questionData);
+
+            assertTrue(result3.violations.isEmpty());
+
+            Long question8 = question7.getQuestionData().getId();
+            Domain.CorrectAnswer correctAnswer4 = questionService.getNextCorrectAnswer(question7);
+            assertEquals("operator_binary_+", correctAnswer4.answers.get(correctAnswer4.answers.size() - 1).getLeft().getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer4.lawName);
+            assertEquals("Operator + on pos 8 evaluates \n" +
+                            "after operator + on pos 2: operator + on pos 8 belongs to the right operand of operator || on pos 6 " +
+                            "while operator + on pos 2 to its left operand, and the left operand of operator || " +
+                            "evaluates before its right operand\n" +
+                            "before operator || on pos 6: operator + has higher precedence than operator ||\n" +
+                            "after operator * on pos 10: operator + has lower precedence than operator *\n",
+                    correctAnswer4.explanation.toString());
+            Question question9 = getQuestion(question8);
+            responses.add(makeResponse(correctAnswer4.answers.get(correctAnswer4.answers.size() - 1).getLeft()));
+            Domain.InterpretSentenceResult result4 = questionService.judgeQuestion(question9, responses, tags);
+            //Сохранение интеракции
+            InteractionEntity ie4 = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question9.questionData,
+                    result4.violations,
+                    result4.correctlyAppliedLaws,
+                    responses
+            );
+            ArrayList<InteractionEntity> ies4 = new ArrayList<>();
+            if(question9.questionData.getInteractions() != null) {
+                ies4.addAll(question9.questionData.getInteractions());
+            }
+            ies4.add(ie4);
+            question9.questionData.setInteractions(ies4);
+            questionService.saveQuestion(question9.questionData);
+
+            assertTrue(result4.violations.isEmpty());
+
+            Long question10 = question9.getQuestionData().getId();
+            Domain.CorrectAnswer correctAnswer5 = questionService.getNextCorrectAnswer(question9);
+            assertEquals("operator_binary_||", correctAnswer5.answers.get(correctAnswer5.answers.size() - 1).getLeft().getConcept());
+            assertEquals("single_token_binary_execution", correctAnswer5.lawName);
+            assertEquals("Operator || on pos 6 evaluates \n" +
+                            "after operator * on pos 4: operator || has lower precedence than operator *\n" +
+                            "after operator + on pos 8: operator || has lower precedence than operator +\n",
+                    correctAnswer5.explanation.toString());
+            Question question11 = getQuestion(question10);
+            responses.add(makeResponse(correctAnswer5.answers.get(correctAnswer5.answers.size() - 1).getLeft()));
+            Domain.InterpretSentenceResult result5 = questionService.judgeQuestion(question11, responses, tags);
+            //Сохранение интеракции
+            InteractionEntity ie5 = new InteractionEntity(
+                    InteractionType.SEND_RESPONSE,
+                    question11.questionData,
+                    result5.violations,
+                    result5.correctlyAppliedLaws,
+                    responses
+            );
+            ArrayList<InteractionEntity> ies5 = new ArrayList<>();
+            if(question11.questionData.getInteractions() != null) {
+                ies5.addAll(question11.questionData.getInteractions());
+            }
+            ies5.add(ie5);
+            question11.questionData.setInteractions(ies5);
+            questionService.saveQuestion(question11.questionData);
+
+            assertTrue(result5.violations.isEmpty());
+            assertTrue(result5.correctlyAppliedLaws.isEmpty());
         }
     }
 

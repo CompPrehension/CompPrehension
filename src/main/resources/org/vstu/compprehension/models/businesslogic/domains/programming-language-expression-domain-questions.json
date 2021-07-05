@@ -202,6 +202,115 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
+      "questionText": "a + b * c || d + e * f",
+      "areAnswersRequireContext": true,
+      "options": {
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "+ between a and b",
+          "domainInfo": "op__0__2",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "* between b and c",
+          "domainInfo": "op__0__4",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "|| between c and d",
+          "domainInfo": "op__0__6",
+          "isRightCol": false,
+          "concept": "operator_binary_||",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 3,
+          "hyperText": "+ between d and e",
+          "domainInfo": "op__0__8",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 4,
+          "hyperText": "* between e and f",
+          "domainInfo": "op__0__10",
+          "isRightCol": false,
+          "concept": "operator_binary_*",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "a"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "c"
+        },
+        {
+          "object": "||"
+        },
+        {
+          "object": "d"
+        },
+        {
+          "object": "+"
+        },
+        {
+          "object": "e"
+        },
+        {
+          "object": "*"
+        },
+        {
+          "object": "f"
+        }
+      ]
+    },
+    "concepts": [
+      "associativity",
+      "precedence",
+      "operator_evaluating_left_operand_first",
+      "operator_binary_+",
+      "operator_binary_*",
+      "operator_binary_||",
+      "SystemIntegrationTest"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
       "questionText": "a * b + c * d",
       "areAnswersRequireContext": true,
       "options": {
