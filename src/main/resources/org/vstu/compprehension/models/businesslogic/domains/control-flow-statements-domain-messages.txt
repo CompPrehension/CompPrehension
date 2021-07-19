@@ -2,7 +2,7 @@ UpcomingNeighbour Oжидаемый-рано	Почему вы пропусти�
 		
 NotNeighbour Hеожиданно	Почему вы выполнили <EXTRA> ?	Why did you execute <EXTRA> ?
 		
-WrongCondNeighbour Hе-при-том-условии	Почему вы выполнили <A>, когда условие <COND> <TrueFalse>?	Why did you execute <A>, when the condition <COND> is <TrueFalse>?
+WrongCondNeighbour Hе-при-том-условии	Почему вы выполнили <A>, когда условие <COND> приняло значение <TrueFalse> ?	Why did you execute <A>, when the condition <COND> is <TrueFalse> ?
 		
 SKIP___MisplacedBefore Раньше-объемлющего-акта	<A> не может выполняться до начала <B>, потому что <A> входит в <B>.	<A> is a part of <B> so <A> can't be executed before <B> starts.
 		
