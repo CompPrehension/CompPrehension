@@ -1089,24 +1089,38 @@ public class ControlFlowStatementsDomain extends Domain {
                 .collect(Collectors.toList());
 
 //        List<InteractionEntity> interactions = q.getQuestionData().getInteractions();
+        String phase;
+        String exId;
 
-        AnswerObjectEntity lastAnswer =
-                lastCorrectInteractionAnswers.get(lastCorrectInteractionAnswers.size() - 1).getLeft();
+        if (lastCorrectInteractionAnswers.isEmpty()) {
+            // get first act in trace
+            List<AnswerObjectEntity> answers = q.getQuestionData().getAnswerObjects();
+            AnswerObjectEntity firstAnswer = answers.get(0);
+            String domainInfo = firstAnswer.getDomainInfo();
+            AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
 
-        String domainInfo = lastAnswer.getDomainInfo();
-        AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
-        String phase = answerDomainInfo.getPhase();
-        String exId = answerDomainInfo.getExId();
+            phase = answerDomainInfo.getPhase();
+            exId = answerDomainInfo.getExId();
 
+        } else {
+            AnswerObjectEntity lastAnswer =
+                    lastCorrectInteractionAnswers.get(lastCorrectInteractionAnswers.size() - 1).getLeft();
 
+            String domainInfo = lastAnswer.getDomainInfo();
+            AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
+            phase = answerDomainInfo.getPhase();
+            exId = answerDomainInfo.getExId();
+
+        }
+
+        // find next consequent (using solved facts)
         val solution = q.getSolutionFacts();
-        assertNotNull(solution, "Call solve question before getAnyNextCorrectAnswer");
+        assertNotNull(solution, "Call solve() question before getAnyNextCorrectAnswer() !");
 
         OntModel model = factsToOntModel(solution);
 
         // find any consequent of last correct act ...
         // get shortcuts to properties
-        OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
         OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
         OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
         OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
@@ -1114,28 +1128,64 @@ public class ControlFlowStatementsDomain extends Domain {
 
         Individual actionFrom = model.listResourcesWithProperty(id, Integer.parseInt(exId)).nextResource().as(Individual.class);
 
+        String consequentPropName = "always_consequent"; // "consequent";
+
+        String qaInfoPrefix;
+        // check if actionFrom is an expr; if so, find its current value and update `consequentPropName` accordingly
+        if (actionFrom.hasOntClass(model.getOntClass(model.expandPrefix(":expr")))) {
+            qaInfoPrefix = phase + ":" + exId;
+            int count = 0;
+
+            for (ResponseEntity response : responsesForTrace(q.getQuestionData(), false)) {
+                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                String domainInfo = answerObj.getDomainInfo();
+                if (domainInfo.startsWith(qaInfoPrefix)) {
+                    ++ count;
+                }
+            }
+
+            String exprName = getExpressionNameById(q.getQuestionData(), Integer.parseInt(exId));
+            int exprVal = getValueForExpression(q.getQuestionData(), exprName, count);
+
+            // use appropriate property name
+            if (exprVal == 1)
+                consequentPropName = "on_true_consequent";
+            else  // == 0
+                consequentPropName = "on_false_consequent";
+        }
+
+        OntProperty consequent = model.getOntProperty(model.expandPrefix(":" + consequentPropName));
+
         Individual boundFrom = model.listResourcesWithProperty(
-                phase.equalsIgnoreCase("started")? begin_of : end_of,
+                phase.equalsIgnoreCase("started") ? begin_of : end_of,
                 actionFrom).nextResource().as(Individual.class);
 
+        // true / false ways do matter in case of expr
         Individual boundTo = boundFrom.getPropertyResourceValue(consequent).as(Individual.class);
 
         Individual actionTo = boundTo.getPropertyResourceValue(boundary_of).as(Individual.class);
 
-
-        String idTo =  actionTo.getPropertyValue(id).asLiteral().getLexicalForm();
-        String phaseTo =  boundTo.hasProperty(begin_of) ? "started" : "finished";
+        String idTo = actionTo.getPropertyValue(id).asLiteral().getLexicalForm();
+        String phaseTo = boundTo.hasProperty(begin_of) ? "started" : "finished";
         // check if actionTo is stmt/expr
         if (phaseTo.equals("started") && (
                 actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":stmt"))) || actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":expr")))
-                )) {
+        )) {
             phaseTo = "performed";
         }
 
         // next correct answer found: question answer domain info
-        String qaInfoPrefix = idTo + ":" + phaseTo;
+        qaInfoPrefix = phaseTo + ":" + idTo;
 
-        ///
+        // find reason for correct action (a deeper subproperty of consequent assigned in parallel)
+        String reasonName = null;
+        for (StmtIterator it = model.listStatements(boundFrom, null, boundTo); it.hasNext(); ) {
+            Property prop = it.nextStatement().getPredicate();
+            if (consequent.hasSubProperty(prop, false)) {
+                reasonName = prop.getLocalName();
+                break;
+            }
+        }
         System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
@@ -1150,8 +1200,16 @@ public class ControlFlowStatementsDomain extends Domain {
         CorrectAnswer correctAnswer = new CorrectAnswer();
         correctAnswer.question = q.getQuestionData();
         correctAnswer.answers = answers;
-        correctAnswer.lawName = "No correct law yet, using flow graph";  // answerImpl.lawName;
-        correctAnswer.explanation = new HyperText("explanation: TODO"); // getCorrectExplanation(answerImpl.lawName);
+        correctAnswer.lawName = reasonName; // "No correct law yet, using flow graph";  // answerImpl.lawName;
+
+        HyperText explanation;
+        if (getFrontMessages().containsKey(reasonName)) {
+            explanation = new HyperText(getFrontMessages().get(reasonName));
+            //// ??? fill blanks ???
+        }
+        else
+            explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
+        correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
     }
 
