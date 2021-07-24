@@ -145,6 +145,21 @@
   <rdfs:range rdf:resource="#action"/>
 </owl:ObjectProperty>
 
+<owl:ObjectProperty rdf:about="#reason_kind">
+  <rdfs:domain rdf:resource="#boundary"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#to_reason">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#from_reason">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:ObjectProperty>
+
 <owl:ObjectProperty rdf:about="#corresponding_end">
   <rdfs:domain rdf:resource="#act_begin"/>
   <rdfs:range rdf:resource="#act_end"/>
@@ -456,6 +471,18 @@
 </owl:DatatypeProperty>
 
 <owl:DatatypeProperty rdf:about="#field_UNEXPECTED_BRANCH">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_SEQ">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_NEXT">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_NEXT_COND">
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 

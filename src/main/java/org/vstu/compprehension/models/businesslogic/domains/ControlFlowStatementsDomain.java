@@ -529,16 +529,18 @@ public class ControlFlowStatementsDomain extends Domain {
                     "body_item",
                     "index",
                     "executes_id",
-                    "executes"
+                    "executes",
+                    "reason_kind",
+                    "to_reason",
+                    "from_reason"
             ));
             if (reasonPropertiesCache == null)
                 reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
             verbs.addAll(reasonPropertiesCache);
+            if (fieldPropertiesCache == null)
+                fieldPropertiesCache = VOCAB.propertyDescendants("string_placeholder");
+            verbs.addAll(fieldPropertiesCache);
             return new ArrayList<>(verbs);
-//        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
-//            return new ArrayList<>(Arrays.asList(
-//                    "wrong_type"
-//            ));
         }
         return new ArrayList<>();
     }
@@ -577,14 +579,7 @@ public class ControlFlowStatementsDomain extends Domain {
             ));
             // add solution verbs too!
             verbs.addAll(getSolutionVerbsStatic(questionDomainType, statementFacts));
-            if (fieldPropertiesCache == null)
-                fieldPropertiesCache = VOCAB.propertyDescendants("string_placeholder");
-            verbs.addAll(fieldPropertiesCache);
             return new ArrayList<>(verbs);
-//        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
-//            return new ArrayList<>(Arrays.asList(
-//                    "wrong_type"
-//            ));
         }
         return new ArrayList<>();
     }
@@ -1186,6 +1181,38 @@ public class ControlFlowStatementsDomain extends Domain {
                 break;
             }
         }
+
+        // get placeholder values for this bound-bound transition
+        RDFNode reason_node = null;
+        List<RDFNode> reason_nodes = model.listStatements(boundFrom, model.getProperty(model.expandPrefix(":to_reason")),
+                (RDFNode) null).toList().stream().map(Statement::getObject).collect(Collectors.toList());
+        reason_nodes.retainAll(model.listStatements(null, model.getProperty(model.expandPrefix(":from_reason")),
+                boundTo).toList().stream().map(Statement::getSubject).collect(Collectors.toList()));
+
+        if (reason_nodes.isEmpty()) {
+            System.out.println("reason_node was not found for reason: " + reasonName);
+        } else {
+            reason_node = reason_nodes.get(0);
+        }
+        HashMap<String, String> placeholders = new HashMap<>();
+        if (reason_node != null) {
+            for (StmtIterator it = model.listStatements((Resource) reason_node, null, (String) null); it.hasNext(); ) {
+                Statement statement = it.next();
+                String verb = statement.getPredicate().getLocalName();
+                if (fieldPropertiesCache.contains(verb)) {
+                    String fieldName = verb.replaceAll("field_", "");
+                    String value = statement.getString();
+                    value = "\"" + value + "\"";
+                    if (placeholders.containsKey(fieldName)) {
+                        // append to previous data
+                        value = placeholders.get(fieldName) + ", " + value;
+                    }
+                    placeholders.put(fieldName, value);
+                }
+            }
+        }
+
+
         System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
@@ -1204,14 +1231,23 @@ public class ControlFlowStatementsDomain extends Domain {
 
         HyperText explanation;
         if (getFrontMessages().containsKey(reasonName)) {
-            explanation = new HyperText(getFrontMessages().get(reasonName));
-            //// ??? fill blanks ???
+            String message = getFrontMessages().get(reasonName);
+            // fill in the blanks
+            for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+                message = message.replace("<" + entry.getKey() + ">", entry.getValue());
+            }
+            explanation = new HyperText(message);
         }
         else
             explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
         correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
     }
+
+//    public CorrectAnswer getRemainingCorrectAnswers(Question q) {
+//
+//        return null;
+//    }
 
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();

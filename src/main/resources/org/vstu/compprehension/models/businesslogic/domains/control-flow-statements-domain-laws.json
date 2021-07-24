@@ -134,6 +134,26 @@
     ]
   },
   {
+    "name": "transition_objects_encapsulating_reason",
+    "positive": true,
+    "tags": [
+      {
+        "name": "transition"
+      },
+      {
+        "name": "objects"
+      },
+      {
+        "name": "encapsulating"
+      },
+      {
+        "name": "reason"
+      }
+    ],
+    "concepts": [],
+    "formulations": []
+  },
+  {
     "name": "entry_point_and_sequence",
     "positive": true,
     "tags": [
@@ -163,17 +183,17 @@
       },
       {
         "name": "connect_SequenceBegin_rule_g2",
-        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2),.",
+        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), makeSkolem(?R, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceNext",
-        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), -> (?e my:always_consequent ?b), (?e my:SequenceNext ?b),.",
+        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), makeSkolem(?R, ?e, ?b), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?previous_name), (?st2 my:stmt_name ?next_name), -> (?e my:always_consequent ?b), (?e my:SequenceNext ?b), (?R my:reason_kind my:SequenceNext), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_SEQ ?seq_name), (?R my:field_PREVIOUS ?previous_name), (?R my:field_NEXT ?next_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceEnd",
-        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e),.",
+        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), makeSkolem(?R, ?e, ?b), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
         "backend": "Jena"
       }
     ]
@@ -209,22 +229,22 @@
     "formulations": [
       {
         "name": "connect_AltBegin",
-        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2),.",
+        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeSkolem(?R, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltBranchBegin_CondTrue",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), -> (?e my:on_true_consequent ?b), (?e my:AltBranchBegin ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), makeSkolem(?R, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?br my:stmt_name ?branch_name), -> (?e my:on_true_consequent ?b), (?e my:AltBranchBegin ?b), (?R my:reason_kind my:AltBranchBegin), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_BRANCH ?branch_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_NextAltCondition",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), makeSkolem(?R, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?сnd2 my:stmt_name ?cnd2_name), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b), (?R my:reason_kind my:NextAltCondition), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_NEXT_COND ?cnd2_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltElseBranch",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), -> (?e my:on_false_consequent ?b), (?e my:AltElseBranchBegin ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), makeSkolem(?R, ?e, ?b), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:on_false_consequent ?b), (?e my:AltElseBranchBegin ?b), (?R my:reason_kind my:AltElseBranchBegin), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {

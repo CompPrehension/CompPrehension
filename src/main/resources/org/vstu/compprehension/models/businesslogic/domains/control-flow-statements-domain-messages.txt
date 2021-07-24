@@ -107,3 +107,22 @@ ForeachUpdateNotAfterSuccessfulCondition Переход-не-после-исти
 NoIterationAfterForeachUpdate Нет-итерации-после-перехода-цикла-FOREACH	Цикл FOREACH обходит коллекцию или перебирает итератор, и после перехода к очередному элементу должен начинать новую итерацию. Сразу за переходом к очередному элементу должно следовать начало итерации цикла <B>.	The FOREACH loop traverses a collection or iterator and must start a new iteration after moving to the next element. Immediately after the advance to the next element, the iteration of the <B> loop should begin.
 		
 IterationNotAfterForeachUpdate Итерация-не-после-перехода-цикла-FOREACH	Цикл FOREACH обходит коллекцию или перебирает итератор, и начинать новую итерацию должен непосредственно после перехода к очередному элементу. Сразу за переходом к очередному элементу должно следовать начало итерации цикла <B>.	The FOREACH loop traverses a collection or iterator, and should start a new iteration immediately after moving to the next element. Right after the advance to the next element the iteration of the <B> loop should start.
+
+
+
+
+SequenceBegin Первый акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> первым будет выполнено действие <INNER>.	Sequence executes its statements in their order, so for sequence <SEQ>, its statement <INNER> will be executed first.
+
+SequenceNext Следующий акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> после действия <PREVIOUS> будет выполнено действие <NEXT>	Sequence executes its statements in their order, so in sequence <SEQ>, its statement <PREVIOUS> will be followed by statement <NEXT>.
+
+SequenceEnd Конец следования	Следование выполняет все свои действия ровно по одному разу, поэтому после выполнения всех своих действий следование <SEQ> завершится.	Sequence executes its actions exactly once per run, so sequence <SEQ> finishes after all its actions completed.
+
+AltBegin Проверка первого условия развилки (if)	Развилка начинается с проверки первого условия, поэтому выполнение развилки <ALT> начнется с проверки условия <ALT_COND>.	A selection statement starts with evaluating its first condition, so selection <ALT> should start with evaluating its condition <ALT_COND>.
+
+AltBranchBegin Начало ветки истинного условия развилки	Развилка выполняет свою ветку при истинном условии. Поскольку условие <ALT_COND> истинно, выполняется ветка <BRANCH>.	A selection statement executes its branch when corresponding condition is true. As condition <ALT_COND> is true, branch <BRANCH> should begin.
+
+NextAltCondition Проверка следующего условия развилки (else-if)	Развилка проверяет следующее условие, когда текущее ложно. Поскольку условие <ALT_COND> ложно, проверится условие <NEXT_COND>.	A selection statement evaluates its consequent condition when current condition is false. As condition <ALT_COND> is false, condition <NEXT_COND> should evaluate.
+
+AltElseBranch Переход к ветке ИНАЧЕ (else)	Развилка выполняет ветку ИНАЧЕ, если все ее условия ложны. В данной ситуации развилка <ALT> выполнит ветку ИНАЧЕ.	A selection statement executes its ELSE branch when all of its conditions are false. As condition <ALT_COND> is false, selection <ALT> should execute its ELSE branch.
+
+AltEndAllFalse Конец развилки, т.к. все условия ложны	Если нет ветки ИНАЧЕ, развилка заканчивается, когда все условия ложны. Развилка <A> закончится.	The ELSE branch is absent and the last condition of the alternative is false, and now the alternative should end because none of the conditions was met

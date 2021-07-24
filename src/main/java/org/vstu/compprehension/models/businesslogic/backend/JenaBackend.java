@@ -276,6 +276,7 @@ public class JenaBackend extends Backend {
     /** Expand simple name as local, prefixed name as special */
     private String termToUri(String s) {
         String uri;
+        assertNotNull(s, "termToUri(null) !");
         if (s.startsWith("http://")) {
             uri = s;
         }
@@ -344,7 +345,12 @@ public class JenaBackend extends Backend {
 
             if (isObjectProp) {
                 Resource resource = objNode.asResource();
-                obj = uriToTerm(resource.getURI());
+                String URI = resource.getURI();
+                if (URI != null) {
+                    obj = uriToTerm(URI);
+                } else { /* resource is bnode*/
+                    obj = resource.toString();
+                }
 
                 if (resource.hasProperty(RDF.type, OWL.Class))
                     objType = "owl:Class";
@@ -361,9 +367,17 @@ public class JenaBackend extends Backend {
                 obj = objNode.asLiteral().getLexicalForm();
             }
 
+            String subjURI = subjResource.getURI();
+            String subj;
+            if (subjURI != null) {
+                subj = uriToTerm(subjURI);
+            } else { /* subj is bnode*/
+                subj = subjResource.toString();
+            }
+
             facts.add(new BackendFactEntity(
                     subjType,
-                    uriToTerm(subjResource.getURI()),
+                    subj,
                     propName,
                     objType,
                     obj
