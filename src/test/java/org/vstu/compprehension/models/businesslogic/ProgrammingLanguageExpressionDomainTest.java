@@ -100,7 +100,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("operator_binary_+")
         ));
         qr3.setDeniedConcepts(List.of(
-
+                domain.getConcept("operator_evaluating_left_operand_first")
         ));
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a + b + c * d"), domain.makeQuestion(qr3, tags, Language.ENGLISH).getQuestionText().getText());
 
@@ -136,7 +136,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("operator_binary_*")
         ));
         qr.setDeniedConcepts(List.of(
-                domain.getConcept("associativity")
+                domain.getConcept("associativity"),
+                domain.getConcept("operator_evaluating_left_operand_first")
         ));
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question.getQuestionText().getText());
