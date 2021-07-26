@@ -13,8 +13,17 @@ public class FactsGraph {
     private HashMap<String, List<BackendFactEntity>> prop2fs;
     private HashMap<String, List<BackendFactEntity>> obj2fs;
 
+    public FactsGraph() {
+        initEmptyFields();
+    }
+
+    public FactsGraph(List<BackendFactEntity> initialFacts) {
+        initEmptyFields();
+        addFacts(initialFacts);
+    }
+
     public List<BackendFactEntity> getFacts() {
-        return facts;
+        return new ArrayList<>(facts);
     }
 
     private void initEmptyFields() {
@@ -34,17 +43,15 @@ public class FactsGraph {
         }
     }
 
-
-    public FactsGraph() {
-        initEmptyFields();
+    private static void removeFromMap(HashMap<String, List<BackendFactEntity>> map, String key, BackendFactEntity value) {
+        if (map.containsKey(key)) {
+            List<BackendFactEntity> list = map.get(key);
+            list.remove(value);
+            if (list.isEmpty()) {
+                map.remove(key);
+            }
+        }
     }
-
-    public FactsGraph(List<BackendFactEntity> initialFacts) {
-        initEmptyFields();
-        // facts = new ArrayList<>();
-        addFacts(initialFacts);
-    }
-
 
     public void addFacts(List<BackendFactEntity> newFacts) {
         facts.addAll(newFacts);
@@ -57,6 +64,85 @@ public class FactsGraph {
             key = f.getObject();
             add2Map(obj2fs, key, f);
         }
+    }
+
+    /**
+     * Remove exact BackendFactEntity objects.
+     * @param extraFacts
+     */
+    public void removeFacts(List<BackendFactEntity> extraFacts) {
+        facts.removeAll(extraFacts);
+
+        for(BackendFactEntity f : extraFacts) {
+            String key = f.getSubject();
+            removeFromMap(subj2fs, key, f);
+            key = f.getVerb();
+            removeFromMap(prop2fs, key, f);
+            key = f.getObject();
+            removeFromMap(obj2fs, key, f);
+        }
+    }
+
+    public HashMap<Integer, Integer> describeDuplicates() {
+        HashMap<String, Integer> f2count = new HashMap<>();
+
+        for(BackendFactEntity f : facts) {
+            String s = f.getSubject();
+            String p = f.getVerb();
+            String o = f.getObject();
+            String mapKey = s + p + o;
+
+            if (! f2count.containsKey(mapKey))
+                f2count.put(mapKey, filterFacts(s, p, o).size());
+        }
+
+        // reverse {fact -> count}  to  {count -> Number-of-facts}
+        HashMap<Integer, Integer> count2n = new HashMap<>();
+        for (Integer count : f2count.values()) {
+            count2n.put(count, 1 + count2n.getOrDefault(count, 0));
+        }
+
+        /// debug print it
+        System.out.println(count2n.toString() + " = " + facts.size() + " total.");
+        ///
+
+        return count2n;
+    }
+
+    public FactsGraph removeDuplicates() {
+        for(BackendFactEntity f : new ArrayList<>(facts)) {
+            String s = f.getSubject();
+            String p = f.getVerb();
+            String o = f.getObject();
+
+            List<BackendFactEntity> list = filterFacts(s, p, o);
+            if (list.size() > 1) {
+                list.remove(0); // keep exactly one
+                removeFacts(list);
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Remove facts that have Subject, Predicate and Object equal (the fact objects itself can be different)
+     * @param undesirableFacts
+     * @return
+     */
+    public FactsGraph removeSimilarFacts(List<BackendFactEntity> undesirableFacts) {
+        for(BackendFactEntity f : undesirableFacts) {
+            String s = f.getSubject();
+            String p = f.getVerb();
+            String o = f.getObject();
+
+            List<BackendFactEntity> list = filterFacts(s, p, o);
+            if (list.size() > 0) {
+                removeFacts(list);
+            }
+        }
+
+        return this;
     }
 
     public List<BackendFactEntity> filterFacts(@Nullable String s, @Nullable String p, @Nullable String o) {
@@ -147,5 +233,20 @@ public class FactsGraph {
     }
 
 
+    public static ArrayList<BackendFactEntity> factsListDeepCopy(List<BackendFactEntity> list) {
+        ArrayList<BackendFactEntity> result = new ArrayList<>();
+        // re-create each fact
+        for (BackendFactEntity f : list) {
+            result.add(new BackendFactEntity(
+                    f.getSubjectType(),
+                    f.getSubject(),
+                    f.getVerb(),
+                    f.getObjectType(),
+                    f.getObject()
+            ));
+        }
+
+        return result;
+    }
 
 }

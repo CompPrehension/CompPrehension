@@ -111,9 +111,9 @@ IterationNotAfterForeachUpdate Итерация-не-после-перехода
 
 
 
-SequenceBegin Первый акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> первым будет выполнено действие <INNER>.	Sequence executes its statements in their order, so for sequence <SEQ>, its statement <INNER> will be executed first.
+SequenceBegin Первый акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> первым будет выполнено действие <INNER>.	Sequence executes its statements in their order, so for sequence <SEQ>, its statement <INNER> should be executed first.
 
-SequenceNext Следующий акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> после действия <PREVIOUS> будет выполнено действие <NEXT>	Sequence executes its statements in their order, so in sequence <SEQ>, its statement <PREVIOUS> will be followed by statement <NEXT>.
+SequenceNext Следующий акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> после действия <PREVIOUS> будет выполнено действие <NEXT>	Sequence executes its statements in their order, so in sequence <SEQ>, its statement <PREVIOUS> should be followed by statement <NEXT>.
 
 SequenceEnd Конец следования	Следование выполняет все свои действия ровно по одному разу, поэтому после выполнения всех своих действий следование <SEQ> завершится.	Sequence executes its actions exactly once per run, so sequence <SEQ> finishes after all its actions completed.
 
@@ -121,8 +121,26 @@ AltBegin Проверка первого условия развилки (if)	Р
 
 AltBranchBegin Начало ветки истинного условия развилки	Развилка выполняет свою ветку при истинном условии. Поскольку условие <ALT_COND> истинно, выполняется ветка <BRANCH>.	A selection statement executes its branch when corresponding condition is true. As condition <ALT_COND> is true, branch <BRANCH> should begin.
 
-NextAltCondition Проверка следующего условия развилки (else-if)	Развилка проверяет следующее условие, когда текущее ложно. Поскольку условие <ALT_COND> ложно, проверится условие <NEXT_COND>.	A selection statement evaluates its consequent condition when current condition is false. As condition <ALT_COND> is false, condition <NEXT_COND> should evaluate.
+NextAltCondition Проверка следующего условия развилки (else-if)	Развилка проверяет следующее условие, когда текущее ложно. Поскольку условие <ALT_COND> ложно, проверится условие <NEXT_COND>.	A selection statement evaluates its consequent condition when current condition is false. As condition <ALT_COND> is false, condition <NEXT_COND> should be evaluated.
 
-AltElseBranch Переход к ветке ИНАЧЕ (else)	Развилка выполняет ветку ИНАЧЕ, если все ее условия ложны. В данной ситуации развилка <ALT> выполнит ветку ИНАЧЕ.	A selection statement executes its ELSE branch when all of its conditions are false. As condition <ALT_COND> is false, selection <ALT> should execute its ELSE branch.
+AltElseBranchBegin Переход к ветке ИНАЧЕ (else)	Развилка выполняет ветку ИНАЧЕ, если все ее условия ложны. В данной ситуации развилка <ALT> выполнит ветку ИНАЧЕ.	A selection statement executes its ELSE branch when all of its conditions are false. As condition <ALT_COND> is false, selection <ALT> should execute its ELSE branch.
 
-AltEndAllFalse Конец развилки, т.к. все условия ложны	Если нет ветки ИНАЧЕ, развилка заканчивается, когда все условия ложны. Развилка <A> закончится.	The ELSE branch is absent and the last condition of the alternative is false, and now the alternative should end because none of the conditions was met
+AltEndAllFalse Конец развилки, т.к. все условия ложны	Развилка заканчивается, когда все условия ложны и нет ветки ИНАЧЕ. Развилка <ALT> должна закончиться.	A selection statement finishes when all of its conditions are false and the ELSE branch is absent. Selection <ALT> should finish.
+
+AltEndAfterBranch Окончание развилки по завершению ветки	Развилка может выполнить не более одной альтернативной ветки за раз. Ветка альтернативы выполнилась, и теперь развилка <ALT> должна закончится.	A selection statement executes at most one of its branches at a time. The alternative branch has executed, and now selection statement <ALT> should end.
+
+PreCondLoopBegin Начало цикла с предусловием (while)	В цикле с предусловием (цикл WHILE) условие проверяется перед началом итерации. Цикл <LOOP> является циклом WHILE, поэтому в начале цикла проверится его условие <LOOP_COND>. 	 A WHILE loop (as a pre-test loop) evaluates its condition before its iteration begins. As <LOOP> loop is a WHILE loop, its condition <LOOP_COND> should be evaluated in the beginning of the loop.
+
+PostCondLoopBegin Начало цикла с постусловием (do-while, do-until)	В цикле с постусловием (цикл DO-WHILE) условие проверяется после окончания итерации. Цикл <LOOP> является циклом DO-WHILE, поэтому в начале цикла сразу же начнётся его итерация.	A DO-WHILE loop (as a post-test loop) evaluates its condition after its iteration ends. As <LOOP> loop is a DO-WHILE loop, its iteration should begin in the beginning of the loop.
+
+IterationBeginOnTrueCond Начало тела цикла при cond=1 (while, do-while, for)	Цикл <kind_of_loop> продолжается при истинном условии. Условие продолжения цикла <LOOP_COND> истинно, и теперь начнётся итерация цикла <LOOP>.	A <kind_of_loop> loop continues under the true condition. As loop condition <LOOP_COND> is true, the iteration of loop <LOOP> should start.
+
+IterationBeginOnFalseCond Начало тела цикла при cond=0 (do-until)	(~) Условие выхода из цикла ложно, и теперь начнётся итерация, потому что цикл <DO_UNTIL> продолжается при ложном условии	The loop exit condition is false, and now the iteration should start because the loop <DO_UNTIL> continues under the false condition. (~)
+
+
+LoopEndOnFalseCond Конец цикла при cond=0 (while, do-while, for, foreach)	Цикл <kind_of_loop> является циклом с предусловием и прерывается при ложном условии. Условие <LOOP_COND> ложно, и теперь цикл <LOOP> закончится.	A <kind_of_loop> loop finishes when condition is false. As loop condition <LOOP_COND> is false, loop <LOOP> should end.
+
+NormalLoopEnd Конец цикла при cond=1 (do-until)	(~) Условие выхода из цикла истинно, и теперь цикл закончится, потому что цикл <DO_UNTIL> прерывается при истинном условии	The loop exit condition is true, and now the loop should end because the loop <DO_UNTIL> stops under the true condition (~)
+
+LoopCondBeginAfterIteration После тела цикла - условие (while, do-while, do-until, foreach)	Выполнив итерацию, цикл проверяет своё условие. Итерация цикла <LOOP> завершилась, и теперь проверится условие цикла <LOOP_COND>.	A loop evaluates its condition once its iteration completed. As iteration of <LOOP> loop finished, loop condition <LOOP_COND> should be evaluated.
+

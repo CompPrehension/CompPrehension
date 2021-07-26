@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 import org.apache.jena.vocabulary.*;
 import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -424,7 +425,7 @@ public class JenaBackend extends Backend {
             try {
                 out = new FileOutputStream(out_rdf_path);
                 RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                System.out.println("Debug written: " + out_rdf_path);
+                System.out.println("Debug written: " + out_rdf_path + ". N of of triples: " + model.size());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 System.out.println("Cannot write to file: " + out_rdf_path);
@@ -447,7 +448,9 @@ public class JenaBackend extends Backend {
 
         debug_dump_model("solved");
 
-        return getFacts(solutionVerbs);
+        FactsGraph factG = new FactsGraph(getFacts(solutionVerbs));
+        factG = factG.removeSimilarFacts(statement);
+        return factG.removeDuplicates().getFacts();
     }
 
     public void addFacts(List<BackendFactEntity> facts) {

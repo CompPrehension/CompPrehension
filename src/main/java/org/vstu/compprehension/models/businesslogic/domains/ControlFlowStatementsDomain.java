@@ -11,7 +11,6 @@ import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.jetbrains.annotations.NotNull;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
@@ -26,16 +25,14 @@ import org.vstu.compprehension.utils.HyperText;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.getLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
+import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
 
 @Component
 public class ControlFlowStatementsDomain extends Domain {
@@ -109,8 +106,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        ///
-        System.out.println("\t\tGetting the trace ...");
+        /// System.out.println("\t\tGetting the trace ...");
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -317,6 +313,15 @@ public class ControlFlowStatementsDomain extends Domain {
         return schemaFactsCache;
     }
 
+    static List<BackendFactEntity> getSchemaFacts(boolean deepCopy) {
+        List<BackendFactEntity> schemaFacts = getSchemaFacts();
+        if (deepCopy) {
+            return factsListDeepCopy(schemaFacts);
+        }
+
+        return schemaFacts;
+    }
+
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
@@ -357,10 +362,10 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
 
-        // statement facts are already prepared in the Question's JSON
-        List<BackendFactEntity> facts = new ArrayList<>(q.getStatementFacts());
         // add schema facts!
-        facts.addAll(getSchemaFacts());
+        List<BackendFactEntity> facts = new ArrayList<>(getSchemaFacts(true));
+        // statement facts are already prepared in the Question's JSON
+        facts.addAll(factsListDeepCopy(q.getStatementFacts()));
         entity.setStatementFacts(facts);
         entity.setQuestionType(q.getQuestionType());
 
@@ -402,7 +407,7 @@ public class ControlFlowStatementsDomain extends Domain {
 //            //
 //        }
 
-        violations.forEach(System.out::println);
+        /// violations.forEach(System.out::println);
 
         if (violations.isEmpty())
             return new ArrayList<>();
@@ -537,12 +542,16 @@ public class ControlFlowStatementsDomain extends Domain {
             if (reasonPropertiesCache == null)
                 reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
             verbs.addAll(reasonPropertiesCache);
-            if (fieldPropertiesCache == null)
-                fieldPropertiesCache = VOCAB.propertyDescendants("string_placeholder");
-            verbs.addAll(fieldPropertiesCache);
+            verbs.addAll(getFieldProperties());
             return new ArrayList<>(verbs);
         }
         return new ArrayList<>();
+    }
+
+    private static List<String> getFieldProperties() {
+        if (fieldPropertiesCache == null)
+            fieldPropertiesCache = VOCAB.propertyDescendants("string_placeholder");
+        return fieldPropertiesCache;
     }
 
     @Override
@@ -606,9 +615,10 @@ public class ControlFlowStatementsDomain extends Domain {
 
             // init result facts with solution facts
             List<BackendFactEntity> result = new ArrayList<>();
-            result.addAll(getSchemaFacts());
-            result.addAll(q.getStatementFacts());
-            result.addAll(q.getSolutionFacts());
+
+            //// result.addAll(getSchemaFacts());
+            //// result.addAll(q.getStatementFacts());
+            //// result.addAll(q.getSolutionFacts());
 
             // find algorithm id
             String entryPointIri = null;
@@ -832,7 +842,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 HashMap<String, String> placeholders = new HashMap<>();
                 for (Statement statement : actLinks) {
                     String verb = statement.getPredicate().getLocalName();
-                    if (fieldPropertiesCache.contains(verb)) {
+                    if (getFieldProperties().contains(verb)) {
                         String fieldName = verb.replaceAll("field_", "");
                         String value = statement.getString();
                         value = "\"" + value + "\"";
@@ -846,8 +856,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 }
 
                 ///
-                System.out.println("\nPlaceholders:");
-                System.out.println(placeholders);
+                //// System.out.println("\nPlaceholders:");
+                //// System.out.println(placeholders);
 
                 for (OntClass errClass : errorOntClasses) {
                     // filter out not-error classes
@@ -865,7 +875,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     mistakeTypes.add(mistakeType);
 
                     ///
-                    System.out.println("<>- Mistake for action " + act_stmt_name + ": " + mistakeType);
+                    //// System.out.println("<>- Mistake for action " + act_stmt_name + ": " + mistakeType);
 
 
                     ViolationEntity violationEntity = new ViolationEntity();
@@ -1109,9 +1119,11 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         // find next consequent (using solved facts)
-        val solution = q.getSolutionFacts();
+        List<BackendFactEntity> solution = q.getSolutionFacts();
         assertNotNull(solution, "Call solve() question before getAnyNextCorrectAnswer() !");
 
+        solution = new ArrayList<>(solution);
+        solution.addAll(q.getStatementFacts());
         OntModel model = factsToOntModel(solution);
 
         // find any consequent of last correct act ...
@@ -1199,7 +1211,7 @@ public class ControlFlowStatementsDomain extends Domain {
             for (StmtIterator it = model.listStatements((Resource) reason_node, null, (String) null); it.hasNext(); ) {
                 Statement statement = it.next();
                 String verb = statement.getPredicate().getLocalName();
-                if (fieldPropertiesCache.contains(verb)) {
+                if (getFieldProperties().contains(verb)) {
                     String fieldName = verb.replaceAll("field_", "");
                     String value = statement.getString();
                     value = "\"" + value + "\"";
@@ -1213,7 +1225,7 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
 
-        System.out.println("next correct answer found: " + qaInfoPrefix);
+        //// System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
         ArrayList<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
