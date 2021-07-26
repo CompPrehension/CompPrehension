@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.repository.AnswerObjectRepository;
@@ -81,7 +82,15 @@ public class QuestionService {
                 new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
-        question.getQuestionData().setSolutionFacts(solution);
+
+        // carefully update solutionFacts with solution
+        List<BackendFactEntity> storedSolution = question.getQuestionData().getSolutionFacts();
+        if (storedSolution == null) {
+            storedSolution = new ArrayList<>();
+            question.getQuestionData().setSolutionFacts(storedSolution);
+        }
+        FactsGraph.updateFactsList(storedSolution, solution);
+
         saveQuestion(question.getQuestionData());
         return question;
     }

@@ -14,14 +14,11 @@ import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.PrintUtil;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.StringWriter;
 import java.util.*;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
@@ -176,8 +173,9 @@ public class JenaBackend extends Backend {
         String obj = fact.getObject();
         String objType = fact.getObjectType();
         assert prop != null;
+        assert objType != null;
 
-//        // debug
+        /// debug
 //        System.out.println("addStatementFact( subj: " + subj + ", prop: " + prop + ", obj: " + obj + " )");
 
         // TODO: save this info somehow?
@@ -314,7 +312,7 @@ public class JenaBackend extends Backend {
         }
 
         ///
-        // System.out.println("uriToTerm: " + uri + " -> " + s);
+        // System.out.println("uriToTerm: " + uri + "\n -> " + s);
         ///
         return s;
     }
@@ -448,9 +446,7 @@ public class JenaBackend extends Backend {
 
         debug_dump_model("solved");
 
-        FactsGraph factG = new FactsGraph(getFacts(solutionVerbs));
-        factG = factG.removeSimilarFacts(statement);
-        return factG.removeDuplicates().getFacts();
+        return new FactsGraph(getFacts(solutionVerbs)).removeDuplicates().getFacts();
     }
 
     public void addFacts(List<BackendFactEntity> facts) {
@@ -477,7 +473,7 @@ public class JenaBackend extends Backend {
 
         debug_dump_model("judged");
 
-        return getFacts(violationVerbs);
+        return new FactsGraph(getFacts(violationVerbs)).removeDuplicates().getFacts();
     }
 
 

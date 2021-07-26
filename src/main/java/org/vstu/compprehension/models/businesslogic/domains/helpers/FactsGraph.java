@@ -53,6 +53,18 @@ public class FactsGraph {
         }
     }
 
+    public void addFact(BackendFactEntity newFact) {
+        facts.add(newFact);
+
+        BackendFactEntity f = newFact;
+        String key = f.getSubject();
+        add2Map(subj2fs, key, f);
+        key = f.getVerb();
+        add2Map(prop2fs, key, f);
+        key = f.getObject();
+        add2Map(obj2fs, key, f);
+    }
+
     public void addFacts(List<BackendFactEntity> newFacts) {
         facts.addAll(newFacts);
 
@@ -130,7 +142,7 @@ public class FactsGraph {
      * @param undesirableFacts
      * @return
      */
-    public FactsGraph removeSimilarFacts(List<BackendFactEntity> undesirableFacts) {
+    public FactsGraph removeAllLike(List<BackendFactEntity> undesirableFacts) {
         for(BackendFactEntity f : undesirableFacts) {
             String s = f.getSubject();
             String p = f.getVerb();
@@ -178,6 +190,10 @@ public class FactsGraph {
                 candidates.retainAll(indexed);
         }
         return candidates;
+    }
+
+    public List<BackendFactEntity> findFactsLike(BackendFactEntity fact) {
+        return filterFacts(fact.getSubject(), fact.getVerb(), fact.getObject());
     }
 
     public boolean factExists(@Nullable String s, @Nullable String p, @Nullable String o) {
@@ -249,4 +265,19 @@ public class FactsGraph {
         return result;
     }
 
+    /**
+     * Add new facts to the list and ignore the ones that exist.
+     * @param list the list being updated
+     * @param newFacts collection of facts can be appended
+     */
+    public static void updateFactsList(List<BackendFactEntity> list, List<BackendFactEntity> newFacts) {
+        FactsGraph fg = new FactsGraph(list);
+
+        for (BackendFactEntity fact : newFacts) {
+            if (fg.findFactsLike(fact).isEmpty()) {
+                list.add(fact);
+                fg.addFact(fact);
+            }
+        }
+    }
 }
