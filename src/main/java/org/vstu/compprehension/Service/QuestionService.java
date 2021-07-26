@@ -133,7 +133,7 @@ public class QuestionService {
         return solveQuestion(question, question.getQuestionData().getExerciseAttempt().getExercise().getTags());
     }
 
-    public QuestionEntity getQuestionEntiity(Long questionId) {
+    public QuestionEntity getQuestionEntity(Long questionId) {
         return questionRepository.findById(questionId).get();
     }
 
