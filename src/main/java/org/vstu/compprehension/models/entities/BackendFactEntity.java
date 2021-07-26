@@ -34,6 +34,14 @@ public class BackendFactEntity {
     @JoinColumn(name = "BackendFact_id")
     private QuestionEntity question;
 
+    public String toString() {
+        return "[id=" + id
+                + ";  subject=" + subject
+                + "  verb=" + verb
+                + "  object=" + object
+                + "]";
+    }
+
     public BackendFactEntity(String subjectType, String subject, String verb, String objectType, String object) {
         this.object = object;
         this.objectType = objectType;

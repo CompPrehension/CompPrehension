@@ -134,6 +134,26 @@
     ]
   },
   {
+    "name": "transition_objects_encapsulating_reason",
+    "positive": true,
+    "tags": [
+      {
+        "name": "transition"
+      },
+      {
+        "name": "objects"
+      },
+      {
+        "name": "encapsulating"
+      },
+      {
+        "name": "reason"
+      }
+    ],
+    "concepts": [],
+    "formulations": []
+  },
+  {
     "name": "entry_point_and_sequence",
     "positive": true,
     "tags": [
@@ -163,17 +183,17 @@
       },
       {
         "name": "connect_SequenceBegin_rule_g2",
-        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2),.",
+        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), makeSkolem(?R, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceNext",
-        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), -> (?e my:always_consequent ?b), (?e my:SequenceNext ?b),.",
+        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), makeSkolem(?R, ?e, ?b), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?previous_name), (?st2 my:stmt_name ?next_name), -> (?e my:always_consequent ?b), (?e my:SequenceNext ?b), (?R my:reason_kind my:SequenceNext), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_SEQ ?seq_name), (?R my:field_PREVIOUS ?previous_name), (?R my:field_NEXT ?next_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_SequenceEnd",
-        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e),.",
+        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), makeSkolem(?R, ?e1, ?e), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
         "backend": "Jena"
       }
     ]
@@ -209,32 +229,67 @@
     "formulations": [
       {
         "name": "connect_AltBegin",
-        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2),.",
+        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeSkolem(?R, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltBranchBegin_CondTrue",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), -> (?e my:on_true_consequent ?b), (?e my:AltBranchBegin ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), makeSkolem(?R, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?br my:stmt_name ?branch_name), -> (?e my:on_true_consequent ?b), (?e my:AltBranchBegin ?b), (?R my:reason_kind my:AltBranchBegin), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_BRANCH ?branch_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_NextAltCondition",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), makeSkolem(?R, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?cnd2 my:stmt_name ?cnd2_name), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b), (?R my:reason_kind my:NextAltCondition), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_NEXT_COND ?cnd2_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltElseBranch",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), -> (?e my:on_false_consequent ?b), (?e my:AltElseBranchBegin ?b),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), makeSkolem(?R, ?e, ?b), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:on_false_consequent ?b), (?e my:AltElseBranchBegin ?b), (?R my:reason_kind my:AltElseBranchBegin), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltEndAllFalse",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), makeSkolem(?R, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e), (?R my:reason_kind my:AltEndAllFalse), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_AltEndAfterBranch",
-        "formulation": "(?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?br), -> (?e1 my:always_consequent ?e), (?e1 my:AltEndAfterBranch ?e),.",
+        "formulation": "(?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?br), makeSkolem(?R, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:always_consequent ?e), (?e1 my:AltEndAfterBranch ?e), (?R my:reason_kind my:AltEndAfterBranch), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "do_while_loop"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:while_loop), -> drop(0), (?a my:field_kind_of_loop \"WHILE\"),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:do_while_loop), -> drop(0), (?a my:field_kind_of_loop \"DO-WHILE\"),.",
         "backend": "Jena"
       }
     ]
@@ -267,27 +322,27 @@
     "formulations": [
       {
         "name": "connect_LoopBegin-cond",
-        "formulation": "(?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?b my:begin_of ?Loop), (?b2 my:begin_of ?cnd), -> (?b my:always_consequent ?b2), (?b my:PreCondLoopBegin ?b2),.",
+        "formulation": "(?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?b my:begin_of ?Loop), (?b2 my:begin_of ?cnd), makeSkolem(?R, ?b, ?b2), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:PreCondLoopBegin ?b2), (?R my:reason_kind my:PreCondLoopBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopBegin-body",
-        "formulation": "(?Loop rdf:type my:start_with_body), (?Loop my:body ?st), (?b my:begin_of ?Loop), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:PostCondLoopBegin ?b2),.",
+        "formulation": "(?Loop rdf:type my:start_with_body), (?Loop my:body ?st), (?b my:begin_of ?Loop), makeSkolem(?R, ?b, ?b2), (?Loop my:stmt_name ?loop_name), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:PostCondLoopBegin ?b2), (?R my:reason_kind my:PostCondLoopBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_LOOP ?loop_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopCond1-BodyBegin",
-        "formulation": "(?Loop rdf:type my:cond_then_body), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?e my:end_of ?cnd), (?b my:begin_of ?st), -> (?e my:on_true_consequent ?b), (?e my:IterationBeginOnTrueCond ?b),.",
+        "formulation": "(?Loop rdf:type my:cond_then_body), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?e my:end_of ?cnd), (?b my:begin_of ?st), makeSkolem(?R, ?e, ?b), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:on_true_consequent ?b), (?e my:IterationBeginOnTrueCond ?b), (?R my:reason_kind my:IterationBeginOnTrueCond), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:fetch_kind_of_loop ?Loop), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopCond0-LoopEnd",
-        "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e my:end_of ?Loop), (?e1 my:end_of ?cnd), -> (?e1 my:on_false_consequent ?e), (?e1 my:LoopEndOnFalseCond ?e),.",
+        "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e my:end_of ?Loop), (?e1 my:end_of ?cnd), makeSkolem(?R, ?e1, ?e), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:LoopEndOnFalseCond ?e), (?R my:reason_kind my:LoopEndOnFalseCond), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:fetch_kind_of_loop ?Loop), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
         "name": "connect_LoopBody-cond",
-        "formulation": "(?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterIteration ?b),.",
+        "formulation": "(?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), makeSkolem(?R, ?e, ?b), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterIteration ?b), (?R my:reason_kind my:LoopCondBeginAfterIteration), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
         "backend": "Jena"
       }
     ]
@@ -823,11 +878,14 @@
     ]
   },
   {
-    "name": "loop_mistake",
+    "name": "loop_helper",
     "positive": false,
     "tags": [
       {
         "name": "loop"
+      },
+      {
+        "name": "helper"
       },
       {
         "name": "mistake"
@@ -839,7 +897,33 @@
       },
       {
         "name": "do_while_loop"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:while_loop), -> drop(0), (?a my:field_kind_of_loop \"WHILE\"),.",
+        "backend": "Jena"
       },
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:do_while_loop), -> drop(0), (?a my:field_kind_of_loop \"DO-WHILE\"),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_mistake",
+    "positive": false,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [
       {
         "name": "act_begin"
       },
@@ -902,16 +986,6 @@
       }
     ],
     "formulations": [
-      {
-        "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:while_loop), -> drop(0), (?a my:field_kind_of_loop \"WHILE\"),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:do_while_loop), -> drop(0), (?a my:field_kind_of_loop \"DO-WHILE\"),.",
-        "backend": "Jena"
-      },
       {
         "name": "LoopStartIsNotCondition-loop_Error",
         "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:end_of ?Loop), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopStartIsNotCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",

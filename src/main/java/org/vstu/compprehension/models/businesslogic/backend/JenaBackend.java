@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 import org.apache.jena.vocabulary.*;
 import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -13,14 +14,11 @@ import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.PrintUtil;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.StringWriter;
 import java.util.*;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
@@ -175,8 +173,9 @@ public class JenaBackend extends Backend {
         String obj = fact.getObject();
         String objType = fact.getObjectType();
         assert prop != null;
+        assert objType != null;
 
-//        // debug
+        /// debug
 //        System.out.println("addStatementFact( subj: " + subj + ", prop: " + prop + ", obj: " + obj + " )");
 
         // TODO: save this info somehow?
@@ -276,6 +275,7 @@ public class JenaBackend extends Backend {
     /** Expand simple name as local, prefixed name as special */
     private String termToUri(String s) {
         String uri;
+        assertNotNull(s, "termToUri(null) !");
         if (s.startsWith("http://")) {
             uri = s;
         }
@@ -312,7 +312,7 @@ public class JenaBackend extends Backend {
         }
 
         ///
-        // System.out.println("uriToTerm: " + uri + " -> " + s);
+        // System.out.println("uriToTerm: " + uri + "\n -> " + s);
         ///
         return s;
     }
@@ -344,7 +344,12 @@ public class JenaBackend extends Backend {
 
             if (isObjectProp) {
                 Resource resource = objNode.asResource();
-                obj = uriToTerm(resource.getURI());
+                String URI = resource.getURI();
+                if (URI != null) {
+                    obj = uriToTerm(URI);
+                } else { /* resource is bnode*/
+                    obj = resource.toString();
+                }
 
                 if (resource.hasProperty(RDF.type, OWL.Class))
                     objType = "owl:Class";
@@ -361,9 +366,17 @@ public class JenaBackend extends Backend {
                 obj = objNode.asLiteral().getLexicalForm();
             }
 
+            String subjURI = subjResource.getURI();
+            String subj;
+            if (subjURI != null) {
+                subj = uriToTerm(subjURI);
+            } else { /* subj is bnode*/
+                subj = subjResource.toString();
+            }
+
             facts.add(new BackendFactEntity(
                     subjType,
-                    uriToTerm(subjResource.getURI()),
+                    subj,
                     propName,
                     objType,
                     obj
@@ -410,7 +423,7 @@ public class JenaBackend extends Backend {
             try {
                 out = new FileOutputStream(out_rdf_path);
                 RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                System.out.println("Debug written: " + out_rdf_path);
+                System.out.println("Debug written: " + out_rdf_path + ". N of of triples: " + model.size());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 System.out.println("Cannot write to file: " + out_rdf_path);
@@ -433,7 +446,7 @@ public class JenaBackend extends Backend {
 
         debug_dump_model("solved");
 
-        return getFacts(solutionVerbs);
+        return new FactsGraph(getFacts(solutionVerbs)).removeDuplicates().getFacts();
     }
 
     public void addFacts(List<BackendFactEntity> facts) {
@@ -460,7 +473,7 @@ public class JenaBackend extends Backend {
 
         debug_dump_model("judged");
 
-        return getFacts(violationVerbs);
+        return new FactsGraph(getFacts(violationVerbs)).removeDuplicates().getFacts();
     }
 
 
