@@ -111,7 +111,7 @@ public class SystemIntegrationTest {
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(2, result.IterationsLeft);
             assertEquals(
-                    "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+                    "error_base_higher_precedence_right",
                     result.violations.get(0).getLawName());
             List<HyperText> explanations  = questionService.explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
@@ -203,7 +203,7 @@ public class SystemIntegrationTest {
             ies.add(ie);
             question3.questionData.setInteractions(ies);
             assertTrue(result.violations.isEmpty());
-            assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
+            assertEquals("error_base_higher_precedence_right", result.correctlyAppliedLaws.get(0));
             questionService.saveQuestion(question3.questionData);
 
             Long question4 = question3.getQuestionData().getId();
@@ -253,7 +253,7 @@ public class SystemIntegrationTest {
             assertEquals(0, result.CountCorrectOptions);
             assertEquals(1, result.IterationsLeft);
             assertEquals(
-                    "error_single_token_binary_operator_has_unevaluated_higher_precedence_right",
+                    "error_base_higher_precedence_right",
                     result.violations.get(0).getLawName());
             float grade = strategy.grade(testExerciseAttemptList.get(4));
         }
@@ -274,7 +274,7 @@ public class SystemIntegrationTest {
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(0, result.violations.size());
             assertEquals(1, result.correctlyAppliedLaws.size());
-            assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result.correctlyAppliedLaws.get(0));
+            assertEquals("error_base_higher_precedence_right", result.correctlyAppliedLaws.get(0));
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(1, result.IterationsLeft);
 
@@ -344,7 +344,7 @@ public class SystemIntegrationTest {
             Domain.InterpretSentenceResult result = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(0, result.violations.size());
             assertEquals(1, result.correctlyAppliedLaws.size());
-            assertEquals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left", result.correctlyAppliedLaws.get(0));
+            assertEquals("error_base_same_precedence_left_associativity_left", result.correctlyAppliedLaws.get(0));
             assertEquals(1, result.CountCorrectOptions);
             assertEquals(1, result.IterationsLeft);
 
@@ -371,7 +371,7 @@ public class SystemIntegrationTest {
             assertEquals(2, result.IterationsLeft);
 
             assertEquals(
-                    "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
+                    "error_base_same_precedence_left_associativity_left",
                     result.violations.get(0).getLawName());
             List<HyperText> explanations  = questionService.explainViolations(question2, result.violations);
             assertEquals(1, explanations.size());
@@ -407,8 +407,8 @@ public class SystemIntegrationTest {
             List<ViolationEntity> mistakes = result.violations;
             assertEquals(2, mistakes.size());
             HashSet<String> expected = new HashSet<>();
-            expected.add("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
-            expected.add("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
+            expected.add("error_base_higher_precedence_right");
+            expected.add("error_base_same_precedence_left_associativity_left");
 
             HashSet<String> real = new HashSet<>();
             real.add(mistakes.get(0).getLawName());
@@ -515,7 +515,7 @@ public class SystemIntegrationTest {
             question2Responses.addAll(questionService.responseQuestion(question2, List.of(1)));
             Domain.InterpretSentenceResult result2 = questionService.judgeQuestion(question2, question2Responses, tags);
             assertEquals(1, result2.violations.size());
-            assertEquals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right", result2.violations.get(0).getLawName());
+            assertEquals("error_base_higher_precedence_right", result2.violations.get(0).getLawName());
 
             //Сохранение интеракции
             InteractionEntity ie2 = new InteractionEntity(
@@ -572,7 +572,7 @@ public class SystemIntegrationTest {
             List<ViolationEntity> mistakes = questionService.judgeQuestion(question2, question2Responses, tags).violations;
             assertEquals(1, mistakes.size());
             assertEquals(
-                    "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left",
+                    "error_base_same_precedence_left_associativity_left",
                     mistakes.get(0).getLawName());
         }
 

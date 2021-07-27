@@ -95,12 +95,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept precedenceTypeConcept = addConcept("precedence_type");
         Concept systemIntegrationTestConcept = addConcept("SystemIntegrationTest");
         Concept error = addConcept("error");
-        Concept errorHigherPrecedenceLeft = addConcept("error_higher_precedence_left");
-        Concept errorHigherPrecedenceRight = addConcept("error_higher_precedence_right");
-        Concept errorSamePrecedenceLeftAssociativityLeft = addConcept("error_same_precedence_left_associativity_left");
-        Concept errorSamePrecedenceRightAssociativityRight = addConcept("error_same_precedence_right_associativity_right");
-        Concept errorInComplex = addConcept("error_student_error_in_complex");
-        Concept errorStrictOperandsOrder = addConcept("error_student_error_strict_operands_order");
+        Concept errorHigherPrecedenceLeft = addConcept("error_base_higher_precedence_left");
+        Concept errorHigherPrecedenceRight = addConcept("error_base_higher_precedence_right");
+        Concept errorSamePrecedenceLeftAssociativityLeft = addConcept("error_base_same_precedence_left_associativity_left");
+        Concept errorSamePrecedenceRightAssociativityRight = addConcept("error_base_same_precedence_right_associativity_right");
+        Concept errorInComplex = addConcept("error_base_student_error_in_complex");
+        Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
@@ -900,7 +900,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
         HashSet<String> targetConcepts = new HashSet<>();
-        String failedLaw = violation.getLawName().startsWith("error_single_token_binary_operator") ? "first_OrderOperatorsSupplementary" : violation.getLawName();
+        String failedLaw = violation.getLawName().startsWith("error_base") ? "first_OrderOperatorsSupplementary" : violation.getLawName();
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
@@ -1197,18 +1197,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 ViolationEntity violationEntity = new ViolationEntity();
                 if (violation.getVerb().equals("student_error_more_precedence")) {
                     if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
-                        violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_left");
+                        violationEntity.setLawName("error_base_higher_precedence_left");
                     } else {
-                        violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_higher_precedence_right");
+                        violationEntity.setLawName("error_base_higher_precedence_right");
                     }
                 } else if (violation.getVerb().equals("student_error_left_assoc")) {
-                    violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left");
+                    violationEntity.setLawName("error_base_same_precedence_left_associativity_left");
                 } else if (violation.getVerb().equals("student_error_right_assoc")) {
-                    violationEntity.setLawName("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right");
+                    violationEntity.setLawName("error_base_same_precedence_right_associativity_right");
                 } else if (violation.getVerb().equals("student_error_strict_operands_order_base")) {
-                    violationEntity.setLawName("error_student_error_strict_operands_order_base");
+                    violationEntity.setLawName("error_base_student_error_strict_operands_order_base");
                 } else if (violation.getVerb().equals("student_error_in_complex")) {
-                    violationEntity.setLawName("error_student_error_in_complex");
+                    violationEntity.setLawName("error_base_student_error_in_complex");
                 } else if (violation.getVerb().equals("wrong_type")) {
                     violationEntity.setLawName("error_wrong_type");
                 }
@@ -1385,14 +1385,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             String correctlyAppliedLaw = null;
             if (violation.getVerb().equals("student_error_more_precedence_base")) {
                 if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
-                    correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_higher_precedence_left";
+                    correctlyAppliedLaw = "error_base_higher_precedence_left";
                 } else {
-                    correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_higher_precedence_right";
+                    correctlyAppliedLaw = "error_base_higher_precedence_right";
                 }
             } else if (violation.getVerb().equals("student_error_left_assoc_base")) {
-                correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left";
+                correctlyAppliedLaw = "error_base_same_precedence_left_associativity_left";
             } else if (violation.getVerb().equals("student_error_right_assoc_base")) {
-                correctlyAppliedLaw = "error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right";
+                correctlyAppliedLaw = "error_base_same_precedence_right_associativity_right";
             }
             if (correctlyAppliedLaw != null) {
                 result.add(correctlyAppliedLaw);
@@ -1498,26 +1498,26 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         String errorType = mistake.getLawName();
 
-        if (errorType.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_left") ||
-                errorType.equals("error_single_token_binary_operator_has_unevaluated_higher_precedence_right")) {
+        if (errorType.equals("error_base_higher_precedence_left") ||
+                errorType.equals("error_base_higher_precedence_right")) {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has higher precedence";
-        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left") && errorText.equals(reasonText)) {
+        } else if (errorType.equals("error_base_same_precedence_left_associativity_left") && errorText.equals(reasonText)) {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has left associativity and is evaluated from left to right";
-        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_left_associativity_left")) {
+        } else if (errorType.equals("error_base_same_precedence_left_associativity_left")) {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and left associativity";
-        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right") && errorText.equals(reasonText)) {
+        } else if (errorType.equals("error_base_same_precedence_right_associativity_right") && errorText.equals(reasonText)) {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has right associativity and is evaluated from right to left";
-        } else if (errorType.equals("error_single_token_binary_operator_has_unevaluated_same_precedence_right_associativity_right")) {
+        } else if (errorType.equals("error_base_same_precedence_right_associativity_right")) {
             reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and right associativity";
-        } else if (errorType.equals("error_student_error_in_complex") && errorText.equals("(")) {
+        } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("(")) {
             reason = " because function arguments are evaluated before function call​";
-        } else if (errorType.equals("error_student_error_in_complex") && errorText.equals("[")) {
+        } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("[")) {
             reason = " because expression in brackets is evaluated before brackets";
-        } else if (errorType.equals("error_student_error_in_complex") && thirdOperatorText.equals("(")) {
+        } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("(")) {
             reason = " because expression in parenthesis is evaluated before operators​ outside of them";
-        } else if (errorType.equals("error_student_error_in_complex") && thirdOperatorText.equals("[")) {
+        } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("[")) {
             reason = " because expression in brackets is evaluated before operator outside of them​​";
-        } else if (errorType.equals("error_student_error_strict_operands_order_base")) {
+        } else if (errorType.equals("error_base_student_error_strict_operands_order_base")) {
             reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " at pos " + thirdOperatorPos + " must be evaluated before its right operand​";
         } else {
             reason = " because unknown error";
