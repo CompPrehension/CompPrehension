@@ -94,6 +94,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operandsTypeConcept = addConcept("operands_type");
         Concept precedenceTypeConcept = addConcept("precedence_type");
         Concept systemIntegrationTestConcept = addConcept("SystemIntegrationTest");
+        Concept error = addConcept("error");
+        Concept errorHigherPrecedenceLeft = addConcept("error_higher_precedence_left");
+        Concept errorHigherPrecedenceRight = addConcept("error_higher_precedence_right");
+        Concept errorSamePrecedenceLeftAssociativityLeft = addConcept("error_same_precedence_left_associativity_left");
+        Concept errorSamePrecedenceRightAssociativityRight = addConcept("error_same_precedence_right_associativity_right");
+        Concept errorInComplex = addConcept("error_student_error_in_complex");
+        Concept errorStrictOperandsOrder = addConcept("error_student_error_strict_operands_order");
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
