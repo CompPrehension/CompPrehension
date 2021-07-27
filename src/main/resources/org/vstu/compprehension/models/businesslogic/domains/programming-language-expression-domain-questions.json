@@ -49,7 +49,8 @@
     "concepts": [
       "associativity",
       "operator_binary_+",
-      "SystemIntegrationTest"
+      "SystemIntegrationTest",
+      "error_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -110,7 +111,8 @@
       "precedence",
       "operator_binary_==",
       "operator_binary_<",
-      "SystemIntegrationTest"
+      "SystemIntegrationTest",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -187,7 +189,9 @@
       "precedence",
       "operator_binary_+",
       "operator_binary_*",
-      "SystemIntegrationTest"
+      "SystemIntegrationTest",
+      "error_higher_precedence_right",
+      "error_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -296,7 +300,9 @@
       "operator_binary_+",
       "operator_binary_*",
       "operator_binary_||",
-      "SystemIntegrationTest"
+      "SystemIntegrationTest",
+      "error_student_error_strict_operands_order",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -369,10 +375,11 @@
       ]
     },
     "concepts": [
-      "associativity",
       "precedence",
       "operator_binary_+",
-      "operator_binary_*"
+      "operator_binary_*",
+      "error_higher_precedence_left",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -469,7 +476,8 @@
       "precedence",
       "operator_binary_+",
       "operator_ternary",
-      "operator_evaluating_left_operand_first"
+      "operator_evaluating_left_operand_first",
+      "error_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -526,7 +534,8 @@
     "concepts": [
       "precedence",
       "operator_binary_+",
-      "operator_prefix_--"
+      "operator_prefix_--",
+      "error_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -579,7 +588,8 @@
     },
     "concepts": [
       "associativity",
-      "operator_prefix_--"
+      "operator_prefix_--",
+      "error_same_precedence_right_associativity_right"
     ],
     "tags": [
       "C++",
@@ -639,7 +649,8 @@
     "concepts": [
       "associativity",
       "operator_prefix_--",
-      "two_token_unary"
+      "two_token_unary",
+      "error_student_error_in_complex"
     ],
     "tags": [
       "C++",
@@ -693,7 +704,8 @@
     "concepts": [
       "precedence",
       "operator_prefix_--",
-      "operator_binary_-"
+      "operator_binary_-",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -753,7 +765,8 @@
     "concepts": [
       "precedence",
       "operator_binary_&&",
-      "operator_binary_||"
+      "operator_binary_||",
+      "error_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -820,7 +833,8 @@
       "precedence",
       "two_token_unary",
       "operator_binary_&&",
-      "operator_binary_||"
+      "operator_binary_||",
+      "error_student_error_in_complex"
     ],
     "tags": [
       "C++",
@@ -903,7 +917,9 @@
       "precedence",
       "two_token_unary",
       "operator_binary_&&",
-      "operator_binary_||"
+      "operator_binary_||",
+      "error_student_error_in_complex",
+      "error_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -1001,7 +1017,9 @@
       "two_token_unary",
       "operator_binary_||",
       "operator_binary_,",
-      "operator_evaluating_left_operand_first"
+      "operator_evaluating_left_operand_first",
+      "error_student_error_in_complex",
+      "error_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -1098,7 +1116,10 @@
       "precedence",
       "two_token_unary",
       "operator_binary_+",
-      "operator_binary_<"
+      "operator_binary_<",
+      "error_student_error_in_complex",
+      "error_higher_precedence_left",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1197,7 +1218,9 @@
     "concepts": [
       "precedence",
       "function_call",
-      "operator_binary_||"
+      "operator_binary_||",
+      "error_student_error_in_complex",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1251,7 +1274,8 @@
     "concepts": [
       "associativity",
       "operator_unary_*",
-      "operator_prefix_++"
+      "operator_prefix_++",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1318,11 +1342,12 @@
       ]
     },
     "concepts": [
-      "associativity",
       "precedence",
       "operator_unary_*",
       "operator_prefix_++",
-      "operator_binary_+"
+      "operator_binary_+",
+      "error_higher_precedence_right",
+      "error_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -1413,7 +1438,9 @@
       "precedence",
       "operator_binary_+",
       "operator_[",
-      "operator_unary_*"
+      "operator_unary_*",
+      "error_student_error_in_complex",
+      "error_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -1507,7 +1534,11 @@
       "associativity",
       "precedence",
       "operator_binary_+",
-      "operator_["
+      "operator_[",
+      "error_student_error_in_complex",
+      "error_same_precedence_left_associativity_left",
+      "error_higher_precedence_left",
+      "error_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1655,7 +1686,9 @@
       "associativity",
       "precedence",
       "operator_binary_+",
-      "operator_ternary"
+      "operator_ternary",
+      "error_same_precedence_right_associativity_right",
+      "error_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -1729,7 +1762,8 @@
       "operator_prefix_++",
       "operator_binary_+",
       "operator_binary_||",
-      "operator_evaluating_left_operand_first"
+      "operator_evaluating_left_operand_first",
+      "error_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -1744,7 +1778,7 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
-      "questionText": "++ a || b + c",
+      "questionText": "++ a - b + c",
       "areAnswersRequireContext": true,
       "options": {
       },
@@ -1802,7 +1836,9 @@
       "precedence",
       "operator_prefix_++",
       "operator_binary_+",
-      "operator_binary_-"
+      "operator_binary_-",
+      "error_higher_precedence_left",
+      "error_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -1863,7 +1899,8 @@
     "concepts": [
       "associativity",
       "operator_binary_+",
-      "SystemIntegrationTest"
+      "SystemIntegrationTest",
+      "error_same_precedence_left_associativity_left"
     ],
     "tags": [
       "Python",
