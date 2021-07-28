@@ -47,8 +47,12 @@ public class LtiExerciseController extends BasicExerciseController {
         }
         session.setAttribute("ltiSessionInfo", params);
 
-        val exerciseIdS = params.getOrDefault("custom_exerciseId", "-1");
-        val exerciseId = NumberUtils.toLong(exerciseIdS, -1L);
+        val exerciseId = List.of("custom_exerciseId", "exerciseId").stream()
+                .map(prop -> params.getOrDefault(prop, "-1"))
+                .map(vl -> NumberUtils.toLong(vl, -1L))
+                .filter(v -> v != -1L)
+                .findFirst()
+                .orElseThrow(() -> new Exception("Param 'custom_exerciseId' or 'exerciseId' is required"));
         if (exerciseId == -1) {
             throw new Exception("Param 'custom_exerciseId' is required");
         }
