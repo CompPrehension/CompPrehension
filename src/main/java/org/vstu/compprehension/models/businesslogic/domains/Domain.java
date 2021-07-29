@@ -287,6 +287,7 @@ public abstract class Domain {
         int maxSuitCount = 0;
         for (Question q : getQuestionTemplates()) {
             int targetConceptCount = 0;
+            int anotherConcepts = 0;
             boolean suit = true;
             if (forbiddenQuestions.contains(q.getQuestionText().getText())) {
                 continue;
@@ -301,9 +302,20 @@ public abstract class Domain {
                 if (deniedConcepts.contains(concept)) {
                     suit = false;
                     break;
-                }
-                if (targetConcepts.contains(concept)) {
+                } else if (targetConcepts.contains(concept)) {
                     targetConceptCount++;
+                } else {
+                    anotherConcepts++;
+                }
+            }
+            for (String concept : q.getNegativeLaws()) {
+                if (deniedConcepts.contains(concept)) {
+                    suit = false;
+                    break;
+                } else if (targetConcepts.contains(concept)) {
+                    targetConceptCount++;
+                } else {
+                    anotherConcepts++;
                 }
             }
 
