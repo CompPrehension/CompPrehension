@@ -137,7 +137,6 @@ IterationBeginOnTrueCond Начало тела цикла при cond=1 (while, 
 
 IterationBeginOnFalseCond Начало тела цикла при cond=0 (do-until)	(~) Условие выхода из цикла ложно, и теперь начнётся итерация, потому что цикл <DO_UNTIL> продолжается при ложном условии	The loop exit condition is false, and now the iteration should start because the loop <DO_UNTIL> continues under the false condition. (~)
 
-
 LoopEndOnFalseCond Конец цикла при cond=0 (while, do-while, for, foreach)	Цикл <kind_of_loop> является циклом с предусловием и прерывается при ложном условии. Условие <LOOP_COND> ложно, и теперь цикл <LOOP> закончится.	A <kind_of_loop> loop finishes when condition is false. As loop condition <LOOP_COND> is false, loop <LOOP> should end.
 
 NormalLoopEnd Конец цикла при cond=1 (do-until)	(~) Условие выхода из цикла истинно, и теперь цикл закончится, потому что цикл <DO_UNTIL> прерывается при истинном условии	The loop exit condition is true, and now the loop should end because the loop <DO_UNTIL> stops under the true condition (~)

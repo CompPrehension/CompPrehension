@@ -279,9 +279,8 @@ public class ControlFlowStatementsDomain extends Domain {
         Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames, new HashSet<>());
         if (res == null) {
             // get anything. TODO: make it input-dependent
-            int index = 0;
-            // get (a random?) int
-            index = QUESTIONS.size() - 1;
+            // get (a random) index
+            int index = new Random().nextInt(QUESTIONS.size());
             res = QUESTIONS.get(index);
         }
         return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
