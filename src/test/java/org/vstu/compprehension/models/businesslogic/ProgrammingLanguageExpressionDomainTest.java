@@ -39,7 +39,7 @@ public class ProgrammingLanguageExpressionDomainTest {
             HashSet<String> supNameSet = new HashSet<>();
             supNameSet.add(supName);
             supNameSet.add("supplementary");
-            Question sup = domain.findQuestion(new ArrayList<>(), supNameSet, new HashSet<>(), new HashSet<>(), new HashSet<>());
+            Question sup = domain.findQuestion(new ArrayList<>(), supNameSet, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
             assertNotNull(sup, supName);
             for (AnswerObjectEntity answer : sup.getAnswerObjects()) {
                 assertTrue(entry.getValue().containsKey(answer.getDomainInfo()), answer.getDomainInfo());
