@@ -80,6 +80,14 @@ public abstract class Domain {
         return null;
     }
 
+    /**
+     * More interactions a student does, greater possibility to mistake accidentally. A certain rate of mistakes (say 1 of 12) can be considered unintentional so no penalty is assessed.
+     * @return the rate threshold
+     */
+    public double getAcceptableRateOfIgnoredMistakes() {
+        return 0.0834;  // = 1/12
+    }
+
     public Domain() {
     }
 
