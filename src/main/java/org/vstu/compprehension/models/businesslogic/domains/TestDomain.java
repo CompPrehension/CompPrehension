@@ -66,6 +66,11 @@ public class TestDomain extends Domain {
     }
 
     @Override
+    public List<Concept> getLawConcepts(Law law) {
+        return null;
+    }
+
+    @Override
     public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
 
         QuestionEntity question = new QuestionEntity();
