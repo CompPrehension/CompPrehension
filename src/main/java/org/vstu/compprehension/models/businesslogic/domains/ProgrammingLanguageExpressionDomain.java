@@ -295,17 +295,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
         }
-        HashSet<String> allowedConceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getAllowedConcepts()) {
-            allowedConceptNames.add(concept.getName());
-        }
         HashSet<String> deniedConceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getDeniedConcepts()) {
             deniedConceptNames.add(concept.getName());
         }
         deniedConceptNames.add("supplementary");
 
-        Question res = findQuestion(tags, conceptNames, allowedConceptNames, deniedConceptNames, new HashSet<>());
+        // Get somehow negative and positive laws names
+
+        Question res = findQuestion(tags, conceptNames, deniedConceptNames, new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
         }
@@ -912,7 +910,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return null;
         }
 
-        Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>());
+        Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
             Question copy = makeQuestionCopy(res, exerciseAttemptEntity);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy);

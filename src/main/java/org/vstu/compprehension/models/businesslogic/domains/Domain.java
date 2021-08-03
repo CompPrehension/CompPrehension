@@ -270,19 +270,20 @@ public abstract class Domain {
      * @return new question template
      */
     public Question findQuestion(List<Tag> tags, Question q) {
-        return findQuestion(tags, new HashSet<>(q.getConcepts()), new HashSet<>(), new HashSet<>(), new HashSet<>(Set.of(q.getQuestionText().getText())));
+        return findQuestion(tags, new HashSet<>(q.getConcepts()), new HashSet<>(), new HashSet<>(q.getNegativeLaws()), new HashSet<>(), new HashSet<>(Set.of(q.getQuestionText().getText())));
     }
 
     /**
      * Find new question template in db
      * @param tags question tags
      * @param targetConcepts concepts that should be in question
-     * @param allowedConcepts concepts that may be in question
      * @param deniedConcepts concepts that should not be in question
+     * @param targetNegativeLaws negative laws that should be in question
+     * @param deniedNegativeLaws negative laws that should not be in question
      * @param forbiddenQuestions texts of question that not suit TODO: use ExerciseAttemptEntity
      * @return new question template
      */
-    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> allowedConcepts, HashSet<String> deniedConcepts, HashSet<String> forbiddenQuestions) {
+    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> deniedConcepts, HashSet<String> targetNegativeLaws, HashSet<String> deniedNegativeLaws, HashSet<String> forbiddenQuestions) {
         List<Question> questions = new ArrayList<>();
         int maxSuitCount = 0;
         for (Question q : getQuestionTemplates()) {
@@ -308,11 +309,11 @@ public abstract class Domain {
                     anotherConcepts++;
                 }
             }
-            for (String concept : q.getNegativeLaws()) {
-                if (deniedConcepts.contains(concept)) {
+            for (String negativeLaw : q.getNegativeLaws()) {
+                if (deniedNegativeLaws.contains(negativeLaw)) {
                     suit = false;
                     break;
-                } else if (targetConcepts.contains(concept)) {
+                } else if (targetNegativeLaws.contains(negativeLaw)) {
                     targetConceptCount++;
                 } else {
                     anotherConcepts++;
