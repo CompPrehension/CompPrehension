@@ -99,6 +99,10 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
+    @Override
+    public List<Concept> getLawConcepts(Law law) {
+        return null;
+    }
 
     @Override
     public void update() {

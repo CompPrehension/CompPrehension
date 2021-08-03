@@ -334,4 +334,6 @@ public abstract class Domain {
             return questions.get(new Random().nextInt(questions.size()));
         }
     }
+
+    public abstract List<Concept> getLawConcepts(Law law);
 }

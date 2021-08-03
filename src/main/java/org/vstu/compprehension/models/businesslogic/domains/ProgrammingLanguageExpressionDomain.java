@@ -174,6 +174,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
+    public List<Concept> getLawConcepts(Law law) {
+        return null;
+    }
+
+    @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
     	return null;
     }
