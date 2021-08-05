@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { MatchingQuestion, MultiChoiceQuestion } from "../../../types/question";
@@ -11,7 +12,7 @@ type MultiChoiceQuestionComponentProps = {
     onChanged: (newAnswers: [number, number][]) => void,
 }
 
-export const MultiChoiceQuestionComponent = (props: MultiChoiceQuestionComponentProps) => {
+export const MultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComponentProps) => {
     const { question } = props;
     const { options } = question;
     switch(true) {
@@ -23,10 +24,11 @@ export const MultiChoiceQuestionComponent = (props: MultiChoiceQuestionComponent
             return <DndMultiChoiceQuestionComponent {...props}/>;
     }
     return (<div>Not implemented</div>);
-};
+});
 
 
-const SwitchMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged }: MultiChoiceQuestionComponentProps) => {    
+const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'switch') {
         return null;
     }
@@ -61,9 +63,10 @@ const SwitchMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged }:
             </p>
         </div>
     );
-}
+})
 
-const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onChanged }: MultiChoiceQuestionComponentProps) => {
+const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'switch') {
         return null;
     }
@@ -96,7 +99,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
     useEffect(() => {
         // drop all changes
         document.querySelectorAll(`input[id^="question_${question.questionId}_answer_"]`).forEach((e: any) => {
-            const id = +e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
+            const answerId = +e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
             //if (!answersHistory.some(h => h[0] === id)) {
             e.checked = undefined;
             //}                
@@ -112,7 +115,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
             setTimeout(() => answr.checked = true, 10)
             //answr.value = value;
         });
-    }, [question.questionId, getAnswers().map(v => `${v[0]}${v[1]}`).join('')])
+    }, [question.questionId])
     
     return (
         <div>
@@ -121,10 +124,11 @@ const SwitchMultiChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
             </p>            
         </div>
     );
-}
+})
 
 
-const DndMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged, answers }: MultiChoiceQuestionComponentProps) => {
+const DndMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComponentProps) => {
+    const { question, getAnswers, onChanged, answers } = props;
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -149,4 +153,4 @@ const DndMultiChoiceQuestionComponent = ({ question, getAnswers, onChanged, answ
     }
 
     return (<DragAndDropMatchingQuestionComponent question={matchingQuestion} getAnswers={getAnswers} onChanged={onChanged} answers={answers}/>)
-}
+})

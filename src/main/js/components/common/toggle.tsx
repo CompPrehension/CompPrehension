@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 const titleCase = (str: string) =>
   str.split(/\s+/).map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
@@ -17,31 +17,30 @@ export type ToggleSwitchProps = {
     selected: string,
     onChange?: (val: string) => void,
 }
-export class ToggleSwitch extends React.PureComponent<ToggleSwitchProps> {
-    handleChange = (val: string) => {
-        this.props.onChange?.(val);
-    };
 
-    selectionStyle = () => {
-        return {
-            left: `${this.props.values.indexOf(this.props.selected) / 3 * 100}%`,
-        };
-    };
+export const ToggleSwitch = (props: ToggleSwitchProps) => {
+  const [selected, setSelected] = useState(props.selected)
+  const handleChange = (val: string) => {
+    setSelected(val);
+    props.onChange?.(val);
+  };
 
-    render() {
-        const { selected } = this.props;
+  const selectionStyle = () => {
+    return {
+      left: `${props.values.indexOf(props.selected) / 3 * 100}%`,
+    };
+  };
+
+  return (
+    <div id={props.id} className="switch-field d-inline-flex flex-row">
+      {props.values.map(val => {
         return (
-          <div id={this.props.id} className="switch-field d-inline-flex flex-row">
-            {this.props.values.map(val => {
-              return (
-                <span>
-                  <ConcealedRadio id={`${this.props.id}_${val}_checkbox`} name={`${this.props.id}_switch`} value={val} selected={selected} />
-                  <ClickableLabel id={`${this.props.id}_${val}_checkbox`} title={val} onChange={this.handleChange} />
-                </span>
-              );
-            })}
-          </div>
+          <span>
+            <ConcealedRadio id={`${props.id}_${val}_checkbox`} name={`${props.id}_switch`} value={val} selected={selected} />
+            <ClickableLabel id={`${props.id}_${val}_checkbox`} title={val} onChange={handleChange} />
+          </span>
         );
-      }
+      })}
+    </div>
+  );
 }
-

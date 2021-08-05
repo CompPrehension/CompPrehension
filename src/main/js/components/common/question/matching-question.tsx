@@ -1,5 +1,6 @@
 import { Droppable, DroppableEventNames, Plugins } from "@shopify/draggable";
 import { DraggableEventNames } from "@shopify/draggable/lib/draggable.bundle.legacy";
+import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import Select, { components } from "react-select";
@@ -13,7 +14,7 @@ type MatchingQuestionComponentProps = {
     onChanged: (newAnswers: [number, number][]) => void,
 }
 
-export const MatchingQuestionComponent = (props: MatchingQuestionComponentProps) => {    
+export const MatchingQuestionComponent = observer((props: MatchingQuestionComponentProps) => {    
     const { question } = props;
     const { options } = question;
     switch(true) {
@@ -25,9 +26,10 @@ export const MatchingQuestionComponent = (props: MatchingQuestionComponentProps)
             return <DragAndDropMatchingQuestionComponent {...props}/>;              
     }
     return (<div>Not Implemented</div>);
-};
+});
 
-export const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {
+export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -115,9 +117,10 @@ export const DragAndDropMatchingQuestionComponent = ({ question, getAnswers, onC
                 </div>
             </div>
         </div>);
-};
+});
 
-const ComboboxMatchingQuestionComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {    
+const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'combobox') {
         return null;
     }
@@ -155,9 +158,10 @@ const ComboboxMatchingQuestionComponent = ({ question, getAnswers, onChanged }: 
             </div>
         </div>
     );
-};
+});
 
-const ComboboxMatchingQuestionWithCtxComponent = ({ question, getAnswers, onChanged }: MatchingQuestionComponentProps) => {
+const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'combobox') {
         return null;
     }
@@ -190,7 +194,7 @@ const ComboboxMatchingQuestionWithCtxComponent = ({ question, getAnswers, onChan
             <p dangerouslySetInnerHTML={{ __html: question.text }} />
         </div>
     );
-};
+});
 
 const RawHtmlSelectOption = (props : any) => {
     const {innerRef, innerProps, children, ...rest} = props;

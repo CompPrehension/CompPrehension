@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import React from "react";
+import React, { useCallback } from "react";
 import { QuestionStore } from "../../stores/question-store";
 import { Loader } from "../common/loader";
 import { Optional } from "../common/optional";
@@ -14,7 +14,8 @@ type QuestionOptions = {
     showExtendedFeedback: boolean,
     onChanged?: (newHistory: [number, number][]) => void,
 }
-export const Question = observer(({ store, showExtendedFeedback, onChanged:ParentOnChanged }: QuestionOptions) => {
+export const Question = observer((props: QuestionOptions) => {
+    const { store, showExtendedFeedback, onChanged:ParentOnChanged } = props;
     const questionData = store.question;
     if (store.isQuestionLoading) {
         return <Loader />;
@@ -28,11 +29,12 @@ export const Question = observer(({ store, showExtendedFeedback, onChanged:Paren
             await store.updateAnswersHistory(newHistory);
             ParentOnChanged?.(newHistory);
         }
-    }
+    };
+    const getAnswers = () => store.answersHistory;
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={() => store.answersHistory} onChanged={onChanged} feedback={store.feedback}/>
+            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={getAnswers} onChanged={onChanged} feedback={store.feedback}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );

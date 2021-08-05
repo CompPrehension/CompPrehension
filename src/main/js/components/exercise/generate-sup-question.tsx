@@ -15,18 +15,16 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
     const [questionStore] = useState(() => container.resolve(QuestionStore));
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isAllVisible, setAllVisible] = useState(true);
-    const onClicked = (e: React.MouseEvent<HTMLElement>) => {
-        (async () => {
-            setIsModalVisible(true);
-            if (!exerciseStore.currentAttempt?.attemptId || !violationLaws.length || !exerciseStore.currentQuestion.question) {
-                return;
-            }
-            await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, violationLaws);
-            if (!questionStore.question) {
-                console.log(`no need to generate sup question`);
-                setAllVisible(false);
-            }
-        })();
+    const onClicked = async () => {        
+        setIsModalVisible(true);
+        if (!exerciseStore.currentAttempt?.attemptId || !violationLaws.length || !exerciseStore.currentQuestion.question) {
+            return;
+        }
+        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, violationLaws);
+        if (!questionStore.question) {
+            console.log(`no need to generate sup question`);
+            setAllVisible(false);
+        }
     }
     const OnAnswered = async () => {
         console.log(`show feedback for 3 seconds`);

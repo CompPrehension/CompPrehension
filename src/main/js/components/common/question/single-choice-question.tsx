@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { SingleChoiceQuestion } from "../../../types/question";
@@ -9,7 +10,7 @@ type SingleChoiceQuestionComponentProps = {
     onChanged: (newAnswers: [number, number][]) => void,
 }
 
-export const SingleChoiceQuestionComponent = (props: SingleChoiceQuestionComponentProps) => {
+export const SingleChoiceQuestionComponent = observer((props: SingleChoiceQuestionComponentProps) => {
     const { question } = props;
     switch(true) {
         case question.options.displayMode === 'radio' && !question.options.requireContext:
@@ -18,9 +19,10 @@ export const SingleChoiceQuestionComponent = (props: SingleChoiceQuestionCompone
             return (<RadioSingleChoiceQuestionWithCtxComponent {...props}/>);
     }
     return (<div>Not implemented</div>);
-}
+})
 
-const RadioSingleChoiceQuestionComponent = ({ question, getAnswers, onChanged }: SingleChoiceQuestionComponentProps) => {
+const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'radio') {
         return null;
     }
@@ -50,14 +52,15 @@ const RadioSingleChoiceQuestionComponent = ({ question, getAnswers, onChanged }:
             </p>
         </div>
     );
-}
+})
 
 
-const RadioSingleChoiceQuestionWithCtxComponent = ({ question, getAnswers, onChanged }: SingleChoiceQuestionComponentProps) => {
+const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQuestionComponentProps) => {
+    const { question, getAnswers, onChanged } = props;
     if (question.options.displayMode !== 'radio') {
         return null;
     }
-    const { options} = question;
+    const { options } = question;
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
             onChanged([[answerId, answerId]])
@@ -106,4 +109,4 @@ const RadioSingleChoiceQuestionWithCtxComponent = ({ question, getAnswers, onCha
             </p>            
         </div>
     );
-}
+})

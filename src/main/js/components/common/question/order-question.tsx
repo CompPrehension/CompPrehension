@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import React from "react";
 import { useEffect } from "react";
 import { OrderQuestionFeedback } from "../../../types/feedback";
@@ -12,7 +13,8 @@ type OrderQuestionComponentProps = {
     getAnswers: () => [number, number][],
     onChanged: (newAnswers: [number, number][]) => void,
 }
-export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedback }: OrderQuestionComponentProps) => {
+export const OrderQuestionComponent = observer((props: OrderQuestionComponentProps) => {
+    const { question, getAnswers, onChanged, feedback } = props; 
     if (!question.options.requireContext) {
         return null;
     }
@@ -84,4 +86,4 @@ export const OrderQuestionComponent = ({ question, getAnswers, onChanged, feedba
             </Optional>
         </div>
     );
-}
+})

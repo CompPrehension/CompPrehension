@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import React from "react";
 import { Feedback } from "../../../types/feedback";
 import { Question } from "../../../types/question"
@@ -14,7 +15,7 @@ type QuestionComponentProps = {
     onChanged: (x: [number, number][]) => void,
 }
 
-export const QuestionComponent = (props: QuestionComponentProps) => {
+export const QuestionComponent = observer((props: QuestionComponentProps) => {
     const { question, answers, onChanged, getAnswers, feedback } = props;
     switch(question.type) {
         case 'MATCHING':                
@@ -27,4 +28,4 @@ export const QuestionComponent = (props: QuestionComponentProps) => {
             return <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} feedback={feedback}/>;
     }
     return (<div>Not implemented</div>);
-}
+})
