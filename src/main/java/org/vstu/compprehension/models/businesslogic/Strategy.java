@@ -42,7 +42,7 @@ public class Strategy extends AbstractStrategy {
 
             return getQuestionRequest(exerciseAttempt, nextNode);
         }
-        // Для вопроса вытянуть все интеракции в змейку по дельте (изменения в правилльно примененных правилах и ошибки)
+        // Для вопроса вытянуть все интеракции в змейку по дельте (изменения в правильно примененных правилах и ошибки)
         QuestionEntity qe = exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1);
         InteractionEntity lastIE = null;
         ArrayList<Pair<Boolean, String>> allLaws = new ArrayList<>();
@@ -227,6 +227,8 @@ public class Strategy extends AbstractStrategy {
 
         qr.setComplexity(1);
         qr.setSolvingDuration(30);
+        qr.setDeniedConcepts(new ArrayList<>());
+        qr.setAllowedConcepts(new ArrayList<>());
 
         List<Law> laws = new ArrayList<>(domain.getNegativeLaws()); //domainEntity.getLaws();
         List<Law> targetLaws = new ArrayList<>();

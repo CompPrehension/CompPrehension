@@ -1,3 +1,6 @@
+ORDER_question_prompt	<p>Нажмите на действия алгоритма в том порядке, в котором они выполнятся. Активируйте действия при помощи кнопок play<img src="https://icons.bootstrap-4.ru/assets/icons/play-fill.svg" alt="Play" width="18"> (начать/выполнить) и stop<img src="https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg" alt="Stop" width="16"> (закончить).</p>	<p>Press the actions of the algorithm in the order they are evaluated. Activate actions with play<img src="https://icons.bootstrap-4.ru/assets/icons/play-fill.svg" alt="Play" width="18"> and stop<img src="https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg" alt="Stop" width="16"> buttons.</p>
+
+
 UpcomingNeighbour Oжидаемый-рано	Почему вы пропустили <list-MISSING> ?	Why did you skip <list-MISSING> ?
 		
 NotNeighbour Hеожиданно	Почему вы выполнили <EXTRA> ?	Why did you execute <EXTRA> ?

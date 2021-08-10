@@ -22,6 +22,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.utils.HyperText;
+import org.vstu.compprehension.utils.LocalizationMap;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -52,7 +53,7 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
-    private static HashMap<String, String> MESSAGES = null;
+    private static HashMap<String, LocalizationMap> MESSAGES = null;
 
     public ControlFlowStatementsDomain() {
         super();
@@ -285,7 +286,7 @@ public class ControlFlowStatementsDomain extends Domain {
             int index = new Random().nextInt(QUESTIONS.size());
             res = QUESTIONS.get(index);
         }
-        return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
+        return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
     }
 
 //    public List<BackendFactEntity> getBackendFacts(List<String> expression) {
@@ -323,7 +324,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return schemaFacts;
     }
 
-    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity) {
+    protected Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLanguage) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showSupplementaryQuestions(false)
@@ -373,11 +374,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = "<p>Press the actions of the algorithm in the order they are evaluated. Activate actions with play"+
-                        "<img src=\"https://icons.bootstrap-4.ru/assets/icons/play-fill.svg\" alt=\"Play\" width=\"18\">" +
-                        " and stop" +
-                        "<img src=\"https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg\" alt=\"Stop\" width=\"16\">" +
-                        " buttons.</p>";
+                val baseQuestionText = getFrontMessages().get("ORDER_question_prompt").get(userLanguage);
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
@@ -423,8 +420,15 @@ public class ControlFlowStatementsDomain extends Domain {
 
     public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType) {
 
+        Language userLang;  // natural language to format explanation
+        try {
+            userLang = violation.getInteraction().getQuestion().getExerciseAttempt().getExercise().getLanguage(); // The language the exercise created with
+        } catch (NullPointerException e) {
+            userLang = Language.ENGLISH;  // fallback if cannot figure it out
+        }
+
         String lawName = violation.getLawName();
-        String msg = getFrontMessages().get(lawName);
+        String msg = getFrontMessages().get(lawName).get(userLang);
 
         if (msg == null) {
             return new HyperText("[Empty explanation] for " + lawName);
@@ -1244,7 +1248,13 @@ public class ControlFlowStatementsDomain extends Domain {
 
         HyperText explanation;
         if (getFrontMessages().containsKey(reasonName)) {
-            String message = getFrontMessages().get(reasonName);
+            Language userLang;  // natural language to format explanation
+            try {
+                userLang = q.getQuestionData().getExerciseAttempt().getExercise().getLanguage(); // The language the exercise created with
+            } catch (NullPointerException e) {
+                userLang = Language.ENGLISH;  // fallback if cannot figure it out
+            }
+            String message = getFrontMessages().get(reasonName).get(userLang);
             // fill in the blanks
             for (Map.Entry<String, String> entry : placeholders.entrySet()) {
                 message = message.replace("<" + entry.getKey() + ">", entry.getValue());
@@ -1334,7 +1344,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
-    private Map<String, String> getFrontMessages() {
+    private Map<String, LocalizationMap> getFrontMessages() {
         if (MESSAGES == null) {
             MESSAGES = new HashMap<>();
 
@@ -1350,9 +1360,11 @@ public class ControlFlowStatementsDomain extends Domain {
                             String[] names = parts[0].split(" ", 2);
                             String name = names[0];  // get EN name; RU at [1]
 
-                            String msg = parts[2];  // get EN msg; RU at [1]
+                            LocalizationMap lm = new LocalizationMap();
+                            lm.put(Language.RUSSIAN, parts[1]); // get RU msg
+                            lm.put(Language.ENGLISH, parts[2]); // get EN msg
 
-                            MESSAGES.put(name, msg);
+                            MESSAGES.put(name, lm);
                         }
                     }
                 }
