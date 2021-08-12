@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
@@ -29,8 +30,9 @@ public class Strategy extends AbstractStrategy {
         // Отдельная ветка для старта (взять некоторую часть возможных законов упражнения) - вопрос из середины графа
         if(exerciseAttempt.getQuestions() == null || exerciseAttempt.getQuestions().size() == 0){
 
-            //TODO: Подготовить для разных деревьев
-            HashMap<String, LawNode> tree = getTree();
+            ExerciseEntity exercise = exerciseAttempt.getExercise();
+            Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
+            HashMap<String, LawNode> tree = getTree(domain);
             ArrayList<String> startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
                     "a && ( b || c ) && d"));
             Random random = new Random();
@@ -94,7 +96,9 @@ public class Strategy extends AbstractStrategy {
 
         float correct = (float) correctLaws.size() / (float)(correctLaws.size() + incorrectLaws.size());
         // Получить граф вопросов и типичных ошибок к ним
-        HashMap<String, LawNode> tree = getTree();
+        ExerciseEntity exercise = exerciseAttempt.getExercise();
+        Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
+        HashMap<String, LawNode> tree = getTree(domain);
         LawNode currentNode = tree.get(qe.getQuestionText());
         // Если верно примененных законов в текущем вопросе достаточно (не менее 90%), то берется вопрос из больших
         if(correct > 0.9){
@@ -431,7 +435,16 @@ public class Strategy extends AbstractStrategy {
         return trueCount/(trueCount + falseCount);
     }
 
-    public HashMap<String, LawNode> getTree(){
+    public HashMap<String, LawNode> getTree(Domain de)
+    {
+        if(de instanceof ProgrammingLanguageExpressionDomain) {
+            return getTree0();
+        }else
+        {
+            return getTree1();
+        }
+    }
+    public HashMap<String, LawNode> getTree0(){
         HashMap<String, LawNode> result = new HashMap<>();
 
         result.put("a + b [ c + d ] + e", new LawNode("a + b [ c + d ] + e",
@@ -571,6 +584,812 @@ public class Strategy extends AbstractStrategy {
 
         return result;
     }
+
+    public HashMap<String, LawNode> getTree1(){
+        HashMap<String, LawNode> result = new HashMap<>();
+
+
+        result.put("seq1", new LawNode("seq1",
+                new ArrayList<>(Arrays.asList("DuplicateOfAct")),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5", "alt_i1", "alt_iaa1", "alt_i0",
+                        "alt_iaa0", "alt_ii", "alt_iiaa", "alt_iii_111", "alt_iiiaa_110",
+                        "alt_iii_10", "alt_ie1", "alt_ie0", "alt_11", "alt_1", "alt_00", "alt_ieie_c_1",
+                        "alt_ieie_c_01", "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001",
+                        "alt_ieix7e_c_00001", "alt_ieie_c_0000001")),
+                new ArrayList<>()));
+
+        List<String>lows = Arrays.asList("DuplicateOfAct", "TooEarlyInSequence", "TooLateInSequence");
+
+        List<String>parents = Arrays.asList("while_10", "while_110", "while_2_0", "while_2_10",
+                "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                "while_while_11100", "while_while_110100", "while_while_aa_110100", "do_0", "do_10");
+
+        result.put("seq2", new LawNode("seq2",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("seq3", new LawNode("seq3",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("seq5", new LawNode("seq5",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "ConditionAfterBranch",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "LastFalseNoEnd",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch");
+        parents = Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00");
+
+        result.put("alt_i1", new LawNode("alt_i1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_iaa1", new LawNode("alt_iaa1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_i0", new LawNode("alt_i0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_iaa0", new LawNode("alt_iaa0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_ii", new LawNode("alt_ii",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_iiaa", new LawNode("alt_iiaa",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+
+        result.put("alt_iii_111", new LawNode("alt_iii_111",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_iii_110", new LawNode("alt_iii_110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+
+        result.put("alt_iiiaa_110", new LawNode("alt_iiiaa_110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_iii_10", new LawNode("alt_iii_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "ElseBranchAfterTrueCondition",
+                "ConditionAfterBranch",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "LastConditionIsFalseButNoElse");
+
+        parents = Arrays.asList("alt_11",
+                "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                "alt_ieix7e_c_0000001", "do2ie_10", "do2ie_1100");
+
+        result.put("alt_ie1", new LawNode("alt_ie1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        result.put("alt_ie0", new LawNode("alt_ie0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq1"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "ElseBranchNotNextToLastCondition",
+                "ElseBranchAfterTrueCondition",
+                "CondtionNotNextToPrevCondition",
+                "ConditionTooEarly",
+                "ConditionTooLate",
+                "ConditionAfterBranch",
+                "DuplicateOfCondition",
+                "NoNextCondition",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "LastConditionIsFalseButNoElse");
+        parents = Arrays.asList("ido_eiwh_e_0",
+                "ido_eiwh_e_110", "ido_eiwh_e_1110", "ido_eiwh_e_1010", "ido_eiwh_e_10110", "ido_eiwh_e_100");
+
+        result.put("alt_11", new LawNode("alt_11",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+
+        result.put("alt_1", new LawNode("alt_1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_00", new LawNode("alt_00",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieie_c_1", new LawNode("alt_ieie_c_1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieie_c_01", new LawNode("alt_ieie_c_01",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieie_c_00", new LawNode("alt_ieie_c_00",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieix7e_c_00", new LawNode("alt_ieix7e_c_00",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieix7e_c_1", new LawNode("alt_ieix7e_c_1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieix7e_c_001", new LawNode("alt_ieix7e_c_001",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieix7e_c_00001", new LawNode("alt_ieix7e_c_00001",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+        result.put("alt_ieix7e_c_0000001", new LawNode("alt_ieix7e_c_0000001",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "seq1"))));
+
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "ElseBranchAfterTrueCondition",
+                "ConditionAfterBranch",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "LastConditionIsFalseButNoElse",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotIteration",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+
+        parents = Arrays.asList("ido_ewh_10", "ido_ewh_00", "ido_ewh_010");
+
+        result.put("do2ie_10", new LawNode("do2ie_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0"))));
+
+        result.put("do2ie_1100", new LawNode("do2ie_1100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0"))));
+
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "ElseBranchAfterTrueCondition",
+                "ConditionAfterBranch",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "LastConditionIsFalseButNoElse",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotCondition",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+
+        parents = Arrays.asList("ido_ewh_10", "ido_ewh_00", "ido_ewh_010");
+
+        result.put("wie_100", new LawNode("wie_100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "while_10", "while_110", "while_2_0", "while_2_10",
+                        "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                        "while_while_11100", "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("wie_110", new LawNode("wie_110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "while_10", "while_110", "while_2_0", "while_2_10",
+                        "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                        "while_while_11100", "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("wie_0", new LawNode("wie_0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_ie1", "alt_ie0", "while_10", "while_110", "while_2_0", "while_2_10",
+                        "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                        "while_while_11100", "while_while_110100", "while_while_aa_110100"))));
+
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotCondition",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+        parents = Arrays.asList("wie_100", "wie_110", "wie_0", "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0");
+
+        result.put("while_10", new LawNode("while_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_110", new LawNode("while_110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_2_0", new LawNode("while_2_0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_2_10", new LawNode("while_2_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_2_110", new LawNode("while_2_110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_0", new LawNode("while_while_0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_100", new LawNode("while_while_100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_1100", new LawNode("while_while_1100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_aa_1100", new LawNode("while_while_aa_1100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_11100", new LawNode("while_while_11100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_110100", new LawNode("while_while_110100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("while_while_aa_110100", new LawNode("while_while_aa_110100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotCondition",
+                "LoopStartIsNotIteration",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+        parents = Arrays.asList("ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "ido_eiwh_e_0",
+                "ido_eiwh_e_110", "ido_eiwh_e_1110", "ido_eiwh_e_1010", "ido_eiwh_e_10110", "ido_eiwh_e_100");
+
+        result.put("do_then_w_100", new LawNode("do_then_w_100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do_0", "do_10", "while_10", "while_110", "while_2_0", "while_2_10",
+                        "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                        "while_while_11100", "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("do_then_w_010", new LawNode("do_then_w_010",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do_0", "do_10", "while_10", "while_110", "while_2_0", "while_2_10",
+                        "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                        "while_while_11100", "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("do_then_w_0110", new LawNode("do_then_w_0110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do_0", "do_10", "while_10", "while_110", "while_2_0", "while_2_10",
+                        "while_2_110", "while_while_0", "while_while_100", "while_while_1100", "while_while_aa_1100",
+                        "while_while_11100", "while_while_110100", "while_while_aa_110100"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotIteration",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+        parents = Arrays.asList("do_then_w_100", "do_then_w_010", "do_then_w_0110");
+
+        result.put("do_0", new LawNode("do_0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        result.put("do_10", new LawNode("do_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("seq2", "seq3", "seq5"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "CondtionNotNextToPrevCondition",
+                "ConditionTooEarly",
+                "ConditionTooLate",
+                "ConditionAfterBranch",
+                "DuplicateOfCondition",
+                "NoNextCondition",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "LastFalseNoEnd",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch");
+        parents = Arrays.asList("wiei_1010", "wiei_1100", "wiei_1000", "wiei_0", "do2_10", "do2_11000", "do2_11010");
+
+        result.put("alt_iei_c_1", new LawNode("alt_iei_c_1",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_i1", "alt_iaa1", "alt_i0", "alt_iaa0", "alt_ii",
+                        "alt_iiaa", "alt_iii_111", "alt_iii_110", "alt_iiiaa_110", "alt_iii_10"))));
+
+        result.put("alt_iei_c_01", new LawNode("alt_iei_c_01",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_i1", "alt_iaa1", "alt_i0", "alt_iaa0", "alt_ii",
+                        "alt_iiaa", "alt_iii_111", "alt_iii_110", "alt_iiiaa_110", "alt_iii_10"))));
+
+        result.put("alt_iei_c_00", new LawNode("alt_iei_c_00",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_i1", "alt_iaa1", "alt_i0", "alt_iaa0", "alt_ii",
+                        "alt_iiaa", "alt_iii_111", "alt_iii_110", "alt_iiiaa_110", "alt_iii_10"))));
+
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "CondtionNotNextToPrevCondition",
+                "ConditionTooEarly",
+                "ConditionTooLate",
+                "ConditionAfterBranch",
+                "DuplicateOfCondition",
+                "NoNextCondition",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "LastFalseNoEnd",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotCondition",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+        parents = Arrays.asList("ido_eiwh_e_0",
+                "ido_eiwh_e_110", "ido_eiwh_e_1110", "ido_eiwh_e_1010", "ido_eiwh_e_10110", "ido_eiwh_e_100");
+
+        result.put("wiei_1010", new LawNode("wiei_1010",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00",
+                        "while_10", "while_110",
+                        "while_2_0", "while_2_10", "while_2_110", "while_while_0", "while_while_100",
+                        "while_while_1100", "while_while_aa_1100", "while_while_11100",
+                        "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("wiei_1100", new LawNode("wiei_1100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00",
+                        "while_10", "while_110",
+                        "while_2_0", "while_2_10", "while_2_110", "while_while_0", "while_while_100",
+                        "while_while_1100", "while_while_aa_1100", "while_while_11100",
+                        "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("wiei_1000", new LawNode("wiei_1000",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00",
+                        "while_10", "while_110",
+                        "while_2_0", "while_2_10", "while_2_110", "while_while_0", "while_while_100",
+                        "while_while_1100", "while_while_aa_1100", "while_while_11100",
+                        "while_while_110100", "while_while_aa_110100"))));
+
+        result.put("wiei_0", new LawNode("wiei_0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00",
+                        "while_10", "while_110",
+                        "while_2_0", "while_2_10", "while_2_110", "while_while_0", "while_while_100",
+                        "while_while_1100", "while_while_aa_1100", "while_while_11100",
+                        "while_while_110100", "while_while_aa_110100"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "CondtionNotNextToPrevCondition",
+                "ConditionTooEarly",
+                "ConditionTooLate",
+                "ConditionAfterBranch",
+                "DuplicateOfCondition",
+                "NoNextCondition",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "LastFalseNoEnd",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotIteration",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+
+        result.put("do2_10", new LawNode("do2_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00"))));
+
+        result.put("do2_11000", new LawNode("do2_11000",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00"))));
+
+        result.put("do2_11010", new LawNode("do2_11010",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("alt_iei_c_1", "alt_iei_c_01", "alt_iei_c_00"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "ElseBranchAfterTrueCondition",
+                "ConditionAfterBranch",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "LastConditionIsFalseButNoElse",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotCondition",
+                "LoopStartIsNotIteration",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+
+
+        result.put("ido_ewh_10", new LawNode("ido_ewh_10",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "wie_100", "wie_110", "wie_0", "do2ie_10", "do2ie_1100"))));
+
+        result.put("ido_ewh_00", new LawNode("ido_ewh_00",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "wie_100", "wie_110", "wie_0", "do2ie_10", "do2ie_1100"))));
+
+        result.put("ido_ewh_010", new LawNode("ido_ewh_010",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "wie_100", "wie_110", "wie_0", "do2ie_10", "do2ie_1100"))));
+
+        lows = Arrays.asList("CorrespondingEndMismatched",
+                "EndedDeeper",
+                "EndedShallower",
+                "WrongContext",
+                "OneLevelShallower",
+                "TooEarlyInSequence",
+                "TooLateInSequence",
+                "SequenceFinishedTooEarly",
+                "SequenceFinishedNotInOrder",
+                "DuplicateOfAct",
+                "NoFirstCondition",
+                "BranchNotNextToCondition",
+                "ElseBranchNotNextToLastCondition",
+                "ElseBranchAfterTrueCondition",
+                "CondtionNotNextToPrevCondition",
+                "ConditionTooEarly",
+                "ConditionTooLate",
+                "ConditionAfterBranch",
+                "DuplicateOfCondition",
+                "NoNextCondition",
+                "BranchOfFalseCondition",
+                "AnotherExtraBranch",
+                "BranchWithoutCondition",
+                "NoBranchWhenConditionIsTrue",
+                "LastFalseNoEnd",
+                "AlternativeEndAfterTrueCondition",
+                "NoAlternativeEndAfterBranch",
+                "LastConditionIsFalseButNoElse",
+                "NoIterationAfterSuccessfulCondition",
+                "LoopEndAfterSuccessfulCondition",
+                "NoLoopEndAfterFailedCondition",
+                "LoopEndsWithoutCondition",
+                "LoopStartIsNotCondition",
+                "LoopStartIsNotIteration",
+                "LoopContinuedAfterFailedCondition",
+                "IterationAfterFailedCondition",
+                "NoConditionAfterIteration",
+                "NoConditionBetweenIterations");
+
+
+        result.put("ido_eiwh_e_0", new LawNode("ido_eiwh_e_0",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do2_10", "do2_11000", "do2_11010",
+                        "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0",
+                        "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "alt_11",
+                        "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                        "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                        "alt_ieix7e_c_0000001"))));
+
+        result.put("ido_eiwh_e_110", new LawNode("ido_eiwh_e_110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do2_10", "do2_11000", "do2_11010",
+                        "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0",
+                        "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "alt_11",
+                        "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                        "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                        "alt_ieix7e_c_0000001"))));
+
+        result.put("ido_eiwh_e_1110", new LawNode("ido_eiwh_e_1110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do2_10", "do2_11000", "do2_11010",
+                        "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0",
+                        "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "alt_11",
+                        "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                        "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                        "alt_ieix7e_c_0000001"))));
+
+        result.put("ido_eiwh_e_1010", new LawNode("ido_eiwh_e_1010",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do2_10", "do2_11000", "do2_11010",
+                        "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0",
+                        "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "alt_11",
+                        "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                        "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                        "alt_ieix7e_c_0000001"))));
+
+        result.put("ido_eiwh_e_10110", new LawNode("ido_eiwh_e_10110",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do2_10", "do2_11000", "do2_11010",
+                        "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0",
+                        "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "alt_11",
+                        "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                        "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                        "alt_ieix7e_c_0000001"))));
+
+        result.put("ido_eiwh_e_100", new LawNode("ido_eiwh_e_100",
+                new ArrayList<>(lows),
+                new ArrayList<>(parents),
+                new ArrayList<>(Arrays.asList("do2_10", "do2_11000", "do2_11010",
+                        "wiei_1010", "wiei_1100", "wiei_1000", "wiei_0",
+                        "do_then_w_100", "do_then_w_010", "do_then_w_0110",
+                        "ido_ewh_10", "ido_ewh_00", "ido_ewh_010", "alt_11",
+                        "alt_1", "alt_00", "alt_ieie_c_1", "alt_ieie_c_01", "alt_ieie_c_00",
+                        "alt_ieix7e_c_00", "alt_ieix7e_c_1", "alt_ieix7e_c_001", "alt_ieix7e_c_00001",
+                        "alt_ieix7e_c_0000001"))));
+
+        return result;
+    }
+
 
     class LawNode {
         public String getNodeName() {
