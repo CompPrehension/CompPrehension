@@ -3737,5 +3737,72 @@
     "tags": [
       {"name": "precedence_type"}
     ]
+  },
+  {
+    "name": "error_higher_precedence_right",
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "precedence"},
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_higher_precedence_left",
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "precedence"},
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_same_precedence_left_associativity_left",
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_same_precedence_right_associativity_right",
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_student_error_in_complex",
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "two_token"},
+      {"name": "precedence"},
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_student_error_strict_operands_order_base",
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "operator_evaluating_left_operand_first"},
+    ],
+    "tags": [
+    ]
   }
 ]
