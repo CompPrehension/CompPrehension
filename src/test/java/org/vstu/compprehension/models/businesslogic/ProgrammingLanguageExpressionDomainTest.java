@@ -139,6 +139,12 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("associativity"),
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
+        qr.setTargetLaws(List.of(
+                domain.getNegativeLaw("error_higher_precedence_right")
+        ));
+        qr.setDeniedLaws(List.of(
+                domain.getNegativeLaw("error_base_student_error_strict_operands_order_base")
+        ));
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question.getQuestionText().getText());
 
