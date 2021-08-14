@@ -175,7 +175,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public List<Concept> getLawConcepts(Law law) {
-        return null;
+        return law.getConcepts();
     }
 
     @Override
