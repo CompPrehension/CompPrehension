@@ -74,7 +74,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
 
     return (
         <div>
-            <div dangerouslySetInnerHTML={{ __html: question.text }} />
+            <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             <Optional isVisible={isTraceVisible}>
                 <p>
                     <table className="comp-ph-trace">

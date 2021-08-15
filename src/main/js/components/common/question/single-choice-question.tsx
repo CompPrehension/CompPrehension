@@ -35,7 +35,7 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
     return (
         <div>
             <p>
-                <div dangerouslySetInnerHTML={{ __html: question.text }} />
+                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             </p>
             <p className="d-flex flex-column">                
                 {question.answers.map(a => 
@@ -105,7 +105,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     return (
         <div>
             <p>
-                <div dangerouslySetInnerHTML={{ __html: question.text }} />
+                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             </p>            
         </div>
     );
