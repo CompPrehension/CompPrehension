@@ -2,6 +2,7 @@ package org.vstu.compprehension.controllers;
 
 import lombok.val;
 import lombok.var;
+import org.apache.jena.shared.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,10 +13,12 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.question.QuestionDto;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Controller
 @RequestMapping("basic")
@@ -26,6 +29,9 @@ public class BasicExerciseController implements ExerciseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ExerciseRepository exerciseRepository;
 
     @Override
     public String launch(Long exerciseId, HttpServletRequest request) throws Exception {
@@ -89,9 +95,11 @@ public class BasicExerciseController implements ExerciseController {
 
         val user = getCurrentUser(request);
         val exerciseId = (Long)session.getAttribute("exerciseId");
+        val exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NotFoundException("exercise"));
         val sessionInfo = SessionInfoDto.builder()
                 .sessionId(session.getId())
-                .exerciseId(exerciseId)
+                .exercise(new ExerciseInfoDto(exerciseId, exercise.getOptions()))
                 .user(user)
                 .language("EN")
                 .build();

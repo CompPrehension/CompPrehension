@@ -3,6 +3,7 @@ package org.vstu.compprehension.controllers;
 
 import lombok.var;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.jena.shared.NotFoundException;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.*;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +32,9 @@ public class LtiExerciseController extends BasicExerciseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ExerciseRepository exerciseRepository;
 
     @RequestMapping(value = {"/pages/exercise" }, method = { RequestMethod.POST })
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> params) throws Exception {
@@ -91,11 +96,13 @@ public class LtiExerciseController extends BasicExerciseController {
             throw new Exception("Couldn't get session info");
         }
         val exerciseId = (Long)session.getAttribute("exerciseId");
+        val exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NotFoundException("exercise"));
         val user = getCurrentUser(request);
         val language = ltiParams.getOrDefault("launch_presentation_locale", "EN").toUpperCase();
         val sessionInfo = SessionInfoDto.builder()
                 .sessionId(session.getId())
-                .exerciseId(exerciseId)
+                .exercise(new ExerciseInfoDto(exerciseId, exercise.getOptions()))
                 .user(user)
                 .language(language)
                 .build();

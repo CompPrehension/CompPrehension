@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -223,7 +224,7 @@ public class Strategy extends AbstractStrategy {
     }
 
     @NotNull
-    private QuestionRequest getQuestionRequest(ExerciseAttemptEntity exerciseAttempt, LawNode nextNode) {
+    private QuestionRequest getQuestionRequest(@NotNull ExerciseAttemptEntity exerciseAttempt, @Nullable LawNode nextNode) {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttempt(exerciseAttempt);
         ExerciseEntity exercise = exerciseAttempt.getExercise();
@@ -238,7 +239,7 @@ public class Strategy extends AbstractStrategy {
         List<Law> targetLaws = new ArrayList<>();
 
         for (Law l : laws) {
-            if(nextNode.currentLows.contains(l.name)){
+            if(nextNode != null && nextNode.currentLows.contains(l.name)){
                 targetLaws.add(l);
             }
         }
@@ -247,7 +248,7 @@ public class Strategy extends AbstractStrategy {
         ArrayList<Concept> concepts = new ArrayList<>(domain.getConcepts());
         ArrayList<Concept> targetConcepts = new ArrayList<>();
         for (Concept c : concepts) {
-            if(nextNode.currentLows.contains(c.getName())){
+            if(nextNode != null && nextNode.currentLows.contains(c.getName())){
                 targetConcepts.add(c);
             }
         }
