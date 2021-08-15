@@ -48,10 +48,7 @@ public class UserService {
         entity.setRoles(fromLtiRoles(roles));
         entity.setExternalId(externalId);
 
-        if (entity.getId() == null) {
-            return userRepository.save(entity);
-        }
-        return entity;
+        return userRepository.save(entity);
     }
 
 
@@ -83,23 +80,20 @@ public class UserService {
         entity.setRoles(fromLtiRoles(roles));
         entity.setExternalId(externalId);
 
-        if (entity.getId() == null) {
-            return userRepository.save(entity);
-        }
-        return entity;
+        return userRepository.save(entity);
     }
 
     private List<Role> fromLtiRoles(List<String> roles) {
         if (roles.contains("Administrator")) {
-            return Arrays.asList(Role.values().clone());
+            return new ArrayList<>(Arrays.asList(Role.values().clone()));
         }
 
         val teacherRoles = Arrays.asList("Instructor", "TeachingAssistant", "ContentDeveloper", "Mentor");
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
-            return Arrays.asList(Role.TEACHER, Role.STUDENT);
+            return new ArrayList<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
         }
 
-        return Arrays.asList(Role.STUDENT);
+        return new ArrayList<>(Arrays.asList(Role.STUDENT));
     }
 
     public UserEntity getUserByEmail(String email){
