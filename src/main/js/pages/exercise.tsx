@@ -9,11 +9,12 @@ import { container } from "tsyringe";
 import { ExerciseStore } from "../stores/exercise-store";
 import { CurrentQuestion } from "../components/exercise/current-question";
 import { Optional } from "../components/common/optional";
+import { useTranslation } from "react-i18next";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    type State = 'INITIAL' | 'MODAL' | 'EXERCISE';
-    const [state, setState] = useState<State>('INITIAL');
+    const [state, setState] = useState<'INITIAL' | 'MODAL' | 'EXERCISE'>('INITIAL');
+    const { t } = useTranslation();
 
     // on first render
     useEffect(() => {
@@ -61,18 +62,18 @@ export const Exercise = observer(() => {
             </Optional>
             <Optional isVisible={state === 'MODAL'}>
                 <Modal  type={'DIALOG'}
-                        title={"Found existing attempt"}
-                        primaryBtnTitle="Continue"
+                        title={t('foundExisitingAttempt_title')}
+                        primaryBtnTitle={t('foundExisitingAttempt_continueattempt')}
                         handlePrimaryBtnClicked={() => {
                             setState('EXERCISE');
                             loadQuestion();
                         }}
-                        secondaryBtnTitle="New"
+                        secondaryBtnTitle={t('foundExisitingAttempt_newattempt')}
                         handleSecondaryBtnClicked={() => {
                             setState('EXERCISE');
                             createAttemptAndLoadQuestion();
                         }}>
-                    <p>Would you like to continue the existing attempt or start a new one?</p>
+                    <p>{t('foundExisitingAttempt_descr')}?</p>
                 </Modal>
             </Optional>
         </LoadingWrapper>

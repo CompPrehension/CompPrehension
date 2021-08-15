@@ -43,7 +43,7 @@ export const Question = observer((props: QuestionOptions) => {
 
 const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
     const { feedback, isFeedbackLoading, isFeedbackVisible, isQuestionLoading, question } = store;
-    const { t } = useTranslation();
+    const {t} = useTranslation();
 
     if (isFeedbackLoading) {
         return <Loader />;
