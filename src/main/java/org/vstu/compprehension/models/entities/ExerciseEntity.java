@@ -97,9 +97,6 @@ public class ExerciseEntity {
     private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<UserActionExerciseEntity> userActionExercises;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseLawsEntity> exerciseLaws;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)

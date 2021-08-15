@@ -54,11 +54,6 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private List<Role> roles;
 
-
-    @ToString.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserActionEntity> userActions;
-
     @ToString.Exclude
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
