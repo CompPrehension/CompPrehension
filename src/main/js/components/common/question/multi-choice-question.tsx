@@ -47,7 +47,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
     return (
         <div>
             <p>
-                <div dangerouslySetInnerHTML={{ __html: question.text }} />
+                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             </p>
             <p className="d-flex flex-column">                
                 {question.answers.map(a => 
@@ -120,7 +120,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
     return (
         <div>
             <p>
-                <div dangerouslySetInnerHTML={{ __html: question.text }} />
+                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             </p>            
         </div>
     );

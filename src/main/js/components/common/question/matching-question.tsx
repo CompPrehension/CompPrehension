@@ -91,11 +91,10 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
     return (
         <div>
             <div className="row">
-                <div className="col-md">
-                    <p className="comp-ph-droppable-container" dangerouslySetInnerHTML={{ __html: question.text }} />
+                <div className="col-md">                    
                     {
                         !options.requireContext
-                            ? <p className="d-flex flex-column comp-ph-droppable-container">
+                            ? <p className="d-flex flex-column comp-ph-droppable-container comp-ph-question-text">
                                 {question.answers.map(a =>
                                     <div className="d-flex flex-row mb-3">
                                         <div className="mr-2 mt-1">
@@ -104,7 +103,7 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
                                         <div dangerouslySetInnerHTML={{ __html: a.text}}></div>
                                     </div>)}
                             </p>
-                            : null
+                            : <p className="comp-ph-droppable-container comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
                     }
                 </div>
                 <div className="col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column">
@@ -129,8 +128,7 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
     const groupsMaxLength = groups.reduce((len, g) => g.text.length > len ? g.text.length : len, 0);
     return (
         <div>
-            <p className="mb-5" dangerouslySetInnerHTML={{ __html: question.text }}>                
-            </p>
+            <p className="mb-5 comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />            
             <div>
                 {question.answers.map(asw => 
                     <div className="row mb-3">
@@ -191,7 +189,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
 
     return (
         <div>
-            <p dangerouslySetInnerHTML={{ __html: question.text }} />
+            <p className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
         </div>
     );
 });
