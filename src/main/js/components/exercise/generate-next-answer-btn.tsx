@@ -8,10 +8,13 @@ import { ExerciseStore } from "../../stores/exercise-store";
 
 export const GenerateNextAnswerBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    if (!exerciseStore.sessionInfo?.exercise.options.correctAnswerGenerationEnabled) {
+        return null;
+    }
+    
     const onClicked = () => {
         exerciseStore.currentQuestion.generateNextCorrectAnswer();
     };
-
     const { sessionInfo, currentAttempt } = exerciseStore;
     const { question } = exerciseStore.currentQuestion;
     if (!question || !sessionInfo || !currentAttempt) {

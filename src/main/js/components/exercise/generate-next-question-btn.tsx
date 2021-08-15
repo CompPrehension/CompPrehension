@@ -8,10 +8,13 @@ import { ExerciseStore } from "../../stores/exercise-store";
 
 export const GenerateNextQuestionBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    if (!exerciseStore.sessionInfo?.exercise.options.newQuestionGenerationEnabled) {
+        return null;
+    }
+
     const onClicked = () => {
         exerciseStore.generateQuestion();
     };
-
     const { sessionInfo, currentAttempt } = exerciseStore;
     const { question } = exerciseStore.currentQuestion;
     if (!question || !sessionInfo || !currentAttempt) {

@@ -15,6 +15,10 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
     const [questionStore] = useState(() => container.resolve(QuestionStore));
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isAllVisible, setAllVisible] = useState(true);
+    if (!exerciseStore.sessionInfo?.exercise.options.supplementaryQuestionsEnabled) {
+        return null;
+    }
+
     const onClicked = async () => {        
         setIsModalVisible(true);
         if (!exerciseStore.currentAttempt?.attemptId || !violationLaws.length || !exerciseStore.currentQuestion.question) {
