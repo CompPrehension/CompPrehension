@@ -54,28 +54,9 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private List<Role> roles;
 
-
-    @ToString.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserActionEntity> userActions;
-
-    @ToString.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserCourseRoleEntity> userCourseRoles;
-
     @ToString.Exclude
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
-
-
-    @ToString.Exclude
-    @ManyToMany()
-    @LazyCollection(LazyCollectionOption.FALSE)
-    @JoinTable(
-            name = "UserGroup",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "group_id", referencedColumnName = "id"))
-    private List<GroupEntity> groups;
 
     @ToString.Exclude
     @ManyToMany(fetch = FetchType.LAZY)

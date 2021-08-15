@@ -71,12 +71,6 @@ public class ExerciseEntity {
     @Enumerated(EnumType.ORDINAL)
     private Language language;
 
-
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private CourseEntity course;
-
     @ManyToOne
     @JoinColumn(name = "backend_id", nullable = false)
     private BackendEntity backend;
@@ -91,13 +85,7 @@ public class ExerciseEntity {
     private List<AdditionalFieldEntity> additionalFields;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseDisplayingFeedbackTypeEntity> exerciseDisplayingFeedbackTypes;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<UserActionExerciseEntity> userActionExercises;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseLawsEntity> exerciseLaws;
