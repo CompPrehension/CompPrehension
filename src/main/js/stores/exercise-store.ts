@@ -1,5 +1,5 @@
 import { action, makeObservable, observable, runInAction, toJS } from "mobx";
-import { IExerciseController } from "../controllers/exercise/exercise-controller";
+import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseAttempt } from "../types/exercise-attempt";
 import { SessionInfo } from "../types/session-info";
@@ -14,7 +14,7 @@ export class ExerciseStore {
     @observable currentQuestion: QuestionStore;
 
     constructor(
-        @inject("ExerciseController") private readonly exerciseController: IExerciseController,
+        @inject(ExerciseController) private readonly exerciseController: IExerciseController,
         @inject(QuestionStore) currentQuestion: QuestionStore
     ) {
         this.currentQuestion = currentQuestion;

@@ -6,8 +6,14 @@ import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 public interface ExerciseController {
+
+    @RequestMapping(value = {"/getExercises"}, method = { RequestMethod.GET })
+    @ResponseBody
+    List<Long> getExercises(HttpServletRequest request) throws Exception;
+
     /**
      * Get existing exercise attempt for current user
      * @param exerciseId Exercise id

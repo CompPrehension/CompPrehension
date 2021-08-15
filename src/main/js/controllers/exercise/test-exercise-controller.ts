@@ -241,4 +241,8 @@ export class TestExerciseController implements IExerciseController {
         console.log(`getExerciseStatistics?exerciseId=${exerciseId}`);
         return E.left({ message:"Method not implemented."});
     }
+    async getExercises(): PromiseEither<RequestError, number[]> {
+        console.log(`getExercises`);
+        return E.left({ message: "Method not implemented."});;
+    }
 }
