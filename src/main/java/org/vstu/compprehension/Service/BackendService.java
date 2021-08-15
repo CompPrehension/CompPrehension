@@ -1,12 +1,12 @@
 package org.vstu.compprehension.Service;
 
-import org.vstu.compprehension.Exceptions.NotFoundEx.BackendNFException;
 import org.vstu.compprehension.models.repository.BackendRepository;
 import org.vstu.compprehension.models.entities.BackendEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 @Service
 public class BackendService {
@@ -18,10 +18,10 @@ public class BackendService {
     }
     
     public BackendEntity getDefaultBackend() {
-
         Iterator<BackendEntity> iterator = backendRepository.findAll().iterator();
-        if (iterator.hasNext()) { return iterator.next(); }
-        else { throw new BackendNFException("В базе нет backend-а по умолчанию"); }
-        
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+        throw new NoSuchElementException("В базе нет backend-а по умолчанию");
     }
 }

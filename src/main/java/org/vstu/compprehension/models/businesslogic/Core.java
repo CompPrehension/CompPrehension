@@ -1,5 +1,4 @@
 package org.vstu.compprehension.models.businesslogic;
-import org.vstu.compprehension.Exceptions.NotFoundEx.DomainNFException;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
@@ -7,6 +6,7 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class Core {
     
@@ -30,33 +30,9 @@ public class Core {
     public Domain getDomain(String domainId) {
         
         if (!domainMap.containsKey(domainId)) {
-            
-            throw new DomainNFException("Domain with id: " + domainId + "Not Found");
+            throw new NoSuchElementException("Domain with id: " + domainId + "Not Found");
         }
         
         return domainMap.get(domainId);
     }
-    
-    /*public void saveExercise(Exercise ex) {
-        
-        //Проверяем, есть ли у упражнения id
-        //Записываем упражнение в базу
-        //Если у упражнения был id
-            //Создаем в базе действие: упражнение было отредактировано
-        //Иначе
-            //Создаем в базе действие: упражнение было создано
-    }*/
-    
-    /*public ExerciseAttempt startExerciseAttempt(long exerciseId, long userId, FrontEndInfo frontEndInfo) {
-        
-        //Создаем в базе сущность ExerciseAttempt
-        
-        return null;
-    }*/
-    
-    /*public void receiveResponse(long att_id, Response resp) {
-        
-    }*/    
-    
-    
 }

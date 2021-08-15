@@ -4,15 +4,12 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.CourseRole;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
-import org.vstu.compprehension.Exceptions.NotFoundEx.UserNFException;
 import org.vstu.compprehension.models.repository.UserRepository;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -97,40 +94,24 @@ public class UserService {
     }
 
     public UserEntity getUserByEmail(String email){
-        try{
-            return userRepository.findUserByEmail(email).orElseThrow(()->
-                    new UserNFException("User with email: " + email + "Not Found"));
-        }catch (Exception e){
-            throw new UserNFException("Failed translation DB-user to Model-user", e);
-        }
+        return userRepository.findUserByEmail(email).orElseThrow(()->
+                new NoSuchElementException("User with email: " + email + " not Found"));
     }
     
     public UserEntity getUserByLogin(String login) {
-        try{
-            return userRepository.findUserByLogin(login).orElseThrow(()->
-                    new UserNFException("User with login: " + login + "Not Found"));
-        } catch (Exception e){
-            throw new UserNFException("Failed translation DB-user to Model-user", e);
-        }
+        return userRepository.findUserByLogin(login).orElseThrow(()->
+                new NoSuchElementException("User with login: " + login + " not Found"));
     }
 
 
     public UserEntity getUser(long userId) {
-        try {  
-            return userRepository.findById(userId).orElseThrow(()->
-                    new UserNFException("User with id: " + userId + "Not Found"));
-        } catch (Exception e){
-            throw new UserNFException("Failed translation DB-user to Model-user", e);
-        }
+        return userRepository.findById(userId).orElseThrow(()->
+                new NoSuchElementException("User with id: " + userId + " not Found"));
     }
 
     public UserEntity getUser(String login) {
-        try {
-            return userRepository.findUserByLogin(login).orElseThrow(()->
-                    new UserNFException("User with login: " + login + "Not Found"));
-        } catch (Exception e){
-            throw new UserNFException("Failed translation DB-user to Model-user", e);
-        }
+        return userRepository.findUserByLogin(login).orElseThrow(()->
+                new NoSuchElementException("User with login: " + login + " not Found"));
     }
 
     /**

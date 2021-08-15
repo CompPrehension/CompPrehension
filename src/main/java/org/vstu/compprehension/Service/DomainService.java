@@ -1,12 +1,12 @@
 package org.vstu.compprehension.Service;
 
-import org.vstu.compprehension.Exceptions.NotFoundEx.DomainNFException;
-import org.vstu.compprehension.Exceptions.NotFoundEx.UserNFException;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 @Service
 public class DomainService {
@@ -31,12 +31,8 @@ public class DomainService {
     }
 
     public DomainEntity getDomainEntity(String domainName) {
-        try {
-            return domainRepository.findById(domainName).orElseThrow(()->
-                    new DomainNFException("Domain with id: " + domainName + "Not Found"));
-        }catch (Exception e){
-            throw new UserNFException("Failed translation DB-domain to Model-domain", e);
-        }
+        return domainRepository.findById(domainName).orElseThrow(() ->
+                    new NoSuchElementException("Domain with id: " + domainName + " not Found"));
     }
 
     @Autowired

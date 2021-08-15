@@ -1,19 +1,16 @@
 package org.vstu.compprehension.Service;
 
-import org.vstu.compprehension.Exceptions.NotFoundEx.CourseNFException;
-import org.vstu.compprehension.Exceptions.NotFoundEx.UserNFException;
 import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.entities.CourseEntity;
 import org.vstu.compprehension.models.entities.EnumData.CourseRole;
 import org.vstu.compprehension.models.entities.ExerciseEntity;
-import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.UserCourseRoleEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class CourseService {
@@ -37,12 +34,8 @@ public class CourseService {
      * @return - информация о курсе
      */
     public CourseEntity getCourse(long courseId) {
-        try {
-            return courseRepository.findById(courseId).orElseThrow(()->
-                    new CourseNFException("Course with id: " + courseId + "Not Found"));
-        }catch (Exception e){
-            throw new UserNFException("Failed translation DB-course to Model-course", e);
-        }    
+        return courseRepository.findById(courseId).orElseThrow(()->
+                new NoSuchElementException("Course with id: " + courseId + " not Found"));
     }
 
     /**
