@@ -47,7 +47,7 @@ export class ExerciseStore {
             throw new Error("Session is not defined");
         }
        
-        const exerciseId = sessionInfo.exerciseId;
+        const exerciseId = sessionInfo.exercise.id;
         const resultEither = await this.exerciseController.getExistingExerciseAttempt(exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 
@@ -69,7 +69,7 @@ export class ExerciseStore {
             throw new Error("Session is not defined");
         }
 
-        const { exerciseId } = sessionInfo;        
+        const exerciseId = sessionInfo.exercise.id;        
         const resultEither = await this.exerciseController.createExerciseAttempt(+exerciseId);
         const result = E.getOrElseW(() => undefined)(resultEither);
 

@@ -16,7 +16,14 @@ export class TestExerciseController implements IExerciseController {
         console.log(`loadSessionInfo`);
         return E.right({
             sessionId: 'test_session',
-            exerciseId: -1,
+            exercise: {
+                id: -1,
+                options: {
+                    correctAnswerGenerationEnabled: true,
+                    newQuestionGenerationEnabled: true,
+                    supplementaryQuestionsEnabled: true,
+                },
+            },
             language: "EN",
             user: {
                 id: 999999,

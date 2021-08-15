@@ -1,6 +1,9 @@
 package org.vstu.compprehension.models.entities;
 
+import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.entities.EnumData.Complexity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
+@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class ExerciseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,6 +48,10 @@ public class ExerciseEntity {
 
     @Column(name = "tags")
     private String tags;
+
+    @Type(type = "json")
+    @Column(name = "options_json", columnDefinition = "json", nullable = false)
+    private ExerciseOptionsEntity options;
 
     public List<Tag> getTags() {
         return Arrays.stream(tags.split(","))

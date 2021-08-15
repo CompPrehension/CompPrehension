@@ -1,15 +1,16 @@
 import { TUserInfo, UserInfo } from "./user-info";
 import * as io from 'io-ts'
+import { Exercise, TExercise } from "./exercise";
 
 export type SessionInfo = {
     sessionId: string,
-    exerciseId: number,
+    exercise: Exercise,
     user: UserInfo,
     language: string,
 };
 export const TSessionInfo : io.Type<SessionInfo> = io.type({
     sessionId: io.string,
-    exerciseId: io.number,
+    exercise: TExercise,
     user: TUserInfo,
     language: io.string,
 }, 'SessionInfo');
