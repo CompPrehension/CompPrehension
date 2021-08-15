@@ -71,12 +71,6 @@ public class ExerciseEntity {
     @Enumerated(EnumType.ORDINAL)
     private Language language;
 
-
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "course_id", nullable = false)
-    private CourseEntity course;
-
     @ManyToOne
     @JoinColumn(name = "backend_id", nullable = false)
     private BackendEntity backend;
