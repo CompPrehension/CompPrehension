@@ -85,9 +85,6 @@ public class ExerciseEntity {
     private List<AdditionalFieldEntity> additionalFields;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseDisplayingFeedbackTypeEntity> exerciseDisplayingFeedbackTypes;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
