@@ -1,6 +1,6 @@
 import { action, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
-import { IExerciseController } from "../controllers/exercise/exercise-controller";
+import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import { Feedback } from "../types/feedback";
 import { Question } from "../types/question";
 import * as E from "fp-ts/lib/Either";
@@ -22,7 +22,7 @@ export class QuestionStore {
     @observable feedback?: Feedback = undefined;
     @observable question?: Question = undefined;
 
-    constructor(@inject("ExerciseController") private exerciseController: IExerciseController) {
+    constructor(@inject(ExerciseController) private exerciseController: IExerciseController) {
         makeObservable(this);        
     }
 

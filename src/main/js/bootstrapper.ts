@@ -6,9 +6,9 @@ import { ExerciseStore } from "./stores/exercise-store";
 import { QuestionStore } from "./stores/question-store";
 
 const urlParams = new URLSearchParams(window.location.search);
-const isTest = urlParams.get('istest') !== null && urlParams.get('istest') !== undefined;
+const isTest = urlParams.get('sandbox') !== null && urlParams.get('sandbox') !== undefined;
 
 // init DI container
-container.register<IExerciseController>("ExerciseController", isTest ? TestExerciseController : ExerciseController);
-container.register<QuestionStore>(QuestionStore, QuestionStore);
-container.registerSingleton<ExerciseStore>(ExerciseStore);
+container.register(ExerciseController, isTest ? TestExerciseController : ExerciseController);
+container.register(QuestionStore, QuestionStore);
+container.registerSingleton(ExerciseStore);

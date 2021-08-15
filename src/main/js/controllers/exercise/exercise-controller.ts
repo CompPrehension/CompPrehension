@@ -7,6 +7,7 @@ import { Question, TOptionalQuestion, TQuestion } from "../../types/question";
 import { SessionInfo, TSessionInfo } from "../../types/session-info";
 import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
 import { ajaxGet, ajaxPost, PromiseEither, RequestError } from "../../utils/ajax";
+import * as io from 'io-ts'
 
 
 export interface IExerciseController {
@@ -19,6 +20,7 @@ export interface IExerciseController {
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt>;
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]>;
+    getExercises(): PromiseEither<RequestError, number[]>
 }
 
 @injectable()
@@ -66,5 +68,9 @@ export class ExerciseController implements IExerciseController {
 
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
         return ajaxGet(`${ExerciseController.endpointPath}getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems)
+    }
+
+    getExercises(): PromiseEither<RequestError, number[]> {
+        return ajaxGet(`${ExerciseController.endpointPath}getExercises`, io.array(io.number));
     }
 }
