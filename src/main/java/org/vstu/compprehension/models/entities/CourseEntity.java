@@ -21,7 +21,4 @@ public class CourseEntity {
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
     private List<ExerciseEntity> exercises;
-
-    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    private List<UserCourseRoleEntity> userCourseRoles;
 }

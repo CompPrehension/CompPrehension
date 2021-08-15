@@ -61,10 +61,6 @@ public class UserEntity {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<UserCourseRoleEntity> userCourseRoles;
-
-    @ToString.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
 
 

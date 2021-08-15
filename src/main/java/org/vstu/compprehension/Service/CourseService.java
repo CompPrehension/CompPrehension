@@ -14,19 +14,11 @@ import java.util.NoSuchElementException;
 
 @Service
 public class CourseService {
-    
+    @Autowired
     private CourseRepository courseRepository;
 
     @Autowired
     private UserService userService;
-    
-    @Autowired
-    private UserCourseRoleService userCourseRoleService;
-    
-    @Autowired
-    public CourseService(CourseRepository courseRepository) {
-        this.courseRepository = courseRepository;
-    }
 
     /**
      * Получить информацию о курсе
