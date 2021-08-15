@@ -5,6 +5,7 @@ import { ExerciseAttempt } from "../types/exercise-attempt";
 import { SessionInfo } from "../types/session-info";
 import { inject, injectable } from "tsyringe";
 import { QuestionStore } from "./question-store";
+import i18next from "i18next";
 
 @injectable()
 export class ExerciseStore {
@@ -33,10 +34,17 @@ export class ExerciseStore {
         this.isSessionLoading = true;
         const dataEither = await this.exerciseController.loadSessionInfo();                                
         const data = E.getOrElseW(_ => undefined)(dataEither);
+        this.onSessionLoaded(data);        
+    }
 
+    private onSessionLoaded(sessionInfo?: SessionInfo) {
         runInAction(() => {
             this.isSessionLoading = false;
-            this.sessionInfo = data;
+            this.sessionInfo = sessionInfo;
+            
+            if (this.sessionInfo && this.sessionInfo.language !== i18next.language) {
+                i18next.changeLanguage(this.sessionInfo.language);
+            }
         });
     }
 
@@ -87,5 +95,13 @@ export class ExerciseStore {
 
         await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
         currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+    }
+
+    @action
+    changeLanguage = (newLang: "EN" | "RU") => {
+        if (this.sessionInfo && this.sessionInfo.language !== newLang) {
+            this.sessionInfo.language = newLang;
+            i18next.changeLanguage(newLang);
+        }
     }
 }

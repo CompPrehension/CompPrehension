@@ -6,11 +6,14 @@ export type SessionInfo = {
     sessionId: string,
     exercise: Exercise,
     user: UserInfo,
-    language: string,
+    language: "RU" | "EN",
 };
 export const TSessionInfo : io.Type<SessionInfo> = io.type({
     sessionId: io.string,
     exercise: TExercise,
     user: TUserInfo,
-    language: io.string,
+    language: io.keyof({
+        RU: null,
+        EN: null,
+    }),
 }, 'SessionInfo');

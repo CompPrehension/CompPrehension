@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
+import { useTranslation } from "react-i18next";
 
 export const GenerateNextQuestionBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const { t } = useTranslation();
     if (!exerciseStore.sessionInfo?.exercise.options.newQuestionGenerationEnabled) {
         return null;
     }
@@ -32,7 +34,7 @@ export const GenerateNextQuestionBtn = observer(() => {
 
     return (
         <div style={{ marginTop: '20px'}}>            
-            <Button onClick={onClicked} variant="primary" >Next question</Button>
+            <Button onClick={onClicked} variant="primary" >{t('generateNextQuestionBtn')}</Button>
         </div>
     )
 })

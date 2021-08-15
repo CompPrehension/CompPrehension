@@ -9,10 +9,12 @@ import { delayPromise } from '../../utils/helpers';
 import { Modal } from '../common/modal';
 import { Optional } from '../common/optional';
 import { Question } from './question';
+import { useTranslation } from "react-i18next";
 
 export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws: string[] }) => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const [questionStore] = useState(() => container.resolve(QuestionStore));
+    const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isAllVisible, setAllVisible] = useState(true);
     if (!exerciseStore.sessionInfo?.exercise.options.supplementaryQuestionsEnabled) {
@@ -64,7 +66,7 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
     return (
         <Optional isVisible={isAllVisible}>
             <div style={{ marginTop: '20px'}}>            
-                <Button onClick={onClicked} variant="primary">Supplementary question</Button>
+                <Button onClick={onClicked} variant="primary">{t('generateSupQuestionBtn')}</Button>
                 <Modal type={'DIALOG'}
                     size={'xl'}
                     show={isModalVisible} 
@@ -74,6 +76,5 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
                 </Modal>
             </div>
         </Optional>
-        
     )
 })
