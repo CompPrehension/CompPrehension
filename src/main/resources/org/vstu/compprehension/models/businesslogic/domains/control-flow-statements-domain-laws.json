@@ -134,26 +134,6 @@
     ]
   },
   {
-    "name": "transition_objects_encapsulating_reason",
-    "positive": true,
-    "tags": [
-      {
-        "name": "transition"
-      },
-      {
-        "name": "objects"
-      },
-      {
-        "name": "encapsulating"
-      },
-      {
-        "name": "reason"
-      }
-    ],
-    "concepts": [],
-    "formulations": []
-  },
-  {
     "name": "entry_point_and_sequence",
     "positive": true,
     "tags": [
@@ -488,8 +468,18 @@
         "backend": "Jena"
       },
       {
+        "name": "UpcomingNeighbour-find-1st-missing-on-1-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_true_consequent ?bx), (?bx my:boundary_of ?bx_action), (?bx_action my:stmt_name ?bx_name), -> (?b my:should_be_after ?bx), (?b my:field_MISSING ?bx_name),.",
+        "backend": "Jena"
+      },
+      {
         "name": "UpcomingNeighbour-find-all-missing-on-0-Error",
         "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_false_consequent ?bx), (?b my:executes ?by), (?bx   my:has_upcoming ?some), (?some my:has_upcoming ?by), (?some my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:should_be_after ?some), (?b my:field_MISSING ?name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-1st-missing-on-0-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_false_consequent ?bx), (?bx my:boundary_of ?bx_action), (?bx_action my:stmt_name ?bx_name), -> (?b my:should_be_after ?bx), (?b my:field_MISSING ?bx_name),.",
         "backend": "Jena"
       },
       {

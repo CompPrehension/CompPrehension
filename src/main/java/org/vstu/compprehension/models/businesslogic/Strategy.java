@@ -195,7 +195,7 @@ public class Strategy extends AbstractStrategy {
             }
         }else{
             // ... иначе берется вопрос из меньших по графу, включающих законы, в которых была ошибка
-            if(currentNode.childNodes.size() > 0){
+            if(currentNode != null && currentNode.childNodes.size() > 0){
 
                 ArrayList<LawNode> nextNodes = new ArrayList<>();
                 for(String lawName : currentNode.childNodes){

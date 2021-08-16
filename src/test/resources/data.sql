@@ -19,16 +19,16 @@ INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language
 VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 1, 'ProgrammingLanguageExpressionDomain', 'type', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
-VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 1, 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
+VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 1, 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (11, 1, 1, 0, 1, '10', 'test_if', 8, 0, 1, 'ControlFlowStatementsDomain', 'alternative,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
-VALUES (12, 1, 1, 0, 1, '10', 'test_if', 8, 0, 1, 'ControlFlowStatementsDomain', 'while_loop,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
+VALUES (12, 1, 1, 0, 1, '10', 'test_while', 8, 0, 1, 'ControlFlowStatementsDomain', 'while_loop,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
-VALUES (13, 1, 1, 0, 1, '10', 'test_if', 8, 0, 1, 'ControlFlowStatementsDomain', 'do_while_loop,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
+VALUES (13, 1, 1, 0, 1, '10', 'test_do_while', 8, 0, 1, 'ControlFlowStatementsDomain', 'do_while_loop,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (14, 1, 1, 0, 1, '10', 'test_operands1', 8, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++,operand_type', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
