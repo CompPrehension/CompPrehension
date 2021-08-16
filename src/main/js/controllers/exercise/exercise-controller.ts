@@ -25,11 +25,11 @@ export interface IExerciseController {
 
 @injectable()
 export class ExerciseController implements IExerciseController {
-    static endpointPath: string = ExerciseController.initEndpointPath();
-    private static initEndpointPath() {
+    static endpointPath: `/` | `/${string}/` = ExerciseController.initEndpointPath();
+    private static initEndpointPath(): `/` | `/${string}/` {
         const matches = /^\/(?:.+\/(?<!\/pages\/))?/.exec(window.location.pathname)
         if (matches) {
-            return matches[0];
+            return <`/${string}/`>matches[0];
         }
         return "/";
     }

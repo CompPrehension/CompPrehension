@@ -19,7 +19,7 @@ export const GenerateNextAnswerBtn = observer(() => {
     };
     const { sessionInfo, currentAttempt } = exerciseStore;
     const { question } = exerciseStore.currentQuestion;
-    if (!question || !sessionInfo || !currentAttempt) {
+    if (!question || !sessionInfo || !currentAttempt || question.feedback?.stepsLeft === 0) {
         return null;
     }
 
