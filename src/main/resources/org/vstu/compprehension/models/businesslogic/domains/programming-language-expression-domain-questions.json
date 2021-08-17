@@ -33,13 +33,15 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -96,13 +98,15 @@
           "object": "a"
         },
         {
-          "object": "=="
+          "object": "==",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "<"
+          "object": "<",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -169,19 +173,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -268,31 +275,36 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "d"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "f"
@@ -363,19 +375,22 @@
           "object": "a"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -451,19 +466,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "?"
+          "object": "?",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -475,7 +493,8 @@
           "object": "e"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "f"
@@ -530,13 +549,15 @@
       ],
       "statementFacts": [
         {
-          "object": "--"
+          "object": "--",
+          "subject": "operator"
         },
         {
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
@@ -590,10 +611,12 @@
       ],
       "statementFacts": [
         {
-          "object": "--"
+          "object": "--",
+          "subject": "operator"
         },
         {
-          "object": "--"
+          "object": "--",
+          "subject": "operator"
         },
         {
           "object": "a"
@@ -646,13 +669,15 @@
       ],
       "statementFacts": [
         {
-          "object": "--"
+          "object": "--",
+          "subject": "operator"
         },
         {
           "object": "("
         },
         {
-          "object": "--"
+          "object": "--",
+          "subject": "operator"
         },
         {
           "object": "a"
@@ -709,10 +734,12 @@
       ],
       "statementFacts": [
         {
-          "object": "-"
+          "object": "-",
+          "subject": "operator"
         },
         {
-          "object": "--"
+          "object": "--",
+          "subject": "operator"
         },
         {
           "object": "a"
@@ -769,13 +796,15 @@
           "object": "a"
         },
         {
-          "object": "&&"
+          "object": "&&",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -832,7 +861,8 @@
           "object": "a"
         },
         {
-          "object": "&&"
+          "object": "&&",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -841,7 +871,8 @@
           "object": "b"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -911,7 +942,8 @@
           "object": "a"
         },
         {
-          "object": "&&"
+          "object": "&&",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -920,7 +952,8 @@
           "object": "b"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -929,7 +962,8 @@
           "object": ")"
         },
         {
-          "object": "&&"
+          "object": "&&",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -1007,7 +1041,8 @@
           "object": "a"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -1016,19 +1051,22 @@
           "object": "b"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": ","
+          "object": ",",
+          "subject": "operator"
         },
         {
           "object": "d"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -1109,7 +1147,8 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -1118,19 +1157,22 @@
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "<"
+          "object": "<",
+          "subject": "operator"
         },
         {
           "object": "d"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -1211,19 +1253,22 @@
           "object": "a"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "f"
         },
         {
-          "object": "("
+          "object": "(",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -1235,7 +1280,8 @@
           "object": "d"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -1293,10 +1339,12 @@
       ],
       "statementFacts": [
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
-          "object": "++"
+          "object": "++",
+          "subject": "operator"
         },
         {
           "object": "a"
@@ -1359,16 +1407,19 @@
       ],
       "statementFacts": [
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
-          "object": "++"
+          "object": "++",
+          "subject": "operator"
         },
         {
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
@@ -1442,19 +1493,22 @@
       ],
       "statementFacts": [
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "a"
         },
         {
-          "object": "["
+          "object": "[",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -1463,7 +1517,8 @@
           "object": "]"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -1540,19 +1595,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "["
+          "object": "[",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -1561,7 +1619,8 @@
           "object": "]"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -1667,19 +1726,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "?"
+          "object": "?",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -1691,19 +1753,22 @@
           "object": "e"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "f"
         },
         {
-          "object": "?"
+          "object": "?",
+          "subject": "operator"
         },
         {
           "object": "g"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "h"
@@ -1715,7 +1780,8 @@
           "object": "i"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "j"
@@ -1780,19 +1846,22 @@
       ],
       "statementFacts": [
         {
-          "object": "++"
+          "object": "++",
+          "subject": "operator"
         },
         {
           "object": "a"
         },
         {
-          "object": "||"
+          "object": "||",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -1857,19 +1926,22 @@
       ],
       "statementFacts": [
         {
-          "object": "++"
+          "object": "++",
+          "subject": "operator"
         },
         {
           "object": "a"
         },
         {
-          "object": "-"
+          "object": "-",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -1929,13 +2001,15 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -1992,13 +2066,15 @@
           "object": "a"
         },
         {
-          "object": "=="
+          "object": "==",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "<"
+          "object": "<",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2064,19 +2140,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -2143,19 +2222,22 @@
           "object": "a"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "*"
+          "object": "*",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -2230,19 +2312,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "if"
+          "object": "if",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -2254,7 +2339,8 @@
           "object": "e"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "f"
@@ -2310,13 +2396,15 @@
           "object": "a"
         },
         {
-          "object": "and"
+          "object": "and",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2372,7 +2460,8 @@
           "object": "a"
         },
         {
-          "object": "and"
+          "object": "and",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -2381,7 +2470,8 @@
           "object": "b"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2450,7 +2540,8 @@
           "object": "a"
         },
         {
-          "object": "and"
+          "object": "and",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -2459,7 +2550,8 @@
           "object": "b"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2468,7 +2560,8 @@
           "object": ")"
         },
         {
-          "object": "and"
+          "object": "and",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -2535,16 +2628,19 @@
           "object": "a"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
-          "object": "("
+          "object": "(",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2556,7 +2652,8 @@
           "object": "d"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -2633,7 +2730,8 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "("
@@ -2642,19 +2740,22 @@
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "<"
+          "object": "<",
+          "subject": "operator"
         },
         {
           "object": "d"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -2732,19 +2833,22 @@
           "object": "a"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "f"
         },
         {
-          "object": "("
+          "object": "(",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2756,7 +2860,8 @@
           "object": "d"
         },
         {
-          "object": "or"
+          "object": "or",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -2824,13 +2929,15 @@
           "object": "a"
         },
         {
-          "object": "["
+          "object": "[",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "c"
@@ -2839,7 +2946,8 @@
           "object": "]"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -2913,19 +3021,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "["
+          "object": "[",
+          "subject": "operator","subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -2934,7 +3045,8 @@
           "object": "]"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "e"
@@ -3036,19 +3148,22 @@
           "object": "a"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "b"
         },
         {
-          "object": "if"
+          "object": "if",
+          "subject": "operator"
         },
         {
           "object": "c"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "d"
@@ -3060,19 +3175,22 @@
           "object": "e"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "f"
         },
         {
-          "object": "if"
+          "object": "if",
+          "subject": "operator"
         },
         {
           "object": "g"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "h"
@@ -3084,7 +3202,8 @@
           "object": "i"
         },
         {
-          "object": "+"
+          "object": "+",
+          "subject": "operator"
         },
         {
           "object": "j"
