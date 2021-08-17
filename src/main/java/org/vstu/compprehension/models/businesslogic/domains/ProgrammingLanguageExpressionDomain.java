@@ -273,7 +273,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         switch (q.getQuestionType()) {
             case ORDER:
                 val baseQuestionText = "<p>Press the operators in the expression in the order they are evaluated</p>";
-                entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getQuestionText().getText()));
+                entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
             case MATCHING:
@@ -306,9 +306,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         deniedConceptNames.add("supplementary");
 
-        // Get somehow negative and positive laws names
+        HashSet<String> lawNames = new HashSet<>();
+        if (questionRequest.getTargetLaws() != null) {
+            for (Law law : questionRequest.getTargetLaws()) {
+                lawNames.add(law.getName());
+            }
+        }
 
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, new HashSet<>(), new HashSet<>(), new HashSet<>());
+        HashSet<String> deniedLawNames = new HashSet<>();
+        if (questionRequest.getDeniedLaws() != null) {
+            for (Law law : questionRequest.getDeniedLaws()) {
+                deniedLawNames.add(law.getName());
+            }
+        }
+
+
+        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, new HashSet<>());
         if (res != null) {
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
         }
@@ -339,29 +352,24 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return answerObject;
     }
 
-    public static String ExpressionToHtml(String text) {
-        StringBuilder sb = new StringBuilder(text);
-
-        // Wrap every token of the expression with <span> and some metadata ...
-        Pattern pattern = Pattern.compile("\\<\\=|\\>\\=|\\=\\=|\\!\\=|\\<\\<|\\>\\>|\\+|\\-|\\*|\\/|\\<|\\>|\\w+");
-        Matcher matcher = pattern.matcher(sb.toString());
+    public static String ExpressionToHtml(List<BackendFactEntity> expression) {
+        StringBuilder sb = new StringBuilder("");
+        sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
         int anwerIdx = -1;
-        int offset = 0;
-        while (offset < sb.length() && matcher.find(offset)) {
-            String match = matcher.group(0);
-            String replaceStr = match.matches("\\w")
-                    ? "<span data-comp-ph-pos='" + (++idx) +"' class='comp-ph-expr-const'>" + matcher.group(0) +"</span>"
-                    : "<span data-comp-ph-pos='" + (++idx) +"' id='answer_" + (++anwerIdx) +"' class='comp-ph-expr-op-btn'>" + matcher.group(0) +"</span>";
-
-            sb.replace(matcher.start(), matcher.end(), replaceStr);
-            offset = matcher.start() + replaceStr.length() ;
-            matcher = pattern.matcher(sb.toString());
+        for (BackendFactEntity fact : expression) {
+            if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn'>").append(fact.getObject()).append("</span>");
+            } else {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const'>").append(fact.getObject()).append("</span>");
+            }
         }
 
-        sb.insert(0, "<p class='comp-ph-expr'>");
-        sb.append("<!-- Original expression: " + text + "-->");
-        sb.append("</p>");
+        sb.append("<!-- Original expression: ");
+        for (BackendFactEntity fact : expression) {
+            sb.append(fact.getObject()).append(" ");
+        }
+        sb.append("-->").append("</p>");
         return QuestionTextToHtml(sb.toString());
     }
 
