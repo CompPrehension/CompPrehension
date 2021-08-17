@@ -422,9 +422,9 @@ public class ControlFlowStatementsDomain extends Domain {
 
         Language userLang;  // natural language to format explanation
         try {
-            userLang = violation.getInteraction().getQuestion().getExerciseAttempt().getExercise().getLanguage(); // The language the exercise created with
+            userLang = violation.getInteraction().getQuestion().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
         } catch (NullPointerException e) {
-            userLang = Language.ENGLISH;  // fallback if cannot figure it out
+            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
         }
 
         String lawName = violation.getLawName();
@@ -1250,9 +1250,9 @@ public class ControlFlowStatementsDomain extends Domain {
         if (getFrontMessages().containsKey(reasonName)) {
             Language userLang;  // natural language to format explanation
             try {
-                userLang = q.getQuestionData().getExerciseAttempt().getExercise().getLanguage(); // The language the exercise created with
+                userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
             } catch (NullPointerException e) {
-                userLang = Language.ENGLISH;  // fallback if cannot figure it out
+                userLang = Language.ENGLISH;  // fallback if it cannot be figured out
             }
             String message = getFrontMessages().get(reasonName).get(userLang);
             // fill in the blanks
