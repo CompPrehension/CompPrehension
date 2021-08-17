@@ -51,7 +51,7 @@ public class QuestionService {
     ResponseRepository responseRepository;
 
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
@@ -60,7 +60,7 @@ public class QuestionService {
     }
 
     public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation) {
-        val domain = DomainAdapter.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
+        val domain = DomainAdapter.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getClassPath());
         val question = domain.makeSupplementaryQuestion(sourceQuestion, violation);
         if (question == null) {
             return null;
@@ -71,13 +71,13 @@ public class QuestionService {
     }
 
     public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
         assertEquals(1, responses.size());
         return domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         List<BackendFactEntity> solution = backend.solve(
                 new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
@@ -115,7 +115,7 @@ public class QuestionService {
     }
 
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         List<BackendFactEntity> responseFacts = question.responseToFacts(responses);
         List<BackendFactEntity> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
@@ -128,7 +128,7 @@ public class QuestionService {
     }
 
     public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         return domain.makeExplanation(violations, FeedbackType.EXPLANATION);
     }
 
@@ -186,7 +186,7 @@ public class QuestionService {
     }
 
     public Domain.CorrectAnswer getNextCorrectAnswer(Question question) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         return domain.getAnyNextCorrectAnswer(question);
     }
     

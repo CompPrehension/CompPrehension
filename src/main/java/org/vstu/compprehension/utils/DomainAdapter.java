@@ -1,22 +1,27 @@
 package org.vstu.compprehension.utils;
 
+import lombok.val;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.businesslogic.domains.TestDomain;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DomainAdapter {
-    private static HashMap<String, Domain> domains ;
-    static {
-        domains = new HashMap<>();
-        domains.put("TestDomain", new TestDomain());
-        domains.put("ProgrammingLanguageExpressionDomain", new ProgrammingLanguageExpressionDomain());
-        domains.put("ControlFlowStatementsDomain", new ControlFlowStatementsDomain());
-    }
+    private static ConcurrentHashMap<String, Domain> domainsCache = new ConcurrentHashMap<>();
 
-    public static Domain getDomain(String name){
-        return domains.get(name);
+    public static @Nullable Domain getDomain(@NotNull String className) {
+        if (domainsCache.containsKey(className)) {
+            return domainsCache.get(className);
+        }
+
+        try {
+            val clazz = Class.forName(className);
+            val object = (Domain)clazz.getDeclaredConstructor().newInstance();
+            domainsCache.put(className, object);
+            return object;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

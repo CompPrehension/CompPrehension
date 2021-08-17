@@ -32,7 +32,7 @@ public class Strategy extends AbstractStrategy {
         if(exerciseAttempt.getQuestions() == null || exerciseAttempt.getQuestions().size() == 0){
 
             ExerciseEntity exercise = exerciseAttempt.getExercise();
-            Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
+            Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
             HashMap<String, LawNode> tree = getTree(domain);
             ArrayList<String> startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
                     "a && ( b || c ) && d"));
@@ -98,7 +98,7 @@ public class Strategy extends AbstractStrategy {
         float correct = (float) correctLaws.size() / (float)(correctLaws.size() + incorrectLaws.size());
         // Получить граф вопросов и типичных ошибок к ним
         ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
+        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
         HashMap<String, LawNode> tree = getTree(domain);
         LawNode currentNode = tree.get(qe.getQuestionText());
         // Если верно примененных законов в текущем вопросе достаточно (не менее 90%), то берется вопрос из больших
@@ -228,7 +228,7 @@ public class Strategy extends AbstractStrategy {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttempt(exerciseAttempt);
         ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(domainService.getDomainEntity(exercise.getDomain().getName()).getName());
+        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
 
         qr.setComplexity(1);
         qr.setSolvingDuration(30);

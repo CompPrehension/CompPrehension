@@ -16,6 +16,9 @@ public class DomainEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "version")
+    @Column(name = "classPath", length = 1000, nullable = false)
+    private String classPath;
+
+    @Column(name = "version", nullable = false)
     private String version;
 }

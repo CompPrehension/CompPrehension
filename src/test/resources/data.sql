@@ -1,5 +1,5 @@
-INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ProgrammingLanguageExpressionDomain');
-INSERT INTO `domain` (`version`, `name`) VALUES (1, 'ControlFlowStatementsDomain');
+INSERT INTO `domain` (`version`, `name`, `class_path`) VALUES (1, 'ProgrammingLanguageExpressionDomain', 'org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain');
+INSERT INTO `domain` (`version`, `name`, `class_path`) VALUES (1, 'ControlFlowStatementsDomain', 'org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain');
 
 INSERT INTO `backend` (`id`, `name`) VALUES (1, 'test');
 

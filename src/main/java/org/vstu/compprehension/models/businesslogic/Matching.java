@@ -15,7 +15,7 @@ public class Matching extends Question {
 
     @Override
     public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
-        return DomainAdapter.getDomain(questionData.getDomainEntity().getName()).responseToFacts(
+        return DomainAdapter.getDomain(questionData.getDomainEntity().getClassPath()).responseToFacts(
                 getQuestionDomainType(),
                 responses,
                 getAnswerObjects()

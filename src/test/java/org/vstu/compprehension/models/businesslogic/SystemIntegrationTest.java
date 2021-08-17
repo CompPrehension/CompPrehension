@@ -894,7 +894,7 @@ public class SystemIntegrationTest {
 
     Domain.ProcessSolutionResult getSolveInfo(Long questionId) {
         Question question = getQuestion(questionId);
-        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getName());
+        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getClassPath());
         return domain.processSolution(question.getSolutionFacts());
     }
 

@@ -84,7 +84,7 @@ public class Mapper {
                 .toArray(QuestionAnswerDto[]::new);
         switch (question.getQuestionType()) {
             case ORDER:
-                val domain = DomainAdapter.getDomain(question.getDomainEntity().getName());
+                val domain = DomainAdapter.getDomain(question.getDomainEntity().getClassPath());
                 val trace = Optional.ofNullable(domain.getFullSolutionTrace(questionObject)).stream()
                         .flatMap(Collection::stream)
                         .map(HyperText::getText)
@@ -160,7 +160,7 @@ public class Mapper {
             @Nullable Long[][] correctAnswers
     ) {
         if (interaction.getQuestion().getQuestionType() == QuestionType.ORDER) {
-            val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getName());
+            val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
             val trace = Optional.ofNullable(domain.getFullSolutionTrace(question)).stream()
                     .flatMap(Collection::stream)
                     .map(HyperText::getText)
