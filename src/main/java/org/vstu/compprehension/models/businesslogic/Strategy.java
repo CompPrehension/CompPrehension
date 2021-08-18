@@ -6,6 +6,7 @@ import org.springframework.data.util.Pair;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
@@ -34,8 +35,14 @@ public class Strategy extends AbstractStrategy {
             ExerciseEntity exercise = exerciseAttempt.getExercise();
             Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
             HashMap<String, LawNode> tree = getTree(domain);
-            ArrayList<String> startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
-                    "a && ( b || c ) && d"));
+            ArrayList<String> startTasks = null;
+            if(domain instanceof ProgrammingLanguageExpressionDomain) {
+                startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
+                        "a && ( b || c ) && d"));
+            }else if(domain instanceof ControlFlowStatementsDomain){
+                startTasks = new ArrayList<>(Arrays.asList("alt_i1", "while_2_110",
+                        "do_10"));
+            }
             Random random = new Random();
             int nextQuestion = random.ints(0, startTasks.size()-1)
                     .findFirst()
@@ -247,12 +254,23 @@ public class Strategy extends AbstractStrategy {
 
         ArrayList<Concept> concepts = new ArrayList<>(domain.getConcepts());
         ArrayList<Concept> targetConcepts = new ArrayList<>();
+
+        ArrayList<Concept> deniedConcepts = new ArrayList<>();
+        ArrayList<String> denConc = new ArrayList<>(Arrays.asList("precedence_type",
+                "operands_type",
+                "type"));
+
         for (Concept c : concepts) {
             if(nextNode != null && nextNode.currentLows.contains(c.getName())){
                 targetConcepts.add(c);
             }
+
+            if(domain instanceof ProgrammingLanguageExpressionDomain && denConc.contains(c.getName())){
+                deniedConcepts.add(c);
+            }
         }
         qr.setTargetConcepts(targetConcepts);
+        qr.setDeniedConcepts(deniedConcepts);
 
         return qr;
     }
@@ -440,10 +458,11 @@ public class Strategy extends AbstractStrategy {
     {
         if(de instanceof ProgrammingLanguageExpressionDomain) {
             return getTree0();
-        }else
+        }else if(de instanceof ControlFlowStatementsDomain)
         {
             return getTree1();
         }
+        return null;
     }
     public HashMap<String, LawNode> getTree0(){
         HashMap<String, LawNode> result = new HashMap<>();
