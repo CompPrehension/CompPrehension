@@ -139,15 +139,17 @@ public class ControlFlowStatementsDomain extends Domain {
                 // add expression value if necessary
                 if (answerObj.getConcept().equals("expr")) {
                     String valueStr;
-                    if (responseIsWrong)
-                        valueStr = "not evaluated";
-                    else {
+                    if (responseIsWrong) {
+                        /// valueStr = "not evaluated";
+                        valueStr = "не вычислено";
+                    } else {
                         String phase = info.getPhase();
                         String exId = info.getExId();
                         String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
                         int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
 
-                        valueStr = (value == 1) ? "true" : "false";
+                        /// valueStr = (value == 1) ? "true" : "false";
+                        valueStr = (value == 1) ? "истина" : "ложь";
                     }
                     // add HTML styling
                     line = line + " -> " + htmlStyled("atom", valueStr);
@@ -244,14 +246,16 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     private String nthTimeByN(int n) {
-        String suffix;
-        switch (n) {
-            case 1: suffix = "st"; break;
-            case 2: suffix = "nd"; break;
-            case 3: suffix = "rd"; break;
-            default: suffix = "th";
-        }
-        return htmlStyled("number", n + suffix) + " time";
+        String suffix, time = "time";
+        /// switch (n) {
+        ///     case 1: suffix = "st"; break;
+        ///     case 2: suffix = "nd"; break;
+        ///     case 3: suffix = "rd"; break;
+        ///     default: suffix = "th";
+        /// }
+        suffix = "-й";
+        time = "раз";
+        return htmlStyled("number", n + suffix) + " " + time;
     }
 
     @Override
