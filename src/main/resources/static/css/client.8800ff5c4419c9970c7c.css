@@ -37,11 +37,12 @@ body ul {
   border-radius: 4px;
 }
 
-.comp-ph-expr-const, .comp-ph-expr-op-btn {
+.comp-ph-expr .comp-ph-expr-const, .comp-ph-expr .comp-ph-expr-op-btn {
   display: inline-block;
   position: relative;
   line-height: 17px;
   color: black;
+  margin: 0 2px;
 }
 
 .comp-ph-expr .comp-ph-expr-op-btn {
@@ -49,7 +50,6 @@ body ul {
   font-size: 20px;
   min-width: 25px;
   height: 25px;
-  margin: 0 auto;
   padding: 0;
   text-align: center;
   cursor: pointer;

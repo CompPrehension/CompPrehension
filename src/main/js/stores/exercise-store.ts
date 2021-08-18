@@ -94,7 +94,9 @@ export class ExerciseStore {
         }
 
         await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
-        currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+        runInAction(() => {
+            currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+        })
     }
 
     @action

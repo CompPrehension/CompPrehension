@@ -12,19 +12,19 @@ export const GenerateNextAnswerBtn = observer(() => {
     const { t } = useTranslation();
     if (!exerciseStore.sessionInfo?.exercise.options.correctAnswerGenerationEnabled) {
         return null;
-    }
-    
-    const onClicked = () => {
-        exerciseStore.currentQuestion.generateNextCorrectAnswer();
-    };
-    const { sessionInfo, currentAttempt } = exerciseStore;
-    const { question } = exerciseStore.currentQuestion;
-    if (!question || !sessionInfo || !currentAttempt || question.feedback?.stepsLeft === 0) {
+    }    
+    const { sessionInfo, currentAttempt, currentQuestion } = exerciseStore;
+    const { question, isFeedbackLoading, feedback } = currentQuestion;
+    if (!question || !sessionInfo || !currentAttempt || isFeedbackLoading || feedback?.stepsLeft === 0) {
         return null;
     }
 
-    return (
-        <div style={{ marginTop: '20px'}}>            
+    const onClicked = () => {
+        exerciseStore.currentQuestion.generateNextCorrectAnswer();
+    };
+
+    return (        
+        <div style={{ marginTop: '20px'}}>
             <Button onClick={onClicked} variant="primary">{t('nextCorrectAnswerBtn')}</Button>
         </div>
     )

@@ -111,7 +111,7 @@ public class Strategy extends AbstractStrategy {
         // Если верно примененных законов в текущем вопросе достаточно (не менее 90%), то берется вопрос из больших
         if(correct > 0.9){
             //Если у узла есть "прямые" большие вопросы
-            if(currentNode.parentNodes.size() > 0){
+            if(currentNode.parentNodes != null && currentNode.parentNodes.size() > 0){
                 Random random = new Random();
                 int nextQuestion = random.ints(0, currentNode.parentNodes.size()-1)
                         .findFirst()
@@ -120,7 +120,7 @@ public class Strategy extends AbstractStrategy {
                 LawNode nextNode = tree.get(currentNode.parentNodes.get(nextQuestion));
 
                 return getQuestionRequest(exerciseAttempt, nextNode);
-            }else{
+            } else {
                 //// Если нет больших, проверить усвоенность всех целевых законов
                 ArrayList<QuestionEntity> qes = new ArrayList<>(exerciseAttempt.getQuestions());
                 Collections.sort(qes, new QuestionOrderComparator());

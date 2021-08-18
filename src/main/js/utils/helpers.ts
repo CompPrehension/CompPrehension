@@ -19,3 +19,7 @@ export function renderIfNotNull<T>(value: T | null | undefined, render: (value: 
 export function notNullOrUndefinded<T>(value: T | null | undefined): value is T {
     return value !== null && value !== undefined;
 }
+
+export function isNullOrUndefinded<T>(value: T | null | undefined): value is null | undefined {
+    return value === null || value === undefined;
+}
