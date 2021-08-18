@@ -13,23 +13,23 @@ import { useTranslation } from "react-i18next";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const [state, setState] = useState<'INITIAL' | 'MODAL' | 'EXERCISE'>('INITIAL');
+    const { exerciseState, setExerciseState } = exerciseStore;
     const { t } = useTranslation();
 
     // on first render
     useEffect(() => {
         (async () => {
             if (exerciseStore.currentQuestion.question) {
-                setState('EXERCISE');
+                setExerciseState('EXERCISE');
                 return;
             }
 
             await exerciseStore.loadSessionInfo();
             const attemptExistis = await exerciseStore.loadExistingExerciseAttempt();
             if (attemptExistis) {
-                setState('MODAL');
+                setExerciseState('MODAL');
             } else {
-                setState('EXERCISE');
+                setExerciseState('EXERCISE');
                 await createAttemptAndLoadQuestion();
             }
         })()
@@ -51,8 +51,8 @@ export const Exercise = observer(() => {
     }
 
     return (
-        <LoadingWrapper isLoading={state === 'INITIAL'}>
-            <Optional isVisible={state === 'EXERCISE'}>
+        <LoadingWrapper isLoading={exerciseState === 'INITIAL'}>
+            <Optional isVisible={exerciseState === 'EXERCISE'}>
                 <Header />
                 <div className="mt-5">
                     <CurrentQuestion />
@@ -60,17 +60,17 @@ export const Exercise = observer(() => {
                     <GenerateNextQuestionBtn />
                 </div>                
             </Optional>
-            <Optional isVisible={state === 'MODAL'}>
+            <Optional isVisible={exerciseState === 'MODAL'}>
                 <Modal  type={'DIALOG'}
                         title={t('foundExisitingAttempt_title')}
                         primaryBtnTitle={t('foundExisitingAttempt_continueattempt')}
                         handlePrimaryBtnClicked={() => {
-                            setState('EXERCISE');
+                            setExerciseState('EXERCISE');
                             loadQuestion();
                         }}
                         secondaryBtnTitle={t('foundExisitingAttempt_newattempt')}
                         handleSecondaryBtnClicked={() => {
-                            setState('EXERCISE');
+                            setExerciseState('EXERCISE');
                             createAttemptAndLoadQuestion();
                         }}>
                     <p>{t('foundExisitingAttempt_descr')}?</p>

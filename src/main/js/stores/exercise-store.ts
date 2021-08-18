@@ -13,6 +13,7 @@ export class ExerciseStore {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion: QuestionStore;
+    @observable exerciseState: 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED' = 'INITIAL';
 
     constructor(
         @inject(ExerciseController) private readonly exerciseController: IExerciseController,
@@ -20,6 +21,13 @@ export class ExerciseStore {
     ) {
         this.currentQuestion = currentQuestion;
         makeObservable(this);        
+    }
+
+    @action
+    setExerciseState = (newState: ExerciseStore['exerciseState']) => {
+        if (this.exerciseState !== newState) {
+            this.exerciseState = newState;
+        }
     }
 
     @action 
