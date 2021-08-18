@@ -7,11 +7,12 @@ import { QuestionStore } from "./stores/question-store";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 
-const urlParams = new URLSearchParams(window.location.search);
-const isTest = urlParams.get('sandbox') !== null && urlParams.get('sandbox') !== undefined;
-
 // init DI container
-container.register(ExerciseController, isTest ? TestExerciseController : ExerciseController);
+container.register(ExerciseController, { 
+    useFactory: () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null
+        ? new TestExerciseController() 
+        : new ExerciseController()
+});
 container.register(QuestionStore, QuestionStore);
 container.registerSingleton(ExerciseStore);
 
@@ -29,6 +30,7 @@ const resources = {
             correctsteps_feeback: "Correct steps",
             stepswitherrors_feeback: "Steps with errors",
             stepsleft_feeback: "Steps left",
+            issolved_feeback: "Solved",
             foundExisitingAttempt_title: "Found existing attempt",
             foundExisitingAttempt_descr: "Would you like to continue the existing attempt or start a new one",
             foundExisitingAttempt_continueattempt: "Continue",
@@ -47,6 +49,7 @@ const resources = {
             correctsteps_feeback: "Правильных шагов",
             stepswitherrors_feeback: "Шагов с ошибками",
             stepsleft_feeback: "Шагов осталось",
+            issolved_feeback: "Задача решена",
             foundExisitingAttempt_title: "Найдена неоконченная попытка",            
             foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
             foundExisitingAttempt_continueattempt: "Продолжить",

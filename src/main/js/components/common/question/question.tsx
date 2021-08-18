@@ -17,15 +17,24 @@ type QuestionComponentProps = {
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {
     const { question, answers, onChanged, getAnswers, feedback } = props;
+    let questonComponent: JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
-            return <MatchingQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            questonComponent = <MatchingQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            break;
         case 'MULTI_CHOICE':
-            return <MultiChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            questonComponent = <MultiChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            break;
         case 'SINGLE_CHOICE':
-            return <SingleChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            questonComponent = <SingleChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            break;
         case 'ORDER':
-            return <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} feedback={feedback}/>;
+            questonComponent = <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} feedback={feedback}/>;
+            break;
     }
-    return (<div>Not implemented</div>);
+    return (
+        <div className={`comp-ph-question-wrapper ${(feedback?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")}`}>
+            {questonComponent}
+        </div>
+    );
 })

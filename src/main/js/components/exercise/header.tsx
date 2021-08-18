@@ -18,11 +18,14 @@ export const Header = observer(() => {
     }
     const { user } = sessionInfo;
     const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
+    
+    /*
     const onLangClicked = () => {
         const currentLang = sessionInfo.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
         exerciseStore.changeLanguage(newLang);
     }
+    */
 
     return (
         <Navbar className="px-0">
@@ -33,7 +36,7 @@ export const Header = observer(() => {
                 <Pagination />
                 
                 <Navbar.Text className="px-2">
-                    {t('language_header')}: <a href="#" onClick={onLangClicked}>{sessionInfo.language}</a>
+                    {t('language_header')}: <a href="#" /*onClick={onLangClicked}*/>{sessionInfo.language}</a>
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">

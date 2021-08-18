@@ -64,7 +64,8 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
                         <Optional isVisible={feedback.grade !== null}><Badge variant="primary">{t('grade_feeback')}: {feedback.grade}</Badge>{' '}</Optional>
                         <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">{t('correctsteps_feeback')}: {feedback.correctSteps}</Badge>{' '}</Optional>
                         <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
-                        <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</Optional>                
+                        <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</Optional>
+                        <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft === 0}><Badge variant="info">{t('issolved_feeback')}</Badge>{' '}</Optional>
                     </p>
                 </Optional>
             </Optional>            

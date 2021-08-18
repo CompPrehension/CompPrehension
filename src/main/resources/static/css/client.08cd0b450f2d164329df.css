@@ -23,6 +23,10 @@ body ul {
   margin-bottom: 10px;
 }
 
+.comp-ph-question-wrapper.comp-ph-question-wrapper--finished [id^="question_"][id*="_answer_"] {
+  pointer-events: none;
+}
+
 .comp-ph-expr {
   font-size: 20px;
   display: flex;
