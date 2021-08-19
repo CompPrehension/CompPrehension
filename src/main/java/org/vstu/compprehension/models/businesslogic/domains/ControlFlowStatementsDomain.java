@@ -593,7 +593,8 @@ public class ControlFlowStatementsDomain extends Domain {
                     "should_be",
                     "should_be_before",
                     "should_be_after",
-                    "context_should_be"
+                    "context_should_be",
+                    "reason"
             ));
             // add solution verbs too!
             verbs.addAll(getSolutionVerbsStatic(questionDomainType, statementFacts));
