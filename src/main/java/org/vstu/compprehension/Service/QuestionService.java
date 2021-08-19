@@ -59,9 +59,9 @@ public class QuestionService {
         return question;
     }
 
-    public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation) {
+    public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = DomainAdapter.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getClassPath());
-        val question = domain.makeSupplementaryQuestion(sourceQuestion, violation);
+        val question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
         if (question == null) {
             return null;
         }
@@ -129,7 +129,13 @@ public class QuestionService {
 
     public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
-        return domain.makeExplanation(violations, FeedbackType.EXPLANATION);
+        Language lang;
+        try {
+            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+        } catch (NullPointerException e) {
+            lang = Language.ENGLISH;  // fallback if it cannot be figured out
+        }
+        return domain.makeExplanation(violations, FeedbackType.EXPLANATION, lang);
     }
 
     public Question getQuestion(Long questionId) {

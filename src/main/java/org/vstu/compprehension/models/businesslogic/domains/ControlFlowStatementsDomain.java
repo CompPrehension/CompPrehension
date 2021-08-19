@@ -400,10 +400,11 @@ public class ControlFlowStatementsDomain extends Domain {
      *
      * @param violations   list of student violations
      * @param feedbackType TODO: use feedbackType or delete it
+     * @param lang user preferred language
      * @return explanation for each violation in random order
      */
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType) {
+    public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang) {
 
 //        if (feedbackType != FeedbackType.EXPLANATION) {
 //            //
@@ -417,20 +418,12 @@ public class ControlFlowStatementsDomain extends Domain {
             // rearrange mistakes ..?
 
             ArrayList<HyperText> explanation = new ArrayList<>();
-            violations.forEach(ve -> explanation.add(makeExplanation(ve, feedbackType)));
+            violations.forEach(ve -> explanation.add(makeExplanation(ve, feedbackType, lang)));
             return explanation;
         }
     }
 
-    public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType) {
-
-        Language userLang;  // natural language to format explanation
-        try {
-            userLang = violation.getInteraction().getQuestion().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-
+    public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType, Language userLang) {
         String lawName = violation.getLawName();
         String msg = getFrontMessages().get(lawName).get(userLang);
 
@@ -940,7 +933,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
+    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
         throw new NotImplementedException();
     }
 
