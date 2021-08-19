@@ -2260,13 +2260,18 @@
         "backend": "OWL"
       },
       {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "describe_error",
-        "formulation": "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) -> describe_error(?a, ?b)",
+        "formulation": "student_pos_less(?b, ?a) ^ before_direct(?a, ?b) ^ precedence(?a, ?a_precedence) ^ precedence(?b, ?b_precedence) -> describe_error(?a, ?b)",
         "backend": "SWRL"
       },
       {
         "name": "describe_error",
-        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b) -> (?a my:describe_error ?b).",
+        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b), (?a my:precedence ?a_precedence), (?b my:precedence ?b_precedence) -> (?a my:describe_error ?b).",
         "backend": "Jena"
       },
       {
