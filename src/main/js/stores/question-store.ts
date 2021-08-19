@@ -26,46 +26,45 @@ export class QuestionStore {
         makeObservable(this);        
     }
 
-    private onQuestionLoaded = (question?: Question) => {
+    private onQuestionLoaded = (question: Question) => {
         runInAction(() => {
-            // preprocess question text
-            question = this.processLoadedQuestion(question)
-
-            this.isQuestionLoading = false;
+            // add question id to answers
+            if (question.options.requireContext) {
+                // regex searchs all tags with id='answer_id' and prepends them with question id
+                question.text = question.text.replaceAll(/(\<.*?\sid\s*?\=([\'\"]))\s*(answer_.+?\2)(.*?\>)/igm, `$1question_${question.questionId}_$3$4`)
+            }
+            
             this.question = question;
-            this.feedback = question?.feedback ?? undefined;
+            this.feedback = question.feedback ?? undefined;
             this.isFeedbackVisible = true;
-            this.answersHistory = question?.responses ?? [];            
+            this.answersHistory = question.responses ?? [];            
         });
     }
+    
+    loadQuestion = async (questionId: number): Promise<void> => {        
+        runInAction(() => this.isQuestionLoading = true);
+        const dataEither = await this.exerciseController.getQuestion(questionId);
+        runInAction(() => this.isQuestionLoading = false);
 
-    private processLoadedQuestion = (question?: Question): Question | undefined => {
-        // add question id to answers
-        if (question?.options.requireContext) {
-            // regex searchs all tags with id='answer_id' and prepends them with question id
-            question.text = question.text.replaceAll(/(\<.*?\sid\s*?\=([\'\"]))\s*(answer_.+?\2)(.*?\>)/igm, `$1question_${question.questionId}_$3$4`)
+        if (E.isLeft(dataEither)) {
+            throw (dataEither.left);
+        }
+        
+        this.onQuestionLoaded(dataEither.right);
+    }
+
+    generateQuestion = async (attemptId: number): Promise<void> => {        
+        runInAction(() => this.isQuestionLoading = true);
+        const dataEither = await this.exerciseController.generateQuestion(attemptId);
+        runInAction(() => this.isQuestionLoading = false);
+
+        if (E.isLeft(dataEither)) {
+            throw dataEither.left;
         }
 
-        return question;
-    }
-    
-    @action 
-    loadQuestion = async (questionId: number): Promise<void> => {
-        this.isQuestionLoading = true;
-        const dataEither = await this.exerciseController.getQuestion(questionId);
-        const data = E.getOrElseW(_ => undefined)(dataEither);
-        this.onQuestionLoaded(data)
+        this.onQuestionLoaded(dataEither.right);
     }
 
-    @action
-    generateQuestion = async (attemptId: number): Promise<void> => {        
-        this.isQuestionLoading = true;
-        const dataEither = await this.exerciseController.generateQuestion(attemptId);            
-        const data = E.getOrElseW(_ => undefined)(dataEither);
-        this.onQuestionLoaded(data);  
-    }
-
-    @action
     generateSupplementaryQuestion = async (attemptId: number, questionId: number, violationLaws: string[]): Promise<void> => {
         const questionRequest: SupplementaryQuestionRequest = {
             exerciseAttemptId: attemptId,
@@ -75,25 +74,36 @@ export class QuestionStore {
                 O.getOrElse(() => ["invalid_law"] as NEArray.NonEmptyArray<string>),
             ),
         };
-        this.isQuestionLoading = true;
-        const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);            
-        const data = E.getOrElseW(_ => undefined)(dataEither);
-        this.onQuestionLoaded(data || undefined); 
+
+        runInAction(() => this.isQuestionLoading = true);
+        const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);
+        runInAction(() => this.isQuestionLoading = false);
+
+        if (E.isLeft(dataEither)) {
+            throw dataEither.left;
+        }
+
+        if (dataEither.right || false) {
+            this.onQuestionLoaded(dataEither.right);
+        }
     }
 
-    @action
     generateNextCorrectAnswer = async (): Promise<void> => {
         const { question } = this;
         if (!question) {
             throw new Error("Current question not found");
         }
 
-        this.isFeedbackLoading = true;
+        runInAction(() => this.isFeedbackLoading = true);
         const feedbackEither = await this.exerciseController.generateNextCorrectAnswer(question.questionId);
-        const feedback = E.getOrElseW(_ => undefined)(feedbackEither);
+        runInAction(() => this.isFeedbackLoading = false);
+        
+        if (E.isLeft(feedbackEither)) {
+            throw (feedbackEither.left);
+        }
 
-        runInAction(() => {
-            this.isFeedbackLoading = false;
+        const feedback = feedbackEither.right;
+        runInAction(() => {            
             this.feedback = feedback;
             this.isFeedbackVisible = true;
             if (feedback && feedback.correctAnswers && this.isHistoryChanged(feedback.correctAnswers)) {
@@ -102,7 +112,6 @@ export class QuestionStore {
         });
     }
 
-    @action
     private sendAnswersImpl = async (attemptId: number, questionId: number, answers: [number, number][]): Promise<void> => {
         const body: Interaction = toJS({
             attemptId,
@@ -110,12 +119,16 @@ export class QuestionStore {
             answers: toJS(answers),
         })
 
-        this.isFeedbackLoading = true;
+        runInAction(() => this.isFeedbackLoading = true);
         const feedbackEither = await this.exerciseController.addQuestionAnswer(body);
-        const feedback = E.getOrElseW(_ => undefined)(feedbackEither)
+        runInAction(() => this.isFeedbackLoading = false);
+       
+        if (E.isLeft(feedbackEither)) {
+            throw (feedbackEither.left);
+        }
 
-        runInAction(() => {
-            this.isFeedbackLoading = false;
+        const feedback = feedbackEither.right;
+        runInAction(() => {            
             this.feedback = feedback;
             this.isFeedbackVisible = true;
             if (feedback && feedback.correctAnswers && this.isHistoryChanged(feedback.correctAnswers)) {
@@ -151,6 +164,6 @@ export class QuestionStore {
 
     isHistoryChanged = (newHistory: [number, number][]): boolean => {
         const { answersHistory } = this;
-        return newHistory.length !== answersHistory.length || JSON.stringify(newHistory.sort()) !== JSON.stringify(answersHistory.sort());
+        return newHistory.length !== answersHistory.length || JSON.stringify([...newHistory].sort()) !== JSON.stringify([...answersHistory].sort());
     }
 }

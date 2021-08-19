@@ -23,14 +23,15 @@ export class ExerciseStore {
         makeObservable(this);        
     }
 
-    @action
+    
     setExerciseState = (newState: ExerciseStore['exerciseState']) => {
-        if (this.exerciseState !== newState) {
-            this.exerciseState = newState;
-        }
+        runInAction(() => {
+            if (this.exerciseState !== newState) {
+                this.exerciseState = newState;
+            }
+        })
     }
 
-    @action 
     loadSessionInfo = async (): Promise<void> => {
         if (this.sessionInfo) {
             throw new Error("Session exists");
@@ -39,24 +40,28 @@ export class ExerciseStore {
             return;
         }
 
-        this.isSessionLoading = true;
-        const dataEither = await this.exerciseController.loadSessionInfo();                                
-        const data = E.getOrElseW(_ => undefined)(dataEither);
-        this.onSessionLoaded(data);        
+        runInAction(() => this.isSessionLoading = true);
+        const dataEither = await this.exerciseController.loadSessionInfo();
+        runInAction(() => this.isSessionLoading = false);
+
+        if (E.isLeft(dataEither)) {
+            throw dataEither.left;
+        }
+
+        this.onSessionLoaded(dataEither.right);        
     }
 
-    private onSessionLoaded(sessionInfo?: SessionInfo) {
+    private onSessionLoaded(sessionInfo: SessionInfo) {
         runInAction(() => {
             this.isSessionLoading = false;
             this.sessionInfo = sessionInfo;
             
-            if (this.sessionInfo && this.sessionInfo.language !== i18next.language) {
+            if (this.sessionInfo.language !== i18next.language) {
                 i18next.changeLanguage(this.sessionInfo.language);
             }
         });
     }
 
-    @action
     loadExistingExerciseAttempt = async (): Promise<boolean> => {
         const { sessionInfo } = this;
         if (!sessionInfo) {
@@ -65,8 +70,11 @@ export class ExerciseStore {
        
         const exerciseId = sessionInfo.exercise.id;
         const resultEither = await this.exerciseController.getExistingExerciseAttempt(exerciseId);
-        const result = E.getOrElseW(() => undefined)(resultEither);
-
+        if (E.isLeft(resultEither)) {
+            throw resultEither.left;
+        }
+        
+        const result = resultEither.right;
         if (!result) {
             return false;
         }
@@ -78,7 +86,6 @@ export class ExerciseStore {
     }
 
 
-    @action
     createExerciseAttempt = async (): Promise<void> => {
         const { sessionInfo } = this;
         if (!sessionInfo) {
@@ -87,14 +94,15 @@ export class ExerciseStore {
 
         const exerciseId = sessionInfo.exercise.id;        
         const resultEither = await this.exerciseController.createExerciseAttempt(+exerciseId);
-        const result = E.getOrElseW(() => undefined)(resultEither);
+        if (E.isLeft(resultEither)) {
+            throw resultEither.left;
+        }
 
         runInAction(() => {
-            this.currentAttempt = result;
+            this.currentAttempt = resultEither.right;
         })
     }
-
-    @action
+    
     generateQuestion = async (): Promise<void> => {
         const { sessionInfo, currentAttempt } = this;
         if (!sessionInfo || !currentAttempt) {
@@ -107,11 +115,12 @@ export class ExerciseStore {
         })
     }
 
-    @action
     changeLanguage = (newLang: "EN" | "RU") => {
-        if (this.sessionInfo && this.sessionInfo.language !== newLang) {
-            this.sessionInfo.language = newLang;
-            i18next.changeLanguage(newLang);
-        }
+        runInAction(() => {
+            if (this.sessionInfo && this.sessionInfo.language !== newLang) {
+                this.sessionInfo.language = newLang;
+                i18next.changeLanguage(newLang);
+            }
+        })
     }
 }
