@@ -119,7 +119,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType) {
+    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         String explanation = "";
         
         if (mistakes.size() == 0) { explanation = "Ответ правильный"; } 
@@ -178,7 +178,7 @@ public class TestDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
+    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
         return null;
     }
 

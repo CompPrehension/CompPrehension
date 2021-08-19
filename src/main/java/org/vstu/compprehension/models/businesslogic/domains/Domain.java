@@ -124,9 +124,10 @@ public abstract class Domain {
      * Generate explanation of violations
      * @param violations list of student violations
      * @param feedbackType TODO: use feedbackType or delete it
+     * @param lang user preferred language
      * @return explanation for each violation in random order
      */
-    public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType);
+    public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
 
     /**
      * Get all needed (positive and negative) laws in this questionType
@@ -226,7 +227,7 @@ public abstract class Domain {
      * @param sourceQuestion source question
      * @return supplementary question
      */
-    public abstract Question makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation);
+    public abstract Question makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang);
 
     public abstract InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer);
 

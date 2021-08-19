@@ -158,7 +158,7 @@ public class FrontendService {
         val violation = new ViolationEntity(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
 
-        val supQuestion = questionService.generateSupplementaryQuestion(question, violation);
+        val supQuestion = questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
         return supQuestion != null ? Mapper.toDto(supQuestion) : null;
     }
 

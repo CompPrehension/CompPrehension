@@ -1,0 +1,509 @@
+[
+  {
+    "name": "BASE_QUESTION_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "<p>Нажмите на операторы в порядке выполнения выражения</p>"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "<p>Press the operators in the expression in the order they are evaluated</p>"
+      }
+    ]
+  },
+  {
+    "name": "AT_POS",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " на позиции "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " at pos "
+      }
+    ]
+  },
+  {
+    "name": "OPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Оператор "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Operator "
+      }
+    ]
+  },
+  {
+    "name": "PARENTHESIS",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "круглые скобки "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "parenthesis "
+      }
+    ]
+  },
+  {
+    "name": "BRACKETS",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "квадратные скобки "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "brackets "
+      }
+    ]
+  },
+  {
+    "name": "FUNC_CALL",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "вызов функции "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "function call "
+      }
+    ]
+  },
+  {
+    "name": "EVALUATES",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " выполняется "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " evaluates "
+      }
+    ]
+  },
+  {
+    "name": "BEFORE_OPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "перед оператором "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "before operator "
+      }
+    ]
+  },
+  {
+    "name": "AFTER_OPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "после оператора "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "after operator "
+      }
+    ]
+  },
+  {
+    "name": "LEFT_SUBOPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " принадлежит левому операнду оператора "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " belongs to the left operand of operator "
+      }
+    ]
+  },
+  {
+    "name": "RIGHT_SUBOPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " принадлежит правому операнду оператора "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " belongs to the right operand of operator "
+      }
+    ]
+  },
+  {
+    "name": "TO_LEFT_OPERAND",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " принадлежит левому операнду"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " to its left operand"
+      }
+    ]
+  },
+  {
+    "name": "TO_RIGHT_OPERAND",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " принадлежит правому операнду"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " to its right operand"
+      }
+    ]
+  },
+  {
+    "name": "AND_LEFT_OPERAND",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " а левый операнд оператора "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "and the left operand of operator "
+      }
+    ]
+  },
+  {
+    "name": "EVALUATES_BEFORE_RIGHT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " выполняется до правого операнда"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " evaluates before its right operand"
+      }
+    ]
+  },
+  {
+    "name": "WHILE_OPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " когда оператор "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " while operator "
+      }
+    ]
+  },
+  {
+    "name": "ENCLOSED_PARENTHESIS",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " окруженный круглыми скобками, которые начинаются на позиции "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " enclosed by parenthesis that starts at pos "
+      }
+    ]
+  },
+  {
+    "name": "INSIDE_PARENTHESIS_FIRST",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": ", а все операторы внутри круглых скобок выполняются до операторов вокруг скобок"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": ", all operators inside parenthesis evaluates before operators around parenthesis"
+      }
+    ]
+  },
+  {
+    "name": "HAS_HIGHER_PRECEDENCE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " имеет более высокий приоритет"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " has higher precedence"
+      }
+    ]
+  },
+  {
+    "name": "THAN_OPERATOR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": ", чем оператор "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " than operator "
+      }
+    ]
+  },
+  {
+    "name": "HAS_LOWER_PRECEDENCE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " имеет более низкий приоритет"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " has lower precedence"
+      }
+    ]
+  },
+  {
+    "name": "LEFT_ASSOC_DESC",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " имеет левую ассоциативность и выполняется слева направо"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " has left associativity and evaluates left to right"
+      }
+    ]
+  },
+  {
+    "name": "SAME_PRECEDENCE_LEFT_ASSOC",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " имеют одинаковый приоритет и левую ассоциативность"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " has the same precedence and left associativity"
+      }
+    ]
+  },
+  {
+    "name": "SAME_PRECEDENCE_RIGHT_ASSOC",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " имеют одинаковый приоритет и правую ассоциативность"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " has the same precedence and right associativity"
+      }
+    ]
+  },
+  {
+    "name": "FUNC_ARGUMENTS_BEFORE_CALL",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "аргументы функции выполняются до вызова функции"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "function arguments are evaluated before function call​"
+      }
+    ]
+  },
+  {
+    "name": "IN_BRACKETS_BEFORE_BRACKETS",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "выражение в квадратных скобках выполняется до квадратных скобок"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "expression in brackets is evaluated before brackets"
+      }
+    ]
+  },
+  {
+    "name": "IN_PARENTHESIS_BEFORE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "выражение в круглых скобках выполняется до операторов окружающих скобки"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "expression in parenthesis is evaluated before operators​ outside of them"
+      }
+    ]
+  },
+  {
+    "name": "IN_BRACKETS_BEFORE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "выражение в квадратных скобках выполняется до операторов окружающих скобки"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "expression in brackets is evaluated before operators​ outside of them"
+      }
+    ]
+  },
+  {
+    "name": "LEFT_OPERAND",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "левый операнд "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "the left operand of the "
+      }
+    ]
+  },
+  {
+    "name": "MUST_BEFORE_RIGHT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " должен быть выполнен до его правого операнда"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " must be evaluated before its right operand​"
+      }
+    ]
+  },
+  {
+    "name": "UNKNOWN_ERROR",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "произошла неопознанная ошибка"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "unknown error"
+      }
+    ]
+  },
+  {
+    "name": "RIGHT_ASSOC_DESC",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " имеет правую ассоциативность и выполняется справа налево"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " has right associativity and evaluates right to left"
+      }
+    ]
+  },
+  {
+    "name": "SAME_PRECEDENCE_TEMPLATE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "операторы (.) и \\1 имеют одинаковый приоритет и"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "operators (.) and \\1 have same precedence and"
+      }
+    ]
+  },
+  {
+    "name": "OPERATOR_TEMPLATE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "оператор $1 имеет"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "operator $1 has"
+      }
+    ]
+  },
+  {
+    "name": "ERROR_PRECEDENCE_BEFORE_ASSOC",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет проверяется до ассоциативности"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence checked before associativity"
+      }
+    ]
+  },
+  {
+    "name": "ERROR_PRECEDENCE_HIGHER1",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет оператора"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence of operator "
+      }
+    ]
+  },
+  {
+    "name": "ERROR_PRECEDENCE_HIGHER2",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " выше"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " is higher"
+      }
+    ]
+  },
+  {
+    "name": "BECAUSE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " потому что "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " because "
+      }
+    ]
+  },
+  {
+    "name": "EVALUATES_BEFORE",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": " должен быть выполнен до "
+      },
+      {
+        "lang": "ENGLISH",
+        "text": " should be evaluated before "
+      }
+    ]
+  }
+]

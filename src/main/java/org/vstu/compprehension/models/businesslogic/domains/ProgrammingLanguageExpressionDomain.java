@@ -38,6 +38,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
+    static final String MESSAGES_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages.json";
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
@@ -45,6 +46,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
+        readMessages(this.getClass().getClassLoader().getResourceAsStream(MESSAGES_PATH));
     }
 
     private void fillConcepts() {
@@ -228,7 +230,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return QUESTIONS;
     }
 
-    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity) {
+    class MessageText {
+        String lang;
+        String text;
+    }
+    class Message {
+        String name;
+        List<MessageText> texts;
+    }
+    HashMap<String, HashMap<Language, String>> MESSAGES;
+    protected HashMap<String, HashMap<Language, String>> readMessages(InputStream inputStream) {
+        MESSAGES = new HashMap<>();
+        Message[] rawMessages = new Gson().fromJson(
+                new InputStreamReader(inputStream),
+                Message[].class);
+        for (Message m : rawMessages) {
+            MESSAGES.putIfAbsent(m.name, new HashMap<>());
+            HashMap<Language, String> inner = MESSAGES.get(m.name);
+            for (MessageText mt : m.texts) {
+                inner.put(Language.valueOf(mt.lang), mt.text);
+            }
+        }
+        return MESSAGES;
+    }
+
+    private String getMessage(String base_question_text, Language preferred_language) {
+        return MESSAGES.getOrDefault(base_question_text, new HashMap<>()).getOrDefault(preferred_language, "");
+    }
+
+    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(false)
@@ -273,7 +303,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = "<p>Press the operators in the expression in the order they are evaluated</p>";
+                val baseQuestionText = getMessage("BASE_QUESTION_TEXT", userLang);
                 entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
@@ -324,7 +354,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, new HashSet<>());
         if (res != null) {
-            return makeQuestionCopy(res, questionRequest.getExerciseAttempt());
+            return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
         }
 
         // make a SingleChoice question ...
@@ -773,11 +803,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         AnswerObjectEntity last = null;
         ArrayList<AnswerObjectEntity> explain = new ArrayList<>();
         TreeMap<Integer, String> posToExplanation = new TreeMap<>();
+        
+        Language lang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = answerText + " at pos " + answerPos;
-        posToExplanation.put(-1, "Operator " + answerTemplate + " evaluates ");
+        String answerTemplate = answerText + getMessage("AT_POS", lang) + answerPos;
+        posToExplanation.put(-1, getMessage("OPERATOR", lang) + answerTemplate + getMessage("EVALUATES", lang));
 
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
             if (beforeByThirdOperator.containsKey(answerObjectEntity.getDomainInfo())) {
@@ -803,17 +835,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = text + " at pos " + pos;
+                        String template = text + getMessage("AT_POS", lang) + pos;
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = thirdText + " at pos " + thirdPos;
+                        String thirdTemplate = thirdText + getMessage("AT_POS", lang) + thirdPos;
 
                         if (isStrict.containsKey(thirdOperator)) {
-                            posToExplanation.put(pos, "before operator " + template + ": operator " +
-                                    answerTemplate + " belongs to the left operand of operator " +
-                                    thirdTemplate + " while operator " + template + " to its right operand, and the left operand of operator " +
-                                    thirdText + " evaluates before its right operand");
+                            posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                                    answerTemplate + getMessage("LEFT_SUBOPERATOR", lang) +
+                                    thirdTemplate + getMessage("WHILE_OPERATOR", lang) + template + getMessage("TO_LEFT_OPERAND", lang) + "," + getMessage("AND_LEFT_OPERAND", lang) +
+                                    thirdText + getMessage("EVALUATES_BEFORE_RIGHT", lang));
                         }
                     }
                 }
@@ -823,21 +855,21 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = text + " at pos " + pos;
+                        String template = text + getMessage("AT_POS", lang) + pos;
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = thirdText + " at pos " + thirdPos;
+                        String thirdTemplate = thirdText + getMessage("AT_POS", lang) + thirdPos;
 
                         if (isStrict.containsKey(thirdOperator)) {
-                            posToExplanation.put(pos, "after operator " + template + ": operator " +
-                                    answerTemplate + " belongs to the right operand of operator " +
-                                    thirdTemplate + " while operator " + template + " to its left operand, and the left operand of operator " +
-                                    thirdText + " evaluates before its right operand");
+                            posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                                    answerTemplate + getMessage("RIGHT_SUBOPERATOR", lang) +
+                                    thirdTemplate + getMessage("WHILE_OPERATOR", lang) + template + getMessage("TO_LEFT_OPERAND", lang) + "," + getMessage("AND_LEFT_OPERAND", lang) +
+                                    thirdText + getMessage("EVALUATES_BEFORE_RIGHT", lang));
                         } else if (thirdText.equals("(")) {
-                            posToExplanation.put(pos, "after operator " + template + ": operator " +
-                                    template + " enclosed by parenthesis that starts at pos " + thirdPos +
-                                    ", all operators inside parenthesis evaluates before operators around parenthesis");
+                            posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ": " + getMessage("OPERATOR", lang) +
+                                    template + getMessage("ENCLOSED_PARENTHESIS", lang) + thirdPos +
+                                    getMessage("INSIDE_PARENTHESIS_FIRST", lang));
                         }
                     }
                 }
@@ -848,26 +880,26 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (AnswerObjectEntity reason : explain) {
             int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
             String text = texts.get(reason.getDomainInfo());
-            String template = text  + " at pos " + pos;
+            String template = text  + getMessage("AT_POS", lang) + pos;
 
             if (beforeHighPriority.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, "before operator " + template + ": operator " +
-                        answerText + " has higher precedence than operator " + text);
+                posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                        answerText + getMessage("HAS_HIGHER_PRECEDENCE", lang) + getMessage("THAN_OPERATOR", lang) + text);
             } else if (beforeHighPriority.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, "after operator " + template + ": operator " +
-                        answerText + " has lower precedence than operator " + text);
+                posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                        answerText + getMessage("HAS_LOWER_PRECEDENCE", lang) + getMessage("THAN_OPERATOR", lang) + text);
             } else if (beforeLeftAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, "before operator " + template + ": operator " +
-                        answerText + " has left associativity and evaluates left to right");
+                posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                        answerText + getMessage("LEFT_ASSOC_DESC", lang));
             } else if (beforeLeftAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, "after operator " + template + ": operator " +
-                        answerText + " has left associativity and evaluates left to right");
+                posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                        answerText + getMessage("LEFT_ASSOC_DESC", lang));
             } else if (beforeRightAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, "before operator " + template + ": operator " +
-                        answerText + " has right associativity and evaluates right to left");
+                posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                        answerText + getMessage("RIGHT_ASSOC_DESC", lang));
             } else if (beforeRightAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, "after operator " + template + ": operator " +
-                        answerText + " has right associativity and evaluates right to left");
+                posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
+                        answerText + getMessage("RIGHT_ASSOC_DESC", lang));
             }
         }
 
@@ -918,7 +950,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation) {
+    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
         HashSet<String> targetConcepts = new HashSet<>();
         String failedLaw = violation.getLawName().startsWith("error_base") ? "first_OrderOperatorsSupplementary" : violation.getLawName();
         targetConcepts.add(failedLaw);
@@ -934,14 +966,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            Question copy = makeQuestionCopy(res, exerciseAttemptEntity);
-            return fillSupplementaryAnswerObjects(question, failedLaw, copy);
+            Question copy = makeQuestionCopy(res, exerciseAttemptEntity, userLang);
+            return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
         }
 
         return null;
     }
 
-    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion) {
+    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {
         Map<String, List<String>> before = new HashMap<>();
         MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
         Map<String, String> texts = new HashMap<>();
@@ -1061,7 +1093,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         try {
             String text = stringSubstitutor.replace(supplementaryQuestion.getQuestionText());
-            text = text.replaceAll("operators (.) and \\1 have same precedence and", "operator $1 has");
+            text = text.replaceAll(getMessage("SAME_PRECEDENCE_TEMPLATE", lang), getMessage("OPERATOR_TEMPLATE", lang));
 
             supplementaryQuestion.getQuestionData().setQuestionText(text);
         } catch (IllegalArgumentException ex) {
@@ -1129,7 +1161,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 if (sameAnswers && isAnswerCorrect) {
                     ViolationEntity violationEntity = new ViolationEntity();
                     violationEntity.setLawName(newAnswer.getDomainInfo());
-                    return makeSupplementaryQuestion(originalQuestion, violationEntity);
+                    return makeSupplementaryQuestion(originalQuestion, violationEntity, lang);
                 }
 
                 answers.add(newAnswer);
@@ -1423,28 +1455,28 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType) {
+    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<HyperText> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeExplanation(mistake, feedbackType));
+            result.add(makeExplanation(mistake, feedbackType, lang));
         }
         return result;
     }
 
-    private static String getOperatorTextDescription(String errorText) {
+    private String getOperatorTextDescription(String errorText, Language lang) {
         if (errorText.equals("(")) {
-            return "parenthesis ";
+            return getMessage("PARENTHESIS", lang);
         } else if (errorText.equals("[")) {
-            return "brackets ";
+            return getMessage("BRACKETS", lang);
         } else if (errorText.contains("(")) {
-            return "function call ";
+            return getMessage("FUNC_CALL", lang);
         }
-        return "operator ";
+        return getMessage("OPERATOR", lang);
     }
 
-    private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType) {
+    private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
         if (mistake.getLawName().equals("error_select_precedence_or_associativity")) {
-            return new HyperText("Wrong, precedence checked before associativity");
+            return new HyperText(getMessage("ERROR_PRECEDENCE_BEFORE_ASSOC", lang));
         } else if (mistake.getLawName().equals("error_select_highest_precedence")) {
             String text = "";
             String index;
@@ -1455,7 +1487,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     index = fact.getObject();
                 }
             }
-            return new HyperText("Wrong, precedence of operator " + text + " is higher");
+            return new HyperText(getMessage("ERROR_PRECEDENCE_HIGHER1", lang) + text + getMessage("ERROR_PRECEDENCE_HIGHER2", lang));
         } else if (mistake.getLawName().equals("wrong_operand_type")) {
             String realType = "";
             String studentType = "";
@@ -1512,35 +1544,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         String reasonPos = nameToPos.get(base.getObject());
         String errorPos = nameToPos.get(base.getSubject());
 
-        String what = getOperatorTextDescription(reasonText) + reasonText + " at pos " + reasonPos
-                + " should be evaluated before " + getOperatorTextDescription(errorText) + errorText + " at pos " + errorPos;
+        String what = getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("AT_POS", lang) + reasonPos
+                + getMessage("EVALUATES_BEFORE", lang) + getOperatorTextDescription(errorText, lang) + errorText + getMessage("AT_POS", lang) + errorPos;
         String reason = "";
 
         String errorType = mistake.getLawName();
 
         if (errorType.equals("error_base_higher_precedence_left") ||
                 errorType.equals("error_base_higher_precedence_right")) {
-            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has higher precedence";
+            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("HAS_HIGHER_PRECEDENCE", lang);
         } else if (errorType.equals("error_base_same_precedence_left_associativity_left") && errorText.equals(reasonText)) {
-            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has left associativity and is evaluated from left to right";
+            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("LEFT_ASSOC_DESC", lang);
         } else if (errorType.equals("error_base_same_precedence_left_associativity_left")) {
-            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and left associativity";
+            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("SAME_PRECEDENCE_LEFT_ASSOC", lang);
         } else if (errorType.equals("error_base_same_precedence_right_associativity_right") && errorText.equals(reasonText)) {
-            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has right associativity and is evaluated from right to left";
+            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("RIGHT_ASSOC_DESC", lang);
         } else if (errorType.equals("error_base_same_precedence_right_associativity_right")) {
-            reason = " because " + getOperatorTextDescription(reasonText) + reasonText + " has the same precedence and right associativity";
+            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("SAME_PRECEDENCE_RIGHT_ASSOC", lang);
         } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("(")) {
-            reason = " because function arguments are evaluated before function call​";
+            reason = getMessage("BECAUSE", lang) + getMessage("FUNC_ARGUMENTS_BEFORE_CALL", lang);
         } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("[")) {
-            reason = " because expression in brackets is evaluated before brackets";
+            reason = getMessage("BECAUSE", lang) + getMessage("IN_BRACKETS_BEFORE_BRACKETS", lang);
         } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("(")) {
-            reason = " because expression in parenthesis is evaluated before operators​ outside of them";
+            reason = getMessage("BECAUSE", lang) + getMessage("IN_PARENTHESIS_BEFORE", lang);
         } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("[")) {
-            reason = " because expression in brackets is evaluated before operator outside of them​​";
+            reason = getMessage("BECAUSE", lang) + getMessage("IN_BRACKETS_BEFORE", lang);
         } else if (errorType.equals("error_base_student_error_strict_operands_order_base")) {
-            reason = " because the left operand of the " + getOperatorTextDescription(thirdOperatorText) + thirdOperatorText + " at pos " + thirdOperatorPos + " must be evaluated before its right operand​";
+            reason = getMessage("BECAUSE", lang) + getMessage("LEFT_OPERAND", lang) + getOperatorTextDescription(thirdOperatorText, lang) + thirdOperatorText + getMessage("AT_POS", lang) + thirdOperatorPos + getMessage("MUST_BEFORE_RIGHT", lang);
         } else {
-            reason = " because unknown error";
+            reason = getMessage("BECAUSE", lang) + "unknown error";
         }
 
         return new HyperText(what + "\n" + reason);
