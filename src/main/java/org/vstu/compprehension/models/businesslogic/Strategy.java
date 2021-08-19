@@ -86,14 +86,20 @@ public class Strategy extends AbstractStrategy {
                     if(correctLaws.contains(interResult.getSecond())){
                         correctLaws.remove(interResult.getSecond());
                     }
-                    incorrectLaws.add(interResult.getSecond());
+                    if(!incorrectLaws.contains(interResult.getSecond())){
+                        incorrectLaws.add(interResult.getSecond());
+                    }
+
                 }else{
                     //Если ранее закон считался не изученным
                     //Считать закон изученным
                     if(incorrectLaws.contains(interResult.getSecond())){
                         incorrectLaws.remove(interResult.getSecond());
                     }
-                    correctLaws.add(interResult.getSecond());
+                    if(!correctLaws.contains(interResult.getSecond())){
+                        correctLaws.add(interResult.getSecond());
+                    }
+
                 }
 
                 lastErrors.clear();
@@ -145,7 +151,7 @@ public class Strategy extends AbstractStrategy {
 
                 //// Вопрос считается угаданным, если между последним правильным ответом и верным применением текущего закона...
                 ////...была ошибка применения этого закона
-                for(Pair<Boolean, String> interResult : allLaws){
+                for(Pair<Boolean, String> interResult : allLawsHistory){
                     //Если текущая интеракция верна
                     if(interResult.getFirst()){
                         //Если с момента прошлого верного ответа были такие ошибки
@@ -155,14 +161,20 @@ public class Strategy extends AbstractStrategy {
                             if(correctLaws.contains(interResult.getSecond())){
                                 correctLaws.remove(interResult.getSecond());
                             }
-                            incorrectLaws.add(interResult.getSecond());
+                            if(!incorrectLaws.contains(interResult.getSecond())){
+                                incorrectLaws.add(interResult.getSecond());
+                            }
+
                         }else{
                             //Если ранее закон считался не изученным
                             //Считать закон изученным
                             if(incorrectLaws.contains(interResult.getSecond())){
                                 incorrectLaws.remove(interResult.getSecond());
                             }
-                            correctLaws.add(interResult.getSecond());
+                            if(!correctLaws.contains(interResult.getSecond())){
+                                correctLaws.add(interResult.getSecond());
+                            }
+
                         }
 
                         lastErrors.clear();
@@ -171,20 +183,7 @@ public class Strategy extends AbstractStrategy {
                     }
                 }
 
-                ArrayList<String>allNodes = new ArrayList<>(tree.keySet());
-
-                ArrayList<LawNode> nextNodes = new ArrayList<>();
-                for(String lawName : allNodes){
-                    LawNode childNode = tree.get(lawName);
-                    //Собрать ноды с упущенными или некорректными законами
-                    for(String currentError : childNode.currentLows){
-                        //Если закон отсутствует в корректных, то он или ошибочен или не применялся
-                        if(!correctLaws.contains(currentError) && !nextNodes.contains(childNode)){
-                            nextNodes.add(childNode);
-                        }
-                    }
-
-                }
+                ArrayList<LawNode>nextNodes = getNextNodes(tree, correctLaws);
                 //Все законы усвоены
                 if(nextNodes.size() == 0){
                     return new QuestionRequest();
@@ -338,10 +337,90 @@ public class Strategy extends AbstractStrategy {
 
     @Override
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
-        if(exerciseAttempt.getQuestions().stream().count() >= 15){
+        //Должно быть задано не менее 3 вопросов
+        if(exerciseAttempt.getQuestions().stream().count() <= 3){
+            return Decision.CONTINUE;
+        }
+
+        ExerciseEntity exercise = exerciseAttempt.getExercise();
+        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
+        HashMap<String, LawNode> tree = getTree(domain);
+
+        //// Если нет больших, проверить усвоенность всех целевых законов
+        ArrayList<QuestionEntity> qes = new ArrayList<>(exerciseAttempt.getQuestions());
+        Collections.sort(qes, new QuestionOrderComparator());
+
+        ArrayList<Pair<Boolean, String>> allLawsHistory = new ArrayList<>();
+
+        for (QuestionEntity taskqe : qes){
+            ArrayList<InteractionEntity> taskies = new ArrayList<>(taskqe.getInteractions());
+
+            Collections.sort(taskies, new InteractionOrderComparator());
+            InteractionEntity tasklastIE = null;
+            for(InteractionEntity ie : taskies){
+                allLawsHistory.addAll(findInteractionsDelta(tasklastIE, ie));
+                tasklastIE = ie;
+            }
+
+        }
+
+        ArrayList<String> correctLaws = new ArrayList<>();
+        ArrayList<String> incorrectLaws = new ArrayList<>();
+        ArrayList<String> lastErrors = new ArrayList<>();
+
+        //// Вопрос считается угаданным, если между последним правильным ответом и верным применением текущего закона...
+        ////...была ошибка применения этого закона
+        for(Pair<Boolean, String> interResult : allLawsHistory){
+            //Если текущая интеракция верна
+            if(interResult.getFirst()){
+                //Если с момента прошлого верного ответа были такие ошибки
+                if(lastErrors.contains(interResult.getSecond())){
+                    //Если закон считался верно изученным
+                    //Считать, что он не был понят
+                    if(correctLaws.contains(interResult.getSecond())){
+                        correctLaws.remove(interResult.getSecond());
+                    }
+                    incorrectLaws.add(interResult.getSecond());
+                }else{
+                    //Если ранее закон считался не изученным
+                    //Считать закон изученным
+                    if(incorrectLaws.contains(interResult.getSecond())){
+                        incorrectLaws.remove(interResult.getSecond());
+                    }
+                    correctLaws.add(interResult.getSecond());
+                }
+
+                lastErrors.clear();
+            }else{
+                lastErrors.add(interResult.getSecond());
+            }
+        }
+
+        ArrayList<LawNode> nextNodes = getNextNodes((HashMap<String, LawNode>) tree, correctLaws);
+        //Все законы усвоены
+        if(nextNodes.size() == 0){
             return Decision.FINISH;
         }
+
         return Decision.CONTINUE;
+    }
+
+    private ArrayList<LawNode> getNextNodes(HashMap<String, LawNode> tree, ArrayList<String> correctLaws) {
+        ArrayList<String>allNodes = new ArrayList<>(tree.keySet());
+
+        ArrayList<LawNode> nextNodes = new ArrayList<>();
+        for(String lawName : allNodes){
+            LawNode childNode = tree.get(lawName);
+            //Собрать ноды с упущенными или некорректными законами
+            for(String currentError : childNode.currentLows){
+                //Если закон отсутствует в корректных, то он или ошибочен или не применялся
+                if(!correctLaws.contains(currentError) && !nextNodes.contains(childNode)){
+                    nextNodes.add(childNode);
+                }
+            }
+
+        }
+        return nextNodes;
     }
 
     protected HashMap<String, Float> getLawGrade(ExerciseAttemptEntity exerciseAttempt){
@@ -454,8 +533,7 @@ public class Strategy extends AbstractStrategy {
         return trueCount/(trueCount + falseCount);
     }
 
-    public HashMap<String, LawNode> getTree(Domain de)
-    {
+    public HashMap<String, LawNode> getTree(Domain de) {
         if(de instanceof ProgrammingLanguageExpressionDomain) {
             return getTree0();
         }else if(de instanceof ControlFlowStatementsDomain)
@@ -464,6 +542,7 @@ public class Strategy extends AbstractStrategy {
         }
         return null;
     }
+
     public HashMap<String, LawNode> getTree0(){
         HashMap<String, LawNode> result = new HashMap<>();
 
