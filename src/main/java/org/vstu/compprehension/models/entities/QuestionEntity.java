@@ -32,6 +32,9 @@ public class QuestionEntity {
     @Column(name = "question_text", columnDefinition = "TEXT")
     private String questionText;
 
+    @Column(name = "question_name", columnDefinition = "TEXT")
+    private String questionName;
+
     @Column(name = "question_domain_type")
     private String questionDomainType;
 
