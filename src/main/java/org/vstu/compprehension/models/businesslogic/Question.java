@@ -53,6 +53,12 @@ public abstract class Question implements QuestionFront, QuestionBack {
     }
 
     @Override
+    public String getQuestionName() {
+
+        return questionData.getQuestionName();
+    }
+
+    @Override
     public AnswerObjectEntity getAnswerObject(int answerId) {
         return questionData.getAnswerObjects().stream()
                 .filter(a -> a.getAnswerId() == answerId)

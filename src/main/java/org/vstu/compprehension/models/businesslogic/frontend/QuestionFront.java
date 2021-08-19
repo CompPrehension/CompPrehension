@@ -11,7 +11,9 @@ public interface QuestionFront {
     public List<AnswerObjectEntity> getAnswerObjects();
     
     public HyperText getQuestionText();
-    
+
+    public String getQuestionName();
+
     public AnswerObjectEntity getAnswerObject(int index);
 
     public int answerObjectsCount();

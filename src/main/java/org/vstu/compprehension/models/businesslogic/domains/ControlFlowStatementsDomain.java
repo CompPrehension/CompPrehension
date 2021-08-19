@@ -367,6 +367,7 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setAreAnswersRequireContext(true);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
+        entity.setQuestionName(q.getQuestionName());
 
         // add schema facts!
         List<BackendFactEntity> facts = new ArrayList<>(getSchemaFacts(true));
