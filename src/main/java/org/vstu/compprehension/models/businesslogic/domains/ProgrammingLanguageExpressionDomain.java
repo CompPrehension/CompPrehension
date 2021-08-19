@@ -269,6 +269,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
         entity.setQuestionType(q.getQuestionType());
+        entity.setQuestionName(q.getQuestionText().getText());
 
         switch (q.getQuestionType()) {
             case ORDER:

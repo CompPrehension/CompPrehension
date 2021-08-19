@@ -113,7 +113,7 @@ public class Strategy extends AbstractStrategy {
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
         HashMap<String, LawNode> tree = getTree(domain);
-        LawNode currentNode = tree.get(qe.getQuestionText());
+        LawNode currentNode = tree.get(qe.getQuestionName());
         // Если верно примененных законов в текущем вопросе достаточно (не менее 90%), то берется вопрос из больших
         if(correct > 0.9){
             //Если у узла есть "прямые" большие вопросы
