@@ -490,7 +490,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "precedence",
                     "associativity",
                     "in_complex",
-                    "complex_beginning"
+                    "complex_beginning",
+                    "is_function_call"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -521,7 +522,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "index",
                     "before_direct",
                     "student_pos_number",
-                    "is_operand"
+                    "is_operand",
+                    "is_function_call"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -698,6 +700,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
         Map<String, String> studentPos = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
+        HashSet<String> isNotCallableOperator = new HashSet<>();
         HashSet<String> allTokens = new HashSet<>();
         for (BackendFactEntity fact : solution) {
             if (fact.getVerb().equals("before_direct")) {
@@ -707,12 +710,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 studentPos.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("is_operand")) {
                 isOperand.add(fact.getSubject());
+            } else if (fact.getVerb().equals("is_function_call") && fact.getObject().equals("false")) {
+                isNotCallableOperator.add(fact.getSubject());
             }
         }
 
         int IterationsLeft = 0;
         for (String operator : allTokens) {
-            if (operator.startsWith("op__0") && !isOperand.contains(operator) && !studentPos.containsKey(operator)) {
+            if (operator.startsWith("op__0") &&
+                    !isOperand.contains(operator) &&
+                    !isNotCallableOperator.contains(operator) &&
+                    !studentPos.containsKey(operator)) {
                 IterationsLeft++;
             }
         }
