@@ -44,7 +44,7 @@ public class Strategy extends AbstractStrategy {
                         "do_10"));
             }
             Random random = new Random();
-            int nextQuestion = random.ints(0, startTasks.size()-1)
+            int nextQuestion = random.ints(0, startTasks.size())
                     .findFirst()
                     .getAsInt();
 
@@ -119,9 +119,12 @@ public class Strategy extends AbstractStrategy {
             //Если у узла есть "прямые" большие вопросы
             if(currentNode.parentNodes != null && currentNode.parentNodes.size() > 0){
                 Random random = new Random();
-                int nextQuestion = random.ints(0, currentNode.parentNodes.size()-1)
-                        .findFirst()
-                        .getAsInt();
+                int nextQuestion = 0;
+                if(currentNode.parentNodes.size() > 1) {
+                    nextQuestion = random.ints(0, currentNode.parentNodes.size() )
+                            .findFirst()
+                            .getAsInt();
+                }
 
                 LawNode nextNode = tree.get(currentNode.parentNodes.get(nextQuestion));
 
@@ -190,9 +193,12 @@ public class Strategy extends AbstractStrategy {
                 }
 
                 Random random = new Random();
-                int nextQuestion = random.ints(0, nextNodes.size()-1)
-                        .findFirst()
-                        .getAsInt();
+                int nextQuestion = 0;
+                if(currentNode.parentNodes.size() > 1) {
+                    nextQuestion = random.ints(0, currentNode.parentNodes.size())
+                            .findFirst()
+                            .getAsInt();
+                }
 
                 LawNode nextNode = nextNodes.get(nextQuestion);
 
@@ -212,11 +218,17 @@ public class Strategy extends AbstractStrategy {
                         }
                     }
                 }
+                if(nextNodes.size() == 0){
+                    return getQuestionRequest(exerciseAttempt, currentNode);
+                }
 
                 Random random = new Random();
-                int nextQuestion = random.ints(0, nextNodes.size()-1)
-                        .findFirst()
-                        .getAsInt();
+                int nextQuestion = 0;
+                if(currentNode.childNodes.size() > 1) {
+                    nextQuestion = random.ints(0, currentNode.childNodes.size())
+                            .findFirst()
+                            .getAsInt();
+                }
 
                 LawNode nextNode = nextNodes.get(nextQuestion);
 
@@ -679,6 +691,12 @@ public class Strategy extends AbstractStrategy {
                 new ArrayList<>(Arrays.asList("error_higher_precedence_left")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "++ a - b + c",
                         "* a [ b + c ] + e", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
+                new ArrayList<>()));
+
+        result.put("* ++ a", new LawNode("* ++ a",
+                new ArrayList<>(Arrays.asList("error_higher_precedence_right")),
+                new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "a || f ( b || c , d || e )",
+                        "a + b + c * d", "a + b * c || d + e * f", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
         return result;
