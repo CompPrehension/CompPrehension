@@ -1,11 +1,10 @@
 package org.vstu.compprehension.models.entities.EnumData;
 
-public enum Decision {
-    CONTINUE,
-    NEWQUESTION,
-    EXAMPLE,
-    FINISH;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    Decision() {
-    }
+public enum Decision {
+    @JsonProperty("CONTINUE")
+    CONTINUE,
+    @JsonProperty("FINISH")
+    FINISH;
 }

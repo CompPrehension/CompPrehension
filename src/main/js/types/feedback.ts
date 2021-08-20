@@ -29,6 +29,7 @@ export type Feedback = {
     stepsLeft?: number | null,
     stepsWithErrors?: number | null,
     messages?: FeedbackMessage[] | null,
+    strategyDecision?: 'CONTINUE' | 'FINISH' | null,
 } 
 export const TFeedback: io.Type<Feedback> = io.partial({
     grade: io.union([io.number, io.null]),
@@ -38,7 +39,16 @@ export const TFeedback: io.Type<Feedback> = io.partial({
     stepsLeft: io.union([io.number, io.null]),
     stepsWithErrors: io.union([io.number, io.null]),
     message: io.union([io.array(TFeedbackMessage), io.null]),
+    strategyDecision: io.union([
+        io.keyof({
+            'CONTINUE': null,
+            'FINISH': null,
+        }),
+        io.null,
+    ]),
 }, 'Feedback');
+
+
 
 export type OrderQuestionFeedback = MergeIntersections<Feedback & {
     trace?: string[] | null,

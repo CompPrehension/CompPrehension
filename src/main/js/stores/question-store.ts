@@ -17,7 +17,7 @@ import * as O from 'fp-ts/lib/Option'
 export class QuestionStore {
     @observable isQuestionLoading?: boolean = false;
     @observable answersHistory: [number, number][] = [];
-    @observable isFeedbackLoading?: boolean = false;
+    @observable isFeedbackLoading: boolean = false;
     @observable isFeedbackVisible: boolean = true;
     @observable feedback?: Feedback = undefined;
     @observable question?: Question = undefined;

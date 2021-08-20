@@ -9,14 +9,15 @@ import { SingleChoiceQuestionComponent } from "./single-choice-question";
 
 type QuestionComponentProps = {
     question: Question,
-    feedback?: Feedback, 
+    feedback?: Feedback,
+    isFeedbackLoading: boolean,
     answers: [number, number][],
     getAnswers: () => [number, number][],
     onChanged: (x: [number, number][]) => void,
 }
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {
-    const { question, answers, onChanged, getAnswers, feedback } = props;
+    const { question, answers, onChanged, getAnswers, feedback, isFeedbackLoading } = props;
     let questonComponent: JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
@@ -33,7 +34,7 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
             break;
     }
     return (
-        <div className={`comp-ph-question-wrapper ${(feedback?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")}`}>
+        <div className={`comp-ph-question-wrapper ${(feedback?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")} ${(isFeedbackLoading ? "comp-ph-question-wrapper--loading-feedback" : "")}`}>
             {questonComponent}
         </div>
     );

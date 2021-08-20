@@ -43,6 +43,9 @@ public class FrontendService {
     private ExerciseAttemptRepository exerciseAttemptRepository;
 
     @Autowired
+    private ExerciseAttemptService exerciseAttemptService;
+
+    @Autowired
     private ExerciseService exerciseService;
 
     @Autowired
@@ -117,6 +120,10 @@ public class FrontendService {
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
 
+        // decide next exercise state
+        val strategyAttemptDecision = strategy.decide(attempt);
+        exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+
         // calculate error message
         val violationIds = judgeResult.violations.stream().map(ViolationEntity::getLawName)
                 .filter(Objects::nonNull);
@@ -138,7 +145,8 @@ public class FrontendService {
                 messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
-                correctAnswers);
+                correctAnswers,
+                strategyAttemptDecision);
     }
 
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) throws Exception {
@@ -174,7 +182,8 @@ public class FrontendService {
         val correctAnswerDto = Mapper.toDto(correctAnswer);
 
         // evaluate new answer
-        val tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags();
+        val exerciseAttempt = question.getQuestionData().getExerciseAttempt();
+        val tags = exerciseAttempt.getExercise().getTags();
         val responses = questionService.responseQuestion(question, correctAnswerDto.getAnswers());
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
@@ -185,10 +194,14 @@ public class FrontendService {
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
         // add feedback
-        val grade = strategy.grade(question.getQuestionData().getExerciseAttempt());
+        val grade = strategy.grade(exerciseAttempt);
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
+
+        // decide next exercise state
+        val strategyAttemptDecision = strategy.decide(exerciseAttempt);
+        exerciseAttemptService.ensureAttemptStatus(exerciseAttempt, strategyAttemptDecision);
 
         // build feedback message
         val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation(), new String[0]) };
@@ -198,7 +211,8 @@ public class FrontendService {
                 messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
-                correctAnswerDto.getAnswers());
+                correctAnswerDto.getAnswers(),
+                strategyAttemptDecision);
     }
 
     public @NotNull ExerciseStatisticsItemDto[] getExerciseStatistics(@NotNull Long exerciseId) {

@@ -2,12 +2,11 @@ package org.vstu.compprehension.dto.feedback;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
 
 @Data
 @SuperBuilder
@@ -20,6 +19,7 @@ public class FeedbackDto {
     private Integer stepsWithErrors;
     private Long[][] correctAnswers;
     private Message[] messages;
+    private Decision strategyDecision;
 
     public enum MessageType {
         @JsonProperty("ERROR")

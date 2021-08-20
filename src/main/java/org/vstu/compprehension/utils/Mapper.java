@@ -13,6 +13,7 @@ import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 public class Mapper {
@@ -75,7 +75,7 @@ public class Mapper {
                 .toArray(Long[][]::new);
 
         val feedback = lastInteraction
-                .map(i -> Mapper.toFeedbackDto(questionObject, i, null, correctInteractionsCount, interactionsWithErrorsCount, null))
+                .map(i -> Mapper.toFeedbackDto(questionObject, i, null, correctInteractionsCount, interactionsWithErrorsCount, null, null))
                 .orElse(null);
 
         val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
@@ -157,7 +157,8 @@ public class Mapper {
             @Nullable FeedbackDto.Message[] messages,
             @Nullable Integer correctSteps,
             @Nullable Integer stepsWithErrors,
-            @Nullable Long[][] correctAnswers
+            @Nullable Long[][] correctAnswers,
+            @Nullable Decision strategyDecision
     ) {
         if (interaction.getQuestion().getQuestionType() == QuestionType.ORDER) {
             val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
@@ -172,6 +173,7 @@ public class Mapper {
                     .messages(messages)
                     .correctAnswers(correctAnswers)
                     .stepsLeft(interaction.getFeedback().getInteractionsLeft())
+                    .strategyDecision(strategyDecision)
                     .trace(trace)
                     .build();
         }
@@ -182,6 +184,7 @@ public class Mapper {
                 .messages(messages)
                 .correctAnswers(correctAnswers)
                 .stepsLeft(interaction.getFeedback().getInteractionsLeft())
+                .strategyDecision(strategyDecision)
                 .build();
     }
 }

@@ -11,7 +11,6 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.utils.DomainAdapter;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
