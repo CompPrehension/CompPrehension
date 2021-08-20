@@ -279,7 +279,7 @@ public abstract class Domain {
      * @return new question template
      */
     public Question findQuestion(List<Tag> tags, Question q) {
-        return findQuestion(tags, new HashSet<>(q.getConcepts()), new HashSet<>(), new HashSet<>(q.getNegativeLaws()), new HashSet<>(), new HashSet<>(Set.of(q.getQuestionText().getText())));
+        return findQuestion(tags, new HashSet<>(q.getConcepts()), new HashSet<>(), new HashSet<>(q.getNegativeLaws()), new HashSet<>(), new HashSet<>(Set.of(q.getQuestionName())));
     }
 
     /**
@@ -299,7 +299,7 @@ public abstract class Domain {
             int targetConceptCount = 0;
             int anotherConcepts = 0;
             boolean suit = true;
-            if (forbiddenQuestions.contains(q.getQuestionText().getText())) {
+            if (forbiddenQuestions.contains(q.getQuestionName())) {
                 continue;
             }
             for (Tag tag : tags) {
