@@ -553,6 +553,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_right_assoc_base",
                     "student_error_in_complex_base",
                     "student_error_strict_operands_order_base",
+                    "before_third_operator",
                     "text",
                     "index",
                     "before_direct",
