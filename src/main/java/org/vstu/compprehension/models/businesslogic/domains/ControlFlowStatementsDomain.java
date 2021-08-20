@@ -1330,7 +1330,7 @@ public class ControlFlowStatementsDomain extends Domain {
             if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
                 String values = fact.getObject();
                 String[] tokens = values.split(",");
-                if (executionTime <= tokens.length) {
+                if (0 <= executionTime && executionTime <= tokens.length) {
                     String token = tokens[executionTime - 1];
                     return Integer.parseInt(token);
                 }
