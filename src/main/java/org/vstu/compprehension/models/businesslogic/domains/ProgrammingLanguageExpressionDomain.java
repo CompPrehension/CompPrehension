@@ -351,8 +351,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, new HashSet<>());
+        HashSet<String> deniedQuestions = new HashSet<>();
+        if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
+            for (QuestionEntity q : questionRequest.getExerciseAttempt().getQuestions()) {
+                deniedQuestions.add(q.getQuestionName());
+            }
+        }
+        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         if (res != null) {
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
         }
