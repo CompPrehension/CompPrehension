@@ -54,7 +54,6 @@ public class ControlFlowStatementsDomainTest {
                 domain.getConcept("loop")
         ));
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
-//        assertEquals(ProgrammingLanguageExpressionDomain.ExpressionToHtml("a == b < c"), question.getQuestionText().getText());
 
         Backend backend = new JenaBackend();
         List<BackendFactEntity> solution = backend.solve(

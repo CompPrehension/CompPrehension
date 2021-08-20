@@ -283,7 +283,13 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // Get somehow negative and positive laws names
 
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, new HashSet<>(), new HashSet<>(), new HashSet<>());
+        HashSet<String> deniedQuestions = new HashSet<>();
+        if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
+            for (QuestionEntity q : questionRequest.getExerciseAttempt().getQuestions()) {
+                deniedQuestions.add(q.getQuestionName());
+            }
+        }
+        Question res = findQuestion(tags, conceptNames, deniedConceptNames, new HashSet<>(), new HashSet<>(), deniedQuestions);
         if (res == null) {
             // get anything. TODO: make it input-dependent
             // get (a random) index
@@ -1330,7 +1336,7 @@ public class ControlFlowStatementsDomain extends Domain {
             if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
                 String values = fact.getObject();
                 String[] tokens = values.split(",");
-                if (executionTime <= tokens.length) {
+                if (0 <= executionTime && executionTime <= tokens.length) {
                     String token = tokens[executionTime - 1];
                     return Integer.parseInt(token);
                 }

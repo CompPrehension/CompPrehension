@@ -218,6 +218,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 Question[].class);
 
         Collections.addAll(res, questions);
+
+        // write questionName to each template
+        res.forEach(q -> q.getQuestionData().setQuestionName(q.getQuestionText().getText()));
+
         return res;
     }
 
@@ -299,7 +303,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
         entity.setQuestionType(q.getQuestionType());
-        entity.setQuestionName(q.getQuestionText().getText());
+        entity.setQuestionName(q.getQuestionName());
 
         switch (q.getQuestionType()) {
             case ORDER:
