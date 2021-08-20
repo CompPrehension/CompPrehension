@@ -14,6 +14,9 @@ export const Pagination = observer(() => {
 
     const { questionId:currentQuestionId } = exerciseStore.currentQuestion.question;
     const questionIds = exerciseStore.currentAttempt.questionIds.map((id, idx) => ({ id, number: idx + 1 }));
+    if (questionIds.length === 0) {
+        return null;
+    }
 
     const maxNumbersInRow = 10;
     const beginEndSliceSize = 7;

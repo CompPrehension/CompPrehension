@@ -260,6 +260,13 @@ public class FrontendService {
     }
 
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
+        // complete all incompleted attempts
+        val incompletedAttempts = exerciseAttemptRepository.findAllByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
+        for(val att : incompletedAttempts) {
+            att.setAttemptStatus(AttemptStatus.COMPLETE_BY_SYSTEM);
+        }
+        exerciseAttemptRepository.saveAll(incompletedAttempts);
+
         val exercise = exerciseService.getExercise(exerciseId);
         val user = userService.getUser(userId);
 

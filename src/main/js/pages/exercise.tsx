@@ -10,6 +10,7 @@ import { ExerciseStore } from "../stores/exercise-store";
 import { CurrentQuestion } from "../components/exercise/current-question";
 import { Optional } from "../components/common/optional";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-bootstrap";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -52,12 +53,21 @@ export const Exercise = observer(() => {
 
     return (
         <LoadingWrapper isLoading={exerciseState === 'INITIAL'}>
-            <Optional isVisible={exerciseState === 'EXERCISE'}>
+            <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
                 <Header />
                 <div className="mt-5">
                     <CurrentQuestion />
-                    <GenerateNextAnswerBtn /> 
-                    <GenerateNextQuestionBtn />
+                    <Optional isVisible={exerciseState === 'EXERCISE'}>
+                        <GenerateNextAnswerBtn /> 
+                        <GenerateNextQuestionBtn />
+                    </Optional>
+                    <Optional isVisible={exerciseState === 'COMPLETED'}>
+                        <div className="mt-2">
+                            <Alert variant={'success'}>
+                                {t('exercise_completed')!}
+                            </Alert>
+                        </div>
+                    </Optional>
                 </div>                
             </Optional>
             <Optional isVisible={exerciseState === 'MODAL'}>

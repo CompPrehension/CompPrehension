@@ -35,6 +35,7 @@ const resources = {
             foundExisitingAttempt_descr: "Would you like to continue the existing attempt or start a new one",
             foundExisitingAttempt_continueattempt: "Continue",
             foundExisitingAttempt_newattempt: "New",
+            exercise_completed: "Exercise completed",
         },
     },
     RU: {
@@ -54,6 +55,7 @@ const resources = {
             foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
             foundExisitingAttempt_continueattempt: "Продолжить",
             foundExisitingAttempt_newattempt: "Новая",
+            exercise_completed: "Упражнение завершено",
         },
     },
 };

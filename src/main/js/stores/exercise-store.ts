@@ -1,4 +1,4 @@
-import { action, makeObservable, observable, runInAction, toJS } from "mobx";
+import { action, autorun, makeObservable, observable, runInAction, toJS } from "mobx";
 import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseAttempt } from "../types/exercise-attempt";
@@ -19,10 +19,19 @@ export class ExerciseStore {
         @inject(ExerciseController) private readonly exerciseController: IExerciseController,
         @inject(QuestionStore) currentQuestion: QuestionStore
     ) {
+        makeObservable(this);
+
         this.currentQuestion = currentQuestion;
-        makeObservable(this);        
+        this.registerOnStrategyDecisionChangedAction();
     }
 
+    private registerOnStrategyDecisionChangedAction = () => {
+        autorun(() => {
+            if (this.currentQuestion.feedback?.strategyDecision === 'FINISH' && this.exerciseState !== 'COMPLETED') {
+                this.setExerciseState('COMPLETED');
+            }
+        })
+    }
     
     setExerciseState = (newState: ExerciseStore['exerciseState']) => {
         runInAction(() => {

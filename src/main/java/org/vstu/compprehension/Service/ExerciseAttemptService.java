@@ -13,8 +13,8 @@ public class ExerciseAttemptService {
     private ExerciseAttemptRepository exerciseAttemptRepository;
 
     public void ensureAttemptStatus(ExerciseAttemptEntity exerciseAttempt, Decision strategyDecision) {
-        if (strategyDecision == Decision.FINISH && exerciseAttempt.getAttemptStatus() != AttemptStatus.COMPLETE) {
-            exerciseAttempt.setAttemptStatus(AttemptStatus.COMPLETE);
+        if (strategyDecision == Decision.FINISH && exerciseAttempt.getAttemptStatus() == AttemptStatus.INCOMPLETE) {
+            exerciseAttempt.setAttemptStatus(AttemptStatus.COMPLETE_BY_USER);
         }
         exerciseAttemptRepository.save(exerciseAttempt);
     }
