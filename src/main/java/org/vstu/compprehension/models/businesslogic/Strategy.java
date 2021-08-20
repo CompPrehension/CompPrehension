@@ -282,6 +282,28 @@ public class Strategy extends AbstractStrategy {
         qr.setTargetConcepts(targetConcepts);
         qr.setDeniedConcepts(deniedConcepts);
 
+        System.out.println("Желаемый вопрос:");
+        System.out.println(nextNode.nodeName);
+        System.out.println("Желаемые законы:");
+        for(String str : nextNode.currentLows){
+            System.out.println(str);
+        }
+
+        System.out.println("Законы из домена в запросе:");
+        for(Law str : qr.getTargetLaws()){
+            System.out.println(str.name);
+        }
+
+        System.out.println("Концепты из домена в запросе:");
+        for(Concept str : qr.getTargetConcepts()){
+            System.out.println(str.getName());
+        }
+
+        System.out.println("Запрещённые концепты из домена в запросе:");
+        for(Concept str : qr.getDeniedConcepts()){
+            System.out.println(str.getName());
+        }
+
         return qr;
     }
 
