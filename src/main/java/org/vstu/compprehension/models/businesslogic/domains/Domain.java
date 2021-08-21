@@ -294,7 +294,7 @@ public abstract class Domain {
      */
     public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> deniedConcepts, HashSet<String> targetNegativeLaws, HashSet<String> deniedNegativeLaws, HashSet<String> forbiddenQuestions) {
         List<Question> questions = new ArrayList<>();
-        int maxSuitCount = 0;
+        int maxSuitCount = -999999;
         for (Question q : getQuestionTemplates()) {
             int targetConceptCount = 0;
             int anotherConcepts = 0;
@@ -322,17 +322,17 @@ public abstract class Domain {
                 if (deniedNegativeLaws.contains(negativeLaw)) {
                     suit = false;
                     break;
-                } else if (targetNegativeLaws.contains(negativeLaw)) {
+                } else if (targetNegativeLaws.contains(negativeLaw) || targetConcepts.contains(negativeLaw)) {
                     targetConceptCount++;
                 } else {
                     anotherConcepts++;
                 }
             }
-
-            if (suit && targetConceptCount >= maxSuitCount) {
-                if (targetConceptCount > maxSuitCount) {
+            int questionScore = targetConceptCount - anotherConcepts;
+            if (suit && questionScore >= maxSuitCount) {
+                if (questionScore > maxSuitCount) {
                     questions.clear();
-                    maxSuitCount = targetConceptCount;
+                    maxSuitCount = questionScore;
                 }
                 questions.add(q);
             }
@@ -340,7 +340,17 @@ public abstract class Domain {
         if (questions.isEmpty()) {
             return null;
         } else {
-            return questions.get(new Random().nextInt(questions.size()));
+            /// <debug>
+            for (Question question : questions) {
+                System.out.println("Отобранный вопрос (из " + questions.size() + "): " + question.getQuestionName());
+            }
+            /// </debug>
+
+            Question question = questions.get(new Random().nextInt(questions.size()));
+            /// <debug>
+            System.out.println("В итоге, взят опрос: " + question.getQuestionName());
+            /// </debug>
+            return question;
         }
     }
 
