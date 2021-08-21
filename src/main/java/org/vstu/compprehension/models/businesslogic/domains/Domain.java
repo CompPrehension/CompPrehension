@@ -322,7 +322,7 @@ public abstract class Domain {
                 if (deniedNegativeLaws.contains(negativeLaw)) {
                     suit = false;
                     break;
-                } else if (targetNegativeLaws.contains(negativeLaw)) {
+                } else if (targetNegativeLaws.contains(negativeLaw) || targetConcepts.contains(negativeLaw)) {
                     targetConceptCount++;
                 } else {
                     anotherConcepts++;
