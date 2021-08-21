@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,6 +61,17 @@ public class ProgrammingLanguageExpressionDomainTest {
         return facts;
     }
 
+    boolean validateQuestionByQuestionRequest(Question q, QuestionRequest qr) {
+        return
+                q.concepts == null
+                        ||
+                // all TargetConcepts are in q
+                (q.concepts.containsAll(qr.getTargetConcepts().stream().map(Concept::getName).collect(Collectors.toList())))
+                        &&
+                // none of DeniedConcepts is in q
+                qr.getDeniedConcepts().stream().map(Concept::getName).collect(Collectors.toList()).stream().noneMatch(s -> q.concepts.contains(s));
+    }
+
     @Test
     public void testQuestionGeneration() throws Exception {
         List<Tag> tags = new ArrayList<>();
@@ -82,7 +94,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("associativity")
         ));
 
-        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
+        assertEquals("<div class='comp-ph-question'>class Matrix {<br>&nbsp;&nbsp;&nbsp;&nbsp;int getDeterminant() const;<br>&nbsp;&nbsp;&nbsp;&nbsp;Matrix transpose() const;<br>&nbsp;&nbsp;&nbsp;&nbsp;Matrix multiply(int a) const;<br>&nbsp;&nbsp;&nbsp;&nbsp;size_t size() const;<br><br>&nbsp;&nbsp;&nbsp;&nbsp;static Matrix identity(size_t size);<br>}<br><br>Matrix a;<br>Matrix b;<br>int c;<br>int d;<br><br>b &#8727 (a - c &#8727 a.identity(a.size())).getDeterminant()</div>", domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
@@ -96,7 +108,10 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("precedence"),
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
-        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c"), List.of("", "operator", "", "operator", ""))), domain.makeQuestion(qr2, tags, Language.ENGLISH).getQuestionText().getText());
+
+        Question q = domain.makeQuestion(qr2, tags, Language.ENGLISH);
+        assertTrue(validateQuestionByQuestionRequest(q, qr2), q.getQuestionName());
+        //        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c"), List.of("", "operator", "", "operator", ""))), domain.makeQuestion(qr2, tags, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr3 = new QuestionRequest();
         qr3.setTargetConcepts(List.of(
@@ -111,7 +126,9 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr3.setDeniedConcepts(List.of(
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
-        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c", "*", "d"), List.of("", "operator", "", "operator", "", "operator", ""))), domain.makeQuestion(qr3, tags, Language.ENGLISH).getQuestionText().getText());
+        q = domain.makeQuestion(qr3, tags, Language.ENGLISH);
+        assertTrue(validateQuestionByQuestionRequest(q, qr3), q.getQuestionName());
+//        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c", "--"), List.of("", "operator", "", "operator", "", "operator"))), );
 
         QuestionRequest qr4 = new QuestionRequest();
         qr4.setTargetConcepts(List.of());
