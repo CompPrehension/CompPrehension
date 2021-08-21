@@ -14,7 +14,7 @@ public class ExerciseAttemptService {
 
     public void ensureAttemptStatus(ExerciseAttemptEntity exerciseAttempt, Decision strategyDecision) {
         if (strategyDecision == Decision.FINISH && exerciseAttempt.getAttemptStatus() == AttemptStatus.INCOMPLETE) {
-            exerciseAttempt.setAttemptStatus(AttemptStatus.COMPLETE_BY_USER);
+            exerciseAttempt.setAttemptStatus(AttemptStatus.COMPLETED_BY_USER);
         }
         exerciseAttemptRepository.save(exerciseAttempt);
     }

@@ -8,16 +8,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.Ordering;
-import org.vstu.compprehension.models.businesslogic.SingleChoice;
 import org.vstu.compprehension.models.businesslogic.Strategy;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
@@ -25,13 +21,11 @@ import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
 import org.vstu.compprehension.models.repository.ViolationRepository;
-import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
@@ -263,7 +257,7 @@ public class FrontendService {
         // complete all incompleted attempts
         val incompletedAttempts = exerciseAttemptRepository.findAllByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
         for(val att : incompletedAttempts) {
-            att.setAttemptStatus(AttemptStatus.COMPLETE_BY_SYSTEM);
+            att.setAttemptStatus(AttemptStatus.COMPLETED_BY_SYSTEM);
         }
         exerciseAttemptRepository.saveAll(incompletedAttempts);
 
