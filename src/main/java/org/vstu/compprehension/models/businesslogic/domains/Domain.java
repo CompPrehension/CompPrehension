@@ -294,7 +294,7 @@ public abstract class Domain {
      */
     public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> deniedConcepts, HashSet<String> targetNegativeLaws, HashSet<String> deniedNegativeLaws, HashSet<String> forbiddenQuestions) {
         List<Question> questions = new ArrayList<>();
-        int maxSuitCount = 0;
+        int maxSuitCount = -999999;
         for (Question q : getQuestionTemplates()) {
             int targetConceptCount = 0;
             int anotherConcepts = 0;
@@ -328,11 +328,11 @@ public abstract class Domain {
                     anotherConcepts++;
                 }
             }
-
-            if (suit && targetConceptCount >= maxSuitCount) {
-                if (targetConceptCount > maxSuitCount) {
+            int questionScore = targetConceptCount - anotherConcepts;
+            if (suit && questionScore >= maxSuitCount) {
+                if (questionScore > maxSuitCount) {
                     questions.clear();
-                    maxSuitCount = targetConceptCount;
+                    maxSuitCount = questionScore;
                 }
                 questions.add(q);
             }
