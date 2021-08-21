@@ -340,7 +340,17 @@ public abstract class Domain {
         if (questions.isEmpty()) {
             return null;
         } else {
-            return questions.get(new Random().nextInt(questions.size()));
+            /// <debug>
+            for (Question question : questions) {
+                System.out.println("Отобранный вопрос (из " + questions.size() + "): " + question.getQuestionName());
+            }
+            /// </debug>
+
+            Question question = questions.get(new Random().nextInt(questions.size()));
+            /// <debug>
+            System.out.println("В итоге, взят опрос: " + question.getQuestionName());
+            /// </debug>
+            return question;
         }
     }
 

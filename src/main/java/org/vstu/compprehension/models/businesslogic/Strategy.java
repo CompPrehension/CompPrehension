@@ -282,26 +282,36 @@ public class Strategy extends AbstractStrategy {
         qr.setTargetConcepts(targetConcepts);
         qr.setDeniedConcepts(deniedConcepts);
 
+        String T = "\t";
+
         System.out.println("Желаемый вопрос:");
-        System.out.println(nextNode.nodeName);
+        System.out.println(T + nextNode.nodeName);
         System.out.println("Желаемые законы:");
-        for(String str : nextNode.currentLows){
-            System.out.println(str);
+        ArrayList<String> printOutList = new ArrayList<>(nextNode.currentLows);
+        printOutList.sort(null);
+        for(String str : printOutList){
+            System.out.println(T + str);
         }
 
         System.out.println("Законы из домена в запросе:");
-        for(Law str : qr.getTargetLaws()){
-            System.out.println(str.name);
+        ArrayList<Law> printOutLaws = new ArrayList<>(qr.getTargetLaws());
+        printOutLaws.sort(Comparator.comparing(l -> l.name));
+        for(Law str : printOutLaws){
+            System.out.println(T + str.name);
         }
 
         System.out.println("Концепты из домена в запросе:");
-        for(Concept str : qr.getTargetConcepts()){
-            System.out.println(str.getName());
+        ArrayList<Concept> printOutConcepts = new ArrayList<>(qr.getTargetConcepts());
+        printOutConcepts.sort(Comparator.comparing(Concept::getName));
+        for(Concept str : printOutConcepts){
+            System.out.println(T + str.getName());
         }
 
         System.out.println("Запрещённые концепты из домена в запросе:");
-        for(Concept str : qr.getDeniedConcepts()){
-            System.out.println(str.getName());
+        printOutConcepts = new ArrayList<>(qr.getDeniedConcepts());
+        printOutConcepts.sort(Comparator.comparing(Concept::getName));
+        for(Concept str : printOutConcepts){
+            System.out.println(T + str.getName());
         }
 
         return qr;
