@@ -1267,7 +1267,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     violationEntity.setLawName("error_base_same_precedence_left_associativity_left");
                 } else if (violation.getVerb().equals("student_error_right_assoc")) {
                     violationEntity.setLawName("error_base_same_precedence_right_associativity_right");
-                } else if (violation.getVerb().equals("student_error_strict_operands_order_base")) {
+                } else if (violation.getVerb().equals("student_error_strict_operands_order")) {
                     violationEntity.setLawName("error_base_student_error_strict_operands_order_base");
                 } else if (violation.getVerb().equals("student_error_in_complex")) {
                     violationEntity.setLawName("error_base_student_error_in_complex");
