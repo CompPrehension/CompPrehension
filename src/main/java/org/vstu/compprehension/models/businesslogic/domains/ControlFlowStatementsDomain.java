@@ -281,7 +281,20 @@ public class ControlFlowStatementsDomain extends Domain {
         }
         deniedConceptNames.add("supplementary");
 
-        // Get somehow negative and positive laws names
+        // Get negative and positive laws names ...
+        HashSet<String> lawNames = new HashSet<>();
+        if (questionRequest.getTargetLaws() != null) {
+            for (Law law : questionRequest.getTargetLaws()) {
+                lawNames.add(law.getName());
+            }
+        }
+
+        HashSet<String> deniedLawNames = new HashSet<>();
+        if (questionRequest.getDeniedLaws() != null) {
+            for (Law law : questionRequest.getDeniedLaws()) {
+                deniedLawNames.add(law.getName());
+            }
+        }
 
         HashSet<String> deniedQuestions = new HashSet<>();
         if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
@@ -289,7 +302,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 deniedQuestions.add(q.getQuestionName());
             }
         }
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, new HashSet<>(), new HashSet<>(), deniedQuestions);
+        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         if (res == null) {
             // get anything. TODO: make it input-dependent
             // get (a random) index
