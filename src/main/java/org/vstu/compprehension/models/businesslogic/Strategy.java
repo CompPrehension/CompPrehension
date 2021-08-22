@@ -246,10 +246,11 @@ public class Strategy extends AbstractStrategy {
         qr.setExerciseAttempt(exerciseAttempt);
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
+        assert domain != null;
 
         qr.setComplexity(1);
         qr.setSolvingDuration(30);
-        qr.setDeniedConcepts(new ArrayList<>());
+//        qr.setDeniedConcepts(new ArrayList<>());
         qr.setAllowedConcepts(new ArrayList<>());
 
         List<Law> laws = new ArrayList<>(domain.getNegativeLaws()); //domainEntity.getLaws();
