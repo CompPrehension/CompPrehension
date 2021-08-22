@@ -94,7 +94,9 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("associativity")
         ));
 
-        assertEquals("<div class='comp-ph-question'>class Matrix {<br>&nbsp;&nbsp;&nbsp;&nbsp;int getDeterminant() const;<br>&nbsp;&nbsp;&nbsp;&nbsp;Matrix transpose() const;<br>&nbsp;&nbsp;&nbsp;&nbsp;Matrix multiply(int a) const;<br>&nbsp;&nbsp;&nbsp;&nbsp;size_t size() const;<br><br>&nbsp;&nbsp;&nbsp;&nbsp;static Matrix identity(size_t size);<br>}<br><br>Matrix a;<br>Matrix b;<br>int c;<br>int d;<br><br>b &#8727 (a - c &#8727 a.identity(a.size())).getDeterminant()</div>", domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
+        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        assertTrue(validateQuestionByQuestionRequest(q, qr), q.getQuestionName());
+        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p><div class='comp-ph-question'><p class='comp-ph-expr'><span data-comp-ph-pos='1' class='comp-ph-expr-const'>a</span><span data-comp-ph-pos='2' id='answer_0' class='comp-ph-expr-op-btn'>==</span><span data-comp-ph-pos='3' class='comp-ph-expr-const'>b</span><span data-comp-ph-pos='4' id='answer_1' class='comp-ph-expr-op-btn'><</span><span data-comp-ph-pos='5' class='comp-ph-expr-const'>c</span><!-- Original expression: a == b < c --></p></div>", domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
 
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
@@ -109,7 +111,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
 
-        Question q = domain.makeQuestion(qr2, tags, Language.ENGLISH);
+        q = domain.makeQuestion(qr2, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr2), q.getQuestionName());
         //        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c"), List.of("", "operator", "", "operator", ""))), domain.makeQuestion(qr2, tags, Language.ENGLISH).getQuestionText().getText());
 
@@ -166,7 +168,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
         qr.setTargetLaws(List.of(
-                domain.getNegativeLaw("error_higher_precedence_right")
+                domain.getNegativeLaw("error_base_higher_precedence_right")
         ));
         qr.setDeniedLaws(List.of(
                 domain.getNegativeLaw("error_base_student_error_strict_operands_order_base")
