@@ -1455,6 +1455,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 correctlyAppliedLaw = "error_base_same_precedence_left_associativity_left";
             } else if (violation.getVerb().equals("student_error_right_assoc_base")) {
                 correctlyAppliedLaw = "error_base_same_precedence_right_associativity_right";
+            } else if (violation.getVerb().equals("student_error_in_complex_base")) {
+                correctlyAppliedLaw = "error_base_student_error_in_complex";
+            } else if (violation.getVerb().equals("student_error_strict_operands_order_base")) {
+                correctlyAppliedLaw = "error_base_student_error_strict_operands_order_base";
             }
             if (correctlyAppliedLaw != null) {
                 result.add(correctlyAppliedLaw);
