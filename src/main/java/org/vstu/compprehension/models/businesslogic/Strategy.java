@@ -590,8 +590,8 @@ public class Strategy extends AbstractStrategy {
         HashMap<String, LawNode> result = new HashMap<>();
 
         result.put("a + b [ c + d ] + e", new LawNode("a + b [ c + d ] + e",
-                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_left",
-                        "error_base_same_precedence_left_associativity_left", "error_base_higher_precedence_right")),
+                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_right",
+                        "error_base_same_precedence_left_associativity_left", "error_base_higher_precedence_left")),
                 new ArrayList<>(),
                 new ArrayList<>(Arrays.asList("-- ( -- a )", "a && ( b || c )", "a + b + c",
                         "a && b || c", "-- a + b", "a == b < c", "- -- a", "* ++ a", "a * b + c * d",
@@ -600,8 +600,8 @@ public class Strategy extends AbstractStrategy {
 
 
         result.put("a + ( b + c < d + e )", new LawNode("a + ( b + c < d + e )",
-                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_right",
-                        "error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_left",
+                        "error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("++ a || b + c", "a + b ? c + d : e + f", "-- ( -- a )", "a && ( b || c )"))));
 
@@ -619,42 +619,42 @@ public class Strategy extends AbstractStrategy {
                 new ArrayList<>(Arrays.asList("-- ( -- a )", "a && ( b || c )", "a + b + c"))));
 
         result.put("a + b * c || d + e * f", new LawNode("a + b * c || d + e * f",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_student_error_strict_operands_order_base")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right", "error_base_student_error_strict_operands_order_base")),
                 new ArrayList<>(),
                 new ArrayList<>(Arrays.asList("a == b < c", "- -- a", "* ++ a", "++ a || b + c", "a + b ? c + d : e + f"))));
 
         result.put("a + b + c * d", new LawNode("a + b + c * d",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_same_precedence_left_associativity_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right", "error_base_same_precedence_left_associativity_left")),
                 new ArrayList<>(Arrays.asList("a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("a == b < c", "- -- a", "* ++ a", "a + b + c"))));
 
         result.put("* a [ b + c ] + e", new LawNode("* a [ b + c ] + e",
-                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_right")),
+                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_left")),
                 new ArrayList<>(Arrays.asList("a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("-- ( -- a )", "a && ( b || c )", "-- a + b", "a && b || c"))));
 
         result.put("a || f ( b || c , d || e )", new LawNode("a || f ( b || c , d || e )",
-                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_student_error_in_complex", "error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("-- ( -- a )", "a && ( b || c )", "a == b < c", "- -- a", "* ++ a"))));
 
         result.put("++ a - b + c", new LawNode("++ a - b + c",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right", "error_base_same_precedence_left_associativity_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_same_precedence_left_associativity_left")),
                 new ArrayList<>(Arrays.asList("a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("-- a + b", "a && b || c", "a + b + c"))));
 
         result.put("a + b ? c + d : e + f ? g + h : i + j", new LawNode("a + b ? c + d : e + f ? g + h : i + j",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right", "error_base_same_precedence_left_associativity_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_same_precedence_left_associativity_left")),
                 new ArrayList<>(),
                 new ArrayList<>(Arrays.asList("-- -- a", "++ a || b + c", "a + b ? c + d : e + f"))));
 
         result.put("* ++ a + b", new LawNode("* ++ a + b",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right", "error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("a && b || c", "-- a + b", "a == b < c", "- -- a", "* ++ a"))));
 
         result.put("a * b + c * d", new LawNode("a * b + c * d",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right", "error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>(Arrays.asList("a && b || c", "-- a + b", "a == b < c", "- -- a", "* ++ a"))));
 
@@ -695,37 +695,37 @@ public class Strategy extends AbstractStrategy {
                 new ArrayList<>()));
 
         result.put(" ++ a", new LawNode(" ++ a",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "a || f ( b || c , d || e )",
                         "a + b + c * d", "a + b * c || d + e * f", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
         result.put("- -- a", new LawNode("- -- a",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "a || f ( b || c , d || e )",
                         "a + b + c * d", "a + b * c || d + e * f", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
         result.put("a == b < c", new LawNode("a == b < c",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "a || f ( b || c , d || e )",
                         "a + b + c * d", "a + b * c || d + e * f", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
         result.put("-- a + b", new LawNode("-- a + b",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "++ a - b + c",
                         "* a [ b + c ] + e", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
         result.put("a && b || c", new LawNode("a && b || c",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "++ a - b + c",
                         "* a [ b + c ] + e", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
         result.put("* ++ a", new LawNode("* ++ a",
-                new ArrayList<>(Arrays.asList("error_base_higher_precedence_left")),
+                new ArrayList<>(Arrays.asList("error_base_higher_precedence_right")),
                 new ArrayList<>(Arrays.asList("a * b + c * d", "* ++ a + b", "a || f ( b || c , d || e )",
                         "a + b + c * d", "a + b * c || d + e * f", "a + ( b + c < d + e )", "a + b [ c + d ] + e")),
                 new ArrayList<>()));
