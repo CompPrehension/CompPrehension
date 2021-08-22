@@ -356,10 +356,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         HashSet<String> deniedQuestions = new HashSet<>();
-        if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
-            for (QuestionEntity q : questionRequest.getExerciseAttempt().getQuestions()) {
-                deniedQuestions.add(q.getQuestionName());
-            }
+        if (questionRequest.getExerciseAttempt() != null &&
+                questionRequest.getExerciseAttempt().getQuestions() != null &&
+                questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
+            deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
         }
         Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         if (res != null) {
