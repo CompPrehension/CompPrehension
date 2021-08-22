@@ -54,7 +54,7 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_same_precedence_left_associativity_left"
+      "error_base_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -120,7 +120,7 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_higher_precedence_right"
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -203,8 +203,8 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_higher_precedence_right",
-      "error_same_precedence_left_associativity_left"
+      "error_base_higher_precedence_right",
+      "error_base_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -321,8 +321,8 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_student_error_strict_operands_order",
-      "error_higher_precedence_right"
+      "error_base_student_error_strict_operands_order_base",
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -403,8 +403,8 @@
       "operator_binary_*"
     ],
     "negativeLaws": [
-      "error_higher_precedence_left",
-      "error_higher_precedence_right"
+      "error_base_higher_precedence_left",
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -508,7 +508,7 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_student_error_strict_operands_order"
+      "error_base_student_error_strict_operands_order_base"
     ],
     "tags": [
       "C++",
@@ -570,7 +570,7 @@
       "operator_prefix_--"
     ],
     "negativeLaws": [
-      "error_higher_precedence_left"
+      "error_base_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -628,7 +628,7 @@
       "operator_prefix_--"
     ],
     "negativeLaws": [
-      "error_same_precedence_right_associativity_right"
+      "error_base_same_precedence_right_associativity_right"
     ],
     "tags": [
       "C++",
@@ -693,7 +693,7 @@
       "two_token_unary"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex"
+      "error_base_student_error_in_complex"
     ],
     "tags": [
       "C++",
@@ -752,7 +752,7 @@
       "operator_binary_-"
     ],
     "negativeLaws": [
-      "error_higher_precedence_right"
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -817,7 +817,7 @@
       "operator_binary_||"
     ],
     "negativeLaws": [
-      "error_higher_precedence_left"
+      "error_base_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -889,7 +889,7 @@
       "operator_binary_||"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex"
+      "error_base_student_error_in_complex"
     ],
     "tags": [
       "C++",
@@ -978,8 +978,8 @@
       "operator_binary_||"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex",
-      "error_same_precedence_left_associativity_left"
+      "error_base_student_error_in_complex",
+      "error_base_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -1084,8 +1084,8 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex",
-      "error_student_error_strict_operands_order"
+      "error_base_student_error_in_complex",
+      "error_base_student_error_strict_operands_order_base"
     ],
     "tags": [
       "C++",
@@ -1189,9 +1189,9 @@
       "operator_binary_<"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex",
-      "error_higher_precedence_left",
-      "error_higher_precedence_right"
+      "error_base_student_error_in_complex",
+      "error_base_higher_precedence_left",
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1297,8 +1297,8 @@
       "operator_binary_||"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex",
-      "error_higher_precedence_right"
+      "error_base_student_error_in_complex",
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1357,7 +1357,7 @@
       "operator_prefix_++"
     ],
     "negativeLaws": [
-      "error_higher_precedence_right"
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1433,8 +1433,8 @@
       "operator_binary_+"
     ],
     "negativeLaws": [
-      "error_higher_precedence_right",
-      "error_higher_precedence_left"
+      "error_base_higher_precedence_right",
+      "error_base_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -1532,8 +1532,8 @@
       "operator_unary_*"
     ],
     "negativeLaws": [
-      "error_student_error_in_complex",
-      "error_higher_precedence_left"
+      "error_base_student_error_in_complex",
+      "error_base_higher_precedence_left"
     ],
     "tags": [
       "C++",
@@ -1634,10 +1634,10 @@
       "operator_["
     ],
     "negativeLaws": [
-      "error_student_error_in_complex",
-      "error_same_precedence_left_associativity_left",
-      "error_higher_precedence_left",
-      "error_higher_precedence_right"
+      "error_base_student_error_in_complex",
+      "error_base_same_precedence_left_associativity_left",
+      "error_base_higher_precedence_left",
+      "error_base_higher_precedence_right"
     ],
     "tags": [
       "C++",
@@ -1795,8 +1795,8 @@
       "operator_ternary"
     ],
     "negativeLaws": [
-      "error_same_precedence_right_associativity_right",
-      "error_student_error_strict_operands_order"
+      "error_base_same_precedence_right_associativity_right",
+      "error_base_student_error_strict_operands_order_base"
     ],
     "tags": [
       "C++",
@@ -1876,7 +1876,7 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_student_error_strict_operands_order"
+      "error_base_student_error_strict_operands_order_base"
     ],
     "tags": [
       "C++",
@@ -1955,8 +1955,8 @@
       "operator_binary_-"
     ],
     "negativeLaws": [
-      "error_higher_precedence_left",
-      "error_same_precedence_left_associativity_left"
+      "error_base_higher_precedence_left",
+      "error_base_same_precedence_left_associativity_left"
     ],
     "tags": [
       "C++",
@@ -2022,7 +2022,7 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_same_precedence_left_associativity_left"
+      "error_base_same_precedence_left_associativity_left"
     ],
     "tags": [
       "Python",
