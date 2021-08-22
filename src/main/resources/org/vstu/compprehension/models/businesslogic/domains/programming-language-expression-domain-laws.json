@@ -3749,7 +3749,7 @@
     "formulations": [
     ],
     "concepts": [
-      {"name": "precedence"},
+      {"name": "precedence"}
     ],
     "tags": [
     ]
@@ -3760,7 +3760,7 @@
     "formulations": [
     ],
     "concepts": [
-      {"name": "precedence"},
+      {"name": "precedence"}
     ],
     "tags": [
     ]
@@ -3771,7 +3771,7 @@
     "formulations": [
     ],
     "concepts": [
-      {"name": "associativity"},
+      {"name": "associativity"}
     ],
     "tags": [
     ]
@@ -3782,7 +3782,7 @@
     "formulations": [
     ],
     "concepts": [
-      {"name": "associativity"},
+      {"name": "associativity"}
     ],
     "tags": [
     ]
@@ -3794,7 +3794,7 @@
     ],
     "concepts": [
       {"name": "two_token"},
-      {"name": "precedence"},
+      {"name": "precedence"}
     ],
     "tags": [
     ]
@@ -3803,9 +3803,14 @@
     "name": "error_base_student_error_strict_operands_order_base",
     "positive": false,
     "formulations": [
+      {
+        "name": "is_function_call",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      }
     ],
     "concepts": [
-      {"name": "operator_evaluating_left_operand_first"},
+      {"name": "operator_evaluating_left_operand_first"}
     ],
     "tags": [
     ]
