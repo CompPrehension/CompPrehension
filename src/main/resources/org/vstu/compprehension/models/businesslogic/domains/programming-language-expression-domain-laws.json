@@ -3744,7 +3744,7 @@
     ]
   },
   {
-    "name": "error_higher_precedence_right",
+    "name": "error_base_higher_precedence_right",
     "positive": false,
     "formulations": [
     ],
