@@ -98,6 +98,12 @@ public class ControlFlowStatementsDomain extends Domain {
                 negativeLaws.add((NegativeLaw) lawForm);
             }
         }
+
+        // add empty laws that name each possible error
+        for (String errClass : VOCAB.classDescendants("Erroneous")) {
+            negativeLaws.add(new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+        }
+
     }
 
     @Override
@@ -1344,12 +1350,19 @@ public class ControlFlowStatementsDomain extends Domain {
         return null;
     }
 
+    /**
+     *
+     * @param question
+     * @param expressionName
+     * @param executionTime 1-based number
+     * @return
+     */
     public int getValueForExpression(QuestionEntity question, String expressionName, int executionTime) {
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
                 String values = fact.getObject();
                 String[] tokens = values.split(",");
-                if (0 <= executionTime && executionTime <= tokens.length) {
+                if (0 < executionTime && executionTime <= tokens.length) {
                     String token = tokens[executionTime - 1];
                     return Integer.parseInt(token);
                 }

@@ -35,9 +35,7 @@ public class DomainVocabulary {
     public List<Concept> readConcepts() {
 
         HashMap<String, HashSet<String>> conceptName2bases = new HashMap<>();
-
-        //Resource Concept = model.getResource(SKOS.Concept);
-        Resource ConceptClass = SKOS.Concept;
+        // Resource ConceptClass = SKOS.Concept;
 
         // find all [top] concepts and recurse from them
 //        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, ConceptClass);
@@ -46,7 +44,6 @@ public class DomainVocabulary {
             Resource conceptNode = iter.nextResource();
             readConceptFromResource(conceptNode, conceptName2bases, null);
         }
-
 
         // make concepts
         HashMap<String, Concept> concepts = new HashMap<>();

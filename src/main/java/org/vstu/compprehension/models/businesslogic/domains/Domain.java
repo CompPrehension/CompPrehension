@@ -310,6 +310,7 @@ public abstract class Domain {
                     break;
                 }
             }
+            if (!suit) continue;
             for (String concept : q.getConcepts()) {
                 if (deniedConcepts.contains(concept)) {
                     suit = false;
@@ -320,6 +321,7 @@ public abstract class Domain {
                     anotherConcepts++;
                 }
             }
+            if (!suit) continue;
             for (String negativeLaw : q.getNegativeLaws()) {
                 if (deniedNegativeLaws.contains(negativeLaw)) {
                     suit = false;
@@ -352,7 +354,7 @@ public abstract class Domain {
 
             Question question = questions.get(new Random().nextInt(questions.size()));
             /// <debug>
-            System.out.println("В итоге, взят опрос: " + question.getQuestionName());
+            System.out.println("В итоге, взят вопрос: " + question.getQuestionName());
             /// </debug>
             return question;
         }
