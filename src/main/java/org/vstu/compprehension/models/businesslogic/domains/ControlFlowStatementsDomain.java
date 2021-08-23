@@ -950,12 +950,106 @@ public class ControlFlowStatementsDomain extends Domain {
         for (RDFNode reasonClass : reasons) {
             correctlyAppliedLaws.add(reasonClass.asResource().getLocalName());
         }
+        // add possible but not taken mistakes
+        correctlyAppliedLaws.addAll(notHappenedMistakes(correctlyAppliedLaws, violations));
         result.correctlyAppliedLaws = correctlyAppliedLaws;
 
         ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = processResult.CountCorrectOptions;
         result.IterationsLeft = processResult.IterationsLeft; // + (mistakes.isEmpty() ? 0 : 1);
         return result;
+    }
+
+    Set<String> notHappenedMistakes(List<String> correctLaws, List<BackendFactEntity> questionFacts) {
+        HashSet<String> mistakeNames = new HashSet<>();
+        // find out if context mistakes are applicable here
+        for (BackendFactEntity f : questionFacts) {
+            if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
+                mistakeNames.add("CorrespondingEndMismatched");
+                mistakeNames.add("EndedDeeper");
+                mistakeNames.add("EndedShallower");
+                mistakeNames.add("WrongContext");
+                mistakeNames.add("OneLevelShallower");
+                break;
+            }
+        }
+        // use heuristics to get possible mistakes
+        for (String corrLaw : correctLaws) {
+            switch (corrLaw) {
+                case("SequenceBegin"):
+                    mistakeNames.add("TooEarlyInSequence");
+                    mistakeNames.add("SequenceFinishedTooEarly");
+                    break;
+                case("SequenceNext"):
+                    mistakeNames.add("TooEarlyInSequence");
+                    mistakeNames.add("TooLateInSequence");
+                    mistakeNames.add("SequenceFinishedTooEarly");
+                    mistakeNames.add("DuplicateOfAct");
+                    break;
+                case("SequenceEnd"):
+                    mistakeNames.add("TooEarlyInSequence");
+                    mistakeNames.add("SequenceFinishedNotInOrder");
+                    break;
+                case("AltBegin"):
+                    mistakeNames.add("NoFirstCondition");
+                    mistakeNames.add("BranchWithoutCondition");
+                    break;
+                case("AltBranchBegin"):
+                    mistakeNames.add("BranchNotNextToCondition");
+                    mistakeNames.add("ElseBranchNotNextToLastCondition");
+                    mistakeNames.add("ElseBranchAfterTrueCondition");
+                    mistakeNames.add("CondtionNotNextToPrevCondition");
+                    mistakeNames.add("ConditionTooEarly");
+                    mistakeNames.add("ConditionTooLate");
+                    mistakeNames.add("DuplicateOfCondition");
+                    mistakeNames.add("NoNextCondition");
+                    mistakeNames.add("NoBranchWhenConditionIsTrue");
+                    mistakeNames.add("AlternativeEndAfterTrueCondition");
+                    break;
+                case("NextAltCondition"):
+                    mistakeNames.add("BranchNotNextToCondition");
+                    mistakeNames.add("ElseBranchNotNextToLastCondition");
+                    mistakeNames.add("CondtionNotNextToPrevCondition");
+                    mistakeNames.add("ConditionTooEarly");
+                    mistakeNames.add("ConditionTooLate");
+                    mistakeNames.add("DuplicateOfCondition");
+                    mistakeNames.add("NoNextCondition");
+                    mistakeNames.add("BranchOfFalseCondition");
+                    mistakeNames.add("BranchWithoutCondition");
+                    break;
+                case("AltEndAfterBranch"):
+                    mistakeNames.add("ConditionAfterBranch");
+                    mistakeNames.add("AnotherExtraBranch");
+                    mistakeNames.add("NoAlternativeEndAfterBranch");
+                    break;
+                case("AltEndAllFalse"):
+                    mistakeNames.add("BranchOfFalseCondition");
+                    mistakeNames.add("LastFalseNoEnd");
+                    break;
+                case("AltElseBranchBegin"):
+                    mistakeNames.add("LastConditionIsFalseButNoElse");
+                    break;
+                case("IterationBeginOnTrueCond"):
+                    mistakeNames.add("NoIterationAfterSuccessfulCondition");
+                    mistakeNames.add("LoopEndAfterSuccessfulCondition");
+                    break;
+                case("PreCondLoopBegin"):
+                    mistakeNames.add("LoopStartIsNotCondition");
+                    break;
+                case("PostCondLoopBegin"):
+                    mistakeNames.add("LoopStartIsNotIteration");
+                    break;
+                case("LoopEndOnFalseCond"):
+                    mistakeNames.add("LoopContinuedAfterFailedCondition");
+                    mistakeNames.add("IterationAfterFailedCondition");
+                    break;
+                case("LoopCondBeginAfterIteration"):
+                    mistakeNames.add("NoConditionAfterIteration");
+                    mistakeNames.add("NoConditionBetweenIterations");
+                    break;
+            }
+        }
+        return mistakeNames;
     }
 
     @Override
