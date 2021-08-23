@@ -146,24 +146,48 @@ export class QuestionStore {
         await this.sendAnswersImpl(question.attemptId, question.questionId, toJS(answersHistory));        
     }
 
-    @action 
     onAnswersChanged = async (answer: [number, number], sendAnswers: boolean = true): Promise<void> => {
-        this.answersHistory.push(answer);
+        runInAction(() => this.answersHistory.push(answer));
         if (sendAnswers) {
-            await this.sendAnswers();
+            try {
+                await this.sendAnswers();
+            } catch {
+                runInAction(() => {
+                    this.answersHistory.pop();
+                });
+            }
         }
     }
-
-    @action
+    
     updateAnswersHistory = async (newHistory: [number, number][], sendAnswers: boolean = true): Promise<void> => {
-        this.answersHistory = [ ...newHistory ];
+        const oldHistory = this.answersHistory;
+        runInAction(() => this.answersHistory = [...newHistory]);
         if (sendAnswers) {
-            await this.sendAnswers();
+            try {
+                await this.sendAnswers();
+            } catch {
+                runInAction(() => {
+                    this.answersHistory = oldHistory;
+                });
+            }
         }
     }
 
     isHistoryChanged = (newHistory: [number, number][]): boolean => {
-        const { answersHistory } = this;
-        return newHistory.length !== answersHistory.length || JSON.stringify([...newHistory].sort()) !== JSON.stringify([...answersHistory].sort());
+        const { answersHistory, question } = this;
+        if (!question) {
+            throw new Error('no question');
+        }
+
+        switch(question.type) {
+            case 'ORDER':
+                // for ordering question type we must consider the order
+                return newHistory.length !== answersHistory.length || JSON.stringify(newHistory) !== JSON.stringify(answersHistory);
+            case 'MATCHING':
+            case 'MULTI_CHOICE':
+            case 'SINGLE_CHOICE':
+                // for other questions we can ignore the order
+                return newHistory.length !== answersHistory.length || JSON.stringify([...newHistory].sort()) !== JSON.stringify([...answersHistory].sort());
+        }
     }
 }
