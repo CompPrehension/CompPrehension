@@ -24,8 +24,6 @@ export const GenerateNextAnswerBtn = observer(() => {
     };
 
     return (        
-        <div style={{ marginTop: '20px'}}>
-            <Button onClick={onClicked} variant="primary">{t('nextCorrectAnswerBtn')}</Button>
-        </div>
+        <Button onClick={onClicked} variant="primary">{t('nextCorrectAnswerBtn')}</Button>
     )
 })

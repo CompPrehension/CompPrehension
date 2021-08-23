@@ -10,13 +10,13 @@ export function delayPromise(timeout: number): Promise<void> {
 }
 
 export function renderIfNotNull<T>(value: T | null | undefined, render: (value: T) => React.ReactNode[] | React.ReactNode | null) {
-    if (notNullOrUndefinded(value)) {
+    if (notNulAndUndefinded(value)) {
         return render(value);
     }
     return null;
 }
 
-export function notNullOrUndefinded<T>(value: T | null | undefined): value is T {
+export function notNulAndUndefinded<T>(value: T | null | undefined): value is T {
     return value !== null && value !== undefined;
 }
 

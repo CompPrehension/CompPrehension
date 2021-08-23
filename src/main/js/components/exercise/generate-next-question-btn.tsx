@@ -38,10 +38,8 @@ export const GenerateNextQuestionBtn = observer(() => {
         return null;
     }
 
-    return (
-        <div style={{ marginTop: '20px'}}>            
-            <Button onClick={onClicked} variant="primary" >{t('generateNextQuestionBtn')}</Button>
-        </div>
+    return (        
+        <Button onClick={onClicked} variant="primary" >{t('generateNextQuestionBtn')}</Button>
     )
 })
 

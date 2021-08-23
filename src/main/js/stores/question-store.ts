@@ -148,28 +148,33 @@ export class QuestionStore {
 
     onAnswersChanged = async (answer: [number, number], sendAnswers: boolean = true): Promise<void> => {
         runInAction(() => this.answersHistory.push(answer));
-        if (sendAnswers) {
-            try {
-                await this.sendAnswers();
-            } catch {
-                runInAction(() => {
-                    this.answersHistory.pop();
-                });
-            }
+        if (!sendAnswers) {
+            return;
         }
+        
+        try {
+            await this.sendAnswers();
+        } catch {
+            runInAction(() => {
+                this.answersHistory.pop();
+            });
+        }
+        
     }
     
     updateAnswersHistory = async (newHistory: [number, number][], sendAnswers: boolean = true): Promise<void> => {
         const oldHistory = this.answersHistory;
         runInAction(() => this.answersHistory = [...newHistory]);
-        if (sendAnswers) {
-            try {
-                await this.sendAnswers();
-            } catch {
-                runInAction(() => {
-                    this.answersHistory = oldHistory;
-                });
-            }
+        if (!sendAnswers) { 
+            return;
+        }
+
+        try {
+            await this.sendAnswers();
+        } catch {
+            runInAction(() => {
+                this.answersHistory = oldHistory;
+            });
         }
     }
 

@@ -6,7 +6,7 @@ import { Optional } from "../common/optional";
 import { QuestionComponent } from "../common/question/question";
 import { Feedback as FeedbackType, FeedbackMessage } from '../../types/feedback';
 import { Alert, Badge } from "react-bootstrap";
-import { notNullOrUndefinded } from "../../utils/helpers";
+import { notNulAndUndefinded } from "../../utils/helpers";
 import { GenerateSupQuestion } from "./generate-sup-question";
 import { useTranslation } from "react-i18next";
 
@@ -53,19 +53,22 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
         return null;
     }
 
+    const feedbackMessages = notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft === 0
+        ? [{ type: 'SUCCESS', message: t('issolved_feeback'), violationLaws: [] }] as FeedbackMessage[]
+        : feedback.messages;
+
     return (
-        <div className="comp-ph-feedback-wrapper">
+        <div className="comp-ph-feedback-wrapper mt-2">
             <Optional isVisible={isFeedbackVisible}>
                 <p>
-                    {feedback.messages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions} />)}                
+                    {feedbackMessages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions} />)}                
                 </p>
                 <Optional isVisible={showExtendedFeedback}>
                     <p>
                         <Optional isVisible={feedback.grade !== null}><Badge variant="primary">{t('grade_feeback')}: {feedback.grade}</Badge>{' '}</Optional>
                         <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">{t('correctsteps_feeback')}: {feedback.correctSteps}</Badge>{' '}</Optional>
-                        <Optional isVisible={notNullOrUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
-                        <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</Optional>
-                        <Optional isVisible={notNullOrUndefinded(feedback.stepsLeft) && feedback.stepsLeft === 0}><Badge variant="info">{t('issolved_feeback')}</Badge>{' '}</Optional>
+                        <Optional isVisible={notNulAndUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
+                        <Optional isVisible={notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</Optional>
                     </p>
                 </Optional>
             </Optional>            
@@ -79,7 +82,9 @@ const FeedbackAlert = observer(({ message, showGenerateSupQuestion }: { message:
         <Alert variant={variant}>
             {message.message}
             <Optional isVisible={showGenerateSupQuestion}>
-                <GenerateSupQuestion violationLaws={message.type === 'ERROR' && message.violationLaws || []}/>
+                <div className="mt-3">
+                    <GenerateSupQuestion violationLaws={message.type === 'ERROR' && message.violationLaws || []}/>
+                </div>                
             </Optional>
         </Alert>
     )

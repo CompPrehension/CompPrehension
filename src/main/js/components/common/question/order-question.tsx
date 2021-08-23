@@ -3,7 +3,7 @@ import React from "react";
 import { useEffect } from "react";
 import { OrderQuestionFeedback } from "../../../types/feedback";
 import { OrderQuestion } from "../../../types/question";
-import { notNullOrUndefinded } from "../../../utils/helpers";
+import { notNulAndUndefinded } from "../../../utils/helpers";
 import { Optional } from "../optional";
 
 type OrderQuestionComponentProps = {
@@ -70,7 +70,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
     }, [question.questionId, getAnswers().length])
     
     const trace = feedback?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
-    const isTraceVisible = options.showTrace && notNullOrUndefinded(trace) && trace.length > 0;
+    const isTraceVisible = options.showTrace && notNulAndUndefinded(trace) && trace.length > 0;
 
     return (
         <div>

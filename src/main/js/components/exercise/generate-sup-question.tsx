@@ -16,12 +16,14 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
     const [questionStore] = useState(() => container.resolve(QuestionStore));
     const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isButtonsVisible, setIsButtonsVisible] = useState(true);
     const [isAllVisible, setAllVisible] = useState(true);
     if (!exerciseStore.sessionInfo?.exercise.options.supplementaryQuestionsEnabled) {
         return null;
     }
 
-    const onClicked = async () => {        
+    const onDetailsClicked = async () => { 
+        setIsButtonsVisible(false);  
         setIsModalVisible(true);
         if (!exerciseStore.currentAttempt?.attemptId || !violationLaws.length || !exerciseStore.currentQuestion.question) {
             return;
@@ -31,6 +33,9 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
             console.log(`no need to generate sup question`);
             setAllVisible(false);
         }
+    }
+    const onGotitClicked = () => {
+        setAllVisible(false);
     }
     const OnAnswered = async () => {
         console.log(`show feedback for 3 seconds`);
@@ -65,16 +70,21 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
     }
     return (
         <Optional isVisible={isAllVisible}>
-            <div style={{ marginTop: '20px'}}>            
-                <Button onClick={onClicked} variant="primary">{t('generateSupQuestionBtn')}</Button>
-                <Modal type={'DIALOG'}
-                    size={'xl'}
-                    show={isModalVisible} 
-                    closeButton={false} 
-                    handleClose={() => setIsModalVisible(false)}>
-                    <Question store={questionStore} showExtendedFeedback={false} onChanged={OnAnswered}/>
-                </Modal>
-            </div>
+            <Optional isVisible={isButtonsVisible}>
+                <div className="d-flex flex-row">
+                    <Button onClick={onDetailsClicked} variant="primary">{t('generateSupQuestion_details')}</Button>
+                    <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('generateSupQuestion_gotit')}</Button>
+                </div>
+            </Optional>
+            
+            
+            <Modal type={'DIALOG'}
+                size={'xl'}
+                show={isModalVisible} 
+                closeButton={false} 
+                handleClose={() => setIsModalVisible(false)}>
+                <Question store={questionStore} showExtendedFeedback={false} onChanged={OnAnswered}/>
+            </Modal>
         </Optional>
     )
 })

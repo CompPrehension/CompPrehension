@@ -58,11 +58,15 @@ export const Exercise = observer(() => {
                 <div className="mt-5">
                     <CurrentQuestion />
                     <Optional isVisible={exerciseState === 'EXERCISE'}>
-                        <GenerateNextAnswerBtn /> 
-                        <GenerateNextQuestionBtn />
+                        <div className="mt-3">
+                            <GenerateNextAnswerBtn />
+                        </div>
+                        <div className="mt-2">
+                            <GenerateNextQuestionBtn />
+                        </div>
                     </Optional>
                     <Optional isVisible={exerciseState === 'COMPLETED'}>
-                        <div className="mt-2">
+                        <div className="mt-3">
                             <Alert variant={'success'}>
                                 {t('exercise_completed')!}
                             </Alert>

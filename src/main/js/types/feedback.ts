@@ -2,7 +2,7 @@ import * as io from 'io-ts'
 import { MergeIntersections } from './utils';
 
 export type FeedbackSuccessMessage = {
-    type: 'SUCCESS' | 'ERROR',
+    type: 'SUCCESS',
     message: string,
     violationLaws: string[],
 }
