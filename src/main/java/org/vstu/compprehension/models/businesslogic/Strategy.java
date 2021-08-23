@@ -1469,7 +1469,7 @@ public class Strategy extends AbstractStrategy {
                 "NoConditionAfterIteration",
                 "NoConditionBetweenIterations");
 
-
+        parents = Arrays.asList();
         result.put("ido_eiwh_e_0", new LawNode("ido_eiwh_e_0",
                 new ArrayList<>(lows),
                 new ArrayList<>(parents),
