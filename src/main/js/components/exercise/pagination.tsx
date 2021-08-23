@@ -26,7 +26,7 @@ export const Pagination = observer(() => {
     const currentQuestionPosition = currentQuestionNumber - middleSliceSize <= 0 ? 'BEGIN'
         : currentQuestionNumber + middleSliceSize > questionIds.length ? 'END'
         : 'MIDDLE';        
-    const offset = Math.floor(questionIds.length / middleSliceSize)
+    const offset = Math.floor(middleSliceSize / 2)
 
     return (
         <div className="d-flex justify-content-center">
