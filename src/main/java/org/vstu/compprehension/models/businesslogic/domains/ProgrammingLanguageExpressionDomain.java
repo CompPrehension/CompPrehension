@@ -1245,12 +1245,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             // retrieve subjects' info from facts ...
             Map<String, BackendFactEntity> nameToText = new HashMap<>();
             Map<String, BackendFactEntity> nameToPos = new HashMap<>();
+            Map<String, BackendFactEntity> nameToBeforeThirdOperator = new HashMap<>();
 
             for (BackendFactEntity violation : violations) {
                 if (violation.getVerb().equals("text")) {
                     nameToText.put(violation.getSubject(), violation);
                 } else if (violation.getVerb().equals("index")) {
                     nameToPos.put(violation.getSubject(), violation);
+                } else if (violation.getVerb().equals("before_third_operator")) {
+                    nameToBeforeThirdOperator.put(violation.getSubject(), violation);
                 }
             }
 
@@ -1275,13 +1278,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     violationEntity.setLawName("error_wrong_type");
                 }
                 if (violationEntity.getLawName() != null) {
-                    violationEntity.setViolationFacts(new ArrayList<>(Arrays.asList(
+                    ArrayList<BackendFactEntity> facts = new ArrayList<>(Arrays.asList(
                             violation,
                             nameToText.get(violation.getObject()),
                             nameToText.get(violation.getSubject()),
                             nameToPos.get(violation.getObject()),
-                            nameToPos.get(violation.getSubject())
-                    )));
+                            nameToPos.get(violation.getSubject())));
+                    if (nameToBeforeThirdOperator.containsKey(violation.getObject())) {
+                        facts.add(nameToBeforeThirdOperator.get(violation.getObject()));
+                        facts.add(nameToPos.get(nameToBeforeThirdOperator.get(violation.getObject()).getObject()));
+                        facts.add(nameToText.get(nameToBeforeThirdOperator.get(violation.getObject()).getObject()));
+                    }
+                    violationEntity.setViolationFacts(facts);
                     mistakes.add(violationEntity);
                 }
             }

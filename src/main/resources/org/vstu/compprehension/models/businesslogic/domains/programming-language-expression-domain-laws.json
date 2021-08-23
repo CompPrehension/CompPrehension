@@ -2065,7 +2065,7 @@
       },
       {
         "name": "before_in_complex",
-        "formulation": "(?a my:has_operand ?b), (?b my:text \"(\"), (?b my:has_operand ?c) -> (?c my:before_direct ?a), (?c my:before_by_third_operator ?a), (?c my:before_third_operator ?b).",
+        "formulation": "(?a my:has_operand ?b), (?b my:complex_beginning \"true\"^^xsd:boolean), (?b my:has_operand ?c) -> (?c my:before_direct ?a), (?c my:before_by_third_operator ?a), (?c my:before_third_operator ?b).",
         "backend": "Jena"
       },
       {
@@ -2116,6 +2116,11 @@
     "formulations": [
       {
         "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
         "formulation": "owl:DatatypeProperty",
         "backend": "OWL"
       },
