@@ -34,12 +34,12 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
 
     return (
         <div>
-            <p>
+            <div className="mb-3">
                 <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
-            </p>
-            <p className="d-flex flex-column">                
-                {question.answers.map(a => 
-                    <label htmlFor={`question_${question.questionId}_answer_${a.id}`} className="d-flex flex-row mb-3">
+            </div>
+            <div className="d-flex flex-column">                
+                {question.answers.map((a, idx) => 
+                    <label htmlFor={`question_${question.questionId}_answer_${a.id}`} className={`d-flex flex-row ${idx !== question.answers.length - 1 && 'mb-3' || ''}`}>
                         <div className="mr-2 mt-1">
                             <input id={`question_${question.questionId}_answer_${a.id}`} 
                                    name={`switch_${question.questionId}`} 
@@ -49,7 +49,7 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
                         </div>
                         <div>{a.text}</div>                        
                     </label>)}
-            </p>
+            </div>
         </div>
     );
 })

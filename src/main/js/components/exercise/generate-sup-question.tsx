@@ -71,7 +71,7 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
     return (
         <Optional isVisible={isAllVisible}>
             <Optional isVisible={isButtonsVisible}>
-                <div className="d-flex flex-row">
+                <div className="d-flex flex-row mt-3">
                     <Button onClick={onDetailsClicked} variant="primary">{t('generateSupQuestion_details')}</Button>
                     <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('generateSupQuestion_gotit')}</Button>
                 </div>

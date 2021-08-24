@@ -60,16 +60,16 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
     return (
         <div className="comp-ph-feedback-wrapper mt-2">
             <Optional isVisible={isFeedbackVisible}>
-                <p>
+                <div>
                     {feedbackMessages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions} />)}                
-                </p>
+                </div>
                 <Optional isVisible={showExtendedFeedback}>
-                    <p>
+                    <div>
                         <Optional isVisible={feedback.grade !== null}><Badge variant="primary">{t('grade_feeback')}: {feedback.grade}</Badge>{' '}</Optional>
                         <Optional isVisible={feedback.correctSteps !== null}><Badge variant="success">{t('correctsteps_feeback')}: {feedback.correctSteps}</Badge>{' '}</Optional>
                         <Optional isVisible={notNulAndUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0}><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</Optional>
                         <Optional isVisible={notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0}><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</Optional>
-                    </p>
+                    </div>
                 </Optional>
             </Optional>            
         </div>
@@ -82,9 +82,7 @@ const FeedbackAlert = observer(({ message, showGenerateSupQuestion }: { message:
         <Alert variant={variant}>
             {message.message}
             <Optional isVisible={showGenerateSupQuestion}>
-                <div className="mt-3">
-                    <GenerateSupQuestion violationLaws={message.type === 'ERROR' && message.violationLaws || []}/>
-                </div>                
+                <GenerateSupQuestion violationLaws={message.type === 'ERROR' && message.violationLaws || []}/>             
             </Optional>
         </Alert>
     )

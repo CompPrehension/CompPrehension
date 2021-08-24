@@ -29,6 +29,15 @@ body ul {
   pointer-events: none;
 }
 
+.comp-ph-feedback-wrapper .modal-dialog {
+  margin-top: 1rem;
+  margin-bottom: 0.1rem;
+}
+
+.comp-ph-feedback-wrapper .modal-dialog .alert {
+  margin-bottom: 0;
+}
+
 .comp-ph-expr {
   font-size: 20px;
   display: flex;
