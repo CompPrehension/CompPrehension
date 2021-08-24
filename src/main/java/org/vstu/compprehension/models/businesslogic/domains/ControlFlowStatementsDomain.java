@@ -1020,11 +1020,15 @@ public class ControlFlowStatementsDomain extends Domain {
                 case("AltEndAfterBranch"):
                     mistakeNames.add("ConditionAfterBranch");
                     mistakeNames.add("AnotherExtraBranch");
+                    mistakeNames.add("LastFalseNoEnd");
                     mistakeNames.add("NoAlternativeEndAfterBranch");
                     break;
                 case("AltEndAllFalse"):
+                    mistakeNames.add("ConditionAfterBranch");
                     mistakeNames.add("BranchOfFalseCondition");
+                    mistakeNames.add("AnotherExtraBranch");
                     mistakeNames.add("LastFalseNoEnd");
+                    mistakeNames.add("NoAlternativeEndAfterBranch");
                     break;
                 case("AltElseBranchBegin"):
                     mistakeNames.add("LastConditionIsFalseButNoElse");
@@ -1033,17 +1037,23 @@ public class ControlFlowStatementsDomain extends Domain {
                     mistakeNames.add("NoIterationAfterSuccessfulCondition");
                     mistakeNames.add("LoopEndAfterSuccessfulCondition");
                     break;
+                case("LoopEndOnFalseCond"):
+                    mistakeNames.add("NoLoopEndAfterFailedCondition");
+                    mistakeNames.add("LoopContinuedAfterFailedCondition");
+                    mistakeNames.add("IterationAfterFailedCondition");
+                    mistakeNames.add("NoConditionAfterIteration");
+                    mistakeNames.add("NoConditionBetweenIterations");
+                    break;
                 case("PreCondLoopBegin"):
+                    mistakeNames.add("LoopEndsWithoutCondition");
                     mistakeNames.add("LoopStartIsNotCondition");
                     break;
                 case("PostCondLoopBegin"):
+                    mistakeNames.add("LoopEndsWithoutCondition");
                     mistakeNames.add("LoopStartIsNotIteration");
                     break;
-                case("LoopEndOnFalseCond"):
-                    mistakeNames.add("LoopContinuedAfterFailedCondition");
-                    mistakeNames.add("IterationAfterFailedCondition");
-                    break;
                 case("LoopCondBeginAfterIteration"):
+                    mistakeNames.add("LoopEndsWithoutCondition");
                     mistakeNames.add("NoConditionAfterIteration");
                     mistakeNames.add("NoConditionBetweenIterations");
                     break;
