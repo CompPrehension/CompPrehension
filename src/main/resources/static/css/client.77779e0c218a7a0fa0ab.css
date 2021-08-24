@@ -31,6 +31,8 @@ body ul {
 .comp-ph-feedback-wrapper .modal-dialog {
   margin-top: 1rem;
   margin-bottom: 0.1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .comp-ph-feedback-wrapper .modal-dialog .alert {
