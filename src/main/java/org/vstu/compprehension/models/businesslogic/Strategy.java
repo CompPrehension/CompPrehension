@@ -52,7 +52,15 @@ public class Strategy extends AbstractStrategy {
             return getQuestionRequest(exerciseAttempt, nextNode);
         }
         // Для вопроса вытянуть все интеракции в змейку по дельте (изменения в правильно примененных правилах и ошибки)
-        QuestionEntity qe = exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1);
+        QuestionEntity qe = null;
+        // Find last not supplementary question in exercise
+        for (int questionNumber = exerciseAttempt.getQuestions().size() - 1; questionNumber >= 0; --questionNumber) {
+            if (!exerciseAttempt.getQuestions().get(questionNumber).getQuestionDomainType().contains("Supplementary")) {
+                qe = exerciseAttempt.getQuestions().get(questionNumber);
+                break;
+            }
+        }
+
         InteractionEntity lastIE = null;
         ArrayList<Pair<Boolean, String>> allLaws = new ArrayList<>();
         ArrayList<InteractionEntity> ies = new ArrayList<>();
