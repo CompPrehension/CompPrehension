@@ -533,6 +533,7 @@ public class Strategy extends AbstractStrategy {
 
     private ArrayList<LawNode> getNextNodes(HashMap<String, LawNode> tree, ArrayList<String> correctLaws) {
         ArrayList<String>allNodes = new ArrayList<>(tree.keySet());
+        ArrayList<String>wrongLaws = new ArrayList<>();
 
         ArrayList<LawNode> nextNodes = new ArrayList<>();
         for(String lawName : allNodes){
@@ -541,11 +542,20 @@ public class Strategy extends AbstractStrategy {
             for(String currentError : childNode.currentLows){
                 //Если закон отсутствует в корректных, то он или ошибочен или не применялся
                 if(!correctLaws.contains(currentError) && !nextNodes.contains(childNode)){
+                    if(!wrongLaws.contains(currentError)) {
+                        wrongLaws.add(currentError);
+                    }
                     nextNodes.add(childNode);
                 }
             }
 
         }
+
+        System.out.println("Упущенные законы:");
+        for(String s:wrongLaws){
+            System.out.println(s);
+        }
+
         return nextNodes;
     }
 
