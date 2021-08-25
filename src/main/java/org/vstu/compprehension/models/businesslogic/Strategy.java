@@ -28,12 +28,13 @@ public class Strategy extends AbstractStrategy {
 
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
 
+        ExerciseEntity exercise = exerciseAttempt.getExercise();
+        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
+        HashMap<String, LawNode> tree = getTree(domain);
         // Отдельная ветка для старта (взять некоторую часть возможных законов упражнения) - вопрос из середины графа
         if(exerciseAttempt.getQuestions() == null || exerciseAttempt.getQuestions().size() == 0){
 
-            ExerciseEntity exercise = exerciseAttempt.getExercise();
-            Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
-            HashMap<String, LawNode> tree = getTree(domain);
+
             ArrayList<String> startTasks = null;
             if(domain instanceof ProgrammingLanguageExpressionDomain) {
                 startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
@@ -62,7 +63,7 @@ public class Strategy extends AbstractStrategy {
         }
 
         InteractionEntity lastIE = null;
-        ArrayList<Pair<Boolean, String>> allLaws = new ArrayList<>();
+        ArrayList<Pair<Pair<Boolean, Integer>, String>> allLaws = new ArrayList<>();
         ArrayList<InteractionEntity> ies = new ArrayList<>();
 
         if(qe.getInteractions() != null){
@@ -70,9 +71,14 @@ public class Strategy extends AbstractStrategy {
         }
 
         Collections.sort(ies, new InteractionOrderComparator());
-
+        int iIndex = 0;
         for(InteractionEntity ie : ies){
-            allLaws.addAll(findInteractionsDelta(lastIE, ie));
+            ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(lastIE, ie);
+
+            for(Pair<Boolean, String> i: tmp){
+                allLaws.add(Pair.of(Pair.of(i.getFirst(), iIndex), i.getSecond()));
+            }
+            iIndex++;
 
             lastIE = ie;
         }
@@ -83,43 +89,58 @@ public class Strategy extends AbstractStrategy {
 
         //// Вопрос считается угаданным, если между последним правильным ответом и верным применением текущего закона...
         ////...была ошибка применения этого закона
-        for(Pair<Boolean, String> interResult : allLaws){
+        for(int i = 0; i < allLaws.size(); i++){
+            Pair<Pair<Boolean, Integer>, String> interResult = allLaws.get(i);
             //Если текущая интеракция верна
-            if(interResult.getFirst()){
+            if(interResult.getFirst().getFirst()){
                 //Если с момента прошлого верного ответа были такие ошибки
-                if(lastErrors.contains(interResult.getSecond())){
-                    //Если закон считался верно изученным
-                    //Считать, что он не был понят
-                    if(correctLaws.contains(interResult.getSecond())){
-                        correctLaws.remove(interResult.getSecond());
-                    }
-                    if(!incorrectLaws.contains(interResult.getSecond())){
-                        incorrectLaws.add(interResult.getSecond());
+                int lastIndex = interResult.getFirst().getSecond();
+                while(i < allLaws.size() && interResult.getFirst().getSecond() == lastIndex) {
+                    if (lastErrors.contains(interResult.getSecond())) {
+                        //Если закон считался верно изученным
+                        //Считать, что он не был понят
+                        if (correctLaws.contains(interResult.getSecond())) {
+                            correctLaws.remove(interResult.getSecond());
+                        }
+                        if (!incorrectLaws.contains(interResult.getSecond())) {
+                            incorrectLaws.add(interResult.getSecond());
+                        }
+
+                    } else {
+                        //Если ранее закон считался не изученным
+                        //Считать закон изученным
+                        if (incorrectLaws.contains(interResult.getSecond())) {
+                            incorrectLaws.remove(interResult.getSecond());
+                        }
+                        if (!correctLaws.contains(interResult.getSecond())) {
+                            correctLaws.add(interResult.getSecond());
+                        }
+
+
                     }
 
-                }else{
-                    //Если ранее закон считался не изученным
-                    //Считать закон изученным
-                    if(incorrectLaws.contains(interResult.getSecond())){
-                        incorrectLaws.remove(interResult.getSecond());
+                    i++;
+                    if(i < allLaws.size()){
+                        interResult = allLaws.get(i);
                     }
-                    if(!correctLaws.contains(interResult.getSecond())){
-                        correctLaws.add(interResult.getSecond());
-                    }
-
                 }
+                i--;
 
                 lastErrors.clear();
             }else{
                 lastErrors.add(interResult.getSecond());
+                if (correctLaws.contains(interResult.getSecond())) {
+                    correctLaws.remove(interResult.getSecond());
+                }
+
+                if (!incorrectLaws.contains(interResult.getSecond())) {
+                    incorrectLaws.add(interResult.getSecond());
+                }
             }
         }
 
         float correct = (float) correctLaws.size() / (float)(correctLaws.size() + incorrectLaws.size());
-        // Получить граф вопросов и типичных ошибок к ним
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
-        HashMap<String, LawNode> tree = getTree(domain);
+
         LawNode currentNode = tree.get(qe.getQuestionName());
         // Если верно примененных законов в текущем вопросе достаточно (не менее 90%), то берется вопрос из больших
         if(correct > 0.9){
@@ -141,15 +162,24 @@ public class Strategy extends AbstractStrategy {
                 ArrayList<QuestionEntity> qes = new ArrayList<>(exerciseAttempt.getQuestions());
                 Collections.sort(qes, new QuestionOrderComparator());
 
-                ArrayList<Pair<Boolean, String>> allLawsHistory = new ArrayList<>();
 
+
+                /////////////////////////////////////////////////////////////
+
+                ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
+                int index = 0;
                 for (QuestionEntity taskqe : qes){
                     ArrayList<InteractionEntity> taskies = new ArrayList<>(taskqe.getInteractions());
 
                     Collections.sort(taskies, new InteractionOrderComparator());
                     InteractionEntity tasklastIE = null;
                     for(InteractionEntity ie : taskies){
-                        allLawsHistory.addAll(findInteractionsDelta(tasklastIE, ie));
+                        ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(tasklastIE, ie);
+                        for(Pair<Boolean, String> law : tmp){
+                            allLawsHistory.add(Pair.of(Pair.of(law.getFirst(), index), law.getSecond()));
+                        }
+                        index++;
+
                         tasklastIE = ie;
                     }
 
@@ -161,37 +191,55 @@ public class Strategy extends AbstractStrategy {
 
                 //// Вопрос считается угаданным, если между последним правильным ответом и верным применением текущего закона...
                 ////...была ошибка применения этого закона
-                for(Pair<Boolean, String> interResult : allLawsHistory){
+                for(int i = 0; i < allLawsHistory.size(); i++){
+                    Pair<Pair<Boolean, Integer>, String> interResult = allLawsHistory.get(i);
                     //Если текущая интеракция верна
-                    if(interResult.getFirst()){
+                    if(interResult.getFirst().getFirst()){
                         //Если с момента прошлого верного ответа были такие ошибки
-                        if(lastErrors.contains(interResult.getSecond())){
-                            //Если закон считался верно изученным
-                            //Считать, что он не был понят
-                            if(correctLaws.contains(interResult.getSecond())){
-                                correctLaws.remove(interResult.getSecond());
-                            }
-                            if(!incorrectLaws.contains(interResult.getSecond())){
-                                incorrectLaws.add(interResult.getSecond());
+                        int lastIndex = interResult.getFirst().getSecond();
+                        while(i < allLawsHistory.size() && interResult.getFirst().getSecond() == lastIndex) {
+                            if (lastErrors.contains(interResult.getSecond())) {
+                                //Если закон считался верно изученным
+                                //Считать, что он не был понят
+                                if (correctLaws.contains(interResult.getSecond())) {
+                                    correctLaws.remove(interResult.getSecond());
+                                }
+                                if (!incorrectLaws.contains(interResult.getSecond())) {
+                                    incorrectLaws.add(interResult.getSecond());
+                                }
+                            } else {
+                                //Если ранее закон считался не изученным
+                                //Считать закон изученным
+                                if (incorrectLaws.contains(interResult.getSecond())) {
+                                    incorrectLaws.remove(interResult.getSecond());
+                                }
+                                if (!correctLaws.contains(interResult.getSecond())) {
+                                    correctLaws.add(interResult.getSecond());
+                                }
                             }
 
-                        }else{
-                            //Если ранее закон считался не изученным
-                            //Считать закон изученным
-                            if(incorrectLaws.contains(interResult.getSecond())){
-                                incorrectLaws.remove(interResult.getSecond());
+                            i++;
+                            if(i < allLawsHistory.size()){
+                                interResult = allLawsHistory.get(i);
                             }
-                            if(!correctLaws.contains(interResult.getSecond())){
-                                correctLaws.add(interResult.getSecond());
-                            }
-
                         }
+                        i--;
 
                         lastErrors.clear();
                     }else{
                         lastErrors.add(interResult.getSecond());
+                        if (correctLaws.contains(interResult.getSecond())) {
+                            correctLaws.remove(interResult.getSecond());
+                        }
+
+                        if (!incorrectLaws.contains(interResult.getSecond())) {
+                            incorrectLaws.add(interResult.getSecond());
+                        }
                     }
                 }
+
+
+                ////////////////////////////////////////////////////////////
 
                 ArrayList<LawNode>nextNodes = getNextNodes(tree, correctLaws);
                 //Все законы усвоены
@@ -231,7 +279,7 @@ public class Strategy extends AbstractStrategy {
 
                 Random random = new Random();
                 int nextQuestion = 0;
-                if(currentNode.childNodes.size() > 1) {
+                if(nextNodes.size() > 1) {
                     nextQuestion = random.ints(0, nextNodes.size())
                             .findFirst()
                             .getAsInt();
@@ -402,15 +450,20 @@ public class Strategy extends AbstractStrategy {
         ArrayList<QuestionEntity> qes = new ArrayList<>(exerciseAttempt.getQuestions());
         Collections.sort(qes, new QuestionOrderComparator());
 
-        ArrayList<Pair<Boolean, String>> allLawsHistory = new ArrayList<>();
-
+        ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
+        int index = 0;
         for (QuestionEntity taskqe : qes){
             ArrayList<InteractionEntity> taskies = new ArrayList<>(taskqe.getInteractions());
 
             Collections.sort(taskies, new InteractionOrderComparator());
             InteractionEntity tasklastIE = null;
             for(InteractionEntity ie : taskies){
-                allLawsHistory.addAll(findInteractionsDelta(tasklastIE, ie));
+                ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(tasklastIE, ie);
+                for(Pair<Boolean, String> law : tmp){
+                    allLawsHistory.add(Pair.of(Pair.of(law.getFirst(), index), law.getSecond()));
+                }
+                index++;
+
                 tasklastIE = ie;
             }
 
@@ -422,25 +475,46 @@ public class Strategy extends AbstractStrategy {
 
         //// Вопрос считается угаданным, если между последним правильным ответом и верным применением текущего закона...
         ////...была ошибка применения этого закона
-        for(Pair<Boolean, String> interResult : allLawsHistory){
+        for(int i = 0; i < allLawsHistory.size(); i++){
+            Pair<Pair<Boolean, Integer>, String> interResult = allLawsHistory.get(i);
             //Если текущая интеракция верна
-            if(interResult.getFirst()){
+            if(interResult.getFirst().getFirst()){
                 //Если с момента прошлого верного ответа были такие ошибки
-                if(lastErrors.contains(interResult.getSecond())){
-                    //Если закон считался верно изученным
-                    //Считать, что он не был понят
-                    if(correctLaws.contains(interResult.getSecond())){
-                        correctLaws.remove(interResult.getSecond());
+                int lastIndex = interResult.getFirst().getSecond();
+                while(i < allLawsHistory.size() && interResult.getFirst().getSecond() == lastIndex) {
+                    if (lastErrors.contains(interResult.getSecond())) {
+                        //Если закон считался верно изученным
+                        //Считать, что он не был понят
+                        if (correctLaws.contains(interResult.getSecond())) {
+                            correctLaws.remove(interResult.getSecond());
+                        }
+                        if (!incorrectLaws.contains(interResult.getSecond())) {
+                            incorrectLaws.add(interResult.getSecond());
+                        }
+                    } else {
+                        //Если ранее закон считался не изученным
+                        //Считать закон изученным
+                        if (incorrectLaws.contains(interResult.getSecond())) {
+                            incorrectLaws.remove(interResult.getSecond());
+                        }
+                        if (!correctLaws.contains(interResult.getSecond())) {
+                            correctLaws.add(interResult.getSecond());
+                        }
                     }
-                    incorrectLaws.add(interResult.getSecond());
-                }else{
-                    //Если ранее закон считался не изученным
-                    //Считать закон изученным
-                    if(incorrectLaws.contains(interResult.getSecond())){
-                        incorrectLaws.remove(interResult.getSecond());
+
+                    i++;
+                    if(i < allLawsHistory.size()){
+                        interResult = allLawsHistory.get(i);
+                        if (correctLaws.contains(interResult.getSecond())) {
+                            correctLaws.remove(interResult.getSecond());
+                        }
+
+                        if (!incorrectLaws.contains(interResult.getSecond())) {
+                            incorrectLaws.add(interResult.getSecond());
+                        }
                     }
-                    correctLaws.add(interResult.getSecond());
                 }
+                i--;
 
                 lastErrors.clear();
             }else{
@@ -539,10 +613,6 @@ public class Strategy extends AbstractStrategy {
     protected ArrayList<Pair<Boolean, String>> findInteractionsDelta(InteractionEntity last, InteractionEntity current){
         ArrayList<Pair<Boolean, String>> result = new ArrayList<>();
 
-        for(ViolationEntity ve : current.getViolations()){
-            result.add(Pair.of(false, ve.getLawName()));
-        }
-
         ArrayList<String> lastCorrectLaws = new ArrayList<>();
         if(last != null) {
             for (CorrectLawEntity cle : last.getCorrectLaw()) {
@@ -554,6 +624,10 @@ public class Strategy extends AbstractStrategy {
             if(!lastCorrectLaws.contains(cle.getLawName())) {
                 result.add(Pair.of(true, cle.getLawName()));
             }
+        }
+
+        for(ViolationEntity ve : current.getViolations()){
+            result.add(Pair.of(false, ve.getLawName()));
         }
 
         return result;
