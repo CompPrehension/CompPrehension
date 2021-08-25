@@ -220,7 +220,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Collections.addAll(res, questions);
 
         // write questionName to each template
-        res.forEach(q -> q.getQuestionData().setQuestionName(q.getQuestionText().getText()));
+        //TODO: make normal check, other question types also can be longer than questionName restriction
+        for (Question q : res) {
+            if (!q.isSupplementary()) {
+                q.getQuestionData().setQuestionName(q.getQuestionText().getText());
+            }
+        }
 
         return res;
     }
