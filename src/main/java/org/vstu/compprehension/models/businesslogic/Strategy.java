@@ -232,7 +232,7 @@ public class Strategy extends AbstractStrategy {
                 Random random = new Random();
                 int nextQuestion = 0;
                 if(currentNode.childNodes.size() > 1) {
-                    nextQuestion = random.ints(0, currentNode.childNodes.size())
+                    nextQuestion = random.ints(0, nextNodes.size())
                             .findFirst()
                             .getAsInt();
                 }
