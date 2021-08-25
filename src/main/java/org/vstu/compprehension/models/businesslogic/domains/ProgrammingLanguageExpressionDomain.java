@@ -971,6 +971,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
+        if (violation.getLawName().equals("error_base_student_error_in_complex") ||
+                violation.getLawName().equals("error_base_student_error_strict_operands_order_base")) {
+            return null;
+        }
+
         ExerciseAttemptEntity exerciseAttemptEntity = question.getExerciseAttempt();
         if (exerciseAttemptEntity == null) {
             return null;
