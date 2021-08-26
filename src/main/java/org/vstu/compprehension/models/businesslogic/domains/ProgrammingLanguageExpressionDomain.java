@@ -965,16 +965,24 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
+    public boolean needSupplementaryQuestion(ViolationEntity violation) {
+        if (violation.getLawName().equals("error_base_student_error_in_complex") ||
+                violation.getLawName().equals("error_base_student_error_strict_operands_order_base")) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
+        if (!needSupplementaryQuestion(violation)) {
+            return null;
+        }
+
         HashSet<String> targetConcepts = new HashSet<>();
         String failedLaw = violation.getLawName().startsWith("error_base") ? "first_OrderOperatorsSupplementary" : violation.getLawName();
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
-
-        if (violation.getLawName().equals("error_base_student_error_in_complex") ||
-                violation.getLawName().equals("error_base_student_error_strict_operands_order_base")) {
-            return null;
-        }
 
         ExerciseAttemptEntity exerciseAttemptEntity = question.getExerciseAttempt();
         if (exerciseAttemptEntity == null) {

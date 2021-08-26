@@ -178,6 +178,11 @@ public class TestDomain extends Domain {
     }
 
     @Override
+    public boolean needSupplementaryQuestion(ViolationEntity violation) {
+        return false;
+    }
+
+    @Override
     public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
         return null;
     }
