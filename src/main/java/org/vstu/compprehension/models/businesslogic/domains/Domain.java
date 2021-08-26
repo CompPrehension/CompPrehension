@@ -222,6 +222,13 @@ public abstract class Domain {
     public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
 
     /**
+     * Check that violation has supplementary questions
+     * @param violation info about mistake
+     * @return violation has supplementary questions
+     */
+    public abstract boolean needSupplementaryQuestion(ViolationEntity violation);
+
+    /**
      * Make supplementary question based on violation in last iteration
      * @param violation info about mistake
      * @param sourceQuestion source question
