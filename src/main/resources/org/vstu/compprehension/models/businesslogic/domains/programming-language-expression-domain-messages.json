@@ -505,5 +505,642 @@
         "text": " should be evaluated before "
       }
     ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Что мешает выполниться оператору ${operator} на позиции ${pos} ?"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "What prevents evaluation of operator ${operator} at pos ${pos} ?"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_left_precedence",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "приоритет оператора ${left_operator} на позиции ${left_operator_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "precedence of operator ${left_operator} at pos ${left_operator_pos}"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_left_associativity",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "ассоциативность оператора ${left_operator} на позиции ${left_operator_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "associativity of operator ${left_operator} at pos ${left_operator_pos}"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_left_associativity",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "ассоциативность оператора ${left_operator} на позиции ${left_operator_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "associativity of operator ${left_operator} at pos ${left_operator_pos}"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_left_parenthesis",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "невыполненные скобки на позиции ${left_parenthesis_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "unevaluated parenthesis at pos ${left_parenthesis_pos}"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_right_precedence",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "приоритет оператора ${right_operator} на позиции ${right_operator_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "precedence of operator ${right_operator} at pos ${right_operator_pos}"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_right_associativity",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "ассоциативность оператора ${right_operator} на позиции ${right_operator_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "associativity of operator ${right_operator} at pos ${right_operator_pos}"
+      }
+    ]
+  },
+  {
+    "name": "first_OrderOperatorsSupplementary_select_reason_right_parenthesis",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "невыполненные скобки на позиции ${right_parenthesis_pos}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "unevaluated parenthesis at pos ${right_parenthesis_pos}"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_left_operator_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Какой оператор имеет более высокий приоритет?"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "What operator has higher precedence?"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_left_operator_select_highest_precedence_operator_left",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "оператор ${left_operator}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "operator ${left_operator}"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "оператор ${operator}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "operator ${operator}"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_left_operator_select_highest_precedence_operator_same",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "одинаковый приоритет"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "same precedence"
+      }
+    ]
+  },
+  {
+    "name": "select_highest_precedence_left_operator_select_highest_precedence_operator_right",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "оператор ${right_operator}"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "operator ${right_operator}"
+      }
+    ]
+  },
+  {
+    "name": "select_precedence_or_associativity_left_influence_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Что в первую очередь влияет на порядок выполнения?"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "What influences evaluation order at first?"
+      }
+    ]
+  },
+  {
+    "name": "select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_precedence",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "приоритет"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "precedence"
+      }
+    ]
+  },
+  {
+    "name": "select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_associativity",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "ассоциативность"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "associativity"
+      }
+    ]
+  },
+  {
+    "name": "error_select_highest_precedence_operator_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет оператора ${left_operator} выше, чем оператора ${operator}, так что оператор ${left_operator} должен быть выполнен первым и оператор ${left_operator} на позиции ${left_operator_pos} будет блокировать оператор ${operator} на позиции ${pos} пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence of operator ${left_operator} is higher than operator ${operator}, so operator ${left_operator} should be evaluated first and the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_highest_precedence_operator_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, приоритет оператора ${left_operator} выше, чем оператора ${operator}, так что оператор ${left_operator} должен быть выполнен первым и оператор ${left_operator} на позиции ${left_operator_pos} будет блокировать оператор ${operator} на позиции ${pos} пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, precedence of operator ${left_operator} is higher than operator ${operator}, so operator ${left_operator} should be evaluated first and the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_highest_precedence_left_operator_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет оператора ${operator} выше, чем оператора ${left_operator}, так что оператор ${operator} должен быть выполнен первым и оператор ${operator} на позиции ${pos} будет блокировать оператор ${left_operator} на позиции ${left_operator_pos} пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence of operator ${operator} is higher than operator ${left_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_highest_precedence_left_operator_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, приоритет оператора ${operator} выше, чем оператора ${left_operator}, так что оператор ${operator} должен быть выполнен первым и оператор ${operator} на позиции ${pos} будет блокировать оператор ${left_operator} на позиции ${left_operator_pos} пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, precedence of operator ${operator} is higher than operator ${left_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_highest_precedence_operator_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет оператора ${right_operator} выше, чем оператора ${operator}, так что оператор ${right_operator} должен быть выполнен первым и оператор ${right_operator} на позиции ${right_operator_pos} будет блокировать оператор ${operator} на позиции ${pos} пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence of operator ${right_operator} is higher than operator ${operator}, so operator ${right_operator} should be evaluated first and the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_highest_precedence_operator_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, приоритет оператора ${right_operator} выше, чем оператора ${operator}, так что оператор ${right_operator} должен быть выполнен первым и оператор ${right_operator} на позиции ${right_operator_pos} будет блокировать оператор ${operator} на позиции ${pos} пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, precedence of operator ${right_operator} is higher than operator ${operator}, so operator ${right_operator} should be evaluated first and the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_highest_precedence_right_operator_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет оператора ${operator} выше, чем оператора ${right_operator}, так что оператор ${operator} должен быть выполнен первым и оператор ${operator} на позиции ${pos} будет блокировать оператор ${right_operator} на позиции ${right_operator_pos} пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence of operator ${operator} is higher than operator ${right_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_highest_precedence_right_operator_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, приоритет оператора ${operator} выше, чем оператора ${right_operator}, так что оператор ${operator} должен быть выполнен первым и оператор ${operator} на позиции ${pos} будет блокировать оператор ${right_operator} на позиции ${right_operator_pos} пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, precedence of operator ${operator} is higher than operator ${right_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_precedence_or_associativity_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет проверяется до ассоциативностти, так что оператор ${left_operator} на позиции ${left_operator_pos} с более высоким приоритетом блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence is checked before associativity, so operator ${left_operator} at pos ${left_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_precedence_or_associativity_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, приоритет проверяется до ассоциативностти, так что оператор ${left_operator} на позиции ${left_operator_pos} с более высоким приоритетом блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, precedence is checked before associativity, so operator ${left_operator} at pos ${left_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_precedence_or_associativity_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет проверяется до ассоциативностти, так что оператор ${right_operator} на позиции ${right_operator_pos} с более высоким приоритетом блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence is checked before associativity, so operator ${right_operator} at pos ${right_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_precedence_or_associativity_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, приоритет проверяется до ассоциативностти, так что оператор ${right_operator} на позиции ${right_operator_pos} с более высоким приоритетом блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, precedence is checked before associativity, so operator ${right_operator} at pos ${right_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_or_arity_influence_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Что влияет на порядок выполнения операторов с одинаковым приоритетом?"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "What influences evaluation order at operators with same precedence?"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_arity",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "арность"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "arity"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_associativity",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "ассоциативность"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "associativity"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_or_arity_influence_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, ассоциативность влияет на порядок выполнения, так что оператор ${left_operator} на позиции ${left_operator_pos} с таким же приоритетом и левой ассоциативностью блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with the same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_associativity_or_arity_influence_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, ассоциативность влияет на порядок выполнения, так что оператор ${left_operator} на позиции ${left_operator_pos} с таким же приоритетом и левой ассоциативностью блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with the same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_or_arity_influence_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, ассоциативность влияет на порядок выполнения, так что оператор ${right_operator} на позиции ${right_operator_pos} с таким же приоритетом и правой ассоциативностью блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_associativity_or_arity_influence_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, ассоциативность влияет на порядок выполнения, так что оператор ${right_operator} на позиции ${right_operator_pos} с таким же приоритетом и правой ассоциативностью блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_type_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Какой тип ассоциативности у оператора ${left_operator}?"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "What is the associativity of operator ${left_operator}?"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_type_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Какой тип ассоциативности у оператора ${right_operator}?"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "What is the associativity of operator ${right_operator}?"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_type_left_select_associativity_type_left_left",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "левая"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "left"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_type_left_select_associativity_type_left_right",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "правая"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "right"
+      }
+    ]
+  },
+  {
+    "name": "select_associativity_type_left_select_associativity_type_left_nonassoc",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "неассоциативный оператор"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "nonassoc"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_associativity_type_left_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, операторы ${left_operator} и ${operator} имеют одинаковый приоритет и левую ассоциативность, так что они выполняются слева направо и ${left_operator} на позиции ${left_operator_pos} блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_type_left_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, операторы ${left_operator} и ${operator} имеют одинаковый приоритет и левую ассоциативность, так что они выполняются слева направо и ${left_operator} на позиции ${left_operator_pos} блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${left_operator} на позиции ${left_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_type_left_right_assoc_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, операторы ${left_operator} и ${operator} имеют одинаковый приоритет и правую ассоциативность, так что они выполняются справа налево и ${operator} на позиции ${pos} блокирует выполнение оператора ${left_operator} на позиции ${left_operator_pos} до тех пор, пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_associativity_type_left_right_assoc_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, операторы ${left_operator} и ${operator} имеют одинаковый приоритет и правую ассоциативность, так что они выполняются справа налево и ${operator} на позиции ${pos} блокирует выполнение оператора ${left_operator} на позиции ${left_operator_pos} до тех пор, пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_associativity_type_right_left_assoc_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, операторы ${right_operator} и ${operator} имеют одинаковый приоритет и левую ассоциативность, так что они выполняются слева направо и ${operator} на позиции ${pos} блокирует выполнение оператора ${right_operator} на позиции ${right_operator_pos} до тех пор, пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_type_right_left_assoc_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, операторы ${right_operator} и ${operator} имеют одинаковый приоритет и левую ассоциативность, так что они выполняются слева направо и ${operator} на позиции ${pos} блокирует выполнение оператора ${right_operator} на позиции ${right_operator_pos} до тех пор, пока оператор ${operator} на позиции ${pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "correct_select_associativity_type_right_right_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Верно, операторы ${right_operator} и ${operator} имеют одинаковый приоритет и правую ассоциативность, так что они выполняются справа налево и ${right_operator} на позиции ${right_operator_pos} блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_associativity_type_right_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, операторы ${right_operator} и ${operator} имеют одинаковый приоритет и правую ассоциативность, так что они выполняются справа налево и ${right_operator} на позиции ${right_operator_pos} блокирует выполнение оператора ${operator} на позиции ${pos} до тех пор, пока оператор ${right_operator} на позиции ${right_operator_pos} не будет выполнен"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated"
+      }
+    ]
+  },
+  {
+    "name": "error_select_precedence_or_associativity_same_precedence_left_TEXT",
+    "texts": [
+      {
+        "lang": "RUSSIAN",
+        "text": "Неверно, приоритет проверяется до ассоциативности, но в данном случае приоритет одинаковый, так что надо проверять асссоциативность"
+      },
+      {
+        "lang": "ENGLISH",
+        "text": "Wrong, precedence is checked before associativity, but in this case the precedence is the same, so it's irrelevant and you should have checked associativity"
+      }
+    ]
   }
 ]
