@@ -3540,14 +3540,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What prevents evaluation of operator ${operator} at pos ${pos} ?",
+      "questionText": "first_OrderOperatorsSupplementary_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "precedence of operator ${left_operator} at pos ${left_operator_pos}",
+          "hyperText": "first_OrderOperatorsSupplementary_select_reason_left_precedence",
           "domainInfo": "select_reason_left_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3556,7 +3556,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "associativity of operator ${left_operator} at pos ${left_operator_pos}",
+          "hyperText": "first_OrderOperatorsSupplementary_select_reason_left_associativity",
           "domainInfo": "select_reason_left_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3565,7 +3565,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "unevaluated parenthesis at pos ${left_parenthesis_pos}",
+          "hyperText": "first_OrderOperatorsSupplementary_select_reason_left_parenthesis",
           "domainInfo": "select_reason_left_parenthesis",
           "isRightCol": false,
           "concept": "operator_binary_+",
@@ -3574,7 +3574,7 @@
         },
         {
           "answerId": 3,
-          "hyperText": "precedence of operator ${right_operator} at pos ${right_operator_pos}",
+          "hyperText": "first_OrderOperatorsSupplementary_select_reason_right_precedence",
           "domainInfo": "select_reason_right_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3583,7 +3583,7 @@
         },
         {
           "answerId": 4,
-          "hyperText": "associativity of operator ${right_operator} at pos ${right_operator_pos}",
+          "hyperText": "first_OrderOperatorsSupplementary_select_reason_right_associativity",
           "domainInfo": "select_reason_right_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3592,7 +3592,7 @@
         },
         {
           "answerId": 5,
-          "hyperText": "unevaluated parenthesis at pos ${right_parenthesis_pos}",
+          "hyperText": "first_OrderOperatorsSupplementary_select_reason_right_parenthesis",
           "domainInfo": "select_reason_right_parenthesis",
           "isRightCol": false,
           "concept": "",
@@ -3624,14 +3624,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What operator has higher precedence?",
+      "questionText": "select_highest_precedence_left_operator_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "operator ${left_operator}",
+          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_left",
           "domainInfo": "select_highest_precedence_operator_left",
           "isRightCol": false,
           "concept": "",
@@ -3640,7 +3640,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "operator ${operator}",
+          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
           "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
@@ -3649,7 +3649,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "same precedence",
+          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_same",
           "domainInfo": "select_highest_precedence_operator_same",
           "isRightCol": false,
           "concept": "",
@@ -3681,14 +3681,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What operator has higher precedence?",
+      "questionText": "select_highest_precedence_left_operator_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "operator ${right_operator}",
+          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_right",
           "domainInfo": "select_highest_precedence_operator_right",
           "isRightCol": false,
           "concept": "",
@@ -3697,7 +3697,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "operator ${operator}",
+          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
           "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
@@ -3706,7 +3706,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "same precedence",
+          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_same",
           "domainInfo": "select_highest_precedence_operator_same",
           "isRightCol": false,
           "concept": "",
@@ -3738,14 +3738,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What influences evaluation order at first?",
+      "questionText": "select_precedence_or_associativity_left_influence_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "precedence",
+          "hyperText": "select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_precedence",
           "domainInfo": "select_precedence_or_associativity_influence_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3754,7 +3754,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "associativity",
+          "hyperText": "select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_associativity",
           "domainInfo": "select_precedence_or_associativity_influence_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3787,7 +3787,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${left_operator} is higher than operator ${operator}, so operator ${left_operator} should be evaluated first and the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "error_select_highest_precedence_operator_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3816,7 +3816,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${left_operator} is higher than operator ${operator}, so operator ${left_operator} should be evaluated first and the operator ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "correct_select_highest_precedence_operator_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3845,7 +3845,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${left_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "error_select_highest_precedence_left_operator_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3874,7 +3874,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${left_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "correct_select_highest_precedence_left_operator_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3903,7 +3903,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${right_operator} is higher than operator ${operator}, so operator ${right_operator} should be evaluated first and the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "error_select_highest_precedence_operator_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3932,7 +3932,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${right_operator} is higher than operator ${operator}, so operator ${right_operator} should be evaluated first and the operator ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "correct_select_highest_precedence_operator_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3961,7 +3961,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence of operator ${operator} is higher than operator ${right_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "error_select_highest_precedence_right_operator_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -3990,7 +3990,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence of operator ${operator} is higher than operator ${right_operator}, so operator ${operator} should be evaluated first and the operator ${operator} at pos ${pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "correct_select_highest_precedence_right_operator_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4019,7 +4019,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence is checked before associativity, so operator ${left_operator} at pos ${left_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4048,7 +4048,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence is checked before associativity, so operator ${left_operator} at pos ${left_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "correct_select_precedence_or_associativity_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4077,7 +4077,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence is checked before associativity, so operator ${right_operator} at pos ${right_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "error_select_precedence_or_associativity_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4104,7 +4104,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, precedence is checked before associativity, so operator ${right_operator} at pos ${right_operator_pos} with higher precedence blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "correct_select_precedence_or_associativity_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4131,14 +4131,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What influences evaluation order at operators with same precedence?",
+      "questionText": "select_associativity_or_arity_influence_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "arity",
+          "hyperText": "select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_arity",
           "domainInfo": "select_associativity_or_arity_influence_arity",
           "isRightCol": false,
           "concept": "",
@@ -4147,7 +4147,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "associativity",
+          "hyperText": "select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_associativity",
           "domainInfo": "select_associativity_or_arity_influence_associativity",
           "isRightCol": false,
           "concept": "",
@@ -4178,7 +4178,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with the same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "error_select_associativity_or_arity_influence_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4205,7 +4205,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "error_select_associativity_or_arity_influence_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4232,7 +4232,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, associativity influence evaluation order, so operator ${left_operator} at pos ${left_operator_pos} with the same precedence and left associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "correct_select_associativity_or_arity_influence_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4259,34 +4259,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
-      "areAnswersRequireContext": false,
-      "options": {
-      },
-      "answerObjects": [
-      ],
-      "statementFacts": [
-      ]
-    },
-    "concepts": [
-      "wrong_select_associativity_or_arity_influence_right",
-      "SystemIntegrationTest",
-      "supplementary"
-    ],
-    "tags": [
-      "C++",
-      "basics",
-      "operators",
-      "order",
-      "evaluation"
-    ]
-  },
-  {
-    "questionType": "SINGLE_CHOICE",
-    "questionData": {
-      "questionType": "SINGLE_CHOICE",
-      "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, associativity influence evaluation order, so operator ${right_operator} at pos ${right_operator_pos} with the same precedence and right associativity blocks evaluation of operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "correct_select_associativity_or_arity_influence_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4313,14 +4286,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What is the associativity of operator ${left_operator}?",
+      "questionText": "select_associativity_type_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "left",
+          "hyperText": "select_associativity_type_left_select_associativity_type_left_left",
           "domainInfo": "select_associativity_type_left_left",
           "isRightCol": false,
           "concept": "",
@@ -4329,7 +4302,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "right",
+          "hyperText": "select_associativity_type_left_select_associativity_type_left_right",
           "domainInfo": "select_associativity_type_left_right",
           "isRightCol": false,
           "concept": "",
@@ -4338,7 +4311,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "nonassoc",
+          "hyperText": "select_associativity_type_left_select_associativity_type_left_nonassoc",
           "domainInfo": "select_associativity_type_left_nonassoc",
           "isRightCol": false,
           "concept": "",
@@ -4368,14 +4341,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "What is the associativity of operator ${right_operator}?",
+      "questionText": "select_associativity_type_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "left",
+          "hyperText": "select_associativity_type_left_select_associativity_type_left_left",
           "domainInfo": "select_associativity_type_right_left",
           "isRightCol": false,
           "concept": "",
@@ -4384,7 +4357,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "right",
+          "hyperText": "select_associativity_type_left_select_associativity_type_left_right",
           "domainInfo": "select_associativity_type_right_right",
           "isRightCol": false,
           "concept": "",
@@ -4393,7 +4366,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "nonassoc",
+          "hyperText": "select_associativity_type_left_select_associativity_type_left_nonassoc",
           "domainInfo": "select_associativity_type_right_nonassoc",
           "isRightCol": false,
           "concept": "",
@@ -4423,7 +4396,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "correct_select_associativity_type_left_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4450,7 +4423,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${left_operator} at pos ${left_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${left_operator} at pos ${left_operator_pos} is evaluated",
+      "questionText": "error_select_associativity_type_left_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4478,7 +4451,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} at pos ${operator_pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "error_select_associativity_type_left_right_assoc_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4505,7 +4478,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${left_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${operator} at pos ${operator_pos} will block the operator ${left_operator} at pos ${left_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "correct_select_associativity_type_left_right_assoc_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4532,7 +4505,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} at pos ${operator_pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "correct_select_associativity_type_right_left_assoc_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4559,7 +4532,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and left associativity, so they are evaluated left to right and ${operator} at pos ${operator_pos} will block the operator ${right_operator} at pos ${right_operator_pos} until the operator ${operator} at pos ${pos} is evaluated",
+      "questionText": "error_select_associativity_type_right_left_assoc_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4586,7 +4559,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Yes, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "correct_select_associativity_type_right_right_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4613,7 +4586,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, operators ${right_operator} and ${operator} have same precedence and right associativity, so they are evaluated right to left and ${right_operator} at pos ${right_operator_pos} will block the operator ${operator} at pos ${pos} until the operator ${right_operator} at pos ${right_operator_pos} is evaluated",
+      "questionText": "error_select_associativity_type_right_left_TEXTerror_select_associativity_type_right_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },
@@ -4641,7 +4614,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "Wrong, precedence is checked before associativity, but in this case the precedence is the same, so it's irrelevant and you should have checked associativity",
+      "questionText": "error_select_precedence_or_associativity_same_precedence_left_TEXT",
       "areAnswersRequireContext": false,
       "options": {
       },

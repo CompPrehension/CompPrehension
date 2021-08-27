@@ -295,7 +295,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
             newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
-            newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
+
+            String text = getMessage(answerObjectEntity.getHyperText(), userLang);
+            if (text.equals("")) {
+                text = answerObjectEntity.getHyperText();
+            }
+
+            newAnswerObjectEntity.setHyperText(text);
             newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
             newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
@@ -310,6 +316,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionType(q.getQuestionType());
         entity.setQuestionName(q.getQuestionName());
 
+        String text = getMessage(q.getQuestionText().getText(), userLang);
+        if (text.equals("")) {
+            text = q.getQuestionText().getText();
+        }
+
         switch (q.getQuestionType()) {
             case ORDER:
                 val baseQuestionText = getMessage("BASE_QUESTION_TEXT", userLang);
@@ -317,15 +328,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
             case MATCHING:
-                entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
+                entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
                 return new Matching(entity);
             case MULTI_CHOICE:
-                entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
+                entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
                 return new MultiChoice(entity);
             case SINGLE_CHOICE:
-                entity.setQuestionText(QuestionTextToHtml(q.getQuestionText().getText()));
+                entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
                 return new SingleChoice(entity);
             default:
