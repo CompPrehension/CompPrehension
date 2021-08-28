@@ -70,6 +70,11 @@ public class Strategy extends AbstractStrategy {
             ies = new ArrayList<>(qe.getInteractions());
         }
 
+        if(ies.size() == 0){
+            LawNode currentNode = tree.get(qe.getQuestionName());
+            return getQuestionRequest(exerciseAttempt, currentNode);
+        }
+
         Collections.sort(ies, new InteractionOrderComparator());
         int iIndex = 0;
         for(InteractionEntity ie : ies){
@@ -439,7 +444,7 @@ public class Strategy extends AbstractStrategy {
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
         // Должно быть задано не менее 3 вопросов и все вопросы должны быть завершены
         if(exerciseAttempt.getQuestions().stream().count() <= 3 ||
-                exerciseAttempt.getQuestions().stream().anyMatch(q -> q.getInteractions().size() == 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() > 0)){
+            exerciseAttempt.getQuestions().stream().anyMatch(q -> q.getId() == exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1).getId() && (q.getInteractions().size() == 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() > 0))){
             return Decision.CONTINUE;
         }
 
