@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 
 @Data
@@ -33,13 +34,13 @@ public class FeedbackDto {
     public static class Message {
         @NotNull private MessageType type;
         @NotNull private String message;
-        @NotNull private String[] violationLaws;
+        @Nullable private FeedbackViolationLawDto violationLaw;
 
-        public static Message Success(@NotNull String message, @NotNull String[] violationLaws) {
-            return new Message(MessageType.SUCCESS, message, violationLaws);
+        public static Message Success(@NotNull String message) {
+            return new Message(MessageType.SUCCESS, message, null);
         }
-        public static Message Error(@NotNull String message, @NotNull String[] violationLaws) {
-            return new Message(MessageType.ERROR, message, violationLaws);
+        public static Message Error(@NotNull String message, @NotNull FeedbackViolationLawDto violationLaw) {
+            return new Message(MessageType.ERROR, message, violationLaw);
         }
     }
 }

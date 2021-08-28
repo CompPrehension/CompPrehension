@@ -12,6 +12,7 @@ import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Strategy;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
@@ -21,6 +22,7 @@ import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.FeedbackRepository;
 import org.vstu.compprehension.models.repository.ViolationRepository;
+import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
@@ -77,12 +79,18 @@ public class FrontendService {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
         }
 
+        val domain = DomainAdapter.getDomain(attempt.getExercise().getDomain().getClassPath());
+        assert domain != null;
+
         val responses = questionService.responseQuestion(question, answers);
         val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
-        val violations = judgeResult.violations.stream().map(ViolationEntity::getLawName).toArray(String[]::new);
+        val violation = judgeResult.violations.stream()
+                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
+                .findFirst()
+                .orElse(null);
         val messages = judgeResult.isAnswerCorrect
-                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!", violations) }
-                : new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", violations) };
+                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!") }
+                : new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", violation) };
         return FeedbackDto.builder()
                 .messages(messages)
                 .build();
@@ -119,14 +127,16 @@ public class FrontendService {
         exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
 
         // calculate error message
-        val violationIds = judgeResult.violations.stream().map(ViolationEntity::getLawName)
+        val domain = DomainAdapter.getDomain(attempt.getExercise().getDomain().getClassPath()); assert domain != null;
+        val violations = judgeResult.violations.stream()
+                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .filter(Objects::nonNull);
         val explanations = questionService.explainViolations(question, judgeResult.violations).stream().map(HyperText::getText);
-        val errors = Streams.zip(violationIds, explanations, Pair::of)
+        val errors = Streams.zip(violations, explanations, Pair::of)
                 .collect(Collectors.toList());
-        val messages = errors.size() > 0 && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), new String[] { pair.getKey() })).toArray(FeedbackDto.Message[]::new)
-                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("All done!", new String[0]) }
-                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...", new String[0]) }
+        val messages = errors.size() > 0 && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
+                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("All done!") }
+                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...") }
                 : null;
 
         // remove incorrect answers from feedback
@@ -198,7 +208,7 @@ public class FrontendService {
         exerciseAttemptService.ensureAttemptStatus(exerciseAttempt, strategyAttemptDecision);
 
         // build feedback message
-        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation(), new String[0]) };
+        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation()) };
 
         return Mapper.toFeedbackDto(question,
                 ie,

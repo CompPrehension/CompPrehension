@@ -1,26 +1,37 @@
 import * as io from 'io-ts'
 import { MergeIntersections } from './utils';
 
+export type FeedbackViolationLaw = {
+    name: string,
+    canCreateSupplementaryQuestion: boolean,
+}
+const TFeedbackViolationLaw: io.Type<FeedbackViolationLaw> = io.type({
+    name: io.string,
+    canCreateSupplementaryQuestion: io.boolean,
+})
+
 export type FeedbackSuccessMessage = {
     type: 'SUCCESS',
     message: string,
-    violationLaws: string[],
 }
 export type FeedbackErrorMessage = {
     type: 'ERROR',
     message: string,
-    violationLaws: string[],
+    violationLaw: FeedbackViolationLaw,
 }
 
 export type FeedbackMessage = FeedbackSuccessMessage | FeedbackErrorMessage
-const TFeedbackMessage: io.Type<FeedbackMessage> = io.type({
-    type: io.keyof({
-        'SUCCESS': null,
-        'ERROR': null,
+const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
+    io.type({
+        type: io.literal('SUCCESS'),
+        message: io.string,
     }),
-    message: io.string,
-    violationLaws: io.array(io.string),
-});
+    io.type({
+        type: io.literal('ERROR'),
+        message: io.string,
+        violationLaw: TFeedbackViolationLaw,
+    }),
+])
 
 export type Feedback = {
     grade?: number | null,   

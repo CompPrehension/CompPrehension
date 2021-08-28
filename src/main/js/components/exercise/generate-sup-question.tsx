@@ -10,25 +10,27 @@ import { Modal } from '../common/modal';
 import { Optional } from '../common/optional';
 import { Question } from './question';
 import { useTranslation } from "react-i18next";
+import { FeedbackViolationLaw } from '../../types/feedback';
 
-export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws: string[] }) => {
+export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: FeedbackViolationLaw }) => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const [questionStore] = useState(() => container.resolve(QuestionStore));
     const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isButtonsVisible, setIsButtonsVisible] = useState(true);
     const [isAllVisible, setAllVisible] = useState(true);
-    if (!exerciseStore.sessionInfo?.exercise.options.supplementaryQuestionsEnabled) {
+    if (!exerciseStore.sessionInfo?.exercise.options.supplementaryQuestionsEnabled || 
+        violationLaw.canCreateSupplementaryQuestion === false) {
         return null;
     }
 
     const onDetailsClicked = async () => { 
         setIsButtonsVisible(false);  
         setIsModalVisible(true);
-        if (!exerciseStore.currentAttempt?.attemptId || !violationLaws.length || !exerciseStore.currentQuestion.question) {
+        if (!exerciseStore.currentAttempt?.attemptId || !exerciseStore.currentQuestion.question) {
             return;
         }
-        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, violationLaws);
+        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, [violationLaw].map(v => v.name));
         if (!questionStore.question) {
             console.log(`no need to generate sup question`);
             setAllVisible(false);
@@ -44,8 +46,8 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
         //questionStore.isFeedbackVisible = false;
         //await delayPromise(1000);
 
-        const newViolationLaws = questionStore.feedback?.messages && questionStore.feedback.messages?.[0].violationLaws || [];
-        if (!newViolationLaws.length) {
+        const newViolationLaw = questionStore.feedback?.messages && questionStore.feedback.messages[0].type === 'ERROR' && questionStore.feedback.messages[0].violationLaw || null;
+        if (!newViolationLaw) {
             console.log(`empty violation laws`);
             setAllVisible(false);
             return;            
@@ -54,7 +56,7 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
             console.log(`problems with attempt`);
             return;
         }
-        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, newViolationLaws);
+        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, [newViolationLaw].map(v => v.name));
         if (!questionStore.question) {
             console.log(`no need to generate sup question`);
             // remove redurant feedback
@@ -65,9 +67,6 @@ export const GenerateSupQuestion = observer(({ violationLaws } : { violationLaws
         }        
     }
 
-    if (!violationLaws.length) {
-        return null;
-    }
     return (
         <Optional isVisible={isAllVisible}>
             <Optional isVisible={isButtonsVisible}>

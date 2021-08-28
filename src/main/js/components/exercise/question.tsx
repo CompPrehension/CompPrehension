@@ -4,7 +4,7 @@ import { QuestionStore } from "../../stores/question-store";
 import { Loader } from "../common/loader";
 import { Optional } from "../common/optional";
 import { QuestionComponent } from "../common/question/question";
-import { Feedback as FeedbackType, FeedbackMessage } from '../../types/feedback';
+import { Feedback as FeedbackType, FeedbackMessage, FeedbackSuccessMessage } from '../../types/feedback';
 import { Alert, Badge } from "react-bootstrap";
 import { notNulAndUndefinded } from "../../utils/helpers";
 import { GenerateSupQuestion } from "./generate-sup-question";
@@ -54,14 +54,19 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
     }
 
     const feedbackMessages = notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft === 0
-        ? [{ type: 'SUCCESS', message: t('issolved_feeback'), violationLaws: [] }] as FeedbackMessage[]
+        ? [{ type: 'SUCCESS', message: t('issolved_feeback') }] as FeedbackSuccessMessage[]
         : feedback.messages;
 
     return (
         <div className="comp-ph-feedback-wrapper mt-2">
             <Optional isVisible={isFeedbackVisible}>
                 <div>
-                    {feedbackMessages?.map(m => <FeedbackAlert message={m} showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions} />)}                
+                    {feedbackMessages?.map(m => 
+                        <FeedbackAlert 
+                            message={m} 
+                            showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
+                                m.type === 'ERROR' && m.violationLaw.canCreateSupplementaryQuestion} 
+                        />)}                
                 </div>
                 <Optional isVisible={showExtendedFeedback}>
                     <div>
@@ -80,10 +85,11 @@ const FeedbackAlert = observer(({ message, showGenerateSupQuestion }: { message:
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(
         <Alert variant={variant}>
-            {message.message}
-            <Optional isVisible={showGenerateSupQuestion}>
-                <GenerateSupQuestion violationLaws={message.type === 'ERROR' && message.violationLaws || []}/>             
-            </Optional>
+            {message.message}            
+            {
+                showGenerateSupQuestion && message.type === 'ERROR' && message.violationLaw &&
+                <GenerateSupQuestion violationLaw={message.violationLaw}/> || null
+            }
         </Alert>
     )
 })
