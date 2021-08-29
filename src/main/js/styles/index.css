@@ -3,6 +3,7 @@
 body {
   font-size: 16px;
   font-family: 'M PLUS 1p', sans-serif;
+  overflow-y: scroll;
 }
 
 body ul {

@@ -19,7 +19,7 @@ export const Question = observer((props: QuestionOptions) => {
     const { store, showExtendedFeedback, onChanged:ParentOnChanged } = props;
     const questionData = store.question;
     if (store.isQuestionLoading) {
-        return <Loader />;
+        return <div className="mt-2"><Loader /></div>;
     }
     if (!questionData) {
         return null;
@@ -46,7 +46,7 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
     const {t} = useTranslation();
 
     if (isFeedbackLoading) {
-        return <Loader />;
+        return <div className="mt-2"><Loader /></div>;
     }
 
     if (!feedback || isQuestionLoading || !question) {

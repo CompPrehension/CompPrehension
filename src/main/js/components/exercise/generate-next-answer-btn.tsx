@@ -14,8 +14,8 @@ export const GenerateNextAnswerBtn = observer(() => {
         return null;
     }    
     const { sessionInfo, currentAttempt, currentQuestion } = exerciseStore;
-    const { question, isFeedbackLoading, feedback } = currentQuestion;
-    if (!question || !sessionInfo || !currentAttempt || isFeedbackLoading || feedback?.stepsLeft === 0) {
+    const { question, isFeedbackLoading, feedback, isQuestionLoading } = currentQuestion;
+    if (!question || !sessionInfo || !currentAttempt || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
         return null;
     }
 
