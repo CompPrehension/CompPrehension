@@ -59,7 +59,7 @@ async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: 
         .catch(async () => [left<RequestError, T>({ message: "Connection error"}), O.none as O.Option<io.Errors>] as const);
 
     if (O.isSome(validationErrors)) {    
-        const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(left(validationErrors.value)).join(', ')}` };
+        const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(validationErrors.value).join(', ')}` };
         return (console.error(error), left(error));      
     }
 
@@ -67,12 +67,7 @@ async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: 
     return data;
 }
 
-const getPaths = <A>(v: io.Validation<A>): Array<string> => {
-    return pipe(
-        v,
-        E.fold(
-            (errors) => errors.map((error) => error.context.map(({ key }) => key).join('.')),
-            () => ['no errors']
-        )
-    )
+const getPaths = (errors: io.Errors): Array<string> => {
+    return errors.map((error) => 
+        error.context.map(({ key }) => key).join('.'));
 }
