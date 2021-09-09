@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -10,6 +11,7 @@ import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
 
+@Log4j2
 public abstract class Domain {
     protected List<PositiveLaw> positiveLaws;
     protected List<NegativeLaw> negativeLaws;
@@ -353,16 +355,13 @@ public abstract class Domain {
         if (questions.isEmpty()) {
             return null;
         } else {
-            /// <debug>
             for (Question question : questions) {
-                System.out.println("Отобранный вопрос (из " + questions.size() + "): " + question.getQuestionName());
+                log.info("Отобранный вопрос (из " + questions.size() + "): " + question.getQuestionName());
             }
-            /// </debug>
 
             Question question = questions.get(new Random().nextInt(questions.size()));
-            /// <debug>
-            System.out.println("В итоге, взят вопрос: " + question.getQuestionName());
-            /// </debug>
+            log.info("В итоге, взят вопрос: " + question.getQuestionName());
+
             return question;
         }
     }

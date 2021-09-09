@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
@@ -20,7 +21,7 @@ import java.util.*;
 
 import static java.lang.Math.abs;
 
-@Component
+@Component @Log4j2
 public class Strategy extends AbstractStrategy {
 
     @Autowired
@@ -346,34 +347,34 @@ public class Strategy extends AbstractStrategy {
 
         String T = "\t";
 
-        System.out.println("Желаемый вопрос:");
-        System.out.println(T + nextNode.nodeName);
-        System.out.println("Желаемые законы:");
+        log.info("Желаемый вопрос:");
+        log.info(T + nextNode.nodeName);
+        log.info("Желаемые законы:");
         ArrayList<String> printOutList = new ArrayList<>(nextNode.currentLows);
         printOutList.sort(null);
         for(String str : printOutList){
-            System.out.println(T + str);
+            log.info(T + str);
         }
 
-        System.out.println("Законы из домена в запросе:");
+        log.info("Законы из домена в запросе:");
         ArrayList<Law> printOutLaws = new ArrayList<>(qr.getTargetLaws());
         printOutLaws.sort(Comparator.comparing(l -> l.name));
         for(Law str : printOutLaws){
-            System.out.println(T + str.name);
+            log.info(T + str.name);
         }
 
-        System.out.println("Концепты из домена в запросе:");
+        log.info("Концепты из домена в запросе:");
         ArrayList<Concept> printOutConcepts = new ArrayList<>(qr.getTargetConcepts());
         printOutConcepts.sort(Comparator.comparing(Concept::getName));
         for(Concept str : printOutConcepts){
-            System.out.println(T + str.getName());
+            log.info(T + str.getName());
         }
 
-        System.out.println("Запрещённые концепты из домена в запросе:");
+        log.info("Запрещённые концепты из домена в запросе:");
         printOutConcepts = new ArrayList<>(qr.getDeniedConcepts());
         printOutConcepts.sort(Comparator.comparing(Concept::getName));
         for(Concept str : printOutConcepts){
-            System.out.println(T + str.getName());
+            log.info(T + str.getName());
         }
 
         return qr;
@@ -557,9 +558,9 @@ public class Strategy extends AbstractStrategy {
 
         }
 
-        System.out.println("Упущенные законы:");
+        log.info("Упущенные законы:");
         for(String s:wrongLaws){
-            System.out.println(s);
+            log.info(s);
         }
 
         return nextNodes;
