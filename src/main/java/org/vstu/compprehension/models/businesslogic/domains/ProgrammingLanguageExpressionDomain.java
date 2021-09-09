@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -139,7 +140,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         supplementaryConfig = new HashMap<>();
 
         SupplementaryConfig[] configs = new Gson().fromJson(
-                new InputStreamReader(inputStream),
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 SupplementaryConfig[].class);
 
         for (SupplementaryConfig config : configs) {
@@ -163,7 +164,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Law[] lawForms = gson.fromJson(
-                new InputStreamReader(inputStream),
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Law[].class);
 
         for (Law lawForm : lawForms) {
@@ -214,7 +215,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream),
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Question[].class);
 
         Collections.addAll(res, questions);
@@ -251,7 +252,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     protected HashMap<String, HashMap<Language, String>> readMessages(InputStream inputStream) {
         MESSAGES = new HashMap<>();
         Message[] rawMessages = new Gson().fromJson(
-                new InputStreamReader(inputStream),
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Message[].class);
         for (Message m : rawMessages) {
             MESSAGES.putIfAbsent(m.name, new HashMap<>());

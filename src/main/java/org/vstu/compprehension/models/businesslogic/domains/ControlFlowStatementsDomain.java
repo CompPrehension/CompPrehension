@@ -88,7 +88,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Law[] lawForms = gson.fromJson(
-                new InputStreamReader(inputStream),
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Law[].class);
 
         for (Law lawForm : lawForms) {
@@ -1419,7 +1419,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream),
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Question[].class);
 
         Collections.addAll(res, questions);
