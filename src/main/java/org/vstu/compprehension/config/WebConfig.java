@@ -2,9 +2,12 @@ package org.vstu.compprehension.config;
 
 import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 import org.apache.tomcat.util.http.SameSiteCookies;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -18,6 +21,18 @@ public class WebConfig implements WebMvcConfigurer {
             context.setCookieProcessor(cookieProcessor);
         };
     }
+
+
+    @Bean
+    public ServletRegistrationBean dispatcherRegistration() {
+        return new ServletRegistrationBean(dispatcherServlet());
+    }
+
+    @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
+    public DispatcherServlet dispatcherServlet() {
+        return new LoggableDispatcherServlet();
+    }
+
     /*
     @Bean
     public ResourceBundleMessageSource messageSource() {
