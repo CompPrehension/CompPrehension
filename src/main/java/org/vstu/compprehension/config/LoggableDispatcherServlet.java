@@ -14,8 +14,8 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,7 +43,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
             super.doDispatch(request, response);
         } catch (Exception e) {
             if (isLogNeeded)
-                log.error(e.toString());
+                log.error("error: ", e);
         } finally {
             if (isLogNeeded)
                 logAfterRequest(request, response, handler);
@@ -52,6 +52,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
     }
 
     private void logBeforeRequest(HttpServletRequest requestToCache, HandlerExecutionChain handler) {
+        // init some request context variables
         ThreadContext.put("correlationId", UUID.randomUUID().toString());
         ThreadContext.put("sessionId", requestToCache.getSession().getId());
 
@@ -59,17 +60,50 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
                 .stream()
                 .collect(Collectors.toMap(parameterName -> parameterName, requestToCache::getParameterValues));
 
-        log.info("Start processing request: path: '{}', params: {}",
-                requestToCache.getRequestURI(),
-                parameters);
+        log.info("Start processing request: path: '{}', method: '{}', params: {}", requestToCache.getRequestURI(), requestToCache.getMethod(), parameters);
+        log.debug("Request body: {}", getRequestBody(requestToCache));
     }
 
     private void logAfterRequest(HttpServletRequest requestToCache,  HttpServletResponse responseToCache, HandlerExecutionChain handler) {
-        log.info("Finish processing request: path: '{}'",
-                requestToCache.getRequestURI()/*,
-                getResponsePayload(responseToCache)*/);
+        log.info("Finish processing request: path: '{}'", requestToCache.getRequestURI());
+        log.debug("Response body: {}", getResponsePayload(responseToCache));
 
+        // clear all request context variables
         ThreadContext.clearMap();
+    }
+
+    public static String getRequestBody(HttpServletRequest request) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        BufferedReader bufferedReader = null;
+
+        try {
+            InputStream inputStream = request.getInputStream();
+            if (inputStream == null) {
+                return "";
+            }
+
+            bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            char[] charBuffer = new char[128];
+            int bytesRead = -1;
+            while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+                stringBuilder.append(charBuffer, 0, bytesRead);
+            }
+        } catch (IOException ex) {
+            log.error("exception on translation request body", ex);
+            return "exception on translation request body";
+        } finally {
+            if (bufferedReader != null) {
+                try {
+                    bufferedReader.close();
+                } catch (IOException ex) {
+                    log.error("exception on translation request body", ex);
+                    return "exception on translation request body";
+                }
+            }
+        }
+
+        return stringBuilder.toString();
     }
 
     /*
