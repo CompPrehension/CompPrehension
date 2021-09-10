@@ -44,6 +44,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         } catch (Exception e) {
             if (isLogNeeded)
                 log.error("error: ", e);
+            throw e;
         } finally {
             if (isLogNeeded)
                 logAfterRequest(request, response, handler);
