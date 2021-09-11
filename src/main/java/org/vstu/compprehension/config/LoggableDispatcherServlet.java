@@ -62,7 +62,6 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
                 .collect(Collectors.toMap(parameterName -> parameterName, requestToCache::getParameterValues));
 
         log.info("Start processing request: path: '{}', method: '{}', params: {}", requestToCache.getRequestURI(), requestToCache.getMethod(), parameters);
-        log.debug("Request body: {}", getRequestBody(requestToCache));
         //log.debug("Request body: {}", getRequestBody(requestToCache));
     }
 
