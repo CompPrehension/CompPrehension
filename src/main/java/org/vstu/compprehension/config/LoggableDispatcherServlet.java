@@ -63,6 +63,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 
         log.info("Start processing request: path: '{}', method: '{}', params: {}", requestToCache.getRequestURI(), requestToCache.getMethod(), parameters);
         log.debug("Request body: {}", getRequestBody(requestToCache));
+        //log.debug("Request body: {}", getRequestBody(requestToCache));
     }
 
     private void logAfterRequest(HttpServletRequest requestToCache,  HttpServletResponse responseToCache, HandlerExecutionChain handler) {
