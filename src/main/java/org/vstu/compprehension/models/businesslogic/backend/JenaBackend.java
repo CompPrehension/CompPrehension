@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 
 import org.apache.jena.vocabulary.*;
+import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
@@ -22,12 +23,11 @@ import java.io.FileOutputStream;
 import java.util.*;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Primary
-@Component
+@Component @RequestScope
 public class JenaBackend extends Backend {
 
     static String BACKEND_TYPE = "Jena";

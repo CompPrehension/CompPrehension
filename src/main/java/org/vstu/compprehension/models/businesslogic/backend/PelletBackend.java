@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@Component
+@Component @RequestScope
 public class PelletBackend extends SWRLBackend {
     PelletReasoner Reasoner;
 
