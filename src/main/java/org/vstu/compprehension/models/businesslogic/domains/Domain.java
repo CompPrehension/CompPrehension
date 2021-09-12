@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.*;
@@ -12,6 +13,7 @@ import org.vstu.compprehension.utils.HyperText;
 import java.util.*;
 
 @Log4j2
+@RequestScope
 public abstract class Domain {
     protected List<PositiveLaw> positiveLaws;
     protected List<NegativeLaw> negativeLaws;

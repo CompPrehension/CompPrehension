@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.Service.BackendService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.questionconcept.QuestionConceptChoice;
@@ -15,6 +16,7 @@ import org.vstu.compprehension.models.businesslogic.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequestScope
 public class TestDomain extends Domain {
     
     private final int DEFAULT_ANSWERS_COUNT = 4;
