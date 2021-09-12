@@ -348,7 +348,7 @@ public class Strategy extends AbstractStrategy {
         String T = "\t";
 
         log.info("Желаемый вопрос:");
-        log.info(T + nextNode.nodeName);
+        log.info(T + (nextNode != null ? nextNode.nodeName : ""));
         log.info("Желаемые законы:");
         ArrayList<String> printOutList = new ArrayList<>(nextNode.currentLows);
         printOutList.sort(null);
