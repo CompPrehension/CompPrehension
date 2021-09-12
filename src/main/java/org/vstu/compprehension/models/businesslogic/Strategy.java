@@ -350,7 +350,9 @@ public class Strategy extends AbstractStrategy {
         log.info("Желаемый вопрос:");
         log.info(T + (nextNode != null ? nextNode.nodeName : ""));
         log.info("Желаемые законы:");
-        ArrayList<String> printOutList = new ArrayList<>(nextNode.currentLows);
+        ArrayList<String> printOutList = new ArrayList<>();
+        if (nextNode != null)
+            printOutList.addAll(nextNode.currentLows);
         printOutList.sort(null);
         for(String str : printOutList){
             log.info(T + str);
