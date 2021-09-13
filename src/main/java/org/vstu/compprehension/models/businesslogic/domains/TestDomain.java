@@ -13,10 +13,11 @@ import org.vstu.compprehension.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.models.businesslogic.*;
 
+import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 
-@RequestScope
+@Singleton
 public class TestDomain extends Domain {
     
     private final int DEFAULT_ANSWERS_COUNT = 4;

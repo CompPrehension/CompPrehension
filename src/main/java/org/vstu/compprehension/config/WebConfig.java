@@ -7,10 +7,14 @@ import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.vstu.compprehension.utils.threads.ContextAwarePoolExecutor;
 
-@Configuration
+import java.util.concurrent.Executor;
+
+@Configuration @EnableAsync
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean
@@ -21,7 +25,6 @@ public class WebConfig implements WebMvcConfigurer {
             context.setCookieProcessor(cookieProcessor);
         };
     }
-
 
     @Bean
     public ServletRegistrationBean dispatcherRegistration() {

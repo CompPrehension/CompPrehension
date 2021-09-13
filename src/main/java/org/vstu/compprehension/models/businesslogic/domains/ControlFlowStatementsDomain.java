@@ -26,6 +26,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.LocalizationMap;
 
+import javax.inject.Singleton;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -38,7 +39,7 @@ import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabul
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
 
 @Component @Log4j2
-@RequestScope
+@Singleton
 public class ControlFlowStatementsDomain extends Domain {
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderActsSupplementary";
