@@ -6,9 +6,11 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.utils.HyperText;
@@ -19,6 +21,7 @@ import org.vstu.compprehension.models.businesslogic.*;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Singleton;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +34,7 @@ import static java.lang.Math.max;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Component
-@RequestScope
+@Singleton
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
@@ -137,7 +140,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         List<SupplementaryAnswerConfig> answers;
     }
 
-    public HashMap<String, HashMap<String, List<SupplementaryAnswerTransition>>> supplementaryConfig;
+    private HashMap<String, HashMap<String, List<SupplementaryAnswerTransition>>> supplementaryConfig;
+    public  HashMap<String, HashMap<String, List<SupplementaryAnswerTransition>>> getSupplementaryConfig() {
+        return supplementaryConfig;
+    }
     private void readSupplementaryConfig(InputStream inputStream) {
         supplementaryConfig = new HashMap<>();
 

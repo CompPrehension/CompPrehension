@@ -1,8 +1,10 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.jena.vocabulary.*;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
@@ -18,6 +20,7 @@ import org.apache.jena.util.PrintUtil;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Singleton;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.*;
@@ -28,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Primary
 @Component @RequestScope
+@Log4j2
 public class JenaBackend extends Backend {
 
     static String BACKEND_TYPE = "Jena";
@@ -155,8 +159,7 @@ public class JenaBackend extends Backend {
                 try {
                     domainRules.add(Rule.parseRule(lawFormulation.getFormulation()));
                 } catch (Rule.ParserException e) {
-                    System.out.println("Following error in rule: " + lawFormulation.getFormulation());
-                    e.printStackTrace();
+                    log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
                 }
             } else if ("can_covert" != null) {
 
@@ -261,7 +264,7 @@ public class JenaBackend extends Backend {
 
         long estimatedTime = System.nanoTime() - startTime;
         // print time report. TODO: remove the print
-        System.out.println("Time Jena spent on reasoning: " + String.valueOf((float) (estimatedTime / 1000) / 1000 / 1000) + " seconds.");
+        log.info("Time Jena spent on reasoning: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
 
         // use the inferred results (inf) ...
         model.add( inf );
@@ -297,7 +300,7 @@ public class JenaBackend extends Backend {
     /** Returns local name or prefixed special name */
     private String uriToTerm(String uri) {
         if (uri == null) {
-            System.out.println("uriToTerm(): Encountered NULL uri! Defaulting to '[]'");
+            log.debug("uriToTerm(): Encountered NULL uri! Defaulting to '[]'");
             return "[]";
         }
 
@@ -397,13 +400,13 @@ public class JenaBackend extends Backend {
             String uri = termToUri(verb);
             OntResource resource = model.getOntResource(uri);
             if (resource == null) {
-                System.out.println("JenaBack.getFacts() WARNING: Cannot find resource for verb: " + verb);
+                log.warn("JenaBack.getFacts() WARNING: Cannot find resource for verb: " + verb);
                 continue;
             }
             try {
                 p = resource.asProperty();
             } catch (ConversionException exception) {
-                System.out.println("JenaBack.getFacts() WARNING: Cannot find property for verb: " + verb);
+                log.warn("JenaBack.getFacts() WARNING: Cannot find property for verb: " + verb);
                 continue;
             }
 
@@ -423,10 +426,9 @@ public class JenaBackend extends Backend {
             try {
                 out = new FileOutputStream(out_rdf_path);
                 RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                System.out.println("Debug written: " + out_rdf_path + ". N of of triples: " + model.size());
+                log.debug("Debug written: " + out_rdf_path + ". N of of triples: " + model.size());
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                System.out.println("Cannot write to file: " + out_rdf_path);
+                log.error("Cannot write to file: " + out_rdf_path, e);
             }
         }
     }

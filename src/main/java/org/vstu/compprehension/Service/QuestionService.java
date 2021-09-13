@@ -45,6 +45,9 @@ public class QuestionService {
     private Backend backend;
 
     @Autowired
+    private BackendService backendService;
+
+    @Autowired
     private DomainService domainService;
 
     @Autowired
@@ -78,7 +81,8 @@ public class QuestionService {
 
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
-        List<BackendFactEntity> solution = backend.solve(
+        List<BackendFactEntity> solution = backendService.solve(
+                backend,
                 new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
@@ -117,7 +121,8 @@ public class QuestionService {
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         List<BackendFactEntity> responseFacts = question.responseToFacts(responses);
-        List<BackendFactEntity> violations = backend.judge(
+        List<BackendFactEntity> violations = backendService.judge(
+                backend,
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 question.getSolutionFacts(),
