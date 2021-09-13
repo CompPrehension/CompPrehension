@@ -35,7 +35,7 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void TestSupplementaryConfig() {
-        for (val entry : domain.supplementaryConfig.entrySet()) {
+        for (val entry : domain.getSupplementaryConfig().entrySet()) {
             String supName = entry.getKey();
             HashSet<String> supNameSet = new HashSet<>();
             supNameSet.add(supName);
@@ -47,7 +47,7 @@ public class ProgrammingLanguageExpressionDomainTest {
             }
             for (val answer : entry.getValue().entrySet()) {
                 for (val transition : answer.getValue()) {
-                    assertTrue(domain.supplementaryConfig.containsKey(transition.question), transition.question);
+                    assertTrue(domain.getSupplementaryConfig().containsKey(transition.question), transition.question);
                 }
             }
         }
