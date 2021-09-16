@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT" charset="UTF-8">
-            <PatternLayout pattern="%d [%X{correlationId}] [%X{sessionId}] %tid %-5level - %msg%n"/>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d [%X{correlationId}] [%X{sessionId}] %-5level - %msg%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="INFO">
-            <AppenderRef ref="Console"/>
-        </Root>
+        <AsyncRoot level="DEBUG">
+            <AppenderRef ref="Console" level="INFO"/>
+            <!-- Db appender will be initialized in org.vstu.compprehension.config.logs.LogConfig at runtime -->
+        </AsyncRoot>
     </Loggers>
 </Configuration>
