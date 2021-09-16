@@ -1,4 +1,4 @@
-package org.vstu.compprehension.config;
+package org.vstu.compprehension.config.logs;
 
 
 import lombok.extern.log4j.Log4j2;

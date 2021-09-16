@@ -10,9 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.vstu.compprehension.utils.threads.ContextAwarePoolExecutor;
-
-import java.util.concurrent.Executor;
+import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
 
 @Configuration @EnableAsync
 public class WebConfig implements WebMvcConfigurer {

@@ -1,6 +1,7 @@
 package org.vstu.compprehension.Service;
 
 import com.google.common.collect.Iterables;
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ext.com.google.common.collect.Streams;
@@ -34,6 +35,7 @@ import static org.vstu.compprehension.models.entities.EnumData.InteractionType.R
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
 
 @Service
+@Log4j2
 public class FrontendService {
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
@@ -258,16 +260,21 @@ public class FrontendService {
     public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         val existingAttempt = exerciseAttemptRepository
                 .findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
-        return existingAttempt
+        val result = existingAttempt
                 .map(Mapper::toDto)
                 .orElse(null);
+        log.info("Is attempt exists: {}", result != null);
+
+        return result;
     }
 
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         // complete all incompleted attempts
         val incompletedAttempts = exerciseAttemptRepository.findAllByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
+        log.info("Found {} existing attempt to complete", incompletedAttempts.size());
         for(val att : incompletedAttempts) {
             att.setAttemptStatus(AttemptStatus.COMPLETED_BY_SYSTEM);
+            log.info("Attempt {} completed successfully", att.getId());
         }
         exerciseAttemptRepository.saveAll(incompletedAttempts);
 
