@@ -3,14 +3,12 @@ package org.vstu.compprehension.config.logs;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
+import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,12 +23,16 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 
     @Override
     protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        if (!(request instanceof ContentCachingRequestWrapper)) {
-            request = new ContentCachingRequestWrapper(request);
+        if (!(request instanceof CachedHttpServletRequest)) {
+            request = new CachedHttpServletRequest(request);
         }
         if (!(response instanceof ContentCachingResponseWrapper)) {
             response = new ContentCachingResponseWrapper(response);
         }
+        doDispatchInternal((CachedHttpServletRequest)request, (ContentCachingResponseWrapper)response);
+    }
+
+    private void doDispatchInternal(CachedHttpServletRequest request, ContentCachingResponseWrapper response) throws Exception {
         HandlerExecutionChain handler = getHandler(request);
 
         // bypass files
@@ -52,7 +54,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         }
     }
 
-    private void logBeforeRequest(HttpServletRequest requestToCache, HandlerExecutionChain handler) {
+    private void logBeforeRequest(CachedHttpServletRequest requestToCache, HandlerExecutionChain handler) throws Exception {
         // init some request context variables
         ThreadContext.put("correlationId", UUID.randomUUID().toString());
         ThreadContext.put("sessionId", requestToCache.getSession().getId());
@@ -61,13 +63,12 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
                 .stream()
                 .collect(Collectors.toMap(parameterName -> parameterName, requestToCache::getParameterValues));
 
-        log.info("Start processing request: path: '{}', method: '{}', params: {}", requestToCache.getRequestURI(), requestToCache.getMethod(), parameters);
-        //log.debug("Request body: {}", getRequestBody(requestToCache));
+        log.info("Start processing request: path: '{}', method: '{}', params: {}, body: {}", requestToCache.getRequestURI(), requestToCache.getMethod(), parameters, getRequestBody(requestToCache));
     }
 
     private void logAfterRequest(HttpServletRequest requestToCache,  HttpServletResponse responseToCache, HandlerExecutionChain handler) {
         log.info("Finish processing request: path: '{}'", requestToCache.getRequestURI());
-        log.debug("Response body: {}", getResponsePayload(responseToCache));
+        //log.info("Response body: {}", getResponsePayload(responseToCache));
 
         // clear all request context variables
         ThreadContext.clearMap();
@@ -107,17 +108,6 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         return stringBuilder.toString();
     }
 
-    /*
-    private void log(HttpServletRequest requestToCache, HttpServletResponse responseToCache, HandlerExecutionChain handler) {
-        LogMessage log = new LogMessage();
-        log.setHttpStatus(responseToCache.getStatus());
-        log.setHttpMethod(requestToCache.getMethod());
-        log.setPath(requestToCache.getRequestURI());
-        log.setClientIp(requestToCache.getRemoteAddr());
-        log.setJavaMethod(handler.toString());
-        log.setResponse(getResponsePayload(responseToCache));
-        logger.info(log);
-    }*/
 
     private String getResponsePayload(HttpServletResponse response) {
         ContentCachingResponseWrapper wrapper = WebUtils.getNativeResponse(response, ContentCachingResponseWrapper.class);

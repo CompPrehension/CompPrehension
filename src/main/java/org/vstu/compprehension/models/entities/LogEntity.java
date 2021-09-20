@@ -23,7 +23,7 @@ public class LogEntity {
     @Column(nullable = true)
     private Long userId;
 
-    @Column(nullable = true, columnDefinition="DATETIME")
+    @Column(nullable = true, columnDefinition="DATETIME(6)")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
 

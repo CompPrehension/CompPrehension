@@ -6,9 +6,10 @@
         </Console>
     </Appenders>
     <Loggers>
-        <AsyncRoot level="DEBUG">
+        <!-- NOTE! Use AsyncRoot tag instead of Root tag in production -->
+        <Root level="DEBUG">
             <AppenderRef ref="Console" level="INFO"/>
             <!-- Db appender will be initialized in org.vstu.compprehension.config.logs.LogConfig at runtime -->
-        </AsyncRoot>
+        </Root>
     </Loggers>
 </Configuration>
