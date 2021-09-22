@@ -39,7 +39,10 @@ public class FeedbackDto {
         public static Message Success(@NotNull String message) {
             return new Message(MessageType.SUCCESS, message, null);
         }
-        public static Message Error(@NotNull String message, @NotNull FeedbackViolationLawDto violationLaw) {
+        public static Message Success(@NotNull String message, @Nullable FeedbackViolationLawDto violationLaw) {
+            return new Message(MessageType.SUCCESS, message, violationLaw);
+        }
+        public static Message Error(@NotNull String message, @Nullable FeedbackViolationLawDto violationLaw) {
             return new Message(MessageType.ERROR, message, violationLaw);
         }
     }

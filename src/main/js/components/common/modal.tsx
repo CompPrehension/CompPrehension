@@ -44,9 +44,9 @@ export const Modal = (props: ModalProps) => {
                 </RBModal.Body>
                 {(secondaryBtnTitle || primaryBtnTitle)
                     ? <RBModal.Footer>
-                        {secondaryBtnTitle ? <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button> : null}
-                        {primaryBtnTitle ? <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button> : null}
-                    </RBModal.Footer>
+                        {secondaryBtnTitle && <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button>}
+                        {primaryBtnTitle && <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button>}
+                      </RBModal.Footer>
                     : null}            
             </ModalWrapper>
         </Optional>        

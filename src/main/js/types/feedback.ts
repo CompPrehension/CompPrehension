@@ -13,6 +13,7 @@ const TFeedbackViolationLaw: io.Type<FeedbackViolationLaw> = io.type({
 export type FeedbackSuccessMessage = {
     type: 'SUCCESS',
     message: string,
+    violationLaw: FeedbackViolationLaw,
 }
 export type FeedbackErrorMessage = {
     type: 'ERROR',
@@ -25,6 +26,7 @@ const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
     io.type({
         type: io.literal('SUCCESS'),
         message: io.string,
+        violationLaw: TFeedbackViolationLaw,
     }),
     io.type({
         type: io.literal('ERROR'),

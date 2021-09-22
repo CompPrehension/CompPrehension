@@ -91,7 +91,7 @@ public class FrontendService {
                 .findFirst()
                 .orElse(null);
         val messages = judgeResult.isAnswerCorrect
-                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!") }
+                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!", violation) }
                 : new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", violation) };
         return FeedbackDto.builder()
                 .messages(messages)
