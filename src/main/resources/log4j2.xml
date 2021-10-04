@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
+    <Properties>
+        <Property name="useDbAppender">true</Property>
+    </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d [%X{correlationId}] [%X{sessionId}] %-5level - %msg%n"/>

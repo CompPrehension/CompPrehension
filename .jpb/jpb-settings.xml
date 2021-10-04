@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DatabaseMigrationSettings" mainChangeLogDir="db/changelog/#date(&quot;yyyy&quot;)-#date(&quot;MM&quot;)-#date(&quot;dd&quot;)" mainChangeLogName="#date(&quot;yyyy&quot;)-#date(&quot;MM&quot;)-#date(&quot;dd&quot;)-#increment(1, 1, &quot;00&quot;)-changelog">
+    <database-infos>
+      <database-info>
+        <option name="enabled" value="true" />
+        <dbms-id>mysql</dbms-id>
+      </database-info>
+    </database-infos>
+  </component>
+</project>
