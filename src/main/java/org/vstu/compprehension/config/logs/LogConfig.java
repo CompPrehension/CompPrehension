@@ -4,6 +4,7 @@ import lombok.val;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.db.jdbc.ColumnConfig;
 import org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender;
 import org.apache.logging.log4j.core.filter.ThresholdFilter;
@@ -22,6 +23,13 @@ public class LogConfig
     @PostConstruct
     public void onStartUp()
     {
+        val context = (LoggerContext) LogManager.getContext(false);
+        val configuration = context.getConfiguration();
+        val useDbAppender = configuration.getStrSubstitutor().getVariableResolver().lookup("useDbAppender");
+        if (!useDbAppender.equalsIgnoreCase("true")) {
+            return;
+        }
+
         String url = env.getProperty("spring.datasource.url");
         String userName = env.getProperty("spring.datasource.username");
         String password = env.getProperty("spring.datasource.password");
