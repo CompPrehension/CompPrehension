@@ -38,13 +38,14 @@ public class LogConfig
         JdbcConnectionSource connectionSource = new JdbcConnectionSource(url, userName, password);
 
         // This is the mapping between the columns in the table and what to insert in it.
-        ColumnConfig[] columnConfigs = new ColumnConfig[6];
+        ColumnConfig[] columnConfigs = new ColumnConfig[7];
         columnConfigs[0] = ColumnConfig.newBuilder().setName("request_id").setPattern("%X{correlationId}").setUnicode(true).build();
         columnConfigs[1] = ColumnConfig.newBuilder().setName("session_id").setPattern("%X{sessionId}").setUnicode(true).build();
         columnConfigs[2] = ColumnConfig.newBuilder().setName("date").setEventTimestamp(true).build();
         columnConfigs[3] = ColumnConfig.newBuilder().setName("level").setPattern("%level").setUnicode(true).build();
         columnConfigs[4] = ColumnConfig.newBuilder().setName("message").setPattern("%message").setUnicode(true).build();
         columnConfigs[5] = ColumnConfig.newBuilder().setName("payload").setPattern("%ex{full}").setUnicode(true).build();
+        columnConfigs[6] = ColumnConfig.newBuilder().setName("user_id").setPattern("%X{userId}").setUnicode(true).build();
 
         // filter for the appender
         ThresholdFilter filter = ThresholdFilter.createFilter(Level.INFO, null, null);

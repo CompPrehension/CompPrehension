@@ -119,6 +119,7 @@ public class BasicExerciseController implements ExerciseController {
         val userEntity = userService.createOrUpdateFromAuthentication();
         val userEntityDto = Mapper.toDto(userEntity);
         session.setAttribute("currentUserInfo", userEntityDto);
+        session.setAttribute("currentUserId", userEntityDto.getId());
 
         return userEntityDto;
     }

@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -58,6 +59,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         // init some request context variables
         ThreadContext.put("correlationId", UUID.randomUUID().toString());
         ThreadContext.put("sessionId", requestToCache.getSession().getId());
+        ThreadContext.put("userId", Optional.ofNullable(requestToCache.getSession().getAttribute("currentUserId")).map(Object::toString).orElse(null));
 
         val parameters = Collections.list(requestToCache.getParameterNames())
                 .stream()

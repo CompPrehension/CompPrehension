@@ -20,8 +20,8 @@ public class LogEntity {
     @Column(nullable = true, length = 36)
     private String sessionId;
 
-    @Column(nullable = true)
-    private Long userId;
+    @Column(nullable = true, length = 36)
+    private String userId;
 
     @Column(nullable = true, columnDefinition="DATETIME(6)")
     @Temporal(TemporalType.TIMESTAMP)
