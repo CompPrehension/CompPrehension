@@ -80,6 +80,7 @@ public class LtiExerciseController extends BasicExerciseController {
         val userEntity = userService.createOrUpdateFromLti(params);
         val userEntityDto = Mapper.toDto(userEntity);
         session.setAttribute("currentUserInfo", userEntityDto);
+        session.setAttribute("currentUserId", userEntityDto.getId());
         return userEntityDto;
     }
 
