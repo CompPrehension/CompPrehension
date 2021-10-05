@@ -266,7 +266,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             MESSAGES.putIfAbsent(m.name, new HashMap<>());
             HashMap<Language, String> inner = MESSAGES.get(m.name);
             for (MessageText mt : m.texts) {
-                inner.put(Language.valueOf(mt.lang), mt.text);
+                inner.put(Language.fromString(mt.lang), mt.text);
             }
         }
         return MESSAGES;

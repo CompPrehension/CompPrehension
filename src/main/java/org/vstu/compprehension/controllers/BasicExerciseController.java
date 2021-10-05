@@ -4,6 +4,7 @@ import lombok.val;
 import lombok.var;
 import org.apache.jena.shared.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,6 +14,7 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.question.QuestionDto;
@@ -67,11 +69,13 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public QuestionDto generateQuestion(Long exAttemptId, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateQuestion(exAttemptId);
     }
 
     @Override
     public QuestionDto generateSupplementaryQuestion(SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateSupplementaryQuestion(questionRequest.getExerciseAttemptId(), questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
@@ -82,6 +86,7 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateNextCorrectAnswer(questionId);
     }
 
