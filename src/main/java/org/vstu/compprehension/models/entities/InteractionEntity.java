@@ -11,6 +11,7 @@ import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -35,6 +36,9 @@ public class InteractionEntity {
     @Enumerated(EnumType.STRING)
     private InteractionType interactionType;
 
+    @Column(nullable = true, columnDefinition="DATETIME(6)")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "feedback_id", referencedColumnName = "id")
@@ -92,5 +96,6 @@ public class InteractionEntity {
                     .collect(Collectors.toList());
             this.setCorrectLaw(correctLaw);
         }
+        this.date = new Date();
     }
 }
