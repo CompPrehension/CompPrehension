@@ -15,7 +15,9 @@ import org.vstu.compprehension.models.businesslogic.*;
 
 import javax.inject.Singleton;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Singleton
 public class TestDomain extends Domain {
@@ -201,6 +203,11 @@ public class TestDomain extends Domain {
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         return null;
+    }
+
+    @Override
+    public Set<Set<String>> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return new HashSet<>();
     }
 
     @Override
