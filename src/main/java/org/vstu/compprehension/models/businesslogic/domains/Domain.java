@@ -279,6 +279,22 @@ public abstract class Domain {
     public abstract CorrectAnswer getAnyNextCorrectAnswer(Question q);
 
     /**
+     * Get set of sets of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
+     * @param q question
+     * @param completedSteps ignore mistakes possible in these steps
+     * @return Get set of sets of negative law names (i.e. mistakes)
+     */
+    public abstract Set<Set<String>> possibleViolations(Question q, List<ResponseEntity> completedSteps);
+
+    /** Shortcut to `possibleViolations(question, completedSteps=[])`
+     * @param q
+     * @return
+     */
+    public Set<Set<String>> possibleViolations(Question q) {
+        return possibleViolations(q, new ArrayList<>());
+    }
+
+    /**
      * Return all question templates
      */
     protected abstract List<Question> getQuestionTemplates();

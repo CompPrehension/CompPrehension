@@ -985,6 +985,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
+    public Set<Set<String>> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return new HashSet<>();
+    }
+
+    @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
         if (violation.getLawName().equals("error_base_student_error_in_complex") ||
                 violation.getLawName().equals("error_base_student_error_strict_operands_order_base")) {

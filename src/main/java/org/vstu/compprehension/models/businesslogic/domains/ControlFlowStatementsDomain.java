@@ -1404,6 +1404,11 @@ public class ControlFlowStatementsDomain extends Domain {
         return correctAnswer;
     }
 
+    @Override
+    public Set<Set<String>> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return new HashSet<>();
+    }
+
 //    public CorrectAnswer getRemainingCorrectAnswers(Question q) {
 //
 //        return null;
