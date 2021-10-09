@@ -205,8 +205,14 @@ public class TestDomain extends Domain {
         return null;
     }
 
+    
     @Override
-    public Set<Set<String>> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
         return new HashSet<>();
     }
 
