@@ -1,5 +1,6 @@
 package org.vstu.compprehension.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,5 +16,6 @@ public class AnswerDto {
     }
 
     private Long[] answer;
+    @JsonProperty("createdByUser")
     private boolean isCreatedByUser;
 }
