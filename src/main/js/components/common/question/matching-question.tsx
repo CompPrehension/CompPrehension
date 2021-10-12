@@ -87,7 +87,7 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
                 const oldHistory = getAnswers();
                 
                 onChanged(newHistory.map(h => 
-                    ({ answer: h, isCreatedByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.isCreatedByUser ?? true })));
+                    ({ answer: h, createdByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.createdByUser ?? true })));
             }, 10);
         });
     }, [question.questionId])
@@ -149,7 +149,7 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
                                                 return;
                                             }
                                             const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== asw.id);
-                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], isCreatedByUser: true };
+                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], createdByUser: true };
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);                                            
                                         })} /> 
@@ -182,7 +182,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
                                             }
 
                                             const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
-                                            const historyItem = { answer: [answerId, +v.value] as [number, number], isCreatedByUser: true };
+                                            const historyItem = { answer: [answerId, +v.value] as [number, number], createdByUser: true };
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);     
                                         })}

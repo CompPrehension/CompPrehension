@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
 import lombok.ToString;
-import org.hibernate.annotations.ColumnDefault;
 import org.vstu.compprehension.models.entities.EnumData.SpecValue;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,6 @@ public class ResponseEntity {
     private Long id;
 
     @Column(nullable = false)
-    @ColumnDefault("1")
     private boolean isCreatedByUser;
 
     @Column(name = "leftSpecValue")
