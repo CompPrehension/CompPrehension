@@ -9,6 +9,7 @@ import { SupplementaryQuestionRequest } from "../types/supplementary-question-re
 import * as NEArray from 'fp-ts/lib/NonEmptyArray'
 import { pipe } from "fp-ts/lib/function";
 import * as O from 'fp-ts/lib/Option'
+import { Answer } from "../types/answer";
 
 /**
  * Store question data
@@ -16,7 +17,7 @@ import * as O from 'fp-ts/lib/Option'
 @injectable()
 export class QuestionStore {
     @observable isQuestionLoading?: boolean = false;
-    @observable answersHistory: [number, number][] = [];
+    @observable answersHistory: Answer[] = [];
     @observable isFeedbackLoading: boolean = false;
     @observable isFeedbackVisible: boolean = true;
     @observable feedback?: Feedback = undefined;
@@ -112,7 +113,7 @@ export class QuestionStore {
         });
     }
 
-    private sendAnswersImpl = async (attemptId: number, questionId: number, answers: [number, number][]): Promise<void> => {
+    private sendAnswersImpl = async (attemptId: number, questionId: number, answers: Answer[]): Promise<void> => {
         const body: Interaction = toJS({
             attemptId,
             questionId,
@@ -146,7 +147,7 @@ export class QuestionStore {
         await this.sendAnswersImpl(question.attemptId, question.questionId, toJS(answersHistory));        
     }
 
-    onAnswersChanged = async (answer: [number, number], sendAnswers: boolean = true): Promise<void> => {
+    onAnswersChanged = async (answer: Answer, sendAnswers: boolean = true): Promise<void> => {
         runInAction(() => this.answersHistory.push(answer));
         if (!sendAnswers) {
             return;
@@ -162,7 +163,7 @@ export class QuestionStore {
         
     }
     
-    updateAnswersHistory = async (newHistory: [number, number][], sendAnswers: boolean = true): Promise<void> => {
+    updateAnswersHistory = async (newHistory: Answer[], sendAnswers: boolean = true): Promise<void> => {
         const oldHistory = this.answersHistory;
         runInAction(() => this.answersHistory = [...newHistory]);
         if (!sendAnswers) { 
@@ -178,21 +179,24 @@ export class QuestionStore {
         }
     }
 
-    isHistoryChanged = (newHistory: [number, number][]): boolean => {
+    isHistoryChanged = (newHistory: Answer[]): boolean => {
         const { answersHistory, question } = this;
         if (!question) {
             throw new Error('no question');
         }
 
+        const answersHistoryRaw = answersHistory.map(x => x.answer);
+        const newHistoryRaw = newHistory.map(x => x.answer);
+
         switch(question.type) {
             case 'ORDER':
                 // for ordering question type we must consider the order
-                return newHistory.length !== answersHistory.length || JSON.stringify(newHistory) !== JSON.stringify(answersHistory);
+                return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw) !== JSON.stringify(answersHistoryRaw);
             case 'MATCHING':
             case 'MULTI_CHOICE':
             case 'SINGLE_CHOICE':
                 // for other questions we can ignore the order
-                return newHistory.length !== answersHistory.length || JSON.stringify([...newHistory].sort()) !== JSON.stringify([...answersHistory].sort());
+                return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw.sort()) !== JSON.stringify(answersHistoryRaw.sort());
         }
     }
 }

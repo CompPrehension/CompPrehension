@@ -46,7 +46,7 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
         //questionStore.isFeedbackVisible = false;
         //await delayPromise(1000);
 
-        const newViolationLaw = questionStore.feedback?.messages && questionStore.feedback.messages[0].type === 'ERROR' && questionStore.feedback.messages[0].violationLaw || null;
+        const newViolationLaw = questionStore.feedback?.messages && questionStore.feedback.messages[0].violationLaw || null;
         if (!newViolationLaw) {
             console.log(`empty violation laws`);
             setAllVisible(false);

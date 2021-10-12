@@ -1,13 +1,14 @@
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
+import { Answer } from "../../../types/answer";
 import { SingleChoiceQuestion } from "../../../types/question";
 
 type SingleChoiceQuestionComponentProps = {
     question: SingleChoiceQuestion,
-    answers: [number, number][],
-    getAnswers: () => [number, number][],
-    onChanged: (newAnswers: [number, number][]) => void,
+    answers: Answer[],
+    getAnswers: () => Answer[],
+    onChanged: (newAnswers: Answer[]) => void,
 }
 
 export const SingleChoiceQuestionComponent = observer((props: SingleChoiceQuestionComponentProps) => {
@@ -28,7 +29,7 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
     }
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            onChanged([[answerId, answerId]])
+            onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }])
         }        
     }
 
@@ -44,7 +45,7 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
                             <input id={`question_${question.questionId}_answer_${a.id}`} 
                                    name={`switch_${question.questionId}`} 
                                    type="radio" 
-                                   checked={getAnswers().some(h => h[0] === a.id)}
+                                   checked={getAnswers().some(h => h.answer[0] === a.id)}
                                    onChange={(e) => selfOnChange(a.id, e.target.checked)} />
                         </div>
                         <div>{a.text}</div>                        
@@ -63,7 +64,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     const { options } = question;
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            onChanged([[answerId, answerId]])
+            onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }])
         }        
     }
 
@@ -76,7 +77,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
                                  <input id={`question_${question.questionId}_answer_${id}`} 
                                         name={`switch_${question.questionId}`} 
                                         type="radio" 
-                                        checked={getAnswers().some(h => h[0] === +id)}
+                                        checked={getAnswers().some(h => h.answer[0] === +id)}
                                         onChange={(e) => selfOnChange(+id, e.target.checked)} />
                                  <span dangerouslySetInnerHTML={{ __html: e.innerHTML }}/>
                                </label>)
@@ -93,7 +94,8 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
         });
 
         // apply history changes    
-        getAnswers().forEach(([id]) => {
+        getAnswers().forEach(({ answer }) => {
+            const id = answer[0];
             const answr: any = document.getElementById(`question_${question.questionId}_answer_${id}`);
             if (!answr) {
                 return;

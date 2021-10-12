@@ -393,7 +393,6 @@ public class ControlFlowStatementsDomain extends Domain {
             answerObjectEntities.add(newAnswerObjectEntity);
         }
         entity.setAnswerObjects(answerObjectEntities);
-        entity.setAreAnswersRequireContext(true);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
@@ -1370,10 +1369,10 @@ public class ControlFlowStatementsDomain extends Domain {
         //// System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
-        ArrayList<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
+        ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
-                answers.add(Pair.of(answer, answer));
+                answers.add(new CorrectAnswer.Response(answer, answer, false));
             }
         }
 

@@ -3,6 +3,7 @@ import * as io from 'io-ts'
 import { Feedback, OrderQuestionFeedback, TFeedback, TOrderQuestionFeedback } from "./feedback";
 import { MergeIntersectionsDeep } from "./utils";
 import { TOptionalRequestResult } from "../utils/helpers";
+import { Answer, TAnswer } from "./answer";
 
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTI_CHOICE' | 'MATCHING' | 'ORDER'
 export const TQuestionType : io.Type<QuestionType> = io.keyof({
@@ -31,7 +32,7 @@ type QuestionBase = {
     options: QuestionOptions,
     text: Html,
     answers: QuestionAnswer[],
-    responses: [number, number][] | null,
+    responses: Answer[] | null,
     feedback: Feedback | null,
 }
 const TQuestionBase : io.Type<QuestionBase> = io.type({
@@ -41,7 +42,7 @@ const TQuestionBase : io.Type<QuestionBase> = io.type({
     options: TQuestionOptions,
     text: THtml,
     answers: io.array(TQuestionAnswer),
-    responses: io.union([io.array(io.tuple([io.number, io.number])), io.null]),
+    responses: io.union([io.array(TAnswer), io.null]),
     feedback: io.union([TFeedback, io.null]),
 }, 'QuestionBase');
 

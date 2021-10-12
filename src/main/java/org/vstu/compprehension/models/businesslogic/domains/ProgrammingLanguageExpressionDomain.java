@@ -954,7 +954,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         val lastCorrectInteractionAnswers = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
+                .map(r -> new CorrectAnswer.Response(r.getLeftAnswerObject(), r.getRightAnswerObject(), r.isCreatedByUser()))
                 .collect(Collectors.toList());
 
         val solution = q.getSolutionFacts();
@@ -969,7 +969,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
                 if (answerImpl.domainID.equals(answer.getDomainInfo())) {
                     val answers = new ArrayList<>(lastCorrectInteractionAnswers);
-                    answers.add(Pair.of(answer, answer));
+                    answers.add(new CorrectAnswer.Response(answer, answer, false));
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
                     correctAnswer.question = q.getQuestionData();

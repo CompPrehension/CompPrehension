@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @Builder
 public class CorrectAnswerDto {
-    private Long[][] answers;
+    private AnswerDto[] answers;
     private String explanation;
 }

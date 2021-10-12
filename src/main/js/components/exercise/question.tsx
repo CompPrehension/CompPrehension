@@ -9,11 +9,12 @@ import { Alert, Badge } from "react-bootstrap";
 import { notNulAndUndefinded } from "../../utils/helpers";
 import { GenerateSupQuestion } from "./generate-sup-question";
 import { useTranslation } from "react-i18next";
+import { Answer } from "../../types/answer";
 
 type QuestionOptions = {
     store: QuestionStore, 
     showExtendedFeedback: boolean,
-    onChanged?: (newHistory: [number, number][]) => void,
+    onChanged?: (newHistory: Answer[]) => void,
 }
 export const Question = observer((props: QuestionOptions) => {
     const { store, showExtendedFeedback, onChanged:ParentOnChanged } = props;
@@ -25,7 +26,7 @@ export const Question = observer((props: QuestionOptions) => {
         return null;
     }    
 
-    const onChanged = async (newHistory: [number, number][]) => {
+    const onChanged = async (newHistory: Answer[]) => {
         if (store.isHistoryChanged(newHistory)) {
             await store.updateAnswersHistory(newHistory);
             ParentOnChanged?.(newHistory);

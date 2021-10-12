@@ -3,6 +3,7 @@ package org.vstu.compprehension.Service;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -99,6 +100,7 @@ public class QuestionService {
         return question;
     }
 
+    /*
     public List<ResponseEntity> responseQuestion(Question question, List<Integer> responses) {
         val result = new ArrayList<ResponseEntity>();
         for (val answerId : responses) {
@@ -106,13 +108,14 @@ public class QuestionService {
         }
         return result;
     }
+    */
 
-    public List<ResponseEntity> responseQuestion(Question question, Long[][] responses) {
+    public List<ResponseEntity> responseQuestion(Question question, AnswerDto[] answers) {
         val result = new ArrayList<ResponseEntity>();
-        for (Long[] pair: responses) {
-            AnswerObjectEntity left = question.getAnswerObject(pair[0].intValue());
-            AnswerObjectEntity right = question.getAnswerObject(pair[1].intValue());
-            ResponseEntity response = makeResponse(left, right);
+        for (val answer: answers) {
+            AnswerObjectEntity left = question.getAnswerObject(answer.getAnswer()[0].intValue());
+            AnswerObjectEntity right = question.getAnswerObject(answer.getAnswer()[1].intValue());
+            ResponseEntity response = makeResponse(left, right, answer.isCreatedByUser());
             result.add(response);
         }
         return result;
@@ -200,9 +203,9 @@ public class QuestionService {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         return domain.getAnyNextCorrectAnswer(question);
     }
-    
-    public Question generateBusinessLogicQuestion(
-            ExerciseAttemptEntity exerciseAttempt) {
+
+    /*
+    public Question generateBusinessLogicQuestion(ExerciseAttemptEntity exerciseAttempt) {
         
         //Генерируем вопрос
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
@@ -216,6 +219,7 @@ public class QuestionService {
         
         return newQuestion;
     }
+    */
 
     public Question generateBusinessLogicQuestion(
             QuestionEntity question) {
@@ -239,10 +243,11 @@ public class QuestionService {
         return response;
     }
 
-    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR) {
+    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR, boolean isCreatedByUser) {
         ResponseEntity response = new ResponseEntity();
         response.setLeftAnswerObject(answerL);
         response.setRightAnswerObject(answerR);
+        response.setCreatedByUser(isCreatedByUser);
         responseRepository.save(response);
         return response;
     }

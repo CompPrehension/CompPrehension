@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import React from "react";
+import { Answer } from "../../../types/answer";
 import { Feedback } from "../../../types/feedback";
 import { Question } from "../../../types/question"
 import { MatchingQuestionComponent } from "./matching-question";
@@ -11,9 +12,9 @@ type QuestionComponentProps = {
     question: Question,
     feedback?: Feedback,
     isFeedbackLoading: boolean,
-    answers: [number, number][],
-    getAnswers: () => [number, number][],
-    onChanged: (x: [number, number][]) => void,
+    answers: Answer[],
+    getAnswers: () => Answer[],
+    onChanged: (x: Answer[]) => void,
 }
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {

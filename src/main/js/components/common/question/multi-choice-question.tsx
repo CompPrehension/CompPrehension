@@ -1,15 +1,16 @@
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
+import { Answer } from "../../../types/answer";
 import { MatchingQuestion, MultiChoiceQuestion } from "../../../types/question";
 import { ToggleSwitch } from "../toggle";
 import { DragAndDropMatchingQuestionComponent } from "./matching-question";
 
 type MultiChoiceQuestionComponentProps = {
     question: MultiChoiceQuestion,
-    answers: [number, number][],
-    getAnswers: () => [number, number][],
-    onChanged: (newAnswers: [number, number][]) => void,
+    answers: Answer[],
+    getAnswers: () => Answer[],
+    onChanged: (newAnswers: Answer[]) => void,
 }
 
 export const MultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComponentProps) => {
@@ -38,8 +39,8 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
     const onSwitched = (answerId: number, val: string) => {
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
-            ...getAnswers().filter(v => v[0] !== answerId),
-            [answerId, value] as [number, number],
+            ...getAnswers().filter(v => v.answer[0] !== answerId),
+            { answer: [answerId, value] as [number, number], isCreatedByUser: true },
         ];
         onChanged(newHistory);
     }
@@ -54,7 +55,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
                     <div className="d-flex flex-row mb-3">
                         <div className="mr-2 mt-1">
                             <ToggleSwitch id={`question_${question.questionId}_anwser_${a.id}`} 
-                                          selected={selectorTexts[getAnswers().filter(h => h[0] === a.id)?.[0]?.[1]] ?? ""} 
+                                          selected={selectorTexts[getAnswers().filter(h => h.answer[0] === a.id)?.[0]?.answer?.[1]] ?? ""} 
                                           values={selectorTexts} 
                                           onChange={val => onSwitched(a.id, val)} />
                         </div>
@@ -75,8 +76,8 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
     const onSwitched = (answerId: number, val: string) => {
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
-            ...getAnswers().filter(v => v[0] !== answerId),
-            [answerId, value] as [number, number],
+            ...getAnswers().filter(v => v.answer[0] !== answerId),
+            { answer: [answerId, value] as [number, number], isCreatedByUser: true, },
         ];
         onChanged(newHistory);
     }
@@ -87,7 +88,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const id = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
             const component = <ToggleSwitch id={e.id} 
-                                            selected={selectorTexts[getAnswers().filter(h => h[0] === +id)?.[0]?.[1]] ?? ""} 
+                                            selected={selectorTexts[getAnswers().filter(h => h.answer[0] === +id)?.[0]?.answer?.[1]] ?? ""} 
                                             values={selectorTexts} 
                                             onChange={val => onSwitched(+id, val)} />
             ReactDOM.render(component, e);
@@ -106,7 +107,8 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
         });
 
         // apply history changes    
-        getAnswers().forEach(([id, value]) => {
+        getAnswers().forEach(({ answer }) => {
+            const [id, value] = answer;
             const inputId = `question_${question.questionId}_answer_${id}_${selectorTexts[value]}_checkbox`;
             const answr: any = document.getElementById(inputId);
             if (!answr) {

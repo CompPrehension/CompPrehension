@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import React from "react";
 import { useEffect } from "react";
+import { Answer } from "../../../types/answer";
 import { OrderQuestionFeedback } from "../../../types/feedback";
 import { OrderQuestion } from "../../../types/question";
 import { notNulAndUndefinded } from "../../../utils/helpers";
@@ -9,9 +10,9 @@ import { Optional } from "../optional";
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
     feedback?: OrderQuestionFeedback,
-    answers: [number, number][],
-    getAnswers: () => [number, number][],
-    onChanged: (newAnswers: [number, number][]) => void,
+    answers: Answer[],
+    getAnswers: () => Answer[],
+    onChanged: (newAnswers: Answer[]) => void,
 }
 export const OrderQuestionComponent = observer((props: OrderQuestionComponentProps) => {
     const { question, getAnswers, onChanged, feedback } = props; 
@@ -29,7 +30,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const idStr = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? ""; 
             const id = +idStr;
-            e.addEventListener('click', () => onChanged([...getAnswers(), [id, id]]));
+            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isCreatedByUser: true }]));
         })
 
         // show elements positions
@@ -46,13 +47,21 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             const pos = e.getAttribute("data-comp-ph-pos");
             e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '')
             e.classList.remove('disabled');
+            e.classList.remove('comp-ph-question-answer--selected');
+            e.classList.remove('comp-ph-question-answer--last-selected');
         });
 
         // apply history changes    
-        getAnswers().forEach(([h], idx) => {
+        getAnswers().forEach(({ answer }, idx, answers) => {
+            const [h] = answer;
             const answr = document.querySelector(`#question_${question.questionId}_answer_${h}`);
             if (!answr) {
                 return 0;
+            }
+
+            answr.classList.add('comp-ph-question-answer--selected');
+            if (idx === answers.length - 1) {
+                answr.classList.add('comp-ph-question-answer--last-selected');
             }
 
             // add pos hint        
@@ -64,7 +73,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             }  
             // disable if needed
             if (options.multipleSelectionEnabled) {            
-                answr.classList.add('disabled');            
+                answr.classList.add('disabled');
             }
         });
     }, [question.questionId, getAnswers().length])

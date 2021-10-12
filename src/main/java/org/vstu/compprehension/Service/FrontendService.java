@@ -99,9 +99,9 @@ public class FrontendService {
     }
 
     private @NotNull FeedbackDto addOrdinaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
-        Long exAttemptId = interaction.getAttemptId();
-        Long questionId = interaction.getQuestionId();
-        Long[][] answers = interaction.getAnswers();
+        val exAttemptId = interaction.getAttemptId();
+        val questionId = interaction.getQuestionId();
+        val answers = interaction.getAnswers();
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
