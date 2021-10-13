@@ -15,8 +15,5 @@
                                  constraintName="FK_RESPONSE_ON_CREATED_BY_INTERACTION" referencedColumnNames="id"
                                  referencedTableName="interaction"/>
     </changeSet>
-    <changeSet id="1634112778028-5" author="Artem Prokudin">
-        <dropColumn columnName="is_created_by_user" tableName="response"/>
-    </changeSet>
 
 </databaseChangeLog>
