@@ -40,7 +40,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
             ...getAnswers().filter(v => v.answer[0] !== answerId),
-            { answer: [answerId, value] as [number, number], createdByUser: true },
+            { answer: [answerId, value] as [number, number], isСreatedByUser: true },
         ];
         onChanged(newHistory);
     }
@@ -77,7 +77,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
             ...getAnswers().filter(v => v.answer[0] !== answerId),
-            { answer: [answerId, value] as [number, number], createdByUser: true, },
+            { answer: [answerId, value] as [number, number], isСreatedByUser: true, },
         ];
         onChanged(newHistory);
     }

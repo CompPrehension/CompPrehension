@@ -10,12 +10,9 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.repository.AnswerObjectRepository;
-import org.vstu.compprehension.models.repository.BackendFactRepository;
-import org.vstu.compprehension.models.repository.QuestionRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.repository.ResponseRepository;
 import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -50,6 +48,9 @@ public class QuestionService {
 
     @Autowired
     private DomainService domainService;
+
+    @Autowired
+    private InteractionRepository interactionRepository;
 
     @Autowired
     ResponseRepository responseRepository;
@@ -113,9 +114,12 @@ public class QuestionService {
     public List<ResponseEntity> responseQuestion(Question question, AnswerDto[] answers) {
         val result = new ArrayList<ResponseEntity>();
         for (val answer: answers) {
-            AnswerObjectEntity left = question.getAnswerObject(answer.getAnswer()[0].intValue());
-            AnswerObjectEntity right = question.getAnswerObject(answer.getAnswer()[1].intValue());
-            ResponseEntity response = makeResponse(left, right, answer.isCreatedByUser());
+            val left = question.getAnswerObject(answer.getAnswer()[0].intValue());
+            val right = question.getAnswerObject(answer.getAnswer()[1].intValue());
+            val createdByInteraction = Optional.ofNullable(answer.getCreatedByInteraction())
+                    .flatMap(id -> interactionRepository.findById(id))
+                    .orElse(null);
+            val response = makeResponse(left, right, createdByInteraction);
             result.add(response);
         }
         return result;
@@ -243,11 +247,11 @@ public class QuestionService {
         return response;
     }
 
-    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR, boolean isCreatedByUser) {
+    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR, InteractionEntity createdByInteraction) {
         ResponseEntity response = new ResponseEntity();
         response.setLeftAnswerObject(answerL);
         response.setRightAnswerObject(answerR);
-        response.setCreatedByUser(isCreatedByUser);
+        response.setCreatedByInteraction(createdByInteraction);
         responseRepository.save(response);
         return response;
     }

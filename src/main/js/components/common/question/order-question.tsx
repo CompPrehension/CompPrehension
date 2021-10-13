@@ -30,7 +30,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const idStr = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? ""; 
             const id = +idStr;
-            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], createdByUser: true }]));
+            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
         })
 
         // show elements positions

@@ -276,7 +276,6 @@ public abstract class Domain {
         public static class Response {
             private AnswerObjectEntity left;
             private AnswerObjectEntity right;
-            private boolean isCreatedByUser;
         }
     }
 

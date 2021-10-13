@@ -1372,7 +1372,7 @@ public class ControlFlowStatementsDomain extends Domain {
         ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
-                answers.add(new CorrectAnswer.Response(answer, answer, false));
+                answers.add(new CorrectAnswer.Response(answer, answer));
             }
         }
 

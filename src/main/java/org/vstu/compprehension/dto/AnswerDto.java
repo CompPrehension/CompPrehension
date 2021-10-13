@@ -10,12 +10,14 @@ import lombok.extern.jackson.Jacksonized;
 @Builder @Jacksonized
 @AllArgsConstructor
 public class AnswerDto {
-    public AnswerDto(Long leftResponseId, Long rightResponseId, boolean isCreatedByUser) {
+    public AnswerDto(Long leftResponseId, Long rightResponseId, boolean isCreatedByUser, Long createdByInteraction) {
         this.answer = new Long[] { leftResponseId, rightResponseId };
         this.isCreatedByUser = isCreatedByUser;
+        this.createdByInteraction = createdByInteraction;
     }
 
     private Long[] answer;
-    @JsonProperty("createdByUser")
+    @JsonProperty("isСreatedByUser")
     private boolean isCreatedByUser;
+    private Long createdByInteraction;
 }

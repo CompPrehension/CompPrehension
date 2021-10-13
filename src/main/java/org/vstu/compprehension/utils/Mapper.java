@@ -13,6 +13,7 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
@@ -36,6 +37,15 @@ public class Mapper {
                 .build();
     }
 
+    public static @NotNull AnswerDto toDto(@NotNull ResponseEntity response) {
+        return AnswerDto.builder()
+                .isCreatedByUser(response.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE)
+                .createdByInteraction(response.getCreatedByInteraction().getId())
+                .answer(new Long[] { (long)response.getLeftAnswerObject().getAnswerId(), (long)response.getRightAnswerObject().getAnswerId() })
+                .build();
+    }
+
+    /*
     public static @NotNull CorrectAnswerDto toDto(@NotNull Domain.CorrectAnswer correctAnswer) {
         val frontAnswers = Optional.ofNullable(correctAnswer.answers).stream()
                 .flatMap(Collection::stream)
@@ -46,6 +56,7 @@ public class Mapper {
                 .answers(frontAnswers)
                 .build();
     }
+    */
 
     public static @NotNull QuestionDto toDto(@NotNull Question questionObject) {
         val question = questionObject.getQuestionData();
@@ -69,7 +80,7 @@ public class Mapper {
         val responses = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> new AnswerDto((long)r.getLeftAnswerObject().getAnswerId(), (long)r.getRightAnswerObject().getAnswerId(), r.isCreatedByUser()))
+                .map(Mapper::toDto)
                 .toArray(AnswerDto[]::new);
 
         val feedback = lastInteraction
