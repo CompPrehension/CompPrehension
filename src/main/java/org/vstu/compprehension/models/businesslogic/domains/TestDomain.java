@@ -100,7 +100,6 @@ public class TestDomain extends Domain {
         questionConceptChoices.add(qcc);
         
         //question.setQuestionConceptChoices(questionConceptChoices);
-        question.setAreAnswersRequireContext(false);
         //question.setLaws(questionRequest.getTargetLaws());
         question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionText(questionText);
