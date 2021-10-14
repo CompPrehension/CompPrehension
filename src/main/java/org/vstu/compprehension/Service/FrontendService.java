@@ -23,9 +23,7 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.ViolationEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.FeedbackRepository;
-import org.vstu.compprehension.models.repository.ViolationRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
@@ -60,6 +58,12 @@ public class FrontendService {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private ResponseRepository responseRepository;
+
+    @Autowired
+    private InteractionRepository interactionRepository;
 
     @Autowired
     private ViolationRepository violationRepository;
@@ -208,6 +212,7 @@ public class FrontendService {
 
         // concat last correct inteteraction responses with new correct answers
         val responses = ListUtils.union(lastCorrectInteractionResponses, correctAnswerResponses);
+        //responseRepository.saveAll(responses);
 
         // evaluate new answer
         val exerciseAttempt = question.getQuestionData().getExerciseAttempt();
@@ -225,7 +230,8 @@ public class FrontendService {
         val grade = strategy.grade(exerciseAttempt);
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);
-        feedbackRepository.save(ie.getFeedback());
+        //feedbackRepository.save(ie.getFeedback());
+        interactionRepository.save(ie);
 
         // decide next exercise state
         val strategyAttemptDecision = strategy.decide(exerciseAttempt);

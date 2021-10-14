@@ -54,11 +54,11 @@ public class InteractionEntity {
     private List<CorrectLawEntity> correctLaw;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResponseEntity> responses;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "createdByInteraction", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "createdByInteraction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResponseEntity> newResponses;
 
     @ToString.Exclude
