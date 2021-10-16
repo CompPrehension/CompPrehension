@@ -3583,6 +3583,422 @@
     ]
   },
   {
+    "name": "is_operand_c#",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "notEqual(?a_text, \"await\"), notEqual(?a_text, \"new\"), notEqual(?a_text, \"switch\"), notEqual(?a_text, \"with\"), notEqual(?a_text, \"is\"), notEqual(?a_text, \"as\"), regex(?a_text, \"[a-zA-Z_0-9]+\"), (?a my:step 1), (?a my:text ?a_text) -> (?a my:eval \"true\"^^xsd:boolean), (?a my:is_operand \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "is_operand_close_bracket",
+        "formulation": "(?a my:step 1), (?a my:text \"]\") -> (?a my:eval \"true\"^^xsd:boolean), (?a my:is_operand \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "is_operand_close_parenthesis",
+        "formulation": "(?a my:text \")\"), (?a my:step 1) -> (?a my:eval \"true\"^^xsd:boolean), (?a my:is_operand \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      }
+    ],
+    "concepts": [
+      {"name": "operand"},
+      {"name": "C#"}
+    ],
+    "tags": [
+      {"name": "basics"},
+      {"name": "C#"}
+    ]
+  },
+  {
+    "name": "operators_c#",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "step",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "init",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "associativity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prefix_postfix",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "complex_ending",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "prev_operation",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "operator=",
+        "formulation": "(?a my:step 1), (?a my:text \"=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator+=",
+        "formulation": "(?a my:step 1), (?a my:text \"+=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator-=",
+        "formulation": "(?a my:step 1), (?a my:text \"-=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator*=",
+        "formulation": "(?a my:step 1), (?a my:text \"*=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator/=",
+        "formulation": "(?a my:step 1), (?a my:text \"/=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator%=",
+        "formulation": "(?a my:step 1), (?a my:text \"%=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator&=",
+        "formulation": "(?a my:step 1), (?a my:text \"&=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator|=",
+        "formulation": "(?a my:step 1), (?a my:text \"|=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator^=",
+        "formulation": "(?a my:step 1), (?a my:text \"^=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator<<=",
+        "formulation": "(?a my:step 1), (?a my:text \"<<=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator>>=",
+        "formulation": "(?a my:step 1), (?a my:text \">>=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator??=",
+        "formulation": "(?a my:step 1), (?a my:text \"??=\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator=>",
+        "formulation": "(?a my:step 1), (?a my:text \"=>\") -> (?a my:precedence 18), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator?",
+        "formulation": "(?a my:step 1), (?a my:text \"?\") -> (?a my:arity \"ternary\"), (?a my:precedence 17), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"true\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean), (?a my:associativity \"R\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator:",
+        "formulation": "(?a my:text \":\"), (?a my:step 1) -> (?a my:arity \"ternary\"), (?a my:precedence 17), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"true\"^^xsd:boolean), (?a my:associativity \"R\").",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator??",
+        "formulation": "(?a my:step 1), (?a my:text \"??\") -> (?a my:associativity \"R\"), (?a my:precedence 16), (?a my:arity \"binary\"), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator||",
+        "formulation": "(?a my:step 1), (?a my:text \"||\") -> (?a my:associativity \"L\"), (?a my:precedence 15), (?a my:arity \"binary\"), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator&&",
+        "formulation": "(?a my:step 1), (?a my:text \"||\") -> (?a my:associativity \"L\"), (?a my:precedence 14), (?a my:arity \"binary\"), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator|",
+        "formulation": "(?a my:step 1), (?a my:text \"|\") -> (?a my:precedence 13), (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator^",
+        "formulation": "(?a my:step 1), (?a my:text \"^\") -> (?a my:precedence 12), (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator&",
+        "formulation": "(?a my:step 1), (?a my:text \"&\") -> (?a my:precedence 11), (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator==",
+        "formulation": "(?a my:step 1), (?a my:text \"==\") -> (?a my:precedence 10), (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator!=",
+        "formulation": "(?a my:step 1), (?a my:text \"!=\") -> (?a my:precedence 10), (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator<",
+        "formulation": "(?a my:step 1), (?a my:text \"<\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 9), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator>",
+        "formulation": "(?a my:step 1), (?a my:text \">\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 9), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator<=",
+        "formulation": "(?a my:step 1), (?a my:text \"<=\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 9), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator>=",
+        "formulation": "(?a my:step 1), (?a my:text \">=\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 9), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_is",
+        "formulation": "(?a my:step 1), (?a my:text \"is\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 9), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_as",
+        "formulation": "(?a my:step 1), (?a my:text \"as\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 9), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator<<",
+        "formulation": "(?a my:step 1), (?a my:text \"<<\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 8), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator>>",
+        "formulation": "(?a my:step 1), (?a my:text \">>\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 8), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator+",
+        "formulation": "(?a my:step 1), (?a my:text \"+\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 7), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator-",
+        "formulation": "(?a my:step 1), (?a my:text \"-\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 7), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator*",
+        "formulation": "(?a my:step 1), (?a my:text \"*\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 6), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator/",
+        "formulation": "(?a my:step 1), (?a my:text \"/\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 6), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator%",
+        "formulation": "(?a my:step 1), (?a my:text \"%\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 6), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_with",
+        "formulation": "(?a my:step 1), (?a my:text \"with\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 5), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_switch",
+        "formulation": "(?a my:step 1), (?a my:text \"switch\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 4), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator..",
+        "formulation": "(?a my:step 1), (?a my:text \"..\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 3), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_unary+",
+        "formulation": "(?a my:step 1), (?a my:text \"+\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_unary-",
+        "formulation": "(?a my:step 1), (?a my:text \"-\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator!",
+        "formulation": "(?a my:step 1), (?a my:text \"!\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator~",
+        "formulation": "(?a my:step 1), (?a my:text \"~\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_prefix++",
+        "formulation": "(?a my:step 1), (?a my:text \"++\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_prefix--",
+        "formulation": "(?a my:step 1), (?a my:text \"--\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator^",
+        "formulation": "(?a my:step 1), (?a my:text \"^\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_await",
+        "formulation": "(?a my:step 1), (?a my:text \"await\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator&",
+        "formulation": "(?a my:step 1), (?a my:text \"&\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator*",
+        "formulation": "(?a my:step 1), (?a my:text \"*\"), (?a my:prev_operation ?b) -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 2), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator(",
+        "formulation": "(?a my:text \"(\"), (?a my:step 1), (?a my:prev_operation ?b) -> (?a my:associativity \"L\"), (?a my:precedence 0), (?a my:arity \"complex\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"true\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean), (?a my:is_function_call \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator,",
+        "formulation": "(?a my:step 1), (?a my:text \",\") -> (?a my:associativity \"L\"), (?a my:precedence 17), (?a my:arity \"binary\"), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator?.",
+        "formulation": "(?a my:step 1), (?a my:text \"?.\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 1), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator.",
+        "formulation": "(?a my:step 1), (?a my:text \".\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 1), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator->",
+        "formulation": "(?a my:step 1), (?a my:text \"->\") -> (?a my:associativity \"L\"), (?a my:arity \"binary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:precedence 1), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_function_call",
+        "formulation": "(?a my:text \"(\"), (?a my:prev_operand ?b) -> (?a my:associativity \"L\"), (?a my:arity \"complex\"), (?a my:init \"true\"^^xsd:boolean), (?a my:is_function_call \"true\"^^xsd:boolean), (?a my:precedence 1), (?a my:complex_beginning \"true\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_postfix++",
+        "formulation": "(?a my:step 1), (?a my:text \"++\"), (?a my:prev_operand ?b) -> (?a my:associativity \"L\"), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"postfix\"), (?a my:precedence 1), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_postfix--",
+        "formulation": "(?a my:step 1), (?a my:text \"--\"), (?a my:prev_operand ?b) -> (?a my:associativity \"L\"), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"postfix\"), (?a my:precedence 1), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_postfix!",
+        "formulation": "(?a my:step 1), (?a my:text \"!\"), (?a my:prev_operand ?b) -> (?a my:associativity \"L\"), (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"postfix\"), (?a my:precedence 1), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_subscript",
+        "formulation": "(?a my:text \"[\"), (?a my:step 1) -> (?a my:associativity \"L\"), (?a my:arity \"complex\"), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"true\"^^xsd:boolean), (?a my:is_function_call \"true\"^^xsd:boolean), (?a my:precedence 1), (?a my:complex_beginning \"true\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "operator_new",
+        "formulation": "(?a my:step 1), (?a my:text \"new\") -> (?a my:arity \"unary\"), (?a my:init \"true\"^^xsd:boolean), (?a my:prefix_postfix \"prefix\"), (?a my:precedence 1), (?a my:associativity \"R\"), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "backend": "Jena"
+      }
+    ],
+    "concepts": [
+    ],
+    "tags": [
+      {"name": "operators"},
+      {"name": "C#"}
+    ]
+  },
+  {
     "name": "type_test",
     "positive": true,
     "formulations": [
