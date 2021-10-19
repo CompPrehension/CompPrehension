@@ -201,7 +201,7 @@ public class FrontendService {
                 .map(x -> ResponseEntity.builder().leftAnswerObject(x.getLeft()).rightAnswerObject(x.getRight()).build())
                 .collect(Collectors.toList());
 
-        // get last correct inteteraction responses
+        // get last correct interaction responses
         val lastCorrectInteraction = Optional.ofNullable(question.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
@@ -210,7 +210,7 @@ public class FrontendService {
                 .map(InteractionEntity::getResponses)
                 .orElseGet(ArrayList::new);
 
-        // concat last correct inteteraction responses with new correct answers
+        // concat last correct interaction responses with new correct answers
         val responses = ListUtils.union(lastCorrectInteractionResponses, correctAnswerResponses);
         //responseRepository.saveAll(responses);
 

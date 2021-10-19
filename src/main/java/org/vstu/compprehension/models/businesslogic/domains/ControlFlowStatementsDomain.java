@@ -202,7 +202,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
-        ArrayList<ResponseEntity> responses = new ArrayList<ResponseEntity>();
+        List<ResponseEntity> responses = new ArrayList<ResponseEntity>();
 
         List<InteractionEntity> interactions = q.getInteractions();
 
@@ -211,40 +211,29 @@ public class ControlFlowStatementsDomain extends Domain {
             // early exit: no further checks for emptiness
         }
 
-        for (InteractionEntity i : interactions) {
-            if (i.getViolations().isEmpty()) {
-                // this is correct interaction, so it appends one more correct response, - get it
-                List<ResponseEntity> currentResponses = i.getResponses();
-                if (currentResponses != null && !currentResponses.isEmpty()) {
-                    ResponseEntity lastResponse = currentResponses.get(currentResponses.size() - 1);
+//        InteractionEntity lastCorrectInteraction = null;
 
-                    responses.add(lastResponse);
-                }
-            }
-        }
+        responses = Optional.of(interactions).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second)
+                .map(InteractionEntity::getResponses)
+                .orElseGet(ArrayList::new);
 
-        /*  prev variant
-        InteractionEntity lastCorrectInteraction = null;
-        for (InteractionEntity i : Lists.reverse(interactions)) {
-            if (i.getViolations().isEmpty()) {
-                lastCorrectInteraction = i;
-                break;
-            }
-        }
-        if (lastCorrectInteraction != null) {
-            responses.addAll(lastCorrectInteraction.getResponses());
-        }
-        */
 
         if (allowLastIncorrect) {
-            InteractionEntity lastInteraction = interactions.get(interactions.size() - 1);
-            // lastInteraction is wrong
-            if (!lastInteraction.getViolations().isEmpty()) {
-                List<ResponseEntity> lastResponses = lastInteraction.getResponses();
-                if (lastResponses != null && !lastResponses.isEmpty()) {
-                    ResponseEntity lastResponse = lastResponses.get(lastResponses.size() - 1);
-
-                    responses.add(lastResponse);
+            val latestStudentResponse = Optional.of(interactions).stream()
+                    .flatMap(Collection::stream)
+                    .reduce((first, second) -> second).orElse(null);
+            if (latestStudentResponse != null && !latestStudentResponse.getViolations().isEmpty()) {
+                // lastInteraction is wrong
+                val responseNew = Optional.ofNullable(latestStudentResponse.getResponses())//.stream()
+//                        .flatMap(Collection::stream)
+                        .filter(resp -> resp.size() > 0)
+                        .map(resp -> resp.get(resp.size() - 1))
+                        .orElse(null);
+                if (responseNew != null) {
+                    responses.add(responseNew);
                 }
             }
         }
@@ -636,7 +625,7 @@ public class ControlFlowStatementsDomain extends Domain {
             // obtain correct only responses (in different way!)
             List<ResponseEntity> responsesByQ = responsesForTrace(q, false);
 
-            // append latest response to list of correct responses
+            // append the latest response to list of correct responses
             if (!responses.isEmpty()) {
                 ResponseEntity latestResponse = responses.get(responses.size() - 1);
                 responsesByQ.add(latestResponse);
@@ -1369,7 +1358,7 @@ public class ControlFlowStatementsDomain extends Domain {
         //// System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
-        ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
+        ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
                 answers.add(new CorrectAnswer.Response(answer, answer));
