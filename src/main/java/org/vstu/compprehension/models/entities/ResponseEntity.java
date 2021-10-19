@@ -28,7 +28,7 @@ public class ResponseEntity {
     private AnswerObjectEntity rightAnswerObject;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "created_by_interaction_id")
     private InteractionEntity createdByInteraction;
 
