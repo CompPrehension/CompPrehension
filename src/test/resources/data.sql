@@ -45,6 +45,9 @@ VALUES (17, 1, 1, 0, 1, '10', 'test_explanation', 8, 1, 1, 'ProgrammingLanguageE
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (18, 1, 1, 0, 1, '10', 'test_all_debug', 8, 0, 1, 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true}');
 
+INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
+VALUES (19, 1, 1, 0, 1, '10', 'test_c#', 8, 1, 1, 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C#', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
+
 INSERT INTO `user` (`id`, `email`, `first_name`, `last_name`, `login`, `password`, `preferred_language`)
 VALUES (1, 'test', 'test', 'test', 'test', 'test', 0);
 
