@@ -5,6 +5,10 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
+import org.apache.jena.base.Sys;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.models.entities.*;
@@ -33,6 +37,8 @@ import java.util.stream.Collectors;
 import static java.lang.Math.max;
 import static org.junit.jupiter.api.Assertions.*;
 
+
+
 @Component
 @Singleton
 public class ProgrammingLanguageExpressionDomain extends Domain {
@@ -44,7 +50,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
-    static final String MESSAGES_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages.json";
+    static final String MESSAGES_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
@@ -52,7 +58,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-        readMessages(this.getClass().getClassLoader().getResourceAsStream(MESSAGES_PATH));
+        readMessages(MESSAGES_PATH);
     }
 
     private void fillConcepts() {
@@ -248,32 +254,25 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return QUESTIONS;
     }
 
-    class MessageText {
-        String lang;
-        String text;
-    }
-    class Message {
-        String name;
-        List<MessageText> texts;
-    }
-    HashMap<String, HashMap<Language, String>> MESSAGES;
-    protected HashMap<String, HashMap<Language, String>> readMessages(InputStream inputStream) {
-        MESSAGES = new HashMap<>();
-        Message[] rawMessages = new Gson().fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Message[].class);
-        for (Message m : rawMessages) {
-            MESSAGES.putIfAbsent(m.name, new HashMap<>());
-            HashMap<Language, String> inner = MESSAGES.get(m.name);
-            for (MessageText mt : m.texts) {
-                inner.put(Language.fromString(mt.lang), mt.text);
-            }
-        }
-        return MESSAGES;
+    MessageSource MESSAGES;
+    protected MessageSource readMessages(String path) {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename(path);
+        messageSource.setDefaultEncoding("UTF-8");
+        MESSAGES = messageSource;
+        return messageSource;
     }
 
     private String getMessage(String base_question_text, Language preferred_language) {
-        return MESSAGES.getOrDefault(base_question_text, new HashMap<>()).getOrDefault(preferred_language, "");
+        Locale locale;
+        if (preferred_language == Language.ENGLISH) {
+            locale = Locale.ENGLISH;
+        } else if (preferred_language == Language.RUSSIAN) {
+            locale = new Locale("ru", "RU");
+        } else {
+            locale = Locale.ENGLISH;
+        }
+        return MESSAGES.getMessage(base_question_text, null, base_question_text, locale);
     }
 
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
@@ -843,7 +842,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = answerText + getMessage("AT_POS", lang) + answerPos;
+        String answerTemplate = answerText + "     " + getMessage("AT_POS", lang) + answerPos;
         posToExplanation.put(-1, getMessage("OPERATOR", lang) + answerTemplate + getMessage("EVALUATES", lang));
 
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
@@ -1614,37 +1613,67 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         String reasonPos = nameToPos.get(base.getObject());
         String errorPos = nameToPos.get(base.getSubject());
 
-        String what = getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("AT_POS", lang) + reasonPos
-                + getMessage("EVALUATES_BEFORE", lang) + getOperatorTextDescription(errorText, lang) + errorText + getMessage("AT_POS", lang) + errorPos;
-        String reason = "";
+        StringJoiner joiner = new StringJoiner(" ");
+        joiner
+                .add(getOperatorTextDescription(reasonText, lang))
+                .add(reasonText)
+                .add(getMessage("AT_POS", lang))
+                .add(reasonPos)
+                .add(getMessage("EVALUATES_BEFORE", lang))
+                .add(getOperatorTextDescription(errorText, lang))
+                .add(errorText)
+                .add(getMessage("AT_POS", lang))
+                .add(errorPos);
+        joiner.add("\n").add(getMessage("BECAUSE", lang));
 
         String errorType = mistake.getLawName();
 
         if (errorType.equals("error_base_higher_precedence_left") ||
                 errorType.equals("error_base_higher_precedence_right")) {
-            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("HAS_HIGHER_PRECEDENCE", lang);
+            joiner
+                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(reasonText)
+                    .add(getMessage("HAS_HIGHER_PRECEDENCE", lang));
         } else if (errorType.equals("error_base_same_precedence_left_associativity_left") && errorText.equals(reasonText)) {
-            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("LEFT_ASSOC_DESC", lang);
+            joiner
+                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(reasonText)
+                    .add(getMessage("LEFT_ASSOC_DESC", lang));
         } else if (errorType.equals("error_base_same_precedence_left_associativity_left")) {
-            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("SAME_PRECEDENCE_LEFT_ASSOC", lang);
+            joiner
+                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(reasonText)
+                    .add(getMessage("SAME_PRECEDENCE_LEFT_ASSOC", lang));
         } else if (errorType.equals("error_base_same_precedence_right_associativity_right") && errorText.equals(reasonText)) {
-            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("RIGHT_ASSOC_DESC", lang);
+            joiner
+                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(reasonText)
+                    .add(getMessage("RIGHT_ASSOC_DESC", lang));
         } else if (errorType.equals("error_base_same_precedence_right_associativity_right")) {
-            reason = getMessage("BECAUSE", lang) + getOperatorTextDescription(reasonText, lang) + reasonText + getMessage("SAME_PRECEDENCE_RIGHT_ASSOC", lang);
+            joiner
+                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(reasonText)
+                    .add(getMessage("SAME_PRECEDENCE_RIGHT_ASSOC", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("(")) {
-            reason = getMessage("BECAUSE", lang) + getMessage("FUNC_ARGUMENTS_BEFORE_CALL", lang);
+            joiner.add(getMessage("FUNC_ARGUMENTS_BEFORE_CALL", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("[")) {
-            reason = getMessage("BECAUSE", lang) + getMessage("IN_BRACKETS_BEFORE_BRACKETS", lang);
+            joiner.add(getMessage("IN_BRACKETS_BEFORE_BRACKETS", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("(")) {
-            reason = getMessage("BECAUSE", lang) + getMessage("IN_PARENTHESIS_BEFORE", lang);
+            joiner.add(getMessage("IN_PARENTHESIS_BEFORE", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("[")) {
-            reason = getMessage("BECAUSE", lang) + getMessage("IN_BRACKETS_BEFORE", lang);
+            joiner.add(getMessage("IN_BRACKETS_BEFORE", lang));
         } else if (errorType.equals("error_base_student_error_strict_operands_order_base")) {
-            reason = getMessage("BECAUSE", lang) + getMessage("LEFT_OPERAND", lang) + getOperatorTextDescription(thirdOperatorText, lang) + thirdOperatorText + getMessage("AT_POS", lang) + thirdOperatorPos + getMessage("MUST_BEFORE_RIGHT", lang);
+            joiner
+                    .add(getMessage("LEFT_OPERAND", lang))
+                    .add(getOperatorTextDescription(thirdOperatorText, lang))
+                    .add(thirdOperatorText)
+                    .add(getMessage("AT_POS", lang))
+                    .add(thirdOperatorPos)
+                    .add(getMessage("MUST_BEFORE_RIGHT", lang));
         } else {
-            reason = getMessage("BECAUSE", lang) + "unknown error";
+            joiner.add(getMessage("UNKNOWN_ERROR", lang));
         }
 
-        return new HyperText(what + "\n" + reason);
+        return new HyperText(joiner.toString());
     }
 }
