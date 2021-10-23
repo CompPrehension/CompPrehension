@@ -12,9 +12,11 @@ import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.nfunk.jep.function.Str;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.*;
@@ -32,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.getLeafOntClasses;
@@ -952,17 +955,29 @@ public class ControlFlowStatementsDomain extends Domain {
         return result;
     }
 
+    Set<String> possibleMistakesByLaw(String correctLaw) {
+        return notHappenedMistakes(List.of(correctLaw), null);
+    }
+
+    Set<String> notHappenedMistakes(List<String> correctLaws) {
+        return notHappenedMistakes(correctLaws, null);
+    }
+
     Set<String> notHappenedMistakes(List<String> correctLaws, List<BackendFactEntity> questionFacts) {
         HashSet<String> mistakeNames = new HashSet<>();
-        // find out if context mistakes are applicable here
-        for (BackendFactEntity f : questionFacts) {
-            if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
-                mistakeNames.add("CorrespondingEndMismatched");
-                mistakeNames.add("EndedDeeper");
-                mistakeNames.add("EndedShallower");
-                mistakeNames.add("WrongContext");
-                mistakeNames.add("OneLevelShallower");
-                break;
+
+        // may omit context mistakes in the mode when no question info provided
+        if (questionFacts != null) {
+            // find out if context mistakes are applicable here
+            for (BackendFactEntity f : questionFacts) {
+                if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
+                    mistakeNames.add("CorrespondingEndMismatched");
+                    mistakeNames.add("EndedDeeper");
+                    mistakeNames.add("EndedShallower");
+                    mistakeNames.add("WrongContext");
+                    mistakeNames.add("OneLevelShallower");
+                    break;
+                }
             }
         }
         // use heuristics to get possible mistakes
@@ -1001,6 +1016,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 case("NextAltCondition"):
                     mistakeNames.add("BranchNotNextToCondition");
                     mistakeNames.add("ElseBranchNotNextToLastCondition");
+                    // TODO: fix typo in all places: Condtion
                     mistakeNames.add("CondtionNotNextToPrevCondition");
                     mistakeNames.add("ConditionTooEarly");
                     mistakeNames.add("ConditionTooLate");
@@ -1114,7 +1130,7 @@ public class ControlFlowStatementsDomain extends Domain {
     /** receive solution as model */
     private ProcessSolutionResult processSolution(OntModel model) {
         InterpretSentenceResult result = new InterpretSentenceResult();
-        // always one correct answer
+        // there is always one correct answer
         result.CountCorrectOptions = 1;
 
         // retrieving full solution path ...
@@ -1162,7 +1178,7 @@ public class ControlFlowStatementsDomain extends Domain {
             /// assert actionInd != null;  // did not get last act correctly ?
             assertNotNull(actionInd, "did last act retrieved correctly?");
 
-            // 2) find length of shortest path over algorithm to the end ...
+            // 2) find length of the shortest path over algorithm to the end ...
             // get shortcuts to properties
             OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
             OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
@@ -1211,7 +1227,6 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
@@ -1220,15 +1235,20 @@ public class ControlFlowStatementsDomain extends Domain {
         val lastCorrectInteractionAnswers = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
+                // In Ordering Question, we need left answer objects only.
+                .map(r -> r.getLeftAnswerObject())
                 .collect(Collectors.toList());
 
-//        List<InteractionEntity> interactions = q.getQuestionData().getInteractions();
+        return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
+    }
+
+    @Nullable
+    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+
         String phase;
         String exId;
-
-        if (lastCorrectInteractionAnswers.isEmpty()) {
-            // get first act in trace
+        if (correctTraceAnswersObjects == null || correctTraceAnswersObjects.isEmpty()) {
+            // get first act of potential trace
             List<AnswerObjectEntity> answers = q.getQuestionData().getAnswerObjects();
             AnswerObjectEntity firstAnswer = answers.get(0);
             String domainInfo = firstAnswer.getDomainInfo();
@@ -1238,14 +1258,18 @@ public class ControlFlowStatementsDomain extends Domain {
             exId = answerDomainInfo.getExId();
 
         } else {
-            AnswerObjectEntity lastAnswer =
-                    lastCorrectInteractionAnswers.get(lastCorrectInteractionAnswers.size() - 1).getLeft();
+            //// = correctTraceAnswers.get(correctTraceAnswers.size() - 1).answers.get(0).getLeft();
+            AnswerObjectEntity lastAnswer = correctTraceAnswersObjects
+                    .stream()
+                    .reduce((first, second) -> second)
+                    .orElse(null);
+
+            assertNotNull(lastAnswer);
 
             String domainInfo = lastAnswer.getDomainInfo();
             AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
             phase = answerDomainInfo.getPhase();
             exId = answerDomainInfo.getExId();
-
         }
 
         // find next consequent (using solved facts)
@@ -1273,6 +1297,16 @@ public class ControlFlowStatementsDomain extends Domain {
             qaInfoPrefix = phase + ":" + exId;
             int count = 0;
 
+            // count current exec_time using given steps
+            if (correctTraceAnswersObjects != null) {
+                for (AnswerObjectEntity answerObj : correctTraceAnswersObjects) {
+                    String domainInfo = answerObj.getDomainInfo();
+                    if (domainInfo.startsWith(qaInfoPrefix)) {
+                        ++count;
+                    }
+                }
+            }
+/*          old variant, using student's progress on the question
             for (ResponseEntity response : responsesForTrace(q.getQuestionData(), false)) {
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
@@ -1280,6 +1314,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     ++ count;
                 }
             }
+*/
 
             String exprName = getExpressionNameById(q.getQuestionData(), Integer.parseInt(exId));
             int exprVal = getValueForExpression(q.getQuestionData(), exprName, count);
@@ -1299,6 +1334,13 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // true / false ways do matter in case of expr
         Individual boundTo = boundFrom.getPropertyResourceValue(consequent).as(Individual.class);
+
+        // check if we encountered the end of the program
+        OntProperty any_consequent = model.getOntProperty(model.expandPrefix(":consequent"));
+        if (null == boundTo.getPropertyResourceValue(any_consequent)) {
+            // the last act of global_code has no outgoing properties, so hide it from outer code by reporting the end now
+            return null;
+        }
 
         Individual actionTo = boundTo.getPropertyResourceValue(boundary_of).as(Individual.class);
 
@@ -1394,12 +1436,46 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
-        return new HashSet<>();
+        return possibleViolationsByStep(q,completedSteps)
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(toSet());
     }
 
     @Override
     public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
-        return new HashSet<>();
+
+        // use existing solution steps if given
+        List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+
+        if (completedSteps != null) {
+            // extract answerObjects from given responses
+            correctTraceAnswersObjects.addAll(completedSteps.stream().map(ResponseEntity::getLeftAnswerObject).collect(Collectors.toList()));
+        }
+
+        HashMap<String, Set<String>> map = new HashMap<>();
+
+        // Construct remaining trace virtually, step by step
+        while (true) {
+            CorrectAnswer currentAct = getNextCorrectAnswer(q, correctTraceAnswersObjects);
+            if (currentAct == null)
+                break;
+
+            // grow our virtual trace
+            correctTraceAnswersObjects.add(currentAct.answers.get(0).getLeft());
+
+            // find violations possible on this step
+            final Set<String> possibleViolations = possibleMistakesByLaw(currentAct.lawName);
+
+            final ArrayList<String> possibleViolationsSorted = new ArrayList<>(possibleViolations);
+            java.util.Collections.sort(possibleViolationsSorted);
+            String violSetKey = String.join(";", possibleViolationsSorted);
+
+            // save unique sets of violations
+            map.putIfAbsent(violSetKey, possibleViolations);
+        }
+
+        return new HashSet<>(map.values());
     }
 
 //    public CorrectAnswer getRemainingCorrectAnswers(Question q) {
