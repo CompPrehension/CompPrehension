@@ -12,10 +12,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
+import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.utils.HyperText;
 import com.google.gson.Gson;
@@ -317,7 +314,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             answerObjectEntities.add(newAnswerObjectEntity);
         }
         entity.setAnswerObjects(answerObjectEntities);
-        entity.setAreAnswersRequireContext(true);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
@@ -396,7 +392,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         question.setQuestionText("Choose associativity of operator binary +");
         question.setQuestionType(QuestionType.SINGLE_CHOICE);
         question.setQuestionDomainType("ChooseAssociativity");
-        question.setAreAnswersRequireContext(true);
         question.setAnswerObjects(new ArrayList<>(Arrays.asList(
                 createAnswerObject(question, 0, "left", "left_associativity", "left", true),
                 createAnswerObject(question, 1, "right", "right_associativity", "right", true),
@@ -949,13 +944,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
                 .reduce((first, second) -> second);
-        val lastCorrectInteractionAnswers = lastCorrectInteraction
+        /*val lastCorrectInteractionAnswers = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
-                .collect(Collectors.toList());
+                .map(r -> new CorrectAnswer.Response(r.getLeftAnswerObject(), r.getRightAnswerObject(), r.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE))
+                .collect(Collectors.toList());*/
 
         val solution = q.getSolutionFacts();
         assertNotNull(solution, "Call solve question before getAnyNextCorrectAnswer");
@@ -968,8 +963,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
                 if (answerImpl.domainID.equals(answer.getDomainInfo())) {
-                    val answers = new ArrayList<>(lastCorrectInteractionAnswers);
-                    answers.add(Pair.of(answer, answer));
+                    val answers = new ArrayList<CorrectAnswer.Response>();
+                    answers.add(new CorrectAnswer.Response(answer, answer));
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
                     correctAnswer.question = q.getQuestionData();

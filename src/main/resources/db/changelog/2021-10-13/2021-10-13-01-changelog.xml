@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1634112778028-2" author="Artem Prokudin">
+        <addColumn tableName="response">
+            <column name="created_by_interaction_id" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1634112778028-3" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="created_by_interaction_id" baseTableName="response"
+                                 constraintName="FK_RESPONSE_ON_CREATED_BY_INTERACTION" referencedColumnNames="id"
+                                 referencedTableName="interaction"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -9,5 +9,5 @@ import lombok.extern.jackson.Jacksonized;
 public class InteractionDto {
     private Long attemptId;
     private Long questionId;
-    private Long[][] answers;
+    private AnswerDto[] answers;
 }

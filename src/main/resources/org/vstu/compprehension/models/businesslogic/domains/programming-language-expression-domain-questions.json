@@ -5,8 +5,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -70,8 +70,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a == b < c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -136,8 +136,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c * d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -220,8 +220,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b * c || d + e * f",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -338,8 +338,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a * b + c * d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -420,8 +420,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b ? c + d : e + f",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -524,8 +524,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "-- a + b",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -586,8 +586,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "-- -- a",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -644,8 +644,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a = b = c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -708,8 +708,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "-- ( -- a )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -773,8 +773,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "- -- a",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -832,8 +832,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a && b || c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -897,8 +897,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a && ( b || c )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -969,8 +969,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a && ( b || c ) && d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1059,8 +1059,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a || ( b || c , d || e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1165,8 +1165,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + ( b + c < d + e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1271,8 +1271,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a || f ( b || c , d || e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1378,8 +1378,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "* ++ a",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1437,8 +1437,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "* ++ a + b",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1514,8 +1514,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "* a [ b + c ] + e",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1613,8 +1613,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b [ c + d ] + e",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1717,8 +1717,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b ? c + d : e + f ? g + h : i + j",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1876,8 +1876,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "++ a || b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -1956,8 +1956,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "++ a - b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2037,8 +2037,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2102,8 +2102,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a == b < c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2167,8 +2167,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c * d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2249,8 +2249,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a * b + c * d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2330,8 +2330,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b if c + d else e + f",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2432,8 +2432,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a and b or c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2496,8 +2496,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a and ( b or c )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2567,8 +2567,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a and ( b or c ) and d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2655,8 +2655,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a or ( b or c , d or e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2748,8 +2748,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + ( b + c < d + e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2851,8 +2851,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a or f ( b or c , d or e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -2956,8 +2956,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a [ b + c ] + e",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -3039,8 +3039,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b [ c + d ] + e",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -3139,8 +3139,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b if c + d else e + f if g + h else i + j",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -3297,8 +3297,8 @@
       "questionType": "MATCHING",
       "questionDomainType": "DefineType",
       "questionText": "class Matrix {\n\tint getDeterminant() const;\n\tMatrix transpose() const;\n\tMatrix multiply(int a) const;\n\tsize_t size() const;\n\n\tstatic Matrix identity(size_t size);\n}\n\nMatrix a;\nMatrix b;\nint c;\nint d;\n\nb * (a - c * a.identity(a.size())).getDeterminant()",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -3491,8 +3491,8 @@
       "questionType": "MULTI_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "Select all binary operators in expression: ! a + - b * c",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -3605,8 +3605,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "first_OrderOperatorsSupplementary_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -3689,8 +3689,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "select_highest_precedence_left_operator_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -3746,8 +3746,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "select_highest_precedence_left_operator_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -3803,8 +3803,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "select_precedence_or_associativity_left_influence_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -3852,8 +3852,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_highest_precedence_operator_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -3881,8 +3881,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_highest_precedence_operator_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -3910,8 +3910,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_highest_precedence_left_operator_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -3939,8 +3939,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_highest_precedence_left_operator_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -3968,8 +3968,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_highest_precedence_operator_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -3997,8 +3997,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_highest_precedence_operator_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4026,8 +4026,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_highest_precedence_right_operator_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4055,8 +4055,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_highest_precedence_right_operator_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4084,8 +4084,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4113,8 +4113,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_precedence_or_associativity_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4142,8 +4142,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_precedence_or_associativity_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4169,8 +4169,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_precedence_or_associativity_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4196,8 +4196,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "select_associativity_or_arity_influence_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -4243,8 +4243,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_associativity_or_arity_influence_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4270,8 +4270,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_associativity_or_arity_influence_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4297,8 +4297,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_associativity_or_arity_influence_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4324,8 +4324,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_associativity_or_arity_influence_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4351,8 +4351,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "select_associativity_type_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -4406,8 +4406,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "select_associativity_type_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
         {
@@ -4461,8 +4461,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_associativity_type_left_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4488,8 +4488,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_associativity_type_left_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4516,8 +4516,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_associativity_type_left_right_assoc_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4543,8 +4543,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_associativity_type_left_right_assoc_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4570,8 +4570,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_associativity_type_right_left_assoc_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4597,8 +4597,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_associativity_type_right_left_assoc_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4624,8 +4624,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "correct_select_associativity_type_right_right_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4651,8 +4651,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_associativity_type_right_left_TEXTerror_select_associativity_type_right_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4679,8 +4679,8 @@
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
       "questionText": "error_select_precedence_or_associativity_same_precedence_left_TEXT",
-      "areAnswersRequireContext": false,
       "options": {
+        "requireContext": false
       },
       "answerObjects": [
       ],
@@ -4707,8 +4707,8 @@
       "questionType": "MATCHING",
       "questionDomainType": "OperandsType",
       "questionText": "Given expression: ! a + - b * c == d / e\n For each operation except + at pos 3 classify operands relations to + at pos 3",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -4861,8 +4861,8 @@
       "questionType": "MATCHING",
       "questionDomainType": "OperandsType",
       "questionText": "Given expression: b + d ? e + f : g + h \n For each operation except ? at pos 8 classify operands relations to ? at pos 8",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -4997,8 +4997,8 @@
       "questionType": "MATCHING",
       "questionDomainType": "PrecedenceType",
       "questionText": "Given expression: ! a + - b * c == d - e\n For each operation except + at pos 3 classify precedence relative to + at pos 3",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5131,8 +5131,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5196,8 +5196,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a == b < c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5262,8 +5262,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b + c * d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5346,8 +5346,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b * c || d + e * f",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5464,8 +5464,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a * b + c * d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5546,8 +5546,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b ? c + d : e + f",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5650,8 +5650,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "-- a + b",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5712,8 +5712,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a = b = c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5776,8 +5776,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "-- ( -- a )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5841,8 +5841,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "- -- a",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5900,8 +5900,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a && b || c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -5965,8 +5965,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a && ( b || c )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6037,8 +6037,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a && ( b || c ) && d",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6127,8 +6127,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a || ( b || c ?? d || e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6233,8 +6233,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + ( b + c < d + e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6339,8 +6339,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a || f ( b || c , d || e )",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6446,8 +6446,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "* ++ a",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6505,8 +6505,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "* ++ a + b",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6582,8 +6582,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "* a [ b + c ] + e",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6681,8 +6681,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b [ c + d ] + e",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6785,8 +6785,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "a + b ? c + d : e + f ? g + h : i + j",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -6944,8 +6944,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "++ a || b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {
@@ -7024,8 +7024,8 @@
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
       "questionText": "++ a - b + c",
-      "areAnswersRequireContext": true,
       "options": {
+        "requireContext": true
       },
       "answerObjects": [
         {

@@ -1,15 +1,14 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.ToString;
+import lombok.*;
 import org.vstu.compprehension.models.entities.EnumData.SpecValue;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 @Entity
 @Data
-@NoArgsConstructor
+@NoArgsConstructor @AllArgsConstructor
+@Builder
 @Table(name = "Response")
 public class ResponseEntity {
     @Id
@@ -29,9 +28,12 @@ public class ResponseEntity {
     private AnswerObjectEntity rightAnswerObject;
 
     @ToString.Exclude
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "created_by_interaction_id")
+    private InteractionEntity createdByInteraction;
+
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "interaction_id")
     private InteractionEntity interaction;
-
-
 }

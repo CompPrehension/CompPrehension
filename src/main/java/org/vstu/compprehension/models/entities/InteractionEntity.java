@@ -54,9 +54,12 @@ public class InteractionEntity {
     private List<CorrectLawEntity> correctLaw;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResponseEntity> responses;
 
+    @ToString.Exclude
+    @OneToMany(mappedBy = "createdByInteraction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ResponseEntity> newResponses;
 
     @ToString.Exclude
     @ManyToOne
@@ -68,7 +71,8 @@ public class InteractionEntity {
             QuestionEntity question,
             List<ViolationEntity> violations,
             List<String> correctlyAppliedLaws,
-            List<ResponseEntity> responses){
+            List<ResponseEntity> allResponses,
+            List<ResponseEntity> newResponses){
         this.setQuestion(question);
         this.setInteractionType(type);
         this.setFeedback(new FeedbackEntity());
@@ -78,9 +82,14 @@ public class InteractionEntity {
             m.setInteraction(this);
         }
 
-        this.setResponses(new ArrayList<>(responses));
+        this.setResponses(new ArrayList<>(allResponses));
         for(val r : this.getResponses()) {
             r.setInteraction(this);
+        }
+
+        this.setNewResponses(new ArrayList<>(newResponses));
+        for(val r : this.getNewResponses()) {
+            r.setCreatedByInteraction(this);
         }
 
         if(correctlyAppliedLaws == null){

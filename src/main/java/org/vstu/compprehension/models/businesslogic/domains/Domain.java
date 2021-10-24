@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.context.annotation.RequestScope;
@@ -252,7 +254,7 @@ public abstract class Domain {
     /**
      * Any available correct answer at current iteration
      */
-    public class CorrectAnswer {
+    public static class CorrectAnswer {
         /**
          * Question
          */
@@ -260,7 +262,7 @@ public abstract class Domain {
         /**
          * Correct answer objects
          */
-        public List<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers;
+        public List<Response> answers;
         /**
          * Text explanation why it chosen
          */
@@ -269,6 +271,12 @@ public abstract class Domain {
          * Positive law name for this answer
          */
         public String lawName;
+
+        @AllArgsConstructor @Data
+        public static class Response {
+            private AnswerObjectEntity left;
+            private AnswerObjectEntity right;
+        }
     }
 
     /**

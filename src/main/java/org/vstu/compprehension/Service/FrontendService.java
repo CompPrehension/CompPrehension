@@ -3,12 +3,14 @@ package org.vstu.compprehension.Service;
 import com.google.common.collect.Iterables;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ext.com.google.common.collect.Streams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.dto.InteractionDto;
@@ -19,10 +21,9 @@ import org.vstu.compprehension.models.businesslogic.Strategy;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
+import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.ViolationEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.FeedbackRepository;
-import org.vstu.compprehension.models.repository.ViolationRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
@@ -57,6 +58,12 @@ public class FrontendService {
 
     @Autowired
     private FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private ResponseRepository responseRepository;
+
+    @Autowired
+    private InteractionRepository interactionRepository;
 
     @Autowired
     private ViolationRepository violationRepository;
@@ -99,9 +106,9 @@ public class FrontendService {
     }
 
     private @NotNull FeedbackDto addOrdinaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
-        Long exAttemptId = interaction.getAttemptId();
-        Long questionId = interaction.getQuestionId();
-        Long[][] answers = interaction.getAnswers();
+        val exAttemptId = interaction.getAttemptId();
+        val questionId = interaction.getQuestionId();
+        val answers = interaction.getAnswers();
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
@@ -110,11 +117,12 @@ public class FrontendService {
         val tags = attempt.getExercise().getTags();
         val question = questionService.getSolvedQuestion(questionId);
         val responses = questionService.responseQuestion(question, answers);
+        val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
+        val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
@@ -141,10 +149,14 @@ public class FrontendService {
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...") }
                 : null;
 
-        // remove incorrect answers from feedback
-        val correctAnswers = errors.size() > 0
-                ? Arrays.copyOf(answers, answers.length - 1)
-                : answers;
+        // return result of the last correct interaction
+        val correctAnswers = existingInteractions.stream()
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second)
+                .map(InteractionEntity::getResponses).stream()
+                .flatMap(Collection::stream)
+                .map(Mapper::toDto)
+                .toArray(AnswerDto[]::new);
 
         return Mapper.toFeedbackDto(question,
                 ie,
@@ -185,17 +197,32 @@ public class FrontendService {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
         val correctAnswer = questionService.getNextCorrectAnswer(question);
-        val correctAnswerDto = Mapper.toDto(correctAnswer);
+        val correctAnswerResponses = correctAnswer.answers.stream()
+                .map(x -> ResponseEntity.builder().leftAnswerObject(x.getLeft()).rightAnswerObject(x.getRight()).build())
+                .collect(Collectors.toList());
+
+        // get last correct interaction responses
+        val lastCorrectInteraction = Optional.ofNullable(question.getQuestionData().getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
+                .reduce((first, second) -> second);
+        val lastCorrectInteractionResponses = lastCorrectInteraction
+                .map(InteractionEntity::getResponses)
+                .orElseGet(ArrayList::new);
+
+        // concat last correct interaction responses with new correct answers
+        val responses = ListUtils.union(lastCorrectInteractionResponses, correctAnswerResponses);
+        //responseRepository.saveAll(responses);
 
         // evaluate new answer
         val exerciseAttempt = question.getQuestionData().getExerciseAttempt();
         val tags = exerciseAttempt.getExercise().getTags();
-        val responses = questionService.responseQuestion(question, correctAnswerDto.getAnswers());
+        val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses);
+        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
@@ -203,21 +230,22 @@ public class FrontendService {
         val grade = strategy.grade(exerciseAttempt);
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);
-        feedbackRepository.save(ie.getFeedback());
+        //feedbackRepository.save(ie.getFeedback());
+        interactionRepository.save(ie);
 
         // decide next exercise state
         val strategyAttemptDecision = strategy.decide(exerciseAttempt);
         exerciseAttemptService.ensureAttemptStatus(exerciseAttempt, strategyAttemptDecision);
 
         // build feedback message
-        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswerDto.getExplanation()) };
+        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswer.explanation.toString()) };
 
         return Mapper.toFeedbackDto(question,
                 ie,
                 messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
-                correctAnswerDto.getAnswers(),
+                ie.getResponses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
                 strategyAttemptDecision);
     }
 

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.dto.question;
 
+import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.QuestionAnswerDto;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
@@ -18,6 +19,6 @@ public class QuestionDto {
     private String text;
     private QuestionOptionsEntity options;
     private QuestionAnswerDto[] answers = new QuestionAnswerDto[0];
-    private Long[][] responses;
+    private AnswerDto[] responses;
     private FeedbackDto feedback;
 }

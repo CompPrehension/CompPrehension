@@ -1,7 +1,6 @@
 package org.vstu.compprehension.utils;
 
 import lombok.val;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.*;
@@ -14,11 +13,11 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,15 +37,26 @@ public class Mapper {
                 .build();
     }
 
+    public static @NotNull AnswerDto toDto(@NotNull ResponseEntity response) {
+        return AnswerDto.builder()
+                .isCreatedByUser(response.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE)
+                .createdByInteraction(response.getCreatedByInteraction().getId())
+                .answer(new Long[] { (long)response.getLeftAnswerObject().getAnswerId(), (long)response.getRightAnswerObject().getAnswerId() })
+                .build();
+    }
+
+    /*
     public static @NotNull CorrectAnswerDto toDto(@NotNull Domain.CorrectAnswer correctAnswer) {
         val frontAnswers = Optional.ofNullable(correctAnswer.answers).stream()
                 .flatMap(Collection::stream)
-                .map(pair -> List.of((long)pair.getLeft().getAnswerId(), (long)pair.getRight().getAnswerId()).toArray(new Long[2])).toArray(Long[][]::new);
+                .map(answr -> new AnswerDto((long)answr.getLeft().getAnswerId(), (long)answr.getRight().getAnswerId(), answr.isCreatedByUser()))
+                .toArray(AnswerDto[]::new);
         return CorrectAnswerDto.builder()
                 .explanation(correctAnswer.explanation.getText())
                 .answers(frontAnswers)
                 .build();
     }
+    */
 
     public static @NotNull QuestionDto toDto(@NotNull Question questionObject) {
         val question = questionObject.getQuestionData();
@@ -70,9 +80,8 @@ public class Mapper {
         val responses = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
-                .map(pair -> List.of((long)pair.getLeft().getAnswerId(), (long)pair.getRight().getAnswerId()).toArray(new Long[2]))
-                .toArray(Long[][]::new);
+                .map(Mapper::toDto)
+                .toArray(AnswerDto[]::new);
 
         val feedback = lastInteraction
                 .map(i -> Mapper.toFeedbackDto(questionObject, i, null, correctInteractionsCount, interactionsWithErrorsCount, null, null))
@@ -157,7 +166,7 @@ public class Mapper {
             @Nullable FeedbackDto.Message[] messages,
             @Nullable Integer correctSteps,
             @Nullable Integer stepsWithErrors,
-            @Nullable Long[][] correctAnswers,
+            @Nullable AnswerDto[] correctAnswers,
             @Nullable Decision strategyDecision
     ) {
         if (interaction.getQuestion().getQuestionType() == QuestionType.ORDER) {
