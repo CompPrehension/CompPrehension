@@ -983,6 +983,7 @@ public class ControlFlowStatementsDomain extends Domain {
         // use heuristics to get possible mistakes
         for (String corrLaw : correctLaws) {
             switch (corrLaw) {
+                // TODO: fix typo in all places: Condtion
                 case("SequenceBegin"):
                     mistakeNames.add("TooEarlyInSequence");
                     mistakeNames.add("SequenceFinishedTooEarly");
@@ -999,6 +1000,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     break;
                 case("AltBegin"):
                     mistakeNames.add("NoFirstCondition");
+                    mistakeNames.add("BranchNotNextToCondition");
                     mistakeNames.add("BranchWithoutCondition");
                     break;
                 case("AltBranchBegin"):
@@ -1009,14 +1011,12 @@ public class ControlFlowStatementsDomain extends Domain {
                     mistakeNames.add("ConditionTooEarly");
                     mistakeNames.add("ConditionTooLate");
                     mistakeNames.add("DuplicateOfCondition");
-                    mistakeNames.add("NoNextCondition");
                     mistakeNames.add("NoBranchWhenConditionIsTrue");
                     mistakeNames.add("AlternativeEndAfterTrueCondition");
                     break;
                 case("NextAltCondition"):
                     mistakeNames.add("BranchNotNextToCondition");
                     mistakeNames.add("ElseBranchNotNextToLastCondition");
-                    // TODO: fix typo in all places: Condtion
                     mistakeNames.add("CondtionNotNextToPrevCondition");
                     mistakeNames.add("ConditionTooEarly");
                     mistakeNames.add("ConditionTooLate");
@@ -1028,17 +1028,14 @@ public class ControlFlowStatementsDomain extends Domain {
                 case("AltEndAfterBranch"):
                     mistakeNames.add("ConditionAfterBranch");
                     mistakeNames.add("AnotherExtraBranch");
-                    mistakeNames.add("LastFalseNoEnd");
                     mistakeNames.add("NoAlternativeEndAfterBranch");
                     break;
                 case("AltEndAllFalse"):
-                    mistakeNames.add("ConditionAfterBranch");
                     mistakeNames.add("BranchOfFalseCondition");
-                    mistakeNames.add("AnotherExtraBranch");
                     mistakeNames.add("LastFalseNoEnd");
-                    mistakeNames.add("NoAlternativeEndAfterBranch");
                     break;
                 case("AltElseBranchBegin"):
+                    mistakeNames.add("BranchOfFalseCondition");
                     mistakeNames.add("LastConditionIsFalseButNoElse");
                     break;
                 case("IterationBeginOnTrueCond"):
