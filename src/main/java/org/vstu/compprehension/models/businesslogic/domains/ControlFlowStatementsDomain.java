@@ -205,7 +205,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
-        List<ResponseEntity> responses = new ArrayList<ResponseEntity>();
+        List<ResponseEntity> responses = new ArrayList<>();
 
         List<InteractionEntity> interactions = q.getInteractions();
 
@@ -221,6 +221,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second)
                 .map(InteractionEntity::getResponses)
+                .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
                 .orElseGet(ArrayList::new);
 
 
