@@ -261,15 +261,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private String getMessage(String base_question_text, Language preferred_language) {
-        Locale locale;
-        if (preferred_language == Language.ENGLISH) {
-            locale = Locale.ENGLISH;
-        } else if (preferred_language == Language.RUSSIAN) {
-            locale = new Locale("ru", "RU");
-        } else {
-            locale = Locale.ENGLISH;
-        }
-        return MESSAGES.getMessage(base_question_text, null, base_question_text, locale);
+        return MESSAGES.getMessage(base_question_text, null, base_question_text, Language.getLocale(preferred_language));
     }
 
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
