@@ -2,6 +2,7 @@ package org.vstu.compprehension.controllers;
 
 
 import lombok.var;
+import net.oauth.server.OAuthServlet;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -51,7 +52,7 @@ public class LtiExerciseController extends BasicExerciseController {
         // ensure LTI session validity
         val ltiVerifier = new LtiOauthVerifier();
         val secret = this.ltiLaunchSecret;
-        val ltiResult = ltiVerifier.verifyParameters(params, request.getRequestURL().toString(), request.getMethod(), secret);
+        val ltiResult = ltiVerifier.verifyParameters(params, OAuthServlet.getRequestURL(request), request.getMethod(), secret);
         if (!ltiResult.getSuccess()) {
             throw new Exception("Invalid LTI session");
         }
