@@ -85,7 +85,7 @@ public class QuestionService {
         Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
         List<BackendFactEntity> solution = backendService.solve(
                 backend,
-                new ArrayList<>(domain.getQuestionPositiveLaws(question.getQuestionDomainType(), tags)),
+                new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
 

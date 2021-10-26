@@ -10,6 +10,7 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.vstu.compprehension.models.entities.ResponseEntity;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -182,5 +183,85 @@ public class ProgrammingLanguageExpressionDomainTest {
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
         assertFalse(solution.isEmpty());
+        question.getQuestionData().setSolutionFacts(solution);
+
+        Set<String> init = domain.possibleViolations(question, null);
+        assertEquals(1, init.size());
+        assertTrue(init.contains("error_base_higher_precedence_right"));
+    }
+
+    @Test
+    public void TestViolation() {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(List.of(
+                domain.getConcept("associativity"),
+                domain.getConcept("precedence"),
+                domain.getConcept("SystemIntegrationTest")
+        ));
+        qr.setAllowedConcepts(List.of(
+                domain.getConcept("operator_binary_*"),
+                domain.getConcept("operator_binary_+")
+        ));
+        qr.setDeniedConcepts(List.of(
+                domain.getConcept("operator_evaluating_left_operand_first")
+        ));
+        qr.setTargetLaws(List.of(
+                domain.getNegativeLaw("error_base_higher_precedence_right"),
+                domain.getNegativeLaw("error_base_same_precedence_left_associativity_left")
+        ));
+        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Backend backend = new JenaBackend();
+        List<BackendFactEntity> solution = backend.solve(
+                domain.getQuestionLaws(q.getQuestionDomainType(), tags),
+                q.getStatementFacts(),
+                domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>()));
+        assertFalse(solution.isEmpty());
+        q.getQuestionData().setSolutionFacts(solution);
+
+        Set<String> init = domain.possibleViolations(q, null);
+        assertEquals(2, init.size());
+        assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+
+        init = domain.possibleViolations(q, new ArrayList<>());
+        assertEquals(2, init.size());
+        assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+
+        ResponseEntity response0 = new ResponseEntity();
+        response0.setLeftAnswerObject(q.getAnswerObject(0));
+        response0.setRightAnswerObject(q.getAnswerObject(0));
+
+        ResponseEntity response1 = new ResponseEntity();
+        response1.setLeftAnswerObject(q.getAnswerObject(1));
+        response1.setRightAnswerObject(q.getAnswerObject(1));
+
+        ResponseEntity response2 = new ResponseEntity();
+        response2.setLeftAnswerObject(q.getAnswerObject(2));
+        response2.setRightAnswerObject(q.getAnswerObject(2));
+
+        init = domain.possibleViolations(q, new ArrayList<>(List.of(response0)));
+        assertEquals(1, init.size());
+        assertTrue(init.contains("error_base_higher_precedence_right"));
+
+        init = domain.possibleViolations(q, new ArrayList<>(List.of(response0, response2)));
+        assertEquals(0, init.size());
+
+        init = domain.possibleViolations(q, new ArrayList<>(List.of(response2)));
+        assertEquals(1, init.size());
+        assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+
+        init = domain.possibleViolations(q, new ArrayList<>(List.of(response2, response0)));
+        assertEquals(0, init.size());
+
+        init = domain.possibleViolations(q, new ArrayList<>(List.of(response2, response0, response1)));
+        assertEquals(0, init.size());
     }
 }
