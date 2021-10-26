@@ -2,12 +2,12 @@ package org.vstu.compprehension.controllers;
 
 
 import lombok.var;
+import org.apache.commons.codec.net.URLCodec;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jena.shared.NotFoundException;
-import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.*;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import lombok.val;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.imsglobal.lti.launch.LtiVerificationResult;
@@ -23,6 +23,7 @@ import org.vstu.compprehension.utils.Mapper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("lti")
@@ -36,11 +37,21 @@ public class LtiExerciseController extends BasicExerciseController {
     @Autowired
     private ExerciseRepository exerciseRepository;
 
-    @RequestMapping(value = {"/pages/exercise" }, method = { RequestMethod.POST })
-    public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> params) throws Exception {
-        LtiVerifier ltiVerifier = new LtiOauthVerifier();
-        String secret = this.ltiLaunchSecret;
-        LtiVerificationResult ltiResult = ltiVerifier.verify(request, secret);
+    @RequestMapping(value = {"/pages/exercise" }, method=RequestMethod.POST)
+    public String ltiLaunch(Model model, HttpServletRequest request) throws Exception {
+        // read LTI form data from raw request stream
+        // we can't just extract form data explicitly through `@RequestParam` or something
+        // because we've already cached request and broken formdata->requestparams implicit conversion
+        val decodeCodec = new URLCodec();
+        val rawBody = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
+        val params = Arrays.stream(rawBody.split("&"))
+            .map(x -> x.split("="))
+            .collect(Collectors.toMap(x -> x[0], x -> { try { return decodeCodec.decode(x[1]); } catch (Exception e) { return ""; }}));
+
+        // ensure LTI session validity
+        val ltiVerifier = new LtiOauthVerifier();
+        val secret = this.ltiLaunchSecret;
+        val ltiResult = ltiVerifier.verifyParameters(params, request.getRequestURL().toString(), request.getMethod(), secret);
         if (!ltiResult.getSuccess()) {
             throw new Exception("Invalid LTI session");
         }
