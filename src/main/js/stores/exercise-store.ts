@@ -6,6 +6,7 @@ import { SessionInfo } from "../types/session-info";
 import { inject, injectable } from "tsyringe";
 import { QuestionStore } from "./question-store";
 import i18next from "i18next";
+import { Language } from "../types/language";
 
 @injectable()
 export class ExerciseStore {
@@ -124,7 +125,7 @@ export class ExerciseStore {
         })
     }
 
-    changeLanguage = (newLang: "EN" | "RU") => {
+    changeLanguage = (newLang: Language) => {
         runInAction(() => {
             if (this.sessionInfo && this.sessionInfo.language !== newLang) {
                 this.sessionInfo.language = newLang;

@@ -1,3 +1,4 @@
+import { absurd } from "fp-ts/lib/function";
 import { observer } from "mobx-react";
 import React from "react";
 import { Answer } from "../../../types/answer";
@@ -33,6 +34,10 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
         case 'ORDER':
             questonComponent = <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} feedback={feedback}/>;
             break;
+        default:
+            // compile-time checking whether the question has `never` type 
+            // to ensure that all case branches have been processed
+            return absurd<JSX.Element>(question);
     }
     return (
         <div className={`comp-ph-question-wrapper ${(feedback?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")} ${(isFeedbackLoading ? "comp-ph-question-wrapper--loading-feedback" : "")}`}>
