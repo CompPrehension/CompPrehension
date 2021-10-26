@@ -68,6 +68,31 @@ const resources = {
             exercise_completed: "Упражнение завершено",
         },
     },
+    PL: {
+        translation: {
+            question_header: "Pytanie",
+            language_header: "Język",
+            signedin_as_header: "Zalogowany jako",
+            nextCorrectAnswerBtn: "Nie wiem co robić dalej, podpowiedz mi następny poprawny krok",
+            generateNextQuestion_nextQuestion: "Następne pytanie",
+            generateNextQuestion_warning: "Ostrzeżenie",
+            generateNextQuestion_continueAttempt: "Kontynuuj podejście",
+            generateNextQuestion_modalMessage1: "Zaleca się przejście do następnego pytania dopiero po rozwiązaniu wszystkich poprzednich.",
+            generateNextQuestion_modalMessage2: "Czy na pewno chcesz przejść do następnego pytania?",
+            generateSupQuestion_gotit: "Oczywiście!",
+            generateSupQuestion_details: "Zobacz szczegóły",
+            grade_feeback: "Ocena",
+            correctsteps_feeback: "Poprawne kroki",
+            stepswitherrors_feeback: "Kroki z błędami",
+            stepsleft_feeback: "Pozostałe kroki",
+            issolved_feeback: "Rozwiązane",
+            foundExisitingAttempt_title: "Znaleziono już istniejące podejście",
+            foundExisitingAttempt_descr: "Czy chcesz kontynuować dotychczasowe podejście, czy rozpocząć nowe",
+            foundExisitingAttempt_continueattempt: "Kontynuuj",
+            foundExisitingAttempt_newattempt: "Nowe",
+            exercise_completed: "Ćwiczenie zakończone",
+        },
+    },
 };
 i18next
     .use(initReactI18next)
