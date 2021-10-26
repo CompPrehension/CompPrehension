@@ -541,7 +541,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "associativity",
                     "in_complex",
                     "complex_beginning",
-                    "is_function_call"
+                    "is_function_call",
+                    "student_error_in_complex_base",
+                    "student_error_more_precedence_base",
+                    "student_error_right_assoc_base",
+                    "student_error_strict_operands_order_base",
+                    "student_error_left_assoc_base"
+
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -972,7 +978,36 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
-        return new HashSet<>();
+        Set<String> result = new HashSet<>();
+        Set<String> madeSteps = new HashSet<>();
+        if (completedSteps != null) {
+            for (ResponseEntity r : completedSteps) {
+                madeSteps.add(r.getLeftAnswerObject().getDomainInfo());
+                madeSteps.add(r.getRightAnswerObject().getDomainInfo());
+            }
+        }
+        for (BackendFactEntity f : q.getSolutionFacts()) {
+            if (f.getVerb().startsWith("student_error") && !madeSteps.contains(f.getSubject()) && !madeSteps.contains(f.getObject())
+                    && getIndexFromName(f.getSubject(), false).isPresent()
+                    && getIndexFromName(f.getObject(), false).isPresent()) {
+                if (f.getVerb().equals("student_error_more_precedence_base")) {
+                    if (getIndexFromName(f.getSubject(), false).orElse(0) > getIndexFromName(f.getObject(), false).orElse(0)) {
+                        result.add("error_base_higher_precedence_left");
+                    } else {
+                        result.add("error_base_higher_precedence_right");
+                    }
+                } else if (f.getVerb().equals("student_error_left_assoc_base")) {
+                    result.add("error_base_same_precedence_left_associativity_left");
+                } else if (f.getVerb().equals("student_error_right_assoc_base")) {
+                    result.add("error_base_same_precedence_right_associativity_right");
+                } else if (f.getVerb().equals("student_error_strict_operands_order_base")) {
+                    result.add("error_base_student_error_strict_operands_order_base");
+                } else if (f.getVerb().equals("student_error_in_complex_base")) {
+                    result.add("error_base_student_error_in_complex");
+                }
+            }
+        }
+        return result;
     }
 
     @Override
