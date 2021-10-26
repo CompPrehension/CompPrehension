@@ -11,8 +11,6 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.*;
 import lombok.val;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
-import org.imsglobal.lti.launch.LtiVerificationResult;
-import org.imsglobal.lti.launch.LtiVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -39,22 +37,24 @@ public class LtiExerciseController extends BasicExerciseController {
     private ExerciseRepository exerciseRepository;
 
     @RequestMapping(value = {"/pages/exercise" }, method=RequestMethod.POST)
-    public String ltiLaunch(Model model, HttpServletRequest request) throws Exception {
-        // read LTI form data from raw request stream
-        // we can't just extract form data explicitly through `@RequestParam` or something
+    public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> requestParams) throws Exception {
+        // read LTI data from both request body and request params
+        // we can't just extract full form data explicitly through `@RequestParam` or something
         // because we've already cached request and broken formdata->requestparams implicit conversion
         val decodeCodec = new URLCodec();
         val rawBody = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
         val params = Arrays.stream(rawBody.split("&"))
             .map(x -> x.split("="))
             .collect(Collectors.toMap(x -> x[0], x -> { try { return decodeCodec.decode(x[1]); } catch (Exception e) { return ""; }}));
+        params.putAll(requestParams);
 
         // ensure LTI session validity
         val ltiVerifier = new LtiOauthVerifier();
         val secret = this.ltiLaunchSecret;
-        val ltiResult = ltiVerifier.verifyParameters(params, OAuthServlet.getRequestURL(request), request.getMethod(), secret);
+        val ltiPreparedUrl = OAuthServlet.getMessage(request, null).URL; // special LTI url for correct own `secret` generation
+        val ltiResult = ltiVerifier.verifyParameters(params, ltiPreparedUrl, request.getMethod(), secret);
         if (!ltiResult.getSuccess()) {
-            throw new Exception("Invalid LTI session");
+            throw new Exception("Invalid LTI session. " + ltiResult.getMessage());
         }
 
         var session = request.getSession();
