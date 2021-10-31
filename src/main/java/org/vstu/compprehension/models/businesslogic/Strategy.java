@@ -38,8 +38,7 @@ public class Strategy extends AbstractStrategy {
 
             ArrayList<String> startTasks = null;
             if(domain instanceof ProgrammingLanguageExpressionDomain) {
-                startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
-                        "a && ( b || c ) && d"));
+                startTasks = new ArrayList<>(Arrays.asList("a + b ? c + d : e + f ? g + h : i + j"));
             }else if(domain instanceof ControlFlowStatementsDomain){
                 startTasks = new ArrayList<>(Arrays.asList("alt_i1", "while_2_110",
                         "do_10"));
