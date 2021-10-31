@@ -442,18 +442,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         int index = 0;
         for (BackendFactEntity token : expression) {
             index++;
-            for (int step = 0; step <= expression.size(); ++step) {
-                String name = getName(step, index);
-                facts.add(new BackendFactEntity(name, "rdf:type", "owl:NamedIndividual"));
-                facts.add(new BackendFactEntity("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
-                facts.add(new BackendFactEntity("owl:NamedIndividual", name, "step", "xsd:int", String.valueOf(step)));
-            }
+            String name = getName(0, index);
+            facts.add(new BackendFactEntity(name, "rdf:type", "owl:NamedIndividual"));
+            facts.add(new BackendFactEntity("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
             facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token.getObject()));
             if (token.getVerb() != null) {
                 facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), token.getVerb(), token.getSubjectType(), token.getSubject()));
             }
         }
-        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "last", "xsd:boolean", "true"));
+        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, expression.size()), "last_index", "xsd:boolean", "true"));
         return facts;
     }
 
