@@ -77,7 +77,7 @@ class Expression {
 
 }
 
-//@SpringBootTest
+@SpringBootTest
 class PelletBackendTest {
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
@@ -146,7 +146,7 @@ class PelletBackendTest {
         JenaBackend backend = new JenaBackend();
         List<Law> laws = new ArrayList<>();
         for (PositiveLaw law : domain.getPositiveLaws()) {
-            if (!law.getName().contains("python")) {
+            if (!law.getName().contains("python") && !law.getName().contains("c#")) {
                 laws.add(law);
             }
         }
