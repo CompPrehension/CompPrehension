@@ -165,13 +165,13 @@ class PelletBackendTest {
         checkObjectProperty(object, objectProperty);
     }
 
-//    @ParameterizedTest
+    @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../before-test-data.json")
     public void BeforeTest(javax.json.JsonObject object) {
         checkObjectProperty(object, "before");
     }
 
-//    @ParameterizedTest
+    @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
     public void HasOperandTest(javax.json.JsonObject object) {
         checkObjectProperty(object, "ast_edge");
