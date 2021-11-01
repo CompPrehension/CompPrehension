@@ -182,6 +182,11 @@
         "backend": "OWL"
       },
       {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "high_precedence",
         "formulation": "owl:ObjectProperty",
         "backend": "OWL"
@@ -227,8 +232,18 @@
         "backend": "Jena"
       },
       {
-        "name": "can_evaluate_to_left_in_complex",
-        "formulation": "noValue(?x, my:eval), (?x my:find_left_blocking ?b), (?a my:next_index ?b), (?x my:in_complex ?a) -> (?x my:can_evaluate_to_left \"true\"^^xsd:boolean).",
+        "name": "can_evaluate_to_left_in_complex_no_,",
+        "formulation": "noValue(?x, my:eval), (?x my:find_left_blocking ?b), (?a my:next_index ?b), (?x my:in_complex ?a), (?x, my:text ?x_text), notEqual(?x_text, \",\"^^xsd:string) -> (?x my:can_evaluate_to_left \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "can_evaluate_to_left_in_complex_operation_,",
+        "formulation": "noValue(?x, my:eval), (?x my:find_left_blocking ?b), (?a my:next_index ?b), (?x my:in_complex ?a), (?x, my:text \",\"^^xsd:string), (?a, my:is_function_call \"false\"^^xsd:boolean) -> (?x my:can_evaluate_to_left \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "evaluate_function_param_separator_,",
+        "formulation": "noValue(?x, my:eval), (?x my:find_left_blocking ?b), (?a my:next_index ?b), (?x my:in_complex ?a), (?x, my:text \",\"^^xsd:string), (?a, my:is_function_call \"true\"^^xsd:boolean) -> (?x my:eval \"true\"^^xsd:boolean), (?x my:app \"true\"^^xsd:boolean), (?a my:has_complex_operator_part ?x).",
         "backend": "Jena"
       },
       {
@@ -462,6 +477,11 @@
         "backend": "OWL"
       },
       {
+        "name": "no_unevaluated_inner_operands",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "find_inner_operand_step_start",
         "formulation": "noValue(?x, my:eval), noValue(?x, my:find_inner_operand_step), (?x my:can_have_inner_operand \"true\"^^xsd:boolean) -> (?x my:find_inner_operand_step ?x).",
         "backend": "Jena"
@@ -473,7 +493,12 @@
       },
       {
         "name": "find_inner_operand",
-        "formulation": "noValue(?x, my:eval), (?x, my:find_inner_operand_step, ?a), (?a my:next_index ?b), noValue(?b my:app) -> (?x my:find_inner_operand ?b).",
+        "formulation": "noValue(?x, my:eval), (?x, my:find_inner_operand_step, ?a), (?a my:next_index ?b), noValue(?b my:app), (?b my:eval, \"true\"^^xsd:boolean) -> (?x my:find_inner_operand ?b).",
+        "backend": "Jena"
+      },
+      {
+        "name": "no_unevaluated_inner_operands",
+        "formulation": "noValue(?x, my:eval), (?x, my:find_inner_operand_step, ?a), (?a my:next_index ?b), (?x my:second_token ?b) -> (?x my:no_unevaluated_inner_operands \"true\"^^xsd:boolean).",
         "backend": "Jena"
       }
     ],
@@ -730,6 +755,11 @@
         "backend": "OWL"
       },
       {
+        "name": "eval_unary_operation_no_inner",
+        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"false\"^^xsd:boolean), noValue(?a, my:eval), (?a my:next_index ?a2), (?a my:second_token ?a2) -> (?a my:has_complex_operator_part ?a2), (?a my:eval \"true\"^^xsd:boolean), (?a2 my:eval \"true\"^^xsd:boolean), (?a2 my:app \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_unary_execution\"^^xsd:string).",
+        "backend": "Jena"
+      },
+      {
         "name": "eval_unary_operation",
         "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"false\"^^xsd:boolean), noValue(?a, my:eval), (?a my:find_inner_operand ?b), (?a my:second_token ?a2) -> (?a my:has_operand ?b), (?a my:has_complex_operator_part ?a2), (?a my:eval \"true\"^^xsd:boolean), (?b my:app \"true\"^^xsd:boolean), (?a2 my:eval \"true\"^^xsd:boolean), (?a2 my:app \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_unary_execution\"^^xsd:string).",
         "backend": "Jena"
@@ -786,8 +816,18 @@
         "backend": "OWL"
       },
       {
+        "name": "no_unevaluated_inner_operands",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "eval_func_params",
+        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"true\"^^xsd:boolean), noValue(?a, my:eval), (?a my:find_inner_operand ?c) -> (?a my:has_operand ?c), (?c my:app \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
         "name": "eval_binary_operation",
-        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"true\"^^xsd:boolean), noValue(?a, my:eval), (?a my:find_left_operand ?b), (?a my:find_inner_operand ?c), (?a my:second_token ?a2) -> (?a my:has_complex_operator_part ?b), (?a my:has_operand ?c), (?a my:has_complex_operator_part ?a2), (?a my:eval \"true\"^^xsd:boolean), (?b my:app \"true\"^^xsd:boolean), (?c my:app \"true\"^^xsd:boolean), (?a2 my:app \"true\"^^xsd:boolean), (?a2 my:eval \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_binary_execution\"^^xsd:string).",
+        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"true\"^^xsd:boolean), noValue(?a, my:eval), (?a my:find_left_operand ?b), (?a my:no_unevaluated_inner_operands \"true\"^^xsd:boolean), (?a my:second_token ?a2) -> (?a my:has_complex_operator_part ?b), (?a my:has_complex_operator_part ?a2), (?a my:eval \"true\"^^xsd:boolean), (?b my:app \"true\"^^xsd:boolean), (?a2 my:app \"true\"^^xsd:boolean), (?a2 my:eval \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_binary_execution\"^^xsd:string).",
         "backend": "Jena"
       }
     ],
