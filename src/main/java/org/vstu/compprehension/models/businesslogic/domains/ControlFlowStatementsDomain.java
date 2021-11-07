@@ -7,18 +7,20 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.nfunk.jep.function.Str;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -26,11 +28,11 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.utils.HyperText;
-import org.vstu.compprehension.utils.LocalizationMap;
 
 import javax.inject.Singleton;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,7 +51,7 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
 //    static final String LAWS_CONFIG_PATH = "file:c:/D/Work/YDev/CompPr/c_owl/jena/domain_laws.json";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-laws.json";
-    static final String MESSAGES_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-messages.txt";
+    static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/control-flow-messages";
 
     // dictionary
     static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
@@ -60,11 +62,12 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
-    private static HashMap<String, LocalizationMap> MESSAGES = null;
+    MessageSource MESSAGES = null;
 
     public ControlFlowStatementsDomain() {
         super();
         name = "ControlFlowStatementsDomain";
+        readFrontMessages();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
     }
@@ -126,47 +129,89 @@ public class ControlFlowStatementsDomain extends Domain {
     public List<HyperText> getFullSolutionTrace(Question question) {
         /// System.out.println("\t\tGetting the trace ...");
 
-        ArrayList<HyperText> result = new ArrayList<>();
+//        final String textMode = "text";
+        final String textMode = "html";
 
-        HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
+        Language lang = getUserLanguage(question);
+
+        ArrayList<HyperText> result = new ArrayList<>();
 
         String qType = question.getQuestionData().getQuestionDomainType();
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
+            HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
+            FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
+            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "iteration" /* << iteration is not-a-class */);
+
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+
                 boolean responseIsWrong = ! response.getInteraction().getViolations().isEmpty();
+
+                // format a trace line ...
 
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
                 String line;
-                if (info.getTraceActHypertext() != null) {
-                    line = info.getTraceActHypertext();
+                String actionKind = answerObj.getConcept(); // temporary setting
+                if (actionKind.endsWith("loop"))
+                    actionKind = "loop";
+                // find most general type
+                ArrayList<String> thisActionKinds = qg.chainReachable(info.getExId(), List.of("^id", "rdf:type"));
+                thisActionKinds.add(actionKind);
+                thisActionKinds.retainAll(actionKinds);
+                if (thisActionKinds.isEmpty()) {
+                    actionKind = "iteration";  // todo: verify
                 } else {
-                    line = "(" + domainInfo + ")";
+                    actionKind = thisActionKinds.get(0);
                 }
+
+
+                String lineTpl = getMessage(textMode + ".trace." + actionKind + "." + info.getPhase(), lang); // pass locale
+
+                Map<String, String> replacementMap = new HashMap<>();
 
                 int execTime = 1 + exprName2ExecTime.getOrDefault(domainInfo, 0);
-                line = line + " " + nthTimeByN(execTime);
                 exprName2ExecTime.put(domainInfo, execTime);
+                replacementMap.put("n", String.valueOf(execTime));
+
+                String name = getActionNameById(question.getQuestionData(), Integer.parseInt(info.getExId()), /*actionKind*/ answerObj.getConcept());
+                replacementMap.put("name", name);
+
+                if (lineTpl.contains("nth_time")) {
+                    String nth_time_template = getMessage(textMode + ".trace.template.nth_time", lang); // pass locale
+                    String nth_time = formatTemplate(nth_time_template, execTime);
+                    replacementMap.put("nth_time", nth_time);
+                }
+
+                if (lineTpl.contains("cond.name")) {
+                    List<String> nameAsList = qg.chainReachable(info.getExId(), List.of("^id", "cond", "stmt_name"));
+                    String cond_name = nameAsList.isEmpty()? "!none!" : nameAsList.get(0);
+                    replacementMap.put("cond.name", cond_name);
+                }
+
+                if (lineTpl.contains("parent.name")) {
+                    String childProp = (actionKind.contains("if") || actionKind.contains("else"))? "branches_item" : actionKind.equals("iteration") ? "body" : null; // use with caution
+                    List<String> nameAsList = qg.chainReachable(info.getExId(), List.of("^id", "^" + childProp, "stmt_name"));
+                    String parent_name = nameAsList.isEmpty()? "!none!" : nameAsList.get(0);
+                    replacementMap.put("parent.name", parent_name);
+                }
 
                 // add expression value if necessary
-                if (answerObj.getConcept().equals("expr")) {
+                if (actionKind.equals("expr")) {
                     String valueStr;
                     if (responseIsWrong) {
-                        /// valueStr = "not evaluated";
-                        valueStr = "не вычислено";
+                        // "not evaluated" / "не вычислено" / ...
+                        valueStr = getMessage("value.invalid", lang); //pass locale;
                     } else {
-                        String phase = info.getPhase();
-                        String exId = info.getExId();
-                        String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
-                        int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
+                        int value = getValueForExpression(question.getQuestionData(), name, execTime);
 
-                        /// valueStr = (value == 1) ? "true" : "false";
-                        valueStr = (value == 1) ? "истина" : "ложь";
+                        // "true" : "false" /  "истина" : "ложь";
+                        valueStr = getMessage("value.bool." + value, lang); // pass locale;
                     }
-                    // add HTML styling
-                    line = line + " -> " + htmlStyled("atom", valueStr);
+                    replacementMap.put("value", valueStr);
                 }
+
+                line = replaceInString(lineTpl, replacementMap);
 
                 // check if this line is wrong
                 if (responseIsWrong) {
@@ -400,7 +445,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = getFrontMessages().get("ORDER_question_prompt").get(userLanguage);
+                val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
@@ -447,22 +492,20 @@ public class ControlFlowStatementsDomain extends Domain {
 
     public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType, Language userLang) {
         String lawName = violation.getLawName();
-        String msg = getFrontMessages().get(lawName).get(userLang);
+        String msg = getMessage(lawName, userLang);
 
         if (msg == null) {
-            return new HyperText("[Empty explanation] for " + lawName);
+            return new HyperText("[Empty explanation] for law " + lawName);
         }
 
-        // fill placeholders
+        // Build replacement map
+        Map<String, String> replacementMap = new HashMap<>();
         for (ExplanationTemplateInfoEntity template : violation.getExplanationTemplateInfo()) {
-            String pattern = "<" + template.getFieldName() + ">";
-            if (!msg.contains(pattern)) {
-                pattern = "<list-" + template.getFieldName() + ">";
-            }
-            String replacement = template.getValue();
-            msg = msg.replaceAll(pattern, replacement);
+            replacementMap.put(template.getFieldName(), template.getValue());
         }
 
+        // Replace in msg
+        msg = replaceInString(msg, replacementMap);
         return new HyperText(msg);
     }
 
@@ -733,7 +776,7 @@ public class ControlFlowStatementsDomain extends Domain {
                             ++execCount;
                             pair.setRight(execCount);
                         } else {
-                            exprName = getExpressionNameById(q, Integer.parseInt(exId));
+                            exprName = getActionNameById(q, Integer.parseInt(exId), "expr");
                             if (exprName != null) {
                                 execCount = 1;
                                 // add the entry to the map
@@ -1314,7 +1357,7 @@ public class ControlFlowStatementsDomain extends Domain {
             }
 */
 
-            String exprName = getExpressionNameById(q.getQuestionData(), Integer.parseInt(exId));
+            String exprName = getActionNameById(q.getQuestionData(), Integer.parseInt(exId), "expr");
             int exprVal = getValueForExpression(q.getQuestionData(), exprName, count);
 
             // use appropriate property name
@@ -1412,24 +1455,29 @@ public class ControlFlowStatementsDomain extends Domain {
         correctAnswer.lawName = reasonName; // "No correct law yet, using flow graph";  // answerImpl.lawName;
 
         HyperText explanation;
-        if (getFrontMessages().containsKey(reasonName)) {
-            Language userLang;  // natural language to format explanation
-            try {
-                userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-            } catch (NullPointerException e) {
-                userLang = Language.ENGLISH;  // fallback if it cannot be figured out
-            }
-            String message = getFrontMessages().get(reasonName).get(userLang);
-            // fill in the blanks
-            for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-                message = message.replace("<" + entry.getKey() + ">", entry.getValue());
-            }
+        if (localMessageExists(reasonName)) {
+            Language userLang = getUserLanguage(q);
+            String message = getMessage(reasonName, userLang);
+            // Replace in message
+            message = replaceInString(message, placeholders);
+
             explanation = new HyperText(message);
         }
-        else
+        else {
             explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
+        }
         correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
+    }
+
+    private Language getUserLanguage(Question q) {
+        Language userLang;  // natural language to format explanation
+        try {
+            userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+        } catch (NullPointerException e) {
+            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
+        }
+        return userLang;
     }
 
     @Override
@@ -1511,7 +1559,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     /** return stmt_name or `null` if not an `expr` */
-    private String getExpressionNameById(QuestionEntity question, int actionId) {
+    private String getActionNameById(QuestionEntity question, int actionId, String actionRdfType) {
         String instance = null;
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getVerb().equals("id") && Integer.parseInt(fact.getObject()) == actionId) {
@@ -1522,7 +1570,7 @@ public class ControlFlowStatementsDomain extends Domain {
         boolean isEXpr = false;
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getSubject().equals(instance)) {
-                if (fact.getVerb().equals("rdf:type") && fact.getObject().equals("expr")) {
+                if (fact.getVerb().equals("rdf:type") && fact.getObject().equals(actionRdfType)) {
                     isEXpr = true;
                 }
                 if (fact.getVerb().equals("stmt_name")) {
@@ -1560,50 +1608,112 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
-    private Map<String, LocalizationMap> getFrontMessages() {
+    private MessageSource readFrontMessages() {
         if (MESSAGES == null) {
-            MESSAGES = new HashMap<>();
 
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(MESSAGES_CONFIG_PATH), StandardCharsets.UTF_8))) {
-
-                for(String line; (line = br.readLine()) != null; ) {
-                    // format-specific parsing
-                    line = line.trim();
-                    if (!line.isEmpty()) {
-                        String[] parts = line.split("\t", 3);
-                        if (parts.length == 3) {
-
-                            String[] names = parts[0].split(" ", 2);
-                            String name = names[0];  // get EN name; RU at [1]
-
-                            LocalizationMap lm = new LocalizationMap();
-                            lm.put(Language.RUSSIAN, parts[1]); // get RU msg
-                            lm.put(Language.ENGLISH, parts[2]); // get EN msg
-
-                            MESSAGES.put(name, lm);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                System.out.println("ERROR reading messages from file: " + MESSAGES_CONFIG_PATH);
-                e.printStackTrace();
-            }
+            ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+            messageSource.setBasename(MESSAGES_CONFIG_PATH);
+            messageSource.setDefaultEncoding("UTF-8");
+            MESSAGES = messageSource;
         }
         return MESSAGES;
     }
 
+    private String getMessage(String message_text, Language preferred_language) {
+        Locale locale;
+        if (preferred_language == Language.ENGLISH) {
+            locale = Locale.ENGLISH;
+        } else if (preferred_language == Language.RUSSIAN) {
+            locale = new Locale("ru", "RU");
+        } else {
+            locale = Locale.ENGLISH;
+        }
+        return MESSAGES.getMessage(message_text, null, ">> " + message_text + " <<", locale);
+    }
+
+    /**
+     * Check if a message is in a default (ENGLISH) locale
+     * @param message_text message key
+     * @return true if message exists in ENGLISH locale
+     */
+    private boolean localMessageExists(String message_text) {
+        try {
+            MESSAGES.getMessage(message_text, null, Locale.ENGLISH);
+            return true;
+        } catch (NoSuchMessageException exception) {
+            return false;
+        }
+    }
+
+    //* format pattern using MessageFormat class
+    private static String formatTemplate(String pattern, Object... arguments) {
+        // from: https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html
+        return (new MessageFormat(pattern)).format(arguments, new StringBuffer(), null).toString();
+    }
+
+    //* fill in the blanks using StringSubstitutor class
+    private static String replaceInString(String s, Map<String, String> placeholders) {
+        // Build StringSubstitutor
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(placeholders);
+        stringSubstitutor.setEnableUndefinedVariableException(true);
+
+        // Replace in message
+        return stringSubstitutor.replace(s);
+    }
+
+    private static void _test_Substitutor() {
+
+        // Build map
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("animal", "quick brown fox");
+        valuesMap.put("target", "lazy dog");
+        valuesMap.put("name", "loop");
+        String templateString = "The ${animal} jumped over the ${target} ${undefined.number:-1234567890} times.";
+
+        // Build StringSubstitutor
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
+        stringSubstitutor.setEnableUndefinedVariableException(true);
+
+        // Replace
+        String resolvedString = stringSubstitutor.replace(templateString);
+        System.out.println(resolvedString);
+
+        // change the map
+        valuesMap.put("target", "pink pig");
+
+        // Replace again
+        resolvedString = stringSubstitutor.replace(templateString);
+        System.out.println(resolvedString);
+
+        MessageFormat form = new MessageFormat("The disk \"{1}\" contains {0,choice,0#no files|1#one file|1<{0,number,integer} files}.");
+//        double[] filelimits = {0,1,2};
+//        String[] filepart = {"no files","one file","{0,number} files"};
+//        ChoiceFormat fileform = new ChoiceFormat(filelimits, filepart);
+//        form.setFormatByArgumentIndex(0, fileform);
+
+        int fileCount = 12;
+        String diskName = "MyDisk";
+        Object[] testArgs = {(long) fileCount, diskName};
+
+        System.out.println(form.format(testArgs));
+
+    }
+
     public static void main(String[] args) {
-        ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
-        d.getQuestionTemplates();
-        VOCAB.classDescendants("Erroneous");
+        if (true)
+            _test_Substitutor();
+        else {
+            ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
+            d.getQuestionTemplates();
+            VOCAB.classDescendants("Erroneous");
 
-
-        JenaBackend jBack = new JenaBackend();
-        jBack.createOntology();
-        // jBack.getModel().add(VOCAB.getModel());
-        jBack.addFacts(modelToFacts(VOCAB.getModel()));
-        jBack.addFacts(QUESTIONS.get(0).getStatementFacts());
+            JenaBackend jBack = new JenaBackend();
+            jBack.createOntology();
+            // jBack.getModel().add(VOCAB.getModel());
+            jBack.addFacts(modelToFacts(VOCAB.getModel()));
+            jBack.addFacts(QUESTIONS.get(0).getStatementFacts());
 //        jBack.debug_dump_model("question");
+        }
     }
 
     private static class AnswerDomainInfo {
