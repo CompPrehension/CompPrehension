@@ -47,7 +47,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         } catch (Exception e) {
             if (isLogNeeded)
                 log.error("error: ", e);
-            throw e;
+            response.sendError(500, e.getMessage() + ". For additional info see logs. CorrelationId: " + request.getSession().getId());
         } finally {
             if (isLogNeeded)
                 logAfterRequest(request, response, handler);

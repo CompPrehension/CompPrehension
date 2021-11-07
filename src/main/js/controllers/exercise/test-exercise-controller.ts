@@ -5,10 +5,11 @@ import { Feedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
 import { Question } from "../../types/question";
 import { SessionInfo } from "../../types/session-info";
-import { PromiseEither, RequestError } from "../../utils/ajax";
+import { PromiseEither } from "../../utils/ajax";
 import { IExerciseController } from "./exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
+import { RequestError } from "../../types/request-error";
 
 @injectable()
 export class TestExerciseController implements IExerciseController {

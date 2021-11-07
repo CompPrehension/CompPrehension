@@ -1,5 +1,6 @@
 package org.vstu.compprehension.controllers;
 
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import lombok.var;
 import org.apache.jena.shared.NotFoundException;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("basic")
+@Log4j2
 public class BasicExerciseController implements ExerciseController {
 
     @Autowired
@@ -46,7 +48,7 @@ public class BasicExerciseController implements ExerciseController {
         session.setAttribute("exerciseId", exerciseId);
 
         if (exerciseId == null) {
-            throw new Exception("exerciseId param is required");
+            log.error(new Exception("exerciseId param is required"));
         }
 
         return "index";
@@ -106,7 +108,7 @@ public class BasicExerciseController implements ExerciseController {
                 .sessionId(session.getId())
                 .exercise(new ExerciseInfoDto(exerciseId, exercise.getOptions()))
                 .user(user)
-                .language("EN")
+                .language(user.getPreferredLanguage().toLocaleString())
                 .build();
         session.setAttribute("sessionInfo", sessionInfo);
 

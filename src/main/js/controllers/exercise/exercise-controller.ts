@@ -6,8 +6,9 @@ import { Interaction } from "../../types/interaction";
 import { Question, TOptionalQuestion, TQuestion } from "../../types/question";
 import { SessionInfo, TSessionInfo } from "../../types/session-info";
 import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
-import { ajaxGet, ajaxPost, PromiseEither, RequestError } from "../../utils/ajax";
+import { ajaxGet, ajaxPost, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts'
+import { RequestError } from "../../types/request-error";
 
 
 export interface IExerciseController {
