@@ -132,6 +132,8 @@ public class ControlFlowStatementsDomain extends Domain {
 //        final String textMode = "text";
         final String textMode = "html";
 
+        Language lang = getUserLanguage(question);
+
         ArrayList<HyperText> result = new ArrayList<>();
 
         String qType = question.getQuestionData().getQuestionDomainType();
@@ -150,9 +152,12 @@ public class ControlFlowStatementsDomain extends Domain {
                 String domainInfo = answerObj.getDomainInfo();
                 AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
                 String line;
-                String actionKind; // = answerObj.getConcept();
+                String actionKind = answerObj.getConcept(); // temporary setting
+                if (actionKind.endsWith("loop"))
+                    actionKind = "loop";
                 // find most general type
                 ArrayList<String> thisActionKinds = qg.chainReachable(info.getExId(), List.of("^id", "rdf:type"));
+                thisActionKinds.add(actionKind);
                 thisActionKinds.retainAll(actionKinds);
                 if (thisActionKinds.isEmpty()) {
                     actionKind = "iteration";  // todo: verify
@@ -161,7 +166,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 }
 
 
-                String lineTpl = getMessage(textMode + ".trace." + actionKind + "." + info.getPhase(), Language.ENGLISH); // TODO: pass locale
+                String lineTpl = getMessage(textMode + ".trace." + actionKind + "." + info.getPhase(), lang); // pass locale
 
                 Map<String, String> replacementMap = new HashMap<>();
 
@@ -173,7 +178,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 replacementMap.put("name", name);
 
                 if (lineTpl.contains("nth_time")) {
-                    String nth_time_template = getMessage(textMode + ".trace.template.nth_time", Language.ENGLISH); // TODO: pass locale
+                    String nth_time_template = getMessage(textMode + ".trace.template.nth_time", lang); // pass locale
                     String nth_time = formatTemplate(nth_time_template, execTime);
                     replacementMap.put("nth_time", nth_time);
                 }
@@ -196,12 +201,12 @@ public class ControlFlowStatementsDomain extends Domain {
                     String valueStr;
                     if (responseIsWrong) {
                         // "not evaluated" / "не вычислено" / ...
-                        valueStr = getMessage("value.invalid", Language.ENGLISH); // TODO: pass locale;
+                        valueStr = getMessage("value.invalid", lang); //pass locale;
                     } else {
                         int value = getValueForExpression(question.getQuestionData(), name, execTime);
 
                         // "true" : "false" /  "истина" : "ложь";
-                        valueStr = getMessage("value.bool." + value, Language.ENGLISH); // TODO: pass locale;
+                        valueStr = getMessage("value.bool." + value, lang); // pass locale;
                     }
                     replacementMap.put("value", valueStr);
                 }
@@ -1451,12 +1456,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         HyperText explanation;
         if (localMessageExists(reasonName)) {
-            Language userLang;  // natural language to format explanation
-            try {
-                userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-            } catch (NullPointerException e) {
-                userLang = Language.ENGLISH;  // fallback if it cannot be figured out
-            }
+            Language userLang = getUserLanguage(q);
             String message = getMessage(reasonName, userLang);
             // Replace in message
             message = replaceInString(message, placeholders);
@@ -1468,6 +1468,16 @@ public class ControlFlowStatementsDomain extends Domain {
         }
         correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
+    }
+
+    private Language getUserLanguage(Question q) {
+        Language userLang;  // natural language to format explanation
+        try {
+            userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+        } catch (NullPointerException e) {
+            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
+        }
+        return userLang;
     }
 
     @Override
