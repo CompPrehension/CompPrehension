@@ -34,6 +34,7 @@ public class Mapper {
                 .displayName(displayName)
                 .email(user.getEmail())
                 .roles(user.getRoles())
+                .preferredLanguage(user.getPreferred_language())
                 .build();
     }
 

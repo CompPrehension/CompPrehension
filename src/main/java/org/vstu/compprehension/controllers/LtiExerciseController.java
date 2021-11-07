@@ -1,6 +1,7 @@
 package org.vstu.compprehension.controllers;
 
 
+import lombok.extern.log4j.Log4j2;
 import lombok.var;
 import net.oauth.server.OAuthServlet;
 import org.apache.commons.codec.net.URLCodec;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("lti")
+@Log4j2
 public class LtiExerciseController extends BasicExerciseController {
     @Value("${config.property.lti_launch_secret}")
     private String ltiLaunchSecret;
@@ -54,7 +56,7 @@ public class LtiExerciseController extends BasicExerciseController {
         val ltiPreparedUrl = OAuthServlet.getMessage(request, null).URL; // special LTI url for correct own `secret` generation
         val ltiResult = ltiVerifier.verifyParameters(params, ltiPreparedUrl, request.getMethod(), secret);
         if (!ltiResult.getSuccess()) {
-            throw new Exception("Invalid LTI session. " + ltiResult.getMessage());
+            log.error("Invalid LTI session. " + ltiResult.getMessage());
         }
 
         var session = request.getSession();
@@ -69,11 +71,17 @@ public class LtiExerciseController extends BasicExerciseController {
                 .map(vl -> NumberUtils.toLong(vl, -1L))
                 .filter(v -> v != -1L)
                 .findFirst()
-                .orElseThrow(() -> new Exception("Param 'custom_exerciseId' or 'exerciseId' is required"));
-        if (exerciseId == -1) {
-            throw new Exception("Param 'custom_exerciseId' is required");
+                .orElse(-1L);
+        if (exerciseId == -1L) {
+            log.error("Param 'custom_exerciseId' or 'exerciseId' is required");
         }
 
+        return super.launch(exerciseId, request);
+    }
+
+    @Override
+    public String launch(Long exerciseId, HttpServletRequest request) throws Exception {
+        log.error("No LTI context found");
         return super.launch(exerciseId, request);
     }
 

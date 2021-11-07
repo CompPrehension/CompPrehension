@@ -41,7 +41,9 @@ public class UserService {
         entity.setFirstName(currentPrincipalName);
         entity.setLogin(currentPrincipalName);
         entity.setPassword("undefined");
-        entity.setPreferred_language(Language.ENGLISH);
+        if (entity.getPreferred_language() == null) {
+            entity.setPreferred_language(Language.ENGLISH);
+        }
         entity.setRoles(fromLtiRoles(roles));
         entity.setExternalId(externalId);
 
@@ -73,7 +75,7 @@ public class UserService {
         entity.setEmail(email);
         entity.setLogin(email);
         entity.setPassword("undefined");
-        entity.setPreferred_language(locale.equals("EN") ? Language.ENGLISH : Language.RUSSIAN);
+        entity.setPreferred_language(Language.fromString(locale));
         entity.setRoles(fromLtiRoles(roles));
         entity.setExternalId(externalId);
 

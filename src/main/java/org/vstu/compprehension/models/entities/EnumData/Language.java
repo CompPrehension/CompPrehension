@@ -42,4 +42,8 @@ public enum Language {
         }
         return locale;
     }
+
+    public String toLocaleString() {
+        return getLocale(this).getLanguage().toUpperCase();
+    }
 }

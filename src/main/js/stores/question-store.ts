@@ -10,6 +10,7 @@ import * as NEArray from 'fp-ts/lib/NonEmptyArray'
 import { pipe } from "fp-ts/lib/function";
 import * as O from 'fp-ts/lib/Option'
 import { Answer } from "../types/answer";
+import { RequestError } from "../types/request-error";
 
 /**
  * Store question data
@@ -22,6 +23,7 @@ export class QuestionStore {
     @observable isFeedbackVisible: boolean = true;
     @observable feedback?: Feedback = undefined;
     @observable question?: Question = undefined;
+    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
 
     constructor(@inject(ExerciseController) private exerciseController: IExerciseController) {
         makeObservable(this);        
@@ -41,32 +43,46 @@ export class QuestionStore {
             this.answersHistory = question.responses ?? [];            
         });
     }
+
+    private forceSetValidState = () => {
+        if (this.storeState.tag !== 'VALID') {
+            runInAction(() => this.storeState = { tag: 'VALID' });
+        }
+    }
     
-    loadQuestion = async (questionId: number): Promise<void> => {        
+    loadQuestion = async (questionId: number): Promise<void> => {
+        this.forceSetValidState();
+
         runInAction(() => this.isQuestionLoading = true);
         const dataEither = await this.exerciseController.getQuestion(questionId);
         runInAction(() => this.isQuestionLoading = false);
 
         if (E.isLeft(dataEither)) {
-            throw (dataEither.left);
+            this.storeState = { tag: 'ERROR', error: dataEither.left };
+            return;
         }
         
         this.onQuestionLoaded(dataEither.right);
     }
 
-    generateQuestion = async (attemptId: number): Promise<void> => {        
+    generateQuestion = async (attemptId: number): Promise<void> => {       
+        this.forceSetValidState();
+        
         runInAction(() => this.isQuestionLoading = true);
         const dataEither = await this.exerciseController.generateQuestion(attemptId);
         runInAction(() => this.isQuestionLoading = false);
 
         if (E.isLeft(dataEither)) {
-            throw dataEither.left;
+            this.storeState = { tag: 'ERROR', error: dataEither.left };
+            return;
         }
 
         this.onQuestionLoaded(dataEither.right);
     }
 
     generateSupplementaryQuestion = async (attemptId: number, questionId: number, violationLaws: string[]): Promise<void> => {
+        this.forceSetValidState();
+
         const questionRequest: SupplementaryQuestionRequest = {
             exerciseAttemptId: attemptId,
             questionId: questionId,
@@ -81,7 +97,8 @@ export class QuestionStore {
         runInAction(() => this.isQuestionLoading = false);
 
         if (E.isLeft(dataEither)) {
-            throw dataEither.left;
+            this.storeState = { tag: 'ERROR', error: dataEither.left };
+            return;
         }
 
         if (dataEither.right || false) {
@@ -95,12 +112,15 @@ export class QuestionStore {
             throw new Error("Current question not found");
         }
 
+        this.forceSetValidState();
+        
         runInAction(() => this.isFeedbackLoading = true);
         const feedbackEither = await this.exerciseController.generateNextCorrectAnswer(question.questionId);
         runInAction(() => this.isFeedbackLoading = false);
         
         if (E.isLeft(feedbackEither)) {
-            throw (feedbackEither.left);
+            this.storeState = { tag: 'ERROR', error: feedbackEither.left };
+            return;
         }
 
         const feedback = feedbackEither.right;
@@ -120,12 +140,15 @@ export class QuestionStore {
             answers: toJS(answers),
         })
 
+        this.forceSetValidState();
+
         runInAction(() => this.isFeedbackLoading = true);
         const feedbackEither = await this.exerciseController.addQuestionAnswer(body);
         runInAction(() => this.isFeedbackLoading = false);
        
         if (E.isLeft(feedbackEither)) {
-            throw (feedbackEither.left);
+            this.storeState = { tag: 'ERROR', error: feedbackEither.left };
+            return;
         }
 
         const feedback = feedbackEither.right;

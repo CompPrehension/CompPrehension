@@ -7,7 +7,7 @@ import { inject, injectable } from "tsyringe";
 import { QuestionStore } from "./question-store";
 import i18next from "i18next";
 import { Language } from "../types/language";
-
+import { RequestError } from "../types/request-error";
 @injectable()
 export class ExerciseStore {
     @observable isSessionLoading: boolean = false;
@@ -15,6 +15,7 @@ export class ExerciseStore {
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion: QuestionStore;
     @observable exerciseState: 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED' = 'INITIAL';
+    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
 
     constructor(
         @inject(ExerciseController) private readonly exerciseController: IExerciseController,
@@ -33,6 +34,12 @@ export class ExerciseStore {
             }
         })
     }
+
+    private forceSetValidState = () => {
+        if (this.storeState.tag !== 'VALID') {
+            runInAction(() => this.storeState = { tag: 'VALID' });
+        }
+    }
     
     setExerciseState = (newState: ExerciseStore['exerciseState']) => {
         runInAction(() => {
@@ -50,12 +57,14 @@ export class ExerciseStore {
             return;
         }
 
+        this.forceSetValidState();
         runInAction(() => this.isSessionLoading = true);
         const dataEither = await this.exerciseController.loadSessionInfo();
         runInAction(() => this.isSessionLoading = false);
 
         if (E.isLeft(dataEither)) {
-            throw dataEither.left;
+            runInAction(() => this.storeState = { tag: 'ERROR', error: dataEither.left });
+            return;
         }
 
         this.onSessionLoaded(dataEither.right);        
@@ -63,7 +72,6 @@ export class ExerciseStore {
 
     private onSessionLoaded(sessionInfo: SessionInfo) {
         runInAction(() => {
-            this.isSessionLoading = false;
             this.sessionInfo = sessionInfo;
             
             if (this.sessionInfo.language !== i18next.language) {
@@ -72,16 +80,18 @@ export class ExerciseStore {
         });
     }
 
-    loadExistingExerciseAttempt = async (): Promise<boolean> => {
+    loadExistingExerciseAttempt = async (): Promise<boolean | undefined> => {
         const { sessionInfo } = this;
         if (!sessionInfo) {
             throw new Error("Session is not defined");
         }
        
+        this.forceSetValidState();
         const exerciseId = sessionInfo.exercise.id;
         const resultEither = await this.exerciseController.getExistingExerciseAttempt(exerciseId);
         if (E.isLeft(resultEither)) {
-            throw resultEither.left;
+            this.storeState = { tag: 'ERROR', error: resultEither.left };
+            return;
         }
         
         const result = resultEither.right;
@@ -102,10 +112,12 @@ export class ExerciseStore {
             throw new Error("Session is not defined");
         }
 
+        this.forceSetValidState();
         const exerciseId = sessionInfo.exercise.id;        
         const resultEither = await this.exerciseController.createExerciseAttempt(+exerciseId);
         if (E.isLeft(resultEither)) {
-            throw resultEither.left;
+            this.storeState = { tag: 'ERROR', error: resultEither.left };
+            return;
         }
 
         runInAction(() => {
@@ -118,7 +130,8 @@ export class ExerciseStore {
         if (!sessionInfo || !currentAttempt) {
             throw new Error("Session is not defined");
         }
-
+        
+        this.forceSetValidState();
         await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
         runInAction(() => {
             currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
