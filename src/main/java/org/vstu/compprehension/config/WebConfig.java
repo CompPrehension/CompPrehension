@@ -1,12 +1,15 @@
 package org.vstu.compprehension.config;
 
+import lombok.val;
 import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.LocaleResolver;
@@ -47,6 +50,14 @@ public class WebConfig implements WebMvcConfigurer {
         cookieLocaleResolver.setCookieName("JLOCALE");
         cookieLocaleResolver.setCookieSecure(true);
         return cookieLocaleResolver;
+    }
+
+    @Bean(name = "messageSource")
+    public MessageSource getMessageSource() {
+        val messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.addBasenames("classpath:/messages/common-messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        return messageSource;
     }
 
     @Bean
