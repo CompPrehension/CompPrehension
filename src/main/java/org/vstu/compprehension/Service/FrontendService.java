@@ -68,6 +68,9 @@ public class FrontendService {
     @Autowired
     private ViolationRepository violationRepository;
 
+    @Autowired
+    private LocalizationService localizationService;
+
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
         val question = questionService.getQuestion(questionId);
@@ -97,9 +100,10 @@ public class FrontendService {
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .findFirst()
                 .orElse(null);
+        val locale = attempt.getUser().getPreferred_language().toLocale();
         val messages = judgeResult.isAnswerCorrect
-                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct!", violation) }
-                : new FeedbackDto.Message[] { FeedbackDto.Message.Error("Incorrect", violation) };
+                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation) }
+                : new FeedbackDto.Message[] { FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation) };
         return FeedbackDto.builder()
                 .messages(messages)
                 .build();
@@ -144,9 +148,10 @@ public class FrontendService {
         val explanations = questionService.explainViolations(question, judgeResult.violations).stream().map(HyperText::getText);
         val errors = Streams.zip(violations, explanations, Pair::of)
                 .collect(Collectors.toList());
+        val locale = attempt.getUser().getPreferred_language().toLocale();
         val messages = errors.size() > 0 && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
-                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("All done!") }
-                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success("Correct, keep doing...") }
+                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
+                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
                 : null;
 
         // return result of the last correct interaction
