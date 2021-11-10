@@ -21,6 +21,10 @@ export const Exercise = observer(() => {
     // on first render
     useEffect(() => {
         (async () => {
+            if (exerciseState === 'LAUNCH_ERROR') {
+                return;
+            }
+
             if (exerciseStore.currentQuestion.question) {
                 setExerciseState('EXERCISE');
                 return;
@@ -54,7 +58,7 @@ export const Exercise = observer(() => {
 
     return (
         <>
-            <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true}>
+            <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true || exerciseState === 'INITIAL'}>
                 <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
                     <Header />
                     <div className="mt-5">

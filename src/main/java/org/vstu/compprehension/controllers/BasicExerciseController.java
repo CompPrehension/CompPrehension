@@ -7,6 +7,7 @@ import org.apache.jena.shared.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,7 +39,7 @@ public class BasicExerciseController implements ExerciseController {
     private ExerciseRepository exerciseRepository;
 
     @Override
-    public String launch(Long exerciseId, HttpServletRequest request) throws Exception {
+    public String launch(Model model, Long exerciseId, HttpServletRequest request) {
         var session = request.getSession();
         if (!session.isNew()) {
             session.invalidate();

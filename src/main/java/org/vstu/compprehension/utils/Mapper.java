@@ -85,7 +85,7 @@ public class Mapper {
                 .toArray(AnswerDto[]::new);
 
         val feedback = lastInteraction
-                .map(i -> Mapper.toFeedbackDto(questionObject, i, null, correctInteractionsCount, interactionsWithErrorsCount, null, null))
+                .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, null))
                 .orElse(null);
 
         val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
@@ -163,14 +163,15 @@ public class Mapper {
 
     public static @NotNull FeedbackDto toFeedbackDto(
             @NotNull Question question,
-            @NotNull InteractionEntity interaction,
             @Nullable FeedbackDto.Message[] messages,
             @Nullable Integer correctSteps,
             @Nullable Integer stepsWithErrors,
+            @Nullable Float grade,
+            @Nullable Integer interactionsLeft,
             @Nullable AnswerDto[] correctAnswers,
             @Nullable Decision strategyDecision
     ) {
-        if (interaction.getQuestion().getQuestionType() == QuestionType.ORDER) {
+        if (question.getQuestionData().getQuestionType() == QuestionType.ORDER) {
             val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
             val trace = Optional.ofNullable(domain.getFullSolutionTrace(question)).stream()
                     .flatMap(Collection::stream)
@@ -179,10 +180,10 @@ public class Mapper {
             return OrderQuestionFeedbackDto.builder()
                     .correctSteps(correctSteps)
                     .stepsWithErrors(stepsWithErrors)
-                    .grade(interaction.getFeedback().getGrade())
+                    .grade(grade)
                     .messages(messages)
                     .correctAnswers(correctAnswers)
-                    .stepsLeft(interaction.getFeedback().getInteractionsLeft())
+                    .stepsLeft(interactionsLeft)
                     .strategyDecision(strategyDecision)
                     .trace(trace)
                     .build();
@@ -190,10 +191,10 @@ public class Mapper {
         return FeedbackDto.builder()
                 .correctSteps(correctSteps)
                 .stepsWithErrors(stepsWithErrors)
-                .grade(interaction.getFeedback().getGrade())
+                .grade(grade)
                 .messages(messages)
                 .correctAnswers(correctAnswers)
-                .stepsLeft(interaction.getFeedback().getInteractionsLeft())
+                .stepsLeft(interactionsLeft)
                 .strategyDecision(strategyDecision)
                 .build();
     }

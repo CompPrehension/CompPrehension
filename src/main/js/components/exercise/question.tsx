@@ -33,10 +33,11 @@ export const Question = observer((props: QuestionOptions) => {
         }
     };
     const getAnswers = () => store.answersHistory;
+    const getFeedback = () => store.feedback;
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={getAnswers} onChanged={onChanged} feedback={store.feedback} isFeedbackLoading={store.isFeedbackLoading}/>
+            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={getAnswers} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );
@@ -61,9 +62,9 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
     return (
         <div className="comp-ph-feedback-wrapper mt-2">
             <Optional isVisible={isFeedbackVisible}>
-                <div>
-                    {feedbackMessages?.map(m => 
-                        <FeedbackAlert 
+                <div className="mb-3">
+                    {feedbackMessages?.map((m) => 
+                        <FeedbackAlert
                             message={m} 
                             showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
                                 m.type === 'ERROR' && m.violationLaw.canCreateSupplementaryQuestion} 
