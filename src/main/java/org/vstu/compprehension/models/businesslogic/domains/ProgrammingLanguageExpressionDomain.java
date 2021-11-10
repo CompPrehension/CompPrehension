@@ -21,6 +21,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.utils.StringHelper;
 
 import javax.inject.Singleton;
 import java.io.InputStream;
@@ -832,8 +833,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = answerText + "     " + getMessage("AT_POS", lang) + answerPos;
-        posToExplanation.put(-1, getMessage("OPERATOR", lang) + answerTemplate + getMessage("EVALUATES", lang));
+        String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("AT_POS", lang), answerPos);
+        posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("OPERATOR", lang), answerTemplate, getMessage("EVALUATES", lang)));
 
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
             if (beforeByThirdOperator.containsKey(answerObjectEntity.getDomainInfo())) {
@@ -859,17 +860,27 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = text + getMessage("AT_POS", lang) + pos;
+                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = thirdText + getMessage("AT_POS", lang) + thirdPos;
+                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
 
                         if (isStrict.containsKey(thirdOperator)) {
-                            posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                                    answerTemplate + getMessage("LEFT_SUBOPERATOR", lang) +
-                                    thirdTemplate + getMessage("WHILE_OPERATOR", lang) + template + getMessage("TO_LEFT_OPERAND", lang) + "," + getMessage("AND_LEFT_OPERAND", lang) +
-                                    thirdText + getMessage("EVALUATES_BEFORE_RIGHT", lang));
+                            posToExplanation.put(pos, StringHelper.joinWithSpace(
+                                    getMessage("BEFORE_OPERATOR", lang),
+                                    template,
+                                    ":",
+                                    getMessage("OPERATOR", lang),
+                                    answerTemplate,
+                                    getMessage("LEFT_SUBOPERATOR", lang),
+                                    thirdTemplate,
+                                    getMessage("WHILE_OPERATOR", lang),
+                                    template,
+                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
+                                    getMessage("AND_LEFT_OPERAND", lang),
+                                    thirdText,
+                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
                         }
                     }
                 }
@@ -879,21 +890,37 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = text + getMessage("AT_POS", lang) + pos;
+                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = thirdText + getMessage("AT_POS", lang) + thirdPos;
+                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
 
                         if (isStrict.containsKey(thirdOperator)) {
-                            posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                                    answerTemplate + getMessage("RIGHT_SUBOPERATOR", lang) +
-                                    thirdTemplate + getMessage("WHILE_OPERATOR", lang) + template + getMessage("TO_LEFT_OPERAND", lang) + "," + getMessage("AND_LEFT_OPERAND", lang) +
-                                    thirdText + getMessage("EVALUATES_BEFORE_RIGHT", lang));
+                            posToExplanation.put(pos, StringHelper.joinWithSpace(
+                                    getMessage("AFTER_OPERATOR", lang),
+                                    template,
+                                    ":",
+                                    getMessage("OPERATOR", lang),
+                                    answerTemplate,
+                                    getMessage("RIGHT_SUBOPERATOR", lang),
+                                    thirdTemplate,
+                                    getMessage("WHILE_OPERATOR", lang),
+                                    template,
+                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
+                                    getMessage("AND_LEFT_OPERAND", lang),
+                                    thirdText,
+                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
                         } else if (thirdText.equals("(")) {
-                            posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ": " + getMessage("OPERATOR", lang) +
-                                    template + getMessage("ENCLOSED_PARENTHESIS", lang) + thirdPos +
-                                    getMessage("INSIDE_PARENTHESIS_FIRST", lang));
+                            posToExplanation.put(pos, StringHelper.joinWithSpace(
+                                    getMessage("AFTER_OPERATOR", lang),
+                                    template,
+                                    ":",
+                                    getMessage("OPERATOR", lang),
+                                    template,
+                                    getMessage("ENCLOSED_PARENTHESIS", lang),
+                                    thirdPos,
+                                    getMessage("INSIDE_PARENTHESIS_FIRST", lang)));
                         }
                     }
                 }
@@ -904,35 +931,41 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (AnswerObjectEntity reason : explain) {
             int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
             String text = texts.get(reason.getDomainInfo());
-            String template = text  + getMessage("AT_POS", lang) + pos;
+            String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
 
             if (beforeHighPriority.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                        answerText + getMessage("HAS_HIGHER_PRECEDENCE", lang) + getMessage("THAN_OPERATOR", lang) + text);
+                posToExplanation.put(pos, StringHelper.joinWithSpace(
+                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
+                        answerText, getMessage("HAS_HIGHER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
             } else if (beforeHighPriority.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                        answerText + getMessage("HAS_LOWER_PRECEDENCE", lang) + getMessage("THAN_OPERATOR", lang) + text);
+                posToExplanation.put(pos, StringHelper.joinWithSpace(
+                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
+                        answerText, getMessage("HAS_LOWER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
             } else if (beforeLeftAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                        answerText + getMessage("LEFT_ASSOC_DESC", lang));
+                posToExplanation.put(pos, StringHelper.joinWithSpace(
+                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
+                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
             } else if (beforeLeftAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                        answerText + getMessage("LEFT_ASSOC_DESC", lang));
+                posToExplanation.put(pos, StringHelper.joinWithSpace(
+                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
+                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
             } else if (beforeRightAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, getMessage("BEFORE_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                        answerText + getMessage("RIGHT_ASSOC_DESC", lang));
+                posToExplanation.put(pos, StringHelper.joinWithSpace(
+                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
+                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
             } else if (beforeRightAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, getMessage("AFTER_OPERATOR", lang) + template + ":" + getMessage("OPERATOR", lang) +
-                        answerText + getMessage("RIGHT_ASSOC_DESC", lang));
+                posToExplanation.put(pos, StringHelper.joinWithSpace(
+                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
+                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
             }
         }
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (Map.Entry<Integer, String> kv : posToExplanation.entrySet()) {
-            result += kv.getValue() + "\n";
+            result.append(kv.getValue()).append("\n");
         }
 
-        return new HyperText(result);
+        return new HyperText(result.toString());
     }
 
     @Override
