@@ -11,7 +11,7 @@ import { SingleChoiceQuestionComponent } from "./single-choice-question";
 
 type QuestionComponentProps = {
     question: Question,
-    feedback?: Feedback,
+    getFeedback: () => Feedback | undefined,
     isFeedbackLoading: boolean,
     answers: Answer[],
     getAnswers: () => Answer[],
@@ -19,7 +19,7 @@ type QuestionComponentProps = {
 }
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {
-    const { question, answers, onChanged, getAnswers, feedback, isFeedbackLoading } = props;
+    const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading } = props;
     let questonComponent: JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
@@ -32,7 +32,7 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
             questonComponent = <SingleChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
             break;
         case 'ORDER':
-            questonComponent = <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} feedback={feedback}/>;
+            questonComponent = <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} getFeedback={getFeedback}/>;
             break;
         default:
             // compile-time checking whether the question has `never` type 
@@ -40,7 +40,7 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
             return absurd<JSX.Element>(question);
     }
     return (
-        <div className={`comp-ph-question-wrapper ${(feedback?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")} ${(isFeedbackLoading ? "comp-ph-question-wrapper--loading-feedback" : "")}`}>
+        <div className={`comp-ph-question-wrapper ${(getFeedback()?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")} ${(isFeedbackLoading ? "comp-ph-question-wrapper--loading-feedback" : "")}`}>
             {questonComponent}
         </div>
     );

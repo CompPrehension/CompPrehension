@@ -155,19 +155,21 @@ public class FrontendService {
                 : null;
 
         // return result of the last correct interaction
-        val correctAnswers = existingInteractions.stream()
+        val correctInteraction = existingInteractions.stream()
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
-                .reduce((first, second) -> second)
+                .reduce((first, second) -> second);
+        val correctAnswers = correctInteraction
                 .map(InteractionEntity::getResponses).stream()
                 .flatMap(Collection::stream)
                 .map(Mapper::toDto)
                 .toArray(AnswerDto[]::new);
 
         return Mapper.toFeedbackDto(question,
-                ie,
                 messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
+                ie.getFeedback().getGrade(),
+                ie.getFeedback().getInteractionsLeft(),
                 correctAnswers,
                 strategyAttemptDecision);
     }
@@ -246,10 +248,11 @@ public class FrontendService {
         val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswer.explanation.toString()) };
 
         return Mapper.toFeedbackDto(question,
-                ie,
                 messages,
                 correctInteractionsCount,
                 (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
+                ie.getFeedback().getGrade(),
+                ie.getFeedback().getInteractionsLeft(),
                 ie.getResponses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
                 strategyAttemptDecision);
     }

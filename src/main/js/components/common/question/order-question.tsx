@@ -9,13 +9,13 @@ import { Optional } from "../optional";
 
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
-    feedback?: OrderQuestionFeedback,
+    getFeedback: () => OrderQuestionFeedback | undefined, 
     answers: Answer[],
     getAnswers: () => Answer[],
     onChanged: (newAnswers: Answer[]) => void,
 }
 export const OrderQuestionComponent = observer((props: OrderQuestionComponentProps) => {
-    const { question, getAnswers, onChanged, feedback } = props; 
+    const { question, getAnswers, onChanged, getFeedback } = props; 
     if (!question.options.requireContext) {
         return null;
     }
@@ -30,7 +30,18 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const idStr = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? ""; 
             const id = +idStr;
-            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
+            e.addEventListener('click', () => { 
+                const curentAnswers = getAnswers();
+                let newAnswers = [...curentAnswers, { answer: [id, id] as [number, number], isСreatedByUser: true }];
+                if (!options.multipleSelectionEnabled && ([1, 2].includes(getFeedback()?.stepsLeft ?? -1) || getFeedback() === undefined && question.answers.length === 2)) {
+                    const missingAnswer = question.answers
+                        .find(aid => !curentAnswers.some(cid => aid.id === cid.answer[0]) && aid.id !== id);
+                    if (missingAnswer) {
+                        newAnswers.push({ answer: [missingAnswer.id, missingAnswer.id] as [number, number], isСreatedByUser: true })
+                    }
+                }
+                onChanged(newAnswers);
+            });
         })
 
         // show elements positions
@@ -72,13 +83,13 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                 answr.innerHTML = answerHtml.join(orderNumberOptions.delimiter);
             }  
             // disable if needed
-            if (options.multipleSelectionEnabled) {            
+            if (!options.multipleSelectionEnabled) {            
                 answr.classList.add('disabled');
             }
         });
     }, [question.questionId, getAnswers().length])
     
-    const trace = feedback?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
+    const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
     const isTraceVisible = options.showTrace && notNulAndUndefinded(trace) && trace.length > 0;
 
     return (

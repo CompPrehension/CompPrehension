@@ -14,16 +14,24 @@ export class ExerciseStore {
     @observable sessionInfo?: SessionInfo = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion: QuestionStore;
-    @observable exerciseState: 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED' = 'INITIAL';
-    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
+    @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
+    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, };
 
     constructor(
         @inject(ExerciseController) private readonly exerciseController: IExerciseController,
         @inject(QuestionStore) currentQuestion: QuestionStore
     ) {
-        makeObservable(this);
-
+        // calc store initial state
+        if (CompPh.exerciseLaunchError) {
+            this.exerciseState = 'LAUNCH_ERROR';
+            this.storeState = { tag: 'ERROR', error: { message: CompPh.exerciseLaunchError } };
+        } else {
+            this.exerciseState = 'INITIAL';
+            this.storeState = { tag: 'VALID' };
+        }
         this.currentQuestion = currentQuestion;
+
+        makeObservable(this);
         this.registerOnStrategyDecisionChangedAction();
     }
 
