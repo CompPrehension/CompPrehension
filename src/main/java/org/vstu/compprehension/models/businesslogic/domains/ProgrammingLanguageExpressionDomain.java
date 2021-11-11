@@ -1708,12 +1708,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .add(getMessage("SAME_PRECEDENCE_RIGHT_ASSOC", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("(")) {
             joiner.add(getMessage("FUNC_ARGUMENTS_BEFORE_CALL", lang));
-        } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("[")) {
-            joiner.add(getMessage("IN_BRACKETS_BEFORE_BRACKETS", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("(")) {
             joiner.add(getMessage("IN_PARENTHESIS_BEFORE", lang));
-        } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("[")) {
-            joiner.add(getMessage("IN_BRACKETS_BEFORE", lang));
+        } else if (errorType.equals("error_base_student_error_in_complex")) {
+            joiner.add(getMessage("IN_COMPLEX_BEFORE", lang));
         } else if (errorType.equals("error_base_student_error_strict_operands_order_base")) {
             joiner
                     .add(getMessage("LEFT_OPERAND", lang))
