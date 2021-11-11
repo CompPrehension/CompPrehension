@@ -1073,7 +1073,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return null;
         }
 
-        Question res = findQuestion(exerciseAttemptEntity.getExercise().getTags(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
+        Question res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
             Question copy = makeQuestionCopy(res, exerciseAttemptEntity, userLang);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
