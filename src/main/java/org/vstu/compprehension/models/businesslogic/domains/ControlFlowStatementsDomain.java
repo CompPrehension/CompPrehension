@@ -55,7 +55,9 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
 //    static final String LAWS_CONFIG_PATH = "file:c:/D/Work/YDev/CompPr/c_owl/jena/domain_laws.json";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-laws.json";
-    static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/control-flow-messages";
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/control-flow-messages";
+
+    static final String MESSAGE_PREFIX = "ctrlflow_";
 
     // dictionary
     static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
@@ -66,7 +68,6 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
-    MessageSource MESSAGES = null;
     private final LocalizationService localizationService;
 
     public ControlFlowStatementsDomain(@Autowired LocalizationService localizationService) {
@@ -1615,27 +1616,20 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
-    private MessageSource readFrontMessages() {
-        if (MESSAGES == null) {
-
-            ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-            messageSource.setBasename(MESSAGES_CONFIG_PATH);
-            messageSource.setDefaultEncoding("UTF-8");
-            MESSAGES = messageSource;
-        }
-        return MESSAGES;
-    }
+//    private MessageSource readFrontMessages() {
+//        if (MESSAGES == null) {
+//
+//            ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+//            messageSource.setBasename(MESSAGES_CONFIG_PATH);
+//            messageSource.setDefaultEncoding("UTF-8");
+//            MESSAGES = messageSource;
+//        }
+//        return MESSAGES;
+//    }
 
     private String getMessage(String message_text, Language preferred_language) {
-        Locale locale;
-        if (preferred_language == Language.ENGLISH) {
-            locale = Locale.ENGLISH;
-        } else if (preferred_language == Language.RUSSIAN) {
-            locale = new Locale("ru", "RU");
-        } else {
-            locale = Locale.ENGLISH;
-        }
-        return MESSAGES.getMessage(message_text, null, ">> " + message_text + " <<", locale);
+
+        return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
     }
 
     /**
@@ -1644,12 +1638,7 @@ public class ControlFlowStatementsDomain extends Domain {
      * @return true if message exists in ENGLISH locale
      */
     private boolean localMessageExists(String message_text) {
-        try {
-            MESSAGES.getMessage(message_text, null, Locale.ENGLISH);
-            return true;
-        } catch (NoSuchMessageException exception) {
-            return false;
-        }
+        return !(getMessage(message_text, Language.ENGLISH).equals(MESSAGE_PREFIX + message_text));
     }
 
     //* format pattern using MessageFormat class
