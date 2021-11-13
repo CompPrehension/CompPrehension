@@ -14,10 +14,13 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.ContextLoader;
+import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
@@ -27,6 +30,7 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 
 import javax.inject.Singleton;
@@ -63,10 +67,13 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     MessageSource MESSAGES = null;
+    private final LocalizationService localizationService;
 
-    public ControlFlowStatementsDomain() {
+    public ControlFlowStatementsDomain(@Autowired LocalizationService localizationService) {
         super();
+        this.localizationService = localizationService;
         name = "ControlFlowStatementsDomain";
+        
         readFrontMessages();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
@@ -1703,7 +1710,7 @@ public class ControlFlowStatementsDomain extends Domain {
         if (true)
             _test_Substitutor();
         else {
-            ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
+            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
             d.getQuestionTemplates();
             VOCAB.classDescendants("Erroneous");
 
