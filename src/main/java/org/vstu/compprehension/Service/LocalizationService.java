@@ -18,7 +18,7 @@ public class LocalizationService {
         try {
             return messageSource.getMessage(messageId, null, locale);
         } catch (Exception e) {
-            log.warn(String.format("Couldnt resolve message '%s'. %s", messageId, e));
+            log.warn(String.format("Couldn't resolve message '%s'. %s", messageId, e));
             return messageId;
         }
     }
