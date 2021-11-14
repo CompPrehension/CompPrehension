@@ -19,6 +19,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 
 import java.util.Locale;
 
@@ -58,6 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
         val messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.addBasenames("classpath:/messages/common-messages");
         messageSource.addBasenames(ControlFlowStatementsDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(ProgrammingLanguageExpressionDomain.MESSAGES_CONFIG_PATH);
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }

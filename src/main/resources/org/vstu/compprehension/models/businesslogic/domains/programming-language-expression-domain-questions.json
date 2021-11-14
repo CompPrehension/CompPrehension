@@ -3604,14 +3604,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "first_OrderOperatorsSupplementary_TEXT",
+      "questionText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "first_OrderOperatorsSupplementary_select_reason_left_precedence",
+          "hyperText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_select_reason_left_precedence",
           "domainInfo": "select_reason_left_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3620,7 +3620,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "first_OrderOperatorsSupplementary_select_reason_left_associativity",
+          "hyperText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_select_reason_left_associativity",
           "domainInfo": "select_reason_left_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3629,7 +3629,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "first_OrderOperatorsSupplementary_select_reason_left_parenthesis",
+          "hyperText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_select_reason_left_parenthesis",
           "domainInfo": "select_reason_left_parenthesis",
           "isRightCol": false,
           "concept": "operator_binary_+",
@@ -3638,7 +3638,7 @@
         },
         {
           "answerId": 3,
-          "hyperText": "first_OrderOperatorsSupplementary_select_reason_right_precedence",
+          "hyperText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_select_reason_right_precedence",
           "domainInfo": "select_reason_right_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3647,7 +3647,7 @@
         },
         {
           "answerId": 4,
-          "hyperText": "first_OrderOperatorsSupplementary_select_reason_right_associativity",
+          "hyperText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_select_reason_right_associativity",
           "domainInfo": "select_reason_right_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3656,7 +3656,7 @@
         },
         {
           "answerId": 5,
-          "hyperText": "first_OrderOperatorsSupplementary_select_reason_right_parenthesis",
+          "hyperText": "expr_domain.supplementary.first_OrderOperatorsSupplementary_select_reason_right_parenthesis",
           "domainInfo": "select_reason_right_parenthesis",
           "isRightCol": false,
           "concept": "",
@@ -3688,14 +3688,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "select_highest_precedence_left_operator_TEXT",
+      "questionText": "expr_domain.supplementary.select_highest_precedence_left_operator_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_left",
+          "hyperText": "expr_domain.supplementary.select_highest_precedence_left_operator_select_highest_precedence_operator_left",
           "domainInfo": "select_highest_precedence_operator_left",
           "isRightCol": false,
           "concept": "",
@@ -3704,7 +3704,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
+          "hyperText": "expr_domain.supplementary.select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
           "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
@@ -3713,7 +3713,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_same",
+          "hyperText": "expr_domain.supplementary.select_highest_precedence_left_operator_select_highest_precedence_operator_same",
           "domainInfo": "select_highest_precedence_operator_same",
           "isRightCol": false,
           "concept": "",
@@ -3745,14 +3745,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "select_highest_precedence_left_operator_TEXT",
+      "questionText": "expr_domain.supplementary.select_highest_precedence_left_operator_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_right",
+          "hyperText": "expr_domain.supplementary.select_highest_precedence_left_operator_select_highest_precedence_operator_right",
           "domainInfo": "select_highest_precedence_operator_right",
           "isRightCol": false,
           "concept": "",
@@ -3761,7 +3761,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
+          "hyperText": "expr_domain.supplementary.select_highest_precedence_left_operator_select_highest_precedence_operator_operator",
           "domainInfo": "select_highest_precedence_operator_operator",
           "isRightCol": false,
           "concept": "",
@@ -3770,7 +3770,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "select_highest_precedence_left_operator_select_highest_precedence_operator_same",
+          "hyperText": "expr_domain.supplementary.select_highest_precedence_left_operator_select_highest_precedence_operator_same",
           "domainInfo": "select_highest_precedence_operator_same",
           "isRightCol": false,
           "concept": "",
@@ -3802,14 +3802,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "select_precedence_or_associativity_left_influence_TEXT",
+      "questionText": "expr_domain.supplementary.select_precedence_or_associativity_left_influence_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_precedence",
+          "hyperText": "expr_domain.supplementary.select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_precedence",
           "domainInfo": "select_precedence_or_associativity_influence_precedence",
           "isRightCol": false,
           "concept": "",
@@ -3818,7 +3818,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_associativity",
+          "hyperText": "expr_domain.supplementary.select_precedence_or_associativity_left_influence_select_precedence_or_associativity_influence_associativity",
           "domainInfo": "select_precedence_or_associativity_influence_associativity",
           "isRightCol": false,
           "concept": "",
@@ -3851,7 +3851,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_highest_precedence_operator_left_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_highest_precedence_operator_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -3880,7 +3880,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_highest_precedence_operator_left_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_highest_precedence_operator_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -3909,7 +3909,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_highest_precedence_left_operator_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_highest_precedence_left_operator_TEXT",
       "options": {
         "requireContext": false
       },
@@ -3938,7 +3938,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_highest_precedence_left_operator_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_highest_precedence_left_operator_TEXT",
       "options": {
         "requireContext": false
       },
@@ -3967,7 +3967,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_highest_precedence_operator_right_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_highest_precedence_operator_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -3996,7 +3996,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_highest_precedence_operator_right_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_highest_precedence_operator_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4025,7 +4025,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_highest_precedence_right_operator_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_highest_precedence_right_operator_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4054,7 +4054,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_highest_precedence_right_operator_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_highest_precedence_right_operator_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4083,7 +4083,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "",
+      "questionText": "expr_domain.supplementary.error_select_precedence_or_associativity_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4112,7 +4112,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_precedence_or_associativity_left_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_precedence_or_associativity_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4141,7 +4141,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_precedence_or_associativity_right_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_precedence_or_associativity_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4168,7 +4168,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_precedence_or_associativity_right_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_precedence_or_associativity_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4195,14 +4195,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "select_associativity_or_arity_influence_left_TEXT",
+      "questionText": "expr_domain.supplementary.select_associativity_or_arity_influence_left_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_arity",
+          "hyperText": "expr_domain.supplementary.select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_arity",
           "domainInfo": "select_associativity_or_arity_influence_arity",
           "isRightCol": false,
           "concept": "",
@@ -4211,7 +4211,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_associativity",
+          "hyperText": "expr_domain.supplementary.select_associativity_or_arity_influence_left_select_associativity_or_arity_influence_associativity",
           "domainInfo": "select_associativity_or_arity_influence_associativity",
           "isRightCol": false,
           "concept": "",
@@ -4242,7 +4242,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_associativity_or_arity_influence_left_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_associativity_or_arity_influence_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4269,7 +4269,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_associativity_or_arity_influence_right_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_associativity_or_arity_influence_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4296,7 +4296,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_associativity_or_arity_influence_left_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_associativity_or_arity_influence_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4323,7 +4323,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_associativity_or_arity_influence_right_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_associativity_or_arity_influence_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4350,14 +4350,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "select_associativity_type_left_TEXT",
+      "questionText": "expr_domain.supplementary.select_associativity_type_left_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "select_associativity_type_left_select_associativity_type_left_left",
+          "hyperText": "expr_domain.supplementary.select_associativity_type_left_select_associativity_type_left_left",
           "domainInfo": "select_associativity_type_left_left",
           "isRightCol": false,
           "concept": "",
@@ -4366,7 +4366,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "select_associativity_type_left_select_associativity_type_left_right",
+          "hyperText": "expr_domain.supplementary.select_associativity_type_left_select_associativity_type_left_right",
           "domainInfo": "select_associativity_type_left_right",
           "isRightCol": false,
           "concept": "",
@@ -4375,7 +4375,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "select_associativity_type_left_select_associativity_type_left_nonassoc",
+          "hyperText": "expr_domain.supplementary.select_associativity_type_left_select_associativity_type_left_nonassoc",
           "domainInfo": "select_associativity_type_left_nonassoc",
           "isRightCol": false,
           "concept": "",
@@ -4405,14 +4405,14 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "select_associativity_type_right_TEXT",
+      "questionText": "expr_domain.supplementary.select_associativity_type_right_TEXT",
       "options": {
         "requireContext": false
       },
       "answerObjects": [
         {
           "answerId": 0,
-          "hyperText": "select_associativity_type_left_select_associativity_type_left_left",
+          "hyperText": "expr_domain.supplementary.select_associativity_type_left_select_associativity_type_left_left",
           "domainInfo": "select_associativity_type_right_left",
           "isRightCol": false,
           "concept": "",
@@ -4421,7 +4421,7 @@
         },
         {
           "answerId": 1,
-          "hyperText": "select_associativity_type_left_select_associativity_type_left_right",
+          "hyperText": "expr_domain.supplementary.select_associativity_type_left_select_associativity_type_left_right",
           "domainInfo": "select_associativity_type_right_right",
           "isRightCol": false,
           "concept": "",
@@ -4430,7 +4430,7 @@
         },
         {
           "answerId": 2,
-          "hyperText": "select_associativity_type_left_select_associativity_type_left_nonassoc",
+          "hyperText": "expr_domain.supplementary.select_associativity_type_left_select_associativity_type_left_nonassoc",
           "domainInfo": "select_associativity_type_right_nonassoc",
           "isRightCol": false,
           "concept": "",
@@ -4460,7 +4460,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_associativity_type_left_left_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_associativity_type_left_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4487,7 +4487,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_associativity_type_left_right_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_associativity_type_left_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4515,7 +4515,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_associativity_type_left_right_assoc_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_associativity_type_left_right_assoc_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4542,7 +4542,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_associativity_type_left_right_assoc_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_associativity_type_left_right_assoc_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4569,7 +4569,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_associativity_type_right_left_assoc_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_associativity_type_right_left_assoc_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4596,7 +4596,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_associativity_type_right_left_assoc_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_associativity_type_right_left_assoc_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4623,7 +4623,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "correct_select_associativity_type_right_right_TEXT",
+      "questionText": "expr_domain.supplementary.correct_select_associativity_type_right_right_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4650,7 +4650,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_associativity_type_right_left_TEXTerror_select_associativity_type_right_left_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_associativity_type_right_left_TEXTerror_select_associativity_type_right_left_TEXT",
       "options": {
         "requireContext": false
       },
@@ -4678,7 +4678,7 @@
     "questionData": {
       "questionType": "SINGLE_CHOICE",
       "questionDomainType": "OrderOperatorsSupplementary",
-      "questionText": "error_select_precedence_or_associativity_same_precedence_left_TEXT",
+      "questionText": "expr_domain.supplementary.error_select_precedence_or_associativity_same_precedence_left_TEXT",
       "options": {
         "requireContext": false
       },

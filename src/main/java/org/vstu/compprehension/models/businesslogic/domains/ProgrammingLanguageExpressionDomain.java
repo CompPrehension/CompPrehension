@@ -6,11 +6,13 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.base.Sys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
@@ -48,7 +50,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
-    static final String MESSAGES_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
+
+    @Autowired
+    private LocalizationService localizationService;
 
     public ProgrammingLanguageExpressionDomain() {
         name = "ProgrammingLanguageExpressionDomain";
@@ -56,7 +61,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-        readMessages(MESSAGES_PATH);
     }
 
     private void fillConcepts() {
@@ -252,17 +256,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return QUESTIONS;
     }
 
-    MessageSource MESSAGES;
-    protected MessageSource readMessages(String path) {
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.setBasename(path);
-        messageSource.setDefaultEncoding("UTF-8");
-        MESSAGES = messageSource;
-        return messageSource;
-    }
-
     private String getMessage(String base_question_text, Language preferred_language) {
-        return MESSAGES.getMessage(base_question_text, null, base_question_text, Language.getLocale(preferred_language));
+        return localizationService.getMessage(base_question_text, Language.getLocale(preferred_language));
     }
 
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
@@ -320,7 +315,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = getMessage("BASE_QUESTION_TEXT", userLang);
+                val baseQuestionText = getMessage("expr_domain.BASE_QUESTION_TEXT", userLang);
                 entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
@@ -833,8 +828,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("AT_POS", lang), answerPos);
-        posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("OPERATOR", lang), answerTemplate, getMessage("EVALUATES", lang)));
+        String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("expr_domain.AT_POS", lang), answerPos);
+        posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("expr_domain.OPERATOR", lang), answerTemplate, getMessage("expr_domain.EVALUATES", lang)));
 
         for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
             if (beforeByThirdOperator.containsKey(answerObjectEntity.getDomainInfo())) {
@@ -860,27 +855,27 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
+                        String template = StringHelper.joinWithSpace(text, getMessage("expr_domain.AT_POS", lang), pos);
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
+                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("expr_domain.AT_POS", lang), thirdPos);
 
                         if (isStrict.containsKey(thirdOperator)) {
                             posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("BEFORE_OPERATOR", lang),
+                                    getMessage("expr_domain.BEFORE_OPERATOR", lang),
                                     template,
                                     ":",
-                                    getMessage("OPERATOR", lang),
+                                    getMessage("expr_domain.OPERATOR", lang),
                                     answerTemplate,
-                                    getMessage("LEFT_SUBOPERATOR", lang),
+                                    getMessage("expr_domain.LEFT_SUBOPERATOR", lang),
                                     thirdTemplate,
-                                    getMessage("WHILE_OPERATOR", lang),
+                                    getMessage("expr_domain.WHILE_OPERATOR", lang),
                                     template,
-                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
-                                    getMessage("AND_LEFT_OPERAND", lang),
+                                    getMessage("expr_domain.TO_LEFT_OPERAND", lang) + ",",
+                                    getMessage("expr_domain.AND_LEFT_OPERAND", lang),
                                     thirdText,
-                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
+                                    getMessage("expr_domain.EVALUATES_BEFORE_RIGHT", lang)));
                         }
                     }
                 }
@@ -890,37 +885,37 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
+                        String template = StringHelper.joinWithSpace(text, getMessage("expr_domain.AT_POS", lang), pos);
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
+                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("expr_domain.AT_POS", lang), thirdPos);
 
                         if (isStrict.containsKey(thirdOperator)) {
                             posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("AFTER_OPERATOR", lang),
+                                    getMessage("expr_domain.AFTER_OPERATOR", lang),
                                     template,
                                     ":",
-                                    getMessage("OPERATOR", lang),
+                                    getMessage("expr_domain.OPERATOR", lang),
                                     answerTemplate,
-                                    getMessage("RIGHT_SUBOPERATOR", lang),
+                                    getMessage("expr_domain.RIGHT_SUBOPERATOR", lang),
                                     thirdTemplate,
-                                    getMessage("WHILE_OPERATOR", lang),
+                                    getMessage("expr_domain.WHILE_OPERATOR", lang),
                                     template,
-                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
-                                    getMessage("AND_LEFT_OPERAND", lang),
+                                    getMessage("expr_domain.TO_LEFT_OPERAND", lang) + ",",
+                                    getMessage("expr_domain.AND_LEFT_OPERAND", lang),
                                     thirdText,
-                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
+                                    getMessage("expr_domain.EVALUATES_BEFORE_RIGHT", lang)));
                         } else if (thirdText.equals("(")) {
                             posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("AFTER_OPERATOR", lang),
+                                    getMessage("expr_domain.AFTER_OPERATOR", lang),
                                     template,
                                     ":",
-                                    getMessage("OPERATOR", lang),
+                                    getMessage("expr_domain.OPERATOR", lang),
                                     template,
-                                    getMessage("ENCLOSED_PARENTHESIS", lang),
+                                    getMessage("expr_domain.ENCLOSED_PARENTHESIS", lang),
                                     thirdPos,
-                                    getMessage("INSIDE_PARENTHESIS_FIRST", lang)));
+                                    getMessage("expr_domain.INSIDE_PARENTHESIS_FIRST", lang)));
                         }
                     }
                 }
@@ -931,32 +926,32 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (AnswerObjectEntity reason : explain) {
             int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
             String text = texts.get(reason.getDomainInfo());
-            String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
+            String template = StringHelper.joinWithSpace(text, getMessage("expr_domain.AT_POS", lang), pos);
 
             if (beforeHighPriority.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("HAS_HIGHER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
+                        getMessage("expr_domain.BEFORE_OPERATOR", lang), template, ":", getMessage("expr_domain.OPERATOR", lang),
+                        answerText, getMessage("expr_domain.HAS_HIGHER_PRECEDENCE", lang), getMessage("expr_domain.THAN_OPERATOR", lang), text));
             } else if (beforeHighPriority.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("HAS_LOWER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
+                        getMessage("expr_domain.AFTER_OPERATOR", lang), template, ":", getMessage("expr_domain.OPERATOR", lang),
+                        answerText, getMessage("expr_domain.HAS_LOWER_PRECEDENCE", lang), getMessage("expr_domain.THAN_OPERATOR", lang), text));
             } else if (beforeLeftAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
+                        getMessage("expr_domain.BEFORE_OPERATOR", lang), template, ":", getMessage("expr_domain.OPERATOR", lang),
+                        answerText, getMessage("expr_domain.LEFT_ASSOC_DESC", lang)));
             } else if (beforeLeftAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
+                        getMessage("expr_domain.AFTER_OPERATOR", lang), template, ":", getMessage("expr_domain.OPERATOR", lang),
+                        answerText, getMessage("expr_domain.LEFT_ASSOC_DESC", lang)));
             } else if (beforeRightAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
+                        getMessage("expr_domain.BEFORE_OPERATOR", lang), template, ":", getMessage("expr_domain.OPERATOR", lang),
+                        answerText, getMessage("expr_domain.RIGHT_ASSOC_DESC", lang)));
             } else if (beforeRightAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
+                        getMessage("expr_domain.AFTER_OPERATOR", lang), template, ":", getMessage("expr_domain.OPERATOR", lang),
+                        answerText, getMessage("expr_domain.RIGHT_ASSOC_DESC", lang)));
             }
         }
 
@@ -1202,7 +1197,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         try {
             String text = stringSubstitutor.replace(supplementaryQuestion.getQuestionText());
-            text = text.replaceAll(getMessage("SAME_PRECEDENCE_TEMPLATE", lang), getMessage("OPERATOR_TEMPLATE", lang));
+            text = text.replaceAll(getMessage("expr_domain.SAME_PRECEDENCE_TEMPLATE", lang), getMessage("expr_domain.OPERATOR_TEMPLATE", lang));
 
             supplementaryQuestion.getQuestionData().setQuestionText(text);
         } catch (IllegalArgumentException ex) {
@@ -1586,18 +1581,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private String getOperatorTextDescription(String errorText, Language lang) {
         if (errorText.equals("(")) {
-            return getMessage("PARENTHESIS", lang);
+            return getMessage("expr_domain.PARENTHESIS", lang);
         } else if (errorText.equals("[")) {
-            return getMessage("BRACKETS", lang);
+            return getMessage("expr_domain.BRACKETS", lang);
         } else if (errorText.contains("(")) {
-            return getMessage("FUNC_CALL", lang);
+            return getMessage("expr_domain.FUNC_CALL", lang);
         }
-        return getMessage("OPERATOR", lang);
+        return getMessage("expr_domain.OPERATOR", lang);
     }
 
     private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
         if (mistake.getLawName().equals("error_select_precedence_or_associativity")) {
-            return new HyperText(getMessage("ERROR_PRECEDENCE_BEFORE_ASSOC", lang));
+            return new HyperText(getMessage("expr_domain.ERROR_PRECEDENCE_BEFORE_ASSOC", lang));
         } else if (mistake.getLawName().equals("error_select_highest_precedence")) {
             String text = "";
             String index;
@@ -1608,7 +1603,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     index = fact.getObject();
                 }
             }
-            return new HyperText(getMessage("ERROR_PRECEDENCE_HIGHER1", lang) + text + getMessage("ERROR_PRECEDENCE_HIGHER2", lang));
+            return new HyperText(getMessage("expr_domain.ERROR_PRECEDENCE_HIGHER1", lang) + text + getMessage("expr_domain.ERROR_PRECEDENCE_HIGHER2", lang));
         } else if (mistake.getLawName().equals("wrong_operand_type")) {
             String realType = "";
             String studentType = "";
@@ -1669,14 +1664,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         joiner
                 .add(getOperatorTextDescription(reasonText, lang))
                 .add(reasonText)
-                .add(getMessage("AT_POS", lang))
+                .add(getMessage("expr_domain.AT_POS", lang))
                 .add(reasonPos)
-                .add(getMessage("EVALUATES_BEFORE", lang))
+                .add(getMessage("expr_domain.EVALUATES_BEFORE", lang))
                 .add(getOperatorTextDescription(errorText, lang))
                 .add(errorText)
-                .add(getMessage("AT_POS", lang))
+                .add(getMessage("expr_domain.AT_POS", lang))
                 .add(errorPos);
-        joiner.add("\n").add(getMessage("BECAUSE", lang));
+        joiner.add("\n").add(getMessage("expr_domain.BECAUSE", lang));
 
         String errorType = mistake.getLawName();
 
@@ -1685,43 +1680,43 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             joiner
                     .add(getOperatorTextDescription(reasonText, lang))
                     .add(reasonText)
-                    .add(getMessage("HAS_HIGHER_PRECEDENCE", lang));
+                    .add(getMessage("expr_domain.HAS_HIGHER_PRECEDENCE", lang));
         } else if (errorType.equals("error_base_same_precedence_left_associativity_left") && errorText.equals(reasonText)) {
             joiner
                     .add(getOperatorTextDescription(reasonText, lang))
                     .add(reasonText)
-                    .add(getMessage("LEFT_ASSOC_DESC", lang));
+                    .add(getMessage("expr_domain.LEFT_ASSOC_DESC", lang));
         } else if (errorType.equals("error_base_same_precedence_left_associativity_left")) {
             joiner
                     .add(getOperatorTextDescription(reasonText, lang))
                     .add(reasonText)
-                    .add(getMessage("SAME_PRECEDENCE_LEFT_ASSOC", lang));
+                    .add(getMessage("expr_domain.SAME_PRECEDENCE_LEFT_ASSOC", lang));
         } else if (errorType.equals("error_base_same_precedence_right_associativity_right") && errorText.equals(reasonText)) {
             joiner
                     .add(getOperatorTextDescription(reasonText, lang))
                     .add(reasonText)
-                    .add(getMessage("RIGHT_ASSOC_DESC", lang));
+                    .add(getMessage("expr_domain.RIGHT_ASSOC_DESC", lang));
         } else if (errorType.equals("error_base_same_precedence_right_associativity_right")) {
             joiner
                     .add(getOperatorTextDescription(reasonText, lang))
                     .add(reasonText)
-                    .add(getMessage("SAME_PRECEDENCE_RIGHT_ASSOC", lang));
+                    .add(getMessage("expr_domain.SAME_PRECEDENCE_RIGHT_ASSOC", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && errorText.equals("(")) {
-            joiner.add(getMessage("FUNC_ARGUMENTS_BEFORE_CALL", lang));
+            joiner.add(getMessage("expr_domain.FUNC_ARGUMENTS_BEFORE_CALL", lang));
         } else if (errorType.equals("error_base_student_error_in_complex") && thirdOperatorText.equals("(")) {
-            joiner.add(getMessage("IN_PARENTHESIS_BEFORE", lang));
+            joiner.add(getMessage("expr_domain.IN_PARENTHESIS_BEFORE", lang));
         } else if (errorType.equals("error_base_student_error_in_complex")) {
-            joiner.add(getMessage("IN_COMPLEX_BEFORE", lang));
+            joiner.add(getMessage("expr_domain.IN_COMPLEX_BEFORE", lang));
         } else if (errorType.equals("error_base_student_error_strict_operands_order_base")) {
             joiner
-                    .add(getMessage("LEFT_OPERAND", lang))
+                    .add(getMessage("expr_domain.LEFT_OPERAND", lang))
                     .add(getOperatorTextDescription(thirdOperatorText, lang))
                     .add(thirdOperatorText)
-                    .add(getMessage("AT_POS", lang))
+                    .add(getMessage("expr_domain.AT_POS", lang))
                     .add(thirdOperatorPos)
-                    .add(getMessage("MUST_BEFORE_RIGHT", lang));
+                    .add(getMessage("expr_domain.MUST_BEFORE_RIGHT", lang));
         } else {
-            joiner.add(getMessage("UNKNOWN_ERROR", lang));
+            joiner.add(getMessage("expr_domain.UNKNOWN_ERROR", lang));
         }
 
         return new HyperText(joiner.toString());
