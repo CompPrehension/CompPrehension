@@ -192,7 +192,9 @@ export class QuestionStore {
         
         const prevLastAnswer = this.lastAnswer;
         this.lastAnswer = fullAnswer;
-        this.answersHistory.push(prevLastAnswer)
+        if (prevLastAnswer.length > 0) {
+            this.answersHistory.push(prevLastAnswer);
+        }        
         
         if (!sendAnswers) { 
             return true;
@@ -204,7 +206,9 @@ export class QuestionStore {
         } catch {
             // rollback asnwer if found unexpected error
             this.lastAnswer = prevLastAnswer;
-            this.answersHistory.pop();
+            if (prevLastAnswer.length > 0) {
+                this.answersHistory.pop();
+            }
             return false;
         }
     })

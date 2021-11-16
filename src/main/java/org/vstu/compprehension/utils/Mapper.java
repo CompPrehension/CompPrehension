@@ -85,7 +85,7 @@ public class Mapper {
                 .toArray(AnswerDto[]::new);
 
         val feedback = lastInteraction
-                .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, null))
+                .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, i.getViolations().size() == 0, null))
                 .orElse(null);
 
         val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
@@ -169,6 +169,7 @@ public class Mapper {
             @Nullable Float grade,
             @Nullable Integer interactionsLeft,
             @Nullable AnswerDto[] correctAnswers,
+            boolean isCorrect,
             @Nullable Decision strategyDecision
     ) {
         if (question.getQuestionData().getQuestionType() == QuestionType.ORDER) {
@@ -186,6 +187,7 @@ public class Mapper {
                     .stepsLeft(interactionsLeft)
                     .strategyDecision(strategyDecision)
                     .trace(trace)
+                    .isCorrect(isCorrect)
                     .build();
         }
         return FeedbackDto.builder()
@@ -196,6 +198,7 @@ public class Mapper {
                 .correctAnswers(correctAnswers)
                 .stepsLeft(interactionsLeft)
                 .strategyDecision(strategyDecision)
+                .isCorrect(isCorrect)
                 .build();
     }
 }

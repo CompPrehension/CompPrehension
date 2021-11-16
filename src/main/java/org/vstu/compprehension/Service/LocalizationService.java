@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 
 import java.util.Locale;
 
@@ -18,8 +19,12 @@ public class LocalizationService {
         try {
             return messageSource.getMessage(messageId, null, locale);
         } catch (Exception e) {
-            log.warn(String.format("Couldn't resolve message '%s'. %s", messageId, e));
+            log.warn("Couldn't resolve message '{}' for language '{}'. {}", messageId, locale.getLanguage(), e);
             return messageId;
         }
+    }
+
+    public @NotNull String getMessage(@NotNull String messageId, @NotNull Language language) {
+        return getMessage(messageId, Language.getLocale(language));
     }
 }

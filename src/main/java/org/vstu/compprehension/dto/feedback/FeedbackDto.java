@@ -15,6 +15,8 @@ import org.vstu.compprehension.models.entities.EnumData.Decision;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackDto {
+    @JsonProperty("isCorrect")
+    private boolean isCorrect;
     private Float grade;
     private Integer correctSteps;
     private Integer stepsLeft;
