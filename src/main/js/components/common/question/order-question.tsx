@@ -58,22 +58,23 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             const pos = e.getAttribute("data-comp-ph-pos");
             e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '')
             e.classList.remove('disabled');
-            e.classList.remove('comp-ph-question-answer--selected');
-            e.classList.remove('comp-ph-question-answer--last-selected');
+            //e.classList.remove('comp-ph-question-answer--selected-by-system');
         });
 
         // apply history changes    
-        getAnswers().forEach(({ answer }, idx, answers) => {
+        getAnswers().forEach(({ answer, isСreatedByUser }, idx, answers) => {
             const [h] = answer;
             const answr = document.querySelector(`#question_${question.questionId}_answer_${h}`);
             if (!answr) {
                 return 0;
             }
 
+            /*
             answr.classList.add('comp-ph-question-answer--selected');
             if (idx === answers.length - 1) {
                 answr.classList.add('comp-ph-question-answer--last-selected');
             }
+            */
 
             // add pos hint        
             if (orderNumberOptions.position !== 'NONE') {

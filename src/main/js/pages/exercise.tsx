@@ -100,7 +100,7 @@ export const Exercise = observer(() => {
             {
                 [excerciseStoreState, currentQuestionStoreState]
                     .filter(x => x.tag === 'ERROR')
-                    .map((x, idx, arr) => x.tag === 'ERROR' && <div className={`${(arr.length > 1 && idx < arr.length - 1) && "mb-2" || ''}`}><Alert variant='danger'>{x.error.message}</Alert></div>)
+                    .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><Alert variant='danger'>{x.error.message}</Alert></div>)
             }
         </>
     );

@@ -27,17 +27,16 @@ export const Question = observer((props: QuestionOptions) => {
     }    
 
     const onChanged = async (newHistory: Answer[]) => {
-        if (store.isHistoryChanged(newHistory)) {
-            await store.updateAnswersHistory(newHistory);
+        if (await store.setFullAnswer(newHistory)) {
             ParentOnChanged?.(newHistory);
         }
     };
-    const getAnswers = () => store.answersHistory;
+    const getAnswer = () => store.lastAnswer as Answer[];
     const getFeedback = () => store.feedback;
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={getAnswers} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
+            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );
