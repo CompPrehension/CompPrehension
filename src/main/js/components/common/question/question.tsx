@@ -15,12 +15,11 @@ type QuestionComponentProps = {
     isFeedbackLoading: boolean,
     answers: Answer[],
     getAnswers: () => Answer[],
-    getAnswerHistory: () => Answer[][],
     onChanged: (x: Answer[]) => void,
 }
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {
-    const { question, answers, onChanged, getAnswers, getFeedback, getAnswerHistory, isFeedbackLoading } = props;
+    const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading } = props;
     let questonComponent: JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
@@ -33,7 +32,7 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
             questonComponent = <SingleChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
             break;
         case 'ORDER':
-            questonComponent = <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} getAnswerHistory={getAnswerHistory} getFeedback={getFeedback}/>;
+            questonComponent = <OrderQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} getFeedback={getFeedback}/>;
             break;
         default:
             // compile-time checking whether the question has `never` type 
