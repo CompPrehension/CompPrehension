@@ -32,12 +32,11 @@ export const Question = observer((props: QuestionOptions) => {
         }
     };
     const getAnswer = () => store.lastAnswer as Answer[];
-    const getAnswerHistory = () => store.answersHistory as Answer[][];
     const getFeedback = () => store.feedback;
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} getAnswerHistory={getAnswerHistory} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
+            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );

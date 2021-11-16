@@ -40,7 +40,8 @@ export class QuestionStore {
         this.question = question;
         this.feedback = question.feedback ?? undefined;
         this.isFeedbackVisible = true;
-        this.setFullAnswer(question.responses ?? [], false);
+        this.answersHistory = [];
+        this.lastAnswer = question.responses ?? [];
     }
 
     @action
@@ -106,7 +107,7 @@ export class QuestionStore {
             return;
         }
 
-        if (dataEither.right || false) {
+        if (dataEither.right) {
             this.onQuestionLoaded(dataEither.right);
         }
     })
