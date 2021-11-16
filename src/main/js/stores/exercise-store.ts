@@ -1,4 +1,4 @@
-import { action, autorun, makeObservable, observable, runInAction, toJS } from "mobx";
+import { action, autorun, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseAttempt } from "../types/exercise-attempt";
@@ -17,10 +17,8 @@ export class ExerciseStore {
     @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, };
 
-    constructor(
-        @inject(ExerciseController) private readonly exerciseController: IExerciseController,
-        @inject(QuestionStore) currentQuestion: QuestionStore
-    ) {
+    constructor(@inject(ExerciseController) private readonly exerciseController: IExerciseController,
+                @inject(QuestionStore) currentQuestion: QuestionStore) {
         // calc store initial state
         if (CompPh.exerciseLaunchError) {
             this.exerciseState = 'LAUNCH_ERROR';
@@ -43,21 +41,21 @@ export class ExerciseStore {
         })
     }
 
+    @action
     private forceSetValidState = () => {
         if (this.storeState.tag !== 'VALID') {
-            runInAction(() => this.storeState = { tag: 'VALID' });
+            this.storeState = { tag: 'VALID' };
         }
     }
     
-    setExerciseState = (newState: ExerciseStore['exerciseState']) => {
-        runInAction(() => {
-            if (this.exerciseState !== newState) {
-                this.exerciseState = newState;
-            }
-        })
+    @action
+    setExerciseState = (newState: ExerciseStore['exerciseState']) => {        
+        if (this.exerciseState !== newState) {
+            this.exerciseState = newState;
+        }
     }
 
-    loadSessionInfo = async (): Promise<void> => {
+    loadSessionInfo = flow(function* (this: ExerciseStore) {
         if (this.sessionInfo) {
             throw new Error("Session exists");
         }
@@ -66,29 +64,27 @@ export class ExerciseStore {
         }
 
         this.forceSetValidState();
-        runInAction(() => this.isSessionLoading = true);
-        const dataEither = await this.exerciseController.loadSessionInfo();
-        runInAction(() => this.isSessionLoading = false);
+        this.isSessionLoading = true;
+        const dataEither: E.Either<RequestError, SessionInfo> = yield this.exerciseController.loadSessionInfo();
+        this.isSessionLoading = false;
 
         if (E.isLeft(dataEither)) {
-            runInAction(() => this.storeState = { tag: 'ERROR', error: dataEither.left });
+            this.storeState = { tag: 'ERROR', error: dataEither.left };
             return;
         }
 
         this.onSessionLoaded(dataEither.right);        
+    })
+
+    private onSessionLoaded(sessionInfo: SessionInfo) {        
+        this.sessionInfo = sessionInfo;
+        
+        if (this.sessionInfo.language !== i18next.language) {
+            i18next.changeLanguage(this.sessionInfo.language);
+        }
     }
 
-    private onSessionLoaded(sessionInfo: SessionInfo) {
-        runInAction(() => {
-            this.sessionInfo = sessionInfo;
-            
-            if (this.sessionInfo.language !== i18next.language) {
-                i18next.changeLanguage(this.sessionInfo.language);
-            }
-        });
-    }
-
-    loadExistingExerciseAttempt = async (): Promise<boolean | undefined> => {
+    loadExistingExerciseAttempt = flow(function* (this: ExerciseStore) {
         const { sessionInfo } = this;
         if (!sessionInfo) {
             throw new Error("Session is not defined");
@@ -96,7 +92,7 @@ export class ExerciseStore {
        
         this.forceSetValidState();
         const exerciseId = sessionInfo.exercise.id;
-        const resultEither = await this.exerciseController.getExistingExerciseAttempt(exerciseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExistingExerciseAttempt(exerciseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -106,15 +102,13 @@ export class ExerciseStore {
         if (!result) {
             return false;
         }
-
-        runInAction(() => {
-            this.currentAttempt = result;
-        })
+        
+        this.currentAttempt = result;
         return true;
-    }
+    });
 
 
-    createExerciseAttempt = async (): Promise<void> => {
+    createExerciseAttempt = flow(function* (this: ExerciseStore) {
         const { sessionInfo } = this;
         if (!sessionInfo) {
             throw new Error("Session is not defined");
@@ -122,36 +116,31 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = sessionInfo.exercise.id;        
-        const resultEither = await this.exerciseController.createExerciseAttempt(+exerciseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createExerciseAttempt(+exerciseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
-
-        runInAction(() => {
-            this.currentAttempt = resultEither.right;
-        })
-    }
+        
+        this.currentAttempt = resultEither.right;
+    });
     
-    generateQuestion = async (): Promise<void> => {
+    generateQuestion = flow(function* (this: ExerciseStore) {
         const { sessionInfo, currentAttempt } = this;
         if (!sessionInfo || !currentAttempt) {
             throw new Error("Session is not defined");
         }
         
         this.forceSetValidState();
-        await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
-        runInAction(() => {
-            currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
-        })
-    }
+        yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);        
+        currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+    });
 
-    changeLanguage = (newLang: Language) => {
-        runInAction(() => {
-            if (this.sessionInfo && this.sessionInfo.language !== newLang) {
-                this.sessionInfo.language = newLang;
-                i18next.changeLanguage(newLang);
-            }
-        })
+    @action
+    changeLanguage = (newLang: Language) => {        
+        if (this.sessionInfo && this.sessionInfo.language !== newLang) {
+            this.sessionInfo.language = newLang;
+            i18next.changeLanguage(newLang);
+        }
     }
 }

@@ -1,9 +1,12 @@
 package org.vstu.compprehension.models.entities.EnumData;
 
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.utils.StringHelper;
 
 import java.util.Locale;
+import java.util.Objects;
 
 @Log4j2
 public enum Language {
@@ -29,18 +32,23 @@ public enum Language {
         return Language.ENGLISH;
     }
 
-    public static Locale getLocale(Language language) {
-        Locale locale;
-        if (language == Language.ENGLISH) {
-            locale = Locale.ENGLISH;
-        } else if (language == Language.RUSSIAN) {
-            locale = new Locale("ru", "RU");
-        } else if (language == Language.POLISH) {
-            locale = new Locale("pl", "PL");
-        } else {
-            locale = Locale.ENGLISH;
+    public static @NotNull Locale getLocale(@Nullable Language language) {
+        if (language == null) {
+            log.warn("Couldn't map language '{}' to locale. Using default instead (ENGLISH)", language);
+            return Locale.ENGLISH;
         }
-        return locale;
+
+        switch (language) {
+            case ENGLISH:
+                return Locale.ENGLISH;
+            case RUSSIAN:
+                return new Locale("ru", "RU");
+            case POLISH:
+                return new Locale("pl", "PL");
+            default:
+                log.warn("Couldn't map language '{}' to locale. Using default instead (ENGLISH)", language);
+                return Locale.ENGLISH;
+        }
     }
 
     public String toLocaleString() {

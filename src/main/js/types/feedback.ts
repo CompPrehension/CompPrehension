@@ -37,6 +37,7 @@ const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
 ])
 
 export type Feedback = {
+    isCorrect: boolean,
     grade?: number | null,   
     correctAnswers?: Answer[] | null,
     correctSteps?: number | null,
@@ -45,23 +46,28 @@ export type Feedback = {
     messages?: FeedbackMessage[] | null,
     strategyDecision?: 'CONTINUE' | 'FINISH' | null,
 } 
-export const TFeedback: io.Type<Feedback> = io.partial({
-    grade: io.union([io.number, io.null]),
-    violations: io.union([io.array(io.number), io.null]),
-    correctAnswers: io.union([io.array(TAnswer), io.null]),
-    correctSteps: io.union([io.number, io.null]),
-    stepsLeft: io.union([io.number, io.null]),
-    stepsWithErrors: io.union([io.number, io.null]),
-    message: io.union([io.array(TFeedbackMessage), io.null]),
-    strategyDecision: io.union([
-        io.keyof({
-            'CONTINUE': null,
-            'FINISH': null,
-        }),
-        io.null,
-    ]),
-}, 'Feedback');
-
+export const TFeedback: io.Type<Feedback> = io.intersection([
+    io.type({
+        isCorrect: io.boolean,
+    }),
+    io.partial({
+        isCorrect: io.boolean,
+        grade: io.union([io.number, io.null]),
+        violations: io.union([io.array(io.number), io.null]),
+        correctAnswers: io.union([io.array(TAnswer), io.null]),
+        correctSteps: io.union([io.number, io.null]),
+        stepsLeft: io.union([io.number, io.null]),
+        stepsWithErrors: io.union([io.number, io.null]),
+        message: io.union([io.array(TFeedbackMessage), io.null]),
+        strategyDecision: io.union([
+            io.keyof({
+                'CONTINUE': null,
+                'FINISH': null,
+            }),
+            io.null,
+        ]),
+    }),
+], 'Feedback');
 
 
 export type OrderQuestionFeedback = MergeIntersections<Feedback & {

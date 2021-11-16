@@ -106,6 +106,7 @@ public class FrontendService {
                 : new FeedbackDto.Message[] { FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation) };
         return FeedbackDto.builder()
                 .messages(messages)
+                .isCorrect(judgeResult.isAnswerCorrect)
                 .build();
     }
 
@@ -171,6 +172,7 @@ public class FrontendService {
                 ie.getFeedback().getGrade(),
                 ie.getFeedback().getInteractionsLeft(),
                 correctAnswers,
+                errors.size() == 0 && judgeResult.isAnswerCorrect,
                 strategyAttemptDecision);
     }
 
@@ -254,6 +256,7 @@ public class FrontendService {
                 ie.getFeedback().getGrade(),
                 ie.getFeedback().getInteractionsLeft(),
                 ie.getResponses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
+                true,
                 strategyAttemptDecision);
     }
 

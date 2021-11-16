@@ -34,6 +34,13 @@ body ul {
   pointer-events: none;
 }
 
+[id^="question_"][id*="_answer_"].comp-ph-question-answer--last-selected-by-system {
+  /*
+  transition: all 1s linear;
+  */
+  border: 2px solid green;
+}
+
 .comp-ph-feedback-wrapper .modal-dialog {
   margin-top: 1rem;
   margin-bottom: 0.1rem;

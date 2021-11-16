@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { useState } from 'react';
-import { Button } from 'react-bootstrap';
+import { Alert, Button } from 'react-bootstrap';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
 import { QuestionStore } from '../../stores/question-store';
@@ -74,15 +74,14 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
                     <Button onClick={onDetailsClicked} variant="primary">{t('generateSupQuestion_details')}</Button>
                     <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('generateSupQuestion_gotit')}</Button>
                 </div>
-            </Optional>
-            
-            
-            <Modal type={'DIALOG'}
-                size={'xl'}
-                show={isModalVisible} 
-                closeButton={false} 
-                handleClose={() => setIsModalVisible(false)}>
-                <Question store={questionStore} showExtendedFeedback={false} onChanged={OnAnswered}/>
+            </Optional>            
+            <Modal  type={'DIALOG'} size={'xl'} 
+                    show={isModalVisible}
+                    closeButton={false} 
+                    handleClose={() => setIsModalVisible(false)}>
+                <Question store={questionStore} showExtendedFeedback={false} onChanged={OnAnswered}/>                
+                {questionStore.storeState.tag === 'ERROR' &&
+                    <div className="mt-2"><Alert variant='danger'>{questionStore.storeState.error.message}</Alert></div>}
             </Modal>
         </Optional>
     )
