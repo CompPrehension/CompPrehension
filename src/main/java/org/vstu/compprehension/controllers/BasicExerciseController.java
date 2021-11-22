@@ -1,10 +1,13 @@
 package org.vstu.compprehension.controllers;
 
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import lombok.var;
 import org.apache.jena.shared.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +16,7 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.question.QuestionDto;
@@ -22,6 +26,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("basic")
+@Log4j2
 public class BasicExerciseController implements ExerciseController {
 
     @Autowired
@@ -34,7 +39,7 @@ public class BasicExerciseController implements ExerciseController {
     private ExerciseRepository exerciseRepository;
 
     @Override
-    public String launch(Long exerciseId, HttpServletRequest request) throws Exception {
+    public String launch(Model model, Long exerciseId, HttpServletRequest request) {
         var session = request.getSession();
         if (!session.isNew()) {
             session.invalidate();
@@ -44,7 +49,7 @@ public class BasicExerciseController implements ExerciseController {
         session.setAttribute("exerciseId", exerciseId);
 
         if (exerciseId == null) {
-            throw new Exception("exerciseId param is required");
+            log.error(new Exception("exerciseId param is required"));
         }
 
         return "index";
@@ -67,11 +72,13 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public QuestionDto generateQuestion(Long exAttemptId, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateQuestion(exAttemptId);
     }
 
     @Override
     public QuestionDto generateSupplementaryQuestion(SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateSupplementaryQuestion(questionRequest.getExerciseAttemptId(), questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
@@ -82,6 +89,7 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateNextCorrectAnswer(questionId);
     }
 
@@ -101,7 +109,7 @@ public class BasicExerciseController implements ExerciseController {
                 .sessionId(session.getId())
                 .exercise(new ExerciseInfoDto(exerciseId, exercise.getOptions()))
                 .user(user)
-                .language("EN")
+                .language(user.getPreferredLanguage().toLocaleString())
                 .build();
         session.setAttribute("sessionInfo", sessionInfo);
 
@@ -119,6 +127,7 @@ public class BasicExerciseController implements ExerciseController {
         val userEntity = userService.createOrUpdateFromAuthentication();
         val userEntityDto = Mapper.toDto(userEntity);
         session.setAttribute("currentUserInfo", userEntityDto);
+        session.setAttribute("currentUserId", userEntityDto.getId());
 
         return userEntityDto;
     }

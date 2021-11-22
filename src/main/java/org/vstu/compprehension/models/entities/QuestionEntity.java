@@ -38,9 +38,6 @@ public class QuestionEntity {
     @Column(name = "question_domain_type")
     private String questionDomainType;
 
-    @Column(name = "answers_require_context")
-    private Boolean areAnswersRequireContext;
-
     @Type(type = "json")
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;

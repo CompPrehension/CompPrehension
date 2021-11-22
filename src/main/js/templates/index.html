@@ -7,4 +7,8 @@
   <body>
     <div id="root"></div>    
   </body>
+  <script th:inline="javascript">
+    var CompPh = CompPh || {};
+    CompPh.exerciseLaunchError = CompPh.exerciseLaunchError || /*[[${exerciseLaunchError}]]*/;
+  </script>
 </html>

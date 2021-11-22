@@ -7,31 +7,40 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.MutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.context.ContextLoader;
+import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
-import org.vstu.compprehension.utils.LocalizationMap;
 
 import javax.inject.Singleton;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.getLeafOntClasses;
@@ -46,7 +55,9 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
 //    static final String LAWS_CONFIG_PATH = "file:c:/D/Work/YDev/CompPr/c_owl/jena/domain_laws.json";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-laws.json";
-    static final String MESSAGES_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-messages.txt";
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/control-flow-messages";
+
+    static final String MESSAGE_PREFIX = "ctrlflow_";
 
     // dictionary
     static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
@@ -57,11 +68,13 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
-    private static HashMap<String, LocalizationMap> MESSAGES = null;
+    private final LocalizationService localizationService;
 
-    public ControlFlowStatementsDomain() {
+    public ControlFlowStatementsDomain(@Autowired LocalizationService localizationService) {
         super();
+        this.localizationService = localizationService;
         name = "ControlFlowStatementsDomain";
+        
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
     }
@@ -123,47 +136,89 @@ public class ControlFlowStatementsDomain extends Domain {
     public List<HyperText> getFullSolutionTrace(Question question) {
         /// System.out.println("\t\tGetting the trace ...");
 
-        ArrayList<HyperText> result = new ArrayList<>();
+//        final String textMode = "text";
+        final String textMode = "html";
 
-        HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
+        Language lang = getUserLanguage(question);
+
+        ArrayList<HyperText> result = new ArrayList<>();
 
         String qType = question.getQuestionData().getQuestionDomainType();
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
+            HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
+            FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
+            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "iteration" /* << iteration is not-a-class */);
+
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+
                 boolean responseIsWrong = ! response.getInteraction().getViolations().isEmpty();
+
+                // format a trace line ...
 
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
                 String line;
-                if (info.getTraceActHypertext() != null) {
-                    line = info.getTraceActHypertext();
+                String actionKind = answerObj.getConcept(); // temporary setting
+                if (actionKind.endsWith("loop"))
+                    actionKind = "loop";
+                // find most general type
+                ArrayList<String> thisActionKinds = qg.chainReachable(info.getExId(), List.of("^id", "rdf:type"));
+                thisActionKinds.add(actionKind);
+                thisActionKinds.retainAll(actionKinds);
+                if (thisActionKinds.isEmpty()) {
+                    actionKind = "iteration";  // todo: verify
                 } else {
-                    line = "(" + domainInfo + ")";
+                    actionKind = thisActionKinds.get(0);
                 }
+
+
+                String lineTpl = getMessage(textMode + ".trace." + actionKind + "." + info.getPhase(), lang); // pass locale
+
+                Map<String, String> replacementMap = new HashMap<>();
 
                 int execTime = 1 + exprName2ExecTime.getOrDefault(domainInfo, 0);
-                line = line + " " + nthTimeByN(execTime);
                 exprName2ExecTime.put(domainInfo, execTime);
+                replacementMap.put("n", String.valueOf(execTime));
+
+                String name = getActionNameById(question.getQuestionData(), Integer.parseInt(info.getExId()), /*actionKind*/ answerObj.getConcept());
+                replacementMap.put("name", name);
+
+                if (lineTpl.contains("nth_time")) {
+                    String nth_time_template = getMessage(textMode + ".trace.template.nth_time", lang); // pass locale
+                    String nth_time = formatTemplate(nth_time_template, execTime);
+                    replacementMap.put("nth_time", nth_time);
+                }
+
+                if (lineTpl.contains("cond.name")) {
+                    List<String> nameAsList = qg.chainReachable(info.getExId(), List.of("^id", "cond", "stmt_name"));
+                    String cond_name = nameAsList.isEmpty()? "!none!" : nameAsList.get(0);
+                    replacementMap.put("cond.name", cond_name);
+                }
+
+                if (lineTpl.contains("parent.name")) {
+                    String childProp = (actionKind.contains("if") || actionKind.contains("else"))? "branches_item" : actionKind.equals("iteration") ? "body" : null; // use with caution
+                    List<String> nameAsList = qg.chainReachable(info.getExId(), List.of("^id", "^" + childProp, "stmt_name"));
+                    String parent_name = nameAsList.isEmpty()? "!none!" : nameAsList.get(0);
+                    replacementMap.put("parent.name", parent_name);
+                }
 
                 // add expression value if necessary
-                if (answerObj.getConcept().equals("expr")) {
+                if (actionKind.equals("expr")) {
                     String valueStr;
                     if (responseIsWrong) {
-                        /// valueStr = "not evaluated";
-                        valueStr = "не вычислено";
+                        // "not evaluated" / "не вычислено" / ...
+                        valueStr = getMessage("value.invalid", lang); //pass locale;
                     } else {
-                        String phase = info.getPhase();
-                        String exId = info.getExId();
-                        String exprName = getExpressionNameById(question.getQuestionData(), Integer.parseInt(exId));
-                        int value = getValueForExpression(question.getQuestionData(), exprName, execTime);
+                        int value = getValueForExpression(question.getQuestionData(), name, execTime);
 
-                        /// valueStr = (value == 1) ? "true" : "false";
-                        valueStr = (value == 1) ? "истина" : "ложь";
+                        // "true" : "false" /  "истина" : "ложь";
+                        valueStr = getMessage("value.bool." + value, lang); // pass locale;
                     }
-                    // add HTML styling
-                    line = line + " -> " + htmlStyled("atom", valueStr);
+                    replacementMap.put("value", valueStr);
                 }
+
+                line = replaceInString(lineTpl, replacementMap);
 
                 // check if this line is wrong
                 if (responseIsWrong) {
@@ -202,7 +257,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
-        ArrayList<ResponseEntity> responses = new ArrayList<ResponseEntity>();
+        List<ResponseEntity> responses = new ArrayList<>();
 
         List<InteractionEntity> interactions = q.getInteractions();
 
@@ -211,40 +266,30 @@ public class ControlFlowStatementsDomain extends Domain {
             // early exit: no further checks for emptiness
         }
 
-        for (InteractionEntity i : interactions) {
-            if (i.getViolations().isEmpty()) {
-                // this is correct interaction, so it appends one more correct response, - get it
-                List<ResponseEntity> currentResponses = i.getResponses();
-                if (currentResponses != null && !currentResponses.isEmpty()) {
-                    ResponseEntity lastResponse = currentResponses.get(currentResponses.size() - 1);
+//        InteractionEntity lastCorrectInteraction = null;
 
-                    responses.add(lastResponse);
-                }
-            }
-        }
+        responses = Optional.of(interactions).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second)
+                .map(InteractionEntity::getResponses)
+                .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
+                .orElseGet(ArrayList::new);
 
-        /*  prev variant
-        InteractionEntity lastCorrectInteraction = null;
-        for (InteractionEntity i : Lists.reverse(interactions)) {
-            if (i.getViolations().isEmpty()) {
-                lastCorrectInteraction = i;
-                break;
-            }
-        }
-        if (lastCorrectInteraction != null) {
-            responses.addAll(lastCorrectInteraction.getResponses());
-        }
-        */
 
         if (allowLastIncorrect) {
-            InteractionEntity lastInteraction = interactions.get(interactions.size() - 1);
-            // lastInteraction is wrong
-            if (!lastInteraction.getViolations().isEmpty()) {
-                List<ResponseEntity> lastResponses = lastInteraction.getResponses();
-                if (lastResponses != null && !lastResponses.isEmpty()) {
-                    ResponseEntity lastResponse = lastResponses.get(lastResponses.size() - 1);
-
-                    responses.add(lastResponse);
+            val latestStudentResponse = Optional.of(interactions).stream()
+                    .flatMap(Collection::stream)
+                    .reduce((first, second) -> second).orElse(null);
+            if (latestStudentResponse != null && !latestStudentResponse.getViolations().isEmpty()) {
+                // lastInteraction is wrong
+                val responseNew = Optional.ofNullable(latestStudentResponse.getResponses())//.stream()
+//                        .flatMap(Collection::stream)
+                        .filter(resp -> resp.size() > 0)
+                        .map(resp -> resp.get(resp.size() - 1))
+                        .orElse(null);
+                if (responseNew != null) {
+                    responses.add(responseNew);
                 }
             }
         }
@@ -255,18 +300,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return "<span class=\"" + styleClass + "\">" + text + "</span>";
     }
 
-    private String nthTimeByN(int n) {
-        String suffix, time = "time";
-        /// switch (n) {
-        ///     case 1: suffix = "st"; break;
-        ///     case 2: suffix = "nd"; break;
-        ///     case 3: suffix = "rd"; break;
-        ///     default: suffix = "th";
-        /// }
-        suffix = "-й";
-        time = "раз";
-        return htmlStyled("number", n + suffix) + " " + time;
-    }
 
     @Override
     public ExerciseForm getExerciseForm() {
@@ -322,23 +355,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
     }
 
-//    public List<BackendFactEntity> getBackendFacts(List<String> expression) {
-//        List<BackendFactEntity> facts = new ArrayList<>();
-//        int index = 0;
-//        for (String token : expression) {
-//            index++;
-//            for (int step = 0; step <= expression.size(); ++step) {
-//                String name = getName(step, index);
-//                facts.add(new BackendFactEntity(name, "rdf:type", "owl:NamedIndividual"));
-//                facts.add(new BackendFactEntity("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
-//                facts.add(new BackendFactEntity("owl:NamedIndividual", name, "step", "xsd:int", String.valueOf(step)));
-//            }
-//            facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token));
-//        }
-//        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "last", "xsd:boolean", "true"));
-//        return facts;
-//    }
-
     static List<BackendFactEntity> schemaFactsCache = null;
 
     static List<BackendFactEntity> getSchemaFacts() {
@@ -393,7 +409,6 @@ public class ControlFlowStatementsDomain extends Domain {
             answerObjectEntities.add(newAnswerObjectEntity);
         }
         entity.setAnswerObjects(answerObjectEntities);
-        entity.setAreAnswersRequireContext(true);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
@@ -408,7 +423,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = getFrontMessages().get("ORDER_question_prompt").get(userLanguage);
+                val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity);
@@ -455,22 +470,20 @@ public class ControlFlowStatementsDomain extends Domain {
 
     public HyperText makeExplanation(ViolationEntity violation, FeedbackType feedbackType, Language userLang) {
         String lawName = violation.getLawName();
-        String msg = getFrontMessages().get(lawName).get(userLang);
+        String msg = getMessage(lawName, userLang);
 
         if (msg == null) {
-            return new HyperText("[Empty explanation] for " + lawName);
+            return new HyperText("[Empty explanation] for law " + lawName);
         }
 
-        // fill placeholders
+        // Build replacement map
+        Map<String, String> replacementMap = new HashMap<>();
         for (ExplanationTemplateInfoEntity template : violation.getExplanationTemplateInfo()) {
-            String pattern = "<" + template.getFieldName() + ">";
-            if (!msg.contains(pattern)) {
-                pattern = "<list-" + template.getFieldName() + ">";
-            }
-            String replacement = template.getValue();
-            msg = msg.replaceAll(pattern, replacement);
+            replacementMap.put(template.getFieldName(), template.getValue());
         }
 
+        // Replace in msg
+        msg = replaceInString(msg, replacementMap);
         return new HyperText(msg);
     }
 
@@ -637,7 +650,7 @@ public class ControlFlowStatementsDomain extends Domain {
             // obtain correct only responses (in different way!)
             List<ResponseEntity> responsesByQ = responsesForTrace(q, false);
 
-            // append latest response to list of correct responses
+            // append the latest response to list of correct responses
             if (!responses.isEmpty()) {
                 ResponseEntity latestResponse = responses.get(responses.size() - 1);
                 responsesByQ.add(latestResponse);
@@ -741,7 +754,7 @@ public class ControlFlowStatementsDomain extends Domain {
                             ++execCount;
                             pair.setRight(execCount);
                         } else {
-                            exprName = getExpressionNameById(q, Integer.parseInt(exId));
+                            exprName = getActionNameById(q, Integer.parseInt(exId), "expr");
                             if (exprName != null) {
                                 execCount = 1;
                                 // add the entry to the map
@@ -964,22 +977,35 @@ public class ControlFlowStatementsDomain extends Domain {
         return result;
     }
 
+    Set<String> possibleMistakesByLaw(String correctLaw) {
+        return notHappenedMistakes(List.of(correctLaw), null);
+    }
+
+    Set<String> notHappenedMistakes(List<String> correctLaws) {
+        return notHappenedMistakes(correctLaws, null);
+    }
+
     Set<String> notHappenedMistakes(List<String> correctLaws, List<BackendFactEntity> questionFacts) {
         HashSet<String> mistakeNames = new HashSet<>();
-        // find out if context mistakes are applicable here
-        for (BackendFactEntity f : questionFacts) {
-            if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
-                mistakeNames.add("CorrespondingEndMismatched");
-                mistakeNames.add("EndedDeeper");
-                mistakeNames.add("EndedShallower");
-                mistakeNames.add("WrongContext");
-                mistakeNames.add("OneLevelShallower");
-                break;
+
+        // may omit context mistakes in the mode when no question info provided
+        if (questionFacts != null) {
+            // find out if context mistakes are applicable here
+            for (BackendFactEntity f : questionFacts) {
+                if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
+                    mistakeNames.add("CorrespondingEndMismatched");
+                    mistakeNames.add("EndedDeeper");
+                    mistakeNames.add("EndedShallower");
+                    mistakeNames.add("WrongContext");
+                    mistakeNames.add("OneLevelShallower");
+                    break;
+                }
             }
         }
         // use heuristics to get possible mistakes
         for (String corrLaw : correctLaws) {
             switch (corrLaw) {
+                // TODO: fix typo in all places: Condtion
                 case("SequenceBegin"):
                     mistakeNames.add("TooEarlyInSequence");
                     mistakeNames.add("SequenceFinishedTooEarly");
@@ -996,6 +1022,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     break;
                 case("AltBegin"):
                     mistakeNames.add("NoFirstCondition");
+                    mistakeNames.add("BranchNotNextToCondition");
                     mistakeNames.add("BranchWithoutCondition");
                     break;
                 case("AltBranchBegin"):
@@ -1006,7 +1033,6 @@ public class ControlFlowStatementsDomain extends Domain {
                     mistakeNames.add("ConditionTooEarly");
                     mistakeNames.add("ConditionTooLate");
                     mistakeNames.add("DuplicateOfCondition");
-                    mistakeNames.add("NoNextCondition");
                     mistakeNames.add("NoBranchWhenConditionIsTrue");
                     mistakeNames.add("AlternativeEndAfterTrueCondition");
                     break;
@@ -1024,17 +1050,14 @@ public class ControlFlowStatementsDomain extends Domain {
                 case("AltEndAfterBranch"):
                     mistakeNames.add("ConditionAfterBranch");
                     mistakeNames.add("AnotherExtraBranch");
-                    mistakeNames.add("LastFalseNoEnd");
                     mistakeNames.add("NoAlternativeEndAfterBranch");
                     break;
                 case("AltEndAllFalse"):
-                    mistakeNames.add("ConditionAfterBranch");
                     mistakeNames.add("BranchOfFalseCondition");
-                    mistakeNames.add("AnotherExtraBranch");
                     mistakeNames.add("LastFalseNoEnd");
-                    mistakeNames.add("NoAlternativeEndAfterBranch");
                     break;
                 case("AltElseBranchBegin"):
+                    mistakeNames.add("BranchOfFalseCondition");
                     mistakeNames.add("LastConditionIsFalseButNoElse");
                     break;
                 case("IterationBeginOnTrueCond"):
@@ -1126,7 +1149,7 @@ public class ControlFlowStatementsDomain extends Domain {
     /** receive solution as model */
     private ProcessSolutionResult processSolution(OntModel model) {
         InterpretSentenceResult result = new InterpretSentenceResult();
-        // always one correct answer
+        // there is always one correct answer
         result.CountCorrectOptions = 1;
 
         // retrieving full solution path ...
@@ -1174,7 +1197,7 @@ public class ControlFlowStatementsDomain extends Domain {
             /// assert actionInd != null;  // did not get last act correctly ?
             assertNotNull(actionInd, "did last act retrieved correctly?");
 
-            // 2) find length of shortest path over algorithm to the end ...
+            // 2) find length of the shortest path over algorithm to the end ...
             // get shortcuts to properties
             OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
             OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
@@ -1223,7 +1246,6 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
@@ -1232,15 +1254,20 @@ public class ControlFlowStatementsDomain extends Domain {
         val lastCorrectInteractionAnswers = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> Pair.of(r.getLeftAnswerObject(), r.getRightAnswerObject()))
+                // In Ordering Question, we need left answer objects only.
+                .map(r -> r.getLeftAnswerObject())
                 .collect(Collectors.toList());
 
-//        List<InteractionEntity> interactions = q.getQuestionData().getInteractions();
+        return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
+    }
+
+    @Nullable
+    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+
         String phase;
         String exId;
-
-        if (lastCorrectInteractionAnswers.isEmpty()) {
-            // get first act in trace
+        if (correctTraceAnswersObjects == null || correctTraceAnswersObjects.isEmpty()) {
+            // get first act of potential trace
             List<AnswerObjectEntity> answers = q.getQuestionData().getAnswerObjects();
             AnswerObjectEntity firstAnswer = answers.get(0);
             String domainInfo = firstAnswer.getDomainInfo();
@@ -1250,14 +1277,18 @@ public class ControlFlowStatementsDomain extends Domain {
             exId = answerDomainInfo.getExId();
 
         } else {
-            AnswerObjectEntity lastAnswer =
-                    lastCorrectInteractionAnswers.get(lastCorrectInteractionAnswers.size() - 1).getLeft();
+            //// = correctTraceAnswers.get(correctTraceAnswers.size() - 1).answers.get(0).getLeft();
+            AnswerObjectEntity lastAnswer = correctTraceAnswersObjects
+                    .stream()
+                    .reduce((first, second) -> second)
+                    .orElse(null);
+
+            assertNotNull(lastAnswer);
 
             String domainInfo = lastAnswer.getDomainInfo();
             AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
             phase = answerDomainInfo.getPhase();
             exId = answerDomainInfo.getExId();
-
         }
 
         // find next consequent (using solved facts)
@@ -1285,6 +1316,16 @@ public class ControlFlowStatementsDomain extends Domain {
             qaInfoPrefix = phase + ":" + exId;
             int count = 0;
 
+            // count current exec_time using given steps
+            if (correctTraceAnswersObjects != null) {
+                for (AnswerObjectEntity answerObj : correctTraceAnswersObjects) {
+                    String domainInfo = answerObj.getDomainInfo();
+                    if (domainInfo.startsWith(qaInfoPrefix)) {
+                        ++count;
+                    }
+                }
+            }
+/*          old variant, using student's progress on the question
             for (ResponseEntity response : responsesForTrace(q.getQuestionData(), false)) {
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
@@ -1292,8 +1333,9 @@ public class ControlFlowStatementsDomain extends Domain {
                     ++ count;
                 }
             }
+*/
 
-            String exprName = getExpressionNameById(q.getQuestionData(), Integer.parseInt(exId));
+            String exprName = getActionNameById(q.getQuestionData(), Integer.parseInt(exId), "expr");
             int exprVal = getValueForExpression(q.getQuestionData(), exprName, count);
 
             // use appropriate property name
@@ -1311,6 +1353,13 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // true / false ways do matter in case of expr
         Individual boundTo = boundFrom.getPropertyResourceValue(consequent).as(Individual.class);
+
+        // check if we encountered the end of the program
+        OntProperty any_consequent = model.getOntProperty(model.expandPrefix(":consequent"));
+        if (null == boundTo.getPropertyResourceValue(any_consequent)) {
+            // the last act of global_code has no outgoing properties, so hide it from outer code by reporting the end now
+            return null;
+        }
 
         Individual actionTo = boundTo.getPropertyResourceValue(boundary_of).as(Individual.class);
 
@@ -1370,10 +1419,10 @@ public class ControlFlowStatementsDomain extends Domain {
         //// System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
-        ArrayList<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers = new ArrayList<>();  // lastCorrectInteractionAnswers);
+        ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
         for (AnswerObjectEntity answer : q.getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
-                answers.add(Pair.of(answer, answer));
+                answers.add(new CorrectAnswer.Response(answer, answer));
             }
         }
 
@@ -1384,24 +1433,73 @@ public class ControlFlowStatementsDomain extends Domain {
         correctAnswer.lawName = reasonName; // "No correct law yet, using flow graph";  // answerImpl.lawName;
 
         HyperText explanation;
-        if (getFrontMessages().containsKey(reasonName)) {
-            Language userLang;  // natural language to format explanation
-            try {
-                userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-            } catch (NullPointerException e) {
-                userLang = Language.ENGLISH;  // fallback if it cannot be figured out
-            }
-            String message = getFrontMessages().get(reasonName).get(userLang);
-            // fill in the blanks
-            for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-                message = message.replace("<" + entry.getKey() + ">", entry.getValue());
-            }
+        if (localMessageExists(reasonName)) {
+            Language userLang = getUserLanguage(q);
+            String message = getMessage(reasonName, userLang);
+            // Replace in message
+            message = replaceInString(message, placeholders);
+
             explanation = new HyperText(message);
         }
-        else
+        else {
             explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
+        }
         correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
+    }
+
+    private Language getUserLanguage(Question q) {
+        Language userLang;  // natural language to format explanation
+        try {
+            userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+        } catch (NullPointerException e) {
+            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
+        }
+        return userLang;
+    }
+
+    @Override
+    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return possibleViolationsByStep(q,completedSteps)
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(toSet());
+    }
+
+    @Override
+    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
+
+        // use existing solution steps if given
+        List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+
+        if (completedSteps != null) {
+            // extract answerObjects from given responses
+            correctTraceAnswersObjects.addAll(completedSteps.stream().map(ResponseEntity::getLeftAnswerObject).collect(Collectors.toList()));
+        }
+
+        HashMap<String, Set<String>> map = new HashMap<>();
+
+        // Construct remaining trace virtually, step by step
+        while (true) {
+            CorrectAnswer currentAct = getNextCorrectAnswer(q, correctTraceAnswersObjects);
+            if (currentAct == null)
+                break;
+
+            // grow our virtual trace
+            correctTraceAnswersObjects.add(currentAct.answers.get(0).getLeft());
+
+            // find violations possible on this step
+            final Set<String> possibleViolations = possibleMistakesByLaw(currentAct.lawName);
+
+            final ArrayList<String> possibleViolationsSorted = new ArrayList<>(possibleViolations);
+            java.util.Collections.sort(possibleViolationsSorted);
+            String violSetKey = String.join(";", possibleViolationsSorted);
+
+            // save unique sets of violations
+            map.putIfAbsent(violSetKey, possibleViolations);
+        }
+
+        return new HashSet<>(map.values());
     }
 
 //    public CorrectAnswer getRemainingCorrectAnswers(Question q) {
@@ -1439,7 +1537,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     /** return stmt_name or `null` if not an `expr` */
-    private String getExpressionNameById(QuestionEntity question, int actionId) {
+    private String getActionNameById(QuestionEntity question, int actionId, String actionRdfType) {
         String instance = null;
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getVerb().equals("id") && Integer.parseInt(fact.getObject()) == actionId) {
@@ -1450,7 +1548,7 @@ public class ControlFlowStatementsDomain extends Domain {
         boolean isEXpr = false;
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getSubject().equals(instance)) {
-                if (fact.getVerb().equals("rdf:type") && fact.getObject().equals("expr")) {
+                if (fact.getVerb().equals("rdf:type") && fact.getObject().equals(actionRdfType)) {
                     isEXpr = true;
                 }
                 if (fact.getVerb().equals("stmt_name")) {
@@ -1488,50 +1586,97 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
-    private Map<String, LocalizationMap> getFrontMessages() {
-        if (MESSAGES == null) {
-            MESSAGES = new HashMap<>();
+    private String getMessage(String message_text, Language preferred_language) {
 
-            try(BufferedReader br = new BufferedReader(new InputStreamReader(this.getClass().getClassLoader().getResourceAsStream(MESSAGES_CONFIG_PATH), StandardCharsets.UTF_8))) {
+        return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
+    }
 
-                for(String line; (line = br.readLine()) != null; ) {
-                    // format-specific parsing
-                    line = line.trim();
-                    if (!line.isEmpty()) {
-                        String[] parts = line.split("\t", 3);
-                        if (parts.length == 3) {
+    /**
+     * Check if a message is in a default (ENGLISH) locale
+     * @param message_text message key
+     * @return true if message exists in ENGLISH locale
+     */
+    private boolean localMessageExists(String message_text) {
+        return !(getMessage(message_text, Language.ENGLISH).equals(MESSAGE_PREFIX + message_text));
+    }
 
-                            String[] names = parts[0].split(" ", 2);
-                            String name = names[0];  // get EN name; RU at [1]
+    /** format pattern using MessageFormat class
+     * @param pattern pattern of MessageFormat
+     * @param arguments arguments for pattern
+     * @return formatted string
+     */
+    private static String formatTemplate(String pattern, Object... arguments) {
+        // from: https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html
+        return (new MessageFormat(pattern)).format(arguments, new StringBuffer(), null).toString();
+    }
 
-                            LocalizationMap lm = new LocalizationMap();
-                            lm.put(Language.RUSSIAN, parts[1]); // get RU msg
-                            lm.put(Language.ENGLISH, parts[2]); // get EN msg
+    /** fill in the blanks using StringSubstitutor class
+     * @param s pattern of StringSubstitutor
+     * @param placeholders argument map for pattern
+     * @return
+     */
+    private static String replaceInString(String s, Map<String, String> placeholders) {
+        // Build StringSubstitutor
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(placeholders);
+        stringSubstitutor.setEnableUndefinedVariableException(true);
 
-                            MESSAGES.put(name, lm);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                System.out.println("ERROR reading messages from file: " + MESSAGES_CONFIG_PATH);
-                e.printStackTrace();
-            }
-        }
-        return MESSAGES;
+        // Replace in message
+        return stringSubstitutor.replace(s);
+    }
+
+    private static void _test_Substitutor() {
+
+        // Build map
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("animal", "quick brown fox");
+        valuesMap.put("target", "lazy dog");
+        valuesMap.put("name", "loop");
+        String templateString = "The ${animal} jumped over the ${target} ${undefined.number:-1234567890} times.";
+
+        // Build StringSubstitutor
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(valuesMap);
+        stringSubstitutor.setEnableUndefinedVariableException(true);
+
+        // Replace
+        String resolvedString = stringSubstitutor.replace(templateString);
+        System.out.println(resolvedString);
+
+        // change the map
+        valuesMap.put("target", "pink pig");
+
+        // Replace again
+        resolvedString = stringSubstitutor.replace(templateString);
+        System.out.println(resolvedString);
+
+        MessageFormat form = new MessageFormat("The disk \"{1}\" contains {0,choice,0#no files|1#one file|1<{0,number,integer} files}.");
+//        double[] filelimits = {0,1,2};
+//        String[] filepart = {"no files","one file","{0,number} files"};
+//        ChoiceFormat fileform = new ChoiceFormat(filelimits, filepart);
+//        form.setFormatByArgumentIndex(0, fileform);
+
+        int fileCount = 12;
+        String diskName = "MyDisk";
+        Object[] testArgs = {(long) fileCount, diskName};
+
+        System.out.println(form.format(testArgs));
+
     }
 
     public static void main(String[] args) {
-        ControlFlowStatementsDomain d = new ControlFlowStatementsDomain();
-        d.getQuestionTemplates();
-        VOCAB.classDescendants("Erroneous");
+        if (true)
+            _test_Substitutor();
+        else {
+            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
+            d.getQuestionTemplates();
+            VOCAB.classDescendants("Erroneous");
 
-
-        JenaBackend jBack = new JenaBackend();
-        jBack.createOntology();
-        // jBack.getModel().add(VOCAB.getModel());
-        jBack.addFacts(modelToFacts(VOCAB.getModel()));
-        jBack.addFacts(QUESTIONS.get(0).getStatementFacts());
+            JenaBackend jBack = new JenaBackend();
+            jBack.createOntology();
+            // jBack.getModel().add(VOCAB.getModel());
+            jBack.addFacts(modelToFacts(VOCAB.getModel()));
+            jBack.addFacts(QUESTIONS.get(0).getStatementFacts());
 //        jBack.debug_dump_model("question");
+        }
     }
 
     private static class AnswerDomainInfo {

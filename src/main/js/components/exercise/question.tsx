@@ -9,11 +9,12 @@ import { Alert, Badge } from "react-bootstrap";
 import { notNulAndUndefinded } from "../../utils/helpers";
 import { GenerateSupQuestion } from "./generate-sup-question";
 import { useTranslation } from "react-i18next";
+import { Answer } from "../../types/answer";
 
 type QuestionOptions = {
     store: QuestionStore, 
     showExtendedFeedback: boolean,
-    onChanged?: (newHistory: [number, number][]) => void,
+    onChanged?: (newHistory: Answer[]) => void,
 }
 export const Question = observer((props: QuestionOptions) => {
     const { store, showExtendedFeedback, onChanged:ParentOnChanged } = props;
@@ -25,17 +26,17 @@ export const Question = observer((props: QuestionOptions) => {
         return null;
     }    
 
-    const onChanged = async (newHistory: [number, number][]) => {
-        if (store.isHistoryChanged(newHistory)) {
-            await store.updateAnswersHistory(newHistory);
+    const onChanged = async (newHistory: Answer[]) => {
+        if (await store.setFullAnswer(newHistory)) {
             ParentOnChanged?.(newHistory);
         }
     };
-    const getAnswers = () => store.answersHistory;
+    const getAnswer = () => store.lastAnswer as Answer[];
+    const getFeedback = () => store.feedback;
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.answersHistory} getAnswers={getAnswers} onChanged={onChanged} feedback={store.feedback} isFeedbackLoading={store.isFeedbackLoading}/>
+            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );
@@ -60,9 +61,9 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
     return (
         <div className="comp-ph-feedback-wrapper mt-2">
             <Optional isVisible={isFeedbackVisible}>
-                <div>
-                    {feedbackMessages?.map(m => 
-                        <FeedbackAlert 
+                <div className="mb-3">
+                    {feedbackMessages?.map((m) => 
+                        <FeedbackAlert
                             message={m} 
                             showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
                                 m.type === 'ERROR' && m.violationLaw.canCreateSupplementaryQuestion} 

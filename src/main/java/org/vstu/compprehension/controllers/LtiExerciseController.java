@@ -1,6 +1,8 @@
 package org.vstu.compprehension.controllers;
 
 
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import lombok.var;
 import net.oauth.server.OAuthServlet;
 import org.apache.commons.codec.net.URLCodec;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("lti")
+@Log4j2
 public class LtiExerciseController extends BasicExerciseController {
     @Value("${config.property.lti_launch_secret}")
     private String ltiLaunchSecret;
@@ -36,8 +39,9 @@ public class LtiExerciseController extends BasicExerciseController {
     @Autowired
     private ExerciseRepository exerciseRepository;
 
+    @SneakyThrows
     @RequestMapping(value = {"/pages/exercise" }, method=RequestMethod.POST)
-    public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> requestParams) throws Exception {
+    public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> requestParams) {
         // read LTI data from both request body and request params
         // we can't just extract full form data explicitly through `@RequestParam` or something
         // because we've already cached request and broken formdata->requestparams implicit conversion
@@ -54,7 +58,9 @@ public class LtiExerciseController extends BasicExerciseController {
         val ltiPreparedUrl = OAuthServlet.getMessage(request, null).URL; // special LTI url for correct own `secret` generation
         val ltiResult = ltiVerifier.verifyParameters(params, ltiPreparedUrl, request.getMethod(), secret);
         if (!ltiResult.getSuccess()) {
-            throw new Exception("Invalid LTI session. " + ltiResult.getMessage());
+            model.addAttribute("exerciseLaunchError", "Invalid LTI session. " + ltiResult.getError());
+            log.error("Invalid LTI session. " + ltiResult.getMessage());
+            return "index";
         }
 
         var session = request.getSession();
@@ -69,12 +75,20 @@ public class LtiExerciseController extends BasicExerciseController {
                 .map(vl -> NumberUtils.toLong(vl, -1L))
                 .filter(v -> v != -1L)
                 .findFirst()
-                .orElseThrow(() -> new Exception("Param 'custom_exerciseId' or 'exerciseId' is required"));
-        if (exerciseId == -1) {
-            throw new Exception("Param 'custom_exerciseId' is required");
+                .orElse(-1L);
+        if (exerciseId == -1L) {
+            log.error("Param 'custom_exerciseId' or 'exerciseId' is required");
+            model.addAttribute("exerciseLaunchError", "Param 'custom_exerciseId' or 'exerciseId' is required");
+            return "index";
         }
 
-        return super.launch(exerciseId, request);
+        return super.launch(model, exerciseId, request);
+    }
+
+    @Override
+    public String launch(Model model, Long exerciseId, HttpServletRequest request) {
+        log.error("No LTI context found");
+        return super.launch(model, exerciseId, request);
     }
 
     @Override
@@ -92,6 +106,7 @@ public class LtiExerciseController extends BasicExerciseController {
         val userEntity = userService.createOrUpdateFromLti(params);
         val userEntityDto = Mapper.toDto(userEntity);
         session.setAttribute("currentUserInfo", userEntityDto);
+        session.setAttribute("currentUserId", userEntityDto.getId());
         return userEntityDto;
     }
 

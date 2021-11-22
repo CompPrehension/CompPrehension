@@ -904,20 +904,20 @@
   {
     "expression": ["func", "(", "var", ",", "var2", ")"],
     "relations": [
-      {"indexFrom": 2, "indexesTo": [1, 3, 5, 6]}
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 5, 6]}
     ]
   },
   {
     "expression": ["a", "=" ,"func", "(", "var", ",", "var2", ")"],
     "relations": [
-      {"indexFrom": 4, "indexesTo": [3, 5, 7, 8]},
+      {"indexFrom": 4, "indexesTo": [3, 5, 6, 7, 8]},
       {"indexFrom": 2, "indexesTo": [1, 4]}
     ]
   },
   {
     "expression": ["a", "=" ,"func", "(", "var", ",", "var2", ")", "--"],
     "relations": [
-      {"indexFrom": 4, "indexesTo": [3, 5, 7, 8]},
+      {"indexFrom": 4, "indexesTo": [3, 5, 6, 7, 8]},
       {"indexFrom": 9, "indexesTo": [4]},
       {"indexFrom": 2, "indexesTo": [1, 9]}
     ]
@@ -925,7 +925,7 @@
   {
     "expression": ["func", "(", "var", ",", "var2", ",", "var3", ",", "var4", ")"],
     "relations": [
-      {"indexFrom": 2, "indexesTo": [1, 3, 5, 7, 9, 10]}
+      {"indexFrom": 2, "indexesTo": [1, 3, 4, 5, 6, 7, 8, 9, 10]}
     ]
   },
   {
@@ -939,7 +939,7 @@
     "expression": ["scope", "::", "func", "(", "var", ",", "var2", ")"],
     "relations": [
       {"indexFrom": 2, "indexesTo": [1, 3]},
-      {"indexFrom": 4, "indexesTo": [2, 5, 7, 8]}
+      {"indexFrom": 4, "indexesTo": [2, 5, 6, 7, 8]}
     ]
   },
   {

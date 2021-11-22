@@ -224,21 +224,35 @@ public class FactsGraph {
 
     /**
      * Get objects reachable from given subject via a fixed chain of properties.
+     * A property can be inverted with "^" prefix
      * @param s subject
      * @param propertyChain list of properties (verbs)
      * @return list of objects.
      */
     public ArrayList<String> chainReachable(String s, List<String> propertyChain) {
-        ArrayList<String> currentSubjs = new ArrayList<String>(List.of(s));
+        ArrayList<String> currentSubjs = new ArrayList<>(List.of(s));
         // for each prop, sequentially ...
         for (String p : propertyChain) {
+            boolean inverse = p.startsWith("^");
+            if (inverse) {
+                p = p.substring(1);
+            }
             // find what subjects are reachable from current set along `p`
-            HashSet<String> nextSubjs = new HashSet<String>();
+            HashSet<String> nextSubjs = new HashSet<>();
             for (String cs : currentSubjs) {
-                List<BackendFactEntity> suitableFacts = filterFacts(cs, p, null);
-                if (suitableFacts == null) continue;
-                for (BackendFactEntity f : suitableFacts) {
-                    nextSubjs.add(f.getObject());
+                List<BackendFactEntity> suitableFacts;
+                if (!inverse) {
+                    suitableFacts = filterFacts(cs, p, null);
+                    if (suitableFacts == null) continue;
+                    for (BackendFactEntity f : suitableFacts) {
+                        nextSubjs.add(f.getObject());
+                    }
+                } else {
+                    suitableFacts = filterFacts(null, p, cs);
+                    if (suitableFacts == null) continue;
+                    for (BackendFactEntity f : suitableFacts) {
+                        nextSubjs.add(f.getSubject());
+                    }
                 }
             }
             currentSubjs.clear();

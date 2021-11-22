@@ -15,7 +15,9 @@ import org.vstu.compprehension.models.businesslogic.*;
 
 import javax.inject.Singleton;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Singleton
 public class TestDomain extends Domain {
@@ -98,7 +100,6 @@ public class TestDomain extends Domain {
         questionConceptChoices.add(qcc);
         
         //question.setQuestionConceptChoices(questionConceptChoices);
-        question.setAreAnswersRequireContext(false);
         //question.setLaws(questionRequest.getTargetLaws());
         question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionText(questionText);
@@ -201,6 +202,17 @@ public class TestDomain extends Domain {
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         return null;
+    }
+
+    
+    @Override
+    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
+        return new HashSet<>();
     }
 
     @Override

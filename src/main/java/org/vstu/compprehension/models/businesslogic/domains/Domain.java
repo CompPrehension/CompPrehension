@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.web.context.annotation.RequestScope;
@@ -252,7 +254,7 @@ public abstract class Domain {
     /**
      * Any available correct answer at current iteration
      */
-    public class CorrectAnswer {
+    public static class CorrectAnswer {
         /**
          * Question
          */
@@ -260,7 +262,7 @@ public abstract class Domain {
         /**
          * Correct answer objects
          */
-        public List<Pair<AnswerObjectEntity, AnswerObjectEntity>> answers;
+        public List<Response> answers;
         /**
          * Text explanation why it chosen
          */
@@ -269,6 +271,12 @@ public abstract class Domain {
          * Positive law name for this answer
          */
         public String lawName;
+
+        @AllArgsConstructor @Data
+        public static class Response {
+            private AnswerObjectEntity left;
+            private AnswerObjectEntity right;
+        }
     }
 
     /**
@@ -277,6 +285,49 @@ public abstract class Domain {
      * @return any correct answer
      */
     public abstract CorrectAnswer getAnyNextCorrectAnswer(Question q);
+
+    /**
+     * Get set of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
+     * @param q question
+     * @param completedSteps ignore mistakes possible in these steps
+     * @return set of negative law names (i.e. mistakes)
+     */
+    public abstract Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps);
+
+    /** Shortcut to `possibleViolations(question, completedSteps=null)`
+     * @param q
+     * @return
+     */
+    public Set<String> possibleViolations(Question q) {
+        return possibleViolations(q, null);
+    }
+
+    /**
+     * Get set of sets of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
+     * @param q question
+     * @param completedSteps ignore mistakes possible in these steps
+     * @return set of sets of negative law names (i.e. mistakes)
+     */
+    public abstract Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps);
+
+    /** Shortcut to `possibleViolationsByStep(question, completedSteps=null)`
+     * @param q
+     * @return
+     */
+    public Set<Set<String>> possibleViolationsByStep(Question q) {
+        return possibleViolationsByStep(q, null);
+    }
+
+
+    /**
+     * Find minimum of steps to perform automatically for student, in order to obtain question state when target violations are possible.
+     *  (nextStepWithPossibleViolations - дано - один из сетов ошибок и частичный ответ пользователя, найти - ближайшее к этому ответу состояние с нужным сетом ошибок)
+     * @return list of responses to activate (empty list if no actions are required); null if the desired state is not available till the end of the question.
+    */
+    public List<ResponseEntity> findNextStepWithPossibleViolations(Set<String> targetViolations, Question q, List<ResponseEntity> completedSteps) {
+        return null;
+    }
+
 
     /**
      * Return all question templates

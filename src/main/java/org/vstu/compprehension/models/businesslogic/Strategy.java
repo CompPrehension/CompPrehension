@@ -38,8 +38,7 @@ public class Strategy extends AbstractStrategy {
 
             ArrayList<String> startTasks = null;
             if(domain instanceof ProgrammingLanguageExpressionDomain) {
-                startTasks = new ArrayList<>(Arrays.asList("a + b + c * d", "* ++ a + b",
-                        "a && ( b || c ) && d"));
+                startTasks = new ArrayList<>(Arrays.asList("a + b ? c + d : e + f ? g + h : i + j"));
             }else if(domain instanceof ControlFlowStatementsDomain){
                 startTasks = new ArrayList<>(Arrays.asList("alt_i1", "while_2_110",
                         "do_10"));
@@ -748,7 +747,7 @@ public class Strategy extends AbstractStrategy {
         result.put("a + b ? c + d : e + f ? g + h : i + j", new LawNode("a + b ? c + d : e + f ? g + h : i + j",
                 new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_same_precedence_left_associativity_left")),
                 new ArrayList<>(),
-                new ArrayList<>(Arrays.asList("-- -- a", "++ a || b + c", "a + b ? c + d : e + f"))));
+                new ArrayList<>(Arrays.asList("a = b = c", "++ a || b + c", "a + b ? c + d : e + f"))));
 
         result.put("* ++ a + b", new LawNode("* ++ a + b",
                 new ArrayList<>(Arrays.asList("error_base_higher_precedence_left", "error_base_higher_precedence_right")),
@@ -786,7 +785,7 @@ public class Strategy extends AbstractStrategy {
                         "a + b [ c + d ] + e")),
                 new ArrayList<>()));
 
-        result.put("-- -- a", new LawNode("-- -- a",
+        result.put("a = b = c", new LawNode("a = b = c",
                 new ArrayList<>(Arrays.asList("error_base_same_precedence_right_associativity_right")),
                 new ArrayList<>(Arrays.asList("a + b ? c + d : e + f ? g + h : i + j")),
                 new ArrayList<>()));

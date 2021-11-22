@@ -4,14 +4,15 @@ import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 import Select, { components } from "react-select";
+import { Answer } from "../../../types/answer";
 import { MatchingQuestion } from "../../../types/question";
 import { Optional } from "../optional";
 
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
-    answers: [number, number][],
-    getAnswers: () => [number, number][],
-    onChanged: (newAnswers: [number, number][]) => void,
+    answers: Answer[],
+    getAnswers: () => Answer[],
+    onChanged: (newAnswers: Answer[]) => void,
 }
 
 export const MatchingQuestionComponent = observer((props: MatchingQuestionComponentProps) => {    
@@ -82,8 +83,11 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
                         const leftId = e.parentElement?.id.split(`question_${question.questionId}_answer_`)[1] ?? '';
                         const rightId = e?.id.split('dragAnswer_')[1] ?? '';
                         return [+leftId, +rightId];
-                    });                        
-                onChanged(newHistory);
+                    });
+                const oldHistory = getAnswers();
+                
+                onChanged(newHistory.map(h => 
+                    ({ answer: h, isСreatedByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.isСreatedByUser ?? true })));
             }, 10);
         });
     }, [question.questionId])
@@ -136,7 +140,7 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
                         </div>
                         <div className="col-md-auto">
                             <div style={{width: `${(8*groupsMaxLength) + 100}px`}}>
-                                <Select defaultValue={(getAnswers().find(v => v[0] === asw.id)?.[1] ?? null) as any}
+                                <Select defaultValue={(getAnswers().find(v => v.answer[0] === asw.id)?.answer?.[1] ?? null) as any}
                                         options={groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
                                                         .map(g => ({ value: g.id, label: g.text }))}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
@@ -144,8 +148,8 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
                                             if (!v) {
                                                 return;
                                             }
-                                            const otherHistoryItems = getAnswers().filter(v => v[0] !== asw.id);
-                                            const historyItem = [asw.id, +v.value] as [number, number];
+                                            const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== asw.id);
+                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], isСreatedByUser: true };
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);                                            
                                         })} /> 
@@ -177,8 +181,8 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
                                                return;
                                             }
 
-                                            const otherHistoryItems = getAnswers().filter(v => v[0] !== answerId);
-                                            const historyItem = [answerId, +v.value] as [number, number];
+                                            const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
+                                            const historyItem = { answer: [answerId, +v.value] as [number, number], isСreatedByUser: true };
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);     
                                         })}

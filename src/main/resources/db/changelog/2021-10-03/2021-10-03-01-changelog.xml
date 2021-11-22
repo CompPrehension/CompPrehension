@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1633293605846-1" author="Artem Prokudin">
+        <createTable tableName="additional_field">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_additionalfield"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="value" type="VARCHAR(255)"/>
+            <column name="exercise_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-2" author="Artem Prokudin">
+        <createTable tableName="answer_object">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_answerobject"/>
+            </column>
+            <column name="answer_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="hyper_text" type="VARCHAR(255)"/>
+            <column name="domain_info" type="VARCHAR(1000)"/>
+            <column name="is_right_col" type="BOOLEAN"/>
+            <column name="concept" type="VARCHAR(255)"/>
+            <column name="question_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-3" author="Artem Prokudin">
+        <createTable tableName="backend">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_backend"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-4" author="Artem Prokudin">
+        <createTable tableName="backend_facts">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_backendfacts"/>
+            </column>
+            <column name="object" type="VARCHAR(255)"/>
+            <column name="object_type" type="VARCHAR(255)"/>
+            <column name="subject" type="VARCHAR(255)"/>
+            <column name="subject_type" type="VARCHAR(255)"/>
+            <column name="verb" type="VARCHAR(255)"/>
+            <column name="backend_fact_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-5" author="Artem Prokudin">
+        <createTable tableName="correct_law">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_correctlaw"/>
+            </column>
+            <column name="interaction_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="law_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-6" author="Artem Prokudin">
+        <createTable tableName="domain">
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_domain"/>
+            </column>
+            <column name="class_path" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-7" author="Artem Prokudin">
+        <createTable tableName="exercise">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_exercise"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="max_retries" type="INT"/>
+            <column name="use_guiding_questions" type="BOOLEAN"/>
+            <column name="time_limit" type="INT"/>
+            <column name="hidden" type="BOOLEAN"/>
+            <column name="tags" type="VARCHAR(255)"/>
+            <column name="options_json" type="json">
+                <constraints nullable="false"/>
+            </column>
+            <column name="exercise_type" type="INT"/>
+            <column name="complexity" type="INT"/>
+            <column name="language_id" type="INT"/>
+            <column name="backend_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="domain_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-8" author="Artem Prokudin">
+        <createTable tableName="exercise_attempt">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_exerciseattempt"/>
+            </column>
+            <column name="attempt_status" type="INT"/>
+            <column name="exercise_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-9" author="Artem Prokudin">
+        <createTable tableName="exercise_concepts">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_exerciseconcepts"/>
+            </column>
+            <column name="exercise_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="concept_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_in_exercise" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-10" author="Artem Prokudin">
+        <createTable tableName="exercise_laws">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_exerciselaws"/>
+            </column>
+            <column name="exercise_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="law_name" type="VARCHAR(255)"/>
+            <column name="role_in_exercise" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-11" author="Artem Prokudin">
+        <createTable tableName="exercise_question_type">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_exercisequestiontype"/>
+            </column>
+            <column name="exercise_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_type" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-12" author="Artem Prokudin">
+        <createTable tableName="explanation_template_info">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_explanationtemplateinfo"/>
+            </column>
+            <column name="field_name" type="VARCHAR(255)"/>
+            <column name="value" type="VARCHAR(255)"/>
+            <column name="violation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-13" author="Artem Prokudin">
+        <createTable tableName="feedback">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_feedback"/>
+            </column>
+            <column name="grade" type="FLOAT"/>
+            <column name="interactions_left" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-14" author="Artem Prokudin">
+        <createTable tableName="interaction">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_interaction"/>
+            </column>
+            <column name="order_number" type="INT"/>
+            <column name="last_supplementary_question" type="VARCHAR(255)"/>
+            <column name="interaction_type" type="VARCHAR(255)"/>
+            <column name="feedback_id" type="BIGINT"/>
+            <column name="question_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-15" author="Artem Prokudin">
+        <createTable tableName="logs">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_logs"/>
+            </column>
+            <column name="request_id" type="VARCHAR(36)"/>
+            <column name="session_id" type="VARCHAR(36)"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="date" type="DATETIME(6)"/>
+            <column name="level" type="VARCHAR(10)"/>
+            <column name="message" type="TEXT"/>
+            <column name="payload" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-16" author="Artem Prokudin">
+        <createTable tableName="question">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_question"/>
+            </column>
+            <column name="question_type" type="INT"/>
+            <column name="question_status" type="INT"/>
+            <column name="question_text" type="TEXT"/>
+            <column name="question_name" type="VARCHAR(255)"/>
+            <column name="question_domain_type" type="VARCHAR(255)"/>
+            <column name="answers_require_context" type="BOOLEAN"/>
+            <column name="options_json" type="json"/>
+            <column name="exercise_attempt_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="domain_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-17" author="Artem Prokudin">
+        <createTable tableName="question_attempt">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_questionattempt"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-18" author="Artem Prokudin">
+        <createTable tableName="response">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_response"/>
+            </column>
+            <column name="left_spec_value" type="INT"/>
+            <column name="left_object_id" type="BIGINT"/>
+            <column name="right_object_id" type="BIGINT"/>
+            <column name="interaction_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-19" author="Artem Prokudin">
+        <createTable tableName="user">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="birthdate" type="DATETIME"/>
+            <column name="login" type="VARCHAR(255)"/>
+            <column name="external_id" type="VARCHAR(255)"/>
+            <column name="preferred_language" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-20" author="Artem Prokudin">
+        <createTable tableName="user_exercise">
+            <column name="exercise_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_userexercise"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_userexercise"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-21" author="Artem Prokudin">
+        <createTable tableName="user_role">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="roles" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-22" author="Artem Prokudin">
+        <createTable tableName="violation">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_violation"/>
+            </column>
+            <column name="interaction_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="law_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="detailed_law_name" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1633293605846-23" author="Artem Prokudin">
+        <addUniqueConstraint columnNames="name, version" constraintName="uc_e7da9cda2c1460840f30fc189"
+                             tableName="domain"/>
+    </changeSet>
+    <changeSet id="1633293605846-24" author="Artem Prokudin">
+        <addUniqueConstraint columnNames="answer_id, question_id" constraintName="uk_answerId__questionId"
+                             tableName="answer_object"/>
+    </changeSet>
+    <changeSet id="1633293605846-25" author="Artem Prokudin">
+        <createIndex indexName="external_id_hidx" tableName="user">
+            <column name="external_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet id="1633293605846-26" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="additional_field"
+                                 constraintName="FK_ADDITIONALFIELD_ON_EXERCISE" referencedColumnNames="id"
+                                 referencedTableName="exercise"/>
+    </changeSet>
+    <changeSet id="1633293605846-27" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="answer_object"
+                                 constraintName="FK_ANSWEROBJECT_ON_QUESTION" referencedColumnNames="id"
+                                 referencedTableName="question"/>
+    </changeSet>
+    <changeSet id="1633293605846-28" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="backend_fact_id" baseTableName="backend_facts"
+                                 constraintName="FK_BACKENDFACTS_ON_BACKENDFACT" referencedColumnNames="id"
+                                 referencedTableName="question"/>
+    </changeSet>
+    <changeSet id="1633293605846-29" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="interaction_id" baseTableName="correct_law"
+                                 constraintName="FK_CORRECTLAW_ON_INTERACTION" referencedColumnNames="id"
+                                 referencedTableName="interaction"/>
+    </changeSet>
+    <changeSet id="1633293605846-30" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="exercise_attempt"
+                                 constraintName="FK_EXERCISEATTEMPT_ON_EXERCISE" referencedColumnNames="id"
+                                 referencedTableName="exercise"/>
+    </changeSet>
+    <changeSet id="1633293605846-31" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="exercise_attempt"
+                                 constraintName="FK_EXERCISEATTEMPT_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+    <changeSet id="1633293605846-32" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="exercise_concepts"
+                                 constraintName="FK_EXERCISECONCEPTS_ON_EXERCISE" referencedColumnNames="id"
+                                 referencedTableName="exercise"/>
+    </changeSet>
+    <changeSet id="1633293605846-33" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="exercise_laws"
+                                 constraintName="FK_EXERCISELAWS_ON_EXERCISE" referencedColumnNames="id"
+                                 referencedTableName="exercise"/>
+    </changeSet>
+    <changeSet id="1633293605846-34" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="exercise_question_type"
+                                 constraintName="FK_EXERCISEQUESTIONTYPE_ON_EXERCISE" referencedColumnNames="id"
+                                 referencedTableName="exercise"/>
+    </changeSet>
+    <changeSet id="1633293605846-35" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="backend_id" baseTableName="exercise"
+                                 constraintName="FK_EXERCISE_ON_BACKEND" referencedColumnNames="id"
+                                 referencedTableName="backend"/>
+    </changeSet>
+    <changeSet id="1633293605846-36" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="domain_id" baseTableName="exercise"
+                                 constraintName="FK_EXERCISE_ON_DOMAIN" referencedColumnNames="name"
+                                 referencedTableName="domain"/>
+    </changeSet>
+    <changeSet id="1633293605846-37" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="violation_id" baseTableName="explanation_template_info"
+                                 constraintName="FK_EXPLANATIONTEMPLATEINFO_ON_VIOLATION" referencedColumnNames="id"
+                                 referencedTableName="violation"/>
+    </changeSet>
+    <changeSet id="1633293605846-38" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="feedback_id" baseTableName="interaction"
+                                 constraintName="FK_INTERACTION_ON_FEEDBACK" referencedColumnNames="id"
+                                 referencedTableName="feedback"/>
+    </changeSet>
+    <changeSet id="1633293605846-39" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="interaction"
+                                 constraintName="FK_INTERACTION_ON_QUESTION" referencedColumnNames="id"
+                                 referencedTableName="question"/>
+    </changeSet>
+    <changeSet id="1633293605846-40" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="domain_name" baseTableName="question"
+                                 constraintName="FK_QUESTION_ON_DOMAIN_NAME" referencedColumnNames="name"
+                                 referencedTableName="domain"/>
+    </changeSet>
+    <changeSet id="1633293605846-41" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_attempt_id" baseTableName="question"
+                                 constraintName="FK_QUESTION_ON_EXERCISEATTEMPT" referencedColumnNames="id"
+                                 referencedTableName="exercise_attempt"/>
+    </changeSet>
+    <changeSet id="1633293605846-42" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="interaction_id" baseTableName="response"
+                                 constraintName="FK_RESPONSE_ON_INTERACTION" referencedColumnNames="id"
+                                 referencedTableName="interaction"/>
+    </changeSet>
+    <changeSet id="1633293605846-43" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="left_object_id" baseTableName="response"
+                                 constraintName="FK_RESPONSE_ON_LEFTOBJECT" referencedColumnNames="id"
+                                 referencedTableName="answer_object"/>
+    </changeSet>
+    <changeSet id="1633293605846-44" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="right_object_id" baseTableName="response"
+                                 constraintName="FK_RESPONSE_ON_RIGHTOBJECT" referencedColumnNames="id"
+                                 referencedTableName="answer_object"/>
+    </changeSet>
+    <changeSet id="1633293605846-45" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="interaction_id" baseTableName="violation"
+                                 constraintName="FK_VIOLATION_ON_INTERACTION" referencedColumnNames="id"
+                                 referencedTableName="interaction"/>
+    </changeSet>
+    <changeSet id="1633293605846-46" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="user_exercise"
+                                 constraintName="fk_useexe_on_exercise_entity" referencedColumnNames="id"
+                                 referencedTableName="exercise"/>
+    </changeSet>
+    <changeSet id="1633293605846-47" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_exercise"
+                                 constraintName="fk_useexe_on_user_entity" referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+    <changeSet id="1633293605846-48" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_role"
+                                 constraintName="fk_userrole_on_user_entity" referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+
+</databaseChangeLog>

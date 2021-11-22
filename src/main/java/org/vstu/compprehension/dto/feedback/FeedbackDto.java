@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 
 @Data
@@ -14,11 +15,13 @@ import org.vstu.compprehension.models.entities.EnumData.Decision;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackDto {
+    @JsonProperty("isCorrect")
+    private boolean isCorrect;
     private Float grade;
     private Integer correctSteps;
     private Integer stepsLeft;
     private Integer stepsWithErrors;
-    private Long[][] correctAnswers;
+    private AnswerDto[] correctAnswers;
     private Message[] messages;
     private Decision strategyDecision;
 
