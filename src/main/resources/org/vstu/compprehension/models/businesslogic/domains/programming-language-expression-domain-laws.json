@@ -1119,7 +1119,7 @@
       },
       {
         "name": "before_strict_order_operands",
-        "formulation": "(?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:text ?a_text), notEqual(?a_text, \"?\"), (?a my:has_operand ?b), (?a my:has_operand ?c), (?b my:index ?b_index), (?c my:index ?c_index), lessThan(?b_index, ?c_index) -> (?b my:before_direct ?c), (?b my:before_all_operands ?c), (?b my:before_by_third_operator ?c), (?b my:before_third_operator ?a).",
+        "formulation": "(?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:text ?a_text), notEqual(?a_text, \"?\"), (?a my:has_left_operand ?b), (?a my:has_operand ?c), (?b my:index ?b_index), (?c my:index ?c_index), lessThan(?b_index, ?c_index) -> (?b my:before_direct ?c), (?b my:before_all_operands ?c), (?b my:before_by_third_operator ?c), (?b my:before_third_operator ?a).",
         "backend": "Jena"
       },
       {
@@ -1175,6 +1175,11 @@
       },
       {
         "name": "has_left_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_inner_operand",
         "formulation": "owl:ObjectProperty",
         "backend": "OWL"
       },
@@ -1340,7 +1345,7 @@
       },
       {
         "name": "student_error_in_complex_bound_base",
-        "formulation": "(?a my:before_as_operand ?b), (?b my:complex_beginning \"true\"^^xsd:boolean) -> (?b my:student_error_in_complex_base ?a).",
+        "formulation": "(?b my:has_inner_operand ?a), (?b my:complex_beginning \"true\"^^xsd:boolean) -> (?b my:student_error_in_complex_base ?a).",
         "backend": "Jena"
       },
       {
