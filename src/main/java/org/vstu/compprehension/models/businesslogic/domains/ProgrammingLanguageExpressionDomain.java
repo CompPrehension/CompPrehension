@@ -507,6 +507,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
                     "has_operand",
+                    "has_left_operand",
+                    "has_right_operand",
+                    "has_inner_operand",
                     "before",
                     "before_direct",
                     "before_by_third_operator",
