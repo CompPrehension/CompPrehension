@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.ext.com.google.common.collect.Streams;
 import org.jetbrains.annotations.NotNull;
@@ -19,14 +20,17 @@ import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Strategy;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
+import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.DomainAdapter;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
+import org.vstu.compprehension.utils.Utils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -165,6 +169,23 @@ public class FrontendService {
                 .map(Mapper::toDto)
                 .toArray(AnswerDto[]::new);
 
+        // special case for order question
+        // force complete answer if the last but one answer is correct
+        val isAnswerCorrect = errors.size() == 0 && judgeResult.isAnswerCorrect;
+        val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsEntity.class).orElse(null);
+        if (isAnswerCorrect && question.getQuestionData().getQuestionType().equals(QuestionType.ORDER) &&
+                orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
+                ie.getFeedback().getInteractionsLeft() == 1) {
+            val correctAnswersIds = Arrays.stream(correctAnswers).map(a -> a.getAnswer()[0]).collect(Collectors.toSet());
+            val missingAnswer = question.getQuestionData().getAnswerObjects().stream()
+                    .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId().longValue()))
+                    .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
+                    .findFirst().get();
+            val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
+            return addOrdinaryQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
+        }
+
+
         return Mapper.toFeedbackDto(question,
                 messages,
                 correctInteractionsCount,
@@ -172,7 +193,7 @@ public class FrontendService {
                 ie.getFeedback().getGrade(),
                 ie.getFeedback().getInteractionsLeft(),
                 correctAnswers,
-                errors.size() == 0 && judgeResult.isAnswerCorrect,
+                isAnswerCorrect,
                 strategyAttemptDecision);
     }
 
