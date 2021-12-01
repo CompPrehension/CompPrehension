@@ -41,7 +41,7 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
     }
     const OnAnswered = async () => {
         try {
-            questionStore.isFeedbackLoading = true;
+            questionStore.isQuestionFreezed = true;
 
             console.log(`show feedback for 3 seconds`);
             await delayPromise(3000);
@@ -69,7 +69,7 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
                 setAllVisible(false);
             }
         } finally {
-            questionStore.isFeedbackLoading = false;
+            questionStore.isQuestionFreezed = false;
         }
     }
 
