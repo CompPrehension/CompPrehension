@@ -10,11 +10,13 @@ import { IExerciseController } from "./exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
 import { RequestError } from "../../types/request-error";
+import { delayPromise } from "../../utils/helpers";
 
 @injectable()
 export class TestExerciseController implements IExerciseController {
     async loadSessionInfo(): PromiseEither<RequestError, SessionInfo> {
         console.log(`loadSessionInfo`);
+        await delayPromise(1000);
         return E.right({
             sessionId: 'test_session',
             exercise: {
@@ -40,6 +42,7 @@ export class TestExerciseController implements IExerciseController {
     }
     async createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
         console.log(`createExerciseAttempt?exerciseId=${exerciseId}`);
+        await delayPromise(3000);
         return E.right({
             attemptId: -1,
             exerciseId: -1,
@@ -48,6 +51,7 @@ export class TestExerciseController implements IExerciseController {
     }
     async getQuestion(questionId: number): PromiseEither<RequestError, Question> {
         console.log(`getQuestion?questionId=${questionId}`);
+        await delayPromise(3000);
         let result: Question | undefined;
         if (questionId === 1) {
             result = {
@@ -224,18 +228,22 @@ export class TestExerciseController implements IExerciseController {
     }
     async generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
         console.log(`generateQuestion?attemptId=${attemptId}`);
+        await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }
     async generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question> {
         console.log(`generateSupplementaryQuestion`, questionRequest);
+        await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }
     async generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
         console.log(`generateNextCorrectAnswer?questionId=${questionId}`);
+        await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }
     async addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
         console.log('addQuestionAnswer', interaction);
+        await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }
     async getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
