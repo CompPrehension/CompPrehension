@@ -30,12 +30,14 @@ body ul {
 }
 
 .comp-ph-question-wrapper.comp-ph-question-wrapper--finished [id^="question_"][id*="_answer_"], 
-.comp-ph-question-wrapper.comp-ph-question-wrapper--loading-feedback [id^="question_"][id*="_answer_"] {
+.comp-ph-question-wrapper.comp-ph-question-wrapper--loading-feedback [id^="question_"][id*="_answer_"],
+.comp-ph-question-wrapper.comp-ph-question-wrapper--freezed [id^="question_"][id*="_answer_"] {
   pointer-events: none;
 }
 
-.comp-ph-question-wrapper.comp-ph-question-wrapper--finished label, 
-.comp-ph-question-wrapper.comp-ph-question-wrapper--loading-feedback label {
+.comp-ph-question-wrapper.comp-ph-question-wrapper--finished .comp-ph-singlechoice-label, 
+.comp-ph-question-wrapper.comp-ph-question-wrapper--loading-feedback .comp-ph-singlechoice-label,
+.comp-ph-question-wrapper.comp-ph-question-wrapper--freezed .comp-ph-singlechoice-label {
   pointer-events: none;
 }
 

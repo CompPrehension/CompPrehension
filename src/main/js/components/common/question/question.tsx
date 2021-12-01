@@ -13,13 +13,14 @@ type QuestionComponentProps = {
     question: Question,
     getFeedback: () => Feedback | undefined,
     isFeedbackLoading: boolean,
+    isQuestionFreezed: boolean,
     answers: Answer[],
     getAnswers: () => Answer[],
     onChanged: (x: Answer[]) => void,
 }
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {
-    const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading } = props;
+    const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading, isQuestionFreezed } = props;
     let questonComponent: JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
@@ -39,8 +40,16 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
             // to ensure that all case branches have been processed
             return absurd<JSX.Element>(question);
     }
+
+    const wrapperClassName = [
+        "comp-ph-question-wrapper",
+        getFeedback()?.stepsLeft === 0 && "comp-ph-question-wrapper--finished" || "",
+        isFeedbackLoading && "comp-ph-question-wrapper--loading-feedback" || "",
+        isQuestionFreezed && "comp-ph-question-wrapper--freezed" || "",
+    ].join(' ');
+
     return (
-        <div className={`comp-ph-question-wrapper ${(getFeedback()?.stepsLeft === 0 ? "comp-ph-question-wrapper--finished" : "")} ${(isFeedbackLoading ? "comp-ph-question-wrapper--loading-feedback" : "")}`}>
+        <div className={wrapperClassName}>
             {questonComponent}
         </div>
     );

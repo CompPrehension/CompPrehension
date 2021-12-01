@@ -36,7 +36,7 @@ export const Question = observer((props: QuestionOptions) => {
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading}/>
+            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading} isQuestionFreezed={store.isQuestionFreezed}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );
