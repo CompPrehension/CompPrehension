@@ -46,7 +46,8 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
                                    name={`switch_${question.questionId}`} 
                                    type="radio" 
                                    checked={getAnswers().some(h => h.answer[0] === a.id)}
-                                   onChange={(e) => selfOnChange(a.id, e.target.checked)} />
+                                   onChange={(e) => selfOnChange(a.id, e.target.checked)} 
+                                   readOnly={true} />
                         </div>
                         <div>{a.text}</div>                        
                     </label>)}
@@ -78,8 +79,9 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
                                         name={`switch_${question.questionId}`} 
                                         type="radio" 
                                         checked={getAnswers().some(h => h.answer[0] === +id)}
-                                        onChange={(e) => selfOnChange(+id, e.target.checked)} />
-                                 <span dangerouslySetInnerHTML={{ __html: e.innerHTML }}/>
+                                        onChange={(e) => selfOnChange(+id, e.target.checked)} 
+                                        readOnly={true} />
+                                 <span dangerouslySetInnerHTML={{ __html: e.innerHTML }} />
                                </label>)
             ReactDOM.render(component, e);
             e.id = "";   
