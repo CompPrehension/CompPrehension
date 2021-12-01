@@ -40,7 +40,8 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
             </div>
             <div className="d-flex flex-column">                
                 {question.answers.map((a, idx) => 
-                    <label htmlFor={`question_${question.questionId}_answer_${a.id}`} className={`d-flex flex-row ${idx !== question.answers.length - 1 && 'mb-3' || ''}`}>
+                    <label htmlFor={`question_${question.questionId}_answer_${a.id}`} 
+                           className={`comp-ph-singlechoice-label d-flex flex-row ${idx !== question.answers.length - 1 && 'mb-3' || ''}`}>
                         <div className="mr-2 mt-1">
                             <input id={`question_${question.questionId}_answer_${a.id}`} 
                                    name={`switch_${question.questionId}`} 
@@ -74,7 +75,8 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
         // add button click event handlers
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const id = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
-            const component = (<label htmlFor={`question_${question.questionId}_answer_${id}`}>
+            const component = (<label htmlFor={`question_${question.questionId}_answer_${id}`}
+                                      className={"comp-ph-singlechoice-label"}>
                                  <input id={`question_${question.questionId}_answer_${id}`} 
                                         name={`switch_${question.questionId}`} 
                                         type="radio" 

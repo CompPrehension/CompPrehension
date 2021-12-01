@@ -20,6 +20,7 @@ export class QuestionStore {
     @observable isQuestionLoading?: boolean = false;    
     @observable isFeedbackLoading: boolean = false;
     @observable isFeedbackVisible: boolean = true;
+    @observable isQuestionFreezed: boolean = false;
     @observable feedback?: Feedback = undefined;
     @observable question?: Question = undefined;
     @observable lastAnswer: ReadonlyArray<Answer> = [];
