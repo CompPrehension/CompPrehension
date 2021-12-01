@@ -40,31 +40,37 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
         setAllVisible(false);
     }
     const OnAnswered = async () => {
-        console.log(`show feedback for 3 seconds`);
-        await delayPromise(3000);
-        //console.log(`hide feedback and wait for 1 seconds`);        
-        //questionStore.isFeedbackVisible = false;
-        //await delayPromise(1000);
+        try {
+            questionStore.isFeedbackLoading = true;
 
-        const newViolationLaw = questionStore.feedback?.messages && questionStore.feedback.messages[0].violationLaw || null;
-        if (!newViolationLaw) {
-            console.log(`empty violation laws`);
-            setAllVisible(false);
-            return;            
+            console.log(`show feedback for 3 seconds`);
+            await delayPromise(3000);
+            //console.log(`hide feedback and wait for 1 seconds`);        
+            //questionStore.isFeedbackVisible = false;
+            //await delayPromise(1000);
+
+            const newViolationLaw = questionStore.feedback?.messages && questionStore.feedback.messages[0].violationLaw || null;
+            if (!newViolationLaw) {
+                console.log(`empty violation laws`);
+                setAllVisible(false);
+                return;            
+            }
+            if (!exerciseStore.currentAttempt?.attemptId || !exerciseStore.currentQuestion.question) {
+                console.log(`problems with attempt`);
+                return;
+            }
+            await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, [newViolationLaw].map(v => v.name));
+            if (!questionStore.question) {
+                console.log(`no need to generate sup question`);
+                // remove redurant feedback
+                //if (!!exerciseStore.currentQuestion.feedback?.messages) {
+                //    exerciseStore.currentQuestion.feedback.messages = exerciseStore.currentQuestion.feedback.messages.filter(m => m.type !== 'ERROR' || m.violationLaws?.[0] !== violationLaws?.[0]);
+                //}
+                setAllVisible(false);
+            }
+        } finally {
+            questionStore.isFeedbackLoading = false;
         }
-        if (!exerciseStore.currentAttempt?.attemptId || !exerciseStore.currentQuestion.question) {
-            console.log(`problems with attempt`);
-            return;
-        }
-        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, [newViolationLaw].map(v => v.name));
-        if (!questionStore.question) {
-            console.log(`no need to generate sup question`);
-            // remove redurant feedback
-            //if (!!exerciseStore.currentQuestion.feedback?.messages) {
-            //    exerciseStore.currentQuestion.feedback.messages = exerciseStore.currentQuestion.feedback.messages.filter(m => m.type !== 'ERROR' || m.violationLaws?.[0] !== violationLaws?.[0]);
-            //}
-            setAllVisible(false);
-        }        
     }
 
     return (
