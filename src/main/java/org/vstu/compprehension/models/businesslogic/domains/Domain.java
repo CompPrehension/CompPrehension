@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.rdf.model.Model;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -420,4 +421,41 @@ public abstract class Domain {
     }
 
     public abstract List<Concept> getLawConcepts(Law law);
+
+
+    //    API домена для обработки template’ов, которое будет вызываться службой хранилища
+    /** Compute inferences from question template by calling reasoner with appropriate rules.
+     * Returned RDF model should not include triples that exist in template or schema .
+     * @param templateName may be useful
+     * @param questionTemplate the main data to use
+     * @param domainSchema (pre-solved) ready-made RDF model to feed into reasoner with main data
+     * */
+    Model solveQuestionTemplateRDF(String templateName, Model questionTemplate, Model domainSchema) {
+        return null;
+    }
+
+    /** Compute inferences for (generated) question by calling reasoner with appropriate rules.
+     * Returned RDF model should not include triples that exist in template or schema .
+     * @param questionName (pre-solved) may be useful
+     * @param questionData includes (solved) template and basic data about question
+      * @param domainSchema ready-made RDF model to feed into reasoner with main data
+     * */
+    Model solveQuestionRDF(String questionName, Model questionData, Model domainSchema) {
+        return null;
+    }
+
+
+    /** Генерирует вопросы из шаблона, подбирая вопросы с разными наборам ошибок, минимальные по длине решения.
+     * Generate questions from a template, selecting questions with different sets of errors, and minimal solutions in length.
+     *
+     * @param templateName may be useful to make final question names
+     * @param solvedTemplate all known data about question template
+     * @param domainSchema (pre-solved) may be useful
+     * @param questionsLimit maximum questions to create (avoiding infinite loops)
+     * @return map: [new question name] -> [contents of QUESTION graph]
+     * */
+    Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
+        return null;
+    }
+
 }
