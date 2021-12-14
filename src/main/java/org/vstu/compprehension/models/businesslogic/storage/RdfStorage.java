@@ -8,22 +8,22 @@ import org.apache.jena.arq.querybuilder.WhereBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.*;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.ResIterator;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdfconnection.*;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.modify.request.UpdateClear;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 
 import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 enum GraphRole {
@@ -63,6 +63,23 @@ enum GraphRole {
     public NamespaceUtil ns(String basePrefix) {
         return new NamespaceUtil(basePrefix + prefix);
     }
+
+    static GraphRole getNext(GraphRole role) {
+        int ordIndex = role.ordinal() + 1;
+        for (GraphRole other : GraphRole.values()) {
+            if (other.ordinal() == ordIndex)
+                return other;
+        }
+        return null;
+    }
+    static GraphRole getPrevious(GraphRole role) {
+        int ordIndex = role.ordinal() - 1;
+        for (GraphRole other : GraphRole.values()) {
+            if (other.ordinal() == ordIndex)
+                return other;
+        }
+        return null;
+    }
 }
 
 
@@ -90,7 +107,8 @@ public class RdfStorage {
     *   has_graph_qt_s  / (1..1)
     *   ...
     * class Question:
-    *   name: str   (1..1)
+    *   name: str    (1..1)
+    *   has_template (1..1)
     *   has_graph_qt   \
     *   has_graph_qt_s  | NamedGraph or rdf:nil
     *   has_graph_q     | (1..1)
@@ -171,34 +189,34 @@ public class RdfStorage {
     @Nullable
     Model getGraph(String name) {
         if (fetchGraph(name)) {
-            return getLocalGraphByName(name);
+            return getLocalGraphByUri(name);
         }
         return null;
     }
 
     /** Cache and send a graph to remote DB */
-    boolean sendGraph(String name, Model m) {
-        if (setLocalGraph(name, m)) {
-            return uploadGraph(name);
+    boolean sendGraph(String gUri, Model m) {
+        if (setLocalGraph(gUri, m)) {
+            return uploadGraph(gUri);
         }
         return false;
     }
 
     /** Download and cache a graph if not cached yet */
-    boolean fetchGraph(String name) {
-        return fetchGraph(name, false);
+    boolean fetchGraph(String gUri) {
+        return fetchGraph(gUri, false);
     }
 
     /** Download and cache a graph
-     * @param g graph name (an uri)
+     * @param gUri graph name (an uri)
      * @return true on success
      */
-    boolean fetchGraph(String g, boolean fetchAlways) {
-        // check if graphs data loaded (as a single graph)
-        if (! g.equals(NS_graphs.base()) && ! localGraphExists(NS_graphs.base())) {
+    boolean fetchGraph(String gUri, boolean fetchAlways) {
+        // check if "graphs" data loaded (as a single graph)
+        if (! gUri.equals(NS_graphs.base()) && ! localGraphExists(NS_graphs.base())) {
             fetchGraph(NS_graphs.base());
         }
-        if (!fetchAlways && localGraphExists(g))
+        if (!fetchAlways && localGraphExists(gUri))
             return true;
 
 //        // TODO: check if graph is up-to-date
@@ -218,7 +236,7 @@ public class RdfStorage {
         // load desired graph
         boolean remoteGraphExists = false;  // false is default for the case of any error
         AskBuilder ab = new AskBuilder()
-                .from(g)
+                .from(gUri)
                 .addWhere("?s", "?p", "?o");
         Query s = ab.build();
         try ( RDFConnection conn = getConn() ) {
@@ -241,7 +259,7 @@ public class RdfStorage {
 
             if (graphModel != null) {
                 // remove & set obtained graph locally
-                dataset.replaceNamedModel(g, graphModel);
+                dataset.replaceNamedModel(gUri, graphModel);
                 return true;
             }
         }
@@ -250,60 +268,49 @@ public class RdfStorage {
     }
 
     /** Write whole local graph to remote storage (replace if one exists)
-     * @param g graph name (an uri)
+     * @param gUri graph uri
      * @return true on success
      */
-    boolean uploadGraph(String g) {
-        // String errMsg = "Graph doesn't exist locally: " + g;
-        assert localGraphExists(g);
+    boolean uploadGraph(String gUri) {
+        // String errMsg = "Graph doesn't exist locally: " + gUri;
+        assert localGraphExists(gUri);
 
         // check if graphs data loaded (as a single graph)
-        if (! g.equals(NS_graphs.base()) && ! localGraphExists(NS_graphs.base())) {
+        if (! gUri.equals(NS_graphs.base()) && ! localGraphExists(NS_graphs.base())) {
             fetchGraph(NS_graphs.base());
         }
 
-        Model localGraph = getLocalGraphByName(g);
+        Model localGraph = getLocalGraphByUri(gUri);
 
         // clear old remote graph + insert new data there...
-//        String clearGraphSparql = "CLEAR SILENT GRAPH <" + g + ">";
-        UpdateRequest clearGraphSparql = new UpdateRequest(new UpdateClear(g, true));
+//        String clearGraphSparql = "CLEAR SILENT GRAPH <" + gUri + ">";
+        UpdateRequest clearGraphSparql = new UpdateRequest(new UpdateClear(gUri, true));
 
         UpdateBuilder builder = new UpdateBuilder();
         builder.addPrefixes( localGraph );
-        builder.addInsert( g, localGraph );
+        builder.addInsert( gUri, localGraph );
         UpdateRequest insertGraphQuery = builder.buildRequest();
 
         runQueriesOnRemoteDB(List.of(clearGraphSparql, insertGraphQuery));
 
-        /*try ( RDFConnection conn = getConn() ) {
-            conn.begin( TxnType.WRITE );
-            conn.update( clearGraphSparql );
-
-            conn.update( insertGraphQuery );
-            conn.commit();
-            // return true;
-        } catch (JenaException exception) {
-            return false;
-        }*/
-
         // update graph metadata - modifiedAt -> new date
-        return actualizeUpdateTime(g);
+        return actualizeUpdateTime(gUri);
     }
 
-    /** Set Update time for both remote and local versions of graph g
-     * @param g graph uri
+    /** Set UpdatedAt time for both remote and local versions of graph
+     * @param gUri graph uri
      * @return success
      */
-    boolean actualizeUpdateTime(String g) {
-        // update graph metadata?
+    boolean actualizeUpdateTime(String gUri) {
+        // update graph metadata:
         // modifiedAt -> new date
         String dateNowStr = Instant.now().toString();
         Literal dateLiteral = dataset.getDefaultModel().createTypedLiteral(dateNowStr, XSD.dateTime.getURI());
 
-        Node gNode = NodeFactory.createURI(g);
+        Node gNode = NodeFactory.createURI(gUri);
 
         UpdateRequest upd_modifiedAt = makeUpdateTripleQuery(
-                gNode,
+                NodeFactory.createURI(NS_graphs.base()),
                 gNode,
                 NodeFactory.createURI(NS_graphs.get("modifiedAt")),
                 dateLiteral
@@ -371,10 +378,9 @@ public class RdfStorage {
 //    public void setUriPrefix(String prefix) {
 //        this.uriPrefix = prefix;
 //    }
-
-    public String uriPrefix() {
-        return this.uriPrefix;
-    }
+//    public String uriPrefix() {
+//        return this.uriPrefix;
+//    }
 
 
 /*    public String local2iri(String localName) {
@@ -395,15 +401,15 @@ public class RdfStorage {
 //        return name;
 //    }*/
 
-    public boolean localGraphExists(String name) {
-        return dataset.containsNamedModel(name);
+    public boolean localGraphExists(String gUri) {
+        return dataset.containsNamedModel(gUri);
     }
 
-    public Model getLocalGraphByName(String name) {
+    public Model getLocalGraphByUri(String gUri) {
         if (dataset != null) {
-            if (localGraphExists(name)) {
-                return dataset.getNamedModel(name);
-            } else log.warn(String.format("Graph not found - name: '%s'", name));
+            if (localGraphExists(gUri)) {
+                return dataset.getNamedModel(gUri);
+            } else log.warn(String.format("Graph not found - name: '%s'", gUri));
         } else {
             log.warn("Dataset was not initialized");
         }
@@ -411,14 +417,14 @@ public class RdfStorage {
     }
 
     /**
-     * запись/обновление подграфа триплетов в хранилище
-     * @param name
+     * запись/обновление подграфа триплетов в кэше
+     * @param gUri
      * @param model
      * @return true on success
      */
-    public boolean setLocalGraph(String name, Model model) {
+    public boolean setLocalGraph(String gUri, Model model) {
         if (dataset != null) {
-            dataset.replaceNamedModel(name, model);
+            dataset.replaceNamedModel(gUri, model);
         } else {
             log.error("Dataset was not initialized");
             throw new RuntimeException("Dataset was not initialized");
@@ -439,21 +445,54 @@ public class RdfStorage {
 
     /*
             QUESTION DATA MANIPULATION
+            (Name of QuestionTemplate can be used instead of Question name in many methods)
      */
 
     public String uriForQuestionGraph(String questionName, GraphRole role) {
-        return role.ns(NS_questions.get())
-                .get(questionName);
+        // look for <Question>-<subgraph> relation in metadata first
+        Model qG = getGraph(NS_questions.base());
+        assert qG != null;
+        RDFNode targetNamedGraph = findQuestionByName(questionName)
+                .listProperties(qG.createProperty(questionSubgraphPropertyFor(role)))
+                .toList().stream()
+                .map(Statement::getObject)
+                .dropWhile(res -> res.equals(RDF.nil))
+                .reduce((first, second) -> first)
+                .orElse(null);
+
+        if (targetNamedGraph != null) {
+            return targetNamedGraph.asNode().getURI();
+        }
+
+        // no known relation - get default for a new one
+        return role.ns(NS_questions.get()).get(questionName);
     }
 
     public String nameFromQuestionGraphUri(String questionUri, GraphRole role) {
-        int sep_pos = questionUri.indexOf('#');  // assume the prefix is #-ended
+        int sep_pos = questionUri.indexOf('#');  // assume the prefix is #-ended, see GraphRole prefixes
         if (sep_pos > -1) {
             return questionUri.substring(sep_pos + 1);
         }
 
         log.warn(String.format("Question IRI does not begin with recognizable prefix: '%s'", questionUri));
         return questionUri;
+    }
+
+    public String questionSubgraphPropertyFor(GraphRole role) {
+        return NS_questions.get("has_graph_" + role.ns().base());
+    }
+
+    Resource findQuestionByName(String questionName) {
+        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+        if (qG != null) {
+            List<Resource> qResources = qG.listSubjectsWithProperty(
+                    qG.createProperty(NS_questions.get(), "name"),
+                    questionName
+            ).toList();
+            if (!qResources.isEmpty())
+                return qResources.get(0);
+        }
+        return null;
     }
 
     /** ... */
@@ -470,19 +509,35 @@ public class RdfStorage {
         );
     }
 
-    /** ... */
+    /** Find what stage a question is in. Returned constant means which stage is reached now.
+     * (Using "questions" metadata graph only, no more graphs fetched from remote.)
+     * @param questionName question/questionTemplate unqualified name
+     * @return one of questionStages(), or null if the question/questionTemplate does not exist. */
     public GraphRole getQuestionStatus(String questionName) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
-        if (qG != null) {
+        Resource questionNode = findQuestionByName(questionName);
+        if (questionNode != null) {
 
-//            ResIterator qResources = qG.listSubjectsWithProperty(
-//                    qG.createProperty(NS_questions.base()),
-//                    );
-//
-//            for (GraphRole role : questionStages()) {
-//
-//            }
-//            getGraph(uriForQuestionGraph(questionName, role));
+            GraphRole approvedStatus = GraphRole.SCHEMA;  // below any valid question status
+
+            for (GraphRole role : questionStages()) {
+                /// boolean exists = fetchGraph(uriForQuestionGraph(questionName, role));
+
+                boolean targetNamedGraphAbsent = questionNode
+                        .listProperties( questionNode.getModel().createProperty( questionSubgraphPropertyFor(role) ) )
+                        .toList()
+                        .stream()
+                        .map(Statement::getObject)
+                        .dropWhile(res -> res.equals(RDF.nil))
+                        .collect(Collectors.toList())
+                        .isEmpty();
+
+                if (targetNamedGraphAbsent) {
+                    break;  // now return approvedStatus
+                }
+                // else ...
+                approvedStatus = role;
+            }
+            return approvedStatus;
         }
         return null;
     }
@@ -499,17 +554,137 @@ public class RdfStorage {
         String qgUri = uriForQuestionGraph(questionName, role);
         boolean success = sendGraph(qgUri, model);
 
-        // update questions metadata
+        if (!success)
+            return false;
 
-        return success;
+        // update questions metadata
+        Resource questionNode = findQuestionByName(questionName);
+//        Resource questionNode = getGraph(NS_questions.base()).createResource( NS_questions.get(questionName) );  // ?? the way to obtain Uri
+        Node qgNode = NodeFactory.createURI(qgUri);
+
+        UpdateRequest upd_setGraph = makeUpdateTripleQuery(
+                NodeFactory.createURI(NS_questions.base()),
+                questionNode,
+                NodeFactory.createURI(questionSubgraphPropertyFor(role)),
+                qgNode
+        );
+
+        return runQueries(List.of(upd_setGraph));
     }
+
+    /**
+     * Create metadata representing empty QuestionTemplate, but not overwrite existing data.
+     * @param questionTemplateName unique Uri-conformant name of question template
+     * @return true on success
+     */
+    public boolean createQuestionTemplate(String questionTemplateName) {
+        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+
+        if (qG != null) {
+            Resource nodeClass = qG.createResource(NS_questions.get("QuestionTemplate"), OWL.Class);
+            Resource qNode = findQuestionByName(questionTemplateName);
+
+            // deal with existing node
+            if (qNode != null) {
+                // check if this node is indeed a question Template
+                boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
+                if (!rightType) {
+                    throw new RuntimeException("Cannot create QuestionTemplate: uri '" + qNode.getURI() + "' is already in use.");
+                }
+
+                // simple decision: do nothing if metadata node exists
+                return true;
+            }
+
+            qNode = qG.createResource(NS_questions.get(questionTemplateName));
+            qNode.addProperty(RDF.type, nodeClass);
+            qNode.addLiteral(qG.createProperty(NS_questions.get(), "name"), questionTemplateName);
+
+            // initialize template's graphs as empty ...
+            // using "template-only" roles
+            for (GraphRole role : questionStages().subList(0, 2)) {
+                qNode.addProperty(qG.createProperty(questionSubgraphPropertyFor(role)), RDF.nil);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Create metadata representing empty Question, but not overwrite existing data.
+     * @param questionName unique Uri-conformant name of question
+     * @return true on success
+     */
+    public boolean createQuestion(String questionName, String questionTemplateName) {
+        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+
+        if (qG != null) {
+            Resource nodeClass = qG.createResource(NS_questions.get("Question"), OWL.Class);
+            Resource qNode = findQuestionByName(questionName);
+
+            // deal with existing node
+            if (qNode != null) {
+                // check if this node is indeed a question Template
+                boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
+                if (!rightType) {
+                    throw new RuntimeException("Cannot create Question: uri '" + qNode.getURI() + "' is already in use.");
+                }
+
+                // simple decision: do nothing if metadata node exists
+                return true;
+            }
+
+            if (!createQuestionTemplate(questionTemplateName)) // check if template is valid
+                return false;
+            Resource qtemplNode = findQuestionByName(questionTemplateName);
+
+            qNode = qG.createResource(NS_questions.get(questionName));
+            qNode.addLiteral(qG.createProperty(NS_questions.get(), "name"), questionName);
+            qNode.addProperty(qG.createProperty(NS_questions.get(), "has_template"), qtemplNode);
+
+            // copy references to the graphs from template as is ...
+            // using "template-only" roles
+            for (GraphRole role : questionStages().subList(0, 2)) {
+                Property propOfRole = qG.createProperty(questionSubgraphPropertyFor(role));
+                RDFNode graphWithRole = qtemplNode.listProperties(propOfRole).nextStatement().getObject();
+                qNode.addProperty(propOfRole, graphWithRole);
+            }
+
+            // initialize question's graphs as empty ...
+            // using "question-only" roles
+            for (GraphRole role : questionStages().subList(2, 4)) {
+                qNode.addProperty(qG.createProperty(questionSubgraphPropertyFor(role)), RDF.nil);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * получение подграфа триплетов, хранящего базовую схему домена (необходимую для работы ризонера)
      * @return model of triples
      */
     public Model getSchema() {
-        return getLocalGraphByName(GraphRole.SCHEMA.prefix);
+        return getLocalGraphByUri(NS_graphs.get(GraphRole.SCHEMA.ns().base()));
+    }
+
+    /**
+     * Get solved domain schema (for reasoning purposes)
+     * @return model both schema and solved schema (the most of what exists - may be empty)
+     */
+    public Model getFullSchema() {
+        Model m = ModelFactory.createDefaultModel();
+        Model m2 = getLocalGraphByUri(NS_graphs.get(GraphRole.SCHEMA.ns().base()));
+        if (m2 != null)
+            m.add(m2);
+
+        m2 = getLocalGraphByUri(NS_graphs.get(GraphRole.SCHEMA_SOLVED.ns().base()));
+        if (m2 != null)
+            m.add(m2);
+        return m;
     }
 
     /* *
