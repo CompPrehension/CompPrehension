@@ -3,7 +3,8 @@ package org.vstu.compprehension.models.businesslogic.storage;
 public class NamespaceUtil {
     static String PATH_SEPARATORS = "/#";
 
-    private String prefix;
+    private final String prefix;
+    private String base_cached = null;
 
     public NamespaceUtil(String prefix) {
         this.prefix = prefix;
@@ -18,10 +19,16 @@ public class NamespaceUtil {
     }
 
     public String base() {
-        int len = prefix.length();
-        if (PATH_SEPARATORS.contains(prefix.substring(len - 1)))
-            return prefix.substring(0, len - 1);
-        return prefix;
+        if (base_cached == null) {
+            int len = prefix.length();
+            if (PATH_SEPARATORS.contains(prefix.substring(len - 1))) {
+                base_cached = prefix.substring(0, len - 1);
+            }
+            else {
+                base_cached = prefix;
+            }
+        }
+        return base_cached;
     }
 
     /** Cut prefix from qualified fullname
