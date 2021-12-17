@@ -60,7 +60,7 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String MESSAGE_PREFIX = "ctrlflow_";
 
     // dictionary
-    static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
+    public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
     private static DomainVocabulary VOCAB = null;
 
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-questions.json";
@@ -1104,7 +1104,7 @@ public class ControlFlowStatementsDomain extends Domain {
         throw new NotImplementedException();
     }
 
-    private static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
+    public static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
         JenaBackend jback = new JenaBackend();
 
         Model schema = VOCAB.getModel();
