@@ -9,7 +9,10 @@ import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
-import org.apache.jena.rdfconnection.*;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.rdfconnection.RDFConnectionFuseki;
+import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.RDFDataMgr;
@@ -24,7 +27,6 @@ import org.apache.jena.vocabulary.XSD;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
-import org.vstu.compprehension.models.businesslogic.PositiveLaw;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
@@ -51,15 +53,9 @@ enum GraphRole {
     ;
 
     public final String prefix;
-    public final List<GraphRole> components;
 
     private GraphRole(String prefix) {
         this.prefix = prefix;
-        this.components = List.of();
-    }
-    private GraphRole(String prefix, List<GraphRole> components) {
-        this.prefix = prefix;
-        this.components = components;
     }
 
     /** Convert to NamespaceUtil instance */
@@ -127,15 +123,17 @@ public class RdfStorage {
     * */
     final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));
 
-//    static String BASE_DB_PATH = "tdb/";
 //    static String BASE_PREFIX = "http:/poas.ru/";
+
+    // hardcoded Fuseki endpoint:
     static String FUSEKI_ENDPOINT_BASE = "http://vds84.server-1.biz:6515/";
-    // static String FUSEKI_ENDPOINT_BASE = "http://localhost:6515/";
+     //// static String FUSEKI_ENDPOINT_BASE = "http://localhost:6515/";
+
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     static {
         DOMAIN_TO_ENDPOINT = new HashMap<>(2);
-        DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "control_flow"); // "control_flow/update"
-        DOMAIN_TO_ENDPOINT.put("ProgrammingLanguageExpressionDomain", "expression"); // "expression/update"
+        DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "control_flow"); // not "control_flow/update"
+        DOMAIN_TO_ENDPOINT.put("ProgrammingLanguageExpressionDomain", "expression"); // not "expression/update"
     }
 
     /**
