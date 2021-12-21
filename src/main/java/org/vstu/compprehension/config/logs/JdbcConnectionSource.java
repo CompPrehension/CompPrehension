@@ -3,20 +3,19 @@ package org.vstu.compprehension.config.logs;
 
 import lombok.val;
 import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp2.PoolableConnection;
 import org.apache.commons.dbcp2.PoolableConnectionFactory;
 import org.apache.commons.dbcp2.PoolingDataSource;
 import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.apache.logging.log4j.core.appender.db.jdbc.ConnectionSource;
+import org.apache.logging.log4j.core.appender.db.jdbc.AbstractConnectionSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class JdbcConnectionSource implements ConnectionSource
+public class JdbcConnectionSource extends AbstractConnectionSource
 {
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
     public JdbcConnectionSource(String dbUrl, String userName, String password)
     {
@@ -38,8 +37,7 @@ public class JdbcConnectionSource implements ConnectionSource
     }
 
     @Override
-    public Connection getConnection() throws SQLException
-    {
+    public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 }
