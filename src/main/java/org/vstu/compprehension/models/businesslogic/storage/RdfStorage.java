@@ -827,10 +827,10 @@ public class RdfStorage {
     public boolean solveQuestion(String questionName, GraphRole desiredLevel) {
         Model qG = getGraph(NS_questions.base());
 
-        Resource qNode = findQuestionByName(questionName);
+//        Resource qNode = findQuestionByName(questionName);
 
         assert qG != null;
-        qNode = qG.createResource(qNode.asResource());
+//        qNode = qG.createResource(qNode.asResource());
 
         Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
 
@@ -888,6 +888,58 @@ public class RdfStorage {
             exception.printStackTrace();
         }
         return names;
+    }
+
+    /**
+     * Find questions or question templates within dataset.
+     * @param classUri full URI of `rdf:type` an instance should have
+     * @return list of names
+     */
+    public List<String> findAllQuestions(String classUri, int limit) {
+        // find question templates to solve
+        Node ng = NodeFactory.createURI(NS_questions.base());
+        String queryNames = new SelectBuilder()
+                //// .addVar("?node")
+                .addVar("?name")
+                .addWhere(
+                        new WhereBuilder()
+                                .addGraph(ng,
+                                        "?node",
+                                        RDF.type,
+                                        NodeFactory.createURI(classUri)
+                                )
+                                .addGraph(ng,
+                                        "?node",
+                                        NodeFactory.createURI(NS_questions.get("name")),
+                                        "?name"
+                                )
+                )
+                .toString();
+
+        if (limit > 0) {
+            queryNames += "\nLIMIT " + limit;
+        }
+
+        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // ???
+        // RDFConnection connection = getConn();
+        List<String> names = new ArrayList<>();
+        try ( RDFConnection conn = connection ) {
+
+            conn.querySelect(queryNames, querySolution -> names.add(querySolution.get("name").asLiteral().getString()));
+
+        } catch (JenaException exception) {
+            exception.printStackTrace();
+        }
+        return names;
+    }
+
+    /**
+     * (Method overload) Find all questions or question templates within dataset.
+     * @param classUri full URI of `rdf:type` an instance should have
+     * @return list of names
+     */
+    public List<String> findAllQuestions(String classUri) {
+        return findAllQuestions(classUri, 0);
     }
 
 
@@ -1137,11 +1189,11 @@ RdfStorage.StopBackgroundDBFillUp()
         }
     }
 
-    public static void main_4(String[] args) {
+    public static void main_4(boolean forceResolve) {
         // debug some things ...
         // solve <question template> graphs with domain
 
-        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
+//        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
 
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
 
@@ -1151,7 +1203,13 @@ RdfStorage.StopBackgroundDBFillUp()
 
 
         // find question templates to solve
-        List<String> unsqts = rs.unsolvedQuestions(GraphRole.QUESTION_TEMPLATE_SOLVED);
+        List<String> unsqts;
+        if (!forceResolve)
+            unsqts = rs.unsolvedQuestions(GraphRole.QUESTION_TEMPLATE_SOLVED);
+        else
+            unsqts = rs.findAllQuestions(NS_questions.get("QuestionTemplate"), 0);
+
+
         System.out.println("Unsolved question templates: " + unsqts.size());
         for (String name : unsqts) {
             System.out.println(name);
@@ -1209,7 +1267,7 @@ RdfStorage.StopBackgroundDBFillUp()
 
     public static void main(String[] args) {
         // main_3(args); // upload graphs as question templates
-        main_4(args); // solve question templates
+        main_4(true); // solve question templates
 
 
         System.out.println("Finished.");

@@ -76,6 +76,52 @@
     ]
   },
   {
+    "name": "loop_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_helper",
+    "positive": false,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
     "name": "action-boundaries-polyfill",
     "positive": true,
     "tags": [
@@ -158,6 +204,11 @@
       {
         "name": "loop-cond-to-parent_of",
         "formulation": "(?Loop rdf:type my:loop), (?Loop my:cond ?c) -> (?Loop my:parent_of ?c).",
+        "backend": "Jena"
+      },
+      {
+        "name": "attach-principal_violation-to-possible_violation-at-reason_node",
+        "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
         "backend": "Jena"
       }
     ]
@@ -247,6 +298,11 @@
         "backend": "Jena"
       },
       {
+        "name": "attach-possible_violation-for-AltBranchBegin",
+        "formulation": "(?R my:reason_kind my:AltBranchBegin), (?e my:to_reason ?R), (?e my:to_reason ?R2), (?R2 my:reason_kind my:AltElseBranchBegin), -> (?R my:possible_violation my:ElseBranchAfterTrueCondition).",
+        "backend": "Jena"
+      },
+      {
         "name": "connect_NextAltCondition",
         "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), makeSkolem(?R, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?cnd2 my:stmt_name ?cnd2_name), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b), (?R my:reason_kind my:NextAltCondition), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_NEXT_COND ?cnd2_name),.",
         "backend": "Jena"
@@ -264,41 +320,6 @@
       {
         "name": "connect_AltEndAfterBranch",
         "formulation": "(?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?br), makeSkolem(?R, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:always_consequent ?e), (?e1 my:AltEndAfterBranch ?e), (?R my:reason_kind my:AltEndAfterBranch), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
-        "backend": "Jena"
-      }
-    ]
-  },
-  {
-    "name": "loop_helper",
-    "positive": true,
-    "tags": [
-      {
-        "name": "loop"
-      },
-      {
-        "name": "helper"
-      },
-      {
-        "name": "mistake"
-      }
-    ],
-    "concepts": [
-      {
-        "name": "while_loop"
-      },
-      {
-        "name": "do_while_loop"
-      }
-    ],
-    "formulations": [
-      {
-        "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:while_loop), -> drop(0), (?a my:field_kind_of_loop \"WHILE\"),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:do_while_loop), -> drop(0), (?a my:field_kind_of_loop \"DO-WHILE\"),.",
         "backend": "Jena"
       }
     ]
@@ -322,10 +343,19 @@
         "name": "cond_then_body"
       },
       {
+        "name": "pre_update_loop"
+      },
+      {
         "name": "conditional_loop"
       },
       {
         "name": "body_then_cond"
+      },
+      {
+        "name": "start_with_init"
+      },
+      {
+        "name": "post_update_loop"
       }
     ],
     "formulations": [
@@ -345,6 +375,16 @@
         "backend": "Jena"
       },
       {
+        "name": "connect_LoopCond1-update",
+        "formulation": "(?Loop rdf:type my:pre_update_loop), (?Loop my:cond ?cnd), (?Loop my:update ?upd), (?e my:end_of ?cnd), (?b my:begin_of ?upd), -> (?e my:on_true_consequent ?b), (?e my:LoopUpdateOnTrueCond ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopUpdate-body",
+        "formulation": "(?Loop rdf:type my:pre_update_loop), (?Loop my:update ?upd), (?Loop my:body ?st), (?e my:end_of ?upd), (?b my:begin_of ?st), -> (?e my:always_consequent ?b), (?e my:IterationAfterUpdate ?b),.",
+        "backend": "Jena"
+      },
+      {
         "name": "connect_LoopCond0-LoopEnd",
         "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e my:end_of ?Loop), (?e1 my:end_of ?cnd), makeSkolem(?R, ?e1, ?e), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:LoopEndOnFalseCond ?e), (?R my:reason_kind my:LoopEndOnFalseCond), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:fetch_kind_of_loop ?Loop), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
         "backend": "Jena"
@@ -352,6 +392,26 @@
       {
         "name": "connect_LoopBody-cond",
         "formulation": "(?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), makeSkolem(?R, ?e, ?b), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterIteration ?b), (?R my:reason_kind my:LoopCondBeginAfterIteration), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopBegin-init",
+        "formulation": "(?Loop rdf:type my:start_with_init), (?Loop my:init ?st), (?b my:begin_of ?Loop), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:LoopWithInitBegin ?b2),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopInit-cond",
+        "formulation": "(?Loop rdf:type my:start_with_init), (?Loop my:init ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterInit ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopBody-update",
+        "formulation": "(?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?e my:end_of ?st), (?b my:begin_of ?upd), -> (?e my:always_consequent ?b), (?e my:LoopUpdateAfterIteration ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopUpdate-cond",
+        "formulation": "(?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?e my:end_of ?upd), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b), (?e my:LoopCondAfterUpdate ?b),.",
         "backend": "Jena"
       }
     ]
@@ -897,41 +957,6 @@
     ]
   },
   {
-    "name": "loop_helper",
-    "positive": false,
-    "tags": [
-      {
-        "name": "loop"
-      },
-      {
-        "name": "helper"
-      },
-      {
-        "name": "mistake"
-      }
-    ],
-    "concepts": [
-      {
-        "name": "while_loop"
-      },
-      {
-        "name": "do_while_loop"
-      }
-    ],
-    "formulations": [
-      {
-        "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:while_loop), -> drop(0), (?a my:field_kind_of_loop \"WHILE\"),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type my:do_while_loop), -> drop(0), (?a my:field_kind_of_loop \"DO-WHILE\"),.",
-        "backend": "Jena"
-      }
-    ]
-  },
-  {
     "name": "loop_mistake",
     "positive": false,
     "tags": [
@@ -1002,6 +1027,45 @@
       },
       {
         "name": "NoConditionBetweenIterations"
+      },
+      {
+        "name": "start_with_init"
+      },
+      {
+        "name": "LoopStartsNotWithInit"
+      },
+      {
+        "name": "InitNotAtLoopStart"
+      },
+      {
+        "name": "NoConditionAfterForInit"
+      },
+      {
+        "name": "IterationAfterForInit"
+      },
+      {
+        "name": "post_update_loop"
+      },
+      {
+        "name": "NoUpdateAfterIteration"
+      },
+      {
+        "name": "UpdateNotAfterIteration"
+      },
+      {
+        "name": "NoConditionAfterForUpdate"
+      },
+      {
+        "name": "pre_update_loop"
+      },
+      {
+        "name": "NoForeachUpdateAfterSuccessfulCondition"
+      },
+      {
+        "name": "ForeachUpdateNotAfterSuccessfulCondition"
+      },
+      {
+        "name": "NoIterationAfterForeachUpdate"
       }
     ],
     "formulations": [
@@ -1053,6 +1117,66 @@
       {
         "name": "NoConditionBetweenIterations-loop_Error",
         "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st), (?a my:student_next ?b), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?Loop my:cond ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:should_be_after ?cnd), (?b rdf:type my:NoConditionBetweenIterations) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LoopStartsNotWithInit-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_init), (?Loop my:init ?init_stmt), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:end_of ?Loop), noValue(?bnd_b my:begin_of ?init_stmt), (?Loop my:stmt_name ?a_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:LoopStartsNotWithInit), (?b my:field_LOOP ?a_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "InitNotAtLoopStart-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?init_stmt), (?Loop my:init ?init_stmt), (?Loop rdf:type my:start_with_init), (?a my:student_next ?b), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?Loop), (?Loop my:stmt_name ?a_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:InitNotAtLoopStart), (?b my:field_LOOP ?a_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoConditionAfterForInit-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_init), (?Loop my:init ?init_stmt), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:NoConditionAfterForInit), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "IterationAfterForInit-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?init_stmt), (?Loop my:init ?init_stmt), (?Loop rdf:type my:start_with_init), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:begin_of ?st), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:IterationAfterForInit), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoUpdateAfterIteration-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?st), (?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?upd), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoUpdateAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpdateNotAfterIteration-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:body ?st), (?a my:student_next ?b), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?st), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:UpdateNotAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ForConditionAfterIteration-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop rdf:type my:post_update_loop), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?a my:student_next ?b), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), -> (?b rdf:type my:UpdateNotAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoConditionAfterForUpdate-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoConditionAfterForUpdate), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoForeachUpdateAfterSuccessfulCondition-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop rdf:type my:pre_update_loop), (?Loop my:cond ?cnd), (?cnd my:expr_value \"true\"^^xsd:boolean), (?Loop my:update ?upd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?upd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoForeachUpdateAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ForeachUpdateNotAfterSuccessfulCondition-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop rdf:type my:pre_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?a my:executes ?bnd_a), (?bnd_a my:end_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:ForeachUpdateNotAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoIterationAfterForeachUpdate-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop my:update ?upd), (?Loop rdf:type my:pre_update_loop), (?Loop my:body ?st), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?st), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoIterationAfterForeachUpdate), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "IterationNotAfterForeachUpdate-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?st), (?Loop rdf:type my:pre_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?a my:student_next ?b), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?upd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:ForeachUpdateNotAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       }
     ]
