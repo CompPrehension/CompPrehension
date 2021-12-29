@@ -1217,14 +1217,11 @@ RdfStorage.StopBackgroundDBFillUp()
         System.out.println();
 
 
-
         // Solving
         for (String name : unsqts) {
             System.out.println("Solving: " + name);
             rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
         }
-
-
     }
 
     public static void main_3(String[] args) {
@@ -1237,9 +1234,9 @@ RdfStorage.StopBackgroundDBFillUp()
         List<String> files = List.of(
                 "c:/Temp2/cntrflowoutput_v4/1__memcpy_s__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/2__memmove_s__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/3__wcsnlen_s__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/4___wcstok__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/5__strnlen_s__1639429224.rdf",
+                // "c:/Temp2/cntrflowoutput_v4/3__wcsnlen_s__1639429224.rdf",
+                // "c:/Temp2/cntrflowoutput_v4/4___wcstok__1639429224.rdf",
+                // "c:/Temp2/cntrflowoutput_v4/5__strnlen_s__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/6__arraylist_new__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/7__arraylist_free__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/8__arraylist_enlarge__1639429224.rdf",
