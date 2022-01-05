@@ -132,6 +132,7 @@ public class RdfStorage {
 
     // hardcoded FTP location:
     static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
+    String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
     //// static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
 
@@ -170,7 +171,8 @@ public class RdfStorage {
         this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
 
         // init FTP pointing to domain-specific remote dir
-        this.fileService = new RemoteFileService(FTP_BASE + name);
+        this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
+        this.fileService.setDummyDirsForNewFile(1);  // 1 is the default
 
         initDB();
     }
@@ -295,7 +297,7 @@ public class RdfStorage {
         Model m = ModelFactory.createDefaultModel();
         try (InputStream stream = fileService.getFileStream(name)) {
             RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             return null;
         }
@@ -314,7 +316,7 @@ public class RdfStorage {
     boolean sendModel(String name, Model m) {
         try (OutputStream stream = fileService.saveFileStream(name)) {
             RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             return false;
         }
@@ -588,7 +590,7 @@ public class RdfStorage {
 
         // no known relation - get default for a new one
         String ext = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
-        return RemoteFileService.normalizeName(role.ns().get(questionName + ext));  /// fileService.prepareNameForNewFile
+        return fileService.prepareNameForFile(role.ns().get(questionName + ext), false);
         //// return role.ns(NS_namedGraph.get()).get(questionName);
     }
 
@@ -1259,7 +1261,7 @@ RdfStorage.StopBackgroundDBFillUp()
 
             rs.createQuestionTemplate(name);
 
-            System.out.println("    Set/upload model ...");
+            System.out.println("    Upload model ...");
             Model m = ModelFactory.createDefaultModel();
             RDFDataMgr.read(m, file);
 
