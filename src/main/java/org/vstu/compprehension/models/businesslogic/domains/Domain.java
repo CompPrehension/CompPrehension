@@ -49,6 +49,10 @@ public abstract class Domain {
         return version;
     }
 
+    public DomainEntity getEntity() {
+        return domainEntity;
+    }
+
     public List<PositiveLaw> getPositiveLaws() {
         return positiveLaws;
     }

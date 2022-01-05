@@ -31,6 +31,7 @@ import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -166,13 +167,24 @@ public class RdfStorage {
         assert domain != null;
         this.domain = domain;
 
-        String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
-        assert name != null;  // Ensure you created a database in Fuseki and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
-        this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
+        if (domain.getEntity() != null) {
+            // use options from Domain
+            DomainOptionsEntity cnf = domain.getEntity().getOptions();
+            this.sparql_endpoint = cnf.getStorageSPARQLEndpointUrl();
 
-        // init FTP pointing to domain-specific remote dir
-        this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
-        this.fileService.setDummyDirsForNewFile(1);  // 1 is the default
+            // init FTP pointing to domain-specific remote dir
+            this.fileService = new RemoteFileService(cnf.getStorageUploadFilesBaseUrl(), cnf.getStorageDownloadFilesBaseUrl());
+            this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
+        } else {
+            // default settings
+            String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
+            assert name != null;  // Ensure you created a database in Fuseki and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
+            this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
+
+            // init FTP pointing to domain-specific remote dir
+            this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
+            this.fileService.setDummyDirsForNewFile(1);  // 1 is the default
+        }
 
         initDB();
     }
