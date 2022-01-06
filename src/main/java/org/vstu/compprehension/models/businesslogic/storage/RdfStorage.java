@@ -173,7 +173,10 @@ public class RdfStorage {
             this.sparql_endpoint = cnf.getStorageSPARQLEndpointUrl();
 
             // init FTP pointing to domain-specific remote dir
-            this.fileService = new RemoteFileService(cnf.getStorageUploadFilesBaseUrl(), cnf.getStorageDownloadFilesBaseUrl());
+            this.fileService = new RemoteFileService(
+                    cnf.getStorageUploadFilesBaseUrl(),
+                    Optional.ofNullable(cnf.getStorageDownloadFilesBaseUrl())
+                            .orElse(cnf.getStorageUploadFilesBaseUrl()));  // use upload Url for download by default
             this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
         } else {
             // default settings
