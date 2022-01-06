@@ -8,8 +8,4 @@
       </database-info>
     </database-infos>
   </component>
-  <component name="JpaLiquibaseChangesConfig">
-    <exclude-change idName="user_role#roles" tagName="modifyDataType" />
-    <exclude-change idName="backend_facts_sequence" tagName="dropTable" />
-  </component>
 </project>
