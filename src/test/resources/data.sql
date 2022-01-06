@@ -1,5 +1,13 @@
-INSERT INTO `domain` (`version`, `name`, `class_path`) VALUES (1, 'ProgrammingLanguageExpressionDomain', 'org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain');
-INSERT INTO `domain` (`version`, `name`, `class_path`) VALUES (1, 'ControlFlowStatementsDomain', 'org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain');
+INSERT INTO `domain` (`version`, `name`, `short_name`, `class_path`, `options_json`) VALUES (1, 'ProgrammingLanguageExpressionDomain', 'expression', 'org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain',
+	'{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/expression/",
+	"StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/expression/",
+	"StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/expression/",
+	"StorageDummyDirsForNewFile": 2}');
+INSERT INTO `domain` (`version`, `name`, `short_name`, `class_path`, `options_json`) VALUES (1, 'ControlFlowStatementsDomain', 'control_flow', 'org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain',
+	'{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/control_flow/",
+	"StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/control_flow/",
+	"StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/control_flow/",
+	"StorageDummyDirsForNewFile": 2}');
 
 INSERT INTO `backend` (`id`, `name`) VALUES (1, 'test');
 

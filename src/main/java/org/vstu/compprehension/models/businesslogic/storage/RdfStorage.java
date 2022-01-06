@@ -15,6 +15,7 @@ import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.Var;
@@ -30,8 +31,12 @@ import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.Instant;
 import java.util.*;
 
@@ -98,13 +103,16 @@ public class RdfStorage {
      */
     final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
     final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
-    final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
+    //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
+    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
     final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
     //    graphs:
     //    class NamedGraph
     //		modifiedAt: datetime   (1..1)
     //      dependsOn: NamedGraph  (0..*)
     final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
+    final static NamespaceUtil NS_classQuestionTemplate = new NamespaceUtil(NS_questions.get("QuestionTemplate#"));
+    final static NamespaceUtil NS_classQuestion = new NamespaceUtil(NS_questions.get("Question#"));
     /* questions:
     * class QuestionTemplate:
     *   name: str   (1..1)
@@ -123,11 +131,17 @@ public class RdfStorage {
     * */
     final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));
 
-//    static String BASE_PREFIX = "http:/poas.ru/";
+    // hardcoded FTP location:
+    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
+    String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
+    //// static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
+    static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
+
 
     // hardcoded Fuseki endpoint:
     static String FUSEKI_ENDPOINT_BASE = "http://vds84.server-1.biz:6515/";
-     //// static String FUSEKI_ENDPOINT_BASE = "http://localhost:6515/";
+    //// static String FUSEKI_ENDPOINT_BASE = "http://localhost:6515/";
+
 
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     static {
@@ -140,21 +154,40 @@ public class RdfStorage {
      * name of directory under BASE_DB_PATH to store domain-specific database in
      */
     String sparql_endpoint = null;
-    String uriPrefix = NS_code.get();
 
     Domain domain;
 
     /** Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki) */
     Dataset dataset = null;
 
+    RemoteFileService fileService = null;
+
     public RdfStorage(Domain domain) {
 
         assert domain != null;
         this.domain = domain;
 
-        String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
-        assert name != null;  // Ensure you created a database in Fuseki and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
-        this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
+        if (domain.getEntity() != null) {
+            // use options from Domain
+            DomainOptionsEntity cnf = domain.getEntity().getOptions();
+            this.sparql_endpoint = cnf.getStorageSPARQLEndpointUrl();
+
+            // init FTP pointing to domain-specific remote dir
+            this.fileService = new RemoteFileService(
+                    cnf.getStorageUploadFilesBaseUrl(),
+                    Optional.ofNullable(cnf.getStorageDownloadFilesBaseUrl())
+                            .orElse(cnf.getStorageUploadFilesBaseUrl()));  // use upload Url for download by default
+            this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
+        } else {
+            // default settings
+            String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
+            assert name != null;  // Ensure you created a database in Fuseki and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
+            this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
+
+            // init FTP pointing to domain-specific remote dir
+            this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
+            this.fileService.setDummyDirsForNewFile(1);  // 1 is the default
+        }
 
         initDB();
     }
@@ -163,6 +196,10 @@ public class RdfStorage {
 
         this.domain = null;
         this.sparql_endpoint = sparql_endpoint;
+
+        // init FTP pointing to some remote dir
+        this.fileService = new RemoteFileService(FTP_BASE + "tmp" + "/");
+
         initDB();
     }
 
@@ -177,9 +214,6 @@ public class RdfStorage {
             log.error(ex.getMessage());
             ex. printStackTrace();
         }
-//        finally {
-//            System.out.println("Finally clause");
-//        }
 
         // init some named graphs
         setLocalGraph(NS_graphs.base(), ModelFactory.createDefaultModel());
@@ -272,12 +306,36 @@ public class RdfStorage {
         return null;
     }
 
+    /** Download a file content from remote FTP, parse and return as Model */
+    @Nullable
+    Model fetchModel(String name) {
+        Model m = ModelFactory.createDefaultModel();
+        try (InputStream stream = fileService.getFileStream(name)) {
+            RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
+        } catch (IOException | NullPointerException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return m;
+    }
+
     /** Cache and send a graph to remote DB */
     boolean sendGraph(String gUri, Model m) {
         if (setLocalGraph(gUri, m)) {
             return uploadGraph(gUri);
         }
         return false;
+    }
+
+    /** Send a model as file to remote FTP */
+    boolean sendModel(String name, Model m) {
+        try (OutputStream stream = fileService.saveFileStream(name)) {
+            RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
+        } catch (IOException | NullPointerException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /** Download and cache a graph if not cached yet */
@@ -474,32 +532,6 @@ public class RdfStorage {
     }
 
 
-//    public void setUriPrefix(String prefix) {
-//        this.uriPrefix = prefix;
-//    }
-//    public String uriPrefix() {
-//        return this.uriPrefix;
-//    }
-
-
-/*    public String local2iri(String localName) {
-        return uriPrefix() + localName;
-    }
-
-    public String iri2local(String iri) {
-        String localName = iri;
-        if (iri.startsWith(uriPrefix()))
-            localName = iri.substring(uriPrefix().length());
-        else
-            log.warn(String.format("IRI does not begin with expected prefix: '%s'", iri));
-
-        return localName;
-    }
-
-//    public String getName() {
-//        return name;
-//    }*/
-
     public boolean localGraphExists(String gUri) {
         return dataset.containsNamedModel(gUri);
     }
@@ -517,8 +549,8 @@ public class RdfStorage {
 
     /**
      * запись/обновление подграфа триплетов в кэше
-     * @param gUri
-     * @param model
+     * @param gUri graph URI
+     * @param model model to set
      * @return true on success
      */
     public boolean setLocalGraph(String gUri, Model model) {
@@ -551,7 +583,7 @@ public class RdfStorage {
             (Name of QuestionTemplate can be used instead of Question name in many methods)
      */
 
-    public String uriForQuestionGraph(String questionName, GraphRole role) {
+    public String nameForQuestionGraph(String questionName, GraphRole role) {
         // look for <Question>-<subgraph> relation in metadata first
         Model qG = getGraph(NS_questions.base());
         // assert qG != null;
@@ -567,28 +599,31 @@ public class RdfStorage {
                     .orElse(null);
         }
         if (targetNamedGraph != null) {
-            return targetNamedGraph.asNode().getURI();
+            String qsgName = targetNamedGraph.asNode().getURI();
+            return NS_file.localize(qsgName);
         }
 
         // no known relation - get default for a new one
-        return role.ns(NS_namedGraph.get()).get(questionName);
-        //// return role.ns().get(questionName);
+        String ext = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
+        return fileService.prepareNameForFile(role.ns().get(questionName + ext), false);
+        //// return role.ns(NS_namedGraph.get()).get(questionName);
     }
 
-    public String nameFromQuestionGraphUri(String questionUri, GraphRole role) {
-        int sep_pos = questionUri.indexOf('#');  // assume the prefix is #-ended, see GraphRole prefixes
-        if (sep_pos > -1) {
-            return questionUri.substring(sep_pos + 1);
-        }
-
-        log.warn(String.format("Question IRI does not begin with recognizable prefix: '%s'", questionUri));
-        return questionUri;
-    }
+    //public String nameFromQuestionGraphUri(String questionUri, GraphRole role) {
+    //    int sep_pos = questionUri.indexOf('#');  // assume the prefix is #-ended, see GraphRole prefixes
+    //    if (sep_pos > -1) {
+    //        return questionUri.substring(sep_pos + 1);
+    //    }
+    //
+    //    log.warn(String.format("Question IRI does not begin with recognizable prefix: '%s'", questionUri));
+    //    return questionUri;
+    //}
 
     public static String questionSubgraphPropertyFor(GraphRole role) {
         return NS_questions.get("has_graph_" + role.ns().base());
     }
 
+    /** Find Resource denoting question or question template node with given name from 'questions' graph */
     Resource findQuestionByName(String questionName) {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
         if (qG != null) {
@@ -602,16 +637,16 @@ public class RdfStorage {
         return null;
     }
 
-    /** ... */
+    /** Get Model with specified `role` for question or question template, if one exists, else `null` is returned. */
     public Model getQuestionSubgraph(String questionName, GraphRole role) {
-        return getGraph(uriForQuestionGraph(questionName, role));
+        return fetchModel(nameForQuestionGraph(questionName, role));
     }
 
-    /** ... */
+    /** Get union of all models available for question or question template */
     public Model getQuestionModel(String questionName) {
         return getQuestionModel(questionName, GraphRole.QUESTION_SOLVED);
     }
-    /** ... */
+    /** Get union of all models under `topRole` (inclusive) available for question or question template */
     public Model getQuestionModel(String questionName, GraphRole topRole) {
         Model m = ModelFactory.createDefaultModel();
         for (GraphRole role : questionStages()) {
@@ -675,16 +710,15 @@ public class RdfStorage {
      * @return
      */
     public boolean setQuestionSubgraph(String questionName, GraphRole role, Model model) {
-        String qgUri = uriForQuestionGraph(questionName, role);
-        boolean success = sendGraph(qgUri, model);
+        String qgUri = nameForQuestionGraph(questionName, role);
+        boolean success = sendModel(qgUri, model);
 
         if (!success)
             return false;
 
         // update questions metadata
         Resource questionNode = findQuestionByName(questionName);
-//        Resource questionNode = getGraph(NS_questions.base()).createResource( NS_questions.get(questionName) );  // ?? the way to obtain Uri
-        Node qgNode = NodeFactory.createURI(qgUri);
+        Node qgNode = NodeFactory.createURI(NS_file.get(qgUri));
 
         UpdateRequest upd_setGraph = makeUpdateTripleQuery(
                 NodeFactory.createURI(NS_questions.base()),
@@ -698,14 +732,14 @@ public class RdfStorage {
 
     /**
      * Create metadata representing empty QuestionTemplate, but not overwrite existing data.
-     * @param questionTemplateName unique Uri-conformant name of question template
+     * @param questionTemplateName unique identifier-like name of question template
      * @return true on success
      */
     public boolean createQuestionTemplate(String questionTemplateName) {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
 
         if (qG != null) {
-            Resource nodeClass = qG.createResource(NS_questions.get("QuestionTemplate"), OWL.Class);
+            Resource nodeClass = qG.createResource(NS_classQuestionTemplate.base(), OWL.Class);
             Resource qNode = findQuestionByName(questionTemplateName);
 
             // deal with existing node
@@ -720,13 +754,12 @@ public class RdfStorage {
                 return true;
             }
 
-            qNode = qG.createResource(NS_questions.get(questionTemplateName));
             Node ngNode = NodeFactory.createURI(NS_questions.base());
+            qNode = qG.createResource(NS_classQuestionTemplate.get(questionTemplateName));
 
             List<UpdateRequest> commands = new ArrayList<>();
 
             commands.add(makeUpdateTripleQuery(ngNode, qNode, RDF.type, nodeClass));
-            //// qNode.addProperty(RDF.type, nodeClass);
 
             commands.add(makeUpdateTripleQuery(ngNode,
                     qNode,
@@ -743,7 +776,6 @@ public class RdfStorage {
             }
 
             boolean success = runQueries(commands);
-
             return success;
         }
         return false;
@@ -751,14 +783,14 @@ public class RdfStorage {
 
     /**
      * Create metadata representing empty Question, but not overwrite existing data.
-     * @param questionName unique Uri-conformant name of question
+     * @param questionName unique identifier-like name of question
      * @return true on success
      */
     public boolean createQuestion(String questionName, String questionTemplateName) {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
 
         if (qG != null) {
-            Resource nodeClass = qG.createResource(NS_questions.get("Question"), OWL.Class);
+            Resource nodeClass = qG.createResource(NS_classQuestion.base(), OWL.Class);
             Resource qNode = findQuestionByName(questionName);
 
             // deal with existing node
@@ -779,7 +811,7 @@ public class RdfStorage {
             Resource qtemplNode = findQuestionByName(questionTemplateName);
 
             Node ngNode = NodeFactory.createURI(NS_questions.base());
-            qNode = qG.createResource(NS_questions.get(questionName));
+            qNode = qG.createResource(NS_classQuestion.get(questionName));
 
             List<UpdateRequest> commands = new ArrayList<>();
 
@@ -826,11 +858,7 @@ public class RdfStorage {
      */
     public boolean solveQuestion(String questionName, GraphRole desiredLevel) {
         Model qG = getGraph(NS_questions.base());
-
-//        Resource qNode = findQuestionByName(questionName);
-
         assert qG != null;
-//        qNode = qG.createResource(qNode.asResource());
 
         Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
 
@@ -855,7 +883,6 @@ public class RdfStorage {
         // find question templates to solve
         Node ng = NodeFactory.createURI(NS_questions.base());
         String unsolvedTemplates = new SelectBuilder()
-                //// .addVar("?node")
                 .addVar("?name")
                 .addWhere(
                         new WhereBuilder()
@@ -877,7 +904,7 @@ public class RdfStorage {
                 )
                 .toString();
 
-        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // ???
+        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // TODO: replace deprecated ???
         // RDFConnection connection = getConn();
         List<String> names = new ArrayList<>();
         try ( RDFConnection conn = connection ) {
@@ -892,14 +919,13 @@ public class RdfStorage {
 
     /**
      * Find questions or question templates within dataset.
-     * @param classUri full URI of `rdf:type` an instance should have
+     * @param classUri full URI of class an instance should have under `rdf:type` relation
      * @return list of names
      */
     public List<String> findAllQuestions(String classUri, int limit) {
         // find question templates to solve
         Node ng = NodeFactory.createURI(NS_questions.base());
         String queryNames = new SelectBuilder()
-                //// .addVar("?node")
                 .addVar("?name")
                 .addWhere(
                         new WhereBuilder()
@@ -920,7 +946,7 @@ public class RdfStorage {
             queryNames += "\nLIMIT " + limit;
         }
 
-        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // ???
+        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // TODO: replace deprecated ???
         // RDFConnection connection = getConn();
         List<String> names = new ArrayList<>();
         try ( RDFConnection conn = connection ) {
@@ -1194,12 +1220,8 @@ RdfStorage.StopBackgroundDBFillUp()
         // solve <question template> graphs with domain
 
 //        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
-
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
-
-
         RdfStorage rs = new RdfStorage(cfd);
-
 
 
         // find question templates to solve
@@ -1217,29 +1239,26 @@ RdfStorage.StopBackgroundDBFillUp()
         System.out.println();
 
 
-
         // Solving
         for (String name : unsqts) {
             System.out.println("Solving: " + name);
             rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
         }
-
-
     }
 
     public static void main_3(String[] args) {
         // debug some things ...
         // upload <question template> graphs from files
 
-        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
-        RdfStorage rs = new RdfStorage(sparql_endpoint);
+        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
+        RdfStorage rs = new RdfStorage(cfd);
 
         List<String> files = List.of(
                 "c:/Temp2/cntrflowoutput_v4/1__memcpy_s__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/2__memmove_s__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/3__wcsnlen_s__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/4___wcstok__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/5__strnlen_s__1639429224.rdf",
+                // "c:/Temp2/cntrflowoutput_v4/3__wcsnlen_s__1639429224.rdf",
+                // "c:/Temp2/cntrflowoutput_v4/4___wcstok__1639429224.rdf",
+                // "c:/Temp2/cntrflowoutput_v4/5__strnlen_s__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/6__arraylist_new__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/7__arraylist_free__1639429224.rdf",
                 "c:/Temp2/cntrflowoutput_v4/8__arraylist_enlarge__1639429224.rdf",
@@ -1253,11 +1272,11 @@ RdfStorage.StopBackgroundDBFillUp()
             String name = file.substring(27);
             name = name.substring(0, name.length() - 16);
 
-            System.out.println(name + " ...");
+            System.out.print(name + " ...\t");
 
             rs.createQuestionTemplate(name);
 
-            System.out.println("    Set/upload model ...");
+            System.out.println("    Upload model ...");
             Model m = ModelFactory.createDefaultModel();
             RDFDataMgr.read(m, file);
 
@@ -1266,9 +1285,8 @@ RdfStorage.StopBackgroundDBFillUp()
     }
 
     public static void main(String[] args) {
-        // main_3(args); // upload graphs as question templates
-        main_4(true); // solve question templates
-
+        main_3(args); // upload graphs as question templates
+        main_4(false); // solve question templates
 
         System.out.println("Finished.");
     }
