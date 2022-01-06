@@ -7,10 +7,26 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
     <changeSet id="1641417136728-2" author="Mikhail">
         <addColumn tableName="domain">
-            <column name="options_json" type="json"/>
             <column name="short_name" type="VARCHAR(255)"/>
+            <column name="options_json" type="json"/>
         </addColumn>
     </changeSet>
+    <changeSet id="1641417136728-7" author="Mikhail">
+        <update tableName="domain">
+            <column name="short_name" value="expression" />
+            <column name="options_json" value='{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/expression/", "StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/expression/", "StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/expression/", "StorageDummyDirsForNewFile": 2}' />
+            <where>name = 'ProgrammingLanguageExpressionDomain'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="1641417136728-8" author="Mikhail">
+        <update tableName="domain">
+            <column name="short_name" value="control_flow" />
+            <column name="options_json" value='{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/control_flow/", "StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/control_flow/", "StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/control_flow/", "StorageDummyDirsForNewFile": 2}' />
+            <where>name = 'ControlFlowStatementsDomain'</where>
+        </update>
+    </changeSet>
+
     <changeSet id="1641417136728-3" author="Mikhail">
         <addNotNullConstraint columnDataType="json" columnName="options_json" tableName="domain"/>
     </changeSet>
