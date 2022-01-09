@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.*;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -1268,6 +1269,12 @@ RdfStorage.StopBackgroundDBFillUp()
         RdfStorage rs = new RdfStorage(cfd);
 
 
+        if (false) {
+            _setQuestionAttributesExample(rs);
+            return;
+        }
+
+
         // find question templates to solve
         List<String> unsqts;
         if (!forceResolve)
@@ -1288,6 +1295,18 @@ RdfStorage.StopBackgroundDBFillUp()
             System.out.println("Solving: " + name);
             rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
         }
+    }
+
+    private static void _setQuestionAttributesExample(RdfStorage rs) {
+        rs.setQuestionMetadata("44__binary_heap_free_v_nocond_q94",
+                List.of(
+                        Pair.of(NS_questions.getUri("has_tag"),
+                                NodeFactory.createLiteral("C++")),
+                        Pair.of(NS_questions.getUri("distinct_errors_count"),
+                                NodeFactory.createLiteralByValue(3, XSDDatatype.XSDinteger)),
+                        Pair.of(NS_questions.getUri("integral_complexity"),
+                                NodeFactory.createLiteralByValue(0.0921, XSDDatatype.XSDdouble))
+                ));
     }
 
     public static void main_3(String[] args) {
