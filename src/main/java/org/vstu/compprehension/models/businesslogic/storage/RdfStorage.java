@@ -2,9 +2,11 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.*;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -126,7 +128,14 @@ public class RdfStorage {
     *   has_graph_qt_s  | NamedGraph or rdf:nil
     *   has_graph_q     | (1..1)
     *   has_graph_q_s  /
-    *   formulation_structural_complexity : int
+	*
+    *   solution_structural_complexity : int
+    *   solution_steps : int
+    *   distinct_errors_count : int
+    *   integral_complexity: float (0 <= value <= 1)  <- универсальная оценка вопроса для использования в стратегии
+    *	has_tag: domain:Tag   [1..*]
+    *	has_law: domain:Law [1..*]
+    *	has_violation: domain:Violation   [1..*]
     *   ...
     * */
     final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));
@@ -843,6 +852,43 @@ public class RdfStorage {
             }
 
             return runQueries(commands);
+        }
+        return false;
+    }
+
+
+    /**
+     * Add metadata triples to a Question node. Only scalar values (Literals) are allowed as an object in a triple.
+     * Tip: use {@link NodeFactory} to create property URIs and literals. Property URI is typically obtained via NS_questions.getUri("...").
+     * (QuestionTemplate is not supported here since NS_classQuestion namespace is hardcoded in this method).
+     * @param questionName local name of a Question node
+     * @param propValPairs property-literal pairs for triples to be created
+     * @return true on success
+     */
+    public boolean setQuestionMetadata(String questionName, Collection<Pair<Node, Node>> propValPairs) {
+        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+
+        if (qG != null) {
+            Node ngNode = NS_questions.baseAsUri();
+            Node qNode = NS_classQuestion.getUri(questionName);
+            List<Triple> triples = new ArrayList<>();
+
+            // make triples with question node as subject
+            for (Pair<Node, Node>pair : propValPairs) {
+                triples.add(new Triple(
+                        qNode,  // Subject
+                        pair.getLeft(),  // Property
+                        pair.getRight()  // Value (Object)
+                ));
+            }
+
+            // insert new triples
+            UpdateBuilder ub2 = new UpdateBuilder();
+            ub2.addPrefix("qs", NS_questions.get());
+            ub2.addInsert(ngNode, triples);
+            UpdateRequest insertQuery = ub2.buildRequest();
+
+            return runQueries(List.of(insertQuery));
         }
         return false;
     }
