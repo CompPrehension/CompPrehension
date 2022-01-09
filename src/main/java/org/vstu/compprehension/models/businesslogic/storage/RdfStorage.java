@@ -779,11 +779,11 @@ public class RdfStorage {
     }
 
     /**
-     * Create metadata representing empty Question, but not overwrite existing data.
+     * Create metadata representing empty Question, but not overwrite existing data if recreate == false.
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    public boolean createQuestion(String questionName, String questionTemplateName) {
+    public boolean createQuestion(String questionName, String questionTemplateName, boolean recreate) {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
 
         if (qG != null) {
@@ -792,14 +792,15 @@ public class RdfStorage {
 
             // deal with existing node
             if (qNode != null) {
-                // check if this node is indeed a question Template
+                // check if this node is indeed a Question
                 boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
                 if (!rightType) {
                     throw new RuntimeException("Cannot create Question: uri '" + qNode.getURI() + "' is already in use.");
                 }
 
                 // simple decision: do nothing if metadata node exists
-                return true;
+                if (!recreate)
+                    return true;
             }
 
             if (!createQuestionTemplate(questionTemplateName)) // check if template is valid
