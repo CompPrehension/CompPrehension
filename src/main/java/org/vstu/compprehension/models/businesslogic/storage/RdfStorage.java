@@ -2,9 +2,12 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.*;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -126,7 +129,14 @@ public class RdfStorage {
     *   has_graph_qt_s  | NamedGraph or rdf:nil
     *   has_graph_q     | (1..1)
     *   has_graph_q_s  /
-    *   formulation_structural_complexity : int
+	*
+    *   solution_structural_complexity : int
+    *   solution_steps : int
+    *   distinct_errors_count : int
+    *   integral_complexity: float (0 <= value <= 1)  <- универсальная оценка вопроса для использования в стратегии
+    *	has_tag: domain:Tag   [1..*]
+    *	has_law: domain:Law [1..*]
+    *	has_violation: domain:Violation   [1..*]
     *   ...
     * */
     final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));
@@ -446,9 +456,9 @@ public class RdfStorage {
         Node gNode = NodeFactory.createURI(gUri);
 
         UpdateRequest upd_modifiedAt = makeUpdateTripleQuery(
-                NodeFactory.createURI(NS_graphs.base()),
+                NS_graphs.baseAsUri(),
                 gNode,
-                NodeFactory.createURI(NS_graphs.get("modifiedAt")),
+                NS_graphs.getUri("modifiedAt"),
                 dateLiteral
         );
 
@@ -465,10 +475,7 @@ public class RdfStorage {
     static UpdateRequest makeUpdateTripleQuery(Object ng, Object s, Object p, Object o) {
         // delete & insert new triple
         UpdateBuilder ub3 = new UpdateBuilder();
-        //// ub3.addPrefix("graphs", NS_graphs.get());
         ub3.addInsert(ng, s, p, o); // quad
-//        Node subj = NodeFactory.createURI(NS_graphs.get(SubjName));
-//        Node pred = NodeFactory.createURI(NS_graphs.get("modifiedAt"));
         Var obj = Var.alloc("obj");
         // quad
         ub3.addDelete(ng, s, p, obj); // quad
@@ -591,7 +598,7 @@ public class RdfStorage {
 
         if (qG != null) {
             targetNamedGraph = findQuestionByName(questionName)
-                    .listProperties(qG.createProperty(questionSubgraphPropertyFor(role)))
+                    .listProperties(questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG))
                     .toList().stream()
                     .map(Statement::getObject)
                     .dropWhile(res -> res.equals(RDF.nil))
@@ -619,8 +626,8 @@ public class RdfStorage {
     //    return questionUri;
     //}
 
-    public static String questionSubgraphPropertyFor(GraphRole role) {
-        return NS_questions.get("has_graph_" + role.ns().base());
+    public static NamespaceUtil questionSubgraphPropertyFor(GraphRole role) {
+        return new NamespaceUtil(NS_questions.get("has_graph_" + role.ns().base()));
     }
 
     /** Find Resource denoting question or question template node with given name from 'questions' graph */
@@ -628,7 +635,7 @@ public class RdfStorage {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
         if (qG != null) {
             List<Resource> qResources = qG.listSubjectsWithProperty(
-                    qG.createProperty(NS_questions.get(), "name"),
+                    NS_questions.getPropertyOnModel("name", qG),
                     questionName
             ).toList();
             if (!qResources.isEmpty())
@@ -683,7 +690,7 @@ public class RdfStorage {
                 /// boolean exists = fetchGraph(uriForQuestionGraph(questionName, role));
 
                 boolean targetNamedGraphAbsent = !questionNode
-                        .listProperties(questionNode.getModel().createProperty(questionSubgraphPropertyFor(role)))
+                        .listProperties(questionSubgraphPropertyFor(role).baseAsPropertyOnModel(questionNode.getModel()))
                         .toList()
                         .stream()
                         .map(Statement::getObject)
@@ -718,12 +725,12 @@ public class RdfStorage {
 
         // update questions metadata
         Resource questionNode = findQuestionByName(questionName);
-        Node qgNode = NodeFactory.createURI(NS_file.get(qgUri));
+        Node qgNode = NS_file.getUri(qgUri);
 
         UpdateRequest upd_setGraph = makeUpdateTripleQuery(
-                NodeFactory.createURI(NS_questions.base()),
+                NS_questions.baseAsUri(),
                 questionNode,
-                NodeFactory.createURI(questionSubgraphPropertyFor(role)),
+                questionSubgraphPropertyFor(role).baseAsUri(),
                 qgNode
         );
 
@@ -754,8 +761,8 @@ public class RdfStorage {
                 return true;
             }
 
-            Node ngNode = NodeFactory.createURI(NS_questions.base());
-            qNode = qG.createResource(NS_classQuestionTemplate.get(questionTemplateName));
+            Node ngNode = NS_questions.baseAsUri();
+            qNode = NS_classQuestionTemplate.getResourceOnModel(questionTemplateName, qG);
 
             List<UpdateRequest> commands = new ArrayList<>();
 
@@ -763,7 +770,7 @@ public class RdfStorage {
 
             commands.add(makeUpdateTripleQuery(ngNode,
                     qNode,
-                    qG.createProperty(NS_questions.get(), "name"),
+                    NS_questions.getUri("name"),
                     NodeFactory.createLiteral(questionTemplateName)));
 
             // initialize template's graphs as empty ...
@@ -771,7 +778,7 @@ public class RdfStorage {
             for (GraphRole role : questionStages().subList(0, 2)) {
                 commands.add(makeUpdateTripleQuery(ngNode,
                         qNode,
-                        qG.createProperty(questionSubgraphPropertyFor(role)),
+                        questionSubgraphPropertyFor(role).baseAsUri(),
                         RDF.nil));
             }
 
@@ -782,27 +789,28 @@ public class RdfStorage {
     }
 
     /**
-     * Create metadata representing empty Question, but not overwrite existing data.
+     * Create metadata representing empty Question, but not overwrite existing data if recreate == false.
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    public boolean createQuestion(String questionName, String questionTemplateName) {
+    public boolean createQuestion(String questionName, String questionTemplateName, boolean recreate) {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
 
         if (qG != null) {
-            Resource nodeClass = qG.createResource(NS_classQuestion.base(), OWL.Class);
+            Resource nodeClass = NS_classQuestion.baseAsResourceOnModel(qG);
             Resource qNode = findQuestionByName(questionName);
 
             // deal with existing node
             if (qNode != null) {
-                // check if this node is indeed a question Template
+                // check if this node is indeed a Question
                 boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
                 if (!rightType) {
                     throw new RuntimeException("Cannot create Question: uri '" + qNode.getURI() + "' is already in use.");
                 }
 
                 // simple decision: do nothing if metadata node exists
-                return true;
+                if (!recreate)
+                    return true;
             }
 
             if (!createQuestionTemplate(questionTemplateName)) // check if template is valid
@@ -810,8 +818,8 @@ public class RdfStorage {
 
             Resource qtemplNode = findQuestionByName(questionTemplateName);
 
-            Node ngNode = NodeFactory.createURI(NS_questions.base());
-            qNode = qG.createResource(NS_classQuestion.get(questionName));
+            Node ngNode = NS_questions.baseAsUri();
+            qNode = NS_classQuestion.getResourceOnModel(questionName, qG);
 
             List<UpdateRequest> commands = new ArrayList<>();
 
@@ -819,18 +827,18 @@ public class RdfStorage {
 
             commands.add(makeUpdateTripleQuery(ngNode,
                     qNode,
-                    qG.createProperty(NS_questions.get(), "name"),
+                    NS_questions.getPropertyOnModel("name", qG),
                     NodeFactory.createLiteral(questionName)));
 
             commands.add(makeUpdateTripleQuery(ngNode,
                     qNode,
-                    qG.createProperty(NS_questions.get(), "has_template"),
+                    NS_questions.getPropertyOnModel("has_template", qG),
                     qtemplNode));
 
             // copy references to the graphs from template as is ...
             // using "template-only" roles
             for (GraphRole role : questionStages().subList(0, 2)) {
-                Property propOfRole = qG.createProperty(questionSubgraphPropertyFor(role));
+                Property propOfRole = questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG);
                 RDFNode graphWithRole = qtemplNode.listProperties(propOfRole).nextStatement().getObject();
                 commands.add(makeUpdateTripleQuery(ngNode, qNode, propOfRole, graphWithRole));
             }
@@ -840,11 +848,48 @@ public class RdfStorage {
             for (GraphRole role : questionStages().subList(2, 4)) {
                 commands.add(makeUpdateTripleQuery(ngNode,
                         qNode,
-                        qG.createProperty(questionSubgraphPropertyFor(role)),
+                        questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG),
                         RDF.nil));
             }
 
             return runQueries(commands);
+        }
+        return false;
+    }
+
+
+    /**
+     * Add metadata triples to a Question node. Only scalar values (Literals) are allowed as an object in a triple.
+     * Tip: use {@link NodeFactory} to create property URIs and literals. Property URI is typically obtained via NS_questions.getUri("...").
+     * (QuestionTemplate is not supported here since NS_classQuestion namespace is hardcoded in this method).
+     * @param questionName local name of a Question node
+     * @param propValPairs property-literal pairs for triples to be created
+     * @return true on success
+     */
+    public boolean setQuestionMetadata(String questionName, Collection<Pair<Node, Node>> propValPairs) {
+        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+
+        if (qG != null) {
+            Node ngNode = NS_questions.baseAsUri();
+            Node qNode = NS_classQuestion.getUri(questionName);
+            List<Triple> triples = new ArrayList<>();
+
+            // make triples with question node as subject
+            for (Pair<Node, Node>pair : propValPairs) {
+                triples.add(new Triple(
+                        qNode,  // Subject
+                        pair.getLeft(),  // Property
+                        pair.getRight()  // Value (Object)
+                ));
+            }
+
+            // insert new triples
+            UpdateBuilder ub2 = new UpdateBuilder();
+            ub2.addPrefix("qs", NS_questions.get());
+            ub2.addInsert(ngNode, triples);
+            UpdateRequest insertQuery = ub2.buildRequest();
+
+            return runQueries(List.of(insertQuery));
         }
         return false;
     }
@@ -881,7 +926,7 @@ public class RdfStorage {
      */
     public List<String> unsolvedQuestions(/*String classUri,*/ GraphRole unsolvedSubgraph) {
         // find question templates to solve
-        Node ng = NodeFactory.createURI(NS_questions.base());
+        Node ng = NS_questions.baseAsUri();
         String unsolvedTemplates = new SelectBuilder()
                 .addVar("?name")
                 .addWhere(
@@ -893,12 +938,12 @@ public class RdfStorage {
                                 )*/
                                 .addGraph(ng,
                                         "?node",
-                                        NodeFactory.createURI(NS_questions.get("name")),
+                                        NS_questions.getUri("name"),
                                         "?name"
                                 )
                                 .addGraph(ng,
                                         "?node",
-                                        NodeFactory.createURI(questionSubgraphPropertyFor(unsolvedSubgraph)),
+                                        questionSubgraphPropertyFor(unsolvedSubgraph).baseAsUri(),
                                         RDF.nil
                                 )
                 )
@@ -924,7 +969,7 @@ public class RdfStorage {
      */
     public List<String> findAllQuestions(String classUri, int limit) {
         // find question templates to solve
-        Node ng = NodeFactory.createURI(NS_questions.base());
+        Node ng = NS_questions.baseAsUri();
         String queryNames = new SelectBuilder()
                 .addVar("?name")
                 .addWhere(
@@ -936,7 +981,7 @@ public class RdfStorage {
                                 )
                                 .addGraph(ng,
                                         "?node",
-                                        NodeFactory.createURI(NS_questions.get("name")),
+                                        NS_questions.getUri("name"),
                                         "?name"
                                 )
                 )
@@ -1155,8 +1200,8 @@ RdfStorage.StopBackgroundDBFillUp()
         // delete old triple
         UpdateBuilder ub = new UpdateBuilder();
         ub.addPrefix("graphs", NS_graphs.get());
-        Node subj = NodeFactory.createURI(NS_graphs.get(SubjName));
-        Node pred = NodeFactory.createURI(NS_graphs.get("modifiedAt"));
+        Node subj = NS_graphs.getUri(SubjName);
+        Node pred = NS_graphs.getUri("modifiedAt");
         Var obj = Var.alloc("t");
         // quad
         ub.addDelete(gr, subj, pred, obj);
@@ -1185,8 +1230,8 @@ RdfStorage.StopBackgroundDBFillUp()
         ub3.addPrefix("graphs", NS_graphs.get());
         // quad
         ub3.addInsert(gr, "graphs:my_Graph", "graphs:modifiedAt", dl);
-//        Node subj = NodeFactory.createURI(NS_graphs.get(SubjName));
-//        Node pred = NodeFactory.createURI(NS_graphs.get("modifiedAt"));
+//        Node subj = NS_graphs.getAsUri(SubjName);
+//        Node pred = NS_graphs.getAsUri("modifiedAt");
 //        Var obj = Var.alloc("t");
         // quad
         ub3.addDelete(gr, subj, pred, obj);
@@ -1224,6 +1269,12 @@ RdfStorage.StopBackgroundDBFillUp()
         RdfStorage rs = new RdfStorage(cfd);
 
 
+        if (false) {
+            _setQuestionAttributesExample(rs);
+            return;
+        }
+
+
         // find question templates to solve
         List<String> unsqts;
         if (!forceResolve)
@@ -1244,6 +1295,18 @@ RdfStorage.StopBackgroundDBFillUp()
             System.out.println("Solving: " + name);
             rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
         }
+    }
+
+    private static void _setQuestionAttributesExample(RdfStorage rs) {
+        rs.setQuestionMetadata("44__binary_heap_free_v_nocond_q94",
+                List.of(
+                        Pair.of(NS_questions.getUri("has_tag"),
+                                NodeFactory.createLiteral("C++")),
+                        Pair.of(NS_questions.getUri("distinct_errors_count"),
+                                NodeFactory.createLiteralByValue(3, XSDDatatype.XSDinteger)),
+                        Pair.of(NS_questions.getUri("integral_complexity"),
+                                NodeFactory.createLiteralByValue(0.0921, XSDDatatype.XSDdouble))
+                ));
     }
 
     public static void main_3(String[] args) {
