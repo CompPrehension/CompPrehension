@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import lombok.Data;
 
@@ -31,8 +32,18 @@ public class QuestionRequest {
     /**
      * Сложность задания
      */
-    private int complexity;
-    
+    private float complexity;
+
+    /**
+     * Направление поиска по сложности
+     */
+    private SearchDirections complexitySearchDirection;
+
+    /**
+     * Направление поиска по сложности
+     */
+    private SearchDirections lawsSearchDirection;
+
     ExerciseAttemptEntity exerciseAttempt;
 }
 
