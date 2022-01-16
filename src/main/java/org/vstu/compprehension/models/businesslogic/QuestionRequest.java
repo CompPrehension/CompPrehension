@@ -32,7 +32,7 @@ public class QuestionRequest {
     /**
      * Сложность задания
      */
-    private int complexity;
+    private float complexity;
 
     /**
      * Направление поиска по сложности
