@@ -112,6 +112,10 @@ public class RemoteFileService {
         if (file.getType() == FileType.FOLDER || !file.isWriteable()) {
             return null;
         }
+        if (file.exists()) {
+            // truncate file before writing ... (via deletion)
+            file.delete();
+        }
         FileContent fc = file.getContent();
         return fc.getOutputStream();  // `BUFFER_SIZE` does not speed up
     }
