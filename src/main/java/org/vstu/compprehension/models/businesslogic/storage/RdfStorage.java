@@ -40,8 +40,14 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 enum GraphRole {
@@ -189,14 +195,14 @@ public class RdfStorage {
                             .orElse(cnf.getStorageUploadFilesBaseUrl()));  // use upload Url for download by default
             this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
         } else {
-            // default settings
+            // default settings (if not available via domain)
             String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
             assert name != null;  // Ensure you created a database in Fuseki and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
             this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
 
             // init FTP pointing to domain-specific remote dir
             this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
-            this.fileService.setDummyDirsForNewFile(1);  // 1 is the default
+            this.fileService.setDummyDirsForNewFile(2);  // 1 is the default
         }
 
         initDB();
@@ -1309,6 +1315,16 @@ RdfStorage.StopBackgroundDBFillUp()
                 ));
     }
 
+    public static List<String> listFullFilePathsInDir(String dir) throws IOException {
+        try (Stream<Path> stream = java.nio.file.Files.list(Paths.get(dir))) {
+            return stream
+                    .filter(file -> !Files.isDirectory(file))
+                    // .map(Path::getFileName)  // this makes name relative
+                    .map(Path::toString)
+                    .collect(Collectors.toList());
+        }
+    }
+
     public static void main_3(String[] args) {
         // debug some things ...
         // upload <question template> graphs from files
@@ -1316,24 +1332,28 @@ RdfStorage.StopBackgroundDBFillUp()
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
         RdfStorage rs = new RdfStorage(cfd);
 
-        List<String> files = List.of(
-                "c:/Temp2/cntrflowoutput_v4/1__memcpy_s__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/2__memmove_s__1639429224.rdf",
-                // "c:/Temp2/cntrflowoutput_v4/3__wcsnlen_s__1639429224.rdf",
-                // "c:/Temp2/cntrflowoutput_v4/4___wcstok__1639429224.rdf",
-                // "c:/Temp2/cntrflowoutput_v4/5__strnlen_s__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/6__arraylist_new__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/7__arraylist_free__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/8__arraylist_enlarge__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/9__arraylist_insert__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/10__arraylist_append__1639429224.rdf",
-                "c:/Temp2/cntrflowoutput_v4/437__trie_lookup_binary__1639429230.rdf",
-                "c:/Temp2/cntrflowoutput_v4/438__trie_num_entries__1639429230.rdf"
-        );
+        // Find files in local directory
+        List<String> files = new ArrayList<>();
+        try {
+            files = listFullFilePathsInDir("c:\\Temp2\\cntrflowoutput_v6");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (true) {  // optional filter by extension and file names
+            String[] unwantedNameSubstrings = {"snlen", "stok", "strnlen", "strlen", "printf", "scanf", "acosl", };
+            String wantedExt = ".rdf";
+            files = files.stream()
+                    .filter(s -> s.endsWith(wantedExt))
+                    .filter(s -> Arrays.stream(unwantedNameSubstrings).noneMatch(s::contains))
+                    .collect(Collectors.toList());
+        }
+
 
         for (String file : files) {
-            String name = file.substring(27);
-            name = name.substring(0, name.length() - 16);
+            String name = file.substring(27);  // cut directory path
+            List<String> nameParts = Arrays.stream(name.split("__")).collect(Collectors.toList());
+            nameParts = nameParts.subList(0, nameParts.size() - 2);
+            name = String.join("_", nameParts);
 
             System.out.print(name + " ...\t");
 
@@ -1350,6 +1370,7 @@ RdfStorage.StopBackgroundDBFillUp()
     public static void main(String[] args) {
         main_3(args); // upload graphs as question templates
         main_4(false); // solve question templates
+
 
         System.out.println("Finished.");
     }
