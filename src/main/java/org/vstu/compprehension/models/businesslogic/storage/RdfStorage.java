@@ -662,8 +662,11 @@ public class RdfStorage {
 
         runQueriesOnRemoteDB(List.of(clearGraphSparql, insertGraphQuery), false /*may be slow but safe?*/);
 
-        // update graph metadata - modifiedAt -> new date
-        return actualizeUpdateTime(gUri);
+        if (false) {
+            // update graph metadata - modifiedAt -> new date
+            return actualizeUpdateTime(gUri);
+        }
+        return true;
     }
 
     /** Set UpdatedAt time for both remote and local versions of graph
@@ -1122,13 +1125,23 @@ public class RdfStorage {
      * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
      * @param questionName name of question or question template
      * @param desiredLevel QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
+     * @param tooLargeTemplateThreshold if > 0, do not process question templates having the number of RDF subjects exceeding this number (maybe for reducing reasoner load).
      * @return true on success
      */
-    public boolean solveQuestion(String questionName, GraphRole desiredLevel) {
+    public boolean solveQuestion(String questionName, GraphRole desiredLevel, int tooLargeTemplateThreshold) {
         Model qG = getGraph(NS_questions.base());
         assert qG != null;
 
         Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
+
+        // avoid processing too large templates
+        if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
+            int subjectCount = existingData.listSubjects().toList().size();
+            if (subjectCount > tooLargeTemplateThreshold) {
+                System.out.println("Skip too large template of size "+ subjectCount +": " + questionName);
+                return false;
+            }
+        }
 
         Model inferred = runReasoning(
                 getFullSchema().union(existingData),
@@ -1172,7 +1185,7 @@ public class RdfStorage {
                 )
                 .toString();
 
-        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // TODO: replace deprecated ??? RDFConnectionFactory -> RDFConnection
+        RDFConnection connection = RDFConnection.connect(dataset);
         // RDFConnection connection = getConn();
         List<String> names = new ArrayList<>();
         try ( RDFConnection conn = connection ) {
@@ -1479,7 +1492,6 @@ RdfStorage.StopBackgroundDBFillUp()
             conn.commit();
             // return true;
         } catch (JenaException exception) {
-            return;
         }
     }
 
@@ -1506,17 +1518,20 @@ RdfStorage.StopBackgroundDBFillUp()
             unsqts = rs.findAllQuestions(NS_questions.get("QuestionTemplate"), 0);
 
 
-        System.out.println("Unsolved question templates: " + unsqts.size());
-        for (String name : unsqts) {
-            System.out.println(name);
-        }
-        System.out.println();
+        int toSolve = unsqts.size();
+        System.out.println("Unsolved question templates: " + toSolve);
+//        for (String name : unsqts) {
+//            System.out.println(name);
+//        }
+//        System.out.println();
 
 
         // Solving
+        int i = 1;
         for (String name : unsqts) {
-            System.out.println("Solving: " + name);
-            rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
+            System.out.println("[" + i + " / " + toSolve + "] Solving: " + name);
+            rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED, 80);
+            i += 1;
         }
     }
 
@@ -1549,10 +1564,13 @@ RdfStorage.StopBackgroundDBFillUp()
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
         RdfStorage rs = new RdfStorage(cfd);
 
+//        String rdf_dir = "c:\\Temp2\\cntrflowoutput_v6\\";
+        String rdf_dir = "c:\\Temp2\\cntrflowoutput_v7_rdf\\";
+
         // Find files in local directory
         List<String> files = new ArrayList<>();
         try {
-            files = listFullFilePathsInDir("c:\\Temp2\\cntrflowoutput_v6");
+            files = listFullFilePathsInDir(rdf_dir);
         } catch (IOException e) {
             e.printStackTrace();
         }
