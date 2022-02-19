@@ -8,6 +8,7 @@ import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
@@ -29,12 +30,14 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.LawFormulation;
+import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -45,7 +48,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -247,6 +249,221 @@ public class RdfStorage {
             uploadGraph(NS_questions.base());
         }
     }
+
+    /**
+     * Find questions in current questions bank
+     * @param qr QuestionRequest
+     * @param limit maximum questions to return (set 0 or less to disable; note: this may be slow)
+     * // (ignore randomSeed) param randomSeed influence randomized order (if selection from many candidates is required)
+     * @return questions found or empty list if the requirements cannot be satisfied
+     */
+    List<Question> searchQuestions(QuestionRequest qr, int limit) {
+        Model qG = getGraph(NS_questions.base());
+
+        String complexity_threshold = "" + qr.getComplexity();
+        String complexity_cmp_op = (qr.getComplexitySearchDirection().getValue() < 0)? "<=" : ">=";
+
+        List<Double> SolutionLengthStat = questionSolutionLengthStat();  // [min, avg, max]
+        int duration = qr.getSolvingDuration();  // 1..10
+        int desiredSolutionSteps = (int) Math.round(SolutionLengthStat.get(1));  // avg
+        if (duration < 5) {
+            desiredSolutionSteps = (int) Math.round(
+                    SolutionLengthStat.get(0) +
+                            ((duration - 1) / 4.0) * (SolutionLengthStat.get(1) - SolutionLengthStat.get(0))
+            );  // min + weight * (avg - min)
+        }
+        else if (duration > 5) {
+            desiredSolutionSteps = (int) Math.round(
+                    SolutionLengthStat.get(1) +
+                            ((duration - 5) / 5.0) * (SolutionLengthStat.get(2) - SolutionLengthStat.get(1))
+            );  // avg + weight * (max - avg)
+        }
+
+        StringBuilder query = new StringBuilder("select distinct ?name ?complexity ?solution_steps \n" +
+                //// "#(count(distinct ?law) as ?law_count) (count(distinct ?concept) as ?concept_count)\n" +
+                "(group_concat(distinct ?law;separator=\"; \") as ?laws)\n" +
+                "(group_concat(distinct ?concept;separator=\"; \") as ?concepts)\n" +
+                " {  GRAPH <" + NS_questions.base() + "> {\n" +
+                "\t?s a <" + NS_questions.get("Question") + "> .\n" +
+                "    ?s <" + NS_questions.get("name") + "> ?name.\n" +
+                "    ?s <" + NS_questions.get("integral_complexity") + "> ?complexity.\n" +
+                "    ?s <" + NS_questions.get("solution_steps") + "> ?solution_steps.\n" +
+                "    ?s <" + NS_questions.get("has_concept") + "> ?concept.\n" +
+                "    ?s <" + NS_questions.get("has_violation") + "> ?law.\n" +
+                "    filter(?complexity " + complexity_cmp_op + " " + complexity_threshold + ").\n" +
+                "    bind(abs(" + complexity_threshold + " - ?complexity) as ?compl_diff).\n" +
+                "    bind(abs(" + desiredSolutionSteps + " - ?solution_steps) as ?steps_diff).\n");
+        // add "denied" constraints
+            //  "    filter not exists { ?s <has_concept> \"denied_concept\" }\n" +
+            //  "    filter not exists { ?s <http://vstu.ru/poas/questions/has_law> \"denied_law\" }\n" +
+        for (Concept concept : qr.getDeniedConcepts()) {
+            String denied_concept = concept.getName();
+            query.append("    filter not exists { ?s <")
+                    .append(NS_questions.get("has_concept"))
+                    .append("> \"")
+                    .append(denied_concept).append("\" }\n");
+        }
+        for (Law law : qr.getDeniedLaws()) {
+            String denied_law = law.getName();
+            query.append("    filter not exists { ?s <")
+                    .append(NS_questions.get("has_violation"))
+                    .append("> \"")
+                    .append(denied_law).append("\" }\n");
+        }
+        if (qr.getLawsSearchDirection().getValue() > 0) {
+            //  "#    filter exists { ?s <http://vstu.ru/poas/questions/has_law> \"target_law\" }\n";
+            for (Law law : qr.getTargetLaws()) {
+                String target_law = law.getName();
+                query.append("    filter exists { ?s <")
+                        .append(NS_questions.get("has_violation"))
+                        .append("> \"")
+                        .append(target_law).append("\" }\n");
+            }
+        }
+//                "#    filter exists { ?s <http://vstu.ru/poas/questions/has_concept> \"target_concept\" }\n" +
+        // query footer
+        query.append("  }}\n" +
+                "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
+                "order by ?compl_diff ?steps_diff");
+        if (limit > 0)
+            query.append("\n  limit " + limit * 2);
+
+        List<Question> questions = new ArrayList<>();
+        try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
+
+            List<Question> finalQuestions = questions;  // copy reference as the lambda syntax requires
+            conn.querySelect(query.toString(), querySolution -> {
+                QuestionEntity qe = new QuestionEntity();
+                qe.setQuestionName( querySolution.get("name").asLiteral().getString() );
+                // todo: pass the kind of question here
+                Question q = new Ordering(qe);
+                q.getConcepts().addAll( List.of(querySolution.get("concepts").asLiteral().getString().split("; ")) );
+                q.getNegativeLaws().addAll( List.of(querySolution.get("laws").asLiteral().getString().split("; ")) );
+
+                if (limit > 0) {  // don't calc score if no filtering is required
+                    int score = 0;  // how the question suits the request
+
+                    // inspect laws
+                    if (qr.getLawsSearchDirection().getValue() < 0) {
+                        int i = 0;
+                        int size = qr.getTargetLaws().size();
+                        score += size * size / 2;  // max possible score for existing
+                        // set penalty for each missing law (earlier ones cost more)
+                        for (Law target : qr.getTargetLaws()) {
+                            i += 1;
+                            if (!q.getNegativeLaws().contains(target.getName()))
+                                score -= (size - i);
+                        }
+                    }
+                    // set penalty for each extra law that is not in allowed laws
+                    ArrayList<String> extraLaws = new ArrayList<>(q.getNegativeLaws());
+                    extraLaws.removeAll(qr.getTargetLaws().stream().map(Law::getName).collect(Collectors.toList()));
+                    if (!extraLaws.isEmpty()) {
+                        // found out how many laws are "not allowed"
+                        extraLaws.removeAll(qr.getAllowedLaws().stream().map(Law::getName).collect(Collectors.toList()));
+                        score -= extraLaws.size();  // -1 for each extra law
+                    }
+
+                    // inspect concepts
+                    int i = 0;
+                    int size = qr.getTargetConcepts().size();
+                    score += size * size / 2;  // max possible score for existing
+                    // set penalty for each missing law (earlier ones cost more)
+                    for (Concept target : qr.getTargetConcepts()) {
+                        i += 1;
+                        if (!q.getConcepts().contains(target.getName()))
+                            score -= (size - i);
+                    }
+
+                    // set penalty for each extra Concepts that is not in allowed laws
+                    ArrayList<String> extraConcepts = new ArrayList<>(q.getConcepts());
+                    extraConcepts.removeAll(qr.getTargetConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
+                    if (!extraConcepts.isEmpty()) {
+                        // found out how many Concepts are "not allowed"
+                        extraConcepts.removeAll(qr.getAllowedConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
+                        score -= extraConcepts.size();  // -1 for each extra concept
+                    }
+
+                    qe.setId((long) score);  // (ab)use ID for setting score temporarily
+                }
+
+                // add some data about this question
+                qe.getStatementFacts().add(new BackendFactEntity("<this_question>", "complexity", "" + querySolution.get("complexity").asLiteral().getDouble()));
+                qe.getStatementFacts().add(new BackendFactEntity("<this_question>", "solution_steps", "" + querySolution.get("solution_steps").asLiteral().getDouble()));
+
+                finalQuestions.add(q);
+            });
+
+        } catch (JenaException exception) {
+            exception.printStackTrace();
+        }
+
+        if (limit > 0) {
+            // sort to ensure best score first
+            questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
+            // retain requested number of questions
+            questions = questions.subList(0, limit);
+        }
+
+        // insert to the questions some data (all we can here)
+        for (Question q : questions) {
+            QuestionEntity qe = q.getQuestionData();
+            qe.setDomainEntity(domain.getEntity());
+            qe.setExerciseAttempt(qr.getExerciseAttempt());
+            //// qe.setOptions(domain.?);
+
+            qe.setStatementFacts( modelToFacts(
+                    getQuestionModel(q.getQuestionName()),
+                    // TODO: adapt base URI for each domain
+                    NS_code.base()
+                    ));
+        }
+
+        return questions;
+    }
+
+    /**
+     * @return [min, avg, max] statistics of solution_steps property
+     */
+    List<Double> questionSolutionLengthStat() {
+        // TODO: cache result?
+        String solutionLengthStatQuery = "select (max(?solution_steps) as ?max)" +
+                " (min(?solution_steps) as ?min)" +
+                " (avg(?solution_steps) as ?avg)\n" +
+                " {  GRAPH <" + NS_questions.base() + "> {\n" +
+                "    ?s a <" + NS_questions.get("Question") + "> .\n" +
+                "    ?s <" + NS_questions.get("solution_steps") + "> ?solution_steps.\n" +
+                "  }}";
+
+        List<Double> result = new ArrayList<>();
+        try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
+
+            conn.querySelect(solutionLengthStatQuery, querySolution -> {
+                result.add((double) querySolution.get("min").asLiteral().getInt());
+                result.add(         querySolution.get("avg").asLiteral().getDouble());
+                result.add((double) querySolution.get("max").asLiteral().getInt());
+            });
+
+        } catch (JenaException exception) {
+            exception.printStackTrace();
+        }
+        return result;
+    }
+
+    public static List<BackendFactEntity> modelToFacts(Model factsModel, String baseUri) {
+        JenaBackend jback = new JenaBackend();
+        jback.createOntology(baseUri);
+
+        // fill model
+        OntModel model = jback.getModel();
+        model.add(factsModel);
+
+        List<String> verbs = factsModel.listStatements().toList().stream()
+                .map(Statement::getPredicate)
+                .map(Property::getLocalName).distinct().collect(Collectors.toList());
+        return jback.getFacts(verbs);
+    }
+
 
     Model getDomainSchemaForSolving() {
         if (domain instanceof ControlFlowStatementsDomain) {
@@ -955,7 +1172,7 @@ public class RdfStorage {
                 )
                 .toString();
 
-        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // TODO: replace deprecated ???
+        RDFConnection connection = RDFConnectionFactory.connect(dataset);  // TODO: replace deprecated ??? RDFConnectionFactory -> RDFConnection
         // RDFConnection connection = getConn();
         List<String> names = new ArrayList<>();
         try ( RDFConnection conn = connection ) {
