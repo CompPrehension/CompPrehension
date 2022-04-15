@@ -21,10 +21,10 @@ import org.apache.jena.util.PrintUtil;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Singleton;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,7 +44,7 @@ public class JenaBackend extends Backend {
 
     String baseIRIPrefix;
     OntModel model;
-    ArrayList<Rule> domainRules = new ArrayList<>();
+    HashMap<Integer, ArrayList<Rule>> domainRuleSets = new HashMap<>();
 
 /*
     String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -80,7 +80,8 @@ public class JenaBackend extends Backend {
         model.createProperty(OWL.TransitiveProperty.getURI());
         model.createClass(OWL.Class.getURI());  // already here by default?
 
-        domainRules.clear();
+        // Clear rules for future use
+        domainRuleSets.clear();
     }
 
     public OntModel getModel() {
@@ -159,15 +160,21 @@ public class JenaBackend extends Backend {
 //        /// debug
 //            System.out.println("addLaw() : " + lawFormulation.getName());
 
+            int lawSalience = law.getSalience();
+            if (!domainRuleSets.containsKey(lawSalience)) {
+                domainRuleSets.put(lawSalience, new ArrayList<>());
+            }
+            ArrayList<Rule> ruleSet = domainRuleSets.get(lawSalience);
+
             if (lawFormulation.getBackend().equals("OWL")) {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             } else if (lawFormulation.getBackend().equals(BACKEND_TYPE)) {
                 try {
-                    domainRules.add(Rule.parseRule(lawFormulation.getFormulation()));
+                    ruleSet.add(Rule.parseRule(lawFormulation.getFormulation()));
                 } catch (Rule.ParserException e) {
                     log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
                 }
-            } else if ("can_covert" != null) {
+            } else if ("can_covert" == null) {
 
                 // TODO: convert rules if possible ?
             }
@@ -261,19 +268,30 @@ public class JenaBackend extends Backend {
 
 
     private void callReasoner() {
-        GenericRuleReasoner reasoner = new GenericRuleReasoner(domainRules);
 
         long startTime = System.nanoTime();
+        for (int salience : domainRuleSets.keySet().stream().sorted((a, b) -> -(a-b)).collect(Collectors.toList())) {
+            log.info("Running rules with salience: " + salience);
 
-        InfModel inf = ModelFactory.createInfModel(reasoner, model);
-        inf.prepare();
+            ArrayList<Rule> ruleSet = domainRuleSets.get(salience);
+            GenericRuleReasoner reasoner = new GenericRuleReasoner(ruleSet);
 
+            long startStepTime = System.nanoTime();
+
+            InfModel inf = ModelFactory.createInfModel(reasoner, model);
+            inf.prepare();
+
+            long estimatedTime = System.nanoTime() - startStepTime;
+            // print time report. TODO: remove the print
+            log.info("Time Jena spent on reasoning step: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
+
+            // use the inferred results (inf) ...
+            model = ModelFactory.createOntologyModel(OWL_MEM);  // use empty to add to
+            model.add( inf );
+        }
         long estimatedTime = System.nanoTime() - startTime;
         // print time report. TODO: remove the print
-        log.info("Time Jena spent on reasoning: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
-
-        // use the inferred results (inf) ...
-        model.add( inf );
+        log.info("Time Jena spent on reasoning total: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
     }
 
     private String convertDatatype(String jenaType) {
@@ -329,7 +347,8 @@ public class JenaBackend extends Backend {
     private List<BackendFactEntity> getPropertyRelations(Property property) {
         List<BackendFactEntity> facts = new ArrayList<>();
 
-        boolean isObjectProp = property instanceof ObjectProperty;
+//        boolean isObjectProp = property instanceof ObjectProperty;
+        boolean isObjectProp = ((OntProperty) property).isObjectProperty();
 
         String objType = isObjectProp ? "owl:NamedIndividual" : null;
         String subjType = null;
