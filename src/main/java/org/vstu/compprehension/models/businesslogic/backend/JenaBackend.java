@@ -2,10 +2,11 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.jena.reasoner.rulesys.BuiltinRegistry;
 import org.apache.jena.vocabulary.*;
 import org.springframework.web.context.annotation.RequestScope;
-import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
@@ -33,6 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Component @RequestScope
 @Log4j2
 public class JenaBackend extends Backend {
+
+    static {
+        // register builtin for in-rule usage
+        BuiltinRegistry.theRegistry.register(new MakeNamedSkolem());
+    }
 
     static String BACKEND_TYPE = "Jena";
 
