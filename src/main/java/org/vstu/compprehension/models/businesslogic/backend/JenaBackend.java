@@ -138,6 +138,7 @@ public class JenaBackend extends Backend {
             case "owl:TransitiveProperty":
                 return model.createTransitiveProperty(termToUri(name));
             case "owl:FunctionalProperty":
+            case "rdf:Property":
                 return model.createProperty(termToUri(name));
             case "owl:InverseFunctionalProperty":
                 return model.createInverseFunctionalProperty(termToUri(name));
@@ -348,7 +349,9 @@ public class JenaBackend extends Backend {
         List<BackendFactEntity> facts = new ArrayList<>();
 
 //        boolean isObjectProp = property instanceof ObjectProperty;
-        boolean isObjectProp = ((OntProperty) property).isObjectProperty();
+        boolean isObjectProp = false;
+        if (property instanceof OntProperty)
+            isObjectProp = ((OntProperty) property).isObjectProperty();
 
         String objType = isObjectProp ? "owl:NamedIndividual" : null;
         String subjType = null;
@@ -370,7 +373,7 @@ public class JenaBackend extends Backend {
             RDFNode objNode = stmt.getObject();
             String obj;
 
-            if (isObjectProp) {
+            if (isObjectProp || objNode instanceof Resource) {
                 Resource resource = objNode.asResource();
                 String URI = resource.getURI();
                 if (URI != null) {
@@ -420,16 +423,17 @@ public class JenaBackend extends Backend {
         for (String verb : verbs) {
 
             // find property by verb name
-            OntProperty p;
+            Property p;
 
             String uri = termToUri(verb);
-            OntResource resource = model.getOntResource(uri);
+            Resource resource = model.getResource(uri);
             if (resource == null) {
                 log.warn("JenaBack.getFacts() WARNING: Cannot find resource for verb: " + verb);
+                // (?) resource = model.createProperty(uri);
                 continue;
             }
             try {
-                p = resource.asProperty();
+                p = resource.as(Property.class);
             } catch (ConversionException exception) {
                 log.warn("JenaBack.getFacts() WARNING: Cannot find property for verb: " + verb);
                 continue;
