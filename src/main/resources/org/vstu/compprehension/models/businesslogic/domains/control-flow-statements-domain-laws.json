@@ -497,11 +497,28 @@
         "name": "prepare-trace-step"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "act_end"
+      }
+    ],
     "formulations": [
       {
         "name": "Redirect-normal-end-to-interrupted-end",
         "formulation": "(?a my:student_next ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?st_b), (?bnd_a my:consequent ?bnd_halt), (?bnd_halt my:halt_of ?st_b), noValue(?bnd_a my:consequent ?bnd_b), -> drop(2), (?b my:executes ?bnd_halt),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "executes_id-to-executes-begin",
+        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_begin), (?bnd my:begin_of ?st), -> (?a my:executes ?bnd).",
+        "backend": "Jena"
+      },
+      {
+        "name": "executes_id-to-executes-end",
+        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_end), (?bnd my:end_of ?st), -> (?a my:executes ?bnd).",
         "backend": "Jena"
       }
     ]
@@ -555,16 +572,6 @@
       {
         "name": "student_SameParentOfCorrActs_rule_s10",
         "formulation": "(?a my:student_corresponding_end ?b), (?p my:student_parent_of ?a), -> (?p my:student_parent_of ?b).",
-        "backend": "Jena"
-      },
-      {
-        "name": "executes_id-to-executes-begin",
-        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_begin), (?bnd my:begin_of ?st), -> (?a my:executes ?bnd).",
-        "backend": "Jena"
-      },
-      {
-        "name": "executes_id-to-executes-end",
-        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_end), (?bnd my:end_of ?st), -> (?a my:executes ?bnd).",
         "backend": "Jena"
       },
       {
