@@ -147,7 +147,8 @@ public class ControlFlowStatementsDomain extends Domain {
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
             FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
-            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "iteration" /* << iteration is not-a-class */);
+            // TODO: add here new types of actions (hardcoded) ...
+            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "return", "break", "continue", "iteration" /* << iteration is not-a-class */);
 
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
 
@@ -559,10 +560,15 @@ public class ControlFlowStatementsDomain extends Domain {
             Set<String> verbs = new HashSet<>(Arrays.asList(
 //            return new ArrayList<>(Arrays.asList(
                     "rdf:type",
+                    "rdfs:subClassOf",
+                    "rdfs:subPropertyOf",
+                    "rdfs:label",
                     "id",
                     "boundary_of",
                     "begin_of",
                     "end_of",
+                    "halt_of",
+                    "interrupt_origin",
                     "consequent",
                     "has_upcoming",
                     "normal_consequent",
@@ -582,7 +588,8 @@ public class ControlFlowStatementsDomain extends Domain {
                     "executes",
                     "reason_kind",
                     "to_reason",
-                    "from_reason"
+                    "from_reason",
+                    "fetch_kind_of_loop"
             ));
             if (reasonPropertiesCache == null)
                 reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
@@ -611,6 +618,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     "rdf:type",
                     "rdfs:subClassOf",
                     "rdfs:subPropertyOf",
+                    "rdfs:label",
                      "id",
                     // "name",
                     "next_act",
