@@ -2,7 +2,6 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
@@ -16,7 +15,6 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 
-import java.io.InputStream;
 import java.util.*;
 
 @Log4j2
@@ -103,8 +101,6 @@ public abstract class Domain {
         }
         return rdfStorage;
     }
-
-    abstract public Question parseQuestionTemplate(InputStream stream);
 
     /**
      * More interactions a student does, greater possibility to mistake accidentally. A certain rate of mistakes (say 1 of 12) can be considered unintentional so no penalty is assessed.
