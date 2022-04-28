@@ -8,6 +8,8 @@ import org.apache.jena.rdf.model.Model;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -21,6 +23,8 @@ public abstract class Domain {
     protected List<PositiveLaw> positiveLaws;
     protected List<NegativeLaw> negativeLaws;
     protected List<Concept> concepts;
+
+    protected AbstractRdfStorage rdfStorage = null;
 
     /**
      * Db entry
@@ -91,6 +95,13 @@ public abstract class Domain {
         return null;
     }
 
+    public AbstractRdfStorage getRdfStorage() {
+        if (rdfStorage == null) {
+            rdfStorage = new LocalRdfStorage(this);
+        }
+        return rdfStorage;
+    }
+
     /**
      * More interactions a student does, greater possibility to mistake accidentally. A certain rate of mistakes (say 1 of 12) can be considered unintentional so no penalty is assessed.
      * @return the rate threshold
@@ -126,7 +137,7 @@ public abstract class Domain {
      * Generate domain question with restrictions
      * @param questionRequest params of needed question
      * @param tags question tags (like programming language)
-     * @param userLanguage question decription language
+     * @param userLanguage question wording language
      * @return generated question
      */
     public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
@@ -350,7 +361,7 @@ public abstract class Domain {
     }
 
     /**
-     * Find new question template in db
+     * Find a question template in in-memory suite of Domain's `questions`
      * @param tags question tags
      * @param targetConcepts concepts that should be in question
      * @param deniedConcepts concepts that should not be in question

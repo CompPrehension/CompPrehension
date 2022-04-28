@@ -346,7 +346,19 @@ public class ControlFlowStatementsDomain extends Domain {
                 deniedQuestions.add(q.getQuestionName());
             }
         }
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        Question res;
+
+        // new version - invoke rdfStorage search
+        List<Question> foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+
+        if (!foundQuestions.isEmpty()) {
+            res = foundQuestions.get(0);
+        } else {
+            // old version - search in domain's in-memory questions
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        }
+
+
         if (res == null) {
             // get anything. TODO: make it input-dependent
             // get (a random) index
