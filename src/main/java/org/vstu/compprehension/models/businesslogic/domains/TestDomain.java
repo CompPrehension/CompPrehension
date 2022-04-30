@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import javax.inject.Singleton;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,11 @@ public class TestDomain extends Domain {
     @Override
     public void update() {
 
+    }
+
+    @Override
+    public Question parseQuestionTemplate(InputStream stream) {
+        return null;
     }
 
     public TestDomain() {

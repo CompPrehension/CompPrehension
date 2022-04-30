@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -195,6 +196,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public void update() {
+    }
+
+    @Override
+    public Question parseQuestionTemplate(InputStream stream) {
+        throw new NotImplementedException();
     }
 
     @Override

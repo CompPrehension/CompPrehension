@@ -143,7 +143,7 @@ public abstract class AbstractRdfStorage {
     }
 
     /**
-     * Find questions in current questions bank
+     * Find question templates in the questions bank
      * @param qr QuestionRequest
      * @param limit maximum questions to return (set 0 or less to disable; note: this may be slow)
      * // (ignore randomSeed) param randomSeed influence randomized order (if selection from many candidates is required)
@@ -173,7 +173,7 @@ public abstract class AbstractRdfStorage {
             );  // avg + weight * (max - avg)
         }
 
-        StringBuilder query = new StringBuilder("select distinct ?name ?complexity ?solution_steps \n" +
+        StringBuilder query = new StringBuilder("select distinct ?name ?complexity ?solution_steps \n" +  /// (?s as ?qUri)
                 //// "#(count(distinct ?law) as ?law_count) (count(distinct ?concept) as ?concept_count)\n" +
                 "(group_concat(distinct ?law;separator=\"; \") as ?laws)\n" +
                 "(group_concat(distinct ?concept;separator=\"; \") as ?concepts)\n" +
@@ -189,7 +189,11 @@ public abstract class AbstractRdfStorage {
                     "    filter(?complexity " + complexity_cmp_op + " " + complexity_threshold + ").\n"
                 ) +
                 "    bind(abs(" + complexity_threshold + " - ?complexity) as ?compl_diff).\n" +
-                "    bind(abs(" + desiredSolutionSteps + " - ?solution_steps) as ?steps_diff).\n");
+                "    bind(abs(" + desiredSolutionSteps + " - ?solution_steps) as ?steps_diff).\n" +
+                //  question data is present (not nil)
+                ("    filter not exists { ?s <" + NS_questions.get("has_graph_q_data")
+                     + "> () }.\n"  /// rdf:nil
+                ));
         // add "denied" constraints
             //  "    filter not exists { ?s <has_concept> \"denied_concept\" }\n" +
             //  "    filter not exists { ?s <http://vstu.ru/poas/questions/has_law> \"denied_law\" }\n" +
@@ -231,8 +235,26 @@ public abstract class AbstractRdfStorage {
 
             List<Question> finalQuestions = questions;  // copy reference as the lambda syntax requires
             conn.querySelect(query.toString(), querySolution -> {
+
+                String questionName = querySolution.get("name").asLiteral().getString();
+//                Resource qNode = querySolution.get("qUri").asResource();
+//                Property prop = NS_questions.getPropertyOnModel(GraphRole.QUESTION_DATA.prefix, qG);
+//                RDFNode qDataUri = qG.getProperty(qNode, prop).getObject();
+                String name = nameForQuestionGraph(questionName, GraphRole.QUESTION_DATA);
+
+                try (InputStream stream = fileService.getFileStream(name)) {
+                    if (stream != null) {
+                        Question q = domain.parseQuestionTemplate(stream);
+                        finalQuestions.add(q);
+                    }
+                } catch (IOException /*| NullPointerException*/ e) {
+                    e.printStackTrace();
+                }
+
+
+                /*
                 QuestionEntity qe = new QuestionEntity();
-                qe.setQuestionName( querySolution.get("name").asLiteral().getString() );
+                qe.setQuestionName( name );
                 // todo: pass the kind of question here
                 Question q = new Ordering(qe);
                 q.getConcepts().addAll( List.of(querySolution.get("concepts").asLiteral().getString().split("; ")) );
@@ -288,34 +310,34 @@ public abstract class AbstractRdfStorage {
                 // add some data about this question
                 qe.setStatementFacts(new ArrayList<>(List.of(new BackendFactEntity("<this_question>", "complexity", "" + querySolution.get("complexity").asLiteral().getDouble()))));
                 qe.getStatementFacts().add(new BackendFactEntity("<this_question>", "solution_steps", "" + querySolution.get("solution_steps").asLiteral().getDouble()));
+                 */
 
-                finalQuestions.add(q);
             });
 
         } catch (JenaException exception) {
             exception.printStackTrace();
         }
 
-        if (limit > 0) {
-            // sort to ensure best score first
-            questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
+        if (limit > 0 && !questions.isEmpty()) {
+//            // sort to ensure best score first
+//            questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
             // retain requested number of questions
             questions = questions.subList(0, limit);
         }
 
-        // insert to the questions some data (all we can here)
-        for (Question q : questions) {
-            QuestionEntity qe = q.getQuestionData();
-            qe.setDomainEntity(domain.getEntity());
-            qe.setExerciseAttempt(qr.getExerciseAttempt());
-            //// qe.setOptions(domain.?);
-
-            qe.setStatementFacts( modelToFacts(
-                    getQuestionModel(q.getQuestionName()),
-                    // TODO: adapt base URI for each domain
-                    NS_code.base()
-                    ));
-        }
+//        // insert to the questions some data (all we can here)
+//        for (Question q : questions) {
+//            QuestionEntity qe = q.getQuestionData();
+//            qe.setDomainEntity(domain.getEntity());
+//            qe.setExerciseAttempt(qr.getExerciseAttempt());
+//            //// qe.setOptions(domain.?);
+//
+//            qe.setStatementFacts( modelToFacts(
+//                    getQuestionModel(q.getQuestionName()),
+//                    // TODO: adapt base URI for each domain
+//                    NS_code.base()
+//                    ));
+//        }
 
         return questions;
     }
@@ -420,8 +442,10 @@ public abstract class AbstractRdfStorage {
     Model fetchModel(String name) {
         Model m = ModelFactory.createDefaultModel();
         try (InputStream stream = fileService.getFileStream(name)) {
+            if (stream == null)
+                return null;
             RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException /*| NullPointerException*/ e) {
             e.printStackTrace();
             return null;
         }
