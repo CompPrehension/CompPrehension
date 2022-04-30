@@ -32,6 +32,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
@@ -505,6 +506,8 @@ RdfStorage.StopBackgroundDBFillUp()
     public static void main_4(boolean forceResolve) {
         // debug some things ...
         // solve <question template> graphs with domain
+
+        JenaBackend.registerBuiltins();
 
 //        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
