@@ -12,6 +12,9 @@ enum GraphRole {
     QUESTION("q#"),  // data complementing template to complete question
     QUESTION_SOLVED("q_s#"), // inferences from whole question
 
+    QUESTION_DATA("q_data#"), // data required to create a question
+
+
 //    QUESTION_TEMPLATE_FULL("qt_f#", List.of(QUESTION_TEMPLATE, QUESTION_TEMPLATE_SOLVED)), // template + its
 //    inferences
 //    QUESTION_FULL("q_f#", List.of(QUESTION, QUESTION_SOLVED, QUESTION_TEMPLATE, QUESTION_TEMPLATE_SOLVED)), //
