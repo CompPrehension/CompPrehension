@@ -20,6 +20,9 @@ public abstract class Question implements QuestionFront, QuestionBack {
     
     public Question(QuestionEntity questionData) {
         this.questionData = questionData;
+        concepts = new ArrayList<>();
+        negativeLaws = new ArrayList<>();
+        tags = new HashSet<>();
     }
 
     @Override

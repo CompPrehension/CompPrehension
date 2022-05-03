@@ -9,7 +9,12 @@ public class NegativeLaw extends Law {
     String positiveLaw;
 
     public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, String positiveLaw) {
-        super(name, lawFormulations, concepts, tags);
+        super(name, lawFormulations, concepts, tags, DEFAULT_SALIENCE);
+        this.positiveLaw = positiveLaw;
+    }
+
+    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, String positiveLaw, int salience) {
+        super(name, lawFormulations, concepts, tags, salience);
         this.positiveLaw = positiveLaw;
     }
 

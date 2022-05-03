@@ -147,7 +147,8 @@ public class ControlFlowStatementsDomain extends Domain {
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
             FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
-            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "iteration" /* << iteration is not-a-class */);
+            // TODO: add here new types of actions (hardcoded) ...
+            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "return", "break", "continue", "iteration" /* << iteration is not-a-class */);
 
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
 
@@ -345,7 +346,19 @@ public class ControlFlowStatementsDomain extends Domain {
                 deniedQuestions.add(q.getQuestionName());
             }
         }
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        Question res;
+
+        // new version - invoke rdfStorage search
+        List<Question> foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+
+        if (!foundQuestions.isEmpty()) {
+            res = foundQuestions.get(0);
+        } else {
+            // old version - search in domain's in-memory questions
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        }
+
+
         if (res == null) {
             // get anything. TODO: make it input-dependent
             // get (a random) index
@@ -400,8 +413,14 @@ public class ControlFlowStatementsDomain extends Domain {
             newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
-            newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
-            newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
+            String di = answerObjectEntity.getDomainInfo();
+            if (di.length() >= 1000)
+                di = di.substring(0, 998);  // hack
+            newAnswerObjectEntity.setDomainInfo(di);
+            String ht = answerObjectEntity.getHyperText();
+            if (ht.length() >= 255)
+                ht = di.substring(0, 253);  // hack
+            newAnswerObjectEntity.setHyperText(ht);
             newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
             newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
@@ -559,10 +578,15 @@ public class ControlFlowStatementsDomain extends Domain {
             Set<String> verbs = new HashSet<>(Arrays.asList(
 //            return new ArrayList<>(Arrays.asList(
                     "rdf:type",
+                    "rdfs:subClassOf",
+                    "rdfs:subPropertyOf",
+                    "rdfs:label",
                     "id",
                     "boundary_of",
                     "begin_of",
                     "end_of",
+                    "halt_of",
+                    "interrupt_origin",
                     "consequent",
                     "has_upcoming",
                     "normal_consequent",
@@ -582,7 +606,8 @@ public class ControlFlowStatementsDomain extends Domain {
                     "executes",
                     "reason_kind",
                     "to_reason",
-                    "from_reason"
+                    "from_reason",
+                    "fetch_kind_of_loop"
             ));
             if (reasonPropertiesCache == null)
                 reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
@@ -611,6 +636,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     "rdf:type",
                     "rdfs:subClassOf",
                     "rdfs:subPropertyOf",
+                    "rdfs:label",
                      "id",
                     // "name",
                     "next_act",
@@ -1526,6 +1552,25 @@ public class ControlFlowStatementsDomain extends Domain {
 
         Collections.addAll(res, questions);
         return res;
+    }
+
+    @Override
+    public Question parseQuestionTemplate(InputStream inputStream) {
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+
+        Question question = gson.fromJson(
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
+                Question.class);
+
+        return question;
     }
 
     @Override
