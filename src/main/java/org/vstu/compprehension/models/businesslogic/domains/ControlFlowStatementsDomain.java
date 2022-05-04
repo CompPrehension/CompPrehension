@@ -348,8 +348,15 @@ public class ControlFlowStatementsDomain extends Domain {
         }
         Question res;
 
-        // new version - invoke rdfStorage search
-        List<Question> foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+        List<Question> foundQuestions;
+        try {
+            // new version - invoke rdfStorage search
+            foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+        } catch (RuntimeException ex) {
+            // file storage was not configured properly...
+            ex.printStackTrace();
+            foundQuestions = new ArrayList<>();
+        }
 
         if (!foundQuestions.isEmpty()) {
             res = foundQuestions.get(0);
