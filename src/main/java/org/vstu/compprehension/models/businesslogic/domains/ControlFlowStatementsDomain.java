@@ -346,7 +346,26 @@ public class ControlFlowStatementsDomain extends Domain {
                 deniedQuestions.add(q.getQuestionName());
             }
         }
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        Question res;
+
+        List<Question> foundQuestions;
+        try {
+            // new version - invoke rdfStorage search
+            foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+        } catch (RuntimeException ex) {
+            // file storage was not configured properly...
+            ex.printStackTrace();
+            foundQuestions = new ArrayList<>();
+        }
+
+        if (!foundQuestions.isEmpty()) {
+            res = foundQuestions.get(0);
+        } else {
+            // old version - search in domain's in-memory questions
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        }
+
+
         if (res == null) {
             // get anything. TODO: make it input-dependent
             // get (a random) index
@@ -401,8 +420,14 @@ public class ControlFlowStatementsDomain extends Domain {
             newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
-            newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
-            newAnswerObjectEntity.setHyperText(answerObjectEntity.getHyperText());
+            String di = answerObjectEntity.getDomainInfo();
+            if (di.length() >= 1000)
+                di = di.substring(0, 998);  // hack
+            newAnswerObjectEntity.setDomainInfo(di);
+            String ht = answerObjectEntity.getHyperText();
+            if (ht.length() >= 255)
+                ht = di.substring(0, 253);  // hack
+            newAnswerObjectEntity.setHyperText(ht);
             newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
             newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
@@ -1534,6 +1559,25 @@ public class ControlFlowStatementsDomain extends Domain {
 
         Collections.addAll(res, questions);
         return res;
+    }
+
+    @Override
+    public Question parseQuestionTemplate(InputStream inputStream) {
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+
+        Question question = gson.fromJson(
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
+                Question.class);
+
+        return question;
     }
 
     @Override

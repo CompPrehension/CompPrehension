@@ -36,6 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class JenaBackend extends Backend {
 
     static {
+        registerBuiltins();
+    }
+
+    public static void registerBuiltins() {
         // register builtin for in-rule usage
         BuiltinRegistry.theRegistry.register(new MakeNamedSkolem());
     }
@@ -61,11 +65,11 @@ public class JenaBackend extends Backend {
 
         baseIRIPrefix = base + "#";
         PrintUtil.registerPrefix("my", baseIRIPrefix); //?
-        PrintUtil.registerPrefix("skos", "http://www.w3.org/2004/02/skos/core"); //?
+//        PrintUtil.registerPrefix("skos", "http://www.w3.org/2004/02/skos/core"); //?
 
         model = ModelFactory.createOntologyModel(OWL_MEM);  // createDefaultModel();
         model.setNsPrefix("my", base);
-        model.setNsPrefix("skos", "http://www.w3.org/2004/02/skos/core#");
+//        model.setNsPrefix("skos", "http://www.w3.org/2004/02/skos/core#");
         //                                  http://www.w3.org/2004/02/skos/core#Concept
 
         // polyfill some RDF/OWL entries

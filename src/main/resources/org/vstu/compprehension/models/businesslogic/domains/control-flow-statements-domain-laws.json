@@ -847,12 +847,12 @@
       },
       {
         "name": "SequenceFinishedTooEarly-init1-Seq_error",
-        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?a my:student_parent_of ?child_act), (?child_act rdf:type my:TooEarlyInSequence), -> (?a my:gather_child_exec_till ?b),.",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?a my:student_parent_of ?child_act), (?child_act rdf:type my:TooEarlyInSequence), (?prev_act my:student_next ?b), (?prev_act my:executes ?bnd_p), noValue(?bnd_p, my:interrupt_origin), -> (?a my:gather_child_exec_till ?b),.",
         "backend": "Jena"
       },
       {
         "name": "SequenceFinishedTooEarly-init2-Seq_error",
-        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?b rdf:type my:Erroneous), -> (?a my:gather_child_exec_till ?b),.",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?b rdf:type my:Erroneous), (?prev_act my:student_next ?b), (?prev_act my:executes ?bnd_p), noValue(?bnd_p, my:interrupt_origin), -> (?a my:gather_child_exec_till ?b),.",
         "backend": "Jena"
       },
       {
@@ -862,7 +862,7 @@
       },
       {
         "name": "SequenceFinishedNotInOrder-Seq_error",
-        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?st_b my:consequent ?seq_e), (?st_b my:boundary_of ?st), (?a my:student_next ?b), (?a my:executes ?bnd), (?bnd my:boundary_of ?sa), (?st my:id ?id1), (?sa my:id ?id2), notEqual(?id1, ?id2), (?seq my:stmt_name ?a_name), -> (?b my:should_be_after ?st), (?b rdf:type my:SequenceFinishedNotInOrder), (?b my:field_A ?a_name),.",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_next ?b), (?a my:executes ?bnd_b), (?bnd_b my:boundary_of ?sa), noValue(?bnd_b my:consequent ?seq_e), (?seq my:stmt_name ?a_name), -> (?b my:should_be_after ?st), (?b rdf:type my:SequenceFinishedNotInOrder), (?b my:field_A ?a_name),.",
         "backend": "Jena"
       }
     ]

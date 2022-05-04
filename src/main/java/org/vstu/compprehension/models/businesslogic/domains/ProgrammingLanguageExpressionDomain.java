@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -198,6 +199,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
+    public Question parseQuestionTemplate(InputStream stream) {
+        throw new NotImplementedException();
+    }
+
+    @Override
     public ExerciseForm getExerciseForm() {
         return null;
     }
@@ -309,7 +315,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 val baseQuestionText = getMessage("expr_domain.BASE_QUESTION_TEXT", userLang);
                 entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 entity.setOptions(orderQuestionOptions);
-                return new Ordering(entity);
+                Question question = new Ordering(entity);
+                // patch the newly created question with the concepts from the "template"
+                question.getConcepts().addAll(q.getConcepts());
+                // ^ shouldn't this be done in a more straightforward way..?
+                return question;
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
