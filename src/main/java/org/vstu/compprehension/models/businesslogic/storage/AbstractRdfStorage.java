@@ -233,7 +233,9 @@ public abstract class AbstractRdfStorage {
         List<Question> questions = new ArrayList<>();
         try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
 
-            List<Question> finalQuestions = questions;  // copy reference as the lambda syntax requires
+            List<Question> finalQuestions = questions;  // copy the reference as lambda syntax requires
+
+            // loop over query results
             conn.querySelect(query.toString(), querySolution -> {
 
                 String questionName = querySolution.get("name").asLiteral().getString();
@@ -242,15 +244,19 @@ public abstract class AbstractRdfStorage {
 //                RDFNode qDataUri = qG.getProperty(qNode, prop).getObject();
                 String name = nameForQuestionGraph(questionName, GraphRole.QUESTION_DATA);
 
+                Question q = null;
                 try (InputStream stream = fileService.getFileStream(name)) {
                     if (stream != null) {
-                        Question q = domain.parseQuestionTemplate(stream);
+                        q = domain.parseQuestionTemplate(stream);
                         finalQuestions.add(q);
                     }
                 } catch (IOException /*| NullPointerException*/ e) {
                     e.printStackTrace();
                 }
 
+                if (q == null) {
+                    return;
+                }
 
                 /*
                 QuestionEntity qe = new QuestionEntity();
@@ -258,7 +264,7 @@ public abstract class AbstractRdfStorage {
                 // todo: pass the kind of question here
                 Question q = new Ordering(qe);
                 q.getConcepts().addAll( List.of(querySolution.get("concepts").asLiteral().getString().split("; ")) );
-                q.getNegativeLaws().addAll( List.of(querySolution.get("laws").asLiteral().getString().split("; ")) );
+                q.getNegativeLaws().addAll( List.of(querySolution.get("laws").asLiteral().getString().split("; ")) ); */
 
                 if (limit > 0) {  // calc the score as filtering is required
                     int score = 0;  // how the question suits the request
@@ -267,7 +273,7 @@ public abstract class AbstractRdfStorage {
                     if (qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() < 0) {
                         int i = 0;
                         int size = qr.getTargetLaws().size();
-                        score += size * size / 2;  // max possible score for existing
+                        score += size * size / 2;  // maximize possible score for existing laws
                         // set penalty for each missing law (earlier ones cost more)
                         for (Law target : qr.getTargetLaws()) {
                             i += 1;
@@ -287,7 +293,7 @@ public abstract class AbstractRdfStorage {
                     // inspect concepts
                     int i = 0;
                     int size = qr.getTargetConcepts().size();
-                    score += size * size / 2;  // max possible score for existing
+                    score += size * size / 2;  // maximize possible score for existing concepts
                     // set penalty for each missing law (earlier ones cost more)
                     for (Concept target : qr.getTargetConcepts()) {
                         i += 1;
@@ -304,9 +310,10 @@ public abstract class AbstractRdfStorage {
                         score -= extraConcepts.size();  // -1 for each extra concept
                     }
 
-                    qe.setId((long) score);  // (ab)use ID for setting score temporarily
+                    q.getQuestionData().setId((long) score);  // (ab)use ID for setting score temporarily
                 }
 
+                /*
                 // add some data about this question
                 qe.setStatementFacts(new ArrayList<>(List.of(new BackendFactEntity("<this_question>", "complexity", "" + querySolution.get("complexity").asLiteral().getDouble()))));
                 qe.getStatementFacts().add(new BackendFactEntity("<this_question>", "solution_steps", "" + querySolution.get("solution_steps").asLiteral().getDouble()));
@@ -319,10 +326,11 @@ public abstract class AbstractRdfStorage {
         }
 
         if (limit > 0 && !questions.isEmpty()) {
-//            // sort to ensure best score first
-//            questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
+            // sort to ensure best score first
+            questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
+
             // retain requested number of questions
-            questions = questions.subList(0, limit);
+            questions = questions.subList(0, Math.min(limit, questions.size()));
         }
 
 //        // insert to the questions some data (all we can here)
