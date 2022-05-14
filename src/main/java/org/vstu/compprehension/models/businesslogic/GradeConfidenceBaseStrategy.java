@@ -80,16 +80,16 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
 
         int countOfLaw = nextLawCount(studentType, studentsComplexity, lastLawCount,
                                         summarizedLawDeltaCount, lastLawDeltaCount, questions.size());
-        if(studentsComplexity != -1) {
+        if (studentsComplexity != -1) {
             result.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
-        }else{
+        } else {
             //Директивное упрощение
             ArrayList<InteractionEntity> inters = new ArrayList<>();
             inters.addAll(questions.get(questions.size()-1).getInteractions());
             HashMap<String, List<Boolean>> allLawsError = new HashMap<>();
 
             for (InteractionEntity inter: inters) {
-                for(ViolationEntity vio: inter.getViolations()){
+                for (ViolationEntity vio: inter.getViolations()) {
                     allLawsError.put(vio.getLawName(), allLaws.get(vio.getLawName()));
                 }
             }
@@ -253,11 +253,11 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
         //В зависимости от частости ошибок студента выбирается его тип (условный начинающий, средний, знаток)
         if((correctCount + errorCount) == 0){
             result = 0;
-        }else {
+        } else {
 
-            if (correctCount / (correctCount + errorCount) <= 0.6) {
+            if ((float)correctCount / (correctCount + errorCount) <= 0.6) {
                 result = -1;
-            } else if (correctCount / (correctCount + errorCount) <= 0.9) {
+            } else if ((float)correctCount / (correctCount + errorCount) <= 0.9) {
                 result = 0;
             } else {
                 result = 1;
@@ -560,8 +560,8 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
             maxLenInReduce = Math.max(maxLenInReduce, currentLen);
         }
 
-        return ((countOfMaxAnswer / numberOfConceptUsage)
-                + ((float)(maxLenInReduce / numberOfConceptUsage) / (float)numberOfChanges)) / componentCount;
+        return (((float)countOfMaxAnswer / numberOfConceptUsage)
+                + (((float)maxLenInReduce / numberOfConceptUsage) / (float)numberOfChanges)) / componentCount;
 
     }
 
