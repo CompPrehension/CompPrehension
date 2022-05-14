@@ -28,6 +28,59 @@ VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 1, 'ProgrammingLanguageExpressio
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 1, 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false}');
+--  role_in_exercise:
+--     TARGETED = 0
+--     FORBIDDEN = 1
+--     PERMITTED = 2
+INSERT INTO `exercise_laws` (`exercise_id`, `law_name`, `role_in_exercise` ) VALUES
+	(10, "UnexpectedWhenInterrupting", 0),
+	(10, "TooEarlyWhenInterrupting", 0),
+	(10, "DuplicateOfAct", 0),
+	(10, "TooLateInSequence", 0),
+	(10, "TooEarlyInSequence", 0),
+	(10, "SequenceFinishedNotInOrder", 0),
+	(10, "SequenceFinishedTooEarly", 0),
+	(10, "NoFirstCondition", 0),
+	(10, "NoAlternativeEndAfterBranch", 0),
+	(10, "CondtionNotNextToPrevCondition", 0),
+	(10, "ConditionAfterBranch", 0),
+	(10, "DuplicateOfCondition", 0),
+	(10, "BranchOfFalseCondition", 0),
+	(10, "AnotherExtraBranch", 0),
+	(10, "BranchWithoutCondition", 0),
+	(10, "BranchNotNextToCondition", 0),
+	(10, "ElseBranchNotNextToLastCondition", 0),
+	(10, "ElseBranchAfterTrueCondition", 0),
+	(10, "NoBranchWhenConditionIsTrue", 0),
+	(10, "LastConditionIsFalseButNoElse", 0),
+	(10, "NoNextCondition", 0),
+	(10, "ConditionTooLate", 0),
+	(10, "ConditionTooEarly", 0),
+	(10, "LastFalseNoEnd", 0),
+	(10, "AlternativeEndAfterTrueCondition", 0),
+	(10, "NoLoopEndAfterFailedCondition", 0),
+	(10, "LoopContinuedAfterFailedCondition", 0),
+	(10, "IterationAfterFailedCondition", 0),
+	(10, "LoopEndsWithoutCondition", 0),
+	(10, "LoopStartIsNotCondition", 0),
+	(10, "LoopStartIsNotIteration", 0),
+	(10, "NoIterationAfterSuccessfulCondition", 0),
+	(10, "LoopEndAfterSuccessfulCondition", 0),
+	(10, "NoConditionAfterIteration", 0),
+	(10, "NoConditionBetweenIterations", 0),
+	(10, "LoopStartsNotWithInit", 0),
+	(10, "InitNotAtLoopStart", 0),
+	(10, "NoConditionAfterForInit", 0),
+	(10, "IterationAfterForInit", 0),
+	(10, "NoUpdateAfterIteration", 0),
+	(10, "UpdateNotAfterIteration", 0),
+	(10, "ForConditionAfterIteration", 0),
+	(10, "NoConditionAfterForUpdate", 0),
+	(10, "NoForeachUpdateAfterSuccessfulCondition", 0),
+	(10, "ForeachUpdateNotAfterSuccessfulCondition", 0),
+	(10, "NoIterationAfterForeachUpdate", 0),
+	(10, "IterationNotAfterForeachUpdate", 0);
+
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (11, 1, 1, 0, 1, '10', 'test_if', 8, 0, 1, 'ControlFlowStatementsDomain', 'alternative,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
