@@ -38,7 +38,8 @@ public class QuestionService {
     BackendFactRepository backendFactRepository;
 
     @Autowired
-    private Strategy strategy;
+    //private Strategy strategy;
+    private GradeConfidenceBaseStrategy strategy;
 
     @Autowired
     private Backend backend;

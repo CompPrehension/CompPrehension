@@ -18,6 +18,7 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.GradeConfidenceBaseStrategy;
 import org.vstu.compprehension.models.businesslogic.Strategy;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -58,7 +59,8 @@ public class FrontendService {
     private QuestionService questionService;
 
     @Autowired
-    private Strategy strategy;
+    //private Strategy strategy;
+    private GradeConfidenceBaseStrategy strategy;
 
     @Autowired
     private FeedbackRepository feedbackRepository;
