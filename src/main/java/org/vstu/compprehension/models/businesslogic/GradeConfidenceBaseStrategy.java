@@ -12,6 +12,7 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.utils.DomainAdapter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component @Log4j2
 public class GradeConfidenceBaseStrategy extends AbstractStrategy {
@@ -94,7 +95,17 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
                 }
             }
 
-            result.setTargetLaws(countNextTargetLaws(allLawsError, domain, countOfLaw));
+            allLaws = allLawsError;
+        }
+
+        if (exercise.getExerciseLaws().isEmpty()) {
+            // получить законы из домена (все подряд)
+            result.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
+        } else {
+            // получить законы из упражнения
+            result.setTargetLaws(countNextTargetLaws(allLaws,
+                    exercise.getExerciseLaws().stream().map(el -> new NegativeLaw(el.getLawName(), List.of(), List.of(), List.of(), "")).collect(Collectors.toList()),
+                    countOfLaw));
         }
 
         loggingParams(studentType, studentsComplexity, lawsDirections);
@@ -288,6 +299,11 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
     }
 
     private List<Law> countNextTargetLaws(HashMap<String, List<Boolean>> allLaws, Domain domain, int countOfLaws) {
+        // proxy to overloaded method
+        return countNextTargetLaws(allLaws, new ArrayList<>(domain.getNegativeLaws()), countOfLaws);
+    }
+
+    private List<Law> countNextTargetLaws(HashMap<String, List<Boolean>> allLaws, List<Law> targetLaws, int countOfLaws) {
         ArrayList<Law> result = new ArrayList<>();
 
         //Подсчитать оценку каждого закона
@@ -311,8 +327,8 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
             targetLawsName.add(allLawsGrade.get(i).getFirst());
         }
 
-        List<Law> laws = new ArrayList<>(domain.getNegativeLaws());
-        for (Law l : laws) {
+        //// List<Law> targetLaws = new ArrayList<>(domain.getNegativeLaws());
+        for (Law l : targetLaws) {
             if(targetLawsName.contains(l.name)){
                 result.add(l);
             }
