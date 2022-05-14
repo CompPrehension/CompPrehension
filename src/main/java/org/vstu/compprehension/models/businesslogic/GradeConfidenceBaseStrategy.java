@@ -81,9 +81,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
 
         int countOfLaw = nextLawCount(studentType, studentsComplexity, lastLawCount,
                                         summarizedLawDeltaCount, lastLawDeltaCount, questions.size());
-        if (studentsComplexity != -1) {
-            result.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
-        } else {
+        if (studentsComplexity == -1) {
             //Директивное упрощение
             ArrayList<InteractionEntity> inters = new ArrayList<>();
             inters.addAll(questions.get(questions.size()-1).getInteractions());
@@ -98,15 +96,8 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
             allLaws = allLawsError;
         }
 
-        if (exercise.getExerciseLaws().isEmpty()) {
-            // получить законы из домена (все подряд)
-            result.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
-        } else {
-            // получить законы из упражнения
-            result.setTargetLaws(countNextTargetLaws(allLaws,
-                    exercise.getExerciseLaws().stream().map(el -> new NegativeLaw(el.getLawName(), List.of(), List.of(), List.of(), "")).collect(Collectors.toList()),
-                    countOfLaw));
-        }
+        result.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
+
 
         loggingParams(studentType, studentsComplexity, lawsDirections);
         loggingRequest(result);
@@ -128,18 +119,15 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
     public float grade(ExerciseAttemptEntity exerciseAttempt) {
 
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
-        assert domain != null;
 
-        List<NegativeLaw> targetLaws = domain.getNegativeLaws();
-        //List<ExerciseLawsEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
+        List<String> targetLaws = new ArrayList<>(basicLawsUsage(exerciseAttempt).keySet());
 
         float resultGrade = 0;
 
-        for (NegativeLaw currentLaw : targetLaws) {
+        for (String currentLaw : targetLaws) {
             List<Boolean> laws = new ArrayList<>();
             //laws.addAll(allLaws.get(currentLaw.getLawName()));
-            laws.addAll(allLaws.get(currentLaw.getName()));
+            laws.addAll(allLaws.get(currentLaw));
             Collections.reverse(laws);
 
             resultGrade += countGradeByUsage(laws, (float)1.2) * countConfidence(laws);
@@ -327,7 +315,6 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
             targetLawsName.add(allLawsGrade.get(i).getFirst());
         }
 
-        //// List<Law> targetLaws = new ArrayList<>(domain.getNegativeLaws());
         for (Law l : targetLaws) {
             if(targetLawsName.contains(l.name)){
                 result.add(l);
@@ -340,21 +327,18 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
     private boolean isAllLawsUsedWindowCount(ExerciseAttemptEntity exerciseAttempt) {
 
         HashMap<String, List<Boolean>> allLawsUsage = getTargetLawsInteractions(exerciseAttempt, 0);
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
-        assert domain != null;
 
-        List<NegativeLaw> targetLaws = domain.getNegativeLaws();
-        //List<ExerciseLawsEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
+
+        List<String> targetLaws = new ArrayList<>(basicLawsUsage(exerciseAttempt).keySet());
 
         Integer minimumLawUsageCount = null;
-//        for (ExerciseLawsEntity currentTargetLaw : targetLaws) {
-          for (NegativeLaw currentTargetLaw : targetLaws) {
+        for (String currentTargetLaw : targetLaws) {
             if(minimumLawUsageCount == null){
                 //minimumLawUsageCount = allLawsUsage.get(currentTargetLaw.getLawName()).size();
-                minimumLawUsageCount = allLawsUsage.get(currentTargetLaw.getName()).size();
+                minimumLawUsageCount = allLawsUsage.get(currentTargetLaw).size();
             }else{
                 //minimumLawUsageCount = Math.min(minimumLawUsageCount, allLawsUsage.get(currentTargetLaw.getLawName()).size());
-                minimumLawUsageCount = Math.min(minimumLawUsageCount, allLawsUsage.get(currentTargetLaw.getName()).size());
+                minimumLawUsageCount = Math.min(minimumLawUsageCount, allLawsUsage.get(currentTargetLaw).size());
             }
         }
 
@@ -387,15 +371,27 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
     private HashMap<String, List<Boolean>> basicLawsUsage(ExerciseAttemptEntity exerciseAttempt){
         HashMap<String, List<Boolean>> allLawsUsage = new HashMap<>();
 
-        //List<ExerciseLawsEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
-        assert domain != null;
+        ExerciseEntity exercise = exerciseAttempt.getExercise();
 
-        List<NegativeLaw> targetLaws = domain.getNegativeLaws();
-        //for (ExerciseLawsEntity currentTargetLaw : targetLaws) {
-        for (NegativeLaw currentTargetLaw : targetLaws) {
-            allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
+        if (exercise.getExerciseLaws().isEmpty()) {
+
+            // получить законы из домена (все подряд)
+            Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
+            assert domain != null;
+
+            List<NegativeLaw> targetLaws = domain.getNegativeLaws();
+            for (NegativeLaw currentTargetLaw : targetLaws) {
+                allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
+            }
+
+        } else {
+            // получить законы из упражнения
+            List<ExerciseLawsEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
+            for (ExerciseLawsEntity currentTargetLaw : targetLaws) {
+                allLawsUsage.put(currentTargetLaw.getLawName(), new ArrayList<>());
+            }
         }
+
 
         return allLawsUsage;
     }
