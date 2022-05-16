@@ -27,6 +27,7 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
@@ -353,6 +354,13 @@ public class ControlFlowStatementsDomain extends Domain {
         try {
             // new version - invoke rdfStorage search
             foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+
+            // search again if nothing found with "TO_COMPLEX"
+            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+            }
         } catch (RuntimeException ex) {
             // file storage was not configured properly...
             ex.printStackTrace();
