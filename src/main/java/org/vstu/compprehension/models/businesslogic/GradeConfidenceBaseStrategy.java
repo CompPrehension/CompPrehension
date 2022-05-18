@@ -37,14 +37,17 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
         HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
 
-            HashMap<String, List<Boolean>> difference = countDifference(allLaws, allLawsBeforeLastQuestion);
+        HashMap<String, List<Boolean>> difference = countDifference(allLaws, allLawsBeforeLastQuestion);
+
+        boolean isFirstQuestion = exerciseAttempt.getQuestions().size() == 0;
+
 
         result.setComplexity(grade(exerciseAttempt));//TODO
         //result.setComplexity(1);//TODO
         result.setSolvingDuration(30);
         result.setExerciseAttempt(exerciseAttempt);
 
-        SearchDirections lawsDirections = countLawsSearchDirections(difference);
+        SearchDirections lawsDirections = isFirstQuestion ? SearchDirections.TO_SIMPLE: countLawsSearchDirections(difference);
         result.setLawsSearchDirection(lawsDirections);
         result.setAllowedConcepts(new ArrayList<>());
 
@@ -58,7 +61,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
 
         //оценка прохождения прошлого вопроса -1, 0, 1
         //Мера того, как справляется студент на текущем уровне сложности (-1 - сложность слишком велика, 0 - граничная сложность, 1 - слишком легко)
-        int studentsComplexity = countComplexityByDifference(difference);
+        int studentsComplexity = isFirstQuestion ? 0: countComplexityByDifference(difference);
 
         ArrayList<QuestionEntity> questions = new ArrayList<>();
         questions.addAll(exerciseAttempt.getQuestions());
@@ -315,11 +318,17 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
             targetLawsName.add(allLawsGrade.get(i).getFirst());
         }
 
-        for (Law l : targetLaws) {
-            if(targetLawsName.contains(l.name)){
-                result.add(l);
+        for(String lName : targetLawsName){
+            Law lawToAdd = targetLaws.stream()
+                    .filter(law -> lName.equals(law.name))
+                    .findFirst()
+                    .orElse(null);
+
+            if(lawToAdd != null) {
+                result.add(lawToAdd);
             }
         }
+
 
         return result;
     }
@@ -467,6 +476,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
 
 
     protected SearchDirections countLawsSearchDirections(HashMap<String, List<Boolean>> difference){
+
         Pair<Integer, Integer> counts = countMaximumCountOfErrorAndErrorCount(difference);
         int maximumCountOfError = counts.getFirst();
         int errorCount = counts.getSecond();
@@ -585,6 +595,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
         for (Boolean currentElement : conceptUsageToAnalise) {
             if(currentElement != lastElement){
                 reducedUsage.add(1);
+                lastElement = currentElement;
             } else {
                 reducedUsage.set(reducedUsage.size() - 1, reducedUsage.get(reducedUsage.size() - 1) + 1);
             }
