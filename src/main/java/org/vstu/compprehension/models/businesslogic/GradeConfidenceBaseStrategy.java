@@ -297,17 +297,24 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
     private List<Law> countNextTargetLaws(HashMap<String, List<Boolean>> allLaws, List<Law> targetLaws, int countOfLaws) {
         ArrayList<Law> result = new ArrayList<>();
 
+        float meanOfUsage = 0;
+
         //Подсчитать оценку каждого закона
         ArrayList<Pair<String, Float>> allLawsGrade = new ArrayList<>();
         for(Map.Entry<String, List<Boolean>> entry : allLaws.entrySet()) {
+
             String key = entry.getKey();
             List<Boolean> valueFirst = entry.getValue();
 
             List<Boolean> laws = new ArrayList<>();
+
+            meanOfUsage += valueFirst.size();
             laws.addAll(valueFirst);
 
             allLawsGrade.add(0, Pair.of(key, countGradeByUsage(laws, (float)1.2) * countConfidence(laws)));
         }
+
+        meanOfUsage = meanOfUsage / allLaws.keySet().size();
 
         Collections.sort(allLawsGrade, new LawGradeComparator());
         //////Проверить в каком порядке сортируется
@@ -324,7 +331,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
                     .findFirst()
                     .orElse(null);
 
-            if(lawToAdd != null) {
+            if(lawToAdd != null && (meanOfUsage == 0 || allLaws.get(lName).size() < (meanOfUsage / 2))) {
                 result.add(lawToAdd);
             }
         }
