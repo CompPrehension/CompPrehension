@@ -15,11 +15,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.ContextLoader;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -35,7 +31,8 @@ import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 
 import javax.inject.Singleton;
-import java.io.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
@@ -736,6 +733,11 @@ public class ControlFlowStatementsDomain extends Domain {
                     "owl:NamedIndividual", trace,
                     "index",
                     "xsd:int", "0"
+            ));
+            result.add(new BackendFactEntity(
+                    "owl:NamedIndividual", trace,
+                    "rdf:type",
+                    "owl:Class", "act_begin" // RDFS rules are not included with rules having salience of 10, so cast "trace" to "act_begin" now
             ));
 //            make_triple(trace_obj, onto.exec_time, 0)  # set to 0 so next is 1
             result.add(new BackendFactEntity(
