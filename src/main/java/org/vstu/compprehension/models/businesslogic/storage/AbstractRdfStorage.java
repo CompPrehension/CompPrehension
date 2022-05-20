@@ -273,12 +273,12 @@ public abstract class AbstractRdfStorage {
                     if (qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() < 0) {
                         int i = 0;
                         int size = qr.getTargetLaws().size();
-                        score += size * size / 2;  // maximize possible score for existing laws
+                        //// score += 1 << size;  // maximize possible score for existing laws
                         // set penalty for each missing law (earlier ones cost more)
                         for (Law target : qr.getTargetLaws()) {
                             i += 1;
-                            if (!q.getNegativeLaws().contains(target.getName()))
-                                score -= (size - i);
+                            if (q.getNegativeLaws().contains(target.getName()))
+                                score += 1 << (size - i);
                         }
                     }
                     // set penalty for each extra law that is not in allowed laws
