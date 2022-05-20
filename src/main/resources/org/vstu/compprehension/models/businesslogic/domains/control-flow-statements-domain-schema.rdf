@@ -21,14 +21,17 @@
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#begin_of">
+  <act_class rdf:resource="#act_begin"/>
   <rdfs:subPropertyOf rdf:resource="#boundary_of"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#end_of">
+  <act_class rdf:resource="#act_end"/>
   <rdfs:subPropertyOf rdf:resource="#boundary_of"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#halt_of">
+  <act_class rdf:resource="#act_end"/>
   <rdfs:subPropertyOf rdf:resource="#boundary_of"/>
 </owl:ObjectProperty>
 
@@ -57,6 +60,12 @@
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#has_upcoming">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  <rdfs:domain rdf:resource="#boundary"/>
+  <rdfs:range rdf:resource="#boundary"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#collapse_bound">
   <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
   <rdfs:domain rdf:resource="#boundary"/>
   <rdfs:range rdf:resource="#boundary"/>
@@ -137,6 +146,11 @@
   <rdfs:domain rdf:resource="#act"/>
   <rdfs:range rdf:resource="#act"/>
   <rdfs:subPropertyOf rdf:resource="#student_next"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#_insert_act_executing">
+  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:range rdf:resource="#boundary"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#next_sibling">
@@ -568,6 +582,8 @@
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
+<owl:AnnotationProperty rdf:about="#act_class"/>
+
 <owl:AnnotationProperty rdf:about="#involves_concept"/>
 
 <owl:AnnotationProperty rdf:about="#principal_violation"/>
@@ -589,6 +605,14 @@
 </owl:Class>
 
 <owl:Class rdf:about="#act_end">
+  <rdfs:subClassOf rdf:resource="#act"/>
+</owl:Class>
+
+<owl:Class rdf:about="#implicit_act">
+  <rdfs:subClassOf rdf:resource="#act"/>
+</owl:Class>
+
+<owl:Class rdf:about="#finish_trace_act">
   <rdfs:subClassOf rdf:resource="#act"/>
 </owl:Class>
 
