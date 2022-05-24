@@ -12,7 +12,7 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.utils.DomainAdapter;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,10 +27,13 @@ public class Strategy extends AbstractStrategy {
     @Autowired
     private DomainService domainService;
 
+    @Autowired
+    private DomainFactory domainFactory;
+
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
 
         ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
+        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
         HashMap<String, LawNode> tree = getTree(domain);
         // Отдельная ветка для старта (взять некоторую часть возможных законов упражнения) - вопрос из середины графа
         if(exerciseAttempt.getQuestions() == null || exerciseAttempt.getQuestions().size() == 0){
@@ -306,8 +309,7 @@ public class Strategy extends AbstractStrategy {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttempt(exerciseAttempt);
         ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
-        assert domain != null;
+        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
         qr.setComplexity(1);
         qr.setSolvingDuration(30);
@@ -451,7 +453,7 @@ public class Strategy extends AbstractStrategy {
         }
 
         ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
+        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
         HashMap<String, LawNode> tree = getTree(domain);
 
         //// Если нет больших, проверить усвоенность всех целевых законов

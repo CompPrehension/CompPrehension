@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.models.businesslogic.backend.QuestionBack;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.frontend.QuestionFront;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -17,12 +18,18 @@ public abstract class Question implements QuestionFront, QuestionBack {
     protected List<String> concepts;
     protected List<String> negativeLaws;
     protected HashSet<String> tags;
+    protected Domain domain;
     
-    public Question(QuestionEntity questionData) {
+    public Question(QuestionEntity questionData, Domain domain) {
         this.questionData = questionData;
+        this.domain = domain;
         concepts = new ArrayList<>();
         negativeLaws = new ArrayList<>();
         tags = new HashSet<>();
+    }
+
+    public Domain getDomain() {
+        return this.domain;
     }
 
     @Override

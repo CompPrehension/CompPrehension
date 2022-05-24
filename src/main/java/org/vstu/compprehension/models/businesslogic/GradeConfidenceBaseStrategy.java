@@ -1,32 +1,41 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-import org.vstu.compprehension.utils.DomainAdapter;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component @Log4j2
 public class GradeConfidenceBaseStrategy extends AbstractStrategy {
+
+    private DomainFactory domainFactory;
+
+    @Autowired
+    public GradeConfidenceBaseStrategy(DomainFactory domainFactory) {
+        this.domainFactory = domainFactory;
+    }
+
 
     protected int WINDOW_TO_GRADE = 7;
     protected float TARGET_GRADE = (float)0.8;
     protected int DEFAULT_LAW_COUNT = 5;
 
+
+
     @Override
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
 
         ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = DomainAdapter.getDomain(exercise.getDomain().getClassPath());
-        assert domain != null;
+        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
         QuestionRequest result = new QuestionRequest();
         result.setTargetConcepts(new ArrayList<>());
@@ -392,8 +401,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
         if (exercise.getExerciseLaws().isEmpty()) {
 
             // получить законы из домена (все подряд)
-            Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
-            assert domain != null;
+            Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
 
             List<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {

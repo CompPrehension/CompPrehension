@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -116,6 +117,8 @@ public abstract class Domain {
 
     public Domain() {
     }
+
+    public abstract @NotNull String getDomainId();
 
     /**
      * Get text description of all steps to right solution

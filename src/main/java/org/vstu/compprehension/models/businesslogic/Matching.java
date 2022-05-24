@@ -1,21 +1,22 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
-import org.vstu.compprehension.utils.DomainAdapter;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 
 import java.util.List;
 
 public class Matching extends Question {
 
-    public Matching(QuestionEntity questionData) {
-        super(questionData);
+    public Matching(QuestionEntity questionData, Domain domain) {
+        super(questionData, domain);
     }
 
     @Override
     public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
-        return DomainAdapter.getDomain(questionData.getDomainEntity().getClassPath()).responseToFacts(
+        return domain.responseToFacts(
                 getQuestionDomainType(),
                 responses,
                 getAnswerObjects()

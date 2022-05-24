@@ -5,6 +5,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.text.StringSubstitutor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.entities.*;
@@ -29,8 +30,6 @@ import java.util.stream.Collectors;
 import static java.lang.Math.max;
 import static org.junit.jupiter.api.Assertions.*;
 
-
-
 @Component
 @Singleton
 public class ProgrammingLanguageExpressionDomain extends Domain {
@@ -53,6 +52,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
+    }
+
+    @NotNull
+    @Override
+    public String getDomainId() {
+        return "ProgrammingLanguageExpressionDomain";
     }
 
     private void fillConcepts() {
@@ -315,7 +320,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 val baseQuestionText = getMessage("expr_domain.BASE_QUESTION_TEXT", userLang);
                 entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 entity.setOptions(orderQuestionOptions);
-                Question question = new Ordering(entity);
+                Question question = new Ordering(entity, this);
                 // patch the newly created question with the concepts from the "template"
                 question.getConcepts().addAll(q.getConcepts());
                 // ^ shouldn't this be done in a more straightforward way..?
@@ -323,15 +328,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity);
+                return new Matching(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity);
+                return new MultiChoice(entity, this);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
-                return new SingleChoice(entity);
+                return new SingleChoice(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -386,7 +391,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 createAnswerObject(question, 1, "right", "right_associativity", "right", true),
                 createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
         )));
-        return new SingleChoice(question);
+        return new SingleChoice(question, this);
     }
 
     private AnswerObjectEntity createAnswerObject(QuestionEntity question, int id, String text, String concept, String domainInfo, boolean isLeft) {
