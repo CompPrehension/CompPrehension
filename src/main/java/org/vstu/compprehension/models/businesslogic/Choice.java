@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -10,8 +11,8 @@ import java.util.List;
 
 public class Choice extends Question {
 
-    public Choice(QuestionEntity questionData) {
-        super(questionData);
+    public Choice(QuestionEntity questionData, Domain domain) {
+        super(questionData, domain);
     }
 
     @Override

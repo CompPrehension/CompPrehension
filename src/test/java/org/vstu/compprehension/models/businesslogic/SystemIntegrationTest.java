@@ -6,18 +6,13 @@ import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.InteractionType;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.repository.*;
-import org.vstu.compprehension.utils.DomainAdapter;
-import org.vstu.compprehension.utils.HyperText;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.apache.commons.collections4.IterableUtils;
 
 import javax.transaction.Transactional;
 import java.util.*;
@@ -55,6 +50,9 @@ public class SystemIntegrationTest {
 
     @Autowired
     FeedbackRepository feedbackRepository;
+
+    @Autowired
+    private DomainFactory domainFactory;
 
     @Test
     public void generateTest() throws Exception
@@ -894,7 +892,7 @@ public class SystemIntegrationTest {
 
     Domain.ProcessSolutionResult getSolveInfo(Long questionId) {
         Question question = getQuestion(questionId);
-        Domain domain = DomainAdapter.getDomain(question.questionData.getDomainEntity().getClassPath());
+        Domain domain = domainFactory.getDomain(question.questionData.getDomainEntity().getName());
         return domain.processSolution(question.getSolutionFacts());
     }
 

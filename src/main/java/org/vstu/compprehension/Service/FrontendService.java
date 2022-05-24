@@ -28,7 +28,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOpti
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.repository.*;
-import org.vstu.compprehension.utils.DomainAdapter;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.utils.Utils;
@@ -77,6 +77,10 @@ public class FrontendService {
     @Autowired
     private LocalizationService localizationService;
 
+    @Autowired
+    private DomainFactory domainFactory;
+
+
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
         val question = questionService.getQuestion(questionId);
@@ -97,8 +101,7 @@ public class FrontendService {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
         }
 
-        val domain = DomainAdapter.getDomain(attempt.getExercise().getDomain().getClassPath());
-        assert domain != null;
+        val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
 
         val responses = questionService.responseQuestion(question, answers);
         val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
@@ -148,7 +151,7 @@ public class FrontendService {
         exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
 
         // calculate error message
-        val domain = DomainAdapter.getDomain(attempt.getExercise().getDomain().getClassPath()); assert domain != null;
+        val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .filter(Objects::nonNull);
