@@ -13,7 +13,7 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.utils.DomainAdapter;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.utils.HyperText;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,10 +54,13 @@ public class QuestionService {
     private InteractionRepository interactionRepository;
 
     @Autowired
-    ResponseRepository responseRepository;
+    private ResponseRepository responseRepository;
+
+    @Autowired
+    private DomainFactory domainFactory;
 
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
+        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
@@ -66,7 +69,7 @@ public class QuestionService {
     }
 
     public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
-        val domain = DomainAdapter.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getClassPath());
+        val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
         val question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
         if (question == null) {
             return null;
@@ -77,13 +80,13 @@ public class QuestionService {
     }
 
     public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = DomainAdapter.getDomain(exerciseAttempt.getExercise().getDomain().getClassPath());
+        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         assertEquals(1, responses.size());
         return domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
+        Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> solution = backendService.solve(
                 backend,
                 new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
@@ -127,7 +130,7 @@ public class QuestionService {
     }
 
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
+        Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> responseFacts = question.responseToFacts(responses);
         List<BackendFactEntity> violations = backendService.judge(
                 backend,
@@ -141,7 +144,7 @@ public class QuestionService {
     }
 
     public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
+        Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Language lang;
         try {
             lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
@@ -205,7 +208,7 @@ public class QuestionService {
     }
 
     public Domain.CorrectAnswer getNextCorrectAnswer(Question question) {
-        Domain domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
+        Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         return domain.getAnyNextCorrectAnswer(question);
     }
 
@@ -229,14 +232,15 @@ public class QuestionService {
     public Question generateBusinessLogicQuestion(
             QuestionEntity question) {
 
+        Domain domain = domainFactory.getDomain(question.getExerciseAttempt().getExercise().getDomain().getName());
         if (question.getQuestionType() == QuestionType.MATCHING) {
-            return new Matching(question);
+            return new Matching(question, domain);
         } else if (question.getQuestionType() == QuestionType.ORDER) {
-            return new Ordering(question);
+            return new Ordering(question, domain);
         } else if (question.getQuestionType() == QuestionType.MULTI_CHOICE) {
-            return new MultiChoice(question);
+            return new MultiChoice(question, domain);
         } else {
-            return new SingleChoice(question);
+            return new SingleChoice(question, domain);
         }
     }
 

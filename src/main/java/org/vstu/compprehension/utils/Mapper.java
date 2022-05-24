@@ -11,6 +11,7 @@ import org.vstu.compprehension.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
@@ -94,8 +95,8 @@ public class Mapper {
                 .toArray(QuestionAnswerDto[]::new);
         switch (question.getQuestionType()) {
             case ORDER:
-                val domain = DomainAdapter.getDomain(question.getDomainEntity().getClassPath());
-                val trace = Optional.ofNullable(domain.getFullSolutionTrace(questionObject)).stream()
+                val trace = Optional.ofNullable(questionObject.getDomain())
+                        .map(d -> d.getFullSolutionTrace(questionObject)).stream()
                         .flatMap(Collection::stream)
                         .map(HyperText::getText)
                         .toArray(String[]::new);
@@ -173,8 +174,8 @@ public class Mapper {
             @Nullable Decision strategyDecision
     ) {
         if (question.getQuestionData().getQuestionType() == QuestionType.ORDER) {
-            val domain = DomainAdapter.getDomain(question.getQuestionData().getDomainEntity().getClassPath());
-            val trace = Optional.ofNullable(domain.getFullSolutionTrace(question)).stream()
+            val trace = Optional.ofNullable(question.getDomain())
+                    .map(d -> d.getFullSolutionTrace(question)).stream()
                     .flatMap(Collection::stream)
                     .map(HyperText::getText)
                     .toArray(String[]::new);

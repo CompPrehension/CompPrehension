@@ -12,6 +12,7 @@ import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -459,15 +460,15 @@ public class ControlFlowStatementsDomain extends Domain {
                 val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 entity.setOptions(orderQuestionOptions);
-                return new Ordering(entity);
+                return new Ordering(entity, this);
             case MATCHING:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity);
+                return new Matching(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity);
+                return new MultiChoice(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -1590,6 +1591,12 @@ public class ControlFlowStatementsDomain extends Domain {
                 Question.class);
 
         return question;
+    }
+
+    @NotNull
+    @Override
+    public String getDomainId() {
+        return "ControlFlowStatementsDomain";
     }
 
     @Override
