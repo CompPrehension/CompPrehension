@@ -1,21 +1,28 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.models.businesslogic.strategies;
 
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.NegativeLaw;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 
+import javax.inject.Singleton;
 import java.util.*;
 
-@Component @Log4j2
-public class GradeConfidenceBaseStrategy extends AbstractStrategy {
+@Component @Singleton
+@Log4j2
+public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
     private DomainFactory domainFactory;
 
@@ -29,7 +36,11 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
     protected float TARGET_GRADE = (float)0.8;
     protected int DEFAULT_LAW_COUNT = 5;
 
-
+    @NotNull
+    @Override
+    public String getStrategyId() {
+        return "GradeConfidenceBaseStrategy";
+    }
 
     @Override
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
@@ -171,9 +182,9 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
 
         log.info("Законы из домена в запросе:");
         ArrayList<Law> printOutLaws = new ArrayList<>(result.getTargetLaws());
-        printOutLaws.sort(Comparator.comparing(l -> l.name));
+        printOutLaws.sort(Comparator.comparing(Law::getName));
         for(Law str : printOutLaws){
-            log.info(T + str.name);
+            log.info(T + str.getName());
         }
     }
 
@@ -336,7 +347,7 @@ public class GradeConfidenceBaseStrategy extends AbstractStrategy {
 
         for(String lName : targetLawsName){
             Law lawToAdd = targetLaws.stream()
-                    .filter(law -> lName.equals(law.name))
+                    .filter(law -> lName.equals(law.getName()))
                     .findFirst()
                     .orElse(null);
 

@@ -57,6 +57,9 @@ public class ExerciseEntity {
     @Column(name = "backend_id", nullable = false, length = 100)
     private @NotNull String backendId;
 
+    @Column(name = "strategy_id", nullable = false, length = 100)
+    private @NotNull String strategyId;
+
     public List<Tag> getTags() {
         return Arrays.stream(tags.split(","))
                 .map(i -> new Tag(i))

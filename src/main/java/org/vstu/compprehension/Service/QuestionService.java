@@ -9,6 +9,9 @@ import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.GradeConfidenceBaseStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.repository.*;
@@ -40,7 +43,7 @@ public class QuestionService {
 
     @Autowired
     //private Strategy strategy;
-    private GradeConfidenceBaseStrategy strategy;
+    private StrategyFactory strategyFactory;
 
     @Autowired
     private BackendFactory backendFactory;
@@ -59,6 +62,7 @@ public class QuestionService {
 
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
