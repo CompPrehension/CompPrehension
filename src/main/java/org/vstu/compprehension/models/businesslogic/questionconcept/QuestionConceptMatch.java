@@ -1,6 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.questionconcept;
 
-import org.vstu.compprehension.models.entities.BackendEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +18,4 @@ public class QuestionConceptMatch {
     private String noMatchRightVerb;
 
     private QuestionEntity question;
-
-    private BackendEntity backend;
 }

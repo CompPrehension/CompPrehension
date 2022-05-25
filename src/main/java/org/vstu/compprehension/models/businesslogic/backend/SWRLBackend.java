@@ -12,7 +12,7 @@ import org.swrlapi.parser.SWRLParseException;
 
 import java.util.*;
 
-public abstract class SWRLBackend extends Backend {
+public abstract class SWRLBackend implements Backend {
 
     IRI OntologyIRI;
     OWLOntology Ontology;

@@ -1,18 +1,15 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import org.vstu.compprehension.models.businesslogic.backend.QuestionBack;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.frontend.QuestionFront;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-public abstract class Question implements QuestionFront, QuestionBack {
+public abstract class Question {
     
     protected QuestionEntity questionData;
     protected List<String> concepts;
@@ -32,43 +29,36 @@ public abstract class Question implements QuestionFront, QuestionBack {
         return this.domain;
     }
 
-    @Override
     public int answerObjectsCount() {
         
         return questionData.getAnswerObjects().size();
     }
 
-    @Override
     public void addAnswerObject(AnswerObjectEntity newObject) {
         
         questionData.getAnswerObjects().add(newObject);
     }
 
-    @Override
     public void setAnswerObjects(List<AnswerObjectEntity> objects) {
 
         questionData.setAnswerObjects(objects);
     }
 
-    @Override
     public List<AnswerObjectEntity> getAnswerObjects() {
         
         return questionData.getAnswerObjects();
     }
 
-    @Override
     public HyperText getQuestionText() {
         
         return new HyperText(questionData.getQuestionText());
     }
 
-    @Override
     public String getQuestionName() {
 
         return questionData.getQuestionName();
     }
 
-    @Override
     public AnswerObjectEntity getAnswerObject(int answerId) {
         return questionData.getAnswerObjects().stream()
                 .filter(a -> a.getAnswerId() == answerId)
@@ -76,7 +66,6 @@ public abstract class Question implements QuestionFront, QuestionBack {
                 .orElse(null);
     }
 
-    @Override
     public QuestionType getQuestionType() {
         
         return questionData.getQuestionType();
@@ -112,12 +101,26 @@ public abstract class Question implements QuestionFront, QuestionBack {
         return negativeLaws;
     }
 
-    @Override
+    /**
+     * Сформировать из ответов (которые были ранее добавлены к вопросу)
+     * студента факты в универсальной форме
+     * @return - факты в универсальной форме
+     */
+    public abstract List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses);
+
+    /**
+     * Сформировать из ответов (которые были ранее добавлены к вопросу)
+     * студента факты в удобном для указанного backend-а виде
+     * @param backendId - id backend-а для которого будут сформированы
+     *                  факты
+     * @return - факты в том формате, в котором их поймет backend
+     */
+    public abstract List<BackendFactEntity> responseToFacts(long backendId);
+
     public List<BackendFactEntity> getStatementFacts() {
         return questionData.getStatementFacts();
     }
 
-    @Override
     public List<BackendFactEntity> getSolutionFacts() {
         return questionData.getSolutionFacts();
     }
@@ -126,7 +129,6 @@ public abstract class Question implements QuestionFront, QuestionBack {
         return questionData.getQuestionDomainType();
     }
 
-    @Override
     public boolean isSupplementary() {
         return this.questionData != null && this.questionData.getQuestionDomainType().contains("Supplementary");
     }
