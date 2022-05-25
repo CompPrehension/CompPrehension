@@ -1,6 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.questionconcept;
 
-import org.vstu.compprehension.models.entities.BackendEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +16,4 @@ public class QuestionConceptChoice {
     private String notSelectedConcept;
 
     private QuestionEntity question;
-
-    private BackendEntity backend;
 }

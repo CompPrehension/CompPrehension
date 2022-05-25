@@ -80,7 +80,6 @@ public class Choice extends Question {
         return null;
     }
 
-    @Override
     public Long getExerciseAttemptId() {
         return null;
     }

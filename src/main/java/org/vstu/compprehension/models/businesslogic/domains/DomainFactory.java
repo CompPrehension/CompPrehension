@@ -20,7 +20,7 @@ public class DomainFactory {
     private @NotNull HashMap<String, String> domainToClassMap = new HashMap<>();
 
     @Autowired
-    public DomainFactory( @NotNull List<Domain> domains) {
+    public DomainFactory(@NotNull List<Domain> domains) {
         for (var d : domains) {
             domainToClassMap.put(d.getDomainId(), d.getClass().getName());
         }

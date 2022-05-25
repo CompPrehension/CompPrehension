@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1653465613527-3" author="Artem Prokudin">
+        <dropForeignKeyConstraint baseTableName="exercise" constraintName="FK_EXERCISE_ON_BACKEND"/>
+    </changeSet>
+    <changeSet id="1653465613527-4" author="Artem Prokudin">
+        <dropTable cascadeConstraints="true" tableName="backend"/>
+    </changeSet>
+    <changeSet id="1653465613527-1" author="Artem Prokudin">
+        <dropColumn columnName="backend_id" tableName="exercise"/>
+    </changeSet>
+    <changeSet id="1653465613527-2" author="Artem Prokudin">
+        <addColumn tableName="exercise">
+            <column name="backend_id" type="VARCHAR(100)" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="1653465613527-20" author="Artem Prokudin">
+        <update tableName="exercise">
+            <column name="backend_id" value="Jena" />
+            <where>backend_id is null</where>
+        </update>
+    </changeSet>
+    <changeSet id="1653465613527-30" author="Artem Prokudin">
+        <addNotNullConstraint columnDataType="VARCHAR(100)" columnName="backend_id" tableName="exercise"/>
+    </changeSet>
+</databaseChangeLog>

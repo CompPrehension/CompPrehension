@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
@@ -42,10 +43,7 @@ public class QuestionService {
     private GradeConfidenceBaseStrategy strategy;
 
     @Autowired
-    private Backend backend;
-
-    @Autowired
-    private BackendService backendService;
+    private BackendFactory backendFactory;
 
     @Autowired
     private DomainService domainService;
@@ -87,8 +85,8 @@ public class QuestionService {
 
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        List<BackendFactEntity> solution = backendService.solve(
-                backend,
+        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        List<BackendFactEntity> solution = backend.solve(
                 new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
@@ -132,8 +130,8 @@ public class QuestionService {
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         List<BackendFactEntity> responseFacts = question.responseToFacts(responses);
-        List<BackendFactEntity> violations = backendService.judge(
-                backend,
+        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        List<BackendFactEntity> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFacts(),
                 question.getSolutionFacts(),

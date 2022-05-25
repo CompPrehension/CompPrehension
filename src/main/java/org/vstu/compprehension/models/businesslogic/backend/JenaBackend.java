@@ -4,6 +4,7 @@ package org.vstu.compprehension.models.businesslogic.backend;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.reasoner.rulesys.BuiltinRegistry;
 import org.apache.jena.vocabulary.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Primary
 @Component @RequestScope
 @Log4j2
-public class JenaBackend extends Backend {
+public class JenaBackend implements Backend {
 
     static {
         registerBuiltins();
@@ -464,6 +465,14 @@ public class JenaBackend extends Backend {
                 log.error("Cannot write to file: " + out_rdf_path, e);
             }
         }
+    }
+
+
+    public static final @NotNull String BackendId =  "Jena";
+    @NotNull
+    @Override
+    public String getBackendId() {
+        return BackendId;
     }
 
     @Override
