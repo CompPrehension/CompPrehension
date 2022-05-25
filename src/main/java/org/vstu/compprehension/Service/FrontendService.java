@@ -18,8 +18,8 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.GradeConfidenceBaseStrategy;
-import org.vstu.compprehension.models.businesslogic.Strategy;
+import org.vstu.compprehension.models.businesslogic.strategies.GradeConfidenceBaseStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -59,8 +59,7 @@ public class FrontendService {
     private QuestionService questionService;
 
     @Autowired
-    //private Strategy strategy;
-    private GradeConfidenceBaseStrategy strategy;
+    private StrategyFactory strategyFactory;
 
     @Autowired
     private FeedbackRepository feedbackRepository;
@@ -141,6 +140,7 @@ public class FrontendService {
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
         // add feedback
+        val strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
         val grade = strategy.grade(attempt);
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);
@@ -262,6 +262,7 @@ public class FrontendService {
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
         // add feedback
+        val strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
         val grade = strategy.grade(exerciseAttempt);
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);

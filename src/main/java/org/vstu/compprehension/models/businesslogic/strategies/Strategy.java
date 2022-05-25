@@ -1,10 +1,13 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.models.businesslogic.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
-import org.vstu.compprehension.Service.DomainService;
+import org.vstu.compprehension.models.businesslogic.Concept;
+import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
@@ -14,21 +17,30 @@ import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Singleton;
 import java.util.*;
 
 import static java.lang.Math.abs;
 
-@Component @Log4j2
-public class Strategy extends AbstractStrategy {
+@Component @Singleton
+@Log4j2
+public class Strategy implements AbstractStrategy {
+
+    private final DomainFactory domainFactory;
 
     @Autowired
-    private DomainService domainService;
+    public Strategy(DomainFactory domainFactory) {
+        this.domainFactory = domainFactory;
+    }
 
-    @Autowired
-    private DomainFactory domainFactory;
+
+    @NotNull
+    @Override
+    public String getStrategyId() {
+        return "Strategy";
+    }
 
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
 
@@ -320,7 +332,7 @@ public class Strategy extends AbstractStrategy {
         List<Law> targetLaws = new ArrayList<>();
 
         for (Law l : laws) {
-            if(nextNode != null && nextNode.currentLows.contains(l.name)){
+            if(nextNode != null && nextNode.currentLows.contains(l.getName())){
                 targetLaws.add(l);
             }
         }
@@ -361,9 +373,9 @@ public class Strategy extends AbstractStrategy {
 
         log.info("Законы из домена в запросе:");
         ArrayList<Law> printOutLaws = new ArrayList<>(qr.getTargetLaws());
-        printOutLaws.sort(Comparator.comparing(l -> l.name));
+        printOutLaws.sort(Comparator.comparing(Law::getName));
         for(Law str : printOutLaws){
-            log.info(T + str.name);
+            log.info(T + str.getName());
         }
 
         log.info("Концепты из домена в запросе:");
