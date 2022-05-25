@@ -36,7 +36,7 @@ public class DomainFactory {
             val object = ApplicationContextProvider.getApplicationContext().getBean(clazz);
             return object;
         } catch (Exception e) {
-            return null;
+            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve domain with id %s", domainId));
         }
     }
 }
