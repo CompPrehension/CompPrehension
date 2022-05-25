@@ -17,12 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @Singleton
 public class DomainFactory {
-    private @NotNull HashMap<String, String> domainToClassMap = new HashMap<>();
+    private @NotNull HashMap<String, Class<?>> domainToClassMap = new HashMap<>();
 
     @Autowired
     public DomainFactory(@NotNull List<Domain> domains) {
         for (var d : domains) {
-            domainToClassMap.put(d.getDomainId(), d.getClass().getName());
+            domainToClassMap.put(d.getDomainId(), d.getClass());
         }
     }
 
@@ -32,7 +32,7 @@ public class DomainFactory {
         }
 
         try {
-            val clazz = (Class<Domain>)Class.forName(domainToClassMap.get(domainId));
+            val clazz = (Class<Domain>)domainToClassMap.get(domainId);
             val object = ApplicationContextProvider.getApplicationContext().getBean(clazz);
             return object;
         } catch (Exception e) {

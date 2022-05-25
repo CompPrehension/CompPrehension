@@ -15,12 +15,12 @@ import java.util.List;
 
 @Component @Singleton
 public class StrategyFactory {
-    private @NotNull HashMap<String, String> strategyToClassMap = new HashMap<>();
+    private @NotNull HashMap<String, Class<?>> strategyToClassMap = new HashMap<>();
 
     @Autowired
     public StrategyFactory(@NotNull List<AbstractStrategy> strategies) {
         for (var s : strategies) {
-            strategyToClassMap.put(s.getStrategyId(), s.getClass().getName());
+            strategyToClassMap.put(s.getStrategyId(), s.getClass());
         }
     }
 
@@ -30,7 +30,7 @@ public class StrategyFactory {
         }
 
         try {
-            val clazz = (Class<AbstractStrategy>)Class.forName(strategyToClassMap.get(strategyId));
+            val clazz = (Class<AbstractStrategy>)strategyToClassMap.get(strategyId);
             val object = ApplicationContextProvider.getApplicationContext().getBean(clazz);
             return object;
         } catch (Exception e) {
