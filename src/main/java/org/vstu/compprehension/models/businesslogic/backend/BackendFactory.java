@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 import lombok.val;
+import lombok.var;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
