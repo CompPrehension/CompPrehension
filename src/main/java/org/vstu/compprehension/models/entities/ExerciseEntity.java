@@ -4,6 +4,7 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.entities.EnumData.Complexity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
@@ -53,6 +54,9 @@ public class ExerciseEntity {
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private ExerciseOptionsEntity options;
 
+    @Column(name = "backend_id", nullable = false, length = 100)
+    private @NotNull String backendId;
+
     public List<Tag> getTags() {
         return Arrays.stream(tags.split(","))
                 .map(i -> new Tag(i))
@@ -70,10 +74,6 @@ public class ExerciseEntity {
     @Column(name = "language_id")
     @Enumerated(EnumType.ORDINAL)
     private Language language;
-
-    @ManyToOne
-    @JoinColumn(name = "backend_id", nullable = false)
-    private BackendEntity backend;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", nullable = false)

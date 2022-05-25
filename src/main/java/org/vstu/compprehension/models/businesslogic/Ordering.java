@@ -14,7 +14,6 @@ public class Ordering extends Question {
         super(questionData, domain);
     }
 
-    @Override
     public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
         return domain.responseToFacts(
                 getQuestionDomainType(),
@@ -23,12 +22,10 @@ public class Ordering extends Question {
         );
     }
 
-    @Override
     public List<BackendFactEntity> responseToFacts(long backendId) {
         return null;
     }
 
-    @Override
     public Long getExerciseAttemptId() {
         return null;
     }

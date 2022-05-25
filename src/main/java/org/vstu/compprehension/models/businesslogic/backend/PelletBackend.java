@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.semanticweb.owlapi.model.*;
@@ -125,5 +126,12 @@ public class PelletBackend extends SWRLBackend {
     void callReasoner() {
         Reasoner = PelletReasonerFactory.getInstance().createReasoner(Ontology);
         Reasoner.refresh();
+    }
+
+    public static final @NotNull String BackendId =  "Pellet";
+    @NotNull
+    @Override
+    public String getBackendId() {
+        return BackendId;
     }
 }
