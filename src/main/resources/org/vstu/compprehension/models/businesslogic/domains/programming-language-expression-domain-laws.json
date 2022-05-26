@@ -19,7 +19,17 @@
         "backend": "OWL"
       },
       {
+        "name": "first",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "first_index",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "last",
         "formulation": "owl:DatatypeProperty",
         "backend": "OWL"
       },
@@ -35,7 +45,12 @@
       },
       {
         "name": "first_index",
-        "formulation": "(?a my:index \"1\"^^xsd:integer) -> (?a my:first_index \"true\"^^xsd:boolean).",
+        "formulation": "(?a my:first \"true\"^^xsd:boolean) -> (?a my:first_index \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "last_index",
+        "formulation": "(?a my:last \"true\"^^xsd:boolean) -> (?a my:last_index \"true\"^^xsd:boolean).",
         "backend": "Jena"
       }
     ],
