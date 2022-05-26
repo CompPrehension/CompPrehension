@@ -23,9 +23,6 @@ public class DomainEntity {
     @Column(name = "shortName", nullable = false, unique = true)
     private String shortName;
 
-    @Column(name = "classPath", length = 1000, nullable = false)
-    private String classPath;
-
     @Column(name = "version", nullable = false)
     private String version;
 
