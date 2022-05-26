@@ -476,7 +476,7 @@ public abstract class Domain {
      * @param questionsLimit maximum questions to create (avoiding infinite loops)
      * @return map: [new question name] -> [contents of QUESTION graph]
      * */
-    Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
+    public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
         return null;
     }
 

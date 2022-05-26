@@ -6,6 +6,7 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
+import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.entities.*;
@@ -1731,5 +1732,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         return new HyperText(joiner.toString());
+    }
+
+    @Override
+    public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
+        HashMap<String, Model> questions = new HashMap<>();
+        questions.put(templateName + "_empty", solvedTemplate);
+        return questions;
     }
 }
