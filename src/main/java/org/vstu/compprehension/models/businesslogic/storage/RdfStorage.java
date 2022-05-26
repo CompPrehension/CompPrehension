@@ -30,16 +30,12 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
-import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -424,7 +420,9 @@ RdfStorage.StopBackgroundDBFillUp()
     public static void main_2(String[] args) {
         // debug some things ...
 
-        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
+//        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
+        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ProgrammingLanguageExpressionDomain");
+
         RdfStorage rs = new RdfStorage(sparql_endpoint);
 
 //        AskBuilder ab = new AskBuilder();
@@ -510,8 +508,11 @@ RdfStorage.StopBackgroundDBFillUp()
         JenaBackend.registerBuiltins();
 
 //        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
-        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
-        RdfStorage rs = new RdfStorage(cfd);
+
+//        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
+//        RdfStorage rs = new RdfStorage(cfd);
+        ProgrammingLanguageExpressionDomain pled = new ProgrammingLanguageExpressionDomain();
+        RdfStorage rs = new RdfStorage(pled);
 
 
         if (false) {
@@ -567,15 +568,69 @@ RdfStorage.StopBackgroundDBFillUp()
         }
     }
 
+    public static void main_5(boolean forceResolve) {
+        // create question(s) from template
+
+        ProgrammingLanguageExpressionDomain pled = new ProgrammingLanguageExpressionDomain();
+        RdfStorage rs = new RdfStorage(pled);
+
+        // find question templates to solve
+        List<String> sqts;
+        sqts = rs.unsolvedQuestions(GraphRole.QUESTION_TEMPLATE_SOLVED);
+
+        System.out.println("Unsolved question templates: " + sqts.size());
+        for (String name : sqts) {
+            System.out.println(name);
+        }
+        System.out.println();
+
+        // Solving
+        for (String templateName : sqts) {
+            System.out.println("Creating question: " + templateName);
+            Model solvedTemplateModel = rs.getQuestionModel(templateName, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
+            for (Map.Entry<String, Model> question : pled.generateDistinctQuestions(templateName, solvedTemplateModel, ModelFactory.createDefaultModel(), 1024).entrySet()) {
+                // create metadata entry
+                rs.createQuestion(question.getKey(), templateName, true);
+                // set basic data of the question
+                rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, question.getValue());
+                // solve the question (using the data uploaded above as QUESTION)
+                rs.solveQuestion(templateName, GraphRole.QUESTION_SOLVED);
+            }
+        }
+    }
+
+    static class Stats {
+        int min = 100000000;
+        int max = 0;
+        float mean;
+        int size = 0;
+
+        Stats (List<Integer> a) {
+            for (Integer x : a) {
+                min = Math.min(min, x);
+                max = Math.max(max, x);
+                size++;
+                mean += x;
+            }
+            mean /= size;
+        }
+
+        public void print(String name) {
+           System.out.println(name + " min=" + min + " max=" + max + " count=" + size + " mean=" + mean);
+        }
+    }
+
     public static void main_3(String[] args) {
         // debug some things ...
         // upload <question template> graphs from files
 
-        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
-        RdfStorage rs = new RdfStorage(cfd);
+//        ControlFlowStatementsDomain domain = new ControlFlowStatementsDomain(new LocalizationService());
+        Domain domain = new ProgrammingLanguageExpressionDomain();
 
-//        String rdf_dir = "c:\\Temp2\\cntrflowoutput_v6\\";
-        String rdf_dir = "c:\\Temp2\\cntrflowoutput_v7_rdf\\";
+        RdfStorage rs = new RdfStorage(domain);
+
+//        String rdf_dir = "c:\\Temp2\\cntrflowoutput_v7_rdf\\";
+        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
         // Find files in local directory
         List<String> files = new ArrayList<>();
@@ -584,7 +639,8 @@ RdfStorage.StopBackgroundDBFillUp()
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (true) {  // optional filter by extension and file names
+
+        if (domain instanceof ControlFlowStatementsDomain) {  // optional filter by extension and file names
             String[] unwantedNameSubstrings = {"snlen", "stok", "strnlen", "strlen", "printf", "scanf", "acosl", };
             String wantedExt = ".rdf";
             files = files.stream()
@@ -597,11 +653,19 @@ RdfStorage.StopBackgroundDBFillUp()
         for (String file : files) {  //// .subList(540, 1338) .subList(0, 32)  .subList(32, 438)  .subList(120, 140)
             int path_len = rdf_dir.length();
             String name = file.substring(path_len);  // cut directory path
-            /// name = name.substring(0, name.length() - 16);
-            // cut last two sections with digits
-            List<String> nameParts = Arrays.stream(name.split("__")).collect(Collectors.toList());
-            nameParts = nameParts.subList(0, nameParts.size() - 2);
-            name = String.join("_", nameParts);
+
+            if (name.endsWith(".ttl"))
+                name = name.substring(0, name.length() - ".ttl".length());
+
+            if (domain instanceof ControlFlowStatementsDomain) {
+                // cut last two sections with digits
+                List<String> nameParts = Arrays.stream(name.split("__")).collect(Collectors.toList());
+                nameParts = nameParts.subList(0, nameParts.size() - 2);
+                name = String.join("_", nameParts);
+            }
+            else if (domain instanceof ProgrammingLanguageExpressionDomain) {
+//                name = name.replaceAll("[^a-zA-Z0-9_]", "");
+            }
 
             System.out.print(name + " ...\t");
 
@@ -612,14 +676,22 @@ RdfStorage.StopBackgroundDBFillUp()
             RDFDataMgr.read(m, file);
 
             rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
+
+            if (domain instanceof ProgrammingLanguageExpressionDomain) {
+                Model solved = rs.solveTemplate(m, false);
+                rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE_SOLVED, solved);
+            }
+
+
         }
     }
 
     public static void main(String[] args) {
-//        main_3(args); // upload graphs as question templates
+        main_3(args); // upload graphs as question templates
 //        main_4(false); // solve question templates
-        main_4(true); // solve question templates (force re-solve)
-//
+//        main_4(true); // solve question templates (force re-solve)
+        
+        main_5(false); // make questions from templates
 
         System.out.println("Finished.");
     }

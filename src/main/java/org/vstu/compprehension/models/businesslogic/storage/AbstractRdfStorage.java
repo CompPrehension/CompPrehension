@@ -384,8 +384,8 @@ public abstract class AbstractRdfStorage {
             return schemaModel.read(ControlFlowStatementsDomain.VOCAB_SCHEMA_PATH);
 
         } else if (domain instanceof ProgrammingLanguageExpressionDomain) {
-            // TODO: revise what is schema for this domain
-            throw new NotImplementedException("schema for " + domain.getName());
+            //// return ModelFactory.createDefaultModel();
+            // TODO: extract schema from rules
         }
 
         // the default
@@ -407,8 +407,11 @@ public abstract class AbstractRdfStorage {
             laws.addAll(domain.getNegativeLaws());
         } else {
             // passed not-a-question role -- get all
-            laws.addAll(domain.getPositiveLaws());
-            laws.addAll(domain.getNegativeLaws());
+            if (domain instanceof ProgrammingLanguageExpressionDomain) {
+                laws.addAll(domain.getQuestionLaws("OrderOperators"));
+            } else if (domain instanceof ControlFlowStatementsDomain) {
+                laws.addAll(domain.getQuestionLaws("OrderActs"));
+            }
         }
 
         PrintUtil.registerPrefix("my", NS_code.get()); // as `my:` is used in rules
@@ -840,6 +843,17 @@ public abstract class AbstractRdfStorage {
      *
      * @param questionName              name of question or question template
      * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
+     * @return true on success
+     */
+    public boolean solveQuestion(String questionName, GraphRole desiredLevel) {
+        return solveQuestion(questionName, desiredLevel, -1);
+    }
+
+    /**
+     * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
+     *
+     * @param questionName              name of question or question template
+     * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
      * @param tooLargeTemplateThreshold if > 0, do not process question templates having the number of RDF subjects
      *                                  exceeding this number (maybe for reducing reasoner load).
      * @return true on success
@@ -1040,6 +1054,13 @@ public abstract class AbstractRdfStorage {
             m.add(m2);
 
         return m;
+    }
+
+    public Model solveTemplate(Model srcModel, boolean retainNewFactsOnly) {
+        return runReasoning(
+                getFullSchema().union(srcModel),
+                getDomainRulesForSolvingAtLevel(GraphRole.SCHEMA),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
+                retainNewFactsOnly);
     }
 
     protected Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {

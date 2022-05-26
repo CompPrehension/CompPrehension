@@ -485,6 +485,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new ArrayList<>();
     }
 
+    /**
+     * Get all needed (positive and negative) laws for this questionType using default tags
+     * @param questionDomainType type of question
+     * @return list of laws
+     */
+    public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
+
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
+        return getQuestionLaws(questionDomainType, tags);
+    }
+
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
@@ -516,7 +533,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             return negativeLaws;
         }
-        return new ArrayList<>(Arrays.asList());
+        return new ArrayList<>(List.of());
     }
 
     public List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
