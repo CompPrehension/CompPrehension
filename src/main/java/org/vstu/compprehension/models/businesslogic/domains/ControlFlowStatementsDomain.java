@@ -521,6 +521,19 @@ public class ControlFlowStatementsDomain extends Domain {
         return new HyperText(msg);
     }
 
+    /**
+     * Get all needed (positive and negative) laws for this questionType using default tags
+     * @param questionDomainType type of question
+     * @return list of laws
+     */
+    public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
+
+        List<Law> laws = new ArrayList<>();
+        laws.addAll(positiveLaws);
+        laws.addAll(negativeLaws);
+        return laws;
+    }
+
     // filter positive laws by question type and tags
     @Override
     public List<PositiveLaw> getQuestionPositiveLaws(String domainQuestionType, List<Tag> tags) {

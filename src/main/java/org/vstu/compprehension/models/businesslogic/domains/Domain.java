@@ -173,6 +173,9 @@ public abstract class Domain {
         return laws;
     }
 
+    /** Get all needed (positive and negative) laws for this questionType using default tags */
+    public abstract List<Law> getQuestionLaws(String questionDomainType);
+
     /**
      * Get positive needed laws in this questionType
      * @param questionDomainType type of question
