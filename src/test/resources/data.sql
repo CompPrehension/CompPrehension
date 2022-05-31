@@ -31,21 +31,21 @@ VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 'GradeConfidenceBaseStrategy', '
 --     FORBIDDEN = 1
 --     PERMITTED = 2
 INSERT INTO `exercise_laws` (`exercise_id`, `law_name`, `role_in_exercise` ) VALUES
-	(10, "NoFirstCondition", 0),
-	(10, "SequenceFinishedTooEarly", 0),
-	(10, "TooEarlyInSequence", 0),
-	(10, "LoopStartIsNotCondition", 0),
-	(10, "NoLoopEndAfterFailedCondition", 0),
-	(10, "LastFalseNoEnd", 0),
-	(10, "DuplicateOfAct", 0),
-	(10, "NoBranchWhenConditionIsTrue", 0),
-	(10, "NoConditionAfterIteration", 0),
-	(10, "BranchOfFalseCondition", 0),
-	(10, "NoAlternativeEndAfterBranch", 0),
-	(10, "ElseBranchAfterTrueCondition", 0),
-	(10, "NoIterationAfterSuccessfulCondition", 0),
-	(10, "LastConditionIsFalseButNoElse", 0),
-	(10, "LoopStartIsNotIteration", 0);
+	(10, 'NoFirstCondition', 0),
+	(10, 'SequenceFinishedTooEarly', 0),
+	(10, 'TooEarlyInSequence', 0),
+	(10, 'LoopStartIsNotCondition', 0),
+	(10, 'NoLoopEndAfterFailedCondition', 0),
+	(10, 'LastFalseNoEnd', 0),
+	(10, 'DuplicateOfAct', 0),
+	(10, 'NoBranchWhenConditionIsTrue', 0),
+	(10, 'NoConditionAfterIteration', 0),
+	(10, 'BranchOfFalseCondition', 0),
+	(10, 'NoAlternativeEndAfterBranch', 0),
+	(10, 'ElseBranchAfterTrueCondition', 0),
+	(10, 'NoIterationAfterSuccessfulCondition', 0),
+	(10, 'LastConditionIsFalseButNoElse', 0),
+	(10, 'LoopStartIsNotIteration', 0);
 
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
