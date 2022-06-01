@@ -664,7 +664,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 name = String.join("_", nameParts);
             }
             else if (domain instanceof ProgrammingLanguageExpressionDomain) {
-//                name = name.replaceAll("[^a-zA-Z0-9_]", "");
+                name = name.replaceAll("[^a-zA-Z0-9_]", "");
             }
 
             System.out.print(name + " ...\t");
@@ -691,7 +691,7 @@ RdfStorage.StopBackgroundDBFillUp()
 //        main_4(false); // solve question templates
 //        main_4(true); // solve question templates (force re-solve)
         
-        main_5(false); // make questions from templates
+        //// main_5(false); // make questions from templates
 
         System.out.println("Finished.");
     }
