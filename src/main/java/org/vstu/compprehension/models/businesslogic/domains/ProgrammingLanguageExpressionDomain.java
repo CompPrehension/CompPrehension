@@ -453,6 +453,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), token.getVerb(), token.getSubjectType(), token.getSubject()));
             }
         }
+        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, 1), "first", "xsd:boolean", "true"));
         facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, expression.size()), "last_index", "xsd:boolean", "true"));
         return facts;
     }
