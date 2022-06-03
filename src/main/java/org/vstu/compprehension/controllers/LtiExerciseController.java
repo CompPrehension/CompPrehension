@@ -3,7 +3,6 @@ package org.vstu.compprehension.controllers;
 
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import lombok.var;
 import net.oauth.server.OAuthServlet;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.IOUtils;

@@ -1,6 +1,5 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import lombok.val;
 import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
