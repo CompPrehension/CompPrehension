@@ -3,26 +3,33 @@ package org.vstu.compprehension.controllers;
 
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import net.oauth.server.OAuthServlet;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jena.shared.NotFoundException;
-import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.dto.*;
-import lombok.val;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.vstu.compprehension.dto.ExerciseInfoDto;
+import org.vstu.compprehension.dto.SessionInfoDto;
+import org.vstu.compprehension.dto.UserInfoDto;
+import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -33,7 +40,8 @@ public class LtiExerciseController extends BasicExerciseController {
     private String ltiLaunchSecret;
 
     @Autowired
-    private UserService userService;
+    @Qualifier("ltiAuthentication")
+    private UserContext user;
 
     @Autowired
     private ExerciseRepository exerciseRepository;
@@ -98,12 +106,7 @@ public class LtiExerciseController extends BasicExerciseController {
             return currentUserInfo;
         }
 
-        val params = (Map<String, String>) session.getAttribute("ltiSessionInfo");
-        if (params == null) {
-            throw new Exception("Couldn't get lti session info");
-        }
-        val userEntity = userService.createOrUpdateFromLti(params);
-        val userEntityDto = Mapper.toDto(userEntity);
+        val userEntityDto = Mapper.toDto(user);
         session.setAttribute("currentUserInfo", userEntityDto);
         session.setAttribute("currentUserId", userEntityDto.getId());
         return userEntityDto;
