@@ -18,7 +18,6 @@ public class UserInfoDto {
     private Long id;
     private String displayName;
     private String email;
-    private List<Role> roles;
     @JsonIgnore
     private Language preferredLanguage;
 }

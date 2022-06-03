@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.jena.shared.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.vstu.compprehension.Service.FrontendService;
-import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.dto.question.QuestionDto;
@@ -30,8 +31,9 @@ public class BasicExerciseController implements ExerciseController {
     @Autowired
     private FrontendService frontendService;
 
+    @Qualifier("basicAuthentication")
     @Autowired
-    private UserService userService;
+    private UserContext userContext;
 
     @Autowired
     private ExerciseRepository exerciseRepository;
@@ -122,8 +124,7 @@ public class BasicExerciseController implements ExerciseController {
             return currentUserInfo;
         }
 
-        val userEntity = userService.createOrUpdateFromAuthentication();
-        val userEntityDto = Mapper.toDto(userEntity);
+        val userEntityDto = Mapper.toDto(userContext);
         session.setAttribute("currentUserInfo", userEntityDto);
         session.setAttribute("currentUserId", userEntityDto.getId());
 

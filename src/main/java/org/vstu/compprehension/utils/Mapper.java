@@ -10,8 +10,7 @@ import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
@@ -34,8 +33,16 @@ public class Mapper {
                 .id(user.getId())
                 .displayName(displayName)
                 .email(user.getEmail())
-                .roles(user.getRoles())
                 .preferredLanguage(user.getPreferred_language())
+                .build();
+    }
+
+    public static @NotNull UserInfoDto toDto(@NotNull UserContext user) {
+        return UserInfoDto.builder()
+                .id(user.getId())
+                .displayName(user.getDisplayName())
+                .email(user.getEmail())
+                .preferredLanguage(user.getPreferredLanguage())
                 .build();
     }
 
