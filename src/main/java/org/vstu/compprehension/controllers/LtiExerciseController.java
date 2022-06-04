@@ -11,7 +11,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.jena.shared.NotFoundException;
 import org.imsglobal.lti.launch.LtiOauthVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,7 +39,6 @@ public class LtiExerciseController extends BasicExerciseController {
     private String ltiLaunchSecret;
 
     @Autowired
-    @Qualifier("ltiAuthentication")
     private UserContext user;
 
     @Autowired
@@ -99,17 +97,8 @@ public class LtiExerciseController extends BasicExerciseController {
     }
 
     @Override
-    public UserInfoDto getCurrentUser(HttpServletRequest request) throws Exception {
-        HttpSession session = request.getSession();
-        val currentUserInfo = (UserInfoDto)session.getAttribute("currentUserInfo");
-        if (currentUserInfo != null) {
-            return currentUserInfo;
-        }
-
-        val userEntityDto = Mapper.toDto(user);
-        session.setAttribute("currentUserInfo", userEntityDto);
-        session.setAttribute("currentUserId", userEntityDto.getId());
-        return userEntityDto;
+    public UserInfoDto getCurrentUser(HttpServletRequest request) {
+        return Mapper.toDto(user);
     }
 
     @Override
