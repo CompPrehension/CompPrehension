@@ -3,6 +3,7 @@ import { container } from "tsyringe";
 import { SurveyController } from "../../controllers/exercise/survey-controller";
 import { Survey, YesNoSurveyQuestion } from "../../types/survey";
 import * as E from "fp-ts/lib/Either";
+import { Loader } from "../common/loader";
 
 export type SurveyComponentProps = {
     surveyId : string;
@@ -38,13 +39,16 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
 
     if (!survey || !survey.questions || !survey.questions.length || surveyState === 'COMPLETED')
         return null;
+    
+    if (surveyState === 'SENDING_RESULTS')
+        return <Loader delay={100} />;
 
     return (
         <div className="alert alert-warning rounded" role="alert">
             {survey.questions
                 .filter(q => surveyAnswers[q.id] === undefined)
-                .map(q => 
-                    q.type === 'yes-no' && <SurveyYesNoQuestion question={q} onAnswered={onAnswered}/>
+                .map((q, idx) => 
+                    q.type === 'yes-no' && <SurveyYesNoQuestion key={idx} question={q} onAnswered={onAnswered}/>
                     || "invalid question type")}
         </div>
     );

@@ -7,26 +7,15 @@ import { RequestError } from "../../types/request-error";
 
 @injectable()
 export class SurveyController {
-
-
+    private surveyCache: Record<string, Survey> = {};
     async getSurvey(suerveyId: string): PromiseEither<RequestError, Survey> {
+        if (this.surveyCache[suerveyId])
+            return E.right(this.surveyCache[suerveyId]);
 
-        return ajaxGet(`/survey/${suerveyId}`, TSurvey);
-
-        return E.right({
-            surveyId: '1',            
-            questions: [{
-                id: 1,
-                type: 'yes-no',
-                text: "Как Вы думаете, был ли вопрос сгенерирован человеком или машиной?",
-                options: {
-                    yesText: 'машина',
-                    yesValue: '1',
-                    noText: 'человек',
-                    noValue: '0',
-                },
-            }],
-        });
+        var result = await ajaxGet(`/survey/${suerveyId}`, TSurvey);
+        if (E.isRight(result))
+            this.surveyCache[suerveyId] = result.right;
+        return result;
     }
 
     async postSurveyAnswer(surveyQuestionId: number, questionId: number, answer: string) : PromiseEither<RequestError, void> {
