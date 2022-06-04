@@ -11,10 +11,11 @@ import { CurrentQuestion } from "../components/exercise/current-question";
 import { Optional } from "../components/common/optional";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-bootstrap";
+import { SurveyComponent } from "../components/exercise/survey";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion } = exerciseStore;
+    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, isSurveyCompleted } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();
 
@@ -51,7 +52,7 @@ export const Exercise = observer(() => {
     }
 
     const createAttemptAndLoadQuestion = async () => {
-        exerciseStore.currentQuestion.isQuestionLoading = true;
+        exerciseStore.currentQuestion.setQuestionState('LOADING');
         await exerciseStore.createExerciseAttempt();
         await loadQuestion();
     }
@@ -63,13 +64,28 @@ export const Exercise = observer(() => {
                     <Header />
                     <div className="mt-5">
                         <CurrentQuestion />
-                        <Optional isVisible={exerciseState === 'EXERCISE'}>
-                            <div className="mt-3">
-                                <GenerateNextAnswerBtn />
-                            </div>
-                            <div className="mt-2">
-                                <GenerateNextQuestionBtn />
-                            </div>
+                        <Optional isVisible={exerciseState === 'EXERCISE'}>                            
+                            <Optional isVisible={exerciseStore.currentQuestion.questionState === 'COMPLETED' 
+                                && exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled === true
+                                && !isSurveyCompleted[exerciseStore.currentQuestion.question?.questionId ?? -1]}>
+                                <div className="mt-2">
+                                    <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
+                                                     surveyId={exerciseStore.sessionInfo?.exercise.options.surveyOptions?.surveyId ?? ''} 
+                                                     onCompleted={() => exerciseStore.setSurveyCompleted(exerciseStore.currentQuestion.question?.questionId ?? -1)}/>
+                                </div>
+                            </Optional>
+                            <Optional isVisible={exerciseStore.currentQuestion.questionState === 'LOADED'}>
+                                <div className="mt-3">
+                                    <GenerateNextAnswerBtn />
+                                </div>
+                            </Optional>
+                            <Optional isVisible={
+                                exerciseStore.currentQuestion.questionState !== 'COMPLETED' || 
+                                exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled === true && isSurveyCompleted[exerciseStore.currentQuestion.question?.questionId ?? -1]}>
+                                <div className="mt-2">
+                                    <GenerateNextQuestionBtn />
+                                </div>
+                            </Optional>                        
                         </Optional>
                         <Optional isVisible={exerciseState === 'COMPLETED'}>
                             <div className="mt-3">

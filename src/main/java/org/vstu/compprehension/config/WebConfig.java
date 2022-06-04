@@ -20,7 +20,6 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.user.UserContext;
 
 import java.util.Locale;
 
@@ -37,13 +36,13 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public ServletRegistrationBean dispatcherRegistration(UserContext user) {
-        return new ServletRegistrationBean(dispatcherServlet(user));
+    public ServletRegistrationBean dispatcherRegistration() {
+        return new ServletRegistrationBean(dispatcherServlet());
     }
 
     @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet(UserContext user) {
-        return new LoggableDispatcherServlet(user);
+    public DispatcherServlet dispatcherServlet() {
+        return new LoggableDispatcherServlet();
     }
 
     @Bean

@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  * Executes action in thread pool or put it into the queue if all threads are busy
  */
 @Log4j2
-public class TaskQueue {
+public class TaskQueue implements AutoCloseable {
     private final ExecutorService threadPool;
 
     public TaskQueue(int concurrencyLevel, int maxQueueSize) {
@@ -29,5 +29,10 @@ public class TaskQueue {
     public void shutdown() {
         log.debug("Async worker shutdown. Worker: {}", this.getClass().getName());
         threadPool.shutdown();
+    }
+
+    @Override
+    public void close() throws Exception {
+        shutdown();
     }
 }

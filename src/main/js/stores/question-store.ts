@@ -11,20 +11,22 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from 'fp-ts/lib/Option'
 import { Answer } from "../types/answer";
 import { RequestError } from "../types/request-error";
+import { notNulAndUndefinded } from "../utils/helpers";
 
 /**
  * Store question data
  */
 @injectable()
 export class QuestionStore {
-    @observable isQuestionLoading?: boolean = false;    
-    @observable isFeedbackLoading: boolean = false;
+    //@observable isQuestionLoading?: boolean = false;    
+    //@observable isFeedbackLoading: boolean = false;
     @observable isFeedbackVisible: boolean = true;
     @observable isQuestionFreezed: boolean = false;
     @observable feedback?: Feedback = undefined;
     @observable question?: Question = undefined;
     @observable lastAnswer: ReadonlyArray<Answer> = [];
     @observable answersHistory: Array<ReadonlyArray<Answer>> = [];
+    @observable questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
 
     constructor(@inject(ExerciseController) private exerciseController: IExerciseController) {
@@ -45,6 +47,23 @@ export class QuestionStore {
         this.lastAnswer = question.responses ?? [];
     }
 
+    private onAnswerEvaluated(feedback: Feedback) {     
+        this.feedback = feedback;
+        this.isFeedbackVisible = true;
+        if (feedback && feedback.correctAnswers) {
+            this.setFullAnswer(feedback.correctAnswers, false);
+            if (notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft === 0) {
+                this.setQuestionState('COMPLETED');
+            }
+        }
+    }
+
+    @action
+    setQuestionState = (newState: QuestionStore['questionState']) => {
+        if (this.questionState !== newState)
+            this.questionState = newState;
+    }
+
     @action
     private setValidStoreState = () => {
         if (this.storeState.tag !== 'VALID') {
@@ -60,9 +79,9 @@ export class QuestionStore {
     loadQuestion = flow(function* (this: QuestionStore, questionId: number) {
         this.setValidStoreState();
 
-        this.isQuestionLoading = true;
+        this.setQuestionState('LOADING');
         const dataEither: E.Either<RequestError, Question> = yield this.exerciseController.getQuestion(questionId);
-        this.isQuestionLoading = false;
+        this.setQuestionState('LOADED');
 
         if (E.isLeft(dataEither)) {
             this.setErrorStoreState(dataEither.left);
@@ -75,9 +94,9 @@ export class QuestionStore {
     generateQuestion = flow(function* (this: QuestionStore, attemptId: number) {       
         this.setValidStoreState();
         
-        this.isQuestionLoading = true;
+        this.setQuestionState('LOADING');
         const dataEither: E.Either<RequestError, Question> = yield this.exerciseController.generateQuestion(attemptId);
-        this.isQuestionLoading = false;
+        this.setQuestionState('LOADED');
 
         if (E.isLeft(dataEither)) {
             this.setErrorStoreState(dataEither.left);
@@ -99,9 +118,9 @@ export class QuestionStore {
             ),
         };
 
-        this.isQuestionLoading = true;
+        this.setQuestionState('LOADING');
         const dataEither: E.Either<RequestError, Question | null | undefined | ''> = yield this.exerciseController.generateSupplementaryQuestion(questionRequest);
-        this.isQuestionLoading = false;
+        this.setQuestionState('LOADED');
 
         if (E.isLeft(dataEither)) {
             this.setErrorStoreState(dataEither.left);
@@ -121,21 +140,16 @@ export class QuestionStore {
 
         this.setValidStoreState();
         
-        this.isFeedbackLoading = true;
+        this.setQuestionState('ANSWER_EVALUATING');
         const feedbackEither: E.Either<RequestError, Feedback> = yield this.exerciseController.generateNextCorrectAnswer(question.questionId);
-        this.isFeedbackLoading = false;
+        this.setQuestionState('LOADED');
         
         if (E.isLeft(feedbackEither)) {
             this.setErrorStoreState(feedbackEither.left);
             return;
         }
 
-        const feedback = feedbackEither.right;        
-        this.feedback = feedback;
-        this.isFeedbackVisible = true;
-        if (feedback && feedback.correctAnswers) {
-            this.setFullAnswer(feedback.correctAnswers, false);                    
-        }
+        this.onAnswerEvaluated(feedbackEither.right);
     })
 
     private sendAnswersImpl = flow(function* (this: QuestionStore, attemptId: number, questionId: number, answers: readonly Answer[]) {
@@ -147,21 +161,16 @@ export class QuestionStore {
 
         this.setValidStoreState();
 
-        this.isFeedbackLoading = true;
+        this.setQuestionState('ANSWER_EVALUATING');
         const feedbackEither: E.Either<RequestError, Feedback> = yield this.exerciseController.addQuestionAnswer(body);
-        this.isFeedbackLoading = false;
+        this.setQuestionState('LOADED');
        
         if (E.isLeft(feedbackEither)) {
             this.setErrorStoreState(feedbackEither.left);
             return;
         }
 
-        const feedback = feedbackEither.right;        
-        this.feedback = feedback;
-        this.isFeedbackVisible = true;
-        if (feedback.correctAnswers) {
-            this.setFullAnswer(feedback.correctAnswers, false);                  
-        }
+        this.onAnswerEvaluated(feedbackEither.right);
     });
 
     

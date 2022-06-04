@@ -19,7 +19,7 @@ type QuestionOptions = {
 export const Question = observer((props: QuestionOptions) => {
     const { store, showExtendedFeedback, onChanged:ParentOnChanged } = props;
     const questionData = store.question;
-    if (store.isQuestionLoading) {
+    if (store.questionState === 'LOADING') {
         return <div className="mt-2"><Loader /></div>;
     }
     if (!questionData) {
@@ -36,14 +36,16 @@ export const Question = observer((props: QuestionOptions) => {
 
     return (
         <>
-            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.isFeedbackLoading} isQuestionFreezed={store.isQuestionFreezed}/>
+            <QuestionComponent question={questionData} answers={store.lastAnswer as Answer[]} getAnswers={getAnswer} onChanged={onChanged} getFeedback={getFeedback} isFeedbackLoading={store.questionState === 'ANSWER_EVALUATING'} isQuestionFreezed={store.isQuestionFreezed}/>
             <Feedback store={store} showExtendedFeedback={showExtendedFeedback}/>
         </>
     );
 })
 
 const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionStore, showExtendedFeedback: boolean }) => {
-    const { feedback, isFeedbackLoading, isFeedbackVisible, isQuestionLoading, question } = store;
+    const { feedback, isFeedbackVisible, question } = store;
+    const isFeedbackLoading = store.questionState === 'ANSWER_EVALUATING';
+    const isQuestionLoading = store.questionState === 'LOADING';
     const {t} = useTranslation();
 
     if (isFeedbackLoading) {
@@ -54,7 +56,7 @@ const Feedback = observer(({ store, showExtendedFeedback }: { store: QuestionSto
         return null;
     }
 
-    const feedbackMessages = notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft === 0
+    const feedbackMessages = store.questionState === 'COMPLETED'
         ? [{ type: 'SUCCESS', message: t('issolved_feeback') }] as FeedbackSuccessMessage[]
         : feedback.messages;
 

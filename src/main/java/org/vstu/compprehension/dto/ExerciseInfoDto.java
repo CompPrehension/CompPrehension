@@ -1,14 +1,14 @@
 package org.vstu.compprehension.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.vstu.compprehension.models.entities.ExerciseOptionsEntity;
 
 @Data
 @NoArgsConstructor @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class ExerciseInfoDto {
     private Long id;
     private ExerciseOptionsEntity options;

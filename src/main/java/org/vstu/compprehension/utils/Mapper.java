@@ -9,6 +9,8 @@ import org.vstu.compprehension.dto.feedback.OrderQuestionFeedbackDto;
 import org.vstu.compprehension.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.dto.survey.SurveyDto;
+import org.vstu.compprehension.dto.survey.SurveyQuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.entities.*;
@@ -24,6 +26,22 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Mapper {
+
+    public static @NotNull SurveyDto toDto(@NotNull SurveyEntity survey) {
+        var result = SurveyDto.builder()
+                .surveyId(survey.getSurveyId())
+                .questions(survey.getQuestions().stream()
+                        .map(q -> SurveyQuestionDto.builder()
+                                .id(q.getId())
+                                .type(q.getType())
+                                .text(q.getText())
+                                .options(q.getOptions())
+                                .build())
+                        .toArray(SurveyQuestionDto[]::new))
+                .build();
+        return result;
+    }
+
 
     public static @NotNull UserInfoDto toDto(@NotNull UserEntity user) {
         val displayName = Stream.of(user.getFirstName(), user.getLastName())
