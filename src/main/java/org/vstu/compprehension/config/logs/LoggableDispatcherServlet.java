@@ -4,32 +4,25 @@ package org.vstu.compprehension.config.logs;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.logging.log4j.ThreadContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
 import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 import org.vstu.compprehension.models.businesslogic.user.UserContext;
+import org.vstu.compprehension.utils.Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Log4j2
 public class LoggableDispatcherServlet extends DispatcherServlet {
-
-    private final UserContext user;
-
-    @Autowired
-    public LoggableDispatcherServlet(UserContext user) {
-        this.user = user;
-    }
-
     @Override
     protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
         if (!(request instanceof CachedHttpServletRequest)) {
@@ -67,7 +60,9 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         // init some request context variables
         ThreadContext.put("correlationId", UUID.randomUUID().toString());
         ThreadContext.put("sessionId", requestToCache.getSession().getId());
-        ThreadContext.put("userId", user.getId().toString());
+        ThreadContext.put("userId", Optional.ofNullable(requestToCache.getSession().getAttribute("currentUserInfo"))
+                .flatMap(u -> Utils.tryCast(u, UserContext.class))
+                .map(u -> u.getId().toString()).orElse(null));
 
         val parameters = Collections.list(requestToCache.getParameterNames())
                 .stream()

@@ -1,13 +1,14 @@
 package org.vstu.compprehension.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
-@Data
+@Data @Jacksonized
 @NoArgsConstructor @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class SessionInfoDto {
     private String sessionId;
     private ExerciseInfoDto exercise;

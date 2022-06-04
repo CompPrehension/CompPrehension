@@ -16,6 +16,7 @@ export class ExerciseStore {
     @observable currentQuestion: QuestionStore;
     @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, };
+    @observable isSurveyCompleted: Record<number, boolean> = {};
 
     constructor(@inject(ExerciseController) private readonly exerciseController: IExerciseController,
                 @inject(QuestionStore) currentQuestion: QuestionStore) {
@@ -53,6 +54,11 @@ export class ExerciseStore {
         if (this.exerciseState !== newState) {
             this.exerciseState = newState;
         }
+    }
+
+    @action
+    setSurveyCompleted = (quesionId: number) => {
+        this.isSurveyCompleted[quesionId] = true;
     }
 
     loadSessionInfo = flow(function* (this: ExerciseStore) {
