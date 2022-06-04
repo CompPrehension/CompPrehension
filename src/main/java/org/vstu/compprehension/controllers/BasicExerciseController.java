@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.jena.shared.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,10 +14,10 @@ import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.controllers.interfaces.ExerciseController;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
-import org.vstu.compprehension.dto.question.QuestionDto;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -31,7 +30,6 @@ public class BasicExerciseController implements ExerciseController {
     @Autowired
     private FrontendService frontendService;
 
-    @Qualifier("basicAuthentication")
     @Autowired
     private UserContext userContext;
 
@@ -118,17 +116,7 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public UserInfoDto getCurrentUser(HttpServletRequest request) throws Exception {
-        val session = request.getSession();
-        val currentUserInfo = (UserInfoDto)session.getAttribute("currentUserInfo");
-        if (currentUserInfo != null) {
-            return currentUserInfo;
-        }
-
-        val userEntityDto = Mapper.toDto(userContext);
-        session.setAttribute("currentUserInfo", userEntityDto);
-        session.setAttribute("currentUserId", userEntityDto.getId());
-
-        return userEntityDto;
+        return Mapper.toDto(userContext);
     }
 
     @Override

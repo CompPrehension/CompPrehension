@@ -5,19 +5,29 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.SessionScope;
+import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Component
-@SessionScope
+@RequestScope
 @Qualifier("basicAuthentication")
 public class BasicAuthenticationUserContextAdapter implements UserContext {
-    private final SavedUserContext savedUser;
+    private final UserContext savedUser;
 
     @Autowired
-    public BasicAuthenticationUserContextAdapter(UserService userService) throws Exception {
+    public BasicAuthenticationUserContextAdapter(UserService userService, HttpServletRequest request) throws Exception {
+        var session = request.getSession();
+        var previoslySavedInfo = session.getAttribute("currentUserInfo");
+        if (previoslySavedInfo != null) {
+            savedUser = (UserContext)previoslySavedInfo;
+            return;
+        }
+
         savedUser = new SavedUserContext(userService.createOrUpdateFromAuthentication());
+        session.setAttribute("currentUserInfo", savedUser);
     }
 
     @NotNull
