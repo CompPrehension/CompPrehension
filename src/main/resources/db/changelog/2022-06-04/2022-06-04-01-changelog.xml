@@ -78,4 +78,10 @@
             <column name="options_json" value='{"yesText":"машина","yesValue":"1","noText":"человек","noValue":"0"}' />
         </insert>
     </changeSet>
+    <changeSet id="1654357132418-11" author="Artem Prokudin">
+        <update tableName="exercise">
+            <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}' />
+            <where>id = 6 or id = 10</where>
+        </update>
+    </changeSet>
 </databaseChangeLog>
