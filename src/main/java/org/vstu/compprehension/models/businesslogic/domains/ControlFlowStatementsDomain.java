@@ -1336,7 +1336,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
                 // In Ordering Question, we need left answer objects only.
-                .map(r -> r.getLeftAnswerObject())
+                .map(ResponseEntity::getLeftAnswerObject)
                 .collect(Collectors.toList());
 
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
@@ -1345,17 +1345,33 @@ public class ControlFlowStatementsDomain extends Domain {
     @Nullable
     private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
 
+        // find next consequent (using solved facts)
+        List<BackendFactEntity> solution = q.getSolutionFacts();
+        assertNotNull(solution, "Call solve() question before getAnyNextCorrectAnswer() !");
+
+        solution = new ArrayList<>(solution);
+        solution.addAll(q.getStatementFacts());
+        OntModel model = factsToOntModel(solution);
+
+        // get shortcuts to properties
+        OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
+        OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
+        OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
+        OntProperty id = model.getOntProperty(model.expandPrefix(":id"));
+        OntProperty entry_point = model.getOntProperty(model.expandPrefix(":entry_point"));
+
         String phase;
         String exId;
         if (correctTraceAnswersObjects == null || correctTraceAnswersObjects.isEmpty()) {
             // get first act of potential trace
-            List<AnswerObjectEntity> answers = q.getQuestionData().getAnswerObjects();
-            AnswerObjectEntity firstAnswer = answers.get(0);
-            String domainInfo = firstAnswer.getDomainInfo();
-            AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
 
-            phase = answerDomainInfo.getPhase();
-            exId = answerDomainInfo.getExId();
+            // Note: first in answerObject list may differ from the first action of the algorithm!
+
+            // rely on entry_point relation here.
+            Individual entryStmt = model.listObjectsOfProperty(entry_point).nextNode().as(Individual.class);
+
+            phase = "started";
+            exId = model.listObjectsOfProperty(entryStmt, id).nextNode().asLiteral().getLexicalForm();
 
         } else {
             //// = correctTraceAnswers.get(correctTraceAnswers.size() - 1).answers.get(0).getLeft();
@@ -1372,21 +1388,7 @@ public class ControlFlowStatementsDomain extends Domain {
             exId = answerDomainInfo.getExId();
         }
 
-        // find next consequent (using solved facts)
-        List<BackendFactEntity> solution = q.getSolutionFacts();
-        assertNotNull(solution, "Call solve() question before getAnyNextCorrectAnswer() !");
-
-        solution = new ArrayList<>(solution);
-        solution.addAll(q.getStatementFacts());
-        OntModel model = factsToOntModel(solution);
-
         // find any consequent of last correct act ...
-        // get shortcuts to properties
-        OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
-        OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
-        OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
-        OntProperty id = model.getOntProperty(model.expandPrefix(":id"));
-
         Individual actionFrom = model.listResourcesWithProperty(id, Integer.parseInt(exId)).nextResource().as(Individual.class);
 
         String consequentPropName = "always_consequent"; // "consequent";
@@ -1394,7 +1396,7 @@ public class ControlFlowStatementsDomain extends Domain {
         String qaInfoPrefix;
         // check if actionFrom is an expr; if so, find its current value and update `consequentPropName` accordingly
         if (actionFrom.hasOntClass(model.getOntClass(model.expandPrefix(":expr")))) {
-            qaInfoPrefix = phase + ":" + exId;
+            qaInfoPrefix = phase + ":" + exId + ":";  // 3rd partition (hypertext) should always present.
             int count = 0;
 
             // count current exec_time using given steps
@@ -1447,14 +1449,14 @@ public class ControlFlowStatementsDomain extends Domain {
         String idTo = actionTo.getPropertyValue(id).asLiteral().getLexicalForm();
         String phaseTo = boundTo.hasProperty(begin_of) ? "started" : "finished";
         // check if actionTo is stmt/expr
-        if (phaseTo.equals("started") && (
+        if (/*phaseTo.equals("started") &&*/ (
                 actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":stmt"))) || actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":expr")))
         )) {
             phaseTo = "performed";
         }
 
         // next correct answer found: question answer domain info
-        qaInfoPrefix = phaseTo + ":" + idTo;
+        qaInfoPrefix = phaseTo + ":" + idTo + ":";
 
         // find reason for correct action (a deeper subproperty of consequent assigned in parallel)
         String reasonName = null;
