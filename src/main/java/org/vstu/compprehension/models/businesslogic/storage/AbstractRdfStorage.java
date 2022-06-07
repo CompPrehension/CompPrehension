@@ -36,10 +36,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -150,7 +147,7 @@ public abstract class AbstractRdfStorage {
      * @return questions found or empty list if the requirements cannot be satisfied
      */
     public List<Question> searchQuestions(QuestionRequest qr, int limit) {
-        Model qG = getGraph(NS_questions.base());
+        /*Model qG =*/ getGraph(NS_questions.base());
 
         String complexity_threshold = "" + qr.getComplexity();
         String complexity_cmp_op = "";
@@ -228,7 +225,7 @@ public abstract class AbstractRdfStorage {
                 "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
                 "order by ?compl_diff ?steps_diff");
         if (limit > 0)
-            query.append("\n  limit " + limit * 2);
+            query.append("\n  limit " + limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
 
         List<Question> questions = new ArrayList<>();
         try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
@@ -258,9 +255,9 @@ public abstract class AbstractRdfStorage {
                     return;
                 }
 
+                q.getQuestionData().setQuestionName( questionName );
                 /*
                 QuestionEntity qe = new QuestionEntity();
-                qe.setQuestionName( name );
                 // todo: pass the kind of question here
                 Question q = new Ordering(qe);
                 q.getConcepts().addAll( List.of(querySolution.get("concepts").asLiteral().getString().split("; ")) );
@@ -268,6 +265,10 @@ public abstract class AbstractRdfStorage {
 
                 if (limit > 0) {  // calc the score as filtering is required
                     int score = 0;  // how the question suits the request
+
+                    if (qr.getDeniedQuestionNames().contains(questionName)) {
+                        score -= 10_000; // try to avoid returning the same question again
+                    }
 
                     // inspect laws
                     if (qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() < 0) {

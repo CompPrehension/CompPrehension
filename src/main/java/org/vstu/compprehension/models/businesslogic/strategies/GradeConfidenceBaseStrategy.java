@@ -120,6 +120,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         }
 
         result.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
+        result.setDeniedQuestionNames(listQuestionsOfAttempt(exerciseAttempt));
 
 
         loggingParams(studentType, studentsComplexity, lawsDirections);

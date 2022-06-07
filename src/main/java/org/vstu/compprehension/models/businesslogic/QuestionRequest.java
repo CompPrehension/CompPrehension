@@ -21,6 +21,8 @@ public class QuestionRequest {
 
     private List<Law> allowedLaws;
 
+    private List<String> deniedQuestionNames;
+
 
     /**
      * Условная единица, показывающая долго или быстро решается вопрос
