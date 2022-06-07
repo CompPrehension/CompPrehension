@@ -329,8 +329,10 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
             List<Boolean> laws = new ArrayList<>();
 
-            meanOfUsage += valueFirst.size();
-            laws.addAll(valueFirst);
+            if (valueFirst != null) {
+                meanOfUsage += valueFirst.size();
+                laws.addAll(valueFirst);
+            }
 
             allLawsGrade.add(0, Pair.of(key, countGradeByUsage(laws, (float)1.2) * countConfidence(laws)));
         }

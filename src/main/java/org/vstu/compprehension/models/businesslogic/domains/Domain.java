@@ -23,6 +23,8 @@ import java.util.*;
 @Log4j2
 @RequestScope
 public abstract class Domain {
+    protected String NAME_PREFIX_IS_HUMAN = "[human]";
+
     protected List<PositiveLaw> positiveLaws;
     protected List<NegativeLaw> negativeLaws;
     protected List<Concept> concepts;
@@ -440,6 +442,13 @@ public abstract class Domain {
 
             Question question = questions.get(new Random().nextInt(questions.size()));
             log.info("В итоге, взят вопрос: " + question.getQuestionName());
+
+            ///
+            /// add a mark to the question's name: this question is made by human.
+            if (! question.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
+                question.getQuestionData().setQuestionName(NAME_PREFIX_IS_HUMAN + question.getQuestionName());
+            }
+            ///
 
             return question;
         }
