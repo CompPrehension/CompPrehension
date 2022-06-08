@@ -49,10 +49,10 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         assert domain != null;
         this.domain = domain;
 
-        if (false && domain.getEntity() != null) {
+        if (domain.getEntity() != null) {
             // use options from Domain
             DomainOptionsEntity cnf = domain.getEntity().getOptions();
-            this.qGraph_filepath = cnf.getStorageSPARQLEndpointUrl();
+            this.qGraph_filepath = Optional.ofNullable(cnf.getQuestionsGraphPath()).orElse(cnf.getStorageSPARQLEndpointUrl());
 
             // init FTP pointing to domain-specific remote dir
             this.fileService = new RemoteFileService(

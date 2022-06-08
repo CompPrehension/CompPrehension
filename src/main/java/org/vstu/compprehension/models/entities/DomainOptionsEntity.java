@@ -16,10 +16,14 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DomainOptionsEntity {
-    private String StorageSPARQLEndpointUrl;
-    private String StorageUploadFilesBaseUrl;
+    @Builder.Default
+    private String StorageSPARQLEndpointUrl = null;
+    @Builder.Default
+    private String StorageUploadFilesBaseUrl = null;
     @Builder.Default
     private String StorageDownloadFilesBaseUrl = null;
+    @Builder.Default
+    private String QuestionsGraphPath = null;
     @Builder.Default
     private Integer StorageDummyDirsForNewFile = 1;
 }
