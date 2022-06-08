@@ -28,6 +28,7 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 
@@ -69,10 +70,12 @@ public class ControlFlowStatementsDomain extends Domain {
 
     private final LocalizationService localizationService;
 
-    public ControlFlowStatementsDomain(@Autowired LocalizationService localizationService) {
+    @Autowired
+    public ControlFlowStatementsDomain(LocalizationService localizationService,  DomainRepository domainRepository) {
         super();
         this.localizationService = localizationService;
         name = "ControlFlowStatementsDomain";
+        domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
         
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));

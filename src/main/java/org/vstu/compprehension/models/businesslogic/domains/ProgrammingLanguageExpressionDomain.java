@@ -12,6 +12,7 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
+import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.HyperText;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,11 +45,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
 
-    @Autowired
-    private LocalizationService localizationService;
+    private final LocalizationService localizationService;
 
-    public ProgrammingLanguageExpressionDomain() {
+    @Autowired
+    public ProgrammingLanguageExpressionDomain(LocalizationService localizationService, DomainRepository domainRepository) {
+        this.localizationService = localizationService;
+
         name = "ProgrammingLanguageExpressionDomain";
+        domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));

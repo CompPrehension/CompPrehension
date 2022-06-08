@@ -21,7 +21,6 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
-import org.apache.jena.rdfconnection.RDFConnectionRemote;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
@@ -36,6 +35,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -516,7 +516,7 @@ RdfStorage.StopBackgroundDBFillUp()
 
 //        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
 //        RdfStorage rs = new RdfStorage(cfd);
-        ProgrammingLanguageExpressionDomain pled = new ProgrammingLanguageExpressionDomain();
+        ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
         RdfStorage rs = new RdfStorage(pled);
 
 
@@ -576,7 +576,7 @@ RdfStorage.StopBackgroundDBFillUp()
     public static void main_5(boolean forceResolve) {
         // create question(s) from template
 
-        ProgrammingLanguageExpressionDomain pled = new ProgrammingLanguageExpressionDomain();
+        ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
         RdfStorage rs = new RdfStorage(pled);
 
         // find question templates to solve
@@ -630,7 +630,7 @@ RdfStorage.StopBackgroundDBFillUp()
         // upload <question template> graphs from files
 
 //        ControlFlowStatementsDomain domain = new ControlFlowStatementsDomain(new LocalizationService());
-        Domain domain = new ProgrammingLanguageExpressionDomain();
+        Domain domain = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
 
         RdfStorage rs = new RdfStorage(domain);
 
