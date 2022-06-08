@@ -7,6 +7,7 @@ import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
 import { Exercise } from './pages/exercise';
 import { Statistics } from './pages/statistics';
 import { ExercisesList } from './pages/exercises-list';
+import { SurveyPage } from './pages/survey';
 
 const Home = () => (
     <div className="container comp-ph-container">
@@ -17,6 +18,9 @@ const Home = () => (
                 </Route>
                 <Route path="/**/pages/exercise">
                     <Exercise />
+                </Route>
+                <Route path="/**/pages/survey">
+                    <SurveyPage />
                 </Route>
                 <Route path="/**/pages/exercises-list">
                     <ExercisesList />

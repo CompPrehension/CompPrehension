@@ -104,13 +104,13 @@ public interface ExerciseController {
     FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception;
 
     /**
-     * Root method for launching an exercise
+     * Root method for launching an exercise or survey
      * @param exerciseId Exercise id
      * @param request Current request
      * @return Html page
      * @throws Exception Something got wrong
      */
-    @RequestMapping(value = {"/pages/exercise"}, method = { RequestMethod.GET })
+    @RequestMapping(value = {"/pages/exercise", "/pages/survey"}, method = { RequestMethod.GET })
     String launch(Model model, Long exerciseId, HttpServletRequest request);
 
     /**
