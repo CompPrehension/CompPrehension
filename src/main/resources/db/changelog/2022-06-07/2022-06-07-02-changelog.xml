@@ -7,6 +7,11 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
     <changeSet id="1654357220608-1" author="Mikhail Denisov">
+        <preConditions onFail="HALT">
+            <tableExists tableName="domain"/>
+            <sqlCheck  expectedResult="1">select exists(select 1 from domain) AS notEmpty</sqlCheck>
+        </preConditions>
+
         <update tableName="domain">
             <column name="options_json" value='{"StorageSPARQLEndpointUrl": null,
                 "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/expression/",

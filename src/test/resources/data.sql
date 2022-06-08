@@ -25,7 +25,7 @@ INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language
 VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 'GradeConfidenceBaseStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'type', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
-VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 'GradeConfidenceBaseStrategy', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false}');
+VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 'GradeConfidenceBaseStrategy_Manual50Autogen50', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}');
 --  role_in_exercise:
 --     TARGETED = 0
 --     FORBIDDEN = 1

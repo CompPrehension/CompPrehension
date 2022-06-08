@@ -7,6 +7,12 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
     <changeSet id="1654357220607-1" author="Mikhail Denisov">
+        <preConditions onFail="HALT">
+            <tableExists tableName="exercise"/>
+            <sqlCheck  expectedResult="1">select count(*) from exercise where id = 10</sqlCheck>
+        </preConditions>
+        <comment>On the first run on an empty database, the above preCondition will fail because no exercises exist yet. So run data.sql to insert all the initial data and then run the migrations again.</comment>
+
         <sql>
           DELETE FROM exercise_laws WHERE exercise_id = 10 AND role_in_exercise = 0;
         </sql>
@@ -96,7 +102,7 @@
     </changeSet>
     <changeSet id="1654357220607-2" author="Mikhail Denisov">
         <update tableName="exercise">
-            <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}' />
+            <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}' />
             <where>id = 10</where>
         </update>
     </changeSet>

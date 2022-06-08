@@ -61,6 +61,8 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
                             .orElse(cnf.getStorageUploadFilesBaseUrl()));  // use upload Url for download by default
             this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
         } else {
+            log.warn("LocalRdfStorage: cannot get config from domain! Using default paths...");
+
             // default settings (if not available via domain)
             String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
             assert name != null;  // Ensure you created a database file and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
