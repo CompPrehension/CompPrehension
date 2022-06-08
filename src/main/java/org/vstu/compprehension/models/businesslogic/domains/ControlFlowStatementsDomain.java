@@ -380,7 +380,7 @@ public class ControlFlowStatementsDomain extends Domain {
             res = foundQuestions.get(0);
         } else {
             // old version - search in domain's in-memory questions
-            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, new HashSet<>(questionRequest.getDeniedQuestionNames()));
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, Optional.ofNullable(questionRequest.getDeniedQuestionNames()).map(HashSet::new).orElse(new HashSet<>(0)));
         }
 
 
