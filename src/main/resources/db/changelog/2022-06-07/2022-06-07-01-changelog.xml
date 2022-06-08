@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1654357220607-1" author="Mikhail Denisov">
+        <insert tableName="exercise_laws">
+            <!-- role_in_exercise:
+                   TARGETED = 0
+                   FORBIDDEN = 1
+                   PERMITTED = 2 -->
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="NoFirstCondition"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="SequenceFinishedTooEarly"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="TooEarlyInSequence"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="LoopStartIsNotCondition"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="NoLoopEndAfterFailedCondition"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="LastFalseNoEnd"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="DuplicateOfAct"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="NoBranchWhenConditionIsTrue"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="NoConditionAfterIteration"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="BranchOfFalseCondition"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="NoAlternativeEndAfterBranch"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="ElseBranchAfterTrueCondition"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="NoIterationAfterSuccessfulCondition"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="LastConditionIsFalseButNoElse"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+        <insert tableName="exercise_laws">
+            <column name="exercise_id" value="10"/>
+            <column name="law_name" value="LoopStartIsNotIteration"/>
+            <column name="role_in_exercise" value="0"/>
+        </insert>
+
+        <rollback>
+          DELETE FROM exercise_laws WHERE exercise_id = 10 AND role_in_exercise = 0;
+        </rollback>
+    </changeSet>
+    <changeSet id="1654357220607-2" author="Mikhail Denisov">
+        <update tableName="exercise">
+            <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}' />
+            <where>id = 10</where>
+        </update>
+    </changeSet>
+    <changeSet id="1654357220607-3" author="Mikhail Denisov">
+        <update tableName="exercise">
+            <column name="strategy_id" value='GradeConfidenceBaseStrategy_Manual50Autogen50' />
+            <where>id = 10</where>
+        </update>
+        <rollback>
+            <update tableName="exercise">
+                <column name="strategy_id" value='GradeConfidenceBaseStrategy' />
+                <where>id = 10</where>
+            </update>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
