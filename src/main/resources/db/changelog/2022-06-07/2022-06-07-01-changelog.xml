@@ -7,6 +7,9 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
     <changeSet id="1654357220607-1" author="Mikhail Denisov">
+        <sql>
+          DELETE FROM exercise_laws WHERE exercise_id = 10 AND role_in_exercise = 0;
+        </sql>
         <insert tableName="exercise_laws">
             <!-- role_in_exercise:
                    TARGETED = 0
