@@ -396,7 +396,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 && questionRequest.getDeniedQuestionNames().contains(res.getQuestionName()));
             ///
             /// add a mark to the question's name: this question is made by human.
-            if (! res.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
+            if (res.getQuestionName() != null && ! res.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
                 res.getQuestionData().setQuestionName(NAME_PREFIX_IS_HUMAN + res.getQuestionName());
             }
             ///

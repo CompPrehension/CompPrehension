@@ -445,7 +445,7 @@ public abstract class Domain {
 
             ///
             /// add a mark to the question's name: this question is made by human.
-            if (! question.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
+            if (question.getQuestionName() != null && ! question.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
                 question.getQuestionData().setQuestionName(NAME_PREFIX_IS_HUMAN + question.getQuestionName());
             }
             ///
