@@ -1,13 +1,13 @@
 INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`) VALUES (1, 'ProgrammingLanguageExpressionDomain', 'expression',
-	'{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/expression/",
-	"StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/expression/",
-	"StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/expression/",
-	"StorageDummyDirsForNewFile": 2}');
+	'{"StorageSPARQLEndpointUrl": null,
+                "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/expression/",
+                "StorageUploadFilesBaseUrl": "file:///C:/data/compp/expression/",
+                "QuestionsGraphPath": "C:/data/compp/expression.ttl"}' FORMAT JSON);
 INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`) VALUES (1, 'ControlFlowStatementsDomain', 'control_flow',
-	'{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/control_flow/",
-	"StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/control_flow/",
-	"StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/control_flow/",
-	"StorageDummyDirsForNewFile": 2}');
+	'{"StorageSPARQLEndpointUrl": null,
+                "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
+                "StorageUploadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
+                "QuestionsGraphPath": "C:/data/compp/control_flow.ttl"}' FORMAT JSON);
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (5, 1, 1, 0, 1, '10', 'test', 8, 1, 'GradeConfidenceBaseStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
@@ -25,7 +25,7 @@ INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language
 VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 'GradeConfidenceBaseStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'type', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
-VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 'GradeConfidenceBaseStrategy', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false}');
+VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 'GradeConfidenceBaseStrategy_Manual50Autogen50', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}');
 --  role_in_exercise:
 --     TARGETED = 0
 --     FORBIDDEN = 1

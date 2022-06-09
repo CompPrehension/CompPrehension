@@ -7,8 +7,9 @@ import { Loader } from "../common/loader";
 
 export type SurveyComponentProps = {
     surveyId : string;
+    value?: Record<number, string>;
     questionId: number;
-    onCompleted: () => void,
+    onAnswered: (questionId: number, answers: Record<number, string>) => void,
 }
 export const SurveyComponent = (props: SurveyComponentProps) => {
     var [endpoint] = useState(() => container.resolve(SurveyController));
@@ -32,7 +33,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
                 setSurveyState('SENDING_RESULTS');                
                 await Promise.all(survey!.questions.map(q => endpoint.postSurveyAnswer(q.id, props.questionId, newAnswers[q.id])));
                 setSurveyState('COMPLETED');
-                props.onCompleted();
+                props.onAnswered(props.questionId, newAnswers);
             }
         })();
     }, [survey]);
@@ -48,7 +49,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
             {survey.questions
                 .filter(q => surveyAnswers[q.id] === undefined)
                 .map((q, idx) => 
-                    q.type === 'yes-no' && <SurveyYesNoQuestion key={idx} question={q} onAnswered={onAnswered}/>
+                    q.type === 'yes-no' && <SurveyYesNoQuestion key={idx} question={q} onAnswered={onAnswered} value={props.value?.[q.id]}/>
                     || "invalid question type")}
         </div>
     );
@@ -56,20 +57,27 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
 
 type SurveyYesNoQuestionProps = {
     question: YesNoSurveyQuestion,
+    value?: string;
     onAnswered: (questionId: number, answer: string) => void,
 }
 const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
-    const { question, onAnswered } = props;
+    const { question, onAnswered, value } = props;
     return (
-        <div >
+        <div>
             <div className="mb-1">
                 {question.text}
             </div>            
             <div className="d-flex flex-row mt-2">
-                <button type="button" className="btn btn-secondary mr-2" onClick={() => onAnswered(question.id, question.options.yesValue)}>
+                <button type="button" 
+                        className={`btn btn-secondary mr-2 ${question.options.yesValue === value ? "active" : ""}`}
+                        onClick={() => onAnswered(question.id, question.options.yesValue)}
+                        disabled={value !== undefined}>
                     {question.options.yesText}
                 </button>
-                <button type="button" className="btn btn-secondary" onClick={() => onAnswered(question.id, question.options.noValue)}>
+                <button type="button" 
+                        className={`btn btn-secondary ${question.options.noValue === value ? "active" : ""}`} 
+                        onClick={() => onAnswered(question.id, question.options.noValue)}
+                        disabled={value !== undefined}>
                     {question.options.noText}
                 </button>
             </div>

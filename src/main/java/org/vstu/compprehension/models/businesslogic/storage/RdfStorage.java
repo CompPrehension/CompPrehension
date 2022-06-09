@@ -35,6 +35,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,9 +56,9 @@ import java.util.stream.Stream;
 public class RdfStorage extends AbstractRdfStorage {
 
 
-    // hardcoded Fuseki endpoint:
-    //// static String FUSEKI_ENDPOINT_BASE = "http://vds84.server-1.biz:6515/";
-    static String FUSEKI_ENDPOINT_BASE = "http://localhost:6515/";
+    // hardcoded SPARQL endpoint:
+    //// static String SPARQL_ENDPOINT_BASE = "http://vds84.server-1.biz:6515/";
+    static String SPARQL_ENDPOINT_BASE = "http://localhost:6515/";
 
 
     static {
@@ -67,7 +68,7 @@ public class RdfStorage extends AbstractRdfStorage {
     }
 
     /**
-     * Relative path under FUSEKI_ENDPOINT_BASE to store domain-specific database in
+     * Relative path under SPARQL_ENDPOINT_BASE to store domain-specific database in
      */
     String sparql_endpoint = null;
 
@@ -90,8 +91,8 @@ public class RdfStorage extends AbstractRdfStorage {
         } else {
             // default settings (if not available via domain)
             String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
-            assert name != null;  // Ensure you created a database in Fuseki and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
-            this.sparql_endpoint = FUSEKI_ENDPOINT_BASE + name;
+            assert name != null;  // Ensure you created a database in your external triple store and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
+            this.sparql_endpoint = SPARQL_ENDPOINT_BASE + name;
 
             // init FTP pointing to domain-specific remote dir
             this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
@@ -146,11 +147,15 @@ public class RdfStorage extends AbstractRdfStorage {
             REMOTE DATABASE COMMUNICATION
      */
 
-    /** get connection to remote RDF DB (Fuseki) */
+    /** get connection to remote RDF DB (SPARQL endpoint)
+     * TODO: RDFConnectionFuseki -> RDFConnectionRemote */
     @Override
     public RDFConnection getConn() {
         RDFConnectionRemoteBuilder cb = RDFConnectionFuseki.create()
                 .destination(sparql_endpoint);
+
+//        RDFConnectionRemoteBuilder cb = RDFConnectionRemote.create()
+//                .destination(sparql_endpoint).queryEndpoint("").updateEndpoint("/statements");
         return cb.build();
     }
 
@@ -420,8 +425,8 @@ RdfStorage.StopBackgroundDBFillUp()
     public static void main_2(String[] args) {
         // debug some things ...
 
-//        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
-        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ProgrammingLanguageExpressionDomain");
+//        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
+        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ProgrammingLanguageExpressionDomain");
 
         RdfStorage rs = new RdfStorage(sparql_endpoint);
 
@@ -507,11 +512,11 @@ RdfStorage.StopBackgroundDBFillUp()
 
         JenaBackend.registerBuiltins();
 
-//        String sparql_endpoint = FUSEKI_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
+//        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
 
 //        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
 //        RdfStorage rs = new RdfStorage(cfd);
-        ProgrammingLanguageExpressionDomain pled = new ProgrammingLanguageExpressionDomain();
+        ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
         RdfStorage rs = new RdfStorage(pled);
 
 
@@ -571,7 +576,7 @@ RdfStorage.StopBackgroundDBFillUp()
     public static void main_5(boolean forceResolve) {
         // create question(s) from template
 
-        ProgrammingLanguageExpressionDomain pled = new ProgrammingLanguageExpressionDomain();
+        ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
         RdfStorage rs = new RdfStorage(pled);
 
         // find question templates to solve
@@ -625,7 +630,7 @@ RdfStorage.StopBackgroundDBFillUp()
         // upload <question template> graphs from files
 
 //        ControlFlowStatementsDomain domain = new ControlFlowStatementsDomain(new LocalizationService());
-        Domain domain = new ProgrammingLanguageExpressionDomain();
+        Domain domain = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
 
         RdfStorage rs = new RdfStorage(domain);
 
