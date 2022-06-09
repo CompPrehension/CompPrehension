@@ -5,10 +5,14 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.text.StringSubstitutor;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
@@ -578,7 +582,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_unevaluated_operand_base",
                     "student_error_left_assoc_base",
                     "has_value",
-                    "has_uneval_operand"
+                    "has_uneval_operand",
+                    "has_value_eval_restriction"
 
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
@@ -617,7 +622,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "is_operand",
                     "is_function_call",
                     "has_value",
-                    "has_uneval_operand"
+                    "has_uneval_operand",
+                    "has_value_eval_restriction"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -1789,10 +1795,71 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new HyperText(joiner.toString());
     }
 
+    private List<BackendFactEntity> modelToFacts(Model factsModel) {
+        JenaBackend jback = new JenaBackend();
+
+        Model schema = ModelFactory.createDefaultModel();
+        String base = schema.getNsPrefixURI("");
+        // strip # at right
+        base = base.replaceAll("#+$", "");
+        jback.createOntology(base);
+
+        // fill with schema
+        OntModel model = jback.getModel();
+        model.add(factsModel);
+
+        return jback.getFacts(getViolationVerbs(EVALUATION_ORDER_QUESTION_TYPE, null));
+    }
+
+    public OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
+        JenaBackend jback = new JenaBackend();
+
+        Model schema = ModelFactory.createDefaultModel();
+        String base = schema.getNsPrefixURI("");
+        // strip # at right
+        base = base.replaceAll("#+$", "");
+        jback.createOntology(base);
+
+        OntModel model = jback.getModel();
+
+        // fill with schema
+        model.add(schema);
+
+        jback.addFacts(backendFacts);
+
+        return model;
+    }
+
     @Override
     public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
+        FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate));
+
+        Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
+        addedFacts.put(templateName + "_v", new ArrayList<>());
+
+        for (BackendFactEntity branchOperands : fg.filterFacts(null, "has_value_eval_restriction", null)) {
+            List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
+            assertEquals(1, leftOp.size());
+            Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
+
+            for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+                List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
+                addedTrueFacts.addAll(facts.getValue());
+                addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
+                newAddedFacts.put(facts.getKey() + "t", addedTrueFacts);
+
+                List<BackendFactEntity> addedFalseFacts = new ArrayList<>();
+                addedFalseFacts.addAll(facts.getValue());
+                addedFalseFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
+                newAddedFacts.put(facts.getKey() + "f", addedFalseFacts);
+            }
+            addedFacts = newAddedFacts;
+        }
+
         HashMap<String, Model> questions = new HashMap<>();
-        questions.put(templateName + "_empty", solvedTemplate);
+        for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+            questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
+        }
         return questions;
     }
 }
