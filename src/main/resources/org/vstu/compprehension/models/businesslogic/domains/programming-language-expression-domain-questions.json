@@ -1955,6 +1955,89 @@
     "questionData": {
       "questionType": "ORDER",
       "questionDomainType": "OrderOperators",
+      "questionText": "++ a || b + c",
+      "options": {
+        "requireContext": true
+      },
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "++ at start",
+          "domainInfo": "op__0__1",
+          "isRightCol": false,
+          "concept": "operator_prefix_++",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 1,
+          "hyperText": "|| between a and b",
+          "domainInfo": "op__0__3",
+          "isRightCol": false,
+          "concept": "operator_binary_||",
+          "responsesLeft": [],
+          "responsesRight": []
+        },
+        {
+          "answerId": 2,
+          "hyperText": "+ between b and c",
+          "domainInfo": "op__0__5",
+          "isRightCol": false,
+          "concept": "operator_binary_+",
+          "responsesLeft": [],
+          "responsesRight": []
+        }
+      ],
+      "statementFacts": [
+        {
+          "object": "++",
+          "objectType": "true",
+          "subject": "operator"
+        },
+        {
+          "object": "a"
+        },
+        {
+          "object": "||",
+          "subject": "operator"
+        },
+        {
+          "object": "b"
+        },
+        {
+          "object": "+",
+          "subject": "operator"
+        },
+        {
+          "object": "c"
+        }
+      ]
+    },
+    "concepts": [
+      "precedence",
+      "operator_prefix_++",
+      "operator_binary_+",
+      "operator_binary_||",
+      "operator_evaluating_left_operand_first",
+      "SystemIntegrationTest"
+    ],
+    "negativeLaws": [
+      "error_base_student_error_strict_operands_order_base",
+      "error_base_student_error_unevaluated_operand_base"
+    ],
+    "tags": [
+      "C++",
+      "basics",
+      "operators",
+      "order",
+      "evaluation"
+    ]
+  },
+  {
+    "questionType": "ORDERING",
+    "questionData": {
+      "questionType": "ORDER",
+      "questionDomainType": "OrderOperators",
       "questionText": "++ a - b + c",
       "options": {
         "requireContext": true

@@ -2,7 +2,7 @@ package org.vstu.compprehension.models.businesslogic;
 
 import lombok.val;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
@@ -22,6 +22,9 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
+
+    @Autowired
+    BackendFactory backendFactory;
 
     @Test
     public void testName() {
@@ -177,7 +180,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), question.getQuestionText().getText());
 
-        Backend backend = new JenaBackend();
+        Backend backend = backendFactory.getBackend("Jena");
         List<BackendFactEntity> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
@@ -217,7 +220,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_same_precedence_left_associativity_left")
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
-        Backend backend = new JenaBackend();
+        Backend backend = backendFactory.getBackend("Jena");
         List<BackendFactEntity> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
@@ -264,4 +267,38 @@ public class ProgrammingLanguageExpressionDomainTest {
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response2, response0, response1)));
         assertEquals(0, init.size());
     }
+
+    @Test
+    public void TestUneval() {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(List.of(
+                domain.getConcept("SystemIntegrationTest")
+        ));
+        qr.setAllowedConcepts(List.of());
+        qr.setDeniedConcepts(List.of());
+        qr.setTargetLaws(List.of(
+                domain.getNegativeLaw("error_base_student_error_unevaluated_operand_base")
+        ));
+        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Backend backend = backendFactory.getBackend("Jena");
+        List<BackendFactEntity> solution = backend.solve(
+                domain.getQuestionLaws(q.getQuestionDomainType(), tags),
+                q.getStatementFacts(),
+                domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>()));
+        assertFalse(solution.isEmpty());
+        q.getQuestionData().setSolutionFacts(solution);
+
+        Set<String> init = domain.possibleViolations(q, null);
+        assertEquals(4, init.size());
+        assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_student_error_unevaluated_operand_base"));
+    }
+
 }
