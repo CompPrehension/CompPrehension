@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1654357220609-10" author="Mikhail Denisov">
+    	<!-- This changeset updates row created in 2022-06-04/2022-06-04-01-changelog.xml -->
+        <!-- <insert tableName="surveys">
+            <column name="id" value="IsCreatedByHuman"/>
+            <column name="name" value="Опрос для определения, сделан ли вопрос человеком или программным способом"/>
+        </insert> -->
+        <update tableName="survey_questions">
+            <column name="text" value="Как Вы думаете, этот вопрос был составлен человеком или сгенерирован машиной?" />
+        </update>
+    </changeSet>
+</databaseChangeLog>
