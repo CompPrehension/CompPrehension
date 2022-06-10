@@ -1173,6 +1173,112 @@
     ]
   },
   {
+    "name": "not_selectable",
+    "positive": true,
+    "formulations": [
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_operand",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "arity",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "good_token",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "precedence",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "not_selectable",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "is_function_call",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "text",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "has_complex_operator_part",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "before_direct",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "second_token",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "in_complex",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "good_token",
+        "formulation": "(?a my:is_operand \"true\"^^xsd:boolean) -> (?a my:good_token \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "good_token",
+        "formulation": "(?a my:precedence ?b) -> (?a my:good_token \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "not_selectable",
+        "formulation": "(?a my:is_operand \"true\"^^xsd:boolean) -> (?a my:not_selectable \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "not_selectable",
+        "formulation": "(?a my:text \",\"), (?a my:in_complex ?b), (?b my:is_function_call \"true\"^^xsd:boolean) -> (?a my:not_selectable \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "not_selectable",
+        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"false\"^^xsd:boolean) -> (?a my:not_selectable \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      },
+      {
+        "name": "not_selectable",
+        "formulation": "(?a my:second_token ?b) -> (?b my:not_selectable \"true\"^^xsd:boolean).",
+        "backend": "Jena"
+      }
+    ],
+    "concepts": [
+      {"name": "operand"},
+      {"name": "arity"},
+      {"name": "unary"},
+      {"name": "prefix"},
+      {"name": "postfix"}
+    ],
+    "tags": [
+      {"name": "basics"}
+    ]
+  },
+  {
     "name": "errors",
     "positive": false,
     "formulations": [

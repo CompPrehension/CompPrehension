@@ -601,8 +601,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_early_finish_base",
                     "has_value",
                     "has_uneval_operand",
-                    "has_value_eval_restriction"
-
+                    "has_value_eval_restriction",
+                    "not_selectable"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -643,7 +643,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "is_function_call",
                     "has_value",
                     "has_uneval_operand",
-                    "has_value_eval_restriction"
+                    "has_value_eval_restriction",
+                    "not_selectable",
+                    "law_name",
+                    "student_end_evaluation"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
