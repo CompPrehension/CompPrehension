@@ -41,6 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.max;
+import static java.lang.Math.random;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Component
@@ -1930,17 +1931,22 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
 
-        if (!fg.filterFacts(null, "text", "?:").isEmpty()) {
+        if (!fg.filterFacts(null, "text", "?:").isEmpty() || !fg.filterFacts(null, "text", "").isEmpty()) {
             return new HashMap<>(); // Skip bad generation of ternary operator
         }
         addedFacts.put(templateName + "_v", new ArrayList<>());
 
-        for (BackendFactEntity branchOperands : fg.filterFacts(null, "has_value_eval_restriction", null)) {
+        List<BackendFactEntity> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
+        for (BackendFactEntity branchOperands : switchPoints) {
             List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
             assertEquals(1, leftOp.size());
             Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
 
             for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+                if (switchPoints.size() > 20 && random() < 0.1) {
+                    continue;
+                }
+
                 List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
                 addedTrueFacts.addAll(facts.getValue());
                 addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
@@ -1954,10 +1960,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             addedFacts = newAddedFacts;
         }
 
+        System.out.println("Generated: " + addedFacts.size() + " questions");
         HashMap<String, Model> questions = new HashMap<>();
         for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
             questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
-            if (questions.size() > questionsLimit || addedFacts.size() > 10000 && questions.size() > 5) {
+            if (questions.size() > questionsLimit || addedFacts.size() > 10000 && questions.size() >= 5) {
                 break;
             }
         }

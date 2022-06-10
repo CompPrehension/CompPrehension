@@ -710,6 +710,7 @@ RdfStorage.StopBackgroundDBFillUp()
             e.printStackTrace();
         }
 
+        System.out.println(files.size() + " files to parse");
         for (String file : files) {
             int path_len = rdf_template_dir.length();
             String name = file.substring(path_len);  // cut directory path
