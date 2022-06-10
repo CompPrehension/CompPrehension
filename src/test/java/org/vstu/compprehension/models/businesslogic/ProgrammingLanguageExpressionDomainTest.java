@@ -97,11 +97,13 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
+        qr.setTargetLaws(List.of());
+        qr.setDeniedLaws(List.of());
 
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr), q.getQuestionName());
-        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p><div class='comp-ph-question'><p class='comp-ph-expr'><span data-comp-ph-pos='1' class='comp-ph-expr-const'>a</span><span data-comp-ph-pos='2' id='answer_0' class='comp-ph-expr-op-btn'>==</span><span data-comp-ph-pos='3' class='comp-ph-expr-const'>b</span><span data-comp-ph-pos='4' id='answer_1' class='comp-ph-expr-op-btn'><</span><span data-comp-ph-pos='5' class='comp-ph-expr-const'>c</span><!-- Original expression: a == b < c --></p></div>", domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
-
+        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p><div class='comp-ph-question'><p class='comp-ph-expr'><span data-comp-ph-pos='1' class='comp-ph-expr-const' data-comp-ph-value=''>a</span><span data-comp-ph-pos='2' id='answer_0' class='comp-ph-expr-op-btn' data-comp-ph-value=''>==</span><span data-comp-ph-pos='3' class='comp-ph-expr-const' data-comp-ph-value=''>b</span><span data-comp-ph-pos='4' id='answer_1' class='comp-ph-expr-op-btn' data-comp-ph-value=''><</span><span data-comp-ph-pos='5' class='comp-ph-expr-const' data-comp-ph-value=''>c</span><!-- Original expression: a == b < c --></p></div>",
+                q.getQuestionText().getText());
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
                 domain.getConcept("associativity"),
@@ -114,6 +116,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("precedence"),
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
+        qr2.setTargetLaws(List.of());
+        qr2.setDeniedLaws(List.of());
 
         q = domain.makeQuestion(qr2, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr2), q.getQuestionName());
@@ -132,12 +136,16 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr3.setDeniedConcepts(List.of(
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
+        qr3.setTargetLaws(List.of());
+        qr3.setDeniedLaws(List.of());
         q = domain.makeQuestion(qr3, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr3), q.getQuestionName());
 //        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c", "--"), List.of("", "operator", "", "operator", "", "operator"))), );
 
         QuestionRequest qr4 = new QuestionRequest();
-        qr4.setTargetConcepts(List.of());
+        qr4.setTargetConcepts(List.of(
+                domain.getConcept("SystemIntegrationTest")
+        ));
         qr4.setAllowedConcepts(List.of());
         qr4.setDeniedConcepts(List.of(
                 domain.getConcept("associativity"),
@@ -145,6 +153,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("type"),
                 domain.getConcept("SystemIntegrationTest")
         ));
+        qr4.setTargetLaws(List.of());
+        qr4.setDeniedLaws(List.of());
         assertEquals("Choose associativity of operator binary +",
                 domain.makeQuestion(qr4, tags, Language.ENGLISH).getQuestionText().getText());
     }
@@ -301,4 +311,26 @@ public class ProgrammingLanguageExpressionDomainTest {
         assertTrue(init.contains("error_base_student_error_unevaluated_operand_base"));
     }
 
+    //@Test
+    public void TestRandom() {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(List.of(
+        ));
+        qr.setAllowedConcepts(List.of());
+        qr.setDeniedConcepts(List.of(
+                domain.getConcept("SystemIntegrationTest")
+        ));
+        qr.setTargetLaws(List.of(
+        ));
+        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+
+        assertFalse(q.getSolutionFacts().isEmpty());
+    }
 }

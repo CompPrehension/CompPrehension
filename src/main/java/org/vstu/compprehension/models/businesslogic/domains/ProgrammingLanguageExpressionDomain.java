@@ -225,7 +225,21 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
-        throw new NotImplementedException();
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+
+        Question question = gson.fromJson(
+                new InputStreamReader(stream, StandardCharsets.UTF_8),
+                Question.class);
+
+        return question;
     }
 
     @Override
@@ -326,7 +340,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setAnswerObjects(answerObjectEntities);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
-        entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
+
+        //TODO: remove this hack supporting old format
+        if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
+            entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
+        } else {
+            entity.setStatementFacts(q.getStatementFacts());
+            entity.setSolutionFacts(q.getStatementFacts());
+        }
         entity.setQuestionType(q.getQuestionType());
         entity.setQuestionName(q.getQuestionName());
 
@@ -338,7 +359,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         switch (q.getQuestionType()) {
             case ORDER:
                 val baseQuestionText = getMessage("expr_domain.BASE_QUESTION_TEXT", userLang);
-                entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
+                //TODO: remove this hack supporting old format
+                if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
+                    entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
+                } else {
+                    entity.setQuestionText(baseQuestionText + text.replace("end evaluation", getMessage("expr_domain.END_EVALUATION", userLang)));
+                }
                 entity.setOptions(orderQuestionOptions);
                 Question question = new Ordering(entity, this);
                 // patch the newly created question with the concepts from the "template"
@@ -395,7 +421,32 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
             deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
         }
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+
+        List<Question> foundQuestions;
+        try {
+            // new version - invoke rdfStorage search
+            foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+
+            // search again if nothing found with "TO_COMPLEX"
+            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+            }
+        } catch (RuntimeException ex) {
+            // file storage was not configured properly...
+            ex.printStackTrace();
+            foundQuestions = new ArrayList<>();
+        }
+
+        Question res;
+        if (!foundQuestions.isEmpty() && !conceptNames.contains("SystemIntegrationTest")) {
+            res = foundQuestions.get(0);
+        } else {
+            // old version - search in domain's in-memory questions
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        }
+
         if (res != null) {
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
         }
