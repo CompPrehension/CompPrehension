@@ -1599,7 +1599,7 @@
       },
       {
         "name": "is_operand",
-        "formulation": "notEqual(?a_text, \"sizeof\"), notEqual(?a_text, \"co_await\"), notEqual(?a_text, \"new\"), notEqual(?a_text, \"delete\"), notEqual(?a_text, \"throw\"), notEqual(?a_text, \"co_yield\"), regex(?a_text, \"[a-zA-Z_0-9]+\"), (?a my:text ?a_text) -> (?a my:eval \"true\"^^xsd:boolean), (?a my:is_operand \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "formulation": "notEqual(?a_text, \"sizeof\"), notEqual(?a_text, \"co_await\"), notEqual(?a_text, \"new\"), notEqual(?a_text, \"delete\"), notEqual(?a_text, \"throw\"), notEqual(?a_text, \"co_yield\"), regex(?a_text, \"[a-zA-Z_0-9]*\\.?[a-zA-Z_0-9]+\"), (?a my:text ?a_text) -> (?a my:eval \"true\"^^xsd:boolean), (?a my:is_operand \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
         "backend": "Jena"
       }
     ],
