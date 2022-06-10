@@ -1845,35 +1845,28 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new HyperText(joiner.toString());
     }
 
-    private List<BackendFactEntity> modelToFacts(Model factsModel) {
+    private List<BackendFactEntity> modelToFacts(Model factsModel, boolean onlySolvedFacts) {
         JenaBackend jback = new JenaBackend();
+        jback.createOntology(AbstractRdfStorage.NS_code.base());
 
-        Model schema = ModelFactory.createDefaultModel();
-        String base = schema.getNsPrefixURI("");
-        // strip # at right
-        base = base.replaceAll("#+$", "");
-        jback.createOntology(base);
-
-        // fill with schema
+        // fill model
         OntModel model = jback.getModel();
         model.add(factsModel);
 
-        return jback.getFacts(getViolationVerbs(EVALUATION_ORDER_QUESTION_TYPE, null));
+        List<String> verbs = factsModel.listStatements().toList().stream()
+                .map(Statement::getPredicate)
+                .map(Property::getLocalName).distinct().collect(Collectors.toList());
+        if (onlySolvedFacts) {
+            return jback.getFacts(getViolationVerbs(EVALUATION_ORDER_QUESTION_TYPE, null));
+        }
+        return jback.getFacts(verbs);
     }
 
     public OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
         JenaBackend jback = new JenaBackend();
-
-        Model schema = ModelFactory.createDefaultModel();
-        String base = schema.getNsPrefixURI("");
-        // strip # at right
-        base = base.replaceAll("#+$", "");
-        jback.createOntology(base);
+        jback.createOntology(AbstractRdfStorage.NS_code.base());
 
         OntModel model = jback.getModel();
-
-        // fill with schema
-        model.add(schema);
 
         jback.addFacts(backendFacts);
 
@@ -1882,9 +1875,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
-        FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate));
+        FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate, false));
 
         Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
+
+        if (!fg.filterFacts(null, "text", "?:").isEmpty()) {
+            return new HashMap<>(); // Skip bad generation of ternary operator
+        }
         addedFacts.put(templateName + "_v", new ArrayList<>());
 
         for (BackendFactEntity branchOperands : fg.filterFacts(null, "has_value_eval_restriction", null)) {
@@ -1909,7 +1906,143 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         HashMap<String, Model> questions = new HashMap<>();
         for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
             questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
+            if (questions.size() > questionsLimit || addedFacts.size() > 10000 && questions.size() > 5) {
+                break;
+            }
         }
         return questions;
+    }
+
+    public String createQuestionFromModel(String questionName, Model model, AbstractRdfStorage rs) {
+        List<BackendFactEntity> facts = modelToFacts(model, true);
+        FactsGraph fg = new FactsGraph(facts);
+
+        QuestionEntity entity = new QuestionEntity();
+        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
+        int ans_id = 0;
+        int solution_length = 0;
+        Map<Integer, BackendFactEntity> texts = new TreeMap<>();
+
+        for (BackendFactEntity token : fg.filterFacts(null, "index", null)) {
+            String text = fg.filterFacts(token.getSubject(), "text", null).get(0).getObject();
+            BackendFactEntity initFacts = new BackendFactEntity(null,null, null,null,text);
+
+            if (!fg.filterFacts(token.getSubject(), "not_selectable", null).isEmpty()) {
+                texts.put(Integer.parseInt(token.getObject()), initFacts);
+                continue;
+            }
+
+            if (fg.filterFacts(null, "has_uneval_operand", token.getSubject()).isEmpty()) {
+                solution_length++;
+            }
+
+            List<BackendFactEntity> hasValue = fg.filterFacts(token.getSubject(), "has_value", null);
+            if (!hasValue.isEmpty()) {
+                initFacts.setSubjectType(hasValue.get(0).getObject());
+            }
+
+            initFacts.setSubject("operator");
+            texts.put(Integer.parseInt(token.getObject()), initFacts);
+
+            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            newAnswerObjectEntity.setAnswerId(ans_id);
+            ans_id++;
+            newAnswerObjectEntity.setConcept("operator");
+            newAnswerObjectEntity.setDomainInfo("op__0__" + token.getObject());
+            newAnswerObjectEntity.setHyperText(text);
+            newAnswerObjectEntity.setQuestion(null);
+            newAnswerObjectEntity.setRightCol(false);
+            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
+            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
+            answerObjectEntities.add(newAnswerObjectEntity);
+        }
+        // Add answer for stop evaluation
+        AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+        newAnswerObjectEntity.setAnswerId(ans_id);
+        newAnswerObjectEntity.setConcept(END_EVALUATION);
+        newAnswerObjectEntity.setDomainInfo("end_token");
+        newAnswerObjectEntity.setHyperText(END_EVALUATION);
+        newAnswerObjectEntity.setQuestion(null);
+        newAnswerObjectEntity.setRightCol(false);
+        newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
+        newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
+        answerObjectEntities.add(newAnswerObjectEntity);
+        texts.put(1000000, new BackendFactEntity(null,null,null,null,END_EVALUATION));
+
+        entity.setAnswerObjects(answerObjectEntities);
+        entity.setExerciseAttempt(null);
+        entity.setQuestionDomainType("OrderOperators");
+        entity.setStatementFacts(facts);
+        entity.setSolutionFacts(facts);
+        entity.setQuestionType(QuestionType.ORDER);
+        entity.setQuestionName("");
+
+        List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
+        entity.setQuestionText(ExpressionToHtml(textFacts));
+        entity.setQuestionName(questionName);
+
+        Question question = new Ordering(entity, null);
+
+        Set<String> lawNames = new HashSet<>();
+        for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
+            lawNames.add(fact.getObject());
+        }
+
+        Set<String> concepts = new HashSet<>();
+        for (BackendFactEntity fact : fg.filterFacts(null, "concept", null)) {
+            concepts.add(fact.getObject());
+        }
+        concepts.add("operator");
+
+        question.getConcepts().addAll(concepts);
+        Set<String> violations = possibleViolations(question, null);
+        question.getNegativeLaws().addAll(violations);
+
+        List<String> tags = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
+
+        question.getTags().addAll(tags);
+
+        entity.setSolutionFacts(null);
+
+        for (String tag : tags) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_tag"),
+                            NodeFactory.createLiteral(tag))
+            ));
+        }
+
+        for (String law : lawNames) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_law"),
+                            NodeFactory.createLiteral(law))
+            ));
+        }
+
+        for (String violation : violations) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_violation"),
+                            NodeFactory.createLiteral(violation))
+            ));
+        }
+
+        for (String concept : concepts) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_concept"),
+                            NodeFactory.createLiteral(concept))
+            ));
+        }
+
+        rs.setQuestionMetadata(questionName, List.of(
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_structural_complexity"),
+                        NodeFactory.createLiteralByValue( solution_length / (float) ans_id, XSDDatatype.XSDfloat)),
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("distinct_errors_count"),
+                        NodeFactory.createLiteralByValue(violations.size(), XSDDatatype.XSDinteger)),
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_steps"),
+                        NodeFactory.createLiteralByValue(solution_length, XSDDatatype.XSDinteger)),
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("integral_complexity"),
+                        NodeFactory.createLiteralByValue(1.21892655 + 0.18549906 * solution_length - 0.01883239 * violations.size(), XSDDatatype.XSDfloat))
+        ));
+
+        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
     }
 }

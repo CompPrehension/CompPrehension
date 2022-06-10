@@ -45,7 +45,7 @@ public abstract class AbstractRdfStorage {
      * Default prefixes
      */
     final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
-    final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
+    public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
     //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
     final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
     final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
@@ -53,7 +53,7 @@ public abstract class AbstractRdfStorage {
     //    class NamedGraph
     //		modifiedAt: datetime   (1..1)
     //      dependsOn: NamedGraph  (0..*)
-    final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
+    public final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
     final static NamespaceUtil NS_classQuestionTemplate = new NamespaceUtil(NS_questions.get("QuestionTemplate#"));
     final static NamespaceUtil NS_classQuestion = new NamespaceUtil(NS_questions.get("Question#"));
     /* questions:
@@ -83,8 +83,8 @@ public abstract class AbstractRdfStorage {
     // hardcoded FTP location:
 //    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
 //    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
-    static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
-    static String FTP_DOWNLOAD_BASE = FTP_BASE;
+    public static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
+    public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;

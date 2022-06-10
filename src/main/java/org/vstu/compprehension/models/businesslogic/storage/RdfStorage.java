@@ -691,8 +691,71 @@ RdfStorage.StopBackgroundDBFillUp()
         }
     }
 
+    public static void generateQuestionsForExpressionsDomain() {
+        ProgrammingLanguageExpressionDomain domain = new ProgrammingLanguageExpressionDomain();
+//        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
+
+        String rdf_base_dir = "/Users/shadowgorn/Downloads/test_compp_expr/";
+        String rdf_template_dir = "/Users/shadowgorn/Downloads/raw_qt/";
+
+        LocalRdfStorage.FTP_BASE = rdf_base_dir;
+        LocalRdfStorage.FTP_DOWNLOAD_BASE = rdf_base_dir;
+        LocalRdfStorage rs = new LocalRdfStorage(domain);
+
+        // Find files in local directory
+        List<String> files = new ArrayList<>();
+        try {
+            files = listFullFilePathsInDir(rdf_template_dir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (String file : files) {
+            int path_len = rdf_template_dir.length();
+            String name = file.substring(path_len);  // cut directory path
+
+            if (name.equals(".DS_Store")) {
+                continue; // system path
+            }
+
+            if (name.endsWith(".ttl"))
+                name = name.substring(0, name.length() - ".ttl".length());
+
+            name = name.replaceAll("[^a-zA-Z0-9_]", "");
+            System.out.print(name + " ...\t");
+
+            rs.createQuestionTemplate(name);
+
+            System.out.println("    Upload model ...");
+            Model m = ModelFactory.createDefaultModel();
+            RDFDataMgr.read(m, file);
+
+            rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
+
+            Model solved = rs.solveTemplate(m, false);
+            rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE_SOLVED, solved);
+
+            System.out.println("Creating question: " + name);
+            Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
+            for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
+                // create metadata entry
+                rs.createQuestion(question.getKey(), name, false);
+                // set basic data of the question
+                rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, question.getValue());
+                // solve the question (using the data uploaded above as QUESTION)
+                rs.solveQuestion(question.getKey(), GraphRole.QUESTION);
+
+                String json = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION), rs);
+                System.out.println("Saving question: " + question.getKey());
+                rs.saveQuestionData(question.getKey(), json);
+            }
+        }
+        rs.saveToFilesystem();
+    }
+
     public static void main(String[] args) {
-        main_3(args); // upload graphs as question templates
+        generateQuestionsForExpressionsDomain();
+//        main_3(args); // upload graphs as question templates
 //        main_4(false); // solve question templates
 //        main_4(true); // solve question templates (force re-solve)
         
