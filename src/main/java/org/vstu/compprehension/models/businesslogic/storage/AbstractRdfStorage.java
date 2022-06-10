@@ -457,7 +457,7 @@ public abstract class AbstractRdfStorage {
         if (level.ordinal() >= GraphRole.QUESTION_TEMPLATE.ordinal() && level.ordinal() <= GraphRole.QUESTION_TEMPLATE_SOLVED.ordinal()) {
             laws.addAll(domain.getPositiveLaws());
         } else if (level.ordinal() >= GraphRole.QUESTION.ordinal()) {
-            laws.addAll(domain.getNegativeLaws());
+            laws.addAll(domain.getQuestionLaws("OrderOperators"));
         } else {
             // passed not-a-question role -- get all
             if (domain instanceof ProgrammingLanguageExpressionDomain) {
@@ -915,7 +915,7 @@ public abstract class AbstractRdfStorage {
         Model qG = getGraph(NS_questions.base());
         assert qG != null;
 
-        Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
+        Model existingData = getQuestionModel(questionName, desiredLevel);
 
         // avoid processing too large templates
         if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
