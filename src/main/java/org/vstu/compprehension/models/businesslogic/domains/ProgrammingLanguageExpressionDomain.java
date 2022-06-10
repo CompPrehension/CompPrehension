@@ -73,6 +73,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
 
+    private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
+        this.localizationService = localizationService;
+        name = "ProgrammingLanguageExpressionDomain";
+        domainEntity = null;
+
+        fillConcepts();
+        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
+        readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
+    }
+    //Hacked version. don't use in production, only for develop
+    public static ProgrammingLanguageExpressionDomain makeHackedDomain() {
+        return new ProgrammingLanguageExpressionDomain(new LocalizationService());
+    }
+
     @NotNull
     @Override
     public String getDomainId() {

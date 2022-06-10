@@ -30,6 +30,7 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
+import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -692,7 +693,7 @@ RdfStorage.StopBackgroundDBFillUp()
     }
 
     public static void generateQuestionsForExpressionsDomain() {
-        ProgrammingLanguageExpressionDomain domain = new ProgrammingLanguageExpressionDomain();
+        ProgrammingLanguageExpressionDomain domain = ProgrammingLanguageExpressionDomain.makeHackedDomain();
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
         String rdf_base_dir = "/Users/shadowgorn/Downloads/test_compp_expr/";
