@@ -634,7 +634,7 @@
       },
       {
         "name": "uneval_subtree",
-        "formulation": "(?a my:has_operand ?b), (?a my:has_uneval_operand ?b), (?b my:has_operand ?c) -> (?a my:has_uneval_operand ?c).",
+        "formulation": "(?a my:has_operand ?b), (?a my:has_uneval_operand ?b), (?b my:has_operand ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
         "backend": "Jena"
       }
     ],
@@ -1182,6 +1182,11 @@
         "backend": "OWL"
       },
       {
+        "name": "student_end_evaluation",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "complex_beginning",
         "formulation": "owl:DatatypeProperty",
         "backend": "OWL"
@@ -1347,6 +1352,16 @@
         "backend": "OWL"
       },
       {
+        "name": "student_error_early_finish_base",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "student_error_early_finish",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "has_value",
         "formulation": "owl:DatatypeProperty",
         "backend": "OWL"
@@ -1439,6 +1454,11 @@
       {
         "name": "student_error_early_finish_base",
         "formulation": "(?a my:student_error_unevaluated_operand_base ?b) -> (?a my:student_error_early_finish_base ?b).",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_error_early_finish",
+        "formulation": "(?a my:student_error_early_finish_base ?b), (?c my:student_end_evaluation \"true\"^^xsd:boolean), noValue(?d my:student_pos_number), noValue(?e my:has_uneval_operand ?d) -> (?a my:student_error_early_finish ?d).",
         "backend": "Jena"
       }
     ],
@@ -3247,11 +3267,17 @@
     "name": "error_base_student_error_unevaluated_operand_base",
     "positive": false,
     "formulations": [
-      {
-        "name": "is_function_call",
-        "formulation": "owl:DatatypeProperty",
-        "backend": "OWL"
-      }
+    ],
+    "concepts": [
+      {"name": "operator_evaluating_left_operand_first"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_student_error_early_finish_base",
+    "positive": false,
+    "formulations": [
     ],
     "concepts": [
       {"name": "operator_evaluating_left_operand_first"}

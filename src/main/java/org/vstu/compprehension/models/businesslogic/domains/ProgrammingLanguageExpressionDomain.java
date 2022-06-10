@@ -4,15 +4,22 @@ import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.riot.Lang;
 import org.jetbrains.annotations.NotNull;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
@@ -50,6 +57,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
     public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
 
+    public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
 
     @Autowired
@@ -125,6 +133,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept errorInComplex = addConcept("error_base_student_error_in_complex");
         Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
         Concept errorUnevaluatedOperand = addConcept("error_base_student_error_unevaluated_operand_base");
+        Concept errorEarlyFinish = addConcept("error_base_student_error_early_finish_base");
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
@@ -422,10 +431,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         int idx = 0;
         int anwerIdx = -1;
         for (BackendFactEntity fact : expression) {
+            String tokenValue = "";
+            if (fact.getSubjectType() != null) { // Token has value
+                tokenValue = fact.getSubjectType();
+            }
+
             if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn'>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
+            } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='student_end_evaluation' class='comp-ph-expr-op-btn'>").append("end evaluation").append("</span>");
             } else {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const'>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             }
         }
 
@@ -582,6 +598,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_strict_operands_order_base",
                     "student_error_unevaluated_operand_base",
                     "student_error_left_assoc_base",
+                    "student_error_early_finish_base",
                     "has_value",
                     "has_uneval_operand",
                     "has_value_eval_restriction"
@@ -615,6 +632,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_strict_operands_order_base",
                     "student_error_unevaluated_operand_base",
                     "student_error_unevaluated_operand",
+                    "student_error_early_finish_base",
+                    "student_error_early_finish",
                     "before_third_operator",
                     "text",
                     "index",
@@ -690,6 +709,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                                 answerObject.getDomainInfo()
                         ));
                     }
+                }
+                if (answerObject.getDomainInfo().equals("end_token")) {
+                    result.add(new BackendFactEntity(
+                            "owl:NamedIndividual",
+                            "end_token",
+                            END_EVALUATION,
+                            "xsd:boolean",
+                            "true"
+                    ));
                 }
             }
             return result;
@@ -1080,6 +1108,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     result.add("error_base_student_error_strict_operands_order_base");
                 } else if (f.getVerb().equals("student_error_unevaluated_operand_base")) {
                     result.add("error_base_student_error_unevaluated_operand_base");
+                } else if (f.getVerb().equals("student_error_early_finish_base")) {
+                    result.add("error_base_student_error_early_finish_base");
                 } else if (f.getVerb().equals("student_error_in_complex_base")) {
                     result.add("error_base_student_error_in_complex");
                 }
@@ -1097,7 +1127,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
         if (violation.getLawName().equals("error_base_student_error_in_complex") ||
                 violation.getLawName().equals("error_base_student_error_strict_operands_order_base") ||
-                violation.getLawName().equals("error_base_student_error_unevaluated_operand_base")) {
+                violation.getLawName().equals("error_base_student_error_unevaluated_operand_base") ||
+                violation.getLawName().equals("student_error_early_finish_base")) {
             return false;
         }
         return true;
@@ -1385,6 +1416,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     || violation.getVerb().equals("student_error_right_assoc")
                     || violation.getVerb().equals("student_error_strict_operands_order")
                     || violation.getVerb().equals("student_error_unevaluated_operand")
+                    || violation.getVerb().equals("student_error_early_finish_base")
                     || violation.getVerb().equals("student_error_in_complex")) {
                 questionType = EVALUATION_ORDER_QUESTION_TYPE;
             }
@@ -1423,6 +1455,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     violationEntity.setLawName("error_base_student_error_strict_operands_order_base");
                 } else if (violation.getVerb().equals("student_error_unevaluated_operand_base")) {
                     violationEntity.setLawName("error_base_student_error_unevaluated_operand_base");
+                } else if (violation.getVerb().equals("student_error_early_finish_base")) {
+                    violationEntity.setLawName("error_base_student_error_early_finish_base");
                 } else if (violation.getVerb().equals("student_error_in_complex")) {
                     violationEntity.setLawName("error_base_student_error_in_complex");
                 } else if (violation.getVerb().equals("wrong_type")) {
@@ -1620,6 +1654,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 correctlyAppliedLaw = "error_base_student_error_strict_operands_order_base";
             } else if (violation.getVerb().equals("student_error_unevaluated_operand_base")) {
                 correctlyAppliedLaw = "error_base_student_error_unevaluated_operand_base";
+            } else if (violation.getVerb().equals("student_error_early_finish_base")) {
+                correctlyAppliedLaw = "error_base_student_error_early_finish_base";
             }
             if (correctlyAppliedLaw != null) {
                 result.add(correctlyAppliedLaw);
@@ -1789,6 +1825,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .add(getMessage("expr_domain.AT_POS", lang))
                     .add(reasonPos)
                     .add(getMessage("expr_domain.HAS_VALUE_AND_EVALUATE_OTHER_PART", lang));
+        } else if (errorType.equals("error_base_student_error_early_finish_base")) {
+            joiner = new StringJoiner(" ");
+            joiner
+                    .add(getOperatorTextDescription(errorText, lang))
+                    .add(errorText)
+                    .add(getMessage("expr_domain.AT_POS", lang))
+                    .add(errorPos)
+                    .add(getMessage("expr_domain.EVALUATES", lang));
+            joiner.add("\n").add(getMessage("expr_domain.BECAUSE", lang));
+            joiner.add(getMessage("expr_domain.HAS_UNEVALUATED_OPERATOR", lang));
         } else {
             joiner.add(getMessage("expr_domain.UNKNOWN_ERROR", lang));
         }
