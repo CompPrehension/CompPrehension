@@ -437,8 +437,8 @@ public abstract class AbstractRdfStorage {
             return schemaModel.read(ControlFlowStatementsDomain.VOCAB_SCHEMA_PATH);
 
         } else if (domain instanceof ProgrammingLanguageExpressionDomain) {
-            //// return ModelFactory.createDefaultModel();
-            // TODO: extract schema from rules
+            Model schemaModel = ModelFactory.createDefaultModel();
+            return schemaModel.read(ProgrammingLanguageExpressionDomain.VOCAB_SCHEMA_PATH);
         }
 
         // the default

@@ -48,6 +48,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
+    public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
 
     private final LocalizationService localizationService;
 
