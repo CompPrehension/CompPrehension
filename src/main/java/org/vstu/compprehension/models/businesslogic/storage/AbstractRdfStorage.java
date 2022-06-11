@@ -225,7 +225,7 @@ public abstract class AbstractRdfStorage {
                 "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
                 "order by ?compl_diff ?steps_diff");
         if (limit > 0)
-            query.append("\n  limit " + limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+            query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
 
         List<Question> questions = new ArrayList<>();
         try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
