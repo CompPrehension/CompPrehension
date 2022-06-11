@@ -40,6 +40,7 @@ import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 
+import javax.management.RuntimeErrorException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -686,7 +687,7 @@ RdfStorage.StopBackgroundDBFillUp()
             rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
 
             if (domain instanceof ProgrammingLanguageExpressionDomain) {
-                Model solved = rs.solveTemplate(m, false);
+                Model solved = rs.solveTemplate(m, GraphRole.QUESTION_TEMPLATE, false);
                 rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE_SOLVED, solved);
             }
 
@@ -716,68 +717,71 @@ RdfStorage.StopBackgroundDBFillUp()
         System.out.println(files.size() + " files to parse");
         int count = 0;
         for (String file : files) {
-            int path_len = rdf_template_dir.length();
-            String name = file.substring(path_len);  // cut directory path
+            try {
+                int path_len = rdf_template_dir.length();
+                String name = file.substring(path_len);  // cut directory path
 
-            if (name.equals(".DS_Store")) {
-                continue; // system path
-            }
-
-            count++;
-            if (count > 50) {
-                break;
-            }
-
-            if (name.endsWith(".ttl"))
-                name = name.substring(0, name.length() - ".ttl".length());
-
-            name = name.replaceAll("[^a-zA-Z0-9_]", "");
-            System.out.print(name + " ...\t");
-
-            rs.createQuestionTemplate(name);
-
-            System.out.println("    Upload model ..." + count);
-            Model m = ModelFactory.createDefaultModel();
-            RDFDataMgr.read(m, file);
-
-            rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
-
-            Model solved = rs.solveTemplate(m, false);
-            rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE_SOLVED, solved);
-
-            System.out.println("Creating question: " + name);
-            Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
-            Set<Set<String>> possibleViolations = new HashSet<>();
-            for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
-                {
-                    Model qG = rs.getGraph(NS_questions.base());
-                    assert qG != null;
-
-                    Model existingData = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION));
-                    existingData.add(question.getValue());
-                    Model inferred = rs.runReasoning(
-                            rs.getFullSchema().union(existingData),
-                            rs.getDomainRulesForSolvingAtLevel(GraphRole.QUESTION_SOLVED),
-                            true);
-                    List<BackendFactEntity> facts = modelToFacts(inferred, AbstractRdfStorage.NS_code.base());
-                    Set<String> violations = domain.possibleViolations(facts, null);
-
-                    if (possibleViolations.contains(violations)) {
-                        System.out.println("Skip question with same violations: " + question.getKey());
-                    }
-                    possibleViolations.add(violations);
+                if (name.endsWith(".ttl")) {
+                    name = name.substring(0, name.length() - ".ttl".length());
+                    name = name.replaceAll("[^a-zA-Z0-9_]", "");
+                    System.out.println(name + " ...\t");
+                } else {
+                    continue; //skip all other files
                 }
 
-                // create metadata entry
-                rs.createQuestion(question.getKey(), name, false);
-                // set basic data of the question
-                rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, question.getValue());
-                // solve the question (using the data uploaded above as QUESTION)
-                rs.solveQuestion(question.getKey(), GraphRole.QUESTION_SOLVED);
+                if (rs.getQuestionStatus(name) == GraphRole.QUESTION_TEMPLATE_SOLVED) {
+                    System.out.println("Skip solved template: " + name);
+                    continue;
+                }
 
-                System.out.println("Saving question: " + question.getKey());
-                Question domainQuestion = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION_SOLVED), rs);
-                rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
+                count++;
+                if (count % 100 == 0) {
+                    rs.saveToFilesystem();
+                    System.out.println("Dump metadata on disk");
+                }
+
+                // Create template and save it and metadata
+                System.out.println(name + " \tUpload model number" + count);
+                rs.createQuestionTemplate(name);
+                Model m = ModelFactory.createDefaultModel();
+                RDFDataMgr.read(m, file);
+                rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
+
+                // Create solved template and save it and metadata
+                rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
+
+                System.out.println("Creating question: " + name);
+                Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
+                Set<Set<String>> possibleViolations = new HashSet<>();
+                for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
+                    // Solve question model
+                    Model questionModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION)).add(question.getValue());
+                    Model solvedQuestionModel = rs.solveTemplate(questionModel, GraphRole.QUESTION_SOLVED, true);
+
+                    // Generate only questions with different error sets
+                    List<BackendFactEntity> facts = modelToFacts(solvedQuestionModel, AbstractRdfStorage.NS_code.base());
+                    Set<String> violations = domain.possibleViolations(facts, null);
+                    if (possibleViolations.contains(violations)) {
+                        System.out.println("Skip question with same violations: " + question.getKey());
+                        continue;
+                    }
+                    possibleViolations.add(violations);
+
+                    // create metadata entry
+                    rs.createQuestion(question.getKey(), name, false);
+                    // set basic data of the question
+                    rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, question.getValue());
+                    // set solved data of the question
+                    rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION_SOLVED, solvedQuestionModel);
+
+                    // Save question data for domain in JSON
+                    System.out.println("Saving question: " + question.getKey());
+                    Question domainQuestion = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION_SOLVED), rs);
+                    rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                rs.saveToFilesystem();
             }
         }
         rs.saveToFilesystem();

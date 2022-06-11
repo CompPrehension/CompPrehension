@@ -1118,10 +1118,10 @@ public abstract class AbstractRdfStorage {
         return m;
     }
 
-    public Model solveTemplate(Model srcModel, boolean retainNewFactsOnly) {
+    public Model solveTemplate(Model srcModel, GraphRole desiredLevel, boolean retainNewFactsOnly) {
         return runReasoning(
                 getFullSchema().union(srcModel),
-                getDomainRulesForSolvingAtLevel(GraphRole.QUESTION_TEMPLATE),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
+                getDomainRulesForSolvingAtLevel(desiredLevel),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
                 retainNewFactsOnly);
     }
 
