@@ -185,7 +185,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_higher_precedence_right")
         ));
         qr.setDeniedLaws(List.of(
-                domain.getNegativeLaw("error_base_student_error_strict_operands_order_base")
+                domain.getNegativeLaw("error_base_student_error_strict_operands_order")
         ));
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), question.getQuestionText().getText());
@@ -199,8 +199,9 @@ public class ProgrammingLanguageExpressionDomainTest {
         question.getQuestionData().setSolutionFacts(solution);
 
         Set<String> init = domain.possibleViolations(question, null);
-        assertEquals(1, init.size());
+        assertEquals(2, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
     }
 
     @Test
@@ -239,14 +240,16 @@ public class ProgrammingLanguageExpressionDomainTest {
         q.getQuestionData().setSolutionFacts(solution);
 
         Set<String> init = domain.possibleViolations(q, null);
-        assertEquals(2, init.size());
+        assertEquals(3, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
         assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         init = domain.possibleViolations(q, new ArrayList<>());
-        assertEquals(2, init.size());
+        assertEquals(3, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
         assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         ResponseEntity response0 = new ResponseEntity();
         response0.setLeftAnswerObject(q.getAnswerObject(0));
@@ -261,15 +264,17 @@ public class ProgrammingLanguageExpressionDomainTest {
         response2.setRightAnswerObject(q.getAnswerObject(2));
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response0)));
-        assertEquals(1, init.size());
+        assertEquals(2, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response0, response2)));
         assertEquals(0, init.size());
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response2)));
-        assertEquals(1, init.size());
+        assertEquals(2, init.size());
         assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response2, response0)));
         assertEquals(0, init.size());
@@ -294,7 +299,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setAllowedConcepts(List.of());
         qr.setDeniedConcepts(List.of());
         qr.setTargetLaws(List.of(
-                domain.getNegativeLaw("error_base_student_error_unevaluated_operand_base")
+                domain.getNegativeLaw("error_base_student_error_unevaluated_operand")
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
         Backend backend = backendFactory.getBackend("Jena");
@@ -308,7 +313,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         Set<String> init = domain.possibleViolations(q, null);
         assertEquals(5, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
-        assertTrue(init.contains("error_base_student_error_unevaluated_operand_base"));
+        assertTrue(init.contains("error_base_student_error_unevaluated_operand"));
     }
 
     //@Test

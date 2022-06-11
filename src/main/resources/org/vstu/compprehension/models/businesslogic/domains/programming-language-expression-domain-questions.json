@@ -321,7 +321,7 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base",
+      "error_base_student_error_strict_operands_order",
       "error_base_higher_precedence_right"
     ],
     "tags": [
@@ -508,7 +508,7 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -1149,7 +1149,7 @@
     ],
     "negativeLaws": [
       "error_base_student_error_in_complex",
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -1860,7 +1860,7 @@
     ],
     "negativeLaws": [
       "error_base_same_precedence_right_associativity_right",
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -1940,7 +1940,7 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C++",
@@ -2022,8 +2022,8 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base",
-      "error_base_student_error_unevaluated_operand_base"
+      "error_base_student_error_strict_operands_order",
+      "error_base_student_error_unevaluated_operand"
     ],
     "tags": [
       "C++",
@@ -5530,7 +5530,7 @@
       "SystemIntegrationTest"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base",
+      "error_base_student_error_strict_operands_order",
       "error_base_higher_precedence_right"
     ],
     "tags": [
@@ -5717,7 +5717,7 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C#",
@@ -6300,7 +6300,7 @@
     ],
     "negativeLaws": [
       "error_base_student_error_in_complex",
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C#",
@@ -7011,7 +7011,7 @@
     ],
     "negativeLaws": [
       "error_base_same_precedence_right_associativity_right",
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C#",
@@ -7091,7 +7091,7 @@
       "operator_evaluating_left_operand_first"
     ],
     "negativeLaws": [
-      "error_base_student_error_strict_operands_order_base"
+      "error_base_student_error_strict_operands_order"
     ],
     "tags": [
       "C#",
