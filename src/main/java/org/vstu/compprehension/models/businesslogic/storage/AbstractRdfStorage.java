@@ -225,7 +225,7 @@ public abstract class AbstractRdfStorage {
                 "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
                 "order by ?compl_diff ?steps_diff");
         if (limit > 0)
-            query.append("\n  limit " + limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+            query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
 
         List<Question> questions = new ArrayList<>();
         try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
@@ -282,14 +282,14 @@ public abstract class AbstractRdfStorage {
                                 score += 1 << (size - i);
                         }
                     }
-                    // set penalty for each extra law that is not in allowed laws
+                    /*// set penalty for each extra law that is not in allowed laws
                     ArrayList<String> extraLaws = new ArrayList<>(q.getNegativeLaws());
                     extraLaws.removeAll(qr.getTargetLaws().stream().map(Law::getName).collect(Collectors.toList()));
                     if (!extraLaws.isEmpty() && qr.getAllowedLaws() != null) {
                         // found out how many laws are "not allowed"
                         extraLaws.removeAll(qr.getAllowedLaws().stream().map(Law::getName).collect(Collectors.toList()));
                         score -= extraLaws.size();  // -1 for each extra law
-                    }
+                    }*/
 
                     // inspect concepts
                     int i = 0;
@@ -302,14 +302,14 @@ public abstract class AbstractRdfStorage {
                             score -= (size - i);
                     }
 
-                    // set penalty for each extra Concepts that is not in allowed laws
+                    /*// set penalty for each extra Concepts that is not in allowed concepts
                     ArrayList<String> extraConcepts = new ArrayList<>(q.getConcepts());
                     extraConcepts.removeAll(qr.getTargetConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
                     if (!extraConcepts.isEmpty()) {
                         // found out how many Concepts are "not allowed"
                         extraConcepts.removeAll(qr.getAllowedConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
                         score -= extraConcepts.size();  // -1 for each extra concept
-                    }
+                    }*/
 
                     q.getQuestionData().setId((long) score);  // (ab)use ID for setting score temporarily
                 }
