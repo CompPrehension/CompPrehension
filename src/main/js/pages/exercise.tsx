@@ -87,11 +87,12 @@ export const Exercise = observer(() => {
                             </Optional>
                             <Optional isVisible={
                                 exerciseStore.currentQuestion.questionState !== 'COMPLETED' || 
-                                exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled === true && surveyResults[exerciseStore.currentQuestion.question?.questionId ?? -1] !== undefined}>
+                                !exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled || 
+                                 surveyResults[exerciseStore.currentQuestion.question?.questionId ?? -1] !== undefined}>
                                 <div className="mt-2">
                                     <GenerateNextQuestionBtn />
                                 </div>
-                            </Optional>                        
+                            </Optional>
                         </Optional>
                         <Optional isVisible={exerciseState === 'COMPLETED'}>
                             <div className="mt-3">
