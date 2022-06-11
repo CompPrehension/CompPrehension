@@ -636,11 +636,6 @@
         "name": "uneval_subtree",
         "formulation": "(?a my:has_uneval_operand ?b), (?b my:has_operand ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
         "backend": "Jena"
-      },
-      {
-        "name": "uneval_subtree",
-        "formulation": "(?a my:has_uneval_operand ?b), (?b my:has_complex_operator_part ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
-        "backend": "Jena"
       }
     ],
     "concepts": [
@@ -910,7 +905,7 @@
       },
       {
         "name": "eval_binary_operation",
-        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"true\"^^xsd:boolean), noValue(?a, my:eval), (?a my:find_left_operand ?b), (?a my:no_unevaluated_inner_operands \"true\"^^xsd:boolean), (?a my:second_token ?a2) -> (?a my:has_complex_operator_part ?b), (?a my:has_complex_operator_part ?a2), (?a my:eval \"true\"^^xsd:boolean), (?b my:app \"true\"^^xsd:boolean), (?a2 my:app \"true\"^^xsd:boolean), (?a2 my:eval \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_binary_execution\"^^xsd:string).",
+        "formulation": "(?a my:arity \"complex\"), (?a my:is_function_call \"true\"^^xsd:boolean), noValue(?a, my:eval), (?a my:find_left_operand ?b), (?a my:no_unevaluated_inner_operands \"true\"^^xsd:boolean), (?a my:second_token ?a2) -> (?a my:has_left_operand ?b), (?a my:has_complex_operator_part ?a2), (?a my:eval \"true\"^^xsd:boolean), (?b my:app \"true\"^^xsd:boolean), (?a2 my:app \"true\"^^xsd:boolean), (?a2 my:eval \"true\"^^xsd:boolean), (?a, my:law_name \"two_token_binary_execution\"^^xsd:string).",
         "backend": "Jena"
       }
     ],
