@@ -7,6 +7,8 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
     <changeSet id="1654357220609-2" author="Mikhail Denisov">
+        <comment>(Activate and) run this migration after executing `data.sql` to update its default values.</comment>
+
         <update tableName="domain">
             <column name="options_json" value='{"StorageSPARQLEndpointUrl": null,
                 "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///tmp/compprehension/expression/",
