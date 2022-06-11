@@ -26,6 +26,9 @@ VALUES (9, 1, 1, 0, 1, '10', 'test_type', 8, 1, 'GradeConfidenceBaseStrategy', '
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (10, 1, 1, 0, 1, '10', 'test_all', 8, 0, 'GradeConfidenceBaseStrategy_Manual50Autogen50', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}');
+
+DELETE FROM exercise_laws WHERE exercise_id = 10 AND role_in_exercise = 0;
+
 --  role_in_exercise:
 --     TARGETED = 0
 --     FORBIDDEN = 1

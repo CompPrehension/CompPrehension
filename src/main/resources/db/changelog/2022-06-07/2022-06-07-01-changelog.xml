@@ -7,11 +7,11 @@
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
     <changeSet id="1654357220607-1" author="Mikhail Denisov">
-        <preConditions onFail="HALT">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="exercise"/>
             <sqlCheck  expectedResult="1">select count(*) from exercise where id = 10</sqlCheck>
         </preConditions>
-        <comment>On the first run on an empty database, the above preCondition will fail because no exercises exist yet. So run data.sql to insert all the initial data and then run the migrations again.</comment>
+        <comment>On the first run on an empty database, this changelog will be skipped because no table/no exercises exist yet. So run data.sql after the migrations to get default data.</comment>
 
         <sql>
           DELETE FROM exercise_laws WHERE exercise_id = 10 AND role_in_exercise = 0;
@@ -101,12 +101,20 @@
         </rollback>
     </changeSet>
     <changeSet id="1654357220607-2" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="exercise"/>
+            <sqlCheck  expectedResult="1">select count(*) from exercise where id = 10</sqlCheck>
+        </preConditions>
         <update tableName="exercise">
             <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":false,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}' />
             <where>id = 10</where>
         </update>
     </changeSet>
     <changeSet id="1654357220607-3" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="exercise"/>
+            <sqlCheck  expectedResult="1">select count(*) from exercise where id = 10</sqlCheck>
+        </preConditions>
         <update tableName="exercise">
             <column name="strategy_id" value='GradeConfidenceBaseStrategy_Manual50Autogen50' />
             <where>id = 10</where>
