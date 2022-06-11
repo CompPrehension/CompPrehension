@@ -45,7 +45,7 @@ public class LtiExerciseController extends BasicExerciseController {
     private ExerciseRepository exerciseRepository;
 
     @SneakyThrows
-    @RequestMapping(value = {"/pages/exercise" }, method=RequestMethod.POST)
+    @RequestMapping(value = {"/pages/exercise", "/pages/survey" }, method=RequestMethod.POST)
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> requestParams) {
         // read LTI data from both request body and request params
         // we can't just extract full form data explicitly through `@RequestParam` or something
