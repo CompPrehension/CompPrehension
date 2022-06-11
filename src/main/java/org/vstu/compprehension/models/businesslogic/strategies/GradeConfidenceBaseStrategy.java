@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.strategies;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -20,7 +21,7 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import javax.inject.Singleton;
 import java.util.*;
 
-@Component @Singleton
+@Component @Singleton @Primary
 @Log4j2
 public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
