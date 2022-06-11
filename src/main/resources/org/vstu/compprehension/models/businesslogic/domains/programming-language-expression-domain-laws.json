@@ -634,7 +634,7 @@
       },
       {
         "name": "uneval_subtree",
-        "formulation": "(?a my:has_operand ?b), (?a my:has_uneval_operand ?b), (?b my:has_operand ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
+        "formulation": "(?a my:has_uneval_operand ?b), (?b my:has_operand ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
         "backend": "Jena"
       }
     ],
@@ -1318,6 +1318,11 @@
         "backend": "OWL"
       },
       {
+        "name": "has_operand",
+        "formulation": "owl:ObjectProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "has_left_operand",
         "formulation": "owl:ObjectProperty",
         "backend": "OWL"
@@ -1339,6 +1344,11 @@
       },
       {
         "name": "complex_beginning",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
+        "name": "not_selectable",
         "formulation": "owl:DatatypeProperty",
         "backend": "OWL"
       },
@@ -1484,7 +1494,7 @@
       },
       {
         "name": "describe_error",
-        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b), (?a my:precedence ?a_precedence), (?b my:precedence ?b_precedence) -> (?a my:describe_error ?b).",
+        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b), noValue(?c my:has_uneval_operand ?a), noValue(?c my:has_uneval_operand ?b), (?a my:precedence ?a_precedence), (?b my:precedence ?b_precedence) -> (?a my:describe_error ?b).",
         "backend": "Jena"
       },
       {
@@ -1533,6 +1543,11 @@
         "backend": "Jena"
       },
       {
+        "name": "student_error_strict_operands_order_base_inner_parenthesis",
+        "formulation": "(?b my:student_error_strict_operands_order_base ?a), (?a my:not_selectable \"true\"^^xsd:boolean), (?a my:has_inner_operand ?c), (?a my:before_third_operator ?d), (?d my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean) -> (?b my:student_error_strict_operands_order_base ?c), (?c my:before_direct ?b), (?c my:before_third_operator ?d).",
+        "backend": "Jena"
+      },
+      {
         "name": "student_error_strict_operands_order",
         "formulation": "(?b my:student_error_strict_operands_order_base ?a), (?a my:describe_error ?b) -> (?b my:student_error_strict_operands_order ?a).",
         "backend": "Jena"
@@ -1554,17 +1569,17 @@
       },
       {
         "name": "student_error_unevaluated_operand",
-        "formulation": "(?a my:student_error_unevaluated_operand_base ?b), (?b my:student_pos_number ?b_pos) -> (?a my:student_error_unevaluated_operand ?b).",
+        "formulation": "(?a my:student_error_unevaluated_operand_base ?b), (?b my:student_pos_number ?b_pos) -> (?b my:student_error_unevaluated_operand ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_early_finish_base",
-        "formulation": "(?a my:student_error_unevaluated_operand_base ?b) -> (?a my:student_error_early_finish_base ?b).",
+        "formulation": "(?a my:has_operand ?b), noValue(?a my:not_selectable) -> (?a my:student_error_early_finish_base ?b).",
         "backend": "Jena"
       },
       {
         "name": "student_error_early_finish",
-        "formulation": "(?a my:student_error_early_finish_base ?b), (?c my:student_end_evaluation \"true\"^^xsd:boolean), noValue(?d my:student_pos_number), noValue(?e my:has_uneval_operand ?d) -> (?a my:student_error_early_finish ?d).",
+        "formulation": "(?c my:student_end_evaluation \"true\"^^xsd:boolean), (?d my:student_error_early_finish_base ?f), noValue(?d my:student_pos_number), noValue(?e my:has_uneval_operand ?d) -> (?d my:student_error_early_finish ?d).",
         "backend": "Jena"
       }
     ],
@@ -2905,7 +2920,7 @@
       },
       {
         "name": "operator&&",
-        "formulation": "(?a my:text \"||\") -> (?a my:associativity \"L\"), (?a my:precedence 14), (?a my:arity \"binary\"), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:has_value_eval_restriction \"no_right_if_false\"^^xsd:string), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
+        "formulation": "(?a my:text \"&&\") -> (?a my:associativity \"L\"), (?a my:precedence 14), (?a my:arity \"binary\"), (?a my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean), (?a my:has_value_eval_restriction \"no_right_if_false\"^^xsd:string), (?a my:init \"true\"^^xsd:boolean), (?a my:complex_beginning \"false\"^^xsd:boolean), (?a my:complex_ending \"false\"^^xsd:boolean).",
         "backend": "Jena"
       },
       {
@@ -3354,7 +3369,7 @@
     ]
   },
   {
-    "name": "error_base_student_error_strict_operands_order_base",
+    "name": "error_base_student_error_strict_operands_order",
     "positive": false,
     "formulations": [
       {
@@ -3370,7 +3385,7 @@
     ]
   },
   {
-    "name": "error_base_student_error_unevaluated_operand_base",
+    "name": "error_base_student_error_unevaluated_operand",
     "positive": false,
     "formulations": [
     ],
@@ -3381,7 +3396,7 @@
     ]
   },
   {
-    "name": "error_base_student_error_early_finish_base",
+    "name": "error_base_student_error_early_finish",
     "positive": false,
     "formulations": [
     ],

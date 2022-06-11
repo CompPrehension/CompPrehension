@@ -31,10 +31,12 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 
@@ -712,12 +714,18 @@ RdfStorage.StopBackgroundDBFillUp()
         }
 
         System.out.println(files.size() + " files to parse");
+        int count = 0;
         for (String file : files) {
             int path_len = rdf_template_dir.length();
             String name = file.substring(path_len);  // cut directory path
 
             if (name.equals(".DS_Store")) {
                 continue; // system path
+            }
+
+            count++;
+            if (count > 50) {
+                break;
             }
 
             if (name.endsWith(".ttl"))
@@ -728,7 +736,7 @@ RdfStorage.StopBackgroundDBFillUp()
 
             rs.createQuestionTemplate(name);
 
-            System.out.println("    Upload model ...");
+            System.out.println("    Upload model ..." + count);
             Model m = ModelFactory.createDefaultModel();
             RDFDataMgr.read(m, file);
 
@@ -739,17 +747,37 @@ RdfStorage.StopBackgroundDBFillUp()
 
             System.out.println("Creating question: " + name);
             Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
+            Set<Set<String>> possibleViolations = new HashSet<>();
             for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
+                {
+                    Model qG = rs.getGraph(NS_questions.base());
+                    assert qG != null;
+
+                    Model existingData = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION));
+                    existingData.add(question.getValue());
+                    Model inferred = rs.runReasoning(
+                            rs.getFullSchema().union(existingData),
+                            rs.getDomainRulesForSolvingAtLevel(GraphRole.QUESTION_SOLVED),
+                            true);
+                    List<BackendFactEntity> facts = modelToFacts(inferred, AbstractRdfStorage.NS_code.base());
+                    Set<String> violations = domain.possibleViolations(facts, null);
+
+                    if (possibleViolations.contains(violations)) {
+                        System.out.println("Skip question with same violations: " + question.getKey());
+                    }
+                    possibleViolations.add(violations);
+                }
+
                 // create metadata entry
                 rs.createQuestion(question.getKey(), name, false);
                 // set basic data of the question
                 rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, question.getValue());
                 // solve the question (using the data uploaded above as QUESTION)
-                rs.solveQuestion(question.getKey(), GraphRole.QUESTION);
+                rs.solveQuestion(question.getKey(), GraphRole.QUESTION_SOLVED);
 
-                String json = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION), rs);
                 System.out.println("Saving question: " + question.getKey());
-                rs.saveQuestionData(question.getKey(), json);
+                Question domainQuestion = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION_SOLVED), rs);
+                rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
             }
         }
         rs.saveToFilesystem();

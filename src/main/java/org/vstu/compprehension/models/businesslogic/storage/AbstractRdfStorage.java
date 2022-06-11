@@ -454,16 +454,25 @@ public abstract class AbstractRdfStorage {
         List<Law> laws = new ArrayList<>();
 
         // choose whose rules to return
-        if (level.ordinal() >= GraphRole.QUESTION_TEMPLATE.ordinal() && level.ordinal() <= GraphRole.QUESTION_TEMPLATE_SOLVED.ordinal()) {
+        if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
             laws.addAll(domain.getPositiveLaws());
-        } else if (level.ordinal() >= GraphRole.QUESTION.ordinal()) {
-            laws.addAll(domain.getQuestionLaws("OrderOperators"));
-        } else {
-            // passed not-a-question role -- get all
+        } else if (level.ordinal() <= GraphRole.QUESTION_TEMPLATE_SOLVED.ordinal()) {
             if (domain instanceof ProgrammingLanguageExpressionDomain) {
-                laws.addAll(domain.getQuestionLaws("OrderOperators"));
+                List<Tag> tags = new ArrayList<>();
+                for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
+                    Tag tag = new Tag();
+                    tag.setName(tagString);
+                    tags.add(tag);
+                }
+                laws.addAll(domain.getQuestionPositiveLaws("OrderOperators", tags));
             } else if (domain instanceof ControlFlowStatementsDomain) {
-                laws.addAll(domain.getQuestionLaws("OrderActs"));
+                laws.addAll(domain.getQuestionPositiveLaws("OrderActs", new ArrayList<>()));
+            }
+        } else {
+            if (domain instanceof ProgrammingLanguageExpressionDomain) {
+                laws.addAll(domain.getQuestionNegativeLaws("OrderOperators", new ArrayList<>()));
+            } else if (domain instanceof ControlFlowStatementsDomain) {
+                laws.addAll(domain.getQuestionNegativeLaws("OrderActs", new ArrayList<>()));
             }
         }
 
@@ -915,7 +924,7 @@ public abstract class AbstractRdfStorage {
         Model qG = getGraph(NS_questions.base());
         assert qG != null;
 
-        Model existingData = getQuestionModel(questionName, desiredLevel);
+        Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
 
         // avoid processing too large templates
         if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
@@ -1112,11 +1121,11 @@ public abstract class AbstractRdfStorage {
     public Model solveTemplate(Model srcModel, boolean retainNewFactsOnly) {
         return runReasoning(
                 getFullSchema().union(srcModel),
-                getDomainRulesForSolvingAtLevel(GraphRole.SCHEMA),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
+                getDomainRulesForSolvingAtLevel(GraphRole.QUESTION_TEMPLATE),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
                 retainNewFactsOnly);
     }
 
-    protected Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
+    public Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
         GenericRuleReasoner reasoner = new GenericRuleReasoner(rules);
 
         long startTime = System.nanoTime();
