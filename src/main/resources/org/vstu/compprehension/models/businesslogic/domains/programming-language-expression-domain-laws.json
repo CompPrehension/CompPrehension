@@ -636,6 +636,11 @@
         "name": "uneval_subtree",
         "formulation": "(?a my:has_uneval_operand ?b), (?b my:has_operand ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
         "backend": "Jena"
+      },
+      {
+        "name": "uneval_subtree",
+        "formulation": "(?a my:has_uneval_operand ?b), (?b my:has_complex_operator_part ?c), (?c my:has_operand ?d) -> (?a my:has_uneval_operand ?c).",
+        "backend": "Jena"
       }
     ],
     "concepts": [
@@ -643,7 +648,7 @@
       {"name": "unevaluated_operand"}
     ],
     "tags": [
-      {"name": "basics"}
+      {"name": "evaluation"}
     ]
   },
   {
