@@ -33,6 +33,12 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
         })
 
+        // show elements values
+        document.querySelectorAll('[data-comp-ph-value]').forEach(e => {
+            const value = e.getAttribute('data-comp-ph-value');
+            e.innerHTML += `<span class="comp-ph-expr-bottom-hint">${value}</span>`;
+        })
+
         // show elements positions
         document.querySelectorAll('[data-comp-ph-pos]').forEach(e => {
             const pos = e.getAttribute('data-comp-ph-pos');
@@ -44,6 +50,8 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
     useEffect(() => {
         // drop all changes, set original qustion text    
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
+            const value = e.getAttribute('data-comp-ph-value');
+            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (value ? `<span class="comp-ph-expr-bottom-hint">${value}</span>` : '')
             const pos = e.getAttribute("data-comp-ph-pos");
             e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '')
             e.classList.remove('disabled');
