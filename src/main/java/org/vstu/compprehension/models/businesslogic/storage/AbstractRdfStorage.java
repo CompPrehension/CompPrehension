@@ -456,7 +456,7 @@ public abstract class AbstractRdfStorage {
         // choose whose rules to return
         if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
             laws.addAll(domain.getPositiveLaws());
-        } else if (level.ordinal() <= GraphRole.QUESTION_TEMPLATE_SOLVED.ordinal()) {
+        } else if (level.ordinal() <= GraphRole.QUESTION.ordinal()) {
             if (domain instanceof ProgrammingLanguageExpressionDomain) {
                 List<Tag> tags = new ArrayList<>();
                 for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {

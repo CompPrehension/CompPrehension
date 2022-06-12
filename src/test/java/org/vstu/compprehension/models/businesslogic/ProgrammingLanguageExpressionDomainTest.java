@@ -311,8 +311,6 @@ public class ProgrammingLanguageExpressionDomainTest {
         q.getQuestionData().setSolutionFacts(solution);
 
         Set<String> init = domain.possibleViolations(q, null);
-        assertEquals(5, init.size());
-        assertTrue(init.contains("error_base_higher_precedence_right"));
         assertTrue(init.contains("error_base_student_error_unevaluated_operand"));
     }
 

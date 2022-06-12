@@ -1493,13 +1493,18 @@
         "backend": "OWL"
       },
       {
+        "name": "error_requirement",
+        "formulation": "owl:DatatypeProperty",
+        "backend": "OWL"
+      },
+      {
         "name": "describe_error",
-        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b), noValue(?c my:has_uneval_operand ?a), noValue(?c my:has_uneval_operand ?b), (?a my:precedence ?a_precedence), (?b my:precedence ?b_precedence) -> (?a my:describe_error ?b).",
+        "formulation": "(?b my:student_pos_less ?a), (?a my:before_direct ?b), (?a my:precedence ?a_precedence), (?b my:precedence ?b_precedence) -> (?a my:describe_error ?b).",
         "backend": "Jena"
       },
       {
         "name": "student_error_in_complex_base",
-        "formulation": "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:text \"(\") -> (?b my:student_error_in_complex_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:text \"(\") -> (?b my:student_error_in_complex_base ?a).",
         "backend": "Jena"
       },
       {
@@ -1509,17 +1514,17 @@
       },
       {
         "name": "student_error_in_complex_bound_base",
-        "formulation": "(?b my:has_inner_operand ?a), (?b my:complex_beginning \"true\"^^xsd:boolean) -> (?b my:student_error_in_complex_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?b my:has_inner_operand ?a), (?b my:complex_beginning \"true\"^^xsd:boolean) -> (?b my:student_error_in_complex_base ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_more_precedence_base_left_operand",
-        "formulation": "(?b my:has_left_operand ?a), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?b my:has_left_operand ?a), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence_base ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_more_precedence_base_right_operand",
-        "formulation": "(?b my:has_right_operand ?a), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?b my:has_right_operand ?a), (?a my:high_precedence_diff_precedence ?b) -> (?b my:student_error_more_precedence_base ?a).",
         "backend": "Jena"
       },
       {
@@ -1529,7 +1534,7 @@
       },
       {
         "name": "student_error_right_assoc_base",
-        "formulation": "(?b my:has_right_operand ?a), (?a my:high_precedence_right_assoc ?b) -> (?b my:student_error_right_assoc_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?b my:has_right_operand ?a), (?a my:high_precedence_right_assoc ?b) -> (?b my:student_error_right_assoc_base ?a).",
         "backend": "Jena"
       },
       {
@@ -1539,12 +1544,12 @@
       },
       {
         "name": "student_error_strict_operands_order_base",
-        "formulation": "(?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean) -> (?b my:student_error_strict_operands_order_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?a my:before_by_third_operator ?b), (?a my:before_third_operator ?c), (?c my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean) -> (?b my:student_error_strict_operands_order_base ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_strict_operands_order_base_inner_parenthesis",
-        "formulation": "(?b my:student_error_strict_operands_order_base ?a), (?a my:not_selectable \"true\"^^xsd:boolean), (?a my:has_inner_operand ?c), (?a my:before_third_operator ?d), (?d my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean) -> (?b my:student_error_strict_operands_order_base ?c), (?c my:before_direct ?b), (?c my:before_third_operator ?d).",
+        "formulation": "(?a my:before_by_third_operator ?b), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?a my:not_selectable \"true\"^^xsd:boolean), (?a my:has_inner_operand ?c), (?a my:before_third_operator ?d), (?d my:is_operator_with_strict_operands_order \"true\"^^xsd:boolean) -> (?b my:student_error_strict_operands_order_base ?c), (?c my:before_direct ?b), (?c my:before_third_operator ?d).",
         "backend": "Jena"
       },
       {
@@ -1554,7 +1559,7 @@
       },
       {
         "name": "student_error_left_assoc_base",
-        "formulation": "(?b my:has_left_operand ?a), (?a my:high_precedence_left_assoc ?b) -> (?b my:student_error_left_assoc_base ?a).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), noValue(?none my:has_uneval_operand ?a), noValue(?none1 my:has_uneval_operand ?b), (?b my:has_left_operand ?a), (?a my:high_precedence_left_assoc ?b) -> (?b my:student_error_left_assoc_base ?a).",
         "backend": "Jena"
       },
       {
@@ -1564,22 +1569,22 @@
       },
       {
         "name": "student_error_unevaluated_operand_base",
-        "formulation": "(?a my:has_uneval_operand ?b), (?b my:has_operand ?c) -> (?a my:student_error_unevaluated_operand_base ?b).",
+        "formulation": "noValue(?a my:not_selectable), noValue(?b my:not_selectable), (?a my:has_uneval_operand ?b), (?b my:has_operand ?c) -> (?b my:student_error_unevaluated_operand_base ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_unevaluated_operand",
-        "formulation": "(?a my:student_error_unevaluated_operand_base ?b), (?b my:student_pos_number ?b_pos) -> (?b my:student_error_unevaluated_operand ?a).",
+        "formulation": "(?b my:student_error_unevaluated_operand_base ?a), (?b my:student_pos_number ?b_pos) -> (?b my:student_error_unevaluated_operand ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_early_finish_base",
-        "formulation": "(?a my:has_operand ?b), noValue(?a my:not_selectable) -> (?a my:student_error_early_finish_base ?b).",
+        "formulation": "(?a my:has_operand ?b), noValue(?none my:has_uneval_operand ?a), noValue(?a my:not_selectable) -> (?b my:student_error_early_finish_base ?a).",
         "backend": "Jena"
       },
       {
         "name": "student_error_early_finish",
-        "formulation": "(?c my:student_end_evaluation \"true\"^^xsd:boolean), (?d my:student_error_early_finish_base ?f), noValue(?d my:student_pos_number), noValue(?e my:has_uneval_operand ?d) -> (?d my:student_error_early_finish ?d).",
+        "formulation": "(?c my:student_end_evaluation \"true\"^^xsd:boolean), (?f my:student_error_early_finish_base ?d), noValue(?d my:student_pos_number) -> (?d my:student_error_early_finish ?d).",
         "backend": "Jena"
       }
     ],

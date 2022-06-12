@@ -754,9 +754,12 @@ RdfStorage.StopBackgroundDBFillUp()
                 Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
                 Set<Set<String>> possibleViolations = new HashSet<>();
                 for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
-                    // Solve question model
-                    Model questionModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION)).add(question.getValue());
-                    Model solvedQuestionModel = rs.solveTemplate(questionModel, GraphRole.QUESTION_SOLVED, true);
+                    // Create question model (with positive laws)
+                    Model questionInitModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION)).add(question.getValue());
+                    Model questionModel = rs.solveTemplate(questionInitModel, GraphRole.QUESTION, true);
+                    questionModel.add(question.getValue());
+                    // Find potential errors
+                    Model solvedQuestionModel = rs.solveTemplate(questionInitModel.add(questionModel), GraphRole.QUESTION_SOLVED, true);
 
                     // Generate only questions with different error sets
                     List<BackendFactEntity> facts = modelToFacts(solvedQuestionModel, AbstractRdfStorage.NS_code.base());
@@ -770,7 +773,7 @@ RdfStorage.StopBackgroundDBFillUp()
                     // create metadata entry
                     rs.createQuestion(question.getKey(), name, false);
                     // set basic data of the question
-                    rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, question.getValue());
+                    rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, questionModel);
                     // set solved data of the question
                     rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
