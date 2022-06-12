@@ -413,7 +413,17 @@ public class ControlFlowStatementsDomain extends Domain {
             ///
 
         }
-        return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
+        Question questionCopy = makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
+
+        // patch question text for survey: hide comments
+        questionCopy.getQuestionData().setQuestionText(
+                questionCopy.getQuestionText().getText().replace(
+                        "span.comment {",
+                        "span.comment { display: none;"
+                )
+        );
+
+        return questionCopy;
     }
 
     static List<BackendFactEntity> schemaFactsCache = null;
