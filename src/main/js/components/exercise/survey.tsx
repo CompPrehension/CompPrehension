@@ -9,7 +9,7 @@ export type SurveyComponentProps = {
     surveyId : string;
     value?: Record<number, string>;
     questionId: number;
-    onAnswered: (questionId: number, answers: Record<number, string>) => void,
+    onAnswered: (survey: Survey, questionId: number, answers: Record<number, string>) => void,
 }
 export const SurveyComponent = (props: SurveyComponentProps) => {
     var [endpoint] = useState(() => container.resolve(SurveyController));
@@ -33,7 +33,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
                 setSurveyState('SENDING_RESULTS');                
                 await Promise.all(survey!.questions.map(q => endpoint.postSurveyAnswer(q.id, props.questionId, newAnswers[q.id])));
                 setSurveyState('COMPLETED');
-                props.onAnswered(props.questionId, newAnswers);
+                props.onAnswered(survey, props.questionId, newAnswers);
             }
         })();
     }, [survey]);

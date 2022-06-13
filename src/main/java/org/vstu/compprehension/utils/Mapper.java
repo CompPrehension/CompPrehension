@@ -30,6 +30,7 @@ public class Mapper {
     public static @NotNull SurveyDto toDto(@NotNull SurveyEntity survey) {
         var result = SurveyDto.builder()
                 .surveyId(survey.getSurveyId())
+                .options(survey.getOptions())
                 .questions(survey.getQuestions().stream()
                         .map(q -> SurveyQuestionDto.builder()
                                 .id(q.getId())
