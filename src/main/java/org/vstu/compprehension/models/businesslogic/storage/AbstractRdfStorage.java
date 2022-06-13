@@ -270,6 +270,7 @@ public abstract class AbstractRdfStorage {
         if (limit > 0)
             query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
 
+        System.out.println("Request " + qr);
         List<Question> questions = new ArrayList<>();
         try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
 
@@ -360,6 +361,7 @@ public abstract class AbstractRdfStorage {
                     }
 
                     q.getQuestionData().setId((long) score);  // (ab)use ID for setting score temporarily
+                    System.out.println("Found " + score + " " + questionName);
                 }
 
                 /*
