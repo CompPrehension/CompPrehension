@@ -51,9 +51,8 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         // drop all changes, set original qustion text    
         document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
             const value = e.getAttribute('data-comp-ph-value');
-            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (value ? `<span class="comp-ph-expr-bottom-hint">${value}</span>` : '')
             const pos = e.getAttribute("data-comp-ph-pos");
-            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '')
+            e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '') + (value ? `<span class="comp-ph-expr-bottom-hint">${value}</span>` : '')
             e.classList.remove('disabled');
             e.classList.remove('comp-ph-question-answer--last-selected-by-system');
         });
