@@ -12,12 +12,14 @@ import { Optional } from "../components/common/optional";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-bootstrap";
 import { SurveyComponent } from "../components/exercise/survey";
+import { Survey } from "../types/survey";
 
 export const SurveyPage = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, surveyResults } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();
+    const [surveyState, setSurveyState]= useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
 
     // on first render
     useEffect(() => {
@@ -61,12 +63,22 @@ export const SurveyPage = observer(() => {
         await loadQuestion();
     }
 
-    const onSurveyAnswered = useCallback((questionId: number, answers: Record<number, string>) => {
+    const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
         (async() => {
             exerciseStore.setSurveyAnswers(questionId, answers);
+            if (survey.options.size === Object.getOwnPropertyNames(exerciseStore.surveyResults).length) {
+                setSurveyState('COMPLETED');
+                return;
+            }
             await exerciseStore.generateQuestion();
         })()        
     }, [exerciseStore]);
+
+    const surveyOptions = exerciseStore.sessionInfo?.exercise.options.surveyOptions;
+    const currentQuestionId = exerciseStore.currentQuestion.question?.questionId;
+
+    if (!surveyOptions?.enabled)
+        return null;
 
     return (
         <>
@@ -76,13 +88,19 @@ export const SurveyPage = observer(() => {
                     <div className="mt-5">
                         <div style={{ pointerEvents: 'none'}} >
                             <CurrentQuestion />
-                        </div>                        
-                        <Optional isVisible={exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled === true
-                            && currentQuestion.questionState === 'LOADED'}>
+                        </div>
+                        <Optional isVisible={surveyState === 'COMPLETED'} >
+                            <div className="mt-2">
+                                <Alert variant={'success'}>
+                                    Спасибо за участие в опросе!
+                                </Alert>
+                            </div>
+                        </Optional>
+                        <Optional isVisible={surveyState !== 'COMPLETED' && currentQuestion.questionState === 'LOADED'}>
                             <div className="mt-2">
                                 <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
                                                  value={exerciseStore.surveyResults[exerciseStore.currentQuestion.question?.questionId ?? -1]}
-                                                 surveyId={exerciseStore.sessionInfo?.exercise.options.surveyOptions?.surveyId ?? ''} 
+                                                 surveyId={surveyOptions?.surveyId ?? ''} 
                                                  onAnswered={onSurveyAnswered}/>
                             </div>
                         </Optional>

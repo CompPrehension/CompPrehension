@@ -12,6 +12,7 @@ import { Optional } from "../components/common/optional";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-bootstrap";
 import { SurveyComponent } from "../components/exercise/survey";
+import { Survey } from "../types/survey";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -57,7 +58,7 @@ export const Exercise = observer(() => {
         await loadQuestion();
     }
 
-    const onSurveyAnswered = useCallback((questionId: number, answers: Record<number, string>) => {
+    const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
         (async() => {
             exerciseStore.setSurveyAnswers(questionId, answers);
         })()

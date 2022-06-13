@@ -101,6 +101,7 @@
         </rollback>
     </changeSet>
     <changeSet id="1654357220607-2" author="Mikhail Denisov">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <tableExists tableName="exercise"/>
             <sqlCheck  expectedResult="1">select count(*) from exercise where id = 10</sqlCheck>
