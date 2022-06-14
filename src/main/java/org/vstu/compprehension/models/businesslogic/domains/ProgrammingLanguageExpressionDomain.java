@@ -2002,25 +2002,57 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addedFacts.put(templateName + "_v", new ArrayList<>());
 
         List<BackendFactEntity> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
+        switchPoints.sort(
+                Comparator.comparingInt((BackendFactEntity a) -> Integer.parseInt(a.getSubject().substring("op__0__".length()))));
         for (BackendFactEntity branchOperands : switchPoints) {
             List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
             assertEquals(1, leftOp.size());
             Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
 
+            List<BackendFactEntity> left_op_is_switch = fg.filterFacts(leftOp.get(0).getObject(), "has_value_eval_restriction", null);
+            List<BackendFactEntity> left_op_is_ternary = fg.filterFacts(leftOp.get(0).getObject(), "has_inner_operand", null);
+            String left_op_left_op = null;
+            if (!left_op_is_switch.isEmpty() && left_op_is_ternary.isEmpty()) {
+                left_op_left_op = fg.filterFacts(leftOp.get(0).getObject(), "has_left_operand", null).get(0).getObject();
+            }
+
             for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
-                if (switchPoints.size() > 20 && random() < 0.1) {
-                    continue;
+                boolean canBeTrue = true;
+                boolean canBeFalse = true;
+                if (left_op_left_op != null) {
+                    for (BackendFactEntity prevFact : facts.getValue()) {
+                        if (left_op_left_op.equals(prevFact.getSubject())) {
+                            if (left_op_is_switch.get(0).getObject().equals("no_right_if_true") && prevFact.getObject().equals("true")) {
+                                canBeFalse = false;
+                            }
+                            if (left_op_is_switch.get(0).getObject().equals("no_right_if_false") && prevFact.getObject().equals("false")) {
+                                canBeTrue = false;
+                            }
+                        }
+                    }
                 }
 
-                List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
-                addedTrueFacts.addAll(facts.getValue());
-                addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
-                newAddedFacts.put(facts.getKey() + "t", addedTrueFacts);
+                // Decrease number of variants in huge questions
+                if (canBeTrue && switchPoints.size() > 25 && random() < 0.05) {
+                    canBeTrue = false;
+                }
+                if (canBeFalse && switchPoints.size() > 25 && random() < 0.05) {
+                    canBeFalse = false;
+                }
 
-                List<BackendFactEntity> addedFalseFacts = new ArrayList<>();
-                addedFalseFacts.addAll(facts.getValue());
-                addedFalseFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
-                newAddedFacts.put(facts.getKey() + "f", addedFalseFacts);
+                if (canBeTrue) {
+                    List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
+                    addedTrueFacts.addAll(facts.getValue());
+                    addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
+                    newAddedFacts.put(facts.getKey() + "t", addedTrueFacts);
+                }
+
+                if (canBeFalse) {
+                    List<BackendFactEntity> addedFalseFacts = new ArrayList<>();
+                    addedFalseFacts.addAll(facts.getValue());
+                    addedFalseFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
+                    newAddedFacts.put(facts.getKey() + "f", addedFalseFacts);
+                }
             }
             addedFacts = newAddedFacts;
         }
