@@ -88,6 +88,9 @@ public abstract class AbstractRdfStorage {
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
+
+    protected List<Double> questionSolutionLengthStatCache = null;
+
     /**
      * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
      */
@@ -355,7 +358,10 @@ public abstract class AbstractRdfStorage {
      * @return [min, avg, max] statistics of solution_steps property
      */
     List<Double> questionSolutionLengthStat() {
-        // TODO: cache result?
+        if (questionSolutionLengthStatCache != null) {
+            return questionSolutionLengthStatCache;
+        }
+
         String solutionLengthStatQuery = "select (max(?solution_steps) as ?max)" +
                 " (min(?solution_steps) as ?min)" +
                 " (avg(?solution_steps) as ?avg)\n" +
@@ -376,6 +382,7 @@ public abstract class AbstractRdfStorage {
         } catch (JenaException exception) {
             exception.printStackTrace();
         }
+        questionSolutionLengthStatCache = result;  // save to cache
         return result;
     }
 
