@@ -88,6 +88,9 @@ public abstract class AbstractRdfStorage {
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
+
+    protected List<Double> questionSolutionLengthStatCache = null;
+
     /**
      * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
      */
@@ -209,15 +212,55 @@ public abstract class AbstractRdfStorage {
                     .append("> \"")
                     .append(denied_law).append("\" }\n");
         }
-        if (qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() > 0) {
+        // Laws (violations)
+        {
+            // older version: just require all laws
             //  "#    filter exists { ?s <http://vstu.ru/poas/questions/has_law> \"target_law\" }\n";
-            for (Law law : qr.getTargetLaws()) {
-                String target_law = law.getName();
-                query.append("    filter exists { ?s <")
-                        .append(NS_questions.get("has_violation"))
-                        .append("> \"")
-                        .append(target_law).append("\" }\n");
+
+            /* newer version: allow omitting rightmost laws if all laws cannot be here at once
+            filter exists { {
+                ?s <.../has_violation> "LastFalseNoEnd" .
+                ?s <.../has_violation> "NoConditionAfterIteration" .
+                ?s <.../has_violation> "NoLoopEndAfterFailedCondition" .
+                ?s <.../has_violation> "NoFirstCondition" .
+                ?s <.../has_violation> "LoopStartIsNotIteration" .
+              } UNION {
+                ?s <.../has_violation> "LastFalseNoEnd" .
+                ?s <.../has_violation> "NoConditionAfterIteration" .
+                ?s <.../has_violation> "NoLoopEndAfterFailedCondition" .
+                ?s <.../has_violation> "NoFirstCondition" .
+              } UNION {
+                ?s <.../has_violation> "LastFalseNoEnd" .
+                ?s <.../has_violation> "NoConditionAfterIteration" .
+                ?s <.../has_violation> "NoLoopEndAfterFailedCondition" .
+              } UNION {
+                ?s <.../has_violation> "LastFalseNoEnd" .
+                ?s <.../has_violation> "NoConditionAfterIteration" .
+              } UNION {
+                ?s <.../has_violation> "LastFalseNoEnd" .
+              }
             }
+             */
+            String has_violation = NS_questions.get("has_violation");
+            query.append("    filter exists {{\n");
+            int lawsN = qr.getTargetLaws().size();
+            boolean allOnly = qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() > 0;
+
+            for (int i = lawsN; i > 0; --i) {
+                if (i != lawsN) {
+                    query.append("      } UNION {\n");
+                }
+                for (Law law : qr.getTargetLaws().subList(0, i)) {
+                    String target_law = law.getName();
+                    query.append("        ?s <")
+                            .append(has_violation)
+                            .append("> \"")
+                            .append(target_law).append("\" .\n");
+                }
+                if (allOnly)
+                    break;
+            }
+            query.append("    }}");
         }
 //                "#    filter exists { ?s <http://vstu.ru/poas/questions/has_concept> \"target_concept\" }\n" +
         // query footer
@@ -271,7 +314,7 @@ public abstract class AbstractRdfStorage {
                     }
 
                     // inspect laws
-                    if (qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() < 0) {
+                    if (qr.getLawsSearchDirection() == null || qr.getLawsSearchDirection().getValue() < 0) {
                         int i = 0;
                         int size = qr.getTargetLaws().size();
                         //// score += 1 << size;  // maximize possible score for existing laws
@@ -282,14 +325,17 @@ public abstract class AbstractRdfStorage {
                                 score += 1 << (size - i);
                         }
                     }
-                    /*// set penalty for each extra law that is not in allowed laws
-                    ArrayList<String> extraLaws = new ArrayList<>(q.getNegativeLaws());
-                    extraLaws.removeAll(qr.getTargetLaws().stream().map(Law::getName).collect(Collectors.toList()));
-                    if (!extraLaws.isEmpty() && qr.getAllowedLaws() != null) {
-                        // found out how many laws are "not allowed"
-                        extraLaws.removeAll(qr.getAllowedLaws().stream().map(Law::getName).collect(Collectors.toList()));
+                    if (qr.getAllowedLaws() != null && !qr.getAllowedLaws().isEmpty()) {
+                        // set penalty for each extra law that is not in allowed laws (if no allowed laws provided, allow everything)
+                        ArrayList<String> extraLaws = new ArrayList<>(q.getNegativeLaws());
+                        extraLaws.removeAll(qr.getTargetLaws().stream().map(Law::getName).collect(Collectors.toList()));
+                        if (!extraLaws.isEmpty()) {
+                            // found out how many laws are "not allowed"
+                            extraLaws.removeAll(qr.getAllowedLaws().stream().map(Law::getName).collect(Collectors.toList()));
+                        }
                         score -= extraLaws.size();  // -1 for each extra law
-                    }*/
+                    }
+
 
                     // inspect concepts
                     int i = 0;
@@ -302,14 +348,16 @@ public abstract class AbstractRdfStorage {
                             score -= (size - i);
                     }
 
-                    /*// set penalty for each extra Concepts that is not in allowed concepts
-                    ArrayList<String> extraConcepts = new ArrayList<>(q.getConcepts());
-                    extraConcepts.removeAll(qr.getTargetConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
-                    if (!extraConcepts.isEmpty()) {
-                        // found out how many Concepts are "not allowed"
-                        extraConcepts.removeAll(qr.getAllowedConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
-                        score -= extraConcepts.size();  // -1 for each extra concept
-                    }*/
+                    if (qr.getAllowedConcepts() != null && !qr.getAllowedConcepts().isEmpty()) {
+                        // set penalty for each extra concept that is not in allowed concepts (if no allowed concepts provided, allow everything)
+                        ArrayList<String> extraConcepts = new ArrayList<>(q.getConcepts());
+                        extraConcepts.removeAll(qr.getTargetConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
+                        if (!extraConcepts.isEmpty()) {
+                            // found out how many Concepts are "not allowed"
+                            extraConcepts.removeAll(qr.getAllowedConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
+                            score -= extraConcepts.size();  // -1 for each extra concept
+                        }
+                    }
 
                     q.getQuestionData().setId((long) score);  // (ab)use ID for setting score temporarily
                 }
@@ -355,7 +403,10 @@ public abstract class AbstractRdfStorage {
      * @return [min, avg, max] statistics of solution_steps property
      */
     List<Double> questionSolutionLengthStat() {
-        // TODO: cache result?
+        if (questionSolutionLengthStatCache != null) {
+            return questionSolutionLengthStatCache;
+        }
+
         String solutionLengthStatQuery = "select (max(?solution_steps) as ?max)" +
                 " (min(?solution_steps) as ?min)" +
                 " (avg(?solution_steps) as ?avg)\n" +
@@ -376,6 +427,7 @@ public abstract class AbstractRdfStorage {
         } catch (JenaException exception) {
             exception.printStackTrace();
         }
+        questionSolutionLengthStatCache = result;  // save to cache
         return result;
     }
 
