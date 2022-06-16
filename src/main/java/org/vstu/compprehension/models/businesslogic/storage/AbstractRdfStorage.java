@@ -673,7 +673,7 @@ public abstract class AbstractRdfStorage {
     }
 
     /**
-     * Find what stage a question is in. Returned constant means which stage is reached now.
+     * Find what stage a question is in. Returned constant means which stage is reached by now.
      * (Using "questions" metadata graph only, no more graphs fetched from remote.)
      *
      * @param questionName question/questionTemplate unqualified name
