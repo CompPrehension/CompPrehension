@@ -309,7 +309,7 @@ public abstract class AbstractRdfStorage {
                 if (limit > 0) {  // calc the score as filtering is required
                     int score = 0;  // how the question suits the request
 
-                    if (qr.getDeniedQuestionNames().contains(questionName)) {
+                    if (qr.getDeniedQuestionNames().contains(questionName) || qr.getDeniedQuestionNames().contains(Domain.NAME_PREFIX_IS_HUMAN + q.getQuestionName())) {
                         score -= 10_000; // try to avoid returning the same question again
                     }
 
