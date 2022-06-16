@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
@@ -44,7 +45,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.random;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Component
+@Component @Log4j2
 @Singleton
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
@@ -465,6 +466,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         if (res != null) {
+            log.info("Expression domain has prepared the question: " + res.getQuestionName());
+
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
         }
 
