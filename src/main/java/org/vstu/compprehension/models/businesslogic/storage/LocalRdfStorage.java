@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -20,12 +21,14 @@ import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 @Log4j2
@@ -195,6 +198,26 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         setLocalGraph(gUri, model);
 
         return true;
+    }
+
+    public boolean saveToFilesystem() {
+        return uploadGraph(NS_questions.base());
+    }
+
+    public boolean saveQuestionData(String name, String data) {
+        String filename = fileService.prepareNameForFile("q_data/" + name + ".json", false);
+        setQuestionMetadata(name, List.of(
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("has_graph_q_data"),
+                        NS_file.getUri(filename))
+        ));
+
+        try (OutputStream stream = fileService.saveFileStream(filename)) {
+            stream.write(data.getBytes(StandardCharsets.UTF_8));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override

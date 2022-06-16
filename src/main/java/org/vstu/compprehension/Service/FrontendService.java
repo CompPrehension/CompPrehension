@@ -180,7 +180,7 @@ public class FrontendService {
         val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsEntity.class).orElse(null);
         if (isAnswerCorrect && question.getQuestionData().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
-                ie.getFeedback().getInteractionsLeft() == 1) {
+                ie.getFeedback().getInteractionsLeft() == 1 && question.getQuestionData().getAnswerObjects().size() - correctAnswers.length == 1) {
             val correctAnswersIds = Arrays.stream(correctAnswers).map(a -> a.getAnswer()[0]).collect(Collectors.toSet());
             val missingAnswer = question.getQuestionData().getAnswerObjects().stream()
                     .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId().longValue()))

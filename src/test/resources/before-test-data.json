@@ -42,6 +42,7 @@
   {
     "expression": ["func", "(", "var1", ",", "var2", ")"],
     "relations": [
+      {"indexFrom": 1, "indexesTo": [2]},
       {"indexFrom": 3, "indexesTo": [2]},
       {"indexFrom": 5, "indexesTo": [2]}
     ]

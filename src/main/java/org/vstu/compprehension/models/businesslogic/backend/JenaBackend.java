@@ -220,7 +220,8 @@ public class JenaBackend implements Backend {
             // datatype relation
             switch (objType) {
                 case "xsd:int":
-                case "xsd:integer": {
+                case "xsd:integer":
+                case "xsd:biginteger": {
                     DatatypeProperty p = model.createDatatypeProperty(termToUri(prop));
                     model.addLiteral(ind, p, Integer.parseInt(obj));
                     break;

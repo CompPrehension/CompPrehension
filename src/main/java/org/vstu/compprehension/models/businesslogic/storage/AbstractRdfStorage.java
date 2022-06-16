@@ -45,7 +45,7 @@ public abstract class AbstractRdfStorage {
      * Default prefixes
      */
     final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
-    final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
+    public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
     //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
     final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
     final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
@@ -53,7 +53,7 @@ public abstract class AbstractRdfStorage {
     //    class NamedGraph
     //		modifiedAt: datetime   (1..1)
     //      dependsOn: NamedGraph  (0..*)
-    final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
+    public final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
     final static NamespaceUtil NS_classQuestionTemplate = new NamespaceUtil(NS_questions.get("QuestionTemplate#"));
     final static NamespaceUtil NS_classQuestion = new NamespaceUtil(NS_questions.get("Question#"));
     /* questions:
@@ -83,8 +83,8 @@ public abstract class AbstractRdfStorage {
     // hardcoded FTP location:
 //    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
 //    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
-    static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
-    static String FTP_DOWNLOAD_BASE = FTP_BASE;
+    public static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
+    public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
@@ -437,8 +437,8 @@ public abstract class AbstractRdfStorage {
             return schemaModel.read(ControlFlowStatementsDomain.VOCAB_SCHEMA_PATH);
 
         } else if (domain instanceof ProgrammingLanguageExpressionDomain) {
-            //// return ModelFactory.createDefaultModel();
-            // TODO: extract schema from rules
+            Model schemaModel = ModelFactory.createDefaultModel();
+            return schemaModel.read(ProgrammingLanguageExpressionDomain.VOCAB_SCHEMA_PATH);
         }
 
         // the default
@@ -454,16 +454,25 @@ public abstract class AbstractRdfStorage {
         List<Law> laws = new ArrayList<>();
 
         // choose whose rules to return
-        if (level.ordinal() >= GraphRole.QUESTION_TEMPLATE.ordinal() && level.ordinal() <= GraphRole.QUESTION_TEMPLATE_SOLVED.ordinal()) {
+        if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
             laws.addAll(domain.getPositiveLaws());
-        } else if (level.ordinal() >= GraphRole.QUESTION.ordinal()) {
-            laws.addAll(domain.getNegativeLaws());
-        } else {
-            // passed not-a-question role -- get all
+        } else if (level.ordinal() <= GraphRole.QUESTION.ordinal()) {
             if (domain instanceof ProgrammingLanguageExpressionDomain) {
-                laws.addAll(domain.getQuestionLaws("OrderOperators"));
+                List<Tag> tags = new ArrayList<>();
+                for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
+                    Tag tag = new Tag();
+                    tag.setName(tagString);
+                    tags.add(tag);
+                }
+                laws.addAll(domain.getQuestionPositiveLaws("OrderOperators", tags));
             } else if (domain instanceof ControlFlowStatementsDomain) {
-                laws.addAll(domain.getQuestionLaws("OrderActs"));
+                laws.addAll(domain.getQuestionPositiveLaws("OrderActs", new ArrayList<>()));
+            }
+        } else {
+            if (domain instanceof ProgrammingLanguageExpressionDomain) {
+                laws.addAll(domain.getQuestionNegativeLaws("OrderOperators", new ArrayList<>()));
+            } else if (domain instanceof ControlFlowStatementsDomain) {
+                laws.addAll(domain.getQuestionNegativeLaws("OrderActs", new ArrayList<>()));
             }
         }
 
@@ -1109,14 +1118,14 @@ public abstract class AbstractRdfStorage {
         return m;
     }
 
-    public Model solveTemplate(Model srcModel, boolean retainNewFactsOnly) {
+    public Model solveTemplate(Model srcModel, GraphRole desiredLevel, boolean retainNewFactsOnly) {
         return runReasoning(
                 getFullSchema().union(srcModel),
-                getDomainRulesForSolvingAtLevel(GraphRole.SCHEMA),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
+                getDomainRulesForSolvingAtLevel(desiredLevel),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
                 retainNewFactsOnly);
     }
 
-    protected Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
+    public Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
         GenericRuleReasoner reasoner = new GenericRuleReasoner(rules);
 
         long startTime = System.nanoTime();

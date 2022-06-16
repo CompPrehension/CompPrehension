@@ -2,7 +2,7 @@ package org.vstu.compprehension.models.businesslogic;
 
 import lombok.val;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
@@ -22,6 +22,9 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Autowired
     ProgrammingLanguageExpressionDomain domain;
+
+    @Autowired
+    BackendFactory backendFactory;
 
     @Test
     public void testName() {
@@ -94,11 +97,13 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("associativity")
         ));
+        qr.setTargetLaws(List.of());
+        qr.setDeniedLaws(List.of());
 
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr), q.getQuestionName());
-        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p><div class='comp-ph-question'><p class='comp-ph-expr'><span data-comp-ph-pos='1' class='comp-ph-expr-const'>a</span><span data-comp-ph-pos='2' id='answer_0' class='comp-ph-expr-op-btn'>==</span><span data-comp-ph-pos='3' class='comp-ph-expr-const'>b</span><span data-comp-ph-pos='4' id='answer_1' class='comp-ph-expr-op-btn'><</span><span data-comp-ph-pos='5' class='comp-ph-expr-const'>c</span><!-- Original expression: a == b < c --></p></div>", domain.makeQuestion(qr, tags, Language.ENGLISH).getQuestionText().getText());
-
+        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p><div class='comp-ph-question'><p class='comp-ph-expr'><span data-comp-ph-pos='1' class='comp-ph-expr-const' data-comp-ph-value=''>a</span><span data-comp-ph-pos='2' id='answer_0' class='comp-ph-expr-op-btn' data-comp-ph-value=''>==</span><span data-comp-ph-pos='3' class='comp-ph-expr-const' data-comp-ph-value=''>b</span><span data-comp-ph-pos='4' id='answer_1' class='comp-ph-expr-op-btn' data-comp-ph-value=''><</span><span data-comp-ph-pos='5' class='comp-ph-expr-const' data-comp-ph-value=''>c</span><!-- Original expression: a == b < c --></p></div>",
+                q.getQuestionText().getText());
         QuestionRequest qr2 = new QuestionRequest();
         qr2.setTargetConcepts(List.of(
                 domain.getConcept("associativity"),
@@ -111,6 +116,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("precedence"),
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
+        qr2.setTargetLaws(List.of());
+        qr2.setDeniedLaws(List.of());
 
         q = domain.makeQuestion(qr2, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr2), q.getQuestionName());
@@ -129,12 +136,16 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr3.setDeniedConcepts(List.of(
                 domain.getConcept("operator_evaluating_left_operand_first")
         ));
+        qr3.setTargetLaws(List.of());
+        qr3.setDeniedLaws(List.of());
         q = domain.makeQuestion(qr3, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr3), q.getQuestionName());
 //        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c", "--"), List.of("", "operator", "", "operator", "", "operator"))), );
 
         QuestionRequest qr4 = new QuestionRequest();
-        qr4.setTargetConcepts(List.of());
+        qr4.setTargetConcepts(List.of(
+                domain.getConcept("SystemIntegrationTest")
+        ));
         qr4.setAllowedConcepts(List.of());
         qr4.setDeniedConcepts(List.of(
                 domain.getConcept("associativity"),
@@ -142,6 +153,8 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getConcept("type"),
                 domain.getConcept("SystemIntegrationTest")
         ));
+        qr4.setTargetLaws(List.of());
+        qr4.setDeniedLaws(List.of());
         assertEquals("Choose associativity of operator binary +",
                 domain.makeQuestion(qr4, tags, Language.ENGLISH).getQuestionText().getText());
     }
@@ -172,12 +185,12 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_higher_precedence_right")
         ));
         qr.setDeniedLaws(List.of(
-                domain.getNegativeLaw("error_base_student_error_strict_operands_order_base")
+                domain.getNegativeLaw("error_base_student_error_strict_operands_order")
         ));
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), question.getQuestionText().getText());
 
-        Backend backend = new JenaBackend();
+        Backend backend = backendFactory.getBackend("Jena");
         List<BackendFactEntity> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
@@ -186,8 +199,9 @@ public class ProgrammingLanguageExpressionDomainTest {
         question.getQuestionData().setSolutionFacts(solution);
 
         Set<String> init = domain.possibleViolations(question, null);
-        assertEquals(1, init.size());
+        assertEquals(2, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
     }
 
     @Test
@@ -217,7 +231,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_same_precedence_left_associativity_left")
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
-        Backend backend = new JenaBackend();
+        Backend backend = backendFactory.getBackend("Jena");
         List<BackendFactEntity> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
@@ -226,14 +240,16 @@ public class ProgrammingLanguageExpressionDomainTest {
         q.getQuestionData().setSolutionFacts(solution);
 
         Set<String> init = domain.possibleViolations(q, null);
-        assertEquals(2, init.size());
+        assertEquals(3, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
         assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         init = domain.possibleViolations(q, new ArrayList<>());
-        assertEquals(2, init.size());
+        assertEquals(3, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
         assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         ResponseEntity response0 = new ResponseEntity();
         response0.setLeftAnswerObject(q.getAnswerObject(0));
@@ -248,20 +264,76 @@ public class ProgrammingLanguageExpressionDomainTest {
         response2.setRightAnswerObject(q.getAnswerObject(2));
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response0)));
-        assertEquals(1, init.size());
+        assertEquals(2, init.size());
         assertTrue(init.contains("error_base_higher_precedence_right"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response0, response2)));
         assertEquals(0, init.size());
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response2)));
-        assertEquals(1, init.size());
+        assertEquals(2, init.size());
         assertTrue(init.contains("error_base_same_precedence_left_associativity_left"));
+        assertTrue(init.contains("error_base_student_error_early_finish"));
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response2, response0)));
         assertEquals(0, init.size());
 
         init = domain.possibleViolations(q, new ArrayList<>(List.of(response2, response0, response1)));
         assertEquals(0, init.size());
+    }
+
+    @Test
+    public void TestUneval() {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(List.of(
+                domain.getConcept("SystemIntegrationTest")
+        ));
+        qr.setAllowedConcepts(List.of());
+        qr.setDeniedConcepts(List.of());
+        qr.setTargetLaws(List.of(
+                domain.getNegativeLaw("error_base_student_error_unevaluated_operand")
+        ));
+        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Backend backend = backendFactory.getBackend("Jena");
+        List<BackendFactEntity> solution = backend.solve(
+                domain.getQuestionLaws(q.getQuestionDomainType(), tags),
+                q.getStatementFacts(),
+                domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>()));
+        assertFalse(solution.isEmpty());
+        q.getQuestionData().setSolutionFacts(solution);
+
+        Set<String> init = domain.possibleViolations(q, null);
+        assertTrue(init.contains("error_base_student_error_unevaluated_operand"));
+    }
+
+    //@Test
+    public void TestRandom() {
+        List<Tag> tags = new ArrayList<>();
+        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
+            Tag tag = new Tag();
+            tag.setName(tagString);
+            tags.add(tag);
+        }
+
+        QuestionRequest qr = new QuestionRequest();
+        qr.setTargetConcepts(List.of(
+        ));
+        qr.setAllowedConcepts(List.of());
+        qr.setDeniedConcepts(List.of(
+                domain.getConcept("SystemIntegrationTest")
+        ));
+        qr.setTargetLaws(List.of(
+        ));
+        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+
+        assertFalse(q.getSolutionFacts().isEmpty());
     }
 }

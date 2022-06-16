@@ -4,11 +4,22 @@ import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.riot.Lang;
 import org.jetbrains.annotations.NotNull;
 import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
@@ -30,6 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.max;
+import static java.lang.Math.random;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Component
@@ -44,7 +56,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
+    public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
 
+    public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
 
     @Autowired
@@ -57,6 +71,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
+    }
+
+    private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
+        this.localizationService = localizationService;
+        name = "ProgrammingLanguageExpressionDomain";
+        domainEntity = null;
+
+        fillConcepts();
+        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
+        readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
+    }
+    //Hacked version. don't use in production, only for develop
+    public static ProgrammingLanguageExpressionDomain makeHackedDomain() {
+        return new ProgrammingLanguageExpressionDomain(new LocalizationService());
     }
 
     @NotNull
@@ -119,6 +147,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept errorSamePrecedenceRightAssociativityRight = addConcept("error_base_same_precedence_right_associativity_right");
         Concept errorInComplex = addConcept("error_base_student_error_in_complex");
         Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
+        Concept errorUnevaluatedOperand = addConcept("error_base_student_error_unevaluated_operand");
+        Concept errorEarlyFinish = addConcept("error_base_student_error_early_finish");
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
@@ -210,7 +240,21 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
-        throw new NotImplementedException();
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+
+        Question question = gson.fromJson(
+                new InputStreamReader(stream, StandardCharsets.UTF_8),
+                Question.class);
+
+        return question;
     }
 
     @Override
@@ -311,7 +355,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setAnswerObjects(answerObjectEntities);
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setQuestionDomainType(q.getQuestionDomainType());
-        entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
+
+        //TODO: remove this hack supporting old format
+        if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
+            entity.setStatementFacts(getBackendFacts(q.getStatementFacts()));
+        } else {
+            entity.setStatementFacts(q.getStatementFacts());
+            entity.setSolutionFacts(q.getStatementFacts());
+        }
         entity.setQuestionType(q.getQuestionType());
         entity.setQuestionName(q.getQuestionName());
 
@@ -323,7 +374,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         switch (q.getQuestionType()) {
             case ORDER:
                 val baseQuestionText = getMessage("expr_domain.BASE_QUESTION_TEXT", userLang);
-                entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
+                //TODO: remove this hack supporting old format
+                if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
+                    entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
+                } else {
+                    entity.setQuestionText(baseQuestionText + text.replace("end evaluation", getMessage("expr_domain.END_EVALUATION", userLang)));
+                }
                 entity.setOptions(orderQuestionOptions);
                 Question question = new Ordering(entity, this);
                 // patch the newly created question with the concepts from the "template"
@@ -380,7 +436,32 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
             deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
         }
-        Question res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+
+        List<Question> foundQuestions;
+        try {
+            // new version - invoke rdfStorage search
+            foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+
+            // search again if nothing found with "TO_COMPLEX"
+            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+            }
+        } catch (RuntimeException ex) {
+            // file storage was not configured properly...
+            ex.printStackTrace();
+            foundQuestions = new ArrayList<>();
+        }
+
+        Question res;
+        if (!foundQuestions.isEmpty() && !conceptNames.contains("SystemIntegrationTest")) {
+            res = foundQuestions.get(0);
+        } else {
+            // old version - search in domain's in-memory questions
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
+        }
+
         if (res != null) {
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
         }
@@ -416,10 +497,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         int idx = 0;
         int anwerIdx = -1;
         for (BackendFactEntity fact : expression) {
+            String tokenValue = "";
+            if (fact.getSubjectType() != null) { // Token has value
+                tokenValue = fact.getSubjectType();
+            }
+
             if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn'>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
+            } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn comp-ph-expr-op-end' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
             } else {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const'>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             }
         }
 
@@ -455,6 +543,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token.getObject()));
             if (token.getVerb() != null) {
                 facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), token.getVerb(), token.getSubjectType(), token.getSubject()));
+            }
+            if (token.getObjectType() != null) { // Hack to insert boolean result
+                facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "has_value", "xsd:boolean", token.getObjectType()));
             }
         }
         facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, 1), "first", "xsd:boolean", "true"));
@@ -507,10 +598,25 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return getQuestionLaws(questionDomainType, tags);
     }
 
+    @Override
+    public List<NegativeLaw> getNegativeLaws() {
+        List<NegativeLaw> result = new ArrayList<>();
+        for (NegativeLaw law : super.getNegativeLaws()) {
+            if (law.getName().equals("errors") ||
+                    law.getName().equals("operand_type") ||
+                    law.getName().equals("type_test_error") ||
+                    law.getName().equals("precedence_type")) {
+                continue;
+            }
+            result.add(law);
+        }
+        return result;
+    }
+
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
-            for (NegativeLaw law : getNegativeLaws()) {
+            for (NegativeLaw law : super.getNegativeLaws()) {
                 boolean needLaw = true;
                 //filter by tags after separation
                 if (needLaw) {
@@ -520,7 +626,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return negativeLaws;
         } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
-            for (NegativeLaw law : getNegativeLaws()) {
+            for (NegativeLaw law : super.getNegativeLaws()) {
                 boolean needLaw = true;
                 if (needLaw) {
                     negativeLaws.add(law);
@@ -530,7 +636,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
-            for (NegativeLaw law : getNegativeLaws()) {
+            for (NegativeLaw law : super.getNegativeLaws()) {
                 boolean needLaw = law.getName().equals("precedence_basics") || law.getName().equals("precedence_type");
                 if (needLaw) {
                     negativeLaws.add(law);
@@ -571,8 +677,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_more_precedence_base",
                     "student_error_right_assoc_base",
                     "student_error_strict_operands_order_base",
-                    "student_error_left_assoc_base"
-
+                    "student_error_unevaluated_operand_base",
+                    "student_error_left_assoc_base",
+                    "student_error_early_finish_base",
+                    "has_value",
+                    "has_uneval_operand",
+                    "has_value_eval_restriction",
+                    "not_selectable",
+                    "student_end_evaluation"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -594,20 +706,29 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_error_right_assoc",
                     "student_error_in_complex",
                     "student_error_strict_operands_order",
+                    "student_error_unevaluated_operand",
                     "student_error_more_precedence_base",
                     "student_error_left_assoc_base",
                     "student_error_right_assoc_base",
                     "student_error_in_complex_base",
                     "student_error_strict_operands_order_base",
                     "student_error_unevaluated_operand_base",
-                    "student_error_unevaluated_operand",
+                    "student_error_early_finish_base",
+                    "student_error_early_finish",
                     "before_third_operator",
                     "text",
                     "index",
                     "before_direct",
                     "student_pos_number",
                     "is_operand",
-                    "is_function_call"
+                    "is_function_call",
+                    "has_value",
+                    "has_uneval_operand",
+                    "has_value_eval_restriction",
+                    "not_selectable",
+                    "law_name",
+                    "student_end_evaluation",
+                    "has_operand"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             return new ArrayList<>(Arrays.asList(
@@ -656,6 +777,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             "student_pos_less",
                             "owl:NamedIndividual",
                             response.getLeftAnswerObject().getDomainInfo()
+                    ));
+                }
+                if (response.getLeftAnswerObject().getDomainInfo().equals("end_token")) {
+                    result.add(new BackendFactEntity(
+                            "owl:NamedIndividual",
+                            "end_token",
+                            END_EVALUATION,
+                            "xsd:boolean",
+                            "true"
                     ));
                 }
                 used.add(response.getLeftAnswerObject().getDomainInfo());
@@ -734,6 +864,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     private List<CorrectAnswerImpl> getCorrectAnswers(List<BackendFactEntity> solution) {
         Map<String, List<String>> before = new HashMap<>();
         Map<String, String> studentPos = new HashMap<>();
+        Map<String, String> unevalOp = new HashMap<>();
         Map<String, String> operatorLawName = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
         HashSet<String> allTokens = new HashSet<>();
@@ -749,6 +880,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 allTokens.add(fact.getSubject());
             } else if (fact.getVerb().equals("student_pos_number")) {
                 studentPos.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("has_uneval_operand")) {
+                unevalOp.put(fact.getObject(), "true");
             } else if (fact.getVerb().equals("is_operand")) {
                 isOperand.add(fact.getSubject());
             } else if (fact.getVerb().equals("law_name")) {
@@ -757,7 +890,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         for (String operator : allTokens) {
-            if (!operator.startsWith("op__0") || isOperand.contains(operator)) {
+            if (!operator.startsWith("op__0") || isOperand.contains(operator) || unevalOp.containsKey(operator)) {
                 continue;
             }
             boolean can = !studentPos.containsKey(operator);
@@ -777,25 +910,39 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 result.add(answer);
             }
         }
+
+        if (result.isEmpty()) {
+            CorrectAnswerImpl answer = new CorrectAnswerImpl();
+            answer.domainID = "end_token";
+            answer.lawName = "end_token";
+            result.add(answer);
+        }
+
         return result;
     }
 
     @Override
     public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
         Map<String, String> studentPos = new HashMap<>();
+        Map<String, String> unevalOp = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
         HashSet<String> isNotCallableOperator = new HashSet<>();
         HashSet<String> allTokens = new HashSet<>();
+        boolean hasEndToken = false;
         for (BackendFactEntity fact : solution) {
             if (fact.getVerb().equals("before_direct")) {
                 allTokens.add(fact.getObject());
                 allTokens.add(fact.getSubject());
             } else if (fact.getVerb().equals("student_pos_number")) {
                 studentPos.put(fact.getSubject(), fact.getObject());
+            } else if (fact.getVerb().equals("has_uneval_operand")) {
+                unevalOp.put(fact.getObject(), "true");
             } else if (fact.getVerb().equals("is_operand")) {
                 isOperand.add(fact.getSubject());
             } else if (fact.getVerb().equals("is_function_call") && fact.getObject().equals("false")) {
                 isNotCallableOperator.add(fact.getSubject());
+            } else if (fact.getSubject().equals("end_token")) {
+                hasEndToken = true;
             }
         }
 
@@ -804,9 +951,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (operator.startsWith("op__0") &&
                     !isOperand.contains(operator) &&
                     !isNotCallableOperator.contains(operator) &&
-                    !studentPos.containsKey(operator)) {
+                    !studentPos.containsKey(operator) &&
+                    !unevalOp.containsKey(operator)) {
                 IterationsLeft++;
             }
+            if (operator.startsWith("op__0") &&
+                    studentPos.containsKey(operator) &&
+                    unevalOp.containsKey(operator)) {
+                IterationsLeft--; //ignore that mistake
+            }
+        }
+        if (hasEndToken && !studentPos.containsKey("end_token")) {
+            IterationsLeft++;
         }
 
         InterpretSentenceResult result = new InterpretSentenceResult();
@@ -852,6 +1008,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }  else if (fact.getVerb().equals("is_operator_with_strict_operands_order")) {
                 isStrict.put(fact.getSubject(), fact.getObject());
             }
+        }
+
+        if (answer.getDomainInfo().equals("end_token")) {
+            //TODO: make explanation why expression is ended
+            return new HyperText("");
         }
 
         AnswerObjectEntity last = null;
@@ -1037,6 +1198,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+        return possibleViolations(q.getSolutionFacts(), completedSteps);
+    }
+
+    public Set<String> possibleViolations(List<BackendFactEntity> solutionFacts, List<ResponseEntity> completedSteps) {
         Set<String> result = new HashSet<>();
         Set<String> madeSteps = new HashSet<>();
         if (completedSteps != null) {
@@ -1045,7 +1210,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 madeSteps.add(r.getRightAnswerObject().getDomainInfo());
             }
         }
-        for (BackendFactEntity f : q.getSolutionFacts()) {
+        for (BackendFactEntity f : solutionFacts) {
             if (f.getVerb().startsWith("student_error") && !madeSteps.contains(f.getSubject()) && !madeSteps.contains(f.getObject())
                     && getIndexFromName(f.getSubject(), false).isPresent()
                     && getIndexFromName(f.getObject(), false).isPresent()) {
@@ -1060,7 +1225,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 } else if (f.getVerb().equals("student_error_right_assoc_base")) {
                     result.add("error_base_same_precedence_right_associativity_right");
                 } else if (f.getVerb().equals("student_error_strict_operands_order_base")) {
-                    result.add("error_base_student_error_strict_operands_order_base");
+                    result.add("error_base_student_error_strict_operands_order");
+                } else if (f.getVerb().equals("student_error_unevaluated_operand_base")) {
+                    result.add("error_base_student_error_unevaluated_operand");
+                } else if (f.getVerb().equals("student_error_early_finish_base")) {
+                    result.add("error_base_student_error_early_finish");
                 } else if (f.getVerb().equals("student_error_in_complex_base")) {
                     result.add("error_base_student_error_in_complex");
                 }
@@ -1077,7 +1246,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
         if (violation.getLawName().equals("error_base_student_error_in_complex") ||
-                violation.getLawName().equals("error_base_student_error_strict_operands_order_base")) {
+                violation.getLawName().equals("error_base_student_error_strict_operands_order") ||
+                violation.getLawName().equals("error_base_student_error_unevaluated_operand") ||
+                violation.getLawName().equals("error_base_student_error_early_finish")) {
             return false;
         }
         return true;
@@ -1364,6 +1535,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     || violation.getVerb().equals("student_error_left_assoc")
                     || violation.getVerb().equals("student_error_right_assoc")
                     || violation.getVerb().equals("student_error_strict_operands_order")
+                    || violation.getVerb().equals("student_error_unevaluated_operand")
+                    || violation.getVerb().equals("student_error_early_finish")
                     || violation.getVerb().equals("student_error_in_complex")) {
                 questionType = EVALUATION_ORDER_QUESTION_TYPE;
             }
@@ -1399,7 +1572,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 } else if (violation.getVerb().equals("student_error_right_assoc")) {
                     violationEntity.setLawName("error_base_same_precedence_right_associativity_right");
                 } else if (violation.getVerb().equals("student_error_strict_operands_order")) {
-                    violationEntity.setLawName("error_base_student_error_strict_operands_order_base");
+                    violationEntity.setLawName("error_base_student_error_strict_operands_order");
+                } else if (violation.getVerb().equals("student_error_unevaluated_operand")) {
+                    violationEntity.setLawName("error_base_student_error_unevaluated_operand");
+                } else if (violation.getVerb().equals("student_error_early_finish")) {
+                    violationEntity.setLawName("error_base_student_error_early_finish");
                 } else if (violation.getVerb().equals("student_error_in_complex")) {
                     violationEntity.setLawName("error_base_student_error_in_complex");
                 } else if (violation.getVerb().equals("wrong_type")) {
@@ -1594,7 +1771,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             } else if (violation.getVerb().equals("student_error_in_complex_base")) {
                 correctlyAppliedLaw = "error_base_student_error_in_complex";
             } else if (violation.getVerb().equals("student_error_strict_operands_order_base")) {
-                correctlyAppliedLaw = "error_base_student_error_strict_operands_order_base";
+                correctlyAppliedLaw = "error_base_student_error_strict_operands_order";
+            } else if (violation.getVerb().equals("student_error_unevaluated_operand_base")) {
+                correctlyAppliedLaw = "error_base_student_error_unevaluated_operand";
+            } else if (violation.getVerb().equals("student_error_early_finish_base")) {
+                correctlyAppliedLaw = "error_base_student_error_early_finish";
             }
             if (correctlyAppliedLaw != null) {
                 result.add(correctlyAppliedLaw);
@@ -1741,7 +1922,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             joiner.add(getMessage("expr_domain.IN_PARENTHESIS_BEFORE", lang));
         } else if (errorType.equals("error_base_student_error_in_complex")) {
             joiner.add(getMessage("expr_domain.IN_COMPLEX_BEFORE", lang));
-        } else if (errorType.equals("error_base_student_error_strict_operands_order_base")) {
+        } else if (errorType.equals("error_base_student_error_strict_operands_order")) {
             joiner
                     .add(getMessage("expr_domain.LEFT_OPERAND", lang))
                     .add(getOperatorTextDescription(thirdOperatorText, lang))
@@ -1749,6 +1930,31 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .add(getMessage("expr_domain.AT_POS", lang))
                     .add(thirdOperatorPos)
                     .add(getMessage("expr_domain.MUST_BEFORE_RIGHT", lang));
+        } else if (errorType.equals("error_base_student_error_unevaluated_operand")) {
+            joiner = new StringJoiner(" ");
+            joiner
+                    .add(getOperatorTextDescription(errorText, lang))
+                    .add(errorText)
+                    .add(getMessage("expr_domain.AT_POS", lang))
+                    .add(errorPos)
+                    .add(getMessage("expr_domain.NOT_EVALUATES", lang));
+            joiner.add("\n").add(getMessage("expr_domain.BECAUSE", lang));
+            joiner
+                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(reasonText)
+                    .add(getMessage("expr_domain.AT_POS", lang))
+                    .add(reasonPos)
+                    .add(getMessage("expr_domain.HAS_VALUE_AND_EVALUATE_OTHER_PART", lang));
+        } else if (errorType.equals("error_base_student_error_early_finish")) {
+            joiner = new StringJoiner(" ");
+            joiner
+                    .add(getOperatorTextDescription(errorText, lang))
+                    .add(errorText)
+                    .add(getMessage("expr_domain.AT_POS", lang))
+                    .add(errorPos)
+                    .add(getMessage("expr_domain.EVALUATES", lang));
+            joiner.add("\n").add(getMessage("expr_domain.BECAUSE", lang));
+            joiner.add(getMessage("expr_domain.HAS_UNEVALUATED_OPERATOR", lang));
         } else {
             joiner.add(getMessage("expr_domain.UNKNOWN_ERROR", lang));
         }
@@ -1756,10 +1962,252 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new HyperText(joiner.toString());
     }
 
+    private List<BackendFactEntity> modelToFacts(Model factsModel, boolean onlySolvedFacts) {
+        JenaBackend jback = new JenaBackend();
+        jback.createOntology(AbstractRdfStorage.NS_code.base());
+
+        // fill model
+        OntModel model = jback.getModel();
+        model.add(factsModel);
+
+        List<String> verbs = factsModel.listStatements().toList().stream()
+                .map(Statement::getPredicate)
+                .map(Property::getLocalName).distinct().collect(Collectors.toList());
+        if (onlySolvedFacts) {
+            return jback.getFacts(getViolationVerbs(EVALUATION_ORDER_QUESTION_TYPE, null));
+        }
+        return jback.getFacts(verbs);
+    }
+
+    public OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
+        JenaBackend jback = new JenaBackend();
+        jback.createOntology(AbstractRdfStorage.NS_code.base());
+
+        OntModel model = jback.getModel();
+
+        jback.addFacts(backendFacts);
+
+        return model;
+    }
+
     @Override
     public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
+        FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate, false));
+
+        Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
+
+        if (!fg.filterFacts(null, "text", "?:").isEmpty() || !fg.filterFacts(null, "text", "").isEmpty()) {
+            return new HashMap<>(); // Skip bad generation of ternary operator
+        }
+        addedFacts.put(templateName + "_v", new ArrayList<>());
+
+        List<BackendFactEntity> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
+        switchPoints.sort(
+                Comparator.comparingInt((BackendFactEntity a) -> Integer.parseInt(a.getSubject().substring("op__0__".length()))));
+        for (BackendFactEntity branchOperands : switchPoints) {
+            List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
+            assertEquals(1, leftOp.size());
+            Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
+
+            List<BackendFactEntity> left_op_is_switch = fg.filterFacts(leftOp.get(0).getObject(), "has_value_eval_restriction", null);
+            List<BackendFactEntity> left_op_is_ternary = fg.filterFacts(leftOp.get(0).getObject(), "has_inner_operand", null);
+            String left_op_left_op = null;
+            if (!left_op_is_switch.isEmpty() && left_op_is_ternary.isEmpty()) {
+                left_op_left_op = fg.filterFacts(leftOp.get(0).getObject(), "has_left_operand", null).get(0).getObject();
+            }
+
+            for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+                boolean canBeTrue = true;
+                boolean canBeFalse = true;
+                if (left_op_left_op != null) {
+                    for (BackendFactEntity prevFact : facts.getValue()) {
+                        if (left_op_left_op.equals(prevFact.getSubject())) {
+                            if (left_op_is_switch.get(0).getObject().equals("no_right_if_true") && prevFact.getObject().equals("true")) {
+                                canBeFalse = false;
+                            }
+                            if (left_op_is_switch.get(0).getObject().equals("no_right_if_false") && prevFact.getObject().equals("false")) {
+                                canBeTrue = false;
+                            }
+                        }
+                    }
+                }
+
+                // Decrease number of variants in huge questions
+                if (canBeTrue && switchPoints.size() > 25 && random() < 0.05) {
+                    canBeTrue = false;
+                }
+                if (canBeFalse && switchPoints.size() > 25 && random() < 0.05) {
+                    canBeFalse = false;
+                }
+
+                if (canBeTrue) {
+                    List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
+                    addedTrueFacts.addAll(facts.getValue());
+                    addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
+                    newAddedFacts.put(facts.getKey() + "t", addedTrueFacts);
+                }
+
+                if (canBeFalse) {
+                    List<BackendFactEntity> addedFalseFacts = new ArrayList<>();
+                    addedFalseFacts.addAll(facts.getValue());
+                    addedFalseFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
+                    newAddedFacts.put(facts.getKey() + "f", addedFalseFacts);
+                }
+            }
+            addedFacts = newAddedFacts;
+        }
+
+        System.out.println("Generated: " + addedFacts.size() + " questions");
         HashMap<String, Model> questions = new HashMap<>();
-        questions.put(templateName + "_empty", solvedTemplate);
+        for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+            questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
+            if (questions.size() > questionsLimit || addedFacts.size() > 10000 && questions.size() >= 5) {
+                break;
+            }
+        }
         return questions;
+    }
+
+    public Question createQuestionFromModel(String questionName, Model model, AbstractRdfStorage rs) {
+        List<BackendFactEntity> facts = modelToFacts(model, false);
+        facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
+        FactsGraph fg = new FactsGraph(facts);
+
+        QuestionEntity entity = new QuestionEntity();
+        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
+        int ans_id = 0;
+        int solution_length = 0;
+        Map<Integer, BackendFactEntity> texts = new TreeMap<>();
+        Map<Integer, BackendFactEntity> orderAnswers = new TreeMap<>();
+
+        for (BackendFactEntity token : fg.filterFacts(null, "index", null)) {
+            orderAnswers.put(Integer.parseInt(token.getObject()), token);
+        }
+
+        for (BackendFactEntity token : orderAnswers.values()) {
+            String text = fg.filterFacts(token.getSubject(), "text", null).get(0).getObject();
+            BackendFactEntity initFacts = new BackendFactEntity(null,null, null,null,text);
+
+            List<BackendFactEntity> hasValue = fg.filterFacts(token.getSubject(), "has_value", null);
+            if (!hasValue.isEmpty()) {
+                initFacts.setSubjectType(hasValue.get(0).getObject());
+            }
+
+            if (!fg.filterFacts(token.getSubject(), "not_selectable", null).isEmpty()) {
+                texts.put(Integer.parseInt(token.getObject()), initFacts);
+                continue;
+            }
+
+            if (fg.filterFacts(null, "has_uneval_operand", token.getSubject()).isEmpty()) {
+                solution_length++;
+            }
+
+            initFacts.setSubject("operator");
+            texts.put(Integer.parseInt(token.getObject()), initFacts);
+
+            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            newAnswerObjectEntity.setAnswerId(ans_id);
+            ans_id++;
+            newAnswerObjectEntity.setConcept("operator");
+            newAnswerObjectEntity.setDomainInfo("op__0__" + token.getObject());
+            newAnswerObjectEntity.setHyperText(text);
+            newAnswerObjectEntity.setQuestion(null);
+            newAnswerObjectEntity.setRightCol(false);
+            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
+            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
+            answerObjectEntities.add(newAnswerObjectEntity);
+        }
+        // Add answer for stop evaluation
+        AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+        newAnswerObjectEntity.setAnswerId(ans_id);
+        newAnswerObjectEntity.setConcept(END_EVALUATION);
+        newAnswerObjectEntity.setDomainInfo("end_token");
+        newAnswerObjectEntity.setHyperText(END_EVALUATION);
+        newAnswerObjectEntity.setQuestion(null);
+        newAnswerObjectEntity.setRightCol(false);
+        newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
+        newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
+        answerObjectEntities.add(newAnswerObjectEntity);
+        texts.put(1000000, new BackendFactEntity(null,END_EVALUATION,null,null,END_EVALUATION));
+
+        entity.setAnswerObjects(answerObjectEntities);
+        entity.setExerciseAttempt(null);
+        entity.setQuestionDomainType("OrderOperators");
+        entity.setStatementFacts(facts);
+        entity.setSolutionFacts(facts);
+        entity.setQuestionType(QuestionType.ORDER);
+        entity.setQuestionName("");
+
+        List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
+        entity.setQuestionText(ExpressionToHtml(textFacts));
+        entity.setQuestionName(questionName);
+
+        Question question = new Ordering(entity, null);
+
+        Set<String> lawNames = new HashSet<>();
+        for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
+            lawNames.add(fact.getObject());
+        }
+
+        Set<String> concepts = new HashSet<>();
+        for (BackendFactEntity fact : fg.filterFacts(null, "concept", null)) {
+            concepts.add(fact.getObject());
+        }
+        concepts.add("operator");
+
+        question.getConcepts().addAll(concepts);
+        Set<String> violations = possibleViolations(question, null);
+        question.getNegativeLaws().addAll(violations);
+
+        List<String> tags = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
+
+        question.getTags().addAll(tags);
+
+        entity.setSolutionFacts(null);
+
+        for (String tag : tags) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_tag"),
+                            NodeFactory.createLiteral(tag))
+            ));
+        }
+
+        for (String law : lawNames) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_law"),
+                            NodeFactory.createLiteral(law))
+            ));
+        }
+
+        for (String violation : violations) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_violation"),
+                            NodeFactory.createLiteral(violation))
+            ));
+        }
+
+        for (String concept : concepts) {
+            rs.setQuestionMetadata(questionName, List.of(
+                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_concept"),
+                            NodeFactory.createLiteral(concept))
+            ));
+        }
+
+        rs.setQuestionMetadata(questionName, List.of(
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_structural_complexity"),
+                        NodeFactory.createLiteralByValue( solution_length / (float) ans_id, XSDDatatype.XSDfloat)),
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("distinct_errors_count"),
+                        NodeFactory.createLiteralByValue(violations.size(), XSDDatatype.XSDinteger)),
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_steps"),
+                        NodeFactory.createLiteralByValue(solution_length, XSDDatatype.XSDinteger)),
+                Pair.of(AbstractRdfStorage.NS_questions.getUri("integral_complexity"),
+                        NodeFactory.createLiteralByValue(1.21892655 + 0.18549906 * solution_length - 0.01883239 * violations.size(), XSDDatatype.XSDfloat))
+        ));
+
+        return question;
+    }
+
+    public String questionToJson(Question question) {
+        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
     }
 }
