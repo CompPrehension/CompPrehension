@@ -882,7 +882,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 studentPos.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("has_uneval_operand")) {
                 unevalOp.put(fact.getObject(), "true");
-            } else if (fact.getVerb().equals("is_operand")) {
+            } else if (fact.getVerb().equals("not_selectable")) {
                 isOperand.add(fact.getSubject());
             } else if (fact.getVerb().equals("law_name")) {
                 operatorLawName.put(fact.getSubject(), fact.getObject());
@@ -897,7 +897,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (before.containsKey(operator)) {
                 List<String> deps = before.get(operator);
                 for (String dep : deps) {
-                    if (!studentPos.containsKey(dep) && !isOperand.contains(dep)) {
+                    if (!studentPos.containsKey(dep) && !(isOperand.contains(dep) || unevalOp.containsKey(dep))) {
                         can = false;
                         break;
                     }
@@ -1119,6 +1119,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         for (AnswerObjectEntity reason : explain) {
+            if (reason.getDomainInfo().equals("end_token")) {
+                continue;
+            }
             int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
             String text = texts.get(reason.getDomainInfo());
             String template = StringHelper.joinWithSpace(text, getMessage("expr_domain.AT_POS", lang), pos);
