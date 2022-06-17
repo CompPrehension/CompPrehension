@@ -1337,6 +1337,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         HashMap<String, String> templates = new HashMap<>();
         for (AnswerObjectEntity origAnswer : originalQuestion.getAnswerObjects()) {
+            if (origAnswer.getDomainInfo().equals("end_token")) {
+                continue;
+            }
             String text = texts.get(origAnswer.getDomainInfo());
             Integer index = Integer.parseInt(indexes.get(origAnswer.getDomainInfo()));
             String domainInfo = origAnswer.getDomainInfo();
