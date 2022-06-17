@@ -2193,6 +2193,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             ));
         }
 
+        double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
+        double intergalCompexity = 1/( 1 + Math.pow(Math.E,(-1*complexity)));
+
         rs.setQuestionMetadata(questionName, List.of(
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_structural_complexity"),
                         NodeFactory.createLiteralByValue( solution_length / (float) ans_id, XSDDatatype.XSDfloat)),
@@ -2201,7 +2204,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_steps"),
                         NodeFactory.createLiteralByValue(solution_length, XSDDatatype.XSDinteger)),
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("integral_complexity"),
-                        NodeFactory.createLiteralByValue(1.21892655 + 0.18549906 * solution_length - 0.01883239 * violations.size(), XSDDatatype.XSDfloat))
+                        NodeFactory.createLiteralByValue(intergalCompexity, XSDDatatype.XSDfloat))
         ));
 
         return question;
