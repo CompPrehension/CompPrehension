@@ -360,6 +360,19 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             }
         }
 
+        if(result.size() == 0){
+            for(String lName : targetLawsName){
+                Law lawToAdd = targetLaws.stream()
+                        .filter(law -> lName.equals(law.getName()))
+                        .findFirst()
+                        .orElse(null);
+
+                if(lawToAdd != null) {
+                    result.add(lawToAdd);
+                }
+            }
+        }
+
 
         return result;
     }
@@ -390,7 +403,8 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     }
 
     protected HashMap<String, List<Boolean>> getTargetLawsInteractions(ExerciseAttemptEntity exerciseAttempt, int removeLastCount){
-        List<QuestionEntity> allQuestions = exerciseAttempt.getQuestions();
+        List<QuestionEntity> allQuestions = new ArrayList<>();
+        allQuestions.addAll(exerciseAttempt.getQuestions());
         HashMap<String, List<Boolean>> allLawsUsage = basicLawsUsage(exerciseAttempt);
 
         Collections.sort(allQuestions, new QuestionOrderComparator());
