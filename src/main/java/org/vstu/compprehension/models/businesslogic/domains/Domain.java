@@ -23,7 +23,7 @@ import java.util.*;
 @Log4j2
 @RequestScope
 public abstract class Domain {
-    protected String NAME_PREFIX_IS_HUMAN = "[human]";
+    public static final String NAME_PREFIX_IS_HUMAN = "[human]";
 
     protected List<PositiveLaw> positiveLaws;
     protected List<NegativeLaw> negativeLaws;
@@ -391,7 +391,7 @@ public abstract class Domain {
             int targetConceptCount = 0;
             int anotherConcepts = 0;
             boolean suit = true;
-            if (forbiddenQuestions.contains(q.getQuestionName())) {
+            if (forbiddenQuestions.contains(q.getQuestionName()) || forbiddenQuestions.contains(NAME_PREFIX_IS_HUMAN + q.getQuestionName())) {
                 continue;
             }
             for (Tag tag : tags) {
