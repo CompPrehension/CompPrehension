@@ -378,7 +378,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
                     entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 } else {
-                    entity.setQuestionText(baseQuestionText + text.replace("end evaluation", getMessage("expr_domain.END_EVALUATION", userLang)));
+                    entity.setQuestionText(baseQuestionText + text
+                            .replace("end evaluation", getMessage("expr_domain.END_EVALUATION", userLang))
+                            .replace("student_end_evaluation", getMessage("expr_domain.STUDENT_END_EVALUATION", userLang)));
                 }
                 entity.setOptions(orderQuestionOptions);
                 Question question = new Ordering(entity, this);
