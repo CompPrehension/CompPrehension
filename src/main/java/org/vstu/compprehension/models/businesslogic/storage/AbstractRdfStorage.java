@@ -309,8 +309,15 @@ public abstract class AbstractRdfStorage {
                 if (limit > 0) {  // calc the score as filtering is required
                     int score = 0;  // how the question suits the request
 
-                    if (qr.getDeniedQuestionNames().contains(questionName) || qr.getDeniedQuestionNames().contains(Domain.NAME_PREFIX_IS_HUMAN + q.getQuestionName())) {
+                    if (qr.getDeniedQuestionNames().contains(questionName) || qr.getDeniedQuestionNames().contains(Domain.NAME_PREFIX_IS_HUMAN + questionName)) {
                         score -= 10_000; // try to avoid returning the same question again
+                    }
+                    else
+                    {
+                        int prefixLen = lengthOfMaxCommonPrefixAmongStrings(questionName, qr.getDeniedQuestionNames());
+                        if (prefixLen > 0) {
+                            score -= 1000 * prefixLen / questionName.length();  // try to avoid similar questions (similar names indicate that these look close)
+                        }
                     }
 
                     // inspect laws
@@ -397,6 +404,28 @@ public abstract class AbstractRdfStorage {
 //        }
 
         return questions;
+    }
+
+    /** Find length of the longest prefix of `needle` with (one of) strings in `hive`
+     * @param needle target string
+     * @param hive set of strings to match `needle` with
+     * @return length of common prefix or 0 if `hive` is empty or no common prefix found
+     */
+    public static int lengthOfMaxCommonPrefixAmongStrings(String needle, Collection<String> hive) {
+        ArrayList<String> set = new ArrayList<>(hive); // modifiable copy
+
+        int max_i = 0;  // length of the prefix
+        int needleLength = needle.length();
+
+        for (; max_i < needleLength && !set.isEmpty(); max_i++) {
+            for (String s : (ArrayList<String>) set.clone()) {
+                if (s.length() < max_i + 1 || needle.charAt(max_i) != s.charAt(max_i)) {
+                    set.remove(s);
+                }
+            }
+        }
+        //// return a.substring(0, max_i);
+        return max_i;
     }
 
     /**

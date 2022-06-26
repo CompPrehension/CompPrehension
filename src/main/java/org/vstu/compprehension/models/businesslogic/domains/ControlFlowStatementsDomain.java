@@ -423,6 +423,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 )
         );
 
+        log.info("CtrlFlow domain has prepared the question: " + questionCopy.getQuestionName());
+
         return questionCopy;
     }
 
