@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
@@ -30,7 +29,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
+import org.vstu.compprehension.utils.StringHelper;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -412,20 +411,13 @@ public abstract class AbstractRdfStorage {
      * @return length of common prefix or 0 if `hive` is empty or no common prefix found
      */
     public static int lengthOfMaxCommonPrefixAmongStrings(String needle, Collection<String> hive) {
-        ArrayList<String> set = new ArrayList<>(hive); // modifiable copy
-
-        int max_i = 0;  // length of the prefix
-        int needleLength = needle.length();
-
-        for (; max_i < needleLength && !set.isEmpty(); max_i++) {
-            for (String s : (ArrayList<String>) set.clone()) {
-                if (s.length() < max_i + 1 || needle.charAt(max_i) != s.charAt(max_i)) {
-                    set.remove(s);
-                }
-            }
+        int max = 0;
+        for(var s : hive) {
+            int current = StringHelper.findCommonPrefixLength(needle, s);
+            if (current > max)
+                max = current;
         }
-        //// return a.substring(0, max_i);
-        return max_i;
+        return max;
     }
 
     /**
