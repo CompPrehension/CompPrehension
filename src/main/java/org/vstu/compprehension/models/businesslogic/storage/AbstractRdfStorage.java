@@ -411,27 +411,6 @@ public abstract class AbstractRdfStorage {
      * @return length of common prefix or 0 if `hive` is empty or no common prefix found
      */
     public static int lengthOfMaxCommonPrefixAmongStrings(String needle, Collection<String> hive) {
-        ArrayList<String> candidates = new ArrayList<>(hive); // modifiable copy
-
-        int max_i = 0;  // length of the prefix
-        int needleLength = needle.length();
-
-        for (; max_i < needleLength && !candidates.isEmpty(); max_i++) {
-            char needleChar = needle.charAt(max_i);
-            for (int j = 0; j < candidates.size(); ++j) { // avoiding extra allocations like list.clone()
-                String s = candidates.get(j);
-                if (s.length() < max_i + 1 || needleChar != s.charAt(max_i)) {
-                    candidates.remove(j);
-                    --j;  // shift left to reach the next after removed one
-                }
-            }
-            if (candidates.isEmpty())
-                break;
-        }
-        return max_i;
-    }
-
-    public static int lengthOfMaxCommonPrefixAmongStrings_2(String needle, Collection<String> hive) {
         int max = 0;
         for(var s : hive) {
             int current = StringHelper.findCommonPrefixLength(needle, s);
