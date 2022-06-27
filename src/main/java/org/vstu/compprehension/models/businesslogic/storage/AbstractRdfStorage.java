@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
@@ -30,7 +29,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
+import org.vstu.compprehension.utils.StringHelper;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -430,6 +429,16 @@ public abstract class AbstractRdfStorage {
                 break;
         }
         return max_i;
+    }
+
+    public static int lengthOfMaxCommonPrefixAmongStrings_2(String needle, Collection<String> hive) {
+        int max = 0;
+        for(var s : hive) {
+            int current = StringHelper.findCommonPrefixLength(needle, s);
+            if (current > max)
+                max = current;
+        }
+        return max;
     }
 
     /**
