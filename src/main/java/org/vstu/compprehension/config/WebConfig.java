@@ -3,6 +3,7 @@ package org.vstu.compprehension.config;
 import lombok.val;
 import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 import org.apache.tomcat.util.http.SameSiteCookies;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import org.vstu.compprehension.config.interceptors.RandomSeedSetInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
@@ -71,8 +73,11 @@ public class WebConfig implements WebMvcConfigurer {
         return localeInterceptor;
     }
 
+    @Autowired
+    private RandomSeedSetInterceptor randomSeedSetInterceptor;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(randomSeedSetInterceptor);
         registry.addInterceptor(localeInterceptor());
     }
 }

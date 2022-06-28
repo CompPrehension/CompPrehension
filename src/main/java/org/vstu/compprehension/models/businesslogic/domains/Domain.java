@@ -2,9 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
@@ -16,6 +14,7 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
+import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
 import java.util.*;
@@ -24,18 +23,14 @@ import java.util.*;
 @RequestScope
 public abstract class Domain {
     public static final String NAME_PREFIX_IS_HUMAN = "[human]";
-
     protected List<PositiveLaw> positiveLaws;
     protected List<NegativeLaw> negativeLaws;
     protected List<Concept> concepts;
-
-    protected AbstractRdfStorage rdfStorage = null;
-
+    protected AbstractRdfStorage rdfStorage;
     /**
      * Db entry
      */
     protected DomainEntity domainEntity;
-
     /**
      * domain name (used to get domain by name)
      */
@@ -44,6 +39,12 @@ public abstract class Domain {
      * version of domain (in db)
      */
     protected String version = "";
+    protected final RandomProvider randomProvider;
+
+
+    public Domain(RandomProvider randomProvider) {
+        this.randomProvider = randomProvider;
+    }
 
     /**
      * Function for update all internal domain db info
@@ -115,9 +116,6 @@ public abstract class Domain {
      */
     public double getAcceptableRateOfIgnoredMistakes() {
         return 0.0834;  // = 1/12
-    }
-
-    public Domain() {
     }
 
     public abstract @NotNull String getDomainId();
@@ -440,7 +438,7 @@ public abstract class Domain {
                 log.info("Отобранный вопрос (из " + questions.size() + "): " + question.getQuestionName());
             }
 
-            Question question = questions.get(new Random().nextInt(questions.size()));
+            Question question = questions.get(randomProvider.getRandom().nextInt(questions.size()));
             log.info("В итоге, взят вопрос: " + question.getQuestionName());
 
             ///

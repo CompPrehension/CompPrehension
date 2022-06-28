@@ -31,6 +31,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
+import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
 import java.io.InputStream;
@@ -71,8 +72,10 @@ public class ControlFlowStatementsDomain extends Domain {
     private final LocalizationService localizationService;
 
     @Autowired
-    public ControlFlowStatementsDomain(LocalizationService localizationService,  DomainRepository domainRepository) {
-        super();
+    public ControlFlowStatementsDomain(LocalizationService localizationService,
+                                       DomainRepository domainRepository,
+                                       RandomProvider randomProvider) {
+        super(randomProvider);
         this.localizationService = localizationService;
         name = "ControlFlowStatementsDomain";
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
@@ -360,7 +363,7 @@ public class ControlFlowStatementsDomain extends Domain {
         //noinspection ConstantConditions
         if (chance == 1.0 ||
                         chance > 0.0 &&
-                        new Random().nextDouble() < chance)
+                        randomProvider.getRandom().nextDouble() < chance)
         {
             final int randomPoolSize = 16;
             try {
@@ -387,7 +390,7 @@ public class ControlFlowStatementsDomain extends Domain {
             if (qN == 1)
                 res = foundQuestions.get(0);
             else {
-                res = foundQuestions.get(new Random().nextInt(foundQuestions.size()));
+                res = foundQuestions.get(randomProvider.getRandom().nextInt(foundQuestions.size()));
             }
         } else {
             // old version - search in domain's in-memory questions (created manually)
@@ -400,7 +403,7 @@ public class ControlFlowStatementsDomain extends Domain {
             // get (a random) index
             int tryCount = 0;
             do {
-                int index = new Random().nextInt(QUESTIONS.size());
+                int index = randomProvider.getRandom().nextInt(QUESTIONS.size());
                 res = QUESTIONS.get(index);
                 tryCount += 1;
             } while (tryCount <= 20  // avoid infinite search

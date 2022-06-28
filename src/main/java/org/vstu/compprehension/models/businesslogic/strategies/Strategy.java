@@ -1,23 +1,24 @@
 package org.vstu.compprehension.models.businesslogic.strategies;
 
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
+import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import lombok.val;
-import org.springframework.stereotype.Component;
+import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
 import java.util.*;
@@ -29,10 +30,12 @@ import static java.lang.Math.abs;
 public class Strategy implements AbstractStrategy {
 
     private final DomainFactory domainFactory;
+    protected final RandomProvider randomProvider;
 
     @Autowired
-    public Strategy(DomainFactory domainFactory) {
+    public Strategy(DomainFactory domainFactory, RandomProvider randomProvider) {
         this.domainFactory = domainFactory;
+        this.randomProvider = randomProvider;
     }
 
 
@@ -58,7 +61,7 @@ public class Strategy implements AbstractStrategy {
                 startTasks = new ArrayList<>(Arrays.asList("alt_i1", "while_2_110",
                         "do_10"));
             }
-            Random random = new Random();
+            Random random = randomProvider.getRandom();
             int nextQuestion = random.ints(0, startTasks.size())
                     .findFirst()
                     .getAsInt();
@@ -166,7 +169,7 @@ public class Strategy implements AbstractStrategy {
         if(correct > 0.9){
             //Если у узла есть "прямые" большие вопросы
             if(currentNode != null && currentNode.parentNodes != null && currentNode.parentNodes.size() > 0){
-                Random random = new Random();
+                Random random = randomProvider.getRandom();
                 int nextQuestion = 0;
                 if(currentNode.parentNodes.size() > 1) {
                     nextQuestion = random.ints(0, currentNode.parentNodes.size() )
@@ -267,7 +270,7 @@ public class Strategy implements AbstractStrategy {
                     return new QuestionRequest();
                 }
 
-                Random random = new Random();
+                Random random = randomProvider.getRandom();
                 int nextQuestion = 0;
                 if(currentNode != null && currentNode.parentNodes.size() > 1) {
                     nextQuestion = random.ints(0, currentNode.parentNodes.size())
@@ -297,7 +300,7 @@ public class Strategy implements AbstractStrategy {
                     return getQuestionRequest(exerciseAttempt, currentNode);
                 }
 
-                Random random = new Random();
+                Random random = randomProvider.getRandom();
                 int nextQuestion = 0;
                 if(nextNodes.size() > 1) {
                     nextQuestion = random.ints(0, nextNodes.size())

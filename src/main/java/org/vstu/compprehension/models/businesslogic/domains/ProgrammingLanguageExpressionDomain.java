@@ -1,37 +1,38 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.OntModel;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.riot.Lang;
 import org.jetbrains.annotations.NotNull;
-import org.apache.jena.rdf.model.Model;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.*;
+import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.QuestionType;
+import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.HyperText;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import org.vstu.compprehension.models.businesslogic.*;
-import org.junit.jupiter.api.Assertions;
-import org.springframework.stereotype.Component;
+import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.StringHelper;
 
 import javax.inject.Singleton;
@@ -43,7 +44,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Component @Log4j2
 @Singleton
@@ -63,7 +65,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     private final LocalizationService localizationService;
 
     @Autowired
-    public ProgrammingLanguageExpressionDomain(LocalizationService localizationService, DomainRepository domainRepository) {
+    public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
+                                               DomainRepository domainRepository,
+                                               RandomProvider randomProvider) {
+        super(randomProvider);
         this.localizationService = localizationService;
 
         name = "ProgrammingLanguageExpressionDomain";
@@ -75,7 +80,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
+        super(new RandomProvider());
         this.localizationService = localizationService;
+
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = null;
 

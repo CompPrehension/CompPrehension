@@ -18,6 +18,7 @@ import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
+import org.vstu.compprehension.utils.SessionHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -38,12 +39,7 @@ public class BasicExerciseController implements ExerciseController {
 
     @Override
     public String launch(Model model, Long exerciseId, HttpServletRequest request) {
-        var session = request.getSession();
-        if (!session.isNew()) {
-            session.invalidate();
-            session = request.getSession();
-        }
-
+        var session = SessionHelper.ensureNewSession(request);
         session.setAttribute("exerciseId", exerciseId);
 
         if (exerciseId == null) {
