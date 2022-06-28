@@ -23,6 +23,7 @@ import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.utils.Mapper;
+import org.vstu.compprehension.utils.SessionHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -68,11 +69,7 @@ public class LtiExerciseController extends BasicExerciseController {
             return "index";
         }
 
-        var session = request.getSession();
-        if (!session.isNew()) {
-            session.invalidate();
-            session = request.getSession();
-        }
+        var session = SessionHelper.ensureNewSession(request);
         session.setAttribute("ltiSessionInfo", params);
 
         val exerciseId = List.of("custom_exerciseId", "exerciseId").stream()

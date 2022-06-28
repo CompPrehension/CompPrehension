@@ -1,6 +1,7 @@
 package org.vstu.compprehension.utils;
 
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +29,17 @@ public class StringHelper {
             ++length;
         }
         return length;
+    }
+
+    @Contract("null -> null")
+    public static Integer tryParseInt(@Nullable String s) {
+        if (s == null)
+            return null;
+        try {
+            return Integer.parseInt(s);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static String joinWithSpace(Object... parts) {
