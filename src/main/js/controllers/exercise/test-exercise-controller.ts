@@ -22,6 +22,7 @@ export class TestExerciseController implements IExerciseController {
             exercise: {
                 id: -1,
                 options: {
+                    forceNewAttemptCreationEnabled: false,
                     correctAnswerGenerationEnabled: true,
                     newQuestionGenerationEnabled: true,
                     supplementaryQuestionsEnabled: true,

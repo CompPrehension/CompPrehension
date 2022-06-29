@@ -18,6 +18,7 @@ public class ExerciseOptionsEntity {
     private Boolean newQuestionGenerationEnabled;
     private Boolean supplementaryQuestionsEnabled;
     private Boolean correctAnswerGenerationEnabled;
+    private Boolean forceNewAttemptCreationEnabled;
 
     @Data
     @AllArgsConstructor @NoArgsConstructor

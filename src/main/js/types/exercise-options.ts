@@ -5,12 +5,14 @@ export type ExerciseOptions = {
         enabled: boolean,
         surveyId: string,
     },
+    forceNewAttemptCreationEnabled: boolean,
     newQuestionGenerationEnabled: boolean,
     supplementaryQuestionsEnabled: boolean,
     correctAnswerGenerationEnabled: boolean,
 }
 export const TExerciseOptions: io.Type<ExerciseOptions> = io.intersection([
     io.type({
+        forceNewAttemptCreationEnabled: io.boolean,
         newQuestionGenerationEnabled: io.boolean,
         supplementaryQuestionsEnabled: io.boolean,
         correctAnswerGenerationEnabled: io.boolean,

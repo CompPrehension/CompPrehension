@@ -33,35 +33,37 @@ export const Exercise = observer(() => {
             }
 
             await exerciseStore.loadSessionInfo();
-            const attemptExistis = await exerciseStore.loadExistingExerciseAttempt();
-            if (attemptExistis) {
-                setExerciseState('MODAL');
-            } else {
+            if (exerciseStore.sessionInfo?.exercise.options.forceNewAttemptCreationEnabled || 
+                !(await exerciseStore.loadExistingExerciseAttempt())) {
                 setExerciseState('EXERCISE');
-                await createAttemptAndLoadQuestion();
+                createAttemptAndLoadQuestion();
+            } else {
+                setExerciseState('MODAL');
             }
         })()
     }, []);
 
-    const loadQuestion = async () => {        
-        if (exerciseStore.currentAttempt?.questionIds.length) {
-            const len = exerciseStore.currentAttempt?.questionIds.length;
-            await exerciseStore.currentQuestion.loadQuestion(exerciseStore.currentAttempt?.questionIds[len - 1]);
-        } else {
-            await exerciseStore.generateQuestion();
-        }        
-    }
+    const loadQuestion = useCallback(() => {
+        (async () => {
+            if (exerciseStore.currentAttempt?.questionIds.length) {
+                const len = exerciseStore.currentAttempt?.questionIds.length;
+                await exerciseStore.currentQuestion.loadQuestion(exerciseStore.currentAttempt?.questionIds[len - 1]);
+            } else {
+                await exerciseStore.generateQuestion();
+            }
+        })()
+    }, [exerciseStore]);
 
-    const createAttemptAndLoadQuestion = async () => {
-        exerciseStore.currentQuestion.setQuestionState('LOADING');
-        await exerciseStore.createExerciseAttempt();
-        await loadQuestion();
-    }
+    const createAttemptAndLoadQuestion = useCallback(() => {
+        (async () => {
+            exerciseStore.currentQuestion.setQuestionState('LOADING');
+            await exerciseStore.createExerciseAttempt();
+            loadQuestion();
+        })()
+    }, [exerciseStore]);
 
     const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
-        (async() => {
-            exerciseStore.setSurveyAnswers(questionId, answers);
-        })()
+        exerciseStore.setSurveyAnswers(questionId, answers);
     }, [exerciseStore]);
 
     return (
