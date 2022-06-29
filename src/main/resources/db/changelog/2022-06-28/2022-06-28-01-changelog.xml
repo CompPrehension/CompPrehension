@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="1656438777993-1" author="Artem Prokudin">
+        <update tableName="exercise">
+            <column name="options_json" valueComputed="concat(substr(options_json FROM 1 FOR CHAR_LENGTH(options_json) - 1), ',&quot;forceNewAttemptCreationEnabled&quot;:false}')"/>
+        </update>
+    </changeSet>
+</databaseChangeLog>
