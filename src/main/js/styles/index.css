@@ -98,6 +98,21 @@ body ul {
   background-color: #b5b5b5;
 }
 
+.comp-ph-expr .btn.comp-ph-complete-btn {
+  color: black;
+  background-color: #e7e7e7;
+  border: 2px solid #b5b5b5;
+}
+
+.comp-ph-expr .btn.comp-ph-complete-btn:hover, .comp-ph-expr .btn.comp-ph-complete-btn.disabled {
+  background-color: #b5b5b5;
+  opacity: 1;
+}
+.comp-ph-expr .btn.comp-ph-complete-btn:focus {
+  box-shadow: none;
+}
+
+
 .comp-ph-expr .comp-ph-expr-op-btn.disabled {
   cursor: default;
   pointer-events: none;

@@ -317,7 +317,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
-                .showTrace(false)
+                .showTrace(true)
                 .multipleSelectionEnabled(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .build();
@@ -2238,29 +2238,36 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
 
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
-
-                boolean responseIsWrong = ! response.getInteraction().getViolations().isEmpty();
-
                 StringJoiner builder = new StringJoiner(" ");
-                builder.add(getMessage("expr_domain.OPERATOR", lang));
+                builder.add("<span>" + getMessage("expr_domain.OPERATOR", lang) + "</span>");
                 // format a trace line ...
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.equals("end_token")) {
                     continue;
                 }
-                builder.add(qg.filterFacts(domainInfo, "text", null).stream().findFirst().get().getObject());
-                builder.add(getMessage("expr_domain.AT_POS", lang));
-                builder.add(qg.filterFacts(domainInfo, "index", null).stream().findFirst().get().getObject());
-                builder.add(getMessage("expr_domain.EVALUATES", lang));
+                builder.add("<span style='color: #700;text-decoration: underline;'>" +
+                                qg.filterFacts(domainInfo, "text", null).stream().findFirst().get().getObject() +
+                            "</span>");
+                builder.add("<span>" + getMessage("expr_domain.AT_POS", lang) + "</span>");
+                builder.add("<span style='color: #f00;font-weight: bold;'>" +
+                                    qg.filterFacts(domainInfo, "index", null).stream().findFirst().get().getObject() +
+                             "</span>");
+                builder.add("<span>" + getMessage("expr_domain.CALCULATED", lang) + "</span>");
 
                 List<BackendFactEntity> value = qg.filterFacts(domainInfo, "has_value", null);
                 if (!value.isEmpty()) {
-                    builder.add(getMessage("expr_domain.WITH_VALUE", lang));
-                    builder.add(value.get(0).getObject());
+                    builder.add("<span>" + getMessage("expr_domain.WITH_VALUE", lang) + "</span>");
+                    builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
+                                    value.get(0).getObject() +
+                                "</span>");
                 }
 
-                result.add(new HyperText(builder.toString()));
+                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
+                var finalHtml = responseIsWrong
+                        ? "<span style='background-color: #ff9;'>" + builder + "</span>"
+                        : builder.toString();
+                result.add(new HyperText(finalHtml));
             }
         } else {
             ///
