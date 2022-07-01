@@ -40,7 +40,7 @@ export const Header = observer(() => {
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">
-                {t('signedin_as_header')}: <Link to={`statistics?exerciseId=${exerciseStore.currentAttempt?.exerciseId}`}>{user.displayName}</Link>{/*<a href="pages/statistics">{user.displayName}</a>*/}
+                {t('signedin_as_header')}: {/*<Link to={`statistics?exerciseId=${exerciseStore.currentAttempt?.exerciseId}`}>{user.displayName}</Link>*/}{<a href="#">{user.displayName}</a>}
                 </Navbar.Text>
             </Navbar.Collapse>
         </Navbar>

@@ -238,11 +238,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
-    	return null;
-    }
-
-    @Override
     public void update() {
     }
 
@@ -322,7 +317,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
-                .showTrace(false)
+                .showTrace(true)
                 .multipleSelectionEnabled(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .build();
@@ -2231,4 +2226,94 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public String questionToJson(Question question) {
         return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
     }
+
+    @Override
+    public List<HyperText> getFullSolutionTrace(Question question) {
+        Language lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
+
+        ArrayList<HyperText> result = new ArrayList<>();
+
+        String qType = question.getQuestionData().getQuestionDomainType();
+        if (qType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
+
+            for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+                StringJoiner builder = new StringJoiner(" ");
+                builder.add("<span>" + getMessage("expr_domain.OPERATOR", lang) + "</span>");
+                // format a trace line ...
+                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                String domainInfo = answerObj.getDomainInfo();
+                if (domainInfo.equals("end_token")) {
+                    continue;
+                }
+                builder.add("<span style='color: #700;text-decoration: underline;'>" +
+                                qg.filterFacts(domainInfo, "text", null).stream().findFirst().get().getObject() +
+                            "</span>");
+                builder.add("<span>" + getMessage("expr_domain.AT_POS", lang) + "</span>");
+                builder.add("<span style='color: #f00;font-weight: bold;'>" +
+                                    qg.filterFacts(domainInfo, "index", null).stream().findFirst().get().getObject() +
+                             "</span>");
+                builder.add("<span>" + getMessage("expr_domain.CALCULATED", lang) + "</span>");
+
+                List<BackendFactEntity> value = qg.filterFacts(domainInfo, "has_value", null);
+                if (!value.isEmpty()) {
+                    builder.add("<span>" + getMessage("expr_domain.WITH_VALUE", lang) + "</span>");
+                    builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
+                                    value.get(0).getObject() +
+                                "</span>");
+                }
+
+                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
+                var finalHtml = responseIsWrong
+                        ? "<span style='background-color: #ff9;'>" + builder + "</span>"
+                        : builder.toString();
+                result.add(new HyperText(finalHtml));
+            }
+        } else {
+            ///
+            result.addAll(Arrays.asList(
+                    new HyperText("debugging trace line #1 for unknown question Type" + question.getQuestionData().getQuestionDomainType()),
+                    new HyperText("trace <b>line</b> #2"),
+                    new HyperText("trace <i>line</i> #3")
+            ));
+        }
+        return result;
+    }
+
+    private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+
+        List<ResponseEntity> responses = new ArrayList<>();
+        List<InteractionEntity> interactions = q.getInteractions();
+
+        if (interactions == null || interactions.isEmpty()) {
+            return responses; // empty so far
+            // early exit: no further checks for emptiness
+        }
+
+        responses = Optional.of(interactions).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second)
+                .map(InteractionEntity::getResponses)
+                .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
+                .orElseGet(ArrayList::new);
+
+        if (allowLastIncorrect) {
+            val latestStudentResponse = Optional.of(interactions).stream()
+                    .flatMap(Collection::stream)
+                    .reduce((first, second) -> second).orElse(null);
+            if (latestStudentResponse != null && !latestStudentResponse.getViolations().isEmpty()) {
+                // lastInteraction is wrong
+                val responseNew = Optional.ofNullable(latestStudentResponse.getResponses())//.stream()
+                        .filter(resp -> resp.size() > 0)
+                        .map(resp -> resp.get(resp.size() - 1))
+                        .orElse(null);
+                if (responseNew != null) {
+                    responses.add(responseNew);
+                }
+            }
+        }
+        return responses;
+    }
+
 }
