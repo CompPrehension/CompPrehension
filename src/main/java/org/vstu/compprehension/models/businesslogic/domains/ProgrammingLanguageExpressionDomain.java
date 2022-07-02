@@ -1953,11 +1953,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .add(getMessage("expr_domain.NOT_EVALUATES", lang));
             joiner.add("\n").add(getMessage("expr_domain.BECAUSE", lang));
             joiner
-                    .add(getOperatorTextDescription(reasonText, lang))
+                    .add(getMessage("expr_domain.LEFT_OPERAND_FOR_OPERATOR", lang))
                     .add(reasonText)
                     .add(getMessage("expr_domain.AT_POS", lang))
                     .add(reasonPos)
-                    .add(getMessage("expr_domain.HAS_VALUE_AND_EVALUATE_OTHER_PART", lang));
+                    .add(getMessage("expr_domain.HAS_VALUE_AND_EVALUATE_OTHER_PART", lang)
+                            .replaceAll("\\$\\{evaluation_result}", reasonText.equals("&&") ? "false" : "true"));
         } else if (errorType.equals("error_base_student_error_early_finish")) {
             joiner = new StringJoiner(" ");
             joiner
