@@ -856,6 +856,11 @@
   <rdfs:subClassOf rdf:resource="#UpcomingNeighbour"/>
 </owl:Class>
 
+<owl:Class rdf:about="#IgnoreInterruptingFlow">
+  <rdfs:subClassOf rdf:resource="#UnexpectedWhenInterrupting"/>
+  <involves_concept rdf:resource="#action"/>
+</owl:Class>
+
 <owl:Class rdf:about="#DuplicateOfAct">
   <involves_concept rdf:resource="#sequence"/>
   <rdfs:subClassOf rdf:resource="#Erroneous"/>
