@@ -15,7 +15,7 @@ public abstract class Question {
     protected List<String> concepts;
     protected List<String> negativeLaws;
     protected HashSet<String> tags;
-    protected Domain domain;
+    transient protected Domain domain;  // "transient" makes json reader ignore this field
     
     public Question(QuestionEntity questionData, Domain domain) {
         this.questionData = questionData;
