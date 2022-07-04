@@ -52,7 +52,7 @@ INSERT INTO `exercise_laws` (`exercise_id`, `law_name`, `role_in_exercise` ) VAL
 
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
-VALUES (11, 1, 1, 0, 1, '10', 'test_if', 8, 0, 'GradeConfidenceBaseStrategy', 'Jena', 'ControlFlowStatementsDomain', 'alternative,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
+VALUES (11, 1, 1, 0, 1, '10', 'test_return', 8, 0, 'GradeConfidenceBaseStrategy_WithConcepts', 'Jena', 'ControlFlowStatementsDomain', 'C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":false,"surveyId":"IsCreatedByHuman"}, "forceNewAttemptCreationEnabled":false}');
 
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (12, 1, 1, 0, 1, '10', 'test_while', 8, 0, 'GradeConfidenceBaseStrategy', 'Jena', 'ControlFlowStatementsDomain', 'while_loop,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
@@ -115,6 +115,8 @@ INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_i
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('associativity', 2, 8);
 
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('trace', 0, 10);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`)
+VALUES ('return', 0, 11);
 
 INSERT INTO `exercise_attempt` (`id`, `attempt_status`, `exercise_id`, `user_id` ) VALUES (14,1,14,1);
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('SystemIntegrationTest', 0, 14);
