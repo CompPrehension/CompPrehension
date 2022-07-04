@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!--
+    INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
+    VALUES (11, 1, 1, 0, 1, '10', 'test_return', 8, 0, 'GradeConfidenceBaseStrategy_WithConcepts', 'Jena', 'ControlFlowStatementsDomain', 'C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":false,"surveyId":"IsCreatedByHuman"}, "forceNewAttemptCreationEnabled":false}');
+     -->
+    <changeSet id="1656971501993-1" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <!-- Check that no concepts present for exercise 11 -->
+            <sqlCheck expectedResult="0">select exists(select 1 from exercise_concepts where exercise_id = 11) AS notEmpty</sqlCheck>
+        </preConditions>
+
+        <update tableName="exercise">
+            <column name="name" value='test_return'/>
+            <column name="strategy_id" value='GradeConfidenceBaseStrategy_WithConcepts'/>
+            <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":false,"surveyId":"IsCreatedByHuman"}, "forceNewAttemptCreationEnabled":false}'/>
+            <where>id = '11'</where>
+        </update>
+    </changeSet>
+
+    <!--
+    INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`)
+    VALUES ('return', 0, 11);
+     -->
+    <changeSet id="1656971501993-2" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <!-- Check that no concepts present for exercise 11 -->
+            <sqlCheck expectedResult="0">select exists(select 1 from exercise_concepts where exercise_id = 11) AS notEmpty</sqlCheck>
+        </preConditions>
+
+        <insert tableName="exercise_concepts">
+            <column name="concept_name" value='return'/>
+            <column name="role_in_exercise" value='0'/>
+            <column name="exercise_id" value='11'/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
