@@ -218,6 +218,11 @@
         "name": "attach-principal_violation-to-possible_violation-at-reason_node",
         "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
         "backend": "Jena"
+      },
+      {
+        "name": "always_consequent-in-outside-of-atomic-action-to-collapse_bound",
+        "formulation": "(?a my:always_consequent ?b), (?a my:boundary_of ?st), noValue(?b my:boundary_of ?st), -> (?a my:collapse_bound ?b).",
+        "backend": "Jena"
       }
     ]
   },
@@ -265,7 +270,7 @@
       },
       {
         "name": "connect_InterruptedByBreak",
-        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:break), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), noValue(?st rdf:type my:loop), makeNamedSkolem(?E, my:h_brk, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:break), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?st rdf:type ?stType), (?stType rdfs:subClassOf my:action), noValue(?st rdf:type my:loop), makeNamedSkolem(?E, my:h_brk, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
         "backend": "Jena"
       },
       {
@@ -275,7 +280,7 @@
       },
       {
         "name": "connect_InterruptedByContinue",
-        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:continue), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?notL my:parent_of ?st), noValue(?notL rdf:type my:loop), makeNamedSkolem(?E, my:h_con, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:continue), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?notL my:parent_of ?st), (?notL rdf:type ?notLtype), (?notLtype rdfs:subClassOf my:action), noValue(?notL rdf:type my:loop), makeNamedSkolem(?E, my:h_con, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
         "backend": "Jena"
       },
       {
@@ -546,6 +551,9 @@
       },
       {
         "name": "Erroneous"
+      },
+      {
+        "name": "finish_trace_act"
       }
     ],
     "formulations": [
@@ -583,6 +591,11 @@
         "name": "Reason-4-correct-transition-4-student_next_latest",
         "formulation": "(?a my:student_next_latest ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_a my:consequent ?bnd_b), (?bnd_a ?p ?bnd_b), noValue(?such_p rdfs:subPropertyOf ?p) -> (?b my:reason ?p).",
         "backend": "Jena"
+      },
+      {
+        "name": "Mark-last-act-in-trace-as-finish_trace_act",
+        "formulation": "(?Trace my:executes ?alg), (?alg my:entry_point ?gc), (?bnd_e my:boundary_of ?gc), (?a my:in_trace ?Trace), (?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:always_consequent ?bnd_e), -> (?a rdf:type my:finish_trace_act).",
+        "backend": "Jena"
       }
     ]
   },
@@ -612,6 +625,9 @@
       },
       {
         "name": "UnexpectedWhenInterrupting"
+      },
+      {
+        "name": "IgnoreInterruptingFlow"
       },
       {
         "name": "TooEarlyWhenInterrupting"
@@ -685,8 +701,13 @@
         "backend": "Jena"
       },
       {
+        "name": "IgnoreInterruptingFlow-Error",
+        "formulation": "(?b rdf:type my:UnexpectedWhenInterrupting), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:halt_of ?st_a), (?b2 my:end_of ?st_a), (?b2 my:has_upcoming ?by), -> (?b rdf:type my:IgnoreInterruptingFlow),.",
+        "backend": "Jena"
+      },
+      {
         "name": "TooEarlyWhenInterrupting-Error",
-        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:executes ?bx), (?bx my:halt_of ?st_a), (?bx my:interrupt_origin ?o), (?o  my:boundary_of ?st), (?st rdf:type ?interrupt_class), (?interrupt_class rdfs:label ?kind), -> (?b rdf:type my:TooEarlyWhenInterrupting), (?b my:field_kind_of_action ?kind),.",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:executes ?bx), (?bx my:halt_of ?st_a), (?bx my:consequent ?bn), (?bn  my:boundary_of ?st_n), (?st_n my:stmt_name ?name), (?bx my:interrupt_origin ?o), (?o  my:boundary_of ?st), (?st rdf:type ?interrupt_class), (?interrupt_class rdfs:label ?kind), -> (?b rdf:type my:TooEarlyWhenInterrupting), (?b my:field_MISSING ?name), (?b my:field_kind_of_action ?kind),.",
         "backend": "Jena"
       },
       {

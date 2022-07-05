@@ -1616,7 +1616,7 @@ public class ControlFlowStatementsDomain extends Domain {
 //        return null;
 //    }
 
-    private List<Question> readQuestions(InputStream inputStream) {
+    private static List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
 
         RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
