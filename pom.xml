@@ -259,7 +259,7 @@
 		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations</artifactId>
-			<version>22.0.0</version>
+			<version>23.0.0</version>
 		</dependency>
 	</dependencies>
 
@@ -278,10 +278,12 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>${project.parent.version}</version>
 			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+				<version>3.10.0</version>
             </plugin>
 			<plugin>
 				<groupId>org.liquibase</groupId>
