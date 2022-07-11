@@ -143,6 +143,13 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
+    public String getDefaultQuestionType(boolean supplementary) {
+        return supplementary
+                ? EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE
+                : EXECUTION_ORDER_QUESTION_TYPE;
+    }
+
+    @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         /// System.out.println("\t\tGetting the trace ...");
 

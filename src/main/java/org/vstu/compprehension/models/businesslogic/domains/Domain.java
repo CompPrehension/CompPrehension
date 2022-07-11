@@ -107,6 +107,19 @@ public abstract class Domain {
         return ModelFactory.createDefaultModel();
     }
 
+    public String getDefaultQuestionType() {
+        return getDefaultQuestionType(false);
+    }
+
+    public String getDefaultQuestionType(boolean supplementary) {
+        return null;  // the default
+    }
+
+    public List<Tag> getDefaultQuestionTags(String questionDomainType) {
+        // the default
+        return new ArrayList<>();
+    }
+
     public AbstractRdfStorage getRdfStorage() {
         if (rdfStorage == null) {
             rdfStorage = new LocalRdfStorage(this);
