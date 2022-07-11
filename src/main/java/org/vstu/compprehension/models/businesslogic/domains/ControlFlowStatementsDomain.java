@@ -138,6 +138,11 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
+    public Model getSchemaForSolving() {
+        return VOCAB.getModel();
+    }
+
+    @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         /// System.out.println("\t\tGetting the trace ...");
 

@@ -453,13 +453,8 @@ public abstract class AbstractRdfStorage {
     }
 
     Model getDomainSchemaForSolving() {
-        if (domain instanceof ControlFlowStatementsDomain) {
-            Model schemaModel = ModelFactory.createDefaultModel();
-            return schemaModel.read(ControlFlowStatementsDomain.VOCAB_SCHEMA_PATH);
-
-        } else if (domain instanceof ProgrammingLanguageExpressionDomain) {
-            Model schemaModel = ModelFactory.createDefaultModel();
-            return schemaModel.read(ProgrammingLanguageExpressionDomain.VOCAB_SCHEMA_PATH);
+        if (domain != null) {
+            return domain.getSchemaForSolving();
         }
 
         // the default

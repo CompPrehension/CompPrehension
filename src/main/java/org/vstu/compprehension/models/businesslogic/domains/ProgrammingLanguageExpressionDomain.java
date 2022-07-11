@@ -13,6 +13,7 @@ import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.jetbrains.annotations.NotNull;
@@ -618,6 +619,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             result.add(law);
         }
         return result;
+    }
+
+    @Override
+    public Model getSchemaForSolving() {
+        Model schemaModel = ModelFactory.createDefaultModel();
+        return schemaModel.read(VOCAB_SCHEMA_PATH);
     }
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
