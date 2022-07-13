@@ -13,6 +13,7 @@ import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.jetbrains.annotations.NotNull;
@@ -618,6 +619,33 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             result.add(law);
         }
         return result;
+    }
+
+    @Override
+    public Model getSchemaForSolving() {
+        Model schemaModel = ModelFactory.createDefaultModel();
+        return schemaModel.read(VOCAB_SCHEMA_PATH);
+    }
+
+    @Override
+    public String getDefaultQuestionType(boolean supplementary) {
+        return supplementary
+                ? EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE
+                : EVALUATION_ORDER_QUESTION_TYPE;
+    }
+
+    @Override
+    public List<Tag> getDefaultQuestionTags(String questionDomainType) {
+        if (Objects.equals(questionDomainType, EVALUATION_ORDER_QUESTION_TYPE)) {
+            List<Tag> tags = new ArrayList<>();
+            for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
+                Tag tag = new Tag();
+                tag.setName(tagString);
+                tags.add(tag);
+            }
+            return tags;
+        }
+        return super.getDefaultQuestionTags(questionDomainType);
     }
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {

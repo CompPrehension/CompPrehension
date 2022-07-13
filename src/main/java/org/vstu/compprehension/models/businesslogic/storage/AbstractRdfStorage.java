@@ -453,13 +453,8 @@ public abstract class AbstractRdfStorage {
     }
 
     Model getDomainSchemaForSolving() {
-        if (domain instanceof ControlFlowStatementsDomain) {
-            Model schemaModel = ModelFactory.createDefaultModel();
-            return schemaModel.read(ControlFlowStatementsDomain.VOCAB_SCHEMA_PATH);
-
-        } else if (domain instanceof ProgrammingLanguageExpressionDomain) {
-            Model schemaModel = ModelFactory.createDefaultModel();
-            return schemaModel.read(ProgrammingLanguageExpressionDomain.VOCAB_SCHEMA_PATH);
+        if (domain != null) {
+            return domain.getSchemaForSolving();
         }
 
         // the default
@@ -478,23 +473,9 @@ public abstract class AbstractRdfStorage {
         if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
             laws.addAll(domain.getPositiveLaws());
         } else if (level.ordinal() <= GraphRole.QUESTION.ordinal()) {
-            if (domain instanceof ProgrammingLanguageExpressionDomain) {
-                List<Tag> tags = new ArrayList<>();
-                for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
-                    Tag tag = new Tag();
-                    tag.setName(tagString);
-                    tags.add(tag);
-                }
-                laws.addAll(domain.getQuestionPositiveLaws("OrderOperators", tags));
-            } else if (domain instanceof ControlFlowStatementsDomain) {
-                laws.addAll(domain.getQuestionPositiveLaws("OrderActs", new ArrayList<>()));
-            }
+            laws.addAll(domain.getQuestionPositiveLaws(domain.getDefaultQuestionType(), domain.getDefaultQuestionTags(domain.getDefaultQuestionType())));
         } else {
-            if (domain instanceof ProgrammingLanguageExpressionDomain) {
-                laws.addAll(domain.getQuestionNegativeLaws("OrderOperators", new ArrayList<>()));
-            } else if (domain instanceof ControlFlowStatementsDomain) {
-                laws.addAll(domain.getQuestionNegativeLaws("OrderActs", new ArrayList<>()));
-            }
+            laws.addAll(domain.getQuestionNegativeLaws(domain.getDefaultQuestionType(), new ArrayList<>()));
         }
 
         PrintUtil.registerPrefix("my", NS_code.get()); // as `my:` is used in rules

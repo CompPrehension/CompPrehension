@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
@@ -99,6 +100,24 @@ public abstract class Domain {
             }
         }
         return null;
+    }
+
+    public Model getSchemaForSolving(/* String questionType (?) */) {
+        // the default
+        return ModelFactory.createDefaultModel();
+    }
+
+    public String getDefaultQuestionType() {
+        return getDefaultQuestionType(false);
+    }
+
+    public String getDefaultQuestionType(boolean supplementary) {
+        return null;  // the default
+    }
+
+    public List<Tag> getDefaultQuestionTags(String questionDomainType) {
+        // the default
+        return new ArrayList<>();
     }
 
     public AbstractRdfStorage getRdfStorage() {
