@@ -35,7 +35,6 @@ import org.vstu.compprehension.common.Utils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
 

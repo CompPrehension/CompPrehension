@@ -28,7 +28,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Primary
@@ -309,7 +308,7 @@ public class JenaBackend implements Backend {
     /** Expand simple name as local, prefixed name as special */
     private String termToUri(String s) {
         String uri;
-        assertNotNull(s, "termToUri(null) !");
+        assert s != null;
         if (s.startsWith("http://")) {
             uri = s;
         }

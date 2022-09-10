@@ -42,8 +42,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.getLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
@@ -796,7 +794,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     break;
                 }
             }
-            assertNotNull(entryPointIri, "No entry point declared among q.statementFacts");
+            assert entryPointIri != null;
             // trace object
             String trace = "comp-ph-trace";
             appendActFacts(result, 0, trace, "trace",
@@ -1281,7 +1279,7 @@ public class ControlFlowStatementsDomain extends Domain {
             List<Statement> tripleLastInTraceAsList =
                     model.listStatements(null, student_next_latest, (RDFNode) null).toList();
 
-            assertFalse(tripleLastInTraceAsList.isEmpty());
+            assert !(tripleLastInTraceAsList.isEmpty());
             Statement tripleLastInTrace = tripleLastInTraceAsList.get(0);
 
             Individual lastAct = tripleLastInTrace.getObject().as(Individual.class);
@@ -1308,13 +1306,13 @@ public class ControlFlowStatementsDomain extends Domain {
                 ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
                 List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
 
-                assertFalse(entryAsList.isEmpty(), "Missing entry point in the algorithm!");
+                assert !(entryAsList.isEmpty());
 
                 actionInd = entryAsList.get(0).as(Individual.class);
             }
 
             /// assert actionInd != null;  // did not get last act correctly ?
-            assertNotNull(actionInd, "did last act retrieved correctly?");
+            assert actionInd != null;
 
             // 2) find length of the shortest path over algorithm to the end ...
             // get shortcuts to properties
@@ -1328,7 +1326,7 @@ public class ControlFlowStatementsDomain extends Domain {
             if (boundRes == null) {
                 List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd
                 // .getPropertyResourceValue(boundary_of);
-                assertFalse(bounds.isEmpty(), "no bounds found for entry point!");
+                assert !bounds.isEmpty();
                 boundRes = bounds.get(0);
             }
             bound = boundRes.as(Individual.class);
@@ -1385,7 +1383,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // find next consequent (using solved facts)
         List<BackendFactEntity> solution = q.getSolutionFacts();
-        assertNotNull(solution, "Call solve() question before getAnyNextCorrectAnswer() !");
+        assert solution != null;
 
         solution = new ArrayList<>(solution);
         solution.addAll(q.getStatementFacts());
@@ -1417,9 +1415,6 @@ public class ControlFlowStatementsDomain extends Domain {
                     .stream()
                     .reduce((first, second) -> second)
                     .orElse(null);
-
-            assertNotNull(lastAnswer);
-
             String domainInfo = lastAnswer.getDomainInfo();
             AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
             phase = answerDomainInfo.getPhase();

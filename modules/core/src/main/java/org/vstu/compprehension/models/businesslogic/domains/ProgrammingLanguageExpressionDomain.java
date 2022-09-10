@@ -17,7 +17,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -45,8 +44,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Component @Log4j2
 @Singleton
@@ -882,9 +879,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
-        Assertions.assertTrue(name.startsWith("op__"), name);
+        assert name.startsWith("op__");
         String[] parts = name.split("__");
-        assertEquals(3, parts.length, name);
+        assert 3 == parts.length;
         if (allowNotZeroStep || parts[1].equals("0")) {
             return Optional.of(Integer.parseInt(parts[2]));
         }
@@ -1209,7 +1206,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .collect(Collectors.toList());*/
 
         val solution = q.getSolutionFacts();
-        assertNotNull(solution, "Call solve question before getAnyNextCorrectAnswer");
+        assert solution != null;
         solution.addAll(lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects()))).stream()
                 .flatMap(Collection::stream)
@@ -2048,7 +2045,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 Comparator.comparingInt((BackendFactEntity a) -> Integer.parseInt(a.getSubject().substring("op__0__".length()))));
         for (BackendFactEntity branchOperands : switchPoints) {
             List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
-            assertEquals(1, leftOp.size());
+            assert 1 == leftOp.size();
             Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
 
             List<BackendFactEntity> left_op_is_switch = fg.filterFacts(leftOp.get(0).getObject(), "has_value_eval_restriction", null);

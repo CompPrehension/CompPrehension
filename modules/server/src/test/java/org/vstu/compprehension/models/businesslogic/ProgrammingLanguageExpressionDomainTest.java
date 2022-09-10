@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.val;
+import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
