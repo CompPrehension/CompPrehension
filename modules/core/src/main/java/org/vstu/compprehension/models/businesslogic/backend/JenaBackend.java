@@ -50,6 +50,20 @@ public class JenaBackend implements Backend {
     OntModel model;
     HashMap<Integer, ArrayList<Rule>> domainRuleSets = new HashMap<>();
 
+    public static List<BackendFactEntity> modelToFacts(Model factsModel, String baseUri) {
+        JenaBackend jback = new JenaBackend();
+        jback.createOntology(baseUri);
+
+        // fill model
+        OntModel model = jback.getModel();
+        model.add(factsModel);
+
+        List<String> verbs = factsModel.listStatements().toList().stream()
+                .map(Statement::getPredicate)
+                .map(Property::getLocalName).distinct().collect(Collectors.toList());
+        return jback.getFacts(verbs);
+    }
+
 /*
     String RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
     String RDFS = "http://www.w3.org/2000/01/rdf-schema#";

@@ -8,7 +8,6 @@ import org.apache.jena.arq.querybuilder.WhereBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.rdf.model.*;
@@ -25,9 +24,7 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -93,20 +90,6 @@ public abstract class AbstractRdfStorage {
      */
     Dataset dataset = null;
     RemoteFileService fileService = null;
-
-    public static List<BackendFactEntity> modelToFacts(Model factsModel, String baseUri) {
-        JenaBackend jback = new JenaBackend();
-        jback.createOntology(baseUri);
-
-        // fill model
-        OntModel model = jback.getModel();
-        model.add(factsModel);
-
-        List<String> verbs = factsModel.listStatements().toList().stream()
-                .map(Statement::getPredicate)
-                .map(Property::getLocalName).distinct().collect(Collectors.toList());
-        return jback.getFacts(verbs);
-    }
 
     /**
      * Make a SPARQL Update query that removes all (s, p, *) triples and inserts one (s, p, o) triple into a named
