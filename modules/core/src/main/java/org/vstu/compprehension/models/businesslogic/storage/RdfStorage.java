@@ -512,8 +512,6 @@ RdfStorage.StopBackgroundDBFillUp()
         // debug some things ...
         // solve <question template> graphs with domain
 
-        JenaBackend.registerBuiltins();
-
 //        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
 
 //        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
@@ -760,7 +758,7 @@ RdfStorage.StopBackgroundDBFillUp()
                     Model solvedQuestionModel = rs.solveTemplate(questionInitModel.add(questionModel), GraphRole.QUESTION_SOLVED, true);
 
                     // Generate only questions with different error sets
-                    List<BackendFactEntity> facts = modelToFacts(solvedQuestionModel, NS_code.base());
+                    List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.base());
                     Set<String> violations = domain.possibleViolations(facts, null);
                     if (possibleViolations.contains(violations)) {
                         System.out.println("Skip question with same violations: " + question.getKey());
