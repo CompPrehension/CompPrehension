@@ -964,6 +964,7 @@ public class ControlFlowStatementsDomain extends Domain {
 //        }
 
         OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
+        AnnotationProperty atom_action = model.getAnnotationProperty(model.expandPrefix(":atom_action"));
         Property stmt_name = model.getProperty(model.expandPrefix(":stmt_name"));
         Property executes = model.getProperty(model.expandPrefix(":executes"));
         Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));

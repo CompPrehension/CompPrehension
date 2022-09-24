@@ -168,6 +168,12 @@
   <rdfs:range rdf:resource="#act"/>
 </owl:ObjectProperty>
 
+<owl:ObjectProperty rdf:about="#field_A_bound"/>
+
+<owl:ObjectProperty rdf:about="#field_EXTRA_bound"/>
+
+<owl:ObjectProperty rdf:about="#field_MISSING_bound"/>
+
 <owl:ObjectProperty rdf:about="#fetch_kind_of_loop">
   <rdfs:domain rdf:resource="#act"/>
   <rdfs:range rdf:resource="#action"/>
@@ -582,6 +588,8 @@
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
+<owl:AnnotationProperty rdf:about="#atom_action"/>
+
 <owl:AnnotationProperty rdf:about="#act_class"/>
 
 <owl:AnnotationProperty rdf:about="#involves_concept"/>
@@ -743,29 +751,35 @@
 
 <owl:Class rdf:about="#expr">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#stmt">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#interrupt_action">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#return">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">return</rdfs:label>
+  <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#break">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break</rdfs:label>
+  <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#continue">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">continue</rdfs:label>
+  <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#if">
@@ -857,8 +871,8 @@
 </owl:Class>
 
 <owl:Class rdf:about="#IgnoreInterruptingFlow">
-  <rdfs:subClassOf rdf:resource="#UnexpectedWhenInterrupting"/>
   <involves_concept rdf:resource="#action"/>
+  <rdfs:subClassOf rdf:resource="#UnexpectedWhenInterrupting"/>
 </owl:Class>
 
 <owl:Class rdf:about="#DuplicateOfAct">
