@@ -42,7 +42,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
-import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.getLeafOntClasses;
+import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
 
@@ -568,10 +568,25 @@ public class ControlFlowStatementsDomain extends Domain {
             return new HyperText("[Empty explanation] for law " + lawName);
         }
 
+        String localeKeyMark = "!{locale:";
+        int lenLkm = localeKeyMark.length();
+
         // Build replacement map
         Map<String, String> replacementMap = new HashMap<>();
-        for (ExplanationTemplateInfoEntity template : violation.getExplanationTemplateInfo()) {
-            replacementMap.put(template.getFieldName(), template.getValue());
+        for (ExplanationTemplateInfoEntity item : violation.getExplanationTemplateInfo()) {
+            String value = item.getValue();
+
+            // handle special locale-dependent placeholders
+            int i, pos = 0;
+            while ((i = value.indexOf(localeKeyMark, pos)) > -1) {
+                int closingBracePos = value.indexOf("}", i + lenLkm);
+                String key = value.substring(i + lenLkm, closingBracePos);
+                String replaceTo = getMessage(key, userLang);
+                value = value.replace(value.substring(i, closingBracePos + 1), replaceTo);
+                pos = i - lenLkm - key.length() - 1 + replaceTo.length();
+            }
+
+            replacementMap.put(item.getFieldName(), value);
         }
 
         // Replace in msg
@@ -968,8 +983,13 @@ public class ControlFlowStatementsDomain extends Domain {
         Property stmt_name = model.getProperty(model.expandPrefix(":stmt_name"));
         Property executes = model.getProperty(model.expandPrefix(":executes"));
         Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
+        Property begin_of    = model.getProperty(model.expandPrefix(":begin_of"));
+        Property end_of      = model.getProperty(model.expandPrefix(":end_of"));
+        Property halt_of     = model.getProperty(model.expandPrefix(":halt_of"));
         Property wrong_next_act = model.getProperty(model.expandPrefix(":wrong_next_act"));
         Property reason = model.getProperty(model.expandPrefix(":reason"));
+        OntClass OwlClass = model.getOntClass(OWL.Class.getURI());
+        Literal True = model.createTypedLiteral(true);
 
 //        Set<? extends OntResource> instSet = Erroneous.listInstances().toSet();
         Set<RDFNode> instSet = model.listObjectsOfProperty(wrong_next_act).toSet();
@@ -982,7 +1002,6 @@ public class ControlFlowStatementsDomain extends Domain {
 
 
                 // filter classNodes
-                OntClass OwlClass = model.getOntClass(OWL.Class.getURI());
                 List<OntClass> classes = new ArrayList<>();
                 List<RDFNode> classNodes = model.listObjectsOfProperty(inst.asResource(), RDF.type).toList();
                 classNodes.forEach(rdfNode -> {
@@ -990,7 +1009,7 @@ public class ControlFlowStatementsDomain extends Domain {
                         classes.add(model.createClass(rdfNode.asResource().getURI()));
                 });
 
-                List<OntClass> errorOntClasses = getLeafOntClasses(
+                List<OntClass> errorOntClasses = retainLeafOntClasses(
                         // act_individual.listOntClasses(true).toList()
                         classes
                 );
@@ -1008,7 +1027,42 @@ public class ControlFlowStatementsDomain extends Domain {
                     String verb = statement.getPredicate().getLocalName();
                     if (getFieldProperties().contains(verb)) {
                         String fieldName = verb.replaceAll("field_", "");
-                        String value = statement.getString();
+                        String value;
+                        if (!fieldName.endsWith("_bound")) {
+                            // object is just an ordinal string
+                            value = statement.getString();
+                        } else {
+                            // process bound instance ...
+                            // statement.object is boundary, so we can retrieve action name & phase
+
+                            // cut "_bound" suffix
+                            fieldName = fieldName.substring(0, fieldName.length() - "_bound".length());
+                            // add 'phased-' prefix
+                            fieldName = "phased-" + fieldName;
+
+                            Individual bound = statement.getObject().asResource().as(Individual.class);
+                            Individual action_ = bound.getProperty(boundary_of).getObject().as(Individual.class);
+                            // value = bound.boundary_of.stmt_name
+                            value = action_.getPropertyValue(stmt_name).asLiteral().getString();
+
+                            // bound's action does not have 'atom_action'=true annotation
+                            if (bound.listOntClasses(false).toSet().stream()
+                                    .filter(c -> model.listStatements(c, atom_action, True).hasNext())
+                                    .findAny()
+                                    .isEmpty()
+                            ) {
+                                // find phase from bound's relation
+                                String phase_str = "";  // templated version since we don't know the locale now
+                                if (model.listStatements(bound, begin_of, action_).hasNext()) {
+                                    phase_str = "!{locale:phase.begin_of}" + " ";  //// getMessage("phase.begin_of", );
+                                } else if (model.listStatements(bound, end_of, action_).hasNext()
+                                        || model.listStatements(bound, halt_of, action_).hasNext()) {
+                                    phase_str = "!{locale:phase.end_of}" + " ";
+                                }
+                                // prepend prefix
+                                value = phase_str + value;
+                            }
+                        }
                         value = "\"" + value + "\"";
                         if (placeholders.containsKey(fieldName)) {
                             // append to previous data

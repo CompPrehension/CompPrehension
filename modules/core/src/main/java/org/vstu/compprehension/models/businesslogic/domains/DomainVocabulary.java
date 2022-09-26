@@ -174,7 +174,12 @@ public class DomainVocabulary {
         return result;
     }
 
-    public static List<OntClass> getLeafOntClasses(List<OntClass> classes) {
+    /**
+     * Return sub-set of `classes` that have no inheritance relations, keeping the most specific ones.
+     * @param classes list of classes to filter
+     * @return filtered version of `classes` list
+     */
+    public static List<OntClass> retainLeafOntClasses(List<OntClass> classes) {
         HashSet<OntClass> set = new HashSet<>();
         for (OntClass cls : classes) {
             set.addAll(cls.listSuperClasses(false).toSet());
