@@ -8,6 +8,8 @@ import { Exercise } from './pages/exercise';
 import { Statistics } from './pages/statistics';
 import { ExercisesList } from './pages/exercises-list';
 import { SurveyPage } from './pages/survey';
+import { ExerciseSettings } from './pages/exercise-settings';
+import { StrategySettings } from './pages/strategy-settings';
 
 const Home = () => (
     <div className="container comp-ph-container">
@@ -18,6 +20,12 @@ const Home = () => (
                 </Route>
                 <Route path="/**/pages/exercise">
                     <Exercise />
+                </Route>
+                <Route path="/**/pages/exercise-settings">
+                    <ExerciseSettings />
+                </Route>
+                <Route path="/**/pages/strategy-settings">
+                    <StrategySettings />
                 </Route>
                 <Route path="/**/pages/survey">
                     <SurveyPage />

@@ -7,6 +7,7 @@ import { QuestionStore } from "./stores/question-store";
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 import { SurveyController } from "./controllers/exercise/survey-controller";
+import { ExerciseSettingsController } from "./controllers/exercise/exercise-settings";
 
 // init DI container
 container.register(ExerciseController, { 
@@ -17,6 +18,7 @@ container.register(ExerciseController, {
 container.register(QuestionStore, QuestionStore);
 container.registerSingleton(ExerciseStore);
 container.registerSingleton(SurveyController);
+container.registerSingleton(ExerciseSettingsController);
 
 // init localisation
 const resources = {
