@@ -8,6 +8,7 @@ import { QuestionStore } from "./question-store";
 import i18next from "i18next";
 import { Language } from "../types/language";
 import { RequestError } from "../types/request-error";
+
 @injectable()
 export class ExerciseStore {
     @observable isSessionLoading: boolean = false;

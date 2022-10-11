@@ -15,7 +15,7 @@ module.exports = merge(common, {
     }),
     new HtmlWebpackPlugin({
       template: __dirname + '/src/main/js/templates/index.html',
-      filename: '../templates/index.html',
+      filename: 'index.html',
       inject: 'body',
       publicPath: '/',
       minify: false,
@@ -33,5 +33,24 @@ module.exports = merge(common, {
   optimization: {
     ...common.optimization,
     minimize: false,
+  },
+  devServer: {
+    static: {
+      directory: path.join(__dirname, './target/classes/static/'),
+    },
+    historyApiFallback: {
+      index: 'index.html'
+    },
+    devMiddleware: {
+      index: true,
+      mimeTypes: { phtml: 'text/html' },
+      publicPath: path.join(__dirname, './target/classes/static/'),
+      serverSideRender: true,
+      writeToDisk: true,
+    },
+    compress: true,
+    port: 4200,
+    hot: true,
+    open: true,
   },
 });

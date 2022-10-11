@@ -2,7 +2,6 @@ package org.vstu.compprehension.models.entities;
 
 import lombok.ToString;
 import lombok.val;
-import org.nfunk.jep.function.Str;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;

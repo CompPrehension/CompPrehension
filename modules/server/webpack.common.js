@@ -13,7 +13,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       template: __dirname + '/src/main/js/templates/index.html',
-      filename: '../templates/index.html',
+      filename: 'index.html',
       inject: 'body',
       publicPath: '/',
       minify: false,
