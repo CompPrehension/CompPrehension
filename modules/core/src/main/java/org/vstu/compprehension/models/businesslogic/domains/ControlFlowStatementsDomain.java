@@ -34,9 +34,12 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,20 +52,20 @@ import static org.vstu.compprehension.models.businesslogic.domains.helpers.Facts
 @Component @Log4j2
 @Singleton
 public class ControlFlowStatementsDomain extends Domain {
+    static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderActsSupplementary";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
-//    static final String LAWS_CONFIG_PATH = "file:c:/D/Work/YDev/CompPr/c_owl/jena/domain_laws.json";
-    static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-laws.json";
-    public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/control-flow-messages";
+    static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-laws.json";
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow-messages";
 
     static final String MESSAGE_PREFIX = "ctrlflow_";
 
     // dictionary
-    public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-schema.rdf";
+    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.rdf";
     private static DomainVocabulary VOCAB = null;
 
-    static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/control-flow-statements-domain-questions.json";
+    static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
@@ -76,6 +79,7 @@ public class ControlFlowStatementsDomain extends Domain {
         super(randomProvider);
         this.localizationService = localizationService;
         name = "ControlFlowStatementsDomain";
+//        if (domainRepository != null)
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
         
         fillConcepts();
@@ -428,13 +432,13 @@ public class ControlFlowStatementsDomain extends Domain {
         }
         Question questionCopy = makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
 
-        // patch question text for survey: hide comments
-        questionCopy.getQuestionData().setQuestionText(
-                questionCopy.getQuestionText().getText().replace(
-                        "span.comment {",
-                        "span.comment { display: none;"
-                )
-        );
+        //// patch question text for survey: hide comments
+        // questionCopy.getQuestionData().setQuestionText(
+        //         questionCopy.getQuestionText().getText().replace(
+        //                 "span.comment {",
+        //                 "span.comment { display: none;"
+        //         )
+        // );
 
         log.info("CtrlFlow domain has prepared the question: " + questionCopy.getQuestionName());
 
@@ -1046,7 +1050,7 @@ public class ControlFlowStatementsDomain extends Domain {
                             value = action_.getPropertyValue(stmt_name).asLiteral().getString();
 
                             // bound's action does not have 'atom_action'=true annotation
-                            if (bound.listOntClasses(false).toSet().stream()
+                            if (action_.listOntClasses(false).toSet().stream()
                                     .filter(c -> model.listStatements(c, atom_action, True).hasNext())
                                     .findAny()
                                     .isEmpty()
@@ -1065,8 +1069,11 @@ public class ControlFlowStatementsDomain extends Domain {
                         }
                         value = "\"" + value + "\"";
                         if (placeholders.containsKey(fieldName)) {
-                            // append to previous data
-                            value = placeholders.get(fieldName) + ", " + value;
+                            String prevData = placeholders.get(fieldName);
+                            // if not in previous data
+                            if (!prevData.equals(value) && !prevData.contains(value))
+                                // append to previous data
+                                value = prevData + ", " + value;
                             //// System.out.println((":: WARNING :: retrieving field_* facts: clash at key '" + fieldName + "'.\n\tValues:\n\told: " + placeholders.get(fieldName) + "\n\tnew: " + value));
                         }
                         placeholders.put(fieldName, value);
