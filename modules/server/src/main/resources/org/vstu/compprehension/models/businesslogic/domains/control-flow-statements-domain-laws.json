@@ -93,7 +93,7 @@
     "formulations": [
       {
         "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), noValue(?c2 rdfs:subClassOf ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
         "backend": "Jena"
       }
     ]
@@ -116,7 +116,7 @@
     "formulations": [
       {
         "name": "fetch_kind_of_loop-helper",
-        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), noValue(?c2 rdfs:subClassOf ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
         "backend": "Jena"
       }
     ]
@@ -217,11 +217,6 @@
       {
         "name": "attach-principal_violation-to-possible_violation-at-reason_node",
         "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
-        "backend": "Jena"
-      },
-      {
-        "name": "always_consequent-in-outside-of-atomic-action-to-collapse_bound",
-        "formulation": "(?a my:always_consequent ?b), (?a my:boundary_of ?st), noValue(?b my:boundary_of ?st), -> (?a my:collapse_bound ?b).",
         "backend": "Jena"
       }
     ]

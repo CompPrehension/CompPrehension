@@ -168,12 +168,6 @@
   <rdfs:range rdf:resource="#act"/>
 </owl:ObjectProperty>
 
-<owl:ObjectProperty rdf:about="#field_A_bound"/>
-
-<owl:ObjectProperty rdf:about="#field_EXTRA_bound"/>
-
-<owl:ObjectProperty rdf:about="#field_MISSING_bound"/>
-
 <owl:ObjectProperty rdf:about="#fetch_kind_of_loop">
   <rdfs:domain rdf:resource="#act"/>
   <rdfs:range rdf:resource="#action"/>
@@ -472,6 +466,10 @@
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
+<owl:DatatypeProperty rdf:about="#field_A_bound">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
 <owl:DatatypeProperty rdf:about="#field_kind_of_loop">
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
@@ -492,7 +490,15 @@
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
+<owl:DatatypeProperty rdf:about="#field_EXTRA_bound">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
 <owl:DatatypeProperty rdf:about="#field_MISSING">
+  <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#field_MISSING_bound">
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
@@ -590,18 +596,16 @@
 
 <owl:AnnotationProperty rdf:about="#atom_action"/>
 
+<owl:AnnotationProperty rdf:about="#has_bitflags"/>
+
 <owl:AnnotationProperty rdf:about="#act_class"/>
 
 <owl:AnnotationProperty rdf:about="#involves_concept"/>
 
 <owl:AnnotationProperty rdf:about="#principal_violation"/>
 
-<owl:Class rdf:about="http://www.w3.org/2004/02/skos/core#Concept">
-  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-</owl:Class>
-
 <owl:Class rdf:about="#act">
-  <rdfs:subClassOf rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:Class>
 
 <owl:Class rdf:about="#act_begin">
@@ -637,11 +641,11 @@
 </owl:Class>
 
 <owl:Class rdf:about="#action">
-  <rdfs:subClassOf rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:Class>
 
 <owl:Class rdf:about="#algorithm">
-  <rdfs:subClassOf rdf:resource="http://www.w3.org/2004/02/skos/core#Concept"/>
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
 </owl:Class>
 
 <owl:Class rdf:about="#boundary">
@@ -650,6 +654,8 @@
 
 <owl:Class rdf:about="#sequence">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">последовательность</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#first_item">
@@ -662,6 +668,8 @@
 
 <owl:Class rdf:about="#loop">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">циклы</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#conditional_loop">
@@ -713,6 +721,7 @@
   <rdfs:subClassOf rdf:resource="#start_with_cond"/>
   <rdfs:subClassOf rdf:resource="#cond_then_body"/>
   <rdfs:subClassOf rdf:resource="#body_then_cond"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">WHILE</rdfs:label>
 </owl:Class>
 
@@ -720,6 +729,7 @@
   <rdfs:subClassOf rdf:resource="#start_with_body"/>
   <rdfs:subClassOf rdf:resource="#cond_then_body"/>
   <rdfs:subClassOf rdf:resource="#body_then_cond"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">DO-WHILE</rdfs:label>
 </owl:Class>
 
@@ -727,6 +737,7 @@
   <rdfs:subClassOf rdf:resource="#start_with_init"/>
   <rdfs:subClassOf rdf:resource="#post_update_loop"/>
   <rdfs:subClassOf rdf:resource="#cond_then_body"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">FOR</rdfs:label>
 </owl:Class>
 
@@ -734,6 +745,7 @@
   <rdfs:subClassOf rdf:resource="#start_with_cond"/>
   <rdfs:subClassOf rdf:resource="#pre_update_loop"/>
   <rdfs:subClassOf rdf:resource="#body_then_cond"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">FOREACH</rdfs:label>
 </owl:Class>
 
@@ -747,6 +759,8 @@
 
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ветвления (if)</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#expr">
@@ -766,18 +780,21 @@
 
 <owl:Class rdf:about="#return">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">return</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#break">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#continue">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">continue</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
@@ -788,10 +805,14 @@
 
 <owl:Class rdf:about="#else-if">
   <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">else-if</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#else">
   <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">else</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#Erroneous">

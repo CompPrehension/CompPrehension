@@ -8,10 +8,7 @@ import org.apache.jena.vocabulary.SKOS;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Concept;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class DomainVocabulary {
     String vocabularyPath;
@@ -35,18 +32,22 @@ public class DomainVocabulary {
     public List<Concept> readConcepts() {
 
         HashMap<String, HashSet<String>> conceptName2bases = new HashMap<>();
+
+        // make concepts in advance: baseConcepts can be appended after the instance created
+        HashMap<String, Concept> concepts = new HashMap<>();
         // Resource ConceptClass = SKOS.Concept;
 
         // find all [top] concepts and recurse from them
 //        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, ConceptClass);
-        ResIterator iter = model.listSubjectsWithProperty(RDF.type);
+//        ResIterator iter = model.listSubjectsWithProperty(RDF.type);  // do not take all subjects: exclude third-party vocabularies
+        ResIterator iter = model.listSubjectsWithProperty(model.createProperty(model.expandPrefix(":has_bitflags")));  // consider as concepts only those subjects that were marked so.
         while (iter.hasNext()) {
             Resource conceptNode = iter.nextResource();
-            readConceptFromResource(conceptNode, conceptName2bases, null);
+            readConceptFromResource(conceptNode, conceptName2bases, concepts, null);
         }
 
         // make concepts
-        HashMap<String, Concept> concepts = new HashMap<>();
+//        HashMap<String, Concept> concepts = new HashMap<>();
 
         // make concepts in order to create independent earlier
         while (! conceptName2bases.isEmpty()) {
@@ -61,15 +62,15 @@ public class DomainVocabulary {
                     for (String base : bases) {
                         baseConcepts.add(concepts.get(base));
                     }
-                    // create concept with base concepts that already exist
-                    concepts.put(name, new Concept(name, baseConcepts));
+                    // fill concept with base concepts that already exist
+                    concepts.get(name).getBaseConcepts().addAll(baseConcepts);
 
                     conceptName2bases.remove(name);
                     nothingFound = false;
                 }
             }
             if (nothingFound) {
-                throw new RuntimeException("Error reading concepts from file: " + this.vocabularyPath + "\n\tThe following concepts are interdependent and cannot be created:\n\t" + (conceptName2bases.keySet().toString()));
+                throw new RuntimeException("Error reading concepts from file: " + this.vocabularyPath + "\n\tThe following concepts are interdependent and cannot be created:\n\t" + conceptName2bases.keySet());
             }
         }
 
@@ -79,14 +80,32 @@ public class DomainVocabulary {
     /**
      * @param conceptNode RDFNode of concept
      * @param conceptName2bases [in-out]
+     * @param concepts          [in-out]
      * @param baseConceptName [optional]
      */
-    protected void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, String baseConceptName) {
+    protected void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, HashMap<String, Concept> concepts, String baseConceptName) {
         String name = conceptNode.getLocalName();
+
+        // use name as displayName if label does not exist
+        String displayName = Optional.ofNullable(conceptNode.getProperty(RDFS.label))
+                .map(statement -> statement.getLiteral().getString())
+                .orElse(name);
+
+        // read flags from resource's field
+        int bitflags = Optional.ofNullable(conceptNode.getProperty(
+                model.createProperty(model.expandPrefix(":has_bitflags"))
+                ))
+                .map(statement -> statement.getLiteral().getInt())
+                .orElse(Concept.DEFAULT_FLAGS);
 
         /// System.out.println("adding: " + name + " - " +  baseConceptName);
 
         // other features like prefLabel are ignored so far
+
+        if (!concepts.containsKey(name)) {
+            // do not add any baseConcepts here (we'll add all later)
+            concepts.put(name, new Concept(name, displayName, List.of(), bitflags));
+        }
 
         boolean shouldNotRecurse = conceptName2bases.containsKey(name);
         conceptName2bases.putIfAbsent(name, new HashSet<>());
@@ -101,7 +120,7 @@ public class DomainVocabulary {
         ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, conceptNode);
         while (iter.hasNext()) {
             Resource childConceptNode = iter.nextResource();
-            readConceptFromResource(childConceptNode, conceptName2bases, name);
+            readConceptFromResource(childConceptNode, conceptName2bases, concepts, name);
         }
     }
 
@@ -209,7 +228,9 @@ public class DomainVocabulary {
 
     /// debug
     public static void main(String[] args) {
-        DomainVocabulary voc = new DomainVocabulary("c:\\D\\Work\\YDev\\CompPr\\world_onto\\domain_schema.ttl");
+        DomainVocabulary voc = new DomainVocabulary("c:\\D\\Work\\YDev\\CompPr\\CompPrehension\\modules\\server\\src" +
+                "\\main\\resources\\org\\vstu\\compprehension\\models\\businesslogic\\domains\\control-flow" +
+                "-statements-domain-schema.rdf");
         voc.readConcepts();
     }
 }
