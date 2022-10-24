@@ -3,8 +3,8 @@ import React, { useState } from "react";
 const titleCase = (str: string) =>
   str.split(/\s+/).map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
 
-const ClickableLabel = ({ id, title, onChange }: {id: string, title: string, onChange: (s: string) => void}) =>
-  <label htmlFor={id} onClick={() => onChange(title)}>
+const ClickableLabel = ({ id, title, onChange, isChecked, style }: {id: string, title: string, onChange: (s: string) => void, isChecked: boolean, style?: React.CSSProperties}) =>
+  <label htmlFor={id} onClick={() => onChange(title)} style={isChecked && style || undefined}>
     {titleCase(title)}
   </label>;
 
@@ -14,6 +14,7 @@ const ConcealedRadio = ({ id, value, name, selected }: { id: string, value: stri
 export type ToggleSwitchProps = {
     id: string,
     values: string[],
+    valueStyles?: (React.CSSProperties | null | undefined)[],
     selected: string,
     onChange?: (val: string) => void,
 }
@@ -33,11 +34,16 @@ export const ToggleSwitch = (props: ToggleSwitchProps) => {
 
   return (
     <div id={props.id} className="switch-field d-inline-flex flex-row">
-      {props.values.map(val => {
+      {props.values.map((val, i) => {
         return (
           <span>
             <ConcealedRadio id={`${props.id}_${val}_checkbox`} name={`${props.id}_switch`} value={val} selected={selected} />
-            <ClickableLabel id={`${props.id}_${val}_checkbox`} title={val} onChange={handleChange} />
+            <ClickableLabel 
+              id={`${props.id}_${val}_checkbox`} 
+              isChecked={val === selected}
+              title={val}
+              onChange={handleChange} 
+              style={props.valueStyles?.[i] ?? undefined} />
           </span>
         );
       })}
