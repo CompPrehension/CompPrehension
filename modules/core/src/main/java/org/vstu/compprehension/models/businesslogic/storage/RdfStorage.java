@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
+import org.apache.jena.rdfconnection.RDFConnectionRemote;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
@@ -30,6 +31,7 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.XSD;
+import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
@@ -40,6 +42,7 @@ import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,13 +63,19 @@ public class RdfStorage extends AbstractRdfStorage {
 
     // hardcoded SPARQL endpoint:
     //// static String SPARQL_ENDPOINT_BASE = "http://vds84.server-1.biz:6515/";
-    static String SPARQL_ENDPOINT_BASE = "http://localhost:6515/";
+    //// static String SPARQL_ENDPOINT_BASE = "http://localhost:6515/";
+    static String SPARQL_ENDPOINT_BASE = "http://localhost:7200/repositories/cf_pi";
 
 
     static {
         DOMAIN_TO_ENDPOINT = new HashMap<>(2);
         DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "control_flow"); // not "control_flow/update"
-        DOMAIN_TO_ENDPOINT.put("ProgrammingLanguageExpressionDomain", "expression"); // not "expression/update"
+//        DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "cf_pi");
+        DOMAIN_TO_ENDPOINT.put("ProgrammingLanguageExpressionDo/main", "expression"); // not "expression/update"
+    }
+
+    static {
+        JenaBackend.registerBuiltins();
     }
 
     /**
@@ -94,7 +103,7 @@ public class RdfStorage extends AbstractRdfStorage {
             // default settings (if not available via domain)
             String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
             assert name != null;  // Ensure you created a database in your external triple store and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
-            this.sparql_endpoint = SPARQL_ENDPOINT_BASE + name;
+            this.sparql_endpoint = SPARQL_ENDPOINT_BASE; //// + name;
 
             // init FTP pointing to domain-specific remote dir
             this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
@@ -153,11 +162,11 @@ public class RdfStorage extends AbstractRdfStorage {
      * TODO: RDFConnectionFuseki -> RDFConnectionRemote */
     @Override
     public RDFConnection getConn() {
-        RDFConnectionRemoteBuilder cb = RDFConnectionFuseki.create()
-                .destination(sparql_endpoint);
+//        RDFConnectionRemoteBuilder cb = RDFConnectionFuseki.create()
+//                .destination(sparql_endpoint);
 
-//        RDFConnectionRemoteBuilder cb = RDFConnectionRemote.create()
-//                .destination(sparql_endpoint).queryEndpoint("").updateEndpoint("/statements");
+        RDFConnectionRemoteBuilder cb = RDFConnectionRemote.create()
+                .destination(sparql_endpoint).queryEndpoint("").updateEndpoint("/statements");
         return cb.build();
     }
 
@@ -513,11 +522,16 @@ RdfStorage.StopBackgroundDBFillUp()
         // solve <question template> graphs with domain
 
 //        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
+        String sparql_endpoint_url = "http://localhost:7200/repositories/cf_pi";
+//        RdfStorage rs = new RdfStorage(sparql_endpoint);
 
-//        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService());
-//        RdfStorage rs = new RdfStorage(cfd);
-        ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
-        RdfStorage rs = new RdfStorage(pled);
+        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService(), null,  null);
+//        rs.domain = cfd;
+
+        RdfStorage rs = new RdfStorage(cfd);
+        rs.sparql_endpoint = sparql_endpoint_url;
+//        ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
+//        RdfStorage rs = new RdfStorage(pled);
 
 
         if (false) {
@@ -548,6 +562,7 @@ RdfStorage.StopBackgroundDBFillUp()
             System.out.println("[" + i + " / " + toSolve + "] Solving: " + name);
             rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED, 80);
             i += 1;
+            /// break;
         }
     }
 
@@ -787,10 +802,13 @@ RdfStorage.StopBackgroundDBFillUp()
     }
 
     public static void main(String[] args) {
-        generateQuestionsForExpressionsDomain();
+        Path path = FileSystems.getDefault().getPath("").toAbsolutePath();
+        System.out.println("Current working dir is: " + path);
+
+//        generateQuestionsForExpressionsDomain();
 //        main_3(args); // upload graphs as question templates
 //        main_4(false); // solve question templates
-//        main_4(true); // solve question templates (force re-solve)
+        main_4(true); // solve question templates (force re-solve)
         
         //// main_5(false); // make questions from templates
 
