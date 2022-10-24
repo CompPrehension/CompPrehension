@@ -10,6 +10,7 @@ import org.vstu.compprehension.utils.ApplicationContextProvider;
 import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 @Component
 @Singleton
@@ -21,6 +22,10 @@ public class DomainFactory {
         for (var d : domains) {
             domainToClassMap.put(d.getDomainId(), d.getClass());
         }
+    }
+
+    public Set<String> getDomainIds() {
+        return domainToClassMap.keySet();
     }
 
     public @NotNull Domain getDomain(@NotNull String domainId) {
