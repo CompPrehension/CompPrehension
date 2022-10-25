@@ -96,6 +96,19 @@ public class ControlFlowStatementsDomain extends Domain {
         concepts = new ArrayList<>();
         initVocab();
         concepts.addAll(VOCAB.readConcepts());
+
+        // add concepts about expressions present in algorithms
+        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
+        Concept exprC = new Concept("exprs_in_use", "operations", List.of(), flags);
+        concepts.add(exprC);
+        List<Concept> bases = List.of(exprC);
+        concepts.addAll(List.of(
+                new Concept("expr:pointer", "*pointer", bases, flags),
+                new Concept("expr:func_call", "func() call", bases, flags),
+                new Concept("expr:explicit_cast", "(explicit)cast", bases, flags),
+                new Concept("expr:array", "array", bases, flags),
+                new Concept("expr:class_member_access", "access.to.member", bases, flags)
+        ));
     }
 
     private void readLaws(InputStream inputStream) {
