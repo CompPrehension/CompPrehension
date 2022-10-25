@@ -112,7 +112,9 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
             for (InteractionEntity inter: inters) {
                 for (ViolationEntity vio: inter.getViolations()) {
-                    allLawsError.put(vio.getLawName(), allLaws.get(vio.getLawName()));
+                    allLawsError.put(
+                            vio.getLawName(),
+                            Optional.ofNullable(allLaws.get(vio.getLawName())).orElse(new ArrayList<>()));
                 }
             }
 

@@ -7,17 +7,52 @@ import java.util.List;
 
 @Value
 public class Concept {
+    /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
+    public static int FLAG_VISIBLE_TO_TEACHER = 1;
+    /** When present, this flag enables a concept to be selected as TARGET at exercise configuration page. */
+    public static int FLAG_TARGET_ENABLED = 2;
+
+    /** All flags are OFF by default */
+    public static int DEFAULT_FLAGS = 0;
+
     String name;
+    String displayName;
+    int bitflags;
     List<Concept> baseConcepts;
 
     public Concept(String name) {
         this.name = name;
+        this.displayName = name;  // copy name as displayName
+        this.bitflags = DEFAULT_FLAGS;
         this.baseConcepts = new ArrayList<>();
     }
 
-    public Concept(String name, List<Concept> baseConcepts) {
+    public Concept(String name, String displayName) {
         this.name = name;
-        this.baseConcepts = baseConcepts;
+        this.displayName = displayName;
+        this.bitflags = DEFAULT_FLAGS;
+        this.baseConcepts = new ArrayList<>();
+    }
+
+    public Concept(String name, int bitflags) {
+        this.name = name;
+        this.displayName = name;  // copy name as displayName
+        this.bitflags = bitflags;
+        this.baseConcepts = new ArrayList<>();
+    }
+
+    public Concept(String name, String displayName, List<Concept> baseConcepts) {
+        this.name = name;
+        this.displayName = displayName;
+        this.bitflags = DEFAULT_FLAGS;
+        this.baseConcepts = new ArrayList<>(baseConcepts);
+    }
+
+    public Concept(String name, String displayName, List<Concept> baseConcepts, int bitflags) {
+        this.name = name;
+        this.displayName = displayName;
+        this.bitflags = bitflags;
+        this.baseConcepts = new ArrayList<>(baseConcepts);
     }
 
     public boolean hasBaseConcept(Concept concept) {
@@ -32,5 +67,9 @@ public class Concept {
             }
         }
         return false;
+    }
+
+    public boolean hasFlag(int flagCode) {
+    	return (bitflags & flagCode) != 0;
     }
 }
