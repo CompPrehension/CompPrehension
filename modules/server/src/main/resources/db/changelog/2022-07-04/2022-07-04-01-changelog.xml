@@ -11,6 +11,7 @@
     VALUES (11, 1, 1, 0, 1, '10', 'test_return', 8, 0, 'GradeConfidenceBaseStrategy_WithConcepts', 'Jena', 'ControlFlowStatementsDomain', 'C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":false,"surveyId":"IsCreatedByHuman"}, "forceNewAttemptCreationEnabled":false}');
      -->
     <changeSet id="1656971501993-1" author="Mikhail Denisov">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <!-- Check that no concepts present for exercise 11 -->
             <sqlCheck expectedResult="0">select exists(select 1 from exercise_concepts where exercise_id = 11) AS notEmpty</sqlCheck>
