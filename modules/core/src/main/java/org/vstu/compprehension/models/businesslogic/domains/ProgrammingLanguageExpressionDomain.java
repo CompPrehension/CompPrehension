@@ -102,6 +102,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     private void fillConcepts() {
         concepts = new ArrayList<>();
 
+        int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
+        int noFlags = Concept.DEFAULT_FLAGS;
+
         Concept operandConcept = addConcept("operand");
         Concept simpleOperandConcept = addConcept("simple_operand");
         Concept operatorConcept = addConcept("operator", List.of(operandConcept));
@@ -111,37 +114,55 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept associativityConcept = addConcept("associativity");
         Concept leftAssociativityConcept = addConcept("left_associativity", List.of(associativityConcept));
         Concept rightAssociativityConcept = addConcept("right_associativity", List.of(associativityConcept));
+        Concept assignConcept = addConcept("operator=", List.of(rightAssociativityConcept), "a = x", flags);
         Concept absentAssociativityConcept = addConcept("absent_associativity", List.of(associativityConcept));
         Concept arityConcept = addConcept("arity");
-        Concept unaryConcept = addConcept("unary", List.of(arityConcept));
-        Concept binaryConcept = addConcept("binary", List.of(arityConcept));
+        Concept unaryConcept = addConcept("unary", List.of(arityConcept), "Унарные", flags);
+        Concept binaryConcept = addConcept("binary", List.of(arityConcept), "Бинарные", flags);
         Concept ternaryConcept = addConcept("ternary", List.of(arityConcept));
         Concept singleTokenOperatorConcept = addConcept("single_token");
         Concept twoTokenOperatorConcept = addConcept("two_token");
         Concept singleTokenUnaryConcept = addConcept("single_token_unary", List.of(singleTokenOperatorConcept, unaryConcept));
         Concept singleTokenBinaryConcept = addConcept("single_token_binary", List.of(singleTokenOperatorConcept, binaryConcept));
         Concept twoTokenUnaryConcept = addConcept("two_token_unary", List.of(twoTokenOperatorConcept, unaryConcept));
-        Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept));
         Concept twoTokenBinaryConcept = addConcept("two_token_binary", List.of(twoTokenOperatorConcept, binaryConcept));
-        Concept subscriptConcept = addConcept("operator_[", List.of(twoTokenBinaryConcept));
         Concept twoTokenTernaryConcept = addConcept("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept));
         Concept operatorEvaluationStateConcept = addConcept("operator_evaluation_state");
         Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", List.of(binaryConcept, operatorEvaluationStateConcept));
-        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept));
-        Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept));
-        Concept operatorUnaryPtrConcept = addConcept("operator_unary_*", List.of(singleTokenUnaryConcept));
-        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept));
-        Concept operatorBinaryMinusConcept = addConcept("operator_binary_-", List.of(singleTokenBinaryConcept));
-        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept));
-        Concept operatorBinaryCommaConcept = addConcept("operator_binary_,", List.of(singleTokenBinaryConcept));
-        Concept operatorTernaryConcept = addConcept("operator_ternary", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept));
-        Concept operatorEqualsConcept = addConcept("operator_==", List.of(singleTokenBinaryConcept));
+
+        Concept arithmetics = addConcept("arithmetics", List.of(), "Арифметика", flags);
+        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept, arithmetics), "x + y", flags);
+        Concept operatorBinaryMinusConcept = addConcept("operator_binary_-", List.of(singleTokenBinaryConcept, arithmetics), "x - y", flags);
+        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept, arithmetics), "x * y", flags);
+        Concept operatorBinaryDivideConcept = addConcept("operator_binary_/", List.of(singleTokenBinaryConcept, arithmetics), "x / y", flags);
+        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept, arithmetics), "+z", flags);
+        Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", flags);
         Concept prefixOperatorConcept = addConcept("prefix", List.of(unaryConcept));
         Concept postfixOperatorConcept = addConcept("postfix", List.of(unaryConcept));
-        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept));
-        Concept operatorPrefixDecrementConcept = addConcept("operator_prefix_--", List.of(singleTokenUnaryConcept, prefixOperatorConcept));
-        Concept operatorPostfixIncrementConcept = addConcept("operator_postfix_++", List.of(singleTokenUnaryConcept, postfixOperatorConcept));
-        Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", List.of(singleTokenUnaryConcept, postfixOperatorConcept));
+        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept, arithmetics), "++z", flags);
+        Concept operatorPrefixDecrementConcept = addConcept("operator_prefix_--", List.of(singleTokenUnaryConcept, prefixOperatorConcept, arithmetics), "--z", flags);
+        Concept operatorPostfixIncrementConcept = addConcept("operator_postfix_++", List.of(singleTokenUnaryConcept, postfixOperatorConcept, arithmetics), "z++", flags);
+        Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", List.of(singleTokenUnaryConcept, postfixOperatorConcept, arithmetics), "z--", flags);
+
+
+        Concept comparison = addConcept("comparison", List.of(), "Сравнения", flags);
+        Concept operatorEqualsConcept = addConcept("operator_binary_==", List.of(singleTokenBinaryConcept, comparison), "a == b", flags);
+        Concept operatorLtConcept = addConcept("operator_binary_<", List.of(singleTokenBinaryConcept, comparison), "a < b", flags);
+        Concept operatorGtConcept = addConcept("operator_binary_>", List.of(singleTokenBinaryConcept, comparison), "a > b", flags);
+        Concept operatorLeConcept = addConcept("operator_binary_<=", List.of(singleTokenBinaryConcept, comparison), "a <= b", flags);
+        Concept operatorGeConcept = addConcept("operator_binary_>=", List.of(singleTokenBinaryConcept, comparison), "a >= b", flags);
+
+        Concept pointers = addConcept("pointers", List.of(), "Указатели", flags);
+        Concept operatorUnaryPtrConcept = addConcept("operator_unary_*", List.of(singleTokenUnaryConcept, arithmetics), "*ptr", flags);
+        // operator_binary_-> ??
+
+        Concept other = addConcept("other", List.of(), "Прочее", flags);
+        Concept arrays = addConcept("arrays", List.of(other), "Массивы", noFlags);
+        Concept subscriptConcept = addConcept("operator_[", List.of(twoTokenBinaryConcept, arrays), "доступ к элементу массива", flags);
+        Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept, other), "вызов функции", flags);
+        Concept operatorBinaryCommaConcept = addConcept("operator_binary_,", List.of(singleTokenBinaryConcept, other));
+        Concept operatorTernaryConcept = addConcept("operator_ternary", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept, other));
+
         Concept typeConcept = addConcept("type");
         Concept operandsTypeConcept = addConcept("operands_type");
         Concept precedenceTypeConcept = addConcept("precedence_type");
@@ -155,6 +176,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
         Concept errorUnevaluatedOperand = addConcept("error_base_student_error_unevaluated_operand");
         Concept errorEarlyFinish = addConcept("error_base_student_error_early_finish");
+    }
+
+    private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
+        Concept concept = new Concept(name, displayName, baseConcepts, flags);
+        concepts.add(concept);
+        return concept;
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
