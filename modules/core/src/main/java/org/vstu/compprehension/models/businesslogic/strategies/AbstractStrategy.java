@@ -19,6 +19,10 @@ public interface AbstractStrategy {
 
     FeedbackType determineFeedbackType(QuestionEntity question);
 
+    /**
+     * @param exerciseAttempt attempt to grade
+     * @return grade in range [0..1]
+     */
     float grade(ExerciseAttemptEntity exerciseAttempt);
 
     Decision decide(ExerciseAttemptEntity exerciseAttempt);

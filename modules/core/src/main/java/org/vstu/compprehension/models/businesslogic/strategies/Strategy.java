@@ -433,7 +433,7 @@ public class Strategy implements AbstractStrategy {
             }
         }
 
-        if (interactionWithMistakes < 1) {
+        if (interactionWithMistakes == 0) {
             return FeedbackType.DEGREE_OF_CORRECTNESS;
         } else {
             return FeedbackType.EXPLANATION;
@@ -456,7 +456,7 @@ public class Strategy implements AbstractStrategy {
             summary += value;
         }
 
-        return summary/(float)res.keySet().stream().count();
+        return summary/(float) res.size();
     }
 
     @Override
@@ -587,7 +587,7 @@ public class Strategy implements AbstractStrategy {
     protected HashMap<String, Float> getLawGrade(ExerciseAttemptEntity exerciseAttempt){
         HashMap<String, Float> res = new HashMap<>();
 
-        HashMap<String, ArrayList<Boolean>> conceptAtempt = new HashMap<>();
+        HashMap<String, ArrayList<Boolean>> conceptAttempt = new HashMap<>();
         ArrayList<QuestionEntity> questions = new ArrayList<>();
         questions.addAll(exerciseAttempt.getQuestions());
 
@@ -610,12 +610,12 @@ public class Strategy implements AbstractStrategy {
             }
 
             for(ViolationEntity me : mistakes){
-                if(conceptAtempt.containsKey(me.getLawName())){
-                    conceptAtempt.get(me.getLawName()).add(false);
+                if(conceptAttempt.containsKey(me.getLawName())){
+                    conceptAttempt.get(me.getLawName()).add(false);
                 }else{
                     ArrayList<Boolean> newLaw = new ArrayList<>();
                     newLaw.add(false);
-                    conceptAtempt.put(me.getLawName(), newLaw);
+                    conceptAttempt.put(me.getLawName(), newLaw);
                 }
             }
 
@@ -625,18 +625,18 @@ public class Strategy implements AbstractStrategy {
             }
 
             for(CorrectLawEntity cle : correctLaws){
-                if(conceptAtempt.containsKey(cle.getLawName())){
-                    conceptAtempt.get(cle.getLawName()).add(true);
+                if(conceptAttempt.containsKey(cle.getLawName())){
+                    conceptAttempt.get(cle.getLawName()).add(true);
                 }else{
                     ArrayList<Boolean> newLaw = new ArrayList<>();
                     newLaw.add(true);
-                    conceptAtempt.put(cle.getLawName(), newLaw);
+                    conceptAttempt.put(cle.getLawName(), newLaw);
                 }
             }
 
         }
 
-        for(HashMap.Entry<String, ArrayList<Boolean>> entry : conceptAtempt.entrySet()) {
+        for(HashMap.Entry<String, ArrayList<Boolean>> entry : conceptAttempt.entrySet()) {
             String key = entry.getKey();
             val value = entry.getValue();
             res.put(key, calculateWeightedScore(value));
@@ -669,7 +669,7 @@ public class Strategy implements AbstractStrategy {
     }
 
     private Float calculateWeightedScore(ArrayList<Boolean> value) {
-        if(value.stream().count() == 0){
+        if((long) value.size() == 0){
             return (float)0;
         }
 
@@ -1692,14 +1692,14 @@ public class Strategy implements AbstractStrategy {
     class InteractionOrderComparator implements Comparator<InteractionEntity> {
         @Override
         public int compare(InteractionEntity a, InteractionEntity b) {
-            return a.getOrderNumber() < b.getOrderNumber() ? -1 : a.getOrderNumber() == b.getOrderNumber() ? 0 : 1;
+            return Integer.compare(a.getOrderNumber(), b.getOrderNumber());
         }
     }
 
     class QuestionOrderComparator implements Comparator<QuestionEntity> {
         @Override
         public int compare(QuestionEntity a, QuestionEntity b) {
-            return a.getId() < b.getId() ? -1 : a.getId() == b.getId() ? 0 : 1;
+            return a.getId().compareTo(b.getId());
         }
     }
 }
