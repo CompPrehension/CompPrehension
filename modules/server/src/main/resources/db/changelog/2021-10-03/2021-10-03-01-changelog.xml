@@ -87,6 +87,7 @@
             <column name="name" type="VARCHAR(255)"/>
             <column name="max_retries" type="INT"/>
             <column name="use_guiding_questions" type="BOOLEAN"/>
+            <column name="number_of_questions" type="INT"/>
             <column name="time_limit" type="INT"/>
             <column name="hidden" type="BOOLEAN"/>
             <column name="tags" type="VARCHAR(255)"/>
@@ -94,7 +95,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="exercise_type" type="INT"/>
-            <column name="complexity" type="INT"/>
+            <column name="complexity" type="FLOAT"/>
             <column name="language_id" type="INT"/>
             <column name="backend_id" type="BIGINT">
                 <constraints nullable="false"/>
