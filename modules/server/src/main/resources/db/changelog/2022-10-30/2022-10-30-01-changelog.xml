@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="16569715019934-1" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <!-- Check that no 'number_of_questions' column present  -->
+            <sqlCheck expectedResult="0">SELECT COUNT(*) from information_schema.columns where column_name='number_of_questions' and table_name='exercise'</sqlCheck>
+        </preConditions>
+
+        <addColumn tableName="exercise">
+            <column name="number_of_questions" type="INT"/>
+        </addColumn>
+        <modifyDataType tableName="exercise" columnName="complexity" newDataType="FLOAT"/>
+    </changeSet>
+</databaseChangeLog>

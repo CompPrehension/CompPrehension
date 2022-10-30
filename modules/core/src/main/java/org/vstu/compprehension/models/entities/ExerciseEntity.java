@@ -38,6 +38,12 @@ public class ExerciseEntity {
     @Column(name = "useGuidingQuestions")
     private Boolean useGuidingQuestions;
 
+    @Column(name = "numberOfQuestions", nullable = false)
+    private Integer numberOfQuestions;
+
+    /**
+     * average question length, steps (средняя длина вопроса в шагах)
+     */
     @Column(name = "timeLimit")
     private Integer timeLimit;
 
@@ -59,7 +65,7 @@ public class ExerciseEntity {
 
     public List<Tag> getTags() {
         return Arrays.stream(tags.split(","))
-                .map(i -> new Tag(i))
+                .map(Tag::new)
                 .collect(Collectors.toList());
     }
 
@@ -68,8 +74,7 @@ public class ExerciseEntity {
     @Enumerated(EnumType.ORDINAL)
     private ExerciseType exerciseType;
 
-    @Enumerated(EnumType.ORDINAL)
-    private Complexity complexity;
+    private Float complexity;
 
     @Column(name = "language_id")
     @Enumerated(EnumType.ORDINAL)
