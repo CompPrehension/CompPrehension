@@ -108,7 +108,7 @@ public class StaticStrategy implements AbstractStrategy {
     @Override
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
         // TODO: find / get limit of questions defined by teacher in exercise GUI
-        int minimumQuestionsToAsk = exerciseAttempt.getExercise().getNumberOfQuestions();
+        int minimumQuestionsToAsk = (int)(exerciseAttempt.getExercise().getNumberOfQuestions() * 15);
         List<QuestionEntity> questions = exerciseAttempt.getQuestions();
         boolean enoughQuestions = questions.size() >= minimumQuestionsToAsk;
         if (!enoughQuestions)

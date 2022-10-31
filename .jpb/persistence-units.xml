@@ -2,7 +2,7 @@
 <project version="4">
   <component name="PersistenceUnitSettings">
     <persistence-units>
-      <persistence-unit name="Default" defaultIncludeChangeLogFile="src/main/resources/db/changelog/db.changelog-master.xml">
+      <persistence-unit name="Default" defaultIncludeChangeLogFile="modules/server/src/main/resources/db/changelog/db.changelog-master.xml">
         <packages>
           <package value="org.vstu.compprehension" />
         </packages>

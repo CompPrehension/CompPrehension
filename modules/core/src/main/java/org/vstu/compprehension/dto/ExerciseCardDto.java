@@ -13,7 +13,7 @@ public class ExerciseCardDto {
     @NotNull String strategyId;
     @NotNull String backendId;
     float complexity;
-    int numberOfQuestions;
+    float numberOfQuestions;
     //@NotNull List<String> tags;
     /*
     @NotNull ExerciseOptionsEntity options;

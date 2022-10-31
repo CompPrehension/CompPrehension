@@ -42,16 +42,23 @@ export type DomainLaw = {
     name: string,
 }
 export const TDomainLaw : io.Type<DomainLaw> = io.type({
-    name: io.string,
+    name: io.string,    
 })
+
+export enum DomainConceptFlag {
+    VisibleToTeacher = 1,
+    TargetEnabled = 1 << 1,
+}
 
 export type DomainConcept = {
     name: string,
     displayName: string,
+    bitflags: number,
 }
 export const TDomainConcept : io.Type<DomainConcept> = io.type({
     name: io.string,
     displayName: io.string,
+    bitflags: io.number,
 })
 
 export type Domain = {

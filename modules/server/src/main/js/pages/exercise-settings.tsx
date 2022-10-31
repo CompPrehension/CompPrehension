@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { container } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { Domain, ExerciseCard, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseListItem } from "../types/exercise-settings";
 import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
 import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
@@ -101,7 +101,9 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     </div>
                     <div className="row">
                         <div className="col-md-12">
-                            {domains.find(z => z.id === card.domainId)?.concepts.map((c, idx) =>
+                            {domains.find(z => z.id === card.domainId)?.concepts
+                                .filter(c => (c.bitflags & DomainConceptFlag.VisibleToTeacher))
+                                .map((c, idx) =>
                                         <div className="d-flex flex-row align-items-center" style={{ marginBottom: '10px' }}>
                                             <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
                                                 selected={'Allowed'}

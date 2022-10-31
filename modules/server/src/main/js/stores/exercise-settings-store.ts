@@ -88,6 +88,6 @@ export class ExerciseSettingsStore {
         if (!this.currentCard)
             return;
         const length = Number.parseInt(rawLength);
-        this.currentCard.numberOfQuestions = length;
+        this.currentCard.numberOfQuestions = length / 100.0;
     }
 }
