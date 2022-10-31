@@ -3,16 +3,18 @@ import * as io from 'io-ts'
 export type ExerciseListItem = {
     id: number,
     name: string,
+    /*
     domainId: string,
     strategyId: string,
-    backendId: string,
+    backendId: string,*/
 };
 export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     id: io.number,
     name: io.string,
+    /*
     domainId: io.string,
     strategyId: io.string,
-    backendId: io.string,  
+    backendId: io.string,*/
 })
 
 export type ExerciseCard = {
@@ -21,6 +23,8 @@ export type ExerciseCard = {
     domainId: string,
     strategyId: string,
     backendId: string,
+    complexity: number,
+    numberOfQuestions: number,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -28,5 +32,38 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     name: io.string,
     domainId: io.string,
     strategyId: io.string,
-    backendId: io.string,  
+    backendId: io.string,
+    complexity: io.number,
+    numberOfQuestions: io.number,
 })
+
+
+export type DomainLaw = {
+    name: string,
+}
+export const TDomainLaw : io.Type<DomainLaw> = io.type({
+    name: io.string,
+})
+
+export type DomainConcept = {
+    name: string,
+    displayName: string,
+}
+export const TDomainConcept : io.Type<DomainConcept> = io.type({
+    name: io.string,
+    displayName: io.string,
+})
+
+export type Domain = {
+    id: string,
+    name: string,
+    laws: DomainLaw[],
+    concepts: DomainConcept[],
+}
+export const TDomain : io.Type<Domain> = io.type({
+    id: io.string,
+    name: io.string,
+    laws: io.array(TDomainLaw),
+    concepts: io.array(TDomainConcept),
+})
+

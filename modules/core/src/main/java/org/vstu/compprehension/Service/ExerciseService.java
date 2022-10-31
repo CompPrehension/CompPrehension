@@ -30,7 +30,7 @@ public class ExerciseService {
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .complexity(0.5f)
-                .numberOfQuestions(123)
+                .numberOfQuestions(60)
                 .build();
     }
 }

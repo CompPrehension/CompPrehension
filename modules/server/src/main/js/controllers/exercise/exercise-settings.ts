@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { ExerciseListItem, TExerciseListItem } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseListItem, TDomain, TExerciseCard, TExerciseListItem } from "../../types/exercise-settings";
 import { ajaxGet, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
@@ -21,12 +21,20 @@ export class ExerciseSettingsController {
         return ajaxGet(`${ExerciseSettingsController.endpointPath}exercise/all`, io.array(TExerciseListItem));
     }
 
-    getExercise(id: number): PromiseEither<RequestError, ExerciseListItem[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}exercise?id=${encodeURIComponent(id)}`, io.array(TExerciseListItem));
+    getExercise(id: number): PromiseEither<RequestError, ExerciseCard> {
+        return ajaxGet(`${ExerciseSettingsController.endpointPath}exercise?id=${encodeURIComponent(id)}`, TExerciseCard);
     }
 
-    getDomains() : PromiseEither<RequestError, string[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/domains`, io.array(io.string));
+    getStrategies() : PromiseEither<RequestError, string[]> {
+        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/strategies`, io.array(io.string));
+    }
+
+    getBackends() : PromiseEither<RequestError, string[]> {
+        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/backends`, io.array(io.string));
+    }
+
+    getDomains() : PromiseEither<RequestError, Domain[]> {
+        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/domains`, io.array(TDomain));
     }
 
     getDomainLaws(domainsId: string) : PromiseEither<RequestError, string[]> {
