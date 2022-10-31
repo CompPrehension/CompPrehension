@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 @Value
 @Builder
 public class ExerciseCardDto {
@@ -14,6 +16,9 @@ public class ExerciseCardDto {
     @NotNull String backendId;
     float complexity;
     float numberOfQuestions;
+    @NotNull List<ExerciseLawDto> laws;
+    @NotNull List<ExerciseLConceptDto> concepts;
+
     //@NotNull List<String> tags;
     /*
     @NotNull ExerciseOptionsEntity options;
@@ -21,3 +26,4 @@ public class ExerciseCardDto {
     @NotNull List<ExerciseConceptEntity> concepts;
     */
 }
+

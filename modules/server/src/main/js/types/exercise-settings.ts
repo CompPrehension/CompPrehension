@@ -17,6 +17,34 @@ export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     backendId: io.string,*/
 })
 
+
+export type ExerciseCardConcept = {
+    name: string,
+    kind: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED',
+}
+export const TExerciseCardConcept: io.Type<ExerciseCardConcept> = io.type({
+    name: io.string,
+    kind: io.keyof({
+        'FORBIDDEN': null,
+        'PERMITTED': null,
+        'TARGETED': null,
+    })
+})
+
+export type ExerciseCardLaw = {
+    name: string,
+    kind: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED',
+}
+export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
+    name: io.string,
+    kind: io.keyof({
+        'FORBIDDEN': null,
+        'PERMITTED': null,
+        'TARGETED': null,
+    })
+})
+
+
 export type ExerciseCard = {
     id: number,
     name: string,
@@ -25,6 +53,8 @@ export type ExerciseCard = {
     backendId: string,
     complexity: number,
     numberOfQuestions: number,
+    concepts: ExerciseCardConcept[],
+    laws: ExerciseCardLaw[],
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -35,6 +65,8 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     backendId: io.string,
     complexity: io.number,
     numberOfQuestions: io.number,
+    concepts: io.array(TExerciseCardConcept),
+    laws: io.array(TExerciseCardLaw),
 })
 
 

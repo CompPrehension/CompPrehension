@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { container } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseListItem } from "../types/exercise-settings";
 import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
 import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
@@ -22,7 +22,7 @@ export const ExerciseSettings = observer(() => {
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
                     <ul className="list-group">
                         {exerciseStore.exercises?.map(e =>
-                            <a href="#" className="list-group-item" onClick={() => exerciseStore.loadExercise(e.id)}>
+                            <a key={e.id} href="#" className="list-group-item" onClick={() => exerciseStore.loadExercise(e.id)}>
                                 {e.name}
                             </a>)}
                         <button style={{marginTop: "10px"}} type="button" className="btn btn-primary">Create new</button>
@@ -56,6 +56,19 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
 
     if (card == null)
         return (<div>No exercise selected</div>);
+    
+    const cardLaws = card.laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
+    const cardConcepts = card.concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
+
+    function mapKindToValue(kind?: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED') : 'Denied' | 'Allowed' | 'Target' {
+        return kind === 'FORBIDDEN' ? 'Denied'
+            : kind === 'TARGETED' ? 'Target' : 'Allowed'
+    }
+    function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target') : 'FORBIDDEN' | 'PERMITTED' | 'TARGETED' {
+        return value === 'Denied' ? 'FORBIDDEN'
+            : value === 'Target' ? 'TARGETED' : 'PERMITTED'
+    }
+
 
     return (
         <div>
@@ -104,9 +117,9 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                             {domains.find(z => z.id === card.domainId)?.concepts
                                 .filter(c => (c.bitflags & DomainConceptFlag.VisibleToTeacher))
                                 .map((c, idx) =>
-                                        <div className="d-flex flex-row align-items-center" style={{ marginBottom: '10px' }}>
+                                        <div key={`concept_toggle_${card.id}_${c.name}_${idx}`} className="d-flex flex-row align-items-center" style={{ marginBottom: '10px' }}>
                                             <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
-                                                selected={'Allowed'}
+                                                selected={mapKindToValue(cardConcepts[c.name]?.kind)}
                                                 values={['Denied', 'Allowed', 'Target']}
                                                 valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
                                                 onChange={val => 0} />
@@ -120,10 +133,10 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 <div className="form-group">
                     <label className="font-weight-bold">Laws</label>
                     {domains.find(z => z.id === card.domainId)?.laws.map((c, idx) =>
-                            (<div className="d-flex flex-row align-items-start justify-content-start" style={{ marginBottom: '10px' }}>
+                            (<div key={`law_toggle_${card.id}_${idx}`} className="d-flex flex-row align-items-start justify-content-start" style={{ marginBottom: '10px' }}>
                                 <div>
                                     <ToggleSwitch id={`law_toggle_${card.id}_${idx}`}
-                                        selected={'Allowed'}
+                                        selected={mapKindToValue(cardLaws[c.name]?.kind)}
                                         values={['Denied', 'Allowed', 'Target']}
                                         valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
                                         onChange={val => 0} />

@@ -9,7 +9,7 @@ const ClickableLabel = ({ id, title, onChange, isChecked, style }: {id: string, 
   </label>;
 
 const ConcealedRadio = ({ id, value, name, selected }: { id: string, value: string, name: string, selected: string }) =>
-  <input id={id} type="radio" name={name} checked={selected === value} />;
+  <input id={id} type="radio" name={name} checked={selected === value} readOnly={true} />;
 
 export type ToggleSwitchProps = {
     id: string,
