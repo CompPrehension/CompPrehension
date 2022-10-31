@@ -21,7 +21,7 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'LOADING');
-        const rawExercises = await this.exerciseSettingsController.getAll();
+        const rawExercises = await this.exerciseSettingsController.getAllExercises();
         if (E.isRight(rawExercises)) {
             runInAction(() => this.exercises = rawExercises.right);
         }
