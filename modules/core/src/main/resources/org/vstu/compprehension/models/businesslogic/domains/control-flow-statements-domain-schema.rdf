@@ -750,7 +750,6 @@
   <rdfs:subClassOf rdf:resource="#start_with_cond"/>
   <rdfs:subClassOf rdf:resource="#pre_update_loop"/>
   <rdfs:subClassOf rdf:resource="#body_then_cond"/>
-  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">FOREACH</rdfs:label>
 </owl:Class>
 
@@ -765,7 +764,7 @@
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">ветвления (if)</rdfs:label>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if ...</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#expr">
@@ -783,15 +782,21 @@
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
-<owl:Class rdf:about="#return">
+<owl:Class rdf:about="#break_continue">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break, continue</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="#return">
+  <rdfs:subClassOf rdf:resource="#break_continue"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">return</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#break">
-  <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <rdfs:subClassOf rdf:resource="#break_continue"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
