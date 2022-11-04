@@ -103,6 +103,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         concepts = new ArrayList<>();
 
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
+        int invisible = Concept.FLAG_TARGET_ENABLED;
         int noFlags = Concept.DEFAULT_FLAGS;
 
         Concept operandConcept = addConcept("operand");
@@ -126,42 +127,93 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept singleTokenBinaryConcept = addConcept("single_token_binary", List.of(singleTokenOperatorConcept, binaryConcept));
         Concept twoTokenUnaryConcept = addConcept("two_token_unary", List.of(twoTokenOperatorConcept, unaryConcept));
         Concept twoTokenBinaryConcept = addConcept("two_token_binary", List.of(twoTokenOperatorConcept, binaryConcept));
-        Concept twoTokenTernaryConcept = addConcept("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept));
+        Concept twoTokenTernaryConcept = addConcept("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept, ternaryConcept));
         Concept operatorEvaluationStateConcept = addConcept("operator_evaluation_state");
         Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", List.of(binaryConcept, operatorEvaluationStateConcept));
 
         Concept arithmetics = addConcept("arithmetics", List.of(), "Арифметика", flags);
-        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept, arithmetics), "x + y", flags);
-        Concept operatorBinaryMinusConcept = addConcept("operator_binary_-", List.of(singleTokenBinaryConcept, arithmetics), "x - y", flags);
-        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept, arithmetics), "x * y", flags);
-        Concept operatorBinaryDivideConcept = addConcept("operator_binary_/", List.of(singleTokenBinaryConcept, arithmetics), "x / y", flags);
-        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept, arithmetics), "+z", flags);
-        Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", flags);
-        Concept prefixOperatorConcept = addConcept("prefix", List.of(unaryConcept));
-        Concept postfixOperatorConcept = addConcept("postfix", List.of(unaryConcept));
-        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept, arithmetics), "++z", flags);
-        Concept operatorPrefixDecrementConcept = addConcept("operator_prefix_--", List.of(singleTokenUnaryConcept, prefixOperatorConcept, arithmetics), "--z", flags);
-        Concept operatorPostfixIncrementConcept = addConcept("operator_postfix_++", List.of(singleTokenUnaryConcept, postfixOperatorConcept, arithmetics), "z++", flags);
-        Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", List.of(singleTokenUnaryConcept, postfixOperatorConcept, arithmetics), "z--", flags);
+        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept, arithmetics), "x + y", invisible);
+        Concept operatorBinaryMinusConcept = addConcept("operator_binary_-", List.of(singleTokenBinaryConcept, arithmetics), "x - y", invisible);
+        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept, arithmetics), "x * y", invisible);
+        Concept operatorBinaryDivideConcept = addConcept("operator_/", List.of(singleTokenBinaryConcept, arithmetics), "x / y", invisible);
+        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept, arithmetics), "+z", invisible);
+        Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", invisible);
+        // Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
+        // Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
+
+        Concept incrementConcept = addConcept("increment", List.of(unaryConcept), "++Инкремент--", flags);
+        Concept prefixOperatorConcept = addConcept("prefix", List.of(incrementConcept));
+        Concept postfixOperatorConcept = addConcept("postfix", List.of(incrementConcept));
+        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept), "++z", invisible);
+        Concept operatorPrefixDecrementConcept = addConcept("operator_prefix_--", List.of(singleTokenUnaryConcept, prefixOperatorConcept), "--z", invisible);
+        Concept operatorPostfixIncrementConcept = addConcept("operator_postfix_++", List.of(singleTokenUnaryConcept, postfixOperatorConcept), "z++", invisible);
+        Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", List.of(singleTokenUnaryConcept, postfixOperatorConcept), "z--", invisible);
 
 
-        Concept comparison = addConcept("comparison", List.of(), "Сравнения", flags);
-        Concept operatorEqualsConcept = addConcept("operator_binary_==", List.of(singleTokenBinaryConcept, comparison), "a == b", flags);
-        Concept operatorLtConcept = addConcept("operator_binary_<", List.of(singleTokenBinaryConcept, comparison), "a < b", flags);
-        Concept operatorGtConcept = addConcept("operator_binary_>", List.of(singleTokenBinaryConcept, comparison), "a > b", flags);
-        Concept operatorLeConcept = addConcept("operator_binary_<=", List.of(singleTokenBinaryConcept, comparison), "a <= b", flags);
-        Concept operatorGeConcept = addConcept("operator_binary_>=", List.of(singleTokenBinaryConcept, comparison), "a >= b", flags);
+        addConcept("operator_=", List.of(singleTokenBinaryConcept), "var = val", flags);
+        Concept aug_assignments = addConcept("aug_assignments", List.of(singleTokenBinaryConcept), "Присваивания с обновлением", flags);
+        addConcept("operator_+=", List.of(aug_assignments), "a += b", invisible);
+        addConcept("operator_-=", List.of(aug_assignments), "a -= b", invisible);
+        addConcept("operator_*=", List.of(aug_assignments), "a *= b", invisible);
+        addConcept("operator_/=", List.of(aug_assignments), "a /= b", invisible);
+        addConcept("operator_%=", List.of(aug_assignments), "a %= b", invisible);
+        addConcept("operator_&=", List.of(aug_assignments), "a &= b", invisible);
+        addConcept("operator_|=", List.of(aug_assignments), "a |= b", invisible);
+        addConcept("operator_^=", List.of(aug_assignments), "a ^= b", invisible);
+        addConcept("operator_<<=",List.of(aug_assignments), "a <<= b", invisible);
+        addConcept("operator_>>=",List.of(aug_assignments), "a >>= b", invisible);
+        // addConcept("operator_:=", List.of(aug_assignments), "a := b", invisible);  // Python only
 
-        Concept pointers = addConcept("pointers", List.of(), "Указатели", flags);
-        Concept operatorUnaryPtrConcept = addConcept("operator_unary_*", List.of(singleTokenUnaryConcept, arithmetics), "*ptr", flags);
-        // operator_binary_-> ??
+        Concept comparison = addConcept("comparison", List.of(singleTokenBinaryConcept), "Сравнения", flags);
+        Concept operatorEqualsConcept = addConcept("operator_==", List.of(comparison), "a == b", invisible);
+        Concept operatorInequalConcept = addConcept("operator_!=", List.of(comparison), "a != b", invisible);
+        Concept operatorLtConcept = addConcept("operator_<", List.of(comparison), "a < b", invisible);
+        Concept operatorGtConcept = addConcept("operator_>", List.of(comparison), "a > b", invisible);
+        Concept operatorLeConcept = addConcept("operator_<=", List.of(comparison), "a <= b", invisible);
+        Concept operatorGeConcept = addConcept("operator_>=", List.of(comparison), "a >= b", invisible);
+        Concept operatorEqConcept = addConcept("operator_<=>", List.of(comparison), "a <=> b", invisible);
+        // Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
 
-        Concept other = addConcept("other", List.of(), "Прочее", flags);
-        Concept arrays = addConcept("arrays", List.of(other), "Массивы", noFlags);
-        Concept subscriptConcept = addConcept("operator_[", List.of(twoTokenBinaryConcept, arrays), "доступ к элементу массива", flags);
-        Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept, other), "вызов функции", flags);
-        Concept operatorBinaryCommaConcept = addConcept("operator_binary_,", List.of(singleTokenBinaryConcept, other));
-        Concept operatorTernaryConcept = addConcept("operator_ternary", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept, other));
+        Concept logical = addConcept("logical", List.of(), "Логические", flags);
+        addConcept("operator_!", List.of(singleTokenUnaryConcept, logical), "a ! b", invisible);
+        addConcept("operator_&&", List.of(singleTokenBinaryConcept, logical), "a && b", invisible);
+        addConcept("operator_||", List.of(singleTokenBinaryConcept, logical), "a || b", invisible);
+        // addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
+        // addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
+
+        Concept bitwise = addConcept("bitwise", List.of(), "Побитовые", flags);
+        addConcept("operator_~", List.of(singleTokenUnaryConcept, bitwise), "~b", invisible);
+        addConcept("operator_binary_&", List.of(singleTokenBinaryConcept, bitwise), "a & b", invisible);
+        addConcept("operator_|", List.of(singleTokenBinaryConcept, bitwise), "a | b", invisible);
+        addConcept("operator_^", List.of(singleTokenBinaryConcept, bitwise), "a ^ b", invisible);
+        // see also stream_io below (duplicates under different category)
+        addConcept("operator_>>", List.of(singleTokenBinaryConcept, bitwise), "a >> b", invisible);
+        addConcept("operator_<<", List.of(singleTokenBinaryConcept, bitwise), "a << b", invisible);
+
+        Concept arrays = addConcept("arrays", List.of(), "Массивы", noFlags);
+        Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "доступ к элементу массива a[i]", invisible);
+
+        Concept pointers = addConcept("pointers", List.of(singleTokenUnaryConcept), "Указатели", flags);
+        addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
+        addConcept("operator_&", List.of(pointers), "&val", invisible);
+
+        Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", noFlags);
+        addConcept("operator_.", List.of(singleTokenBinaryConcept, fieldAccess), "obj.field", invisible);
+        addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess), "ptr->field", invisible);
+
+        Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
+        Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "c? a : b", flags);
+
+        Concept operatorBinaryCommaConcept = addConcept("operator_,", List.of(singleTokenBinaryConcept), "Запятая мжд выражениями", flags);
+
+        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", noFlags);
+        addConcept("operator_>>", List.of(singleTokenBinaryConcept, stream_io), "in >> var", invisible);
+        addConcept("operator_<<", List.of(singleTokenBinaryConcept, stream_io), "out << msg", invisible);
+
+        // currently absent in the data:
+//        Concept namespace_static = addConcept("namespace_static", List.of(), "Пространство имён", noFlags);
+//        addConcept("operator_:", List.of(singleTokenBinaryConcept, namespace_static), "Class:member", invisible);
+//        addConcept("operator_::", List.of(singleTokenBinaryConcept, namespace_static), "space::member", invisible);
 
         Concept typeConcept = addConcept("type");
         Concept operandsTypeConcept = addConcept("operands_type");
