@@ -16,7 +16,7 @@ import { Survey } from "../types/survey";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, surveyResults } = exerciseStore;
+    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();
 
@@ -73,16 +73,16 @@ export const Exercise = observer(() => {
                     <Header />
                     <div className="mt-5">
                         <CurrentQuestion />
-                        <Optional isVisible={exerciseState === 'EXERCISE'}>                            
-                            <Optional isVisible={exerciseStore.currentQuestion.questionState === 'COMPLETED' 
-                                && exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled === true
-                                && surveyResults[exerciseStore.currentQuestion.question?.questionId ?? -1] === undefined}>
+                        {exerciseStore.currentQuestion.questionState === 'COMPLETED' 
+                                    && survey != null &&
                                 <div className="mt-2">
                                     <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
-                                                     surveyId={exerciseStore.sessionInfo?.exercise.options.surveyOptions?.surveyId ?? ''} 
-                                                     onAnswered={onSurveyAnswered}/>
-                                </div>
-                            </Optional>
+                                                     survey={survey!.survey}
+                                                     enabledSurveyQuestions={survey!.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.questions ?? []}
+                                                     value={survey!.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.results}
+                                                     onAnswersSended={onSurveyAnswered}/>                                                     
+                                </div>}
+                        <Optional isVisible={exerciseState === 'EXERCISE'}>
                             <Optional isVisible={exerciseStore.currentQuestion.questionState === 'LOADED'}>
                                 <div className="mt-3">
                                     <GenerateNextAnswerBtn />
@@ -90,11 +90,10 @@ export const Exercise = observer(() => {
                             </Optional>
                             <Optional isVisible={
                                 exerciseStore.currentQuestion.questionState !== 'COMPLETED' || 
-                                !exerciseStore.sessionInfo?.exercise.options.surveyOptions?.enabled || 
-                                 surveyResults[exerciseStore.currentQuestion.question?.questionId ?? -1] !== undefined}>
+                                survey == null || survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].status === 'COMPLETED'}>
                                 <div className="mt-2">
                                     <GenerateNextQuestionBtn />
-                                </div>
+                                </div>z
                             </Optional>
                         </Optional>
                         <Optional isVisible={exerciseState === 'COMPLETED'}>

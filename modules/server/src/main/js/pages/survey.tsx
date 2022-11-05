@@ -16,7 +16,7 @@ import { Survey } from "../types/survey";
 
 export const SurveyPage = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, surveyResults } = exerciseStore;
+    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();
     const [surveyState, setSurveyState]= useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
@@ -64,6 +64,9 @@ export const SurveyPage = observer(() => {
     }
 
     const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
+
+        console.log('лень рефакторить, не работает крч');
+        /*
         (async() => {
             exerciseStore.setSurveyAnswers(questionId, answers);
             if (survey.options.size === Object.getOwnPropertyNames(exerciseStore.surveyResults).length) {
@@ -72,6 +75,7 @@ export const SurveyPage = observer(() => {
             }
             await exerciseStore.generateQuestion();
         })()        
+        */
     }, [exerciseStore]);
 
     const surveyOptions = exerciseStore.sessionInfo?.exercise.options.surveyOptions;
@@ -99,9 +103,10 @@ export const SurveyPage = observer(() => {
                         <Optional isVisible={surveyState !== 'COMPLETED' && currentQuestion.questionState === 'LOADED'}>
                             <div className="mt-2">
                                 <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
-                                                 value={exerciseStore.surveyResults[exerciseStore.currentQuestion.question?.questionId ?? -1]}
-                                                 surveyId={surveyOptions?.surveyId ?? ''} 
-                                                 onAnswered={onSurveyAnswered}/>
+                                                 survey={exerciseStore.survey!.survey}
+                                                 value={exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].results}
+                                                 enabledSurveyQuestions={exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].questions ?? []} 
+                                                 onAnswersSended={onSurveyAnswered}/>
                             </div>
                         </Optional>
                     </div>

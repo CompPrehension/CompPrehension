@@ -8,6 +8,9 @@ import { QuestionStore } from "./question-store";
 import i18next from "i18next";
 import { Language } from "../types/language";
 import { RequestError } from "../types/request-error";
+import { Survey, SurveyQuestion, SurveyResultItem } from "../types/survey";
+import { SurveyController } from "../controllers/exercise/survey-controller";
+import { zero } from "fp-ts/lib/OptionT";
 
 @injectable()
 export class ExerciseStore {
@@ -17,10 +20,11 @@ export class ExerciseStore {
     @observable currentQuestion: QuestionStore;
     @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, };
-    @observable surveyResults: Record<number, Record<number, string>> = {};
+    @observable survey?: ExerciseSurveySettings = undefined;
 
     constructor(@inject(ExerciseController) private readonly exerciseController: IExerciseController,
-                @inject(QuestionStore) currentQuestion: QuestionStore) {
+        @inject(SurveyController) private readonly surveyController: SurveyController,
+        @inject(QuestionStore) currentQuestion: QuestionStore) {
         // calc store initial state
         if (CompPh.exerciseLaunchError) {
             this.exerciseState = 'LAUNCH_ERROR';
@@ -49,17 +53,23 @@ export class ExerciseStore {
             this.storeState = { tag: 'VALID' };
         }
     }
-    
+
     @action
-    setExerciseState = (newState: ExerciseStore['exerciseState']) => {        
+    setExerciseState = (newState: ExerciseStore['exerciseState']) => {
         if (this.exerciseState !== newState) {
             this.exerciseState = newState;
         }
     }
 
     @action
-    setSurveyAnswers = (quesionId: number, answers: Record<number,string> ) => {
-        this.surveyResults[quesionId] = answers;
+    setSurveyAnswers = (quesionId: number, answers: Record<number, string>) => {
+        if (!this.survey)
+            return;
+
+        runInAction(() => {
+            this.survey!.questions[quesionId].status = 'COMPLETED';            
+            this.survey!.questions[quesionId].results = answers;
+        })
     }
 
     loadSessionInfo = flow(function* (this: ExerciseStore) {
@@ -80,12 +90,12 @@ export class ExerciseStore {
             return;
         }
 
-        this.onSessionLoaded(dataEither.right);        
+        this.onSessionLoaded(dataEither.right);
     })
 
-    private onSessionLoaded(sessionInfo: SessionInfo) {        
-        this.sessionInfo = sessionInfo;
-        
+    private onSessionLoaded(sessionInfo: SessionInfo) {
+        this.sessionInfo = sessionInfo
+
         if (this.sessionInfo.language !== i18next.language) {
             i18next.changeLanguage(this.sessionInfo.language);
         }
@@ -96,7 +106,7 @@ export class ExerciseStore {
         if (!sessionInfo) {
             throw new Error("Session is not defined");
         }
-       
+
         this.forceSetValidState();
         const exerciseId = sessionInfo.exercise.id;
         const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExistingExerciseAttempt(exerciseId);
@@ -104,16 +114,21 @@ export class ExerciseStore {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
-        
+
         const result = resultEither.right;
         if (!result) {
             return false;
         }
-        
+
         this.currentAttempt = result;
+        yield this.onAttemptLoaded();
         return true;
     });
 
+
+    onAttemptLoaded = async () => {
+        await this.loadSurvey();
+    }
 
     createExerciseAttempt = flow(function* (this: ExerciseStore) {
         const { sessionInfo } = this;
@@ -122,32 +137,123 @@ export class ExerciseStore {
         }
 
         this.forceSetValidState();
-        const exerciseId = sessionInfo.exercise.id;        
+        const exerciseId = sessionInfo.exercise.id;
         const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createExerciseAttempt(+exerciseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
-        
+
         this.currentAttempt = resultEither.right;
+        yield this.onAttemptLoaded();
     });
-    
+
     generateQuestion = flow(function* (this: ExerciseStore) {
         const { sessionInfo, currentAttempt } = this;
         if (!sessionInfo || !currentAttempt) {
             throw new Error("Session is not defined");
         }
-        
+
         this.forceSetValidState();
-        yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);        
+        yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
         currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+        this.ensureQuestionSurveyExists(this.currentQuestion.question?.questionId ?? -1);
     });
 
     @action
-    changeLanguage = (newLang: Language) => {        
+    changeLanguage = (newLang: Language) => {
         if (this.sessionInfo && this.sessionInfo.language !== newLang) {
             this.sessionInfo.language = newLang;
             i18next.changeLanguage(newLang);
         }
     }
+
+    @action
+    loadSurvey = async () => {
+        if (this.survey || !this.currentAttempt || !this.sessionInfo)
+            return;
+        if (!this.sessionInfo.exercise.options.surveyOptions?.enabled || this.sessionInfo.exercise.options.surveyOptions.surveyId.length === 0)
+            return;
+
+        const surveyId = this.sessionInfo.exercise.options.surveyOptions.surveyId;
+        const attemptId = this.currentAttempt.attemptId;
+        const [survey, surveyResults] = await Promise.all([
+            this.surveyController.getSurvey(surveyId),
+            this.surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId),
+        ]);
+
+        runInAction(() => {
+            if (E.isRight(survey) && E.isRight(surveyResults)) {
+                const tmp = groupBy(surveyResults.right, x => x.questionId)
+                this.survey = {
+                    survey: survey.right,
+                    questions: [...tmp.keys()].map(k => ({
+                        questionId: k,
+                        status: 'COMPLETED' as const,
+                        questions: tmp.get(k)?.map(z => z.surveyQuestionId) ?? [],
+                        results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {} as Record<number, string>) ?? {},
+                    })).reduce((acc, i) => (acc[i.questionId] = i, acc), {} as Record<number, QuestionSurveyResult>),
+                }
+                console.log("Loaded survey")
+                console.log(toJS(this.survey))
+            }
+        })
+    }
+
+    @action
+    ensureQuestionSurveyExists = (questionId: number) => {
+        if (this.survey?.questions[questionId])
+            return;
+
+        const qs: SurveyQuestion[] = [];
+        const currentQuestionIdx = this.currentAttempt!.questionIds.findIndex(z => z === this.currentQuestion.question?.questionId)
+        for (let q of this.survey?.survey.questions || []) {
+            const policy = q.policy;
+            if (policy.kind === 'AFTER_EACH'
+                || policy.kind === 'AFTER_FIRST' && currentQuestionIdx === 0
+                || policy.kind === 'AFTER_LAST' && this.exerciseState === 'COMPLETED'
+                || policy.kind === 'AFTER_SPECIFIC' && policy.numbers.includes(currentQuestionIdx + 1)) {
+                qs.push(q);
+            }
+        }
+        console.log("Selected questions")
+        console.log(toJS(qs))
+
+        var questionSurvey: QuestionSurveyResult = {
+            questionId: questionId,
+            status: 'ACTIVE',
+            questions: qs.map(z => z.id),
+            results: {},
+        };
+
+        runInAction(() => {
+            this.survey!.questions[questionId] = questionSurvey;
+        })
+    }
+}
+
+function groupBy<T, K>(list: T[], keyGetter: (z: T) => K) {
+    const map = new Map<K, T[]>();
+    list.forEach((item) => {
+        const key = keyGetter(item);
+        const collection = map.get(key);
+        if (!collection) {
+            map.set(key, [item]);
+        } else {
+            collection.push(item);
+        }
+    });
+    return map;
+}
+
+type ExerciseSurveySettings = {
+    survey: Survey,
+    questions: Record<number, QuestionSurveyResult>,
+}
+
+type QuestionSurveyResult = {
+    questionId: number,
+    status: 'ACTIVE' | 'COMPLETED',
+    questions: number[],
+    results: Record<number, string>,
 }
