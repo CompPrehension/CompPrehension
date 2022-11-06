@@ -157,7 +157,6 @@ export class ExerciseStore {
         this.forceSetValidState();
         yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
         currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
-        this.ensureQuestionSurveyExists(this.currentQuestion.question?.questionId ?? -1);
     });
 
     @action
@@ -203,7 +202,7 @@ export class ExerciseStore {
     @action
     ensureQuestionSurveyExists = (questionId: number) => {
         if (this.survey?.questions[questionId])
-            return;
+            return this.survey?.questions[questionId].questions;
 
         const qs: SurveyQuestion[] = [];
         const currentQuestionIdx = this.currentAttempt!.questionIds.findIndex(z => z === this.currentQuestion.question?.questionId)
@@ -229,6 +228,7 @@ export class ExerciseStore {
         runInAction(() => {
             this.survey!.questions[questionId] = questionSurvey;
         })
+        return qs.map(z => z.id);
     }
 }
 

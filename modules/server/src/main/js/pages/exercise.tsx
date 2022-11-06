@@ -78,9 +78,10 @@ export const Exercise = observer(() => {
                                 <div className="mt-2">
                                     <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
                                                      survey={survey!.survey}
-                                                     enabledSurveyQuestions={survey!.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.questions ?? []}
+                                                     enabledSurveyQuestions={exerciseStore.ensureQuestionSurveyExists(currentQuestion.question?.questionId ?? -1)}
                                                      value={survey!.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.results}
-                                                     onAnswersSended={onSurveyAnswered}/>                                                     
+                                                     onAnswersSended={onSurveyAnswered}
+                                                     isCompleted={survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === 'COMPLETED'}/>                                                     
                                 </div>}
                         <Optional isVisible={exerciseState === 'EXERCISE'}>
                             <Optional isVisible={exerciseStore.currentQuestion.questionState === 'LOADED'}>
@@ -90,10 +91,11 @@ export const Exercise = observer(() => {
                             </Optional>
                             <Optional isVisible={
                                 exerciseStore.currentQuestion.questionState !== 'COMPLETED' || 
-                                survey == null || survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].status === 'COMPLETED'}>
+                                survey == null || 
+                                survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === 'COMPLETED'}>
                                 <div className="mt-2">
                                     <GenerateNextQuestionBtn />
-                                </div>z
+                                </div>
                             </Optional>
                         </Optional>
                         <Optional isVisible={exerciseState === 'COMPLETED'}>
@@ -102,7 +104,7 @@ export const Exercise = observer(() => {
                                     {t('exercise_completed')!}
                                 </Alert>
                             </div>
-                        </Optional>
+                        </Optional>                        
                     </div>                
                 </Optional>
                 <Optional isVisible={exerciseState === 'MODAL'}>

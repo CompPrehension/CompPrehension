@@ -17,8 +17,8 @@ public interface SurveyRepository extends CrudRepository<SurveyEntity, String> {
     Optional<SurveyQuestionEntity> findSurveyQuestion(Long questionId);
 
     @Query("select new org.vstu.compprehension.dto.survey.SurveyResultDto(a.surveyQuestion.id, a.question.id, a.result) " +
-            "from SurveyAnswerEntity a " +
-            "where a.user.id = ?1 and a.question.exerciseAttempt.id = ?2 and a.surveyQuestion.survey.surveyId = ?3" +
-            "order by a.surveyQuestion.id")
+            " from SurveyAnswerEntity a " +
+            " where a.user.id = ?1 and a.question.exerciseAttempt.id = ?2 and a.surveyQuestion.survey.surveyId = ?3" +
+            " order by a.surveyQuestion.id")
     List<SurveyResultDto> findUserAttemptVotes(Long userId, Long attemptId, String surveyId);
 }

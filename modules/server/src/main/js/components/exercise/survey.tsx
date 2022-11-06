@@ -11,14 +11,15 @@ export type SurveyComponentProps = {
     survey: Survey;
     enabledSurveyQuestions: number[];
     value?: Record<number, string>;
+    isCompleted?: boolean,
     questionId: number;
     onAnswersSended: (survey: Survey, questionId: number, answers: Record<number, string>) => void,
 }
 export const SurveyComponent = (props: SurveyComponentProps) => {
+    const { survey, enabledSurveyQuestions, isCompleted } = props;
     const [endpoint] = useState(() => container.resolve(SurveyController));
-    const [surveyState, setSurveyState] = useState<'INITAL' | 'VALIDATION_ERROR' | 'SENDING_RESULTS' | 'COMPLETED'>('INITAL');
-    const [surveyAnswers, setSurveyAnswers] = useState<Record<number, string>>(props.value || {});
-    const { survey, enabledSurveyQuestions } = props;
+    const [surveyState, setSurveyState] = useState<'INITAL' | 'VALIDATION_ERROR' | 'SENDING_RESULTS' | 'COMPLETED'>(isCompleted ? 'COMPLETED' : 'INITAL');
+    const [surveyAnswers, setSurveyAnswers] = useState<Record<number, string>>(props.value || {});    
     const surveyQuestions = props.survey.questions.filter(q => enabledSurveyQuestions.includes(q.id))
 
     var onAnswered = (questionId: number, answer: string) => {        
@@ -29,12 +30,15 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
 
     const sendAnswers = () => {
         (async () => {
-            if (surveyQuestions.length === Object.getOwnPropertyNames(surveyAnswers).length) {
+            const requiredQuestionIds = surveyQuestions.filter(x => x.required).map(x => x.id);
+            if (requiredQuestionIds.every(id => surveyAnswers[id])) {
                 setSurveyState('SENDING_RESULTS');
                 await Promise.all(surveyQuestions
                     .map(q => endpoint.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
                 setSurveyState('COMPLETED');
                 props.onAnswersSended(survey, props.questionId, surveyAnswers);
+            } else {
+                setSurveyState('VALIDATION_ERROR');
             }
         })();
     };
@@ -50,14 +54,24 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
             {surveyQuestions
                 .map((q, idx, qs) =>
                     <div key={idx} className={idx !== qs.length - 1 && "mb-4" || ''}>
-                        {q.type === 'yes-no' && <SurveyYesNoQuestion question={q} onAnswered={onAnswered} value={surveyAnswers[q.id]} />
-                            || q.type === 'single-choice' && <SingleChoiceSurveyQuestionComponent question={q} onAnswered={onAnswered} value={surveyAnswers[q.id]} />
-                            || q.type === 'open-ended' && <OpenEndedSurveyQuestionComponent question={q} onAnswered={onAnswered} value={surveyAnswers[q.id]} />
+                        {q.type === 'yes-no' && <SurveyYesNoQuestion isCompleted={isCompleted} question={q} onAnswered={onAnswered} value={surveyAnswers[q.id]} />
+                            || q.type === 'single-choice' && <SingleChoiceSurveyQuestionComponent isCompleted={isCompleted} question={q} onAnswered={onAnswered} value={surveyAnswers[q.id]} />
+                            || q.type === 'open-ended' && <OpenEndedSurveyQuestionComponent isCompleted={isCompleted} question={q} onAnswered={onAnswered} value={surveyAnswers[q.id]} />
                             || "invalid question type"
                         }
                     </div>
                 )}
-            {surveyState !== 'COMPLETED' && 
+            {surveyState === 'SENDING_RESULTS' && 
+                <div className="mt-2">
+                    <Loader delay={100} />
+                </div>}
+            {surveyState === 'VALIDATION_ERROR' &&
+                <div className="mt-2">
+                    <div className="alert alert-danger rounded">
+                        Необходимо ответить на все обязательные вопросы
+                    </div>
+                </div>}
+            {surveyState !== 'COMPLETED' && surveyState !== 'SENDING_RESULTS' && 
                 <div className="mt-2">
                     <Button variant="primary" onClick={sendAnswers}>Send survey results</Button>
                 </div>}
@@ -67,11 +81,12 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
 
 type SurveyYesNoQuestionProps = {
     question: YesNoSurveyQuestion,
+    isCompleted?: boolean,
     value?: string;
     onAnswered: (questionId: number, answer: string) => void,
 }
 const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
-    const { question, onAnswered, value } = props;
+    const { question, onAnswered, value, isCompleted } = props;
     return (
         <div>
             <div className="mb-1">
@@ -97,11 +112,12 @@ const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
 
 type SurveySigleChoiceQuestionProps = {
     question: SingleChoiceSurveyQuestion,
+    isCompleted?: boolean,
     value?: string;
     onAnswered: (questionId: number, answer: string) => void,
 }
 export const SingleChoiceSurveyQuestionComponent = (props: SurveySigleChoiceQuestionProps) => {
-    const { question, onAnswered, value } = props;
+    const { question, onAnswered, value, isCompleted } = props;
 
     return (
         <div>
@@ -113,6 +129,7 @@ export const SingleChoiceSurveyQuestionComponent = (props: SurveySigleChoiceQues
                     {question.options.map((o, idx, opts) =>
                         <div key={o.id}>
                             <Form.Check
+                                disabled={isCompleted}
                                 checked={value === o.id}
                                 name={`radio_qid${question.id}`}
                                 type={'radio'}
@@ -132,10 +149,11 @@ export const SingleChoiceSurveyQuestionComponent = (props: SurveySigleChoiceQues
 type SurveyOpenEndedQuestionProps = {
     question: OpenEndedSurveyQuestion,
     value?: string;
+    isCompleted?: boolean,
     onAnswered: (questionId: number, answer: string) => void,
 }
 export const OpenEndedSurveyQuestionComponent = (props: SurveyOpenEndedQuestionProps) => {
-    const { question, onAnswered, value } = props;
+    const { question, onAnswered, value, isCompleted } = props;
     return (
         <div>
             <div className="mb-1">
@@ -143,6 +161,7 @@ export const OpenEndedSurveyQuestionComponent = (props: SurveyOpenEndedQuestionP
             </div>
             <div className="d-flex flex-row mt-2">
                 <Form.Control
+                    disabled={isCompleted}
                     value={value}
                     as="textarea"
                     rows={3} 

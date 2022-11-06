@@ -22,6 +22,13 @@ public class SurveyQuestionEntity {
     @Column(name = "text", nullable = false, columnDefinition = "TEXT")
     private String text;
 
+    @Column(name = "required", nullable = false)
+    private boolean required;
+
+    @Type(type = "json")
+    @Column(name = "policy", columnDefinition = "json", nullable = false)
+    private Object policy;
+
     @Type(type = "json")
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private Object options;
