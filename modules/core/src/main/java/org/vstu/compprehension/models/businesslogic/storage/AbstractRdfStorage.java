@@ -78,6 +78,7 @@ public abstract class AbstractRdfStorage {
     public static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
+    static Lang FASTER_RDF_SYNTAX = Lang.RDFTHRIFT;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
 
