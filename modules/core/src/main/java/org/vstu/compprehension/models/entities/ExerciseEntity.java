@@ -39,7 +39,7 @@ public class ExerciseEntity {
     private Boolean useGuidingQuestions;
 
     @Column(name = "numberOfQuestions", nullable = false)
-    private Float numberOfQuestions;
+    private Integer numberOfQuestions;
 
     /**
      * average question length, steps (средняя длина вопроса в шагах)

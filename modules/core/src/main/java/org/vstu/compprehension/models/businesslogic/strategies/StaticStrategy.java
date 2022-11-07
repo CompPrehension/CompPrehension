@@ -115,7 +115,7 @@ public class StaticStrategy implements AbstractStrategy {
         List<QuestionEntity> questions = exerciseAttempt.getQuestions();
 
         // get limit of questions defined by teacher in exercise GUI
-        int minimumQuestionsToAsk = (int)(exerciseAttempt.getExercise().getNumberOfQuestions() * 1);
+        int minimumQuestionsToAsk = exerciseAttempt.getExercise().getNumberOfQuestions();
 
         // Должно быть задано не менее X вопросов и последний вопрос должен быть завершён (завершение упражнения возможно только в момент завершения вопроса)
         if(questions.size() < minimumQuestionsToAsk ||
