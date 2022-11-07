@@ -87,6 +87,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
+        // using update() as init
+        update();
     }
     //Hacked version. don't use in production, only for develop
     public static ProgrammingLanguageExpressionDomain makeHackedDomain() {
@@ -316,6 +318,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public void update() {
+        // init questions storage
+        getRdfStorage();
     }
 
     @Override
@@ -371,7 +375,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         //TODO: make normal check, other question types also can be longer than questionName restriction
         for (Question q : res) {
             if (!q.isSupplementary()) {
-                q.getQuestionData().setQuestionName(q.getQuestionText().getText());
+                String qName = q.getQuestionText().getText();
+                if (qName.length() > 254) qName = qName.substring(0, 254);
+                q.getQuestionData().setQuestionName(qName);
             }
         }
 
@@ -444,7 +450,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setSolutionFacts(q.getStatementFacts());
         }
         entity.setQuestionType(q.getQuestionType());
-        entity.setQuestionName(q.getQuestionName());
+
+        String qName = q.getQuestionName();
+        if (qName.length() > 254) qName = qName.substring(0, 254);
+        entity.setQuestionName(qName);
 
         String text = getMessage(q.getQuestionText().getText(), userLang);
         if (text.equals("")) {
