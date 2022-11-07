@@ -25,6 +25,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -71,17 +72,18 @@ public abstract class AbstractRdfStorage {
      *	has_violation: domain:Violation   [1..*]
      *   ...
      * */
-    final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));
+    /*final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));*/
     // hardcoded FTP location:
 //    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
 //    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
-    public static String FTP_BASE = "file:///c:/Temp2/compp/";  // local dir is supported too (for debugging)
+    public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
     static Lang FASTER_RDF_SYNTAX = Lang.RDFTHRIFT;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
 
+    protected List<Double> complexityStatCache = null;
     protected List<Double> questionSolutionLengthStatCache = null;
 
     /**
@@ -131,10 +133,29 @@ public abstract class AbstractRdfStorage {
     public List<Question> searchQuestions(QuestionRequest qr, int limit) {
         /*Model qG =*/ getGraph(NS_questions.base());
 
-        String complexity_threshold = "" + qr.getComplexity();
+        Checkpointer ch = new Checkpointer(log);
+
         String complexity_cmp_op = "";
         if (qr.getComplexitySearchDirection() != null)
             complexity_cmp_op = (qr.getComplexitySearchDirection().getValue() < 0)? "<=" : ">=";
+        //
+        List<Double> complStat = complexityStat();  // [min, avg, max]
+        double complexity = qr.getComplexity();  // 0..1
+        double desiredComplexity = (complStat.get(1));  // avg
+        if (complexity <= 0.5) {
+            desiredComplexity = (
+                    complStat.get(0) +
+                            (complexity * 2) * (complStat.get(1) - complStat.get(0))
+            );  // min + weight * (avg - min)
+        }
+        else if (complexity > 0.5) {
+            desiredComplexity = (
+                    complStat.get(1) +
+                            ((complexity - 0.5) * 2) * (complStat.get(2) - complStat.get(1))
+            );  // avg + weight * (max - avg)
+        }
+        String complexity_threshold = "" + desiredComplexity;
+
 
         List<Double> SolutionLengthStat = questionSolutionLengthStat();  // [min, avg, max]
         int duration = qr.getSolvingDuration();  // 1..10
@@ -250,7 +271,9 @@ public abstract class AbstractRdfStorage {
         if (limit > 0)
             query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
 
+        ch.hit("searchQuestions - query prepared");
         List<Question> questions = new ArrayList<>();
+
         try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
 
             List<Question> finalQuestions = questions;  // copy the reference as lambda syntax requires
@@ -361,6 +384,7 @@ public abstract class AbstractRdfStorage {
             exception.printStackTrace();
         }
 
+        ch.hit("searchQuestions - query executed");
         if (limit > 0 && !questions.isEmpty()) {
             // sort to ensure best score first
             questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
@@ -383,6 +407,7 @@ public abstract class AbstractRdfStorage {
 //                    ));
 //        }
 
+        ch.since_start("searchQuestions - completed with " + questions.size() + " questions", false);
         return questions;
     }
 
@@ -402,6 +427,17 @@ public abstract class AbstractRdfStorage {
     }
 
     /**
+     * @return [min, avg, max] statistics of integral_complexity property
+     */
+    List<Double> complexityStat() {
+        if (complexityStatCache == null) {
+            // init caches
+            questionSolutionLengthStat();
+        }
+        return complexityStatCache;
+    }
+
+    /**
      * @return [min, avg, max] statistics of solution_steps property
      */
     List<Double> questionSolutionLengthStat() {
@@ -409,28 +445,38 @@ public abstract class AbstractRdfStorage {
             return questionSolutionLengthStatCache;
         }
 
-        String solutionLengthStatQuery = "select (max(?solution_steps) as ?max)" +
+        String solutionLengthStatQuery = "select " +
+                " (max(?solution_steps) as ?max)" +
                 " (min(?solution_steps) as ?min)" +
                 " (avg(?solution_steps) as ?avg)\n" +
+                " (max(?ic) as ?ic_max)" +
+                " (min(?ic) as ?ic_min)" +
+                " (avg(?ic) as ?ic_avg)\n" +
                 " {  GRAPH <" + NS_questions.base() + "> {\n" +
                 "    ?s a <" + NS_questions.get("Question") + "> .\n" +
-                "    ?s <" + NS_questions.get("solution_steps") + "> ?solution_steps.\n" +
+                "    ?s <" + NS_questions.get("solution_steps") + "> ?solution_steps .\n" +
+                "    ?s <" + NS_questions.get("integral_complexity") + "> ?ic .\n" +
                 "  }}";
 
-        List<Double> result = new ArrayList<>();
+        List<Double> lenStat = new ArrayList<>();
+        List<Double> complStat = new ArrayList<>();
         try (RDFConnection conn = RDFConnection.connect(dataset)) {
 
             conn.querySelect(solutionLengthStatQuery, querySolution -> {
-                result.add((double) querySolution.get("min").asLiteral().getInt());
-                result.add(querySolution.get("avg").asLiteral().getDouble());
-                result.add((double) querySolution.get("max").asLiteral().getInt());
+                lenStat  .add(querySolution.get("min").asLiteral().getDouble());
+                lenStat  .add(querySolution.get("avg").asLiteral().getDouble());
+                lenStat  .add(querySolution.get("max").asLiteral().getDouble());
+                complStat.add(querySolution.get("ic_min").asLiteral().getDouble());
+                complStat.add(querySolution.get("ic_avg").asLiteral().getDouble());
+                complStat.add(querySolution.get("ic_max").asLiteral().getDouble());
             });
 
         } catch (JenaException exception) {
             exception.printStackTrace();
         }
-        questionSolutionLengthStatCache = result;  // save to cache
-        return result;
+        questionSolutionLengthStatCache = lenStat;  // save to cache
+        complexityStatCache = complStat;  // save to cache
+        return lenStat;
     }
 
     Model getDomainSchemaForSolving() {
@@ -671,13 +717,13 @@ public abstract class AbstractRdfStorage {
             for (GraphRole role : questionStages()) {
                 /// boolean exists = fetchGraph(uriForQuestionGraph(questionName, role));
 
-                boolean targetNamedGraphAbsent = !questionNode
+                boolean targetNamedGraphAbsent = questionNode
                         .listProperties(AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(questionNode.getModel()))
                         .toList()
                         .stream()
                         .map(Statement::getObject)
                         .dropWhile(res -> res.equals(RDF.nil))
-                        .findAny().isPresent();
+                        .findAny().isEmpty();
 
                 if (targetNamedGraphAbsent) {
                     break;  // now return approvedStatus
