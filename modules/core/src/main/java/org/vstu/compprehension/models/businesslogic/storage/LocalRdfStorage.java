@@ -17,7 +17,9 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.utils.Checkpointer;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -115,7 +117,8 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
 
         try {
 //            dataset = TDB2Factory.createDataset() ;  // directory
-            dataset = DatasetFactory.createTxnMem();  // an in-memory. transactional Dataset
+//              dataset = DatasetFactory.createTxnMem();  // an in-memory. transactional Dataset
+            dataset = DatasetFactory.create();  // a simple Dataset
             log.debug("local dataset initialised");
         }
         catch(JenaException ex) {
@@ -139,8 +142,8 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             setLocalGraph(NS_questions.base(), qG);
             uploadGraph(NS_questions.base());
         }
+        log.info("LocalRdfStorage: init completed for: " + this.fileService.getBaseDownloadUri());
     }
-
 
 
     @Override
@@ -162,40 +165,52 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
 
         // Handle the special case using local file with the graph
 
+        Checkpointer ch = new Checkpointer(log);
+
         Model model = ModelFactory.createDefaultModel();
         // just load the whole graph from file
-        Path path = Paths.get(qGraph_filepath);
-        if (Files.notExists(path)) {
-            path = Paths.get(qGraph_filepath + ".bak");
-            if (Files.notExists(path)) {
-                log.error("Cannot read questions data from file: " + qGraph_filepath);
-                throw new RuntimeException("Cannot find questions data file: " + qGraph_filepath);
+
+        // find first existing path, then get it's IN stream.
+
+        String ext_ttl = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
+        String ext_bin = "." + FASTER_RDF_SYNTAX.getFileExtensions().get(0);
+
+        String qG_filepath_bin = qGraph_filepath.replaceFirst(ext_ttl, ext_bin);
+
+//        InputStream in = null;
+        String path = null;
+        Lang syntax = DEFAULT_RDF_SYNTAX;
+        for (String p : List.of(
+                qG_filepath_bin,  // binary version takes priority
+                qGraph_filepath,
+                qG_filepath_bin + ".bak",
+                qGraph_filepath + ".bak"
+        )) {
+//            path = Paths.get(p);
+            File f = new File(p);
+            if (f.exists() && !f.isDirectory()) {
+                path = p;
+                if (p.contains(ext_bin))
+                    syntax = FASTER_RDF_SYNTAX;
+                // found file successfully, exit loop.
+                break;
             }
         }
-        InputStream in = null;
-        try {
-            in = Files.newInputStream(path);
-        } catch (IOException e) {
-            // try fallback to .bak version
-            if (!path.endsWith(".bak")) {
-                path = Paths.get(qGraph_filepath + ".bak");
-                try {
-                    in = Files.newInputStream(path);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            } else
-                e.printStackTrace();
+
+        if (path == null) {
+            log.error("Cannot read questions data from file: " + qGraph_filepath);
+            throw new RuntimeException("Cannot find questions data file: " + qGraph_filepath);
         }
+
+        ch.hit("fetchGraph() - found file on disk");
+
         // read & replace the model
-        RDFDataMgr.read(model, in, DEFAULT_RDF_SYNTAX);
-        try {
-            assert in != null;
-            in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // RDFDataMgr.read(model, in, syntax);
+        RDFDataMgr.read(model, path, syntax);
+        ch.hit("fetchGraph() - model read");
         setLocalGraph(gUri, model);
+        ch.hit("fetchGraph() - local graph set");
+        ch.since_start("fetchGraph() - total time", false);
 
         return true;
     }
@@ -256,4 +271,26 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         return runQueriesWithConnection(RDFConnection.connect(dataset), requests, merge);
     }
 
+
+    public static void main(String [] args) {
+
+
+        // convert Turtle to RDF/Binary (.rt)
+        String filePath = "c:/data/compp/control_flow.ttl";
+        String filePathOut = "c:/data/compp/control_flow." + Lang.RDFTHRIFT.getFileExtensions().get(0);
+
+        Model model = ModelFactory.createDefaultModel();
+        RDFDataMgr.read(model, filePath, Lang.TURTLE);
+
+
+        try {
+            System.out.println("Saving dataset to disk...");
+            try (OutputStream out = Files.newOutputStream(Paths.get(filePathOut))) {
+                RDFDataMgr.write(out, model, Lang.RDFTHRIFT);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 }

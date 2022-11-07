@@ -27,9 +27,7 @@ import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -193,6 +191,7 @@ public abstract class AbstractRdfStorage {
                     .append(denied_law).append("\" }\n");
         }
         // Laws (violations)
+        if (!qr.getTargetLaws().isEmpty())
         {
             // older version: just require all laws
             //  "#    filter exists { ?s <http://vstu.ru/poas/questions/has_law> \"target_law\" }\n";

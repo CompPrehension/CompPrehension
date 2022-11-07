@@ -462,7 +462,7 @@ public class Strategy implements AbstractStrategy {
     @Override
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
         // Должно быть задано не менее 3 вопросов и все вопросы должны быть завершены
-        if(exerciseAttempt.getQuestions().stream().count() <= 3 ||
+        if(exerciseAttempt.getQuestions().size() <= 3 ||
             exerciseAttempt.getQuestions().stream().anyMatch(q -> q.getId() == exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1).getId() && (q.getInteractions().size() == 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() > 0))){
             return Decision.CONTINUE;
         }

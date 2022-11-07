@@ -25,6 +25,15 @@ public class RemoteFileService {
 
     private final FileSystemManager mgr;
     private final String baseUploadUri;
+
+    public String getBaseUploadUri() {
+        return baseUploadUri;
+    }
+
+    public String getBaseDownloadUri() {
+        return baseDownloadUri;
+    }
+
     private final String baseDownloadUri;
     private int dummyDirsForNewFile = 1;
 
