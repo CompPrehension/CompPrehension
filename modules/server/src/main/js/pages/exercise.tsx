@@ -73,9 +73,9 @@ export const Exercise = observer(() => {
                     <Header />
                     <div className="mt-5">
                         <CurrentQuestion />
-                        {exerciseStore.currentQuestion.questionState === 'COMPLETED' 
-                                    && survey != null &&
-                                <div className="mt-2">
+                        {survey != null 
+                            && (exerciseStore.currentQuestion.questionState === 'COMPLETED' || exerciseState === 'COMPLETED') 
+                            &&  <div className="mt-2">
                                     <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
                                                      survey={survey!.survey}
                                                      enabledSurveyQuestions={exerciseStore.ensureQuestionSurveyExists(currentQuestion.question?.questionId ?? -1)}

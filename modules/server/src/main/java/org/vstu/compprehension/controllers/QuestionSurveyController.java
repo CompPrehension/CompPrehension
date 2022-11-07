@@ -55,9 +55,6 @@ public class QuestionSurveyController {
         // ensure question correct
         var question = questionRepository.findById(result.getQuestionId())
                 .orElseThrow(() -> new IllegalStateException("Couldnt find question"));
-        var attemptStatus = question.getExerciseAttempt().getAttemptStatus();
-        if (attemptStatus == AttemptStatus.COMPLETED_BY_SYSTEM || attemptStatus == AttemptStatus.COMPLETED_BY_USER)
-            throw new IllegalStateException("Invalid attempt");
 
         // ensure user correct
         var questionUser = question.getExerciseAttempt().getUser();
