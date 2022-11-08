@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 public class SurveyQuestionDto {
     @NotNull Long id;
     @NotNull String type;
+    @NotNull Object policy;
+    boolean required;
     @NotNull String text;
     @NotNull Object options;
 }

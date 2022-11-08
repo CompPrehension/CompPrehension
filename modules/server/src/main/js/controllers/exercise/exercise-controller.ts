@@ -9,6 +9,7 @@ import { SupplementaryQuestionRequest } from "../../types/supplementary-question
 import { ajaxGet, ajaxPost, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts'
 import { RequestError } from "../../types/request-error";
+import { API_URL } from "../../appconfig";
 
 
 export interface IExerciseController {
@@ -26,13 +27,13 @@ export interface IExerciseController {
 
 @injectable()
 export class ExerciseController implements IExerciseController {
-    static endpointPath: `/` | `/${string}/` = ExerciseController.initEndpointPath();
-    private static initEndpointPath(): `/` | `/${string}/` {
+    static endpointPath: string = ExerciseController.initEndpointPath();
+    private static initEndpointPath(): string {
         const matches = /^\/(?:.+\/(?<!\/pages\/))?/.exec(window.location.pathname)
         if (matches) {
-            return <`/${string}/`>matches[0];
+            return `${API_URL}${matches[0].substring(1)}`;
         }
-        return "/";
+        return API_URL;
     }
 
     loadSessionInfo(): PromiseEither<RequestError, SessionInfo> {

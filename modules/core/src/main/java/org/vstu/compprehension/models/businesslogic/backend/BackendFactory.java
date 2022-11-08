@@ -10,6 +10,7 @@ import org.springframework.web.context.annotation.RequestScope;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 @Component @RequestScope
 public class BackendFactory {
@@ -20,6 +21,10 @@ public class BackendFactory {
         for (val b : backends) {
             this.backends.put(b.getBackendId(), b);
         }
+    }
+
+    public Set<String> getBackendIds() {
+        return backends.keySet();
     }
 
     public @NotNull Backend getBackend(@NotNull String backendId) {

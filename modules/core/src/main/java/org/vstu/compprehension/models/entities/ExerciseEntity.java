@@ -42,7 +42,8 @@ public class ExerciseEntity {
     private Integer numberOfQuestions;
 
     /**
-     * average question length, steps (средняя длина вопроса в шагах)
+     * normalized question length, steps (нормированная длина вопроса в шагах)
+     * range: [0..10]
      */
     @Column(name = "timeLimit")
     private Integer timeLimit;
@@ -74,6 +75,7 @@ public class ExerciseEntity {
     @Enumerated(EnumType.ORDINAL)
     private ExerciseType exerciseType;
 
+    /** Desired "integral" complexity for questions: [0..1] */
     private Float complexity;
 
     @Column(name = "language_id")

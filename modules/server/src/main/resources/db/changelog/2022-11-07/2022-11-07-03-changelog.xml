@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="1667844947800-1" author="Artem Prokudin">
+        <update tableName="survey_questions">
+            <column name="options_json" value='[{"id":"yes_always","text":"да, сложность меняется соответственно"},{"id":"yes_sometimes","text":"да, но не всегда"},{"id":"no_zero_correlation","text":"нет, связь не заметна"},{"id":"no_incorrect_strategy_decisions","text":"нет, иногда реакция системы неадекватна"},{"id":"cant_evaluate","text":"изменение сложности трудно оценить"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'Соответствует ли возрастание / убывание сложности вашим предшествующим действиям%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="options_json" value='[{"id":"1","text":"слишком легко"},{"id":"2","text":"легко"},{"id":"3","text":"средне"},{"id":"4","text":"сложно"},{"id":"5","text":"слишком сложно"},{"id":"contains_errors","text":"этот вопрос содержит ошибки"},{"id":"unknown_tokens","text":"я не понял(-а) этот вопрос из-за странных конструкций"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'Как вы оцениваете сложность этого вопроса?%'</where>
+        </update>
+    </changeSet>
+    <changeSet id="1667844947800-2" author="Artem Prokudin">
+        <sql>
+            UPDATE `exercise`
+            SET `options_json` = JSON_MERGE_PATCH(`options_json`, '{ "surveyOptions": { "enabled": true, "surveyId": "StrategyFeedbackSurvey" } }')
+            WHERE id IN (20, 21)
+        </sql>
+    </changeSet>
+</databaseChangeLog>

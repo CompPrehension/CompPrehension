@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="1667844947700-1" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(1) FROM `exercise` WHERE id = 20
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `number_of_questions`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
+            VALUES (20, 0.25, 1, 0, 1, '10', 10, 'test_static', 15, 0, 'StaticStrategy', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"surveyOptions": {"enabled": true, "surveyId": "StrategyFeedbackSurvey"}, "newQuestionGenerationEnabled": true, "supplementaryQuestionsEnabled": true, "correctAnswerGenerationEnabled": true, "forceNewAttemptCreationEnabled": false}');
+
+            INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `number_of_questions`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
+            VALUES (21, 0.75, 1, 0, 1, '10', 10, 'test_static', 15, 0, 'StaticStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++', '{"surveyOptions": {"enabled": true, "surveyId": "StrategyFeedbackSurvey"}, "newQuestionGenerationEnabled": true, "supplementaryQuestionsEnabled": true, "correctAnswerGenerationEnabled": true, "forceNewAttemptCreationEnabled": false}');
+        </sql>
+    </changeSet>
+    <changeSet id="1667844947700-2" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT COUNT(1) FROM `exercise` WHERE id = 20
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            UPDATE `exercise`
+            SET `options_json` = JSON_SET(`options_json`, '$.surveyOptions', '{"enabled": true, "surveyId": "StrategyFeedbackSurvey"}')
+            WHERE id IN (20, 21)
+        </sql>
+    </changeSet>
+</databaseChangeLog>

@@ -84,6 +84,8 @@ public class ControlFlowStatementsDomain extends Domain {
         
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
+        // using update() as init
+        // OFF: // update();
     }
 
     private static void initVocab() {
@@ -150,6 +152,8 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public void update() {
+        // init questions storage
+        getRdfStorage();
     }
 
     @Override

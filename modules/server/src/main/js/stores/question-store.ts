@@ -45,6 +45,10 @@ export class QuestionStore {
         this.isFeedbackVisible = true;
         this.answersHistory = [];
         this.lastAnswer = question.responses ?? [];
+
+        if (question.feedback && question.feedback.stepsLeft === 0) {
+            this.setQuestionState('COMPLETED');
+        }
     }
 
     private onAnswerEvaluated(feedback: Feedback) {     

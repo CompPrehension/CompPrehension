@@ -10,6 +10,7 @@ import org.vstu.compprehension.utils.ApplicationContextProvider;
 import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 @Component @Singleton
 public class StrategyFactory {
@@ -20,6 +21,10 @@ public class StrategyFactory {
         for (var s : strategies) {
             strategyToClassMap.put(s.getStrategyId(), s.getClass());
         }
+    }
+
+    public Set<String> getStrategyIds() {
+        return strategyToClassMap.keySet();
     }
 
     public @NotNull AbstractStrategy getStrategy(@NotNull String strategyId) {

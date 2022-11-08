@@ -35,12 +35,16 @@ module.exports = merge(common, {
     minimize: false,
   },
   devServer: {
-    static: {
-      directory: path.join(__dirname, './target/classes/static/'),
-    },
-    historyApiFallback: {
+    /*static: {
+      directory: path.join(__dirname, 'public'),
+      /*directory: path.join(__dirname, './target/classes/static/'),
+    },*/
+    historyApiFallback: true,
+    /*historyApiFallback: {
       index: 'index.html'
     },
+    */
+    /*
     devMiddleware: {
       index: true,
       mimeTypes: { phtml: 'text/html' },
@@ -48,6 +52,8 @@ module.exports = merge(common, {
       serverSideRender: true,
       writeToDisk: true,
     },
+    
+    */
     compress: true,
     port: 4200,
     hot: true,

@@ -2,6 +2,7 @@ package org.vstu.compprehension.controllers;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,8 @@ import org.vstu.compprehension.models.repository.QuestionRepository;
 import org.vstu.compprehension.models.repository.SurveyRepository;
 import org.vstu.compprehension.models.repository.SurveyAnswerRepository;
 import org.vstu.compprehension.utils.Mapper;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("survey")
@@ -40,14 +43,18 @@ public class QuestionSurveyController {
         return Mapper.toDto(survey);
     }
 
+    @GetMapping("/{id}/user-votes")
+    @ResponseBody
+    public List<SurveyResultDto> getCurrentUserAttemptSurveyResults(@PathVariable("id") String surveyId,
+                                                                    @RequestParam("attemptId") Long attemptId) {
+        return surveyRepository.findUserAttemptVotes(user.getId(), attemptId, surveyId);
+    }
+
     @PostMapping("")
     public ResponseEntity<?> addSurveyResult(@RequestBody SurveyResultDto result) {
         // ensure question correct
         var question = questionRepository.findById(result.getQuestionId())
                 .orElseThrow(() -> new IllegalStateException("Couldnt find question"));
-        var attemptStatus = question.getExerciseAttempt().getAttemptStatus();
-        if (attemptStatus == AttemptStatus.COMPLETED_BY_SYSTEM || attemptStatus == AttemptStatus.COMPLETED_BY_USER)
-            throw new IllegalStateException("Invalid attempt");
 
         // ensure user correct
         var questionUser = question.getExerciseAttempt().getUser();

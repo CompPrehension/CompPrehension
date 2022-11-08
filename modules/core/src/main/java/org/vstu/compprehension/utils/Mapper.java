@@ -36,6 +36,8 @@ public class Mapper {
                                 .id(q.getId())
                                 .type(q.getType())
                                 .text(q.getText())
+                                .required(q.isRequired())
+                                .policy(q.getPolicy())
                                 .options(q.getOptions())
                                 .build())
                         .toArray(SurveyQuestionDto[]::new))

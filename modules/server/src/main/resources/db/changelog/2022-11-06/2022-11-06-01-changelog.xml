@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1667758348881-5" author="Artem Prokudin">
+        <addColumn tableName="survey_questions">
+            <column name="policy" type="json" />
+            <column name="required" type="BOOLEAN" />
+        </addColumn>
+    </changeSet>
+    <changeSet id="1667758348881-6" author="Artem Prokudin">
+        <update tableName="survey_questions">
+            <column name="required" valueBoolean='true' />
+            <where>policy IS NULL</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="policy" value='{ "kind": "AFTER_EACH" }' />
+            <where>policy IS NULL</where>
+        </update>
+    </changeSet>
+    <changeSet id="1667758348881-7" author="Artem Prokudin">
+        <addNotNullConstraint columnDataType="json" columnName="policy" tableName="survey_questions"/>
+    </changeSet>
+    <changeSet id="1667758348881-8" author="Artem Prokudin">
+        <addNotNullConstraint columnDataType="BOOLEAN" columnName="required" tableName="survey_questions"/>
+    </changeSet>
+    <changeSet id="1667758348881-9" author="Artem Prokudin">
+        <insert tableName="surveys">
+            <column name="id" value="StrategyFeedbackSurvey" />
+            <column name="name" value="Опрос для оценки стратегии" />
+            <column name="options_json" value='{ "size": 10000000 }' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Какова ваша реакция на первый вопрос?" />
+            <column name="policy" value='{ "kind": "AFTER_FIRST" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"0","text":"запутанно и страшно"},{"id":"1","text":"решать можно, но тяжело"},{"id":"2","text":"могло быть полегче, но удалось решить"},{"id":"3","text":"справился(-лась) с вопросом без особых трудностей"},{"id":"4","text":"было скучно, хотелось поинтереснее"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Как вы оцениваете сложность этого вопроса?" />
+            <column name="policy" value='{ "kind": "AFTER_EACH" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"1","text":"слишком легко"},{"id":"2","text":"легко"},{"id":"3","text":"средне"},{"id":"4","text":"сложно"},{"id":"5","text":"слишком сложно"},{"id":"contains_errors","text":"этот вопрос содержит ошибки"},{"id":"unknown_tokens","text":"я не понял этот вопрос из-за странных конструкций"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Как вы оцениваете скорость решения вами этого вопроса?" />
+            <column name="policy" value='{ "kind": "AFTER_EACH" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"1","text":"очень быстро"},{"id":"2","text":"быстро"},{"id":"3","text":"средне"},{"id":"4","text":"долго"},{"id":"5","text":"очень долго"},{"id":"too_boring","text":"не дорешал(-а), вопрос этот меня утомил"},{"id":"system_error","text":"дорешать до конца невозможно (ошибка в системе)"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Было ли заметно возрастание / убывание сложности за последние 3-5 вопросов?" />
+            <column name="policy" value='{"kind":"AFTER_SPECIFIC","numbers":[3,6,9,12,15,18,21]}' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"1","text":"быстрое убывание сложности"},{"id":"2","text":"медленное убывание сложности"},{"id":"3","text":"изменений не заметно"},{"id":"4","text":"медленное возрастание сложности"},{"id":"5","text":"быстрое возрастание сложности"},{"id":"cant_evaluate","text":"трудно оценить"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Соответствует ли возрастание / убывание сложности вашим предшествующим действиям (возрастает, когда вы вы решаете без ошибок, и снижается, если ошибок много)?" />
+            <column name="policy" value='{"kind":"AFTER_SPECIFIC","numbers":[3,6,9,12,15,18,21]}' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"yes_always","text":"да, сложность меняется соответственно"},{"id":"yes_sometimes","text":"да, но не всегда"},{"id":"no_zero_correlation","text":"нет, связь не заметна"},{"id":"no_incorrect_strategy_decisions","text":"нет, иногда реакция системы неадекватна"},{"id":"no_incorrect_strategy_work","text":"нет, иногда реакция системы неадекватна"},{"id":"cant_evaluate","text":"изменение сложности трудно оценить"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Сколько вопросов было задано?" />
+            <column name="policy" value='{ "kind":"AFTER_LAST" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"few","text":"мало"},{"id":"enough","text":"достаточно"},{"id":"many","text":"много"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Были ли повторяющиеся или сильно похожие вопросы?" />
+            <column name="policy" value='{ "kind":"AFTER_LAST" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"not","text":"нет"},{"id":"slightly","text":"да, незначительно"},{"id":"many","text":"да, много"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Насколько быстро система нашла удобную вам сложность вопросов?" />
+            <column name="policy" value='{ "kind":"AFTER_LAST" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"1","text":"очень медленно"},{"id":"2","text":"медленно"},{"id":"3","text":"средне"},{"id":"4","text":"быстро"},{"id":"5","text":"сразу"},{"id":"no_target_complexity","text":"желаемой сложности не было"},{"id":"no_target_complexity_stablization","text":"сложность вопросов не стабилизировалась"}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="single-choice" />
+            <column name="text" value="Считаете ли вы достаточной полноту покрытия изучаемой темы вопросами?" />
+            <column name="policy" value='{ "kind":"AFTER_LAST" }' />
+            <column name="required" valueBoolean="true" />
+            <column name="options_json" value='[{"id":"1","text":"нет, для покрытия темы вопросов слишком мало"},{"id":"2","text":"нет, не хватает некоторых видов вопросов"},{"id":"3","text":"да, вопросов разных видов хватает"},{"id":"4","text":"да, но некоторых вопросов слишком много"},{"id":"5","text":"да, но вопросов вообще слишком много "}]' />
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="StrategyFeedbackSurvey" />
+            <column name="type" value="open-ended" />
+            <column name="text" value="Хотите добавить что-то ещё?" />
+            <column name="policy" value='{ "kind":"AFTER_LAST" }' />
+            <column name="required" valueBoolean="false" />
+            <column name="options_json" value='{}' />
+        </insert>
+    </changeSet>
+    <changeSet id="1667758348881-12" author="Artem Prokudin">
+        <sql>
+            UPDATE `exercise`
+            SET `options_json` = JSON_SET(`options_json`, '$.surveyOptions.surveyId', 'StrategyFeedbackSurvey')
+            WHERE id > 0
+        </sql>
+    </changeSet>
+</databaseChangeLog>

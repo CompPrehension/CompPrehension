@@ -18,6 +18,6 @@ public interface ExerciseRepository extends CrudRepository<ExerciseEntity, Long>
     @Query("select new org.vstu.compprehension.dto.ExerciseDto(e.id, e.name) from ExerciseEntity e")
     List<ExerciseDto> getAllExerciseItems();
 
-    @Query("select new org.vstu.compprehension.dto.ExerciseCardDto(e.id, e.name, e.domain.name, e.strategyId, e.backendId) from ExerciseEntity e where e.id = ?1")
-    Optional<ExerciseCardDto> getExerciseCard(long id);
+    //@Query("select new org.vstu.compprehension.dto.ExerciseCardDto(e.id, e.name, e.domain.name, e.strategyId, e.backendId) from ExerciseEntity e where e.id = ?1")
+    //Optional<ExerciseCardDto> getExerciseCard(long id);
 }

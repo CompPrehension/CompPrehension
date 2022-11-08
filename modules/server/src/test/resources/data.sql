@@ -78,6 +78,12 @@ VALUES (18, 1, 1, 0, 1, '10', 10, 'test_all_debug', 8, 0, 'GradeConfidenceBaseSt
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `number_of_questions`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
 VALUES (19, 1, 1, 0, 1, '10', 10, 'test_c#', 8, 1, 'GradeConfidenceBaseStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C#', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}');
 
+INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `number_of_questions`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
+VALUES (20, 0.25, 1, 0, 1, '10', 10, 'test_static', 15, 0, 'StaticStrategy', 'Jena', 'ControlFlowStatementsDomain', 'sequence,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":false,"correctAnswerGenerationEnabled":true, "forceNewAttemptCreationEnabled":false}');
+
+INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `number_of_questions`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`)
+VALUES (21, 0.75, 1, 0, 1, '10', 10, 'test_static', 15, 0, 'StaticStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true, "forceNewAttemptCreationEnabled":false}');
+
 INSERT INTO `user` (`id`, `email`, `first_name`, `last_name`, `login`, `password`, `preferred_language`)
 VALUES (1, 'test', 'test', 'test', 'test', 'test', 0);
 
@@ -115,8 +121,7 @@ INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_i
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('associativity', 2, 8);
 
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('trace', 0, 10);
-INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`)
-VALUES ('return', 0, 11);
+INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('return', 0, 11);
 
 INSERT INTO `exercise_attempt` (`id`, `attempt_status`, `exercise_id`, `user_id` ) VALUES (14,1,14,1);
 INSERT INTO `exercise_concepts` (`concept_name`, `role_in_exercise`, `exercise_id`) VALUES ('SystemIntegrationTest', 0, 14);
