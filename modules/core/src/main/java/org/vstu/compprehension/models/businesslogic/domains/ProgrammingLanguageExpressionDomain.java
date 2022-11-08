@@ -88,7 +88,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
         // using update() as init
-        update();
+        // OFF: // update();
     }
     //Hacked version. don't use in production, only for develop
     public static ProgrammingLanguageExpressionDomain makeHackedDomain() {

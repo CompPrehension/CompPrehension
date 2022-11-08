@@ -85,7 +85,7 @@ public class ControlFlowStatementsDomain extends Domain {
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
-        update();
+        // OFF: // update();
     }
 
     private static void initVocab() {
