@@ -7,11 +7,23 @@ import java.util.List;
 
 @AllArgsConstructor
 public abstract class Law {
+    /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
+    public static int FLAG_VISIBLE_TO_TEACHER = 1;
+    /** When present, this flag enables a concept to be selected as TARGET at exercise configuration page. */
+    public static int FLAG_TARGET_ENABLED = 2;
+
+    /** All flags are OFF by default */
+    public static int DEFAULT_FLAGS = 0;
+
 
     static int DEFAULT_SALIENCE = 0;
 
     @Getter
     String name;
+    @Getter
+    String displayName;
+    @Getter
+    int bitflags;
     @Getter
     List<LawFormulation> formulations;
     @Getter
@@ -20,11 +32,33 @@ public abstract class Law {
     List<Tag> tags;
 
     /**
+     * Names of laws that should be enabled automatically when this law is added/enabled.
+     */
+    @Getter
+    List<String> impliesLaws;
+
+    /**
      * Priority of the law. Higher value means higher priority,
      * By default salience is set to 0.
      */
     @Getter
-    int salience = DEFAULT_SALIENCE;
+    int salience;
+
+    public Law(String name, List<LawFormulation> formulations, List<Concept> concepts, List<Tag> tags, int salience) {
+        this.name = name;
+        this.formulations = formulations;
+        this.concepts = concepts;
+        this.tags = tags;
+        this.salience = salience;
+        // default values
+        this.bitflags = DEFAULT_FLAGS;
+        this.displayName = name; // copy
+        this.impliesLaws = null;
+    }
 
     public abstract boolean isPositiveLaw();
+
+    public boolean hasFlag(int flagCode) {
+    	return (bitflags & flagCode) != 0;
+    }
 }

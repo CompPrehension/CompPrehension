@@ -3319,6 +3319,8 @@
   },
   {
     "name": "error_base_higher_precedence_right",
+    "displayName": "Приоритет справа",
+    "bitflags": 2,
     "positive": false,
     "formulations": [
     ],
@@ -3330,6 +3332,8 @@
   },
   {
     "name": "error_base_higher_precedence_left",
+    "displayName": "Приоритет слева",
+    "bitflags": 2,
     "positive": false,
     "formulations": [
     ],
@@ -3340,7 +3344,26 @@
     ]
   },
   {
+    "name": "error_base_higher_precedence_base",
+    "displayName": "Приоритет операций",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+    	"error_base_higher_precedence_left",
+    	"error_base_higher_precedence_right",
+    ],
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "precedence"}
+    ],
+    "tags": [
+    ]
+  },
+  {
     "name": "error_base_same_precedence_left_associativity_left",
+    "displayName": "Левая ассоциативность",
+    "bitflags": 3,
     "positive": false,
     "formulations": [
     ],
@@ -3352,6 +3375,8 @@
   },
   {
     "name": "error_base_same_precedence_right_associativity_right",
+    "displayName": "Правая ассоциативность",
+    "bitflags": 3,
     "positive": false,
     "formulations": [
     ],
@@ -3363,6 +3388,8 @@
   },
   {
     "name": "error_base_student_error_in_complex",
+    "displayName": "Круглые скобки",
+    "bitflags": 2,
     "positive": false,
     "formulations": [
     ],
@@ -3374,7 +3401,60 @@
     ]
   },
   {
+    "name": "error_base_parentheses",
+    "displayName": "Группировка скобками",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+    	"error_base_student_error_in_complex",
+    ],
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "two_token"},
+      {"name": "precedence"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_parentheses_of_func_args",
+    "displayName": "Группировка аргументов функции",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+    	"error_base_student_error_in_complex",
+    ],
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "two_token"},
+      {"name": "precedence"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_grouping_braces",
+    "displayName": "Группировка внутри [] и ?:",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+    	"error_base_student_error_in_complex",
+    ],
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "two_token"},
+      {"name": "precedence"}
+    ],
+    "tags": [
+    ]
+  },
+  {
     "name": "error_base_student_error_strict_operands_order",
+    "displayName": "Операции со строгим порядком выполнения операндов (&&, ||, ?:)",
+    "bitflags": 3,
     "positive": false,
     "formulations": [
       {
@@ -3391,6 +3471,8 @@
   },
   {
     "name": "error_base_student_error_unevaluated_operand",
+    "displayName": "Невыполненный операнд (убрать это?..)",
+    "bitflags": 3,
     "positive": false,
     "formulations": [
     ],

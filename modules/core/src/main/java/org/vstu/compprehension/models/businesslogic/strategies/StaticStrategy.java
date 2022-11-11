@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -15,8 +14,8 @@ import org.vstu.compprehension.models.entities.*;
 import javax.inject.Singleton;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component @Singleton @Primary
 @Log4j2
@@ -52,20 +51,23 @@ public class StaticStrategy implements AbstractStrategy {
         qr.setTargetLaws(exLaws.stream()
                 .filter(ec -> ec.getRoleInExercise()
                         .equals(RoleInExercise.TARGETED))
-                .map(ec -> Optional.ofNullable((Law)domain.getPositiveLaw(ec.getLawName()))
-                        .orElse(domain.getNegativeLaw(ec.getLawName())))
+                .flatMap(ec -> Stream.concat(
+                        domain.getPositiveLawWithImplied(ec.getLawName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getLawName()).stream()))
                 .collect(Collectors.toList()));
         qr.setAllowedLaws(exLaws.stream()
                 .filter(ec -> ec.getRoleInExercise()
                         .equals(RoleInExercise.PERMITTED))
-                .map(ec -> Optional.ofNullable((Law)domain.getPositiveLaw(ec.getLawName()))
-                        .orElse(domain.getNegativeLaw(ec.getLawName())))
+                .flatMap(ec -> Stream.concat(
+                        domain.getPositiveLawWithImplied(ec.getLawName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getLawName()).stream()))
                 .collect(Collectors.toList()));
         qr.setDeniedLaws(exLaws.stream()
                 .filter(ec -> ec.getRoleInExercise()
                         .equals(RoleInExercise.FORBIDDEN))
-                .map(ec -> Optional.ofNullable((Law)domain.getPositiveLaw(ec.getLawName()))
-                        .orElse(domain.getNegativeLaw(ec.getLawName())))
+                .flatMap(ec -> Stream.concat(
+                        domain.getPositiveLawWithImplied(ec.getLawName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getLawName()).stream()))
                 .collect(Collectors.toList()));
 //        HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
 //        HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
