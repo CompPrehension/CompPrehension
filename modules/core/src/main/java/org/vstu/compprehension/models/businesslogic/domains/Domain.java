@@ -93,6 +93,39 @@ public abstract class Domain {
         return null;
     }
 
+    public List<PositiveLaw> getPositiveLawWithImplied(String name) {
+        PositiveLaw law = getPositiveLaw(name);
+        if (law == null)
+            return List.of();
+
+        List<PositiveLaw> res = new ArrayList<>(List.of(law));
+        List<String> impliedNames = law.getImpliesLaws();
+        if (impliedNames == null)
+            return res;
+
+        for (String lawName : impliedNames) {
+            // danger: infinite recursion is possible
+            res.addAll(getPositiveLawWithImplied(lawName));
+        }
+        return res;
+    }
+    public List<NegativeLaw> getNegativeLawWithImplied(String name) {
+        NegativeLaw law = getNegativeLaw(name);
+        if (law == null)
+            return List.of();
+
+        List<NegativeLaw> res = new ArrayList<>(List.of(law));
+        List<String> impliedNames = law.getImpliesLaws();
+        if (impliedNames == null)
+            return res;
+
+        for (String lawName : impliedNames) {
+            // danger: infinite recursion is possible
+            res.addAll(getNegativeLawWithImplied(lawName));
+        }
+        return res;
+    }
+
     public Concept getConcept(String name) {
         for (Concept concept : concepts) {
             if (name.equals(concept.getName())) {
