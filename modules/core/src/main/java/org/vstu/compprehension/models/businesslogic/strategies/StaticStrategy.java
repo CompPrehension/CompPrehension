@@ -43,9 +43,9 @@ public class StaticStrategy implements AbstractStrategy {
         qr.setExerciseAttempt(exerciseAttempt);
 
         List<ExerciseConceptEntity> exConcepts = exercise.getExerciseConcepts();
-        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.TARGETED)).map(ec -> domain.getConcept(ec.getConceptName())).collect(Collectors.toList()));
-        qr.setAllowedConcepts(exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.PERMITTED)).map(ec -> domain.getConcept(ec.getConceptName())).collect(Collectors.toList()));
-        qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.FORBIDDEN)).map(ec -> domain.getConcept(ec.getConceptName())).collect(Collectors.toList()));
+        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
+        qr.setAllowedConcepts(exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
+        qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
 
         List<ExerciseLawsEntity> exLaws = exercise.getExerciseLaws();
         qr.setTargetLaws(exLaws.stream()

@@ -19,6 +19,8 @@ import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Log4j2
 @RequestScope
@@ -134,6 +136,110 @@ public abstract class Domain {
         }
         return null;
     }
+
+    public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
+        Map<Concept, List<Concept>> res = new HashMap<>();
+        Set<Concept> wanted = this.concepts.stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        for (Concept ct : new ArrayList<>(wanted)) {
+            if (!wanted.contains(ct)) {
+                continue; // we could delete it already in the loop
+            }
+            // ensure we are dealing with bottom-level concept
+            List<Concept> children = this.getConceptWithChildren(ct.getName());
+            children.remove(ct);
+            boolean hasChildren =
+                    children.stream().anyMatch(wanted::contains);
+            if (hasChildren) {
+                continue;  // skip non-bottom concepts
+            }
+
+            Concept nearestWantedBase = null;
+            List<Concept> bases = new ArrayList<>(ct.getBaseConcepts());
+            while (!bases.isEmpty()) {
+                for (Concept base : new ArrayList<>(bases)) {
+                    if (wanted.contains(base)) {
+                        nearestWantedBase = base;
+                        bases.clear();
+                        break;
+                    }
+                    bases.remove(base);
+                    bases.addAll(base.getBaseConcepts());
+                }
+            }
+            Concept key;
+            List<Concept> value;
+
+            if (nearestWantedBase != null) {
+                // concept is within a group
+                key = nearestWantedBase;
+                value = new ArrayList<>(List.of(ct));
+                wanted.remove(nearestWantedBase);
+
+            } else {
+                // concept does not belong to any group (has no bases we want)
+                key = ct;
+                value = new ArrayList<>();
+            }
+            // put into a group or as top-level
+            if (res.containsKey(key))
+                res.get(key).addAll(value);
+            else
+                res.put(key, value);
+        }
+
+        return res;
+    }
+
+    public List<Concept> getConceptWithChildren(String name) {
+        return getConceptsWithChildren(List.of(name));
+    }
+
+    public List<Concept> getConceptsWithChildren(Collection<String> names) {
+        Map<String, List<Concept>> tm = getConceptTreeMapping();
+        Set<String> res = new HashSet<>();
+        Set<String> pool = new HashSet<>(names);
+        while (!pool.isEmpty()) {
+            // copy concepts from pool to res
+            res.addAll(pool);  // .stream().map(this::getConcept).collect(Collectors.toSet()));
+//            res.addAll(pool.stream().flatMap(n -> tm.get(n).stream()).collect(Collectors.toSet()));
+            for (String name : new HashSet<>(pool)) {
+                pool.remove(name);
+                if (tm.containsKey(name)) {
+                    // try to add all children of current concept
+                    pool.addAll(tm.get(name).stream().map(Concept::getName).collect(Collectors.toSet()));
+                    pool.removeAll(res);  // guard: don't allow infinite recursion.
+                }
+            }
+        }
+        return res.stream().map(this::getConcept).filter(Objects::nonNull).collect(Collectors.toList());
+//        return new ArrayList<>(res);
+    }
+
+
+    Map<String, List<Concept>> conceptTreeMappingCache = null;
+
+    /** get concepts mapping: {base: [child1, child2, ...], ...}  */
+    protected Map<String, List<Concept>> getConceptTreeMapping() {
+        if (conceptTreeMappingCache == null) {
+            Map<String, List<Concept>> hm = new HashMap<>();
+            for (Concept concept : concepts) {
+                if (concept.getBaseConcepts() == null)
+                    continue;
+                for (Concept base : concept.getBaseConcepts()) {
+                    String parentName = base.getName();
+                    if (!hm.containsKey(parentName)) {
+                        hm.put(parentName, new ArrayList<>(List.of(concept)));
+                    } else {
+                        hm.get(parentName).add(concept);
+                    }
+                }
+            }
+            conceptTreeMappingCache = hm;
+        }
+        return conceptTreeMappingCache;
+    }
+
+
 
     public Model getSchemaForSolving(/* String questionType (?) */) {
         // the default

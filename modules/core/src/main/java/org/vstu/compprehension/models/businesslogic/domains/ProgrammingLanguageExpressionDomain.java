@@ -176,7 +176,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
 
         Concept logical = addConcept("logical", List.of(), "Логические операции", flags);
-        addConcept("operator_!", List.of(singleTokenUnaryConcept, logical), "a ! b", invisible);
+        addConcept("operator_!", List.of(singleTokenUnaryConcept, logical), "!a", invisible);
         addConcept("operator_&&", List.of(singleTokenBinaryConcept, logical), "a && b", invisible);
         addConcept("operator_||", List.of(singleTokenBinaryConcept, logical), "a || b", invisible);
         // addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
