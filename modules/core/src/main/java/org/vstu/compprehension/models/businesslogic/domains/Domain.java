@@ -137,13 +137,14 @@ public abstract class Domain {
         return null;
     }
 
+    /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
+     * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
+     * @return map representing groups of concepts (base concept -> concepts in the group)
+     */
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
         Map<Concept, List<Concept>> res = new HashMap<>();
         Set<Concept> wanted = this.concepts.stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         for (Concept ct : new ArrayList<>(wanted)) {
-            if (!wanted.contains(ct)) {
-                continue; // we could delete it already in the loop
-            }
             // ensure we are dealing with bottom-level concept
             List<Concept> children = this.getConceptWithChildren(ct.getName());
             children.remove(ct);
@@ -173,7 +174,6 @@ public abstract class Domain {
                 // concept is within a group
                 key = nearestWantedBase;
                 value = new ArrayList<>(List.of(ct));
-                wanted.remove(nearestWantedBase);
 
             } else {
                 // concept does not belong to any group (has no bases we want)
@@ -181,9 +181,12 @@ public abstract class Domain {
                 value = new ArrayList<>();
             }
             // put into a group or as top-level
-            if (res.containsKey(key))
-                res.get(key).addAll(value);
-            else
+            if (res.containsKey(key)) {
+                List<Concept> arr = res.get(key);
+                for (Concept oneValue : value)
+                    if (!arr.contains(oneValue))
+                        arr.add(oneValue);
+            } else
                 res.put(key, value);
         }
 
