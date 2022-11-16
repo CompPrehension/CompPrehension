@@ -292,6 +292,8 @@ public abstract class AbstractRdfStorage {
                     if (stream != null) {
                         q = domain.parseQuestionTemplate(stream);
                         finalQuestions.add(q);
+                    } else {
+                        log.warn("File NOT found by storage: " + name);
                     }
                 } catch (IOException /*| NullPointerException*/ e) {
                     e.printStackTrace();
