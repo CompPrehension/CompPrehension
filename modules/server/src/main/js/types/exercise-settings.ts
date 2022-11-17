@@ -52,7 +52,7 @@ export type ExerciseCard = {
     strategyId: string,
     backendId: string,
     complexity: number,
-    numberOfQuestions: number,
+    answerLength: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
 }
@@ -64,7 +64,7 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     strategyId: io.string,
     backendId: io.string,
     complexity: io.number,
-    numberOfQuestions: io.number,
+    answerLength: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
 })

@@ -15,7 +15,7 @@ public class ExerciseCardDto {
     @NotNull String strategyId;
     @NotNull String backendId;
     float complexity;
-    int numberOfQuestions;
+    float answerLength;
     @NotNull List<ExerciseLawDto> laws;
     @NotNull List<ExerciseLConceptDto> concepts;
 

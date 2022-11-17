@@ -40,8 +40,8 @@ public class ExerciseService {
                         .name(l.getConceptName())
                         .kind(l.getRoleInExercise())
                         .build()).collect(Collectors.toList()))
-                .complexity(0.5f)
-                .numberOfQuestions(60)
+                .complexity(exercise.getComplexity())
+                .answerLength(exercise.getTimeLimit())
                 .build();
     }
 }
