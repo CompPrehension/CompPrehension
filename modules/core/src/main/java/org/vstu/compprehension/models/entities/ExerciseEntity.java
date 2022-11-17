@@ -76,6 +76,7 @@ public class ExerciseEntity {
     private ExerciseType exerciseType;
 
     /** Desired "integral" complexity for questions: [0..1] */
+    @Column(name = "complexity", nullable = false)
     private Float complexity;
 
     @Column(name = "language_id")
@@ -85,7 +86,6 @@ public class ExerciseEntity {
     @ManyToOne
     @JoinColumn(name = "domain_id", nullable = false)
     private DomainEntity domain;
-
 
     @OneToMany(mappedBy = "exercise")
     @LazyCollection(LazyCollectionOption.FALSE)
