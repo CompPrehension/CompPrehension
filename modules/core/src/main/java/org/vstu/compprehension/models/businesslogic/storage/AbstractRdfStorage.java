@@ -184,7 +184,7 @@ public abstract class AbstractRdfStorage {
                 //// "#(count(distinct ?law) as ?law_count) (count(distinct ?concept) as ?concept_count)\n" +
                 "(group_concat(distinct ?law;separator=\"; \") as ?laws)\n" +
                 "(group_concat(distinct ?concept;separator=\"; \") as ?concepts)\n" +
-                "(max(?concepts_exist) as ?concepts_here)\n" +
+//                "(max(?concepts_exist) as ?concepts_here)\n" +
                 " {  GRAPH <" + NS_questions.base() + "> {\n" +
                 "\t?s a <" + NS_questions.get("Question") + "> .\n" +
                 "    ?s <" + NS_questions.get("name") + "> ?name.\n" +
@@ -200,7 +200,8 @@ public abstract class AbstractRdfStorage {
                 "    bind(abs(" + desiredSolutionSteps + " - ?solution_steps) as ?steps_diff).\n" +
                 //  question data is present (not nil)
                 (targetConceptStr != null ?
-                "    BIND(EXISTS{?s <" + NS_questions.get("has_concept") + "> ?cpt. FILTER (?cpt IN (" + targetConceptStr + "))} AS ?concepts_exist).\n" : "") +
+//                "    FILTER EXISTS{?s <" + NS_questions.get("has_concept") + "> ?cpt. FILTER (?cpt IN (" + targetConceptStr + "))}.\n" : "") +
+                "    FILTER (?concept IN (" + targetConceptStr + ")).\n" : "") +
                 ("    filter not exists { ?s <" + NS_questions.get("has_graph_q_data")
                      + "> () }.\n"  /// rdf:nil
                 ));
@@ -277,9 +278,9 @@ public abstract class AbstractRdfStorage {
         // query footer
         query.append("  }}\n" +
                 "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
-//                "order by DESC(max(?concepts_exist)) ?compl_diff");
+                "order by ?compl_diff ?steps_diff");
 //                "order by DESC(max(?concepts_exist)) ?compl_diff ?steps_diff");
-                "order by DESC(?concepts_here) ?compl_diff ?steps_diff");
+//                "order by DESC(?concepts_here) ?compl_diff ?steps_diff");
         if (limit > 0)
             query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
 
