@@ -789,7 +789,7 @@
 </owl:Class>
 
 <owl:Class rdf:about="#return">
-  <rdfs:subClassOf rdf:resource="#break_continue"/>
+  <rdfs:subClassOf rdf:resource="#interrupt_action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">return</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
@@ -803,7 +803,7 @@
 </owl:Class>
 
 <owl:Class rdf:about="#continue">
-  <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <rdfs:subClassOf rdf:resource="#break_continue"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">continue</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
