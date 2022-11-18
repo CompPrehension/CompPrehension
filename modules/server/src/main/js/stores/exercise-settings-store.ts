@@ -56,7 +56,10 @@ export class ExerciseSettingsStore {
 
 
     async saveCard() {
-        console.log(toJS(this.currentCard))
+        if (!this.currentCard)
+            return;
+
+        await this.exerciseSettingsController.saveExercise(this.currentCard);
     }
 
     @action
@@ -98,9 +101,9 @@ export class ExerciseSettingsStore {
             return;
         const targetConceptIdx = this.currentCard.concepts.findIndex(x => x.name == conceptName);
         let targetConcept = targetConceptIdx !== -1 ? this.currentCard.concepts[targetConceptIdx] : null;
-        if (conceptValue === 'PERMITTED' && targetConcept) {
+        if (conceptValue === 'PERMITTED') {
             if (targetConcept)
-                this.currentCard.laws.splice(targetConceptIdx, 1)
+                this.currentCard.concepts.splice(targetConceptIdx, 1)
             return;
         }
         if (!targetConcept) {

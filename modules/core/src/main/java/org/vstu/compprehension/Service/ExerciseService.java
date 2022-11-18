@@ -1,25 +1,131 @@
 package org.vstu.compprehension.Service;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.models.entities.ExerciseConceptEntity;
+import org.vstu.compprehension.models.entities.ExerciseLawsEntity;
+import org.vstu.compprehension.models.repository.ExerciseConceptRepository;
+import org.vstu.compprehension.models.repository.ExerciseLawsRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.entities.ExerciseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
 public class ExerciseService {
+
+    private final ExerciseRepository exerciseRepository;
+    private final ExerciseLawsRepository exerciseLawsRepository;
+    private final ExerciseConceptRepository exerciseConceptRepository;
+
     @Autowired
-    private ExerciseRepository exerciseRepository;
+    public ExerciseService(ExerciseRepository exerciseRepository, ExerciseLawsRepository exerciseLawsRepository, ExerciseConceptRepository exerciseConceptRepository) {
+        this.exerciseRepository = exerciseRepository;
+        this.exerciseLawsRepository = exerciseLawsRepository;
+        this.exerciseConceptRepository = exerciseConceptRepository;
+    }
 
     public ExerciseEntity getExercise(long exerciseId) {
         return exerciseRepository.findById(exerciseId).orElseThrow(()->
                 new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
+    }
+
+    public void saveExerciseCard(ExerciseCardDto card) {
+        var exercise = exerciseRepository.findById(card.getId()).orElseThrow(() ->
+                new NoSuchElementException("Exercise with id: " + card.getId() + " not found"));
+
+        exercise.setName(card.getName());
+        exercise.setStrategyId(card.getStrategyId());
+        exercise.setBackendId(card.getBackendId());
+
+        {
+            var cardConcepts = new HashMap<String, ExerciseConceptDto>();
+            for (var c: card.getConcepts()) {
+                cardConcepts.put(c.getName(), c);
+            }
+            var rawExerciseConcepts = exercise.getExerciseConcepts();
+            var exerciseConcepts = new HashMap<String, ExerciseConceptEntity>();
+            for (var c: rawExerciseConcepts) {
+                exerciseConcepts.put(c.getConceptName(), c);
+            }
+
+            var conceptsToAdd = cardConcepts.keySet()
+                    .stream().filter(c -> !exerciseConcepts.containsKey(c))
+                    .map(cardConcepts::get)
+                    .collect(Collectors.toList());
+            for (var c: conceptsToAdd) {
+                var ce = new ExerciseConceptEntity();
+                ce.setConceptName(c.getName());
+                ce.setRoleInExercise(c.getKind());
+                ce.setExercise(exercise);
+                rawExerciseConcepts.add(ce);
+            }
+
+            var conceptsToRemove = exerciseConcepts.keySet()
+                    .stream().filter(c -> !cardConcepts.containsKey(c))
+                    .map(exerciseConcepts::get)
+                    .collect(Collectors.toList());
+            rawExerciseConcepts.removeAll(conceptsToRemove);
+            exerciseConceptRepository.deleteAll(conceptsToRemove);
+
+            var conceptsToUpdate = exerciseConcepts.keySet()
+                    .stream().filter(cardConcepts::containsKey)
+                    .map(exerciseConcepts::get)
+                    .collect(Collectors.toList());
+            for (var c: conceptsToUpdate) {
+                var update = cardConcepts.get(c.getConceptName());
+                c.setRoleInExercise(update.getKind());
+            }
+            exerciseConceptRepository.saveAll(exercise.getExerciseConcepts());
+        }
+
+        {
+            var cardLaws = new HashMap<String, ExerciseLawDto>();
+            for (var l: card.getLaws()) {
+                cardLaws.put(l.getName(), l);
+            }
+            var exerciseLaws = new HashMap<String, ExerciseLawsEntity>();
+            for (var l: exercise.getExerciseLaws()) {
+                exerciseLaws.put(l.getLawName(), l);
+            }
+
+            var lawsToAdd = cardLaws.keySet()
+                    .stream().filter(c -> !exerciseLaws.containsKey(c))
+                    .map(cardLaws::get)
+                    .collect(Collectors.toList());
+            for (var l: lawsToAdd) {
+                var le = new ExerciseLawsEntity();
+                le.setLawName(l.getName());
+                le.setRoleInExercise(l.getKind());
+                le.setExercise(exercise);
+                exercise.getExerciseLaws().add(le);
+            }
+
+            var lawsToRemove = exerciseLaws.keySet()
+                    .stream().filter(c -> !cardLaws.containsKey(c))
+                    .map(exerciseLaws::get)
+                    .collect(Collectors.toList());
+            exercise.getExerciseLaws().removeAll(lawsToRemove);
+            exerciseLawsRepository.deleteAll(lawsToRemove);
+
+            var lawsToUpdate = exerciseLaws.keySet()
+                    .stream().filter(cardLaws::containsKey)
+                    .map(exerciseLaws::get)
+                    .collect(Collectors.toList());
+            for (var l: lawsToUpdate) {
+                var update = cardLaws.get(l.getLawName());
+                l.setRoleInExercise(update.getKind());
+            }
+            exerciseLawsRepository.saveAll(exercise.getExerciseLaws());
+        }
+
+        exerciseRepository.save(exercise);
     }
 
     public ExerciseCardDto getExerciseCard(long exerciseId) {
@@ -42,6 +148,7 @@ public class ExerciseService {
                         .build()).collect(Collectors.toList()))
                 .complexity(exercise.getComplexity())
                 .answerLength(exercise.getTimeLimit())
+                .options(exercise.getOptions())
                 .build();
     }
 }

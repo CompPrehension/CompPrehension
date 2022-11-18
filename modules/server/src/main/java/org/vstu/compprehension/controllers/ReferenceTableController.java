@@ -49,20 +49,20 @@ public class ReferenceTableController {
     @ResponseBody
     public List<DomainDto> getDomains() {
         var domainIds= domainFactory.getDomainIds();
-        // var result = new ArrayList<DomainDto>(domainIds.size());
-
-        // for (var domainId : domainIds) {
-        //    var domain = domainFactory.getDomain(domainId);
-        //    var rawConceptsTree = domain.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER);
-
-
-            //var conceptToParentMap = new HashMap<Concept, Concept>();
-            //for (var rawConcept: rawConceptsTree.entrySet()) {
-            //    for (var rawConceptChild: rawConcept.getValue()) {
-            //        conceptToParentMap.put(rawConceptChild, rawConcept.getKey());
-            //    }
-            //}
-        //}
+        /*
+        var result = new ArrayList<DomainDto>(domainIds.size());
+        for (var domainId : domainIds) {
+            var domain = domainFactory.getDomain(domainId);
+            var conceptsTree = domain.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER);
+            var concept = domain.getConcepts().get(0).getBaseConcepts()
+            var conceptToParentMap = new HashMap<Concept, Concept>();
+            for (var rawConcept: rawConceptsTree.entrySet()) {
+                for (var rawConceptChild: rawConcept.getValue()) {
+                    conceptToParentMap.put(rawConceptChild, rawConcept.getKey());
+                }
+            }
+        }
+         */
 
         //return result;
 

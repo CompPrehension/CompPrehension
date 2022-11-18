@@ -1,4 +1,5 @@
 import * as io from 'io-ts'
+import { ExerciseOptions, TExerciseOptions } from './exercise-options';
 
 export type ExerciseListItem = {
     id: number,
@@ -55,6 +56,7 @@ export type ExerciseCard = {
     answerLength: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
+    options: ExerciseOptions,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -67,6 +69,7 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     answerLength: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
+    options: TExerciseOptions,
 })
 
 

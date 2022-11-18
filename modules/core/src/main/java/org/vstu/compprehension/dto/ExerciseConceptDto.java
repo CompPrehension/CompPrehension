@@ -1,11 +1,13 @@
 package org.vstu.compprehension.dto;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
-@Value @Builder
+@Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExerciseConceptDto {
-    String name;
-    RoleInExercise kind;
+    private String name;
+    private RoleInExercise kind;
 }

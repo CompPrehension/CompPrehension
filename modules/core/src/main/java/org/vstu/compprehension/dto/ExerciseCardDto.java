@@ -1,23 +1,26 @@
 package org.vstu.compprehension.dto;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.entities.ExerciseOptionsEntity;
 
 import java.util.List;
 
-@Value
+@Getter
 @Builder
+@NoArgsConstructor @AllArgsConstructor
 public class ExerciseCardDto {
-    @NotNull Long id;
-    @NotNull String name;
-    @NotNull String domainId;
-    @NotNull String strategyId;
-    @NotNull String backendId;
-    float complexity;
-    float answerLength;
-    @NotNull List<ExerciseLawDto> laws;
-    @NotNull List<ExerciseConceptDto> concepts;
+    private @NotNull Long id;
+    private @NotNull String name;
+    private @NotNull String domainId;
+    private @NotNull String strategyId;
+    private @NotNull String backendId;
+    private float complexity;
+    private float answerLength;
+    private @NotNull List<ExerciseLawDto> laws;
+    private @NotNull List<ExerciseConceptDto> concepts;
+    private @NotNull ExerciseOptionsEntity options;
 
     //@NotNull List<String> tags;
     /*
