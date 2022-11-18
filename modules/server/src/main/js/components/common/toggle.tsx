@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import React, { useState } from "react";
 
 const titleCase = (str: string) =>
@@ -19,12 +20,8 @@ export type ToggleSwitchProps<T extends string> = {
     onChange?: (val: T) => void,
 }
 
-type Test = ToggleSwitchProps<'x' | 'y'>
-
 export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => {
-  const [selected, setSelected] = useState(props.selected)
   const handleChange = (val: T) => {
-    setSelected(val);
     props.onChange?.(val);
   };
 
@@ -39,10 +36,10 @@ export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => 
       {props.values.map((val, i) => {
         return (
           <span>
-            <ConcealedRadio id={`${props.id}_${val}_checkbox`} name={`${props.id}_switch`} value={val} selected={selected} />
+            <ConcealedRadio id={`${props.id}_${val}_checkbox`} name={`${props.id}_switch`} value={val} selected={props.selected} />
             <ClickableLabel 
               id={`${props.id}_${val}_checkbox`} 
-              isChecked={val === selected}
+              isChecked={val === props.selected}
               title={val}
               onChange={handleChange as (s: string) => void} 
               style={props.valueStyles?.[i] ?? undefined} />
@@ -52,3 +49,4 @@ export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => 
     </div>
   );
 }
+

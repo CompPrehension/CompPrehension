@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.dto.ConceptTreeItemDto;
 import org.vstu.compprehension.dto.DomainDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -71,8 +72,15 @@ public class ReferenceTableController {
                 .map(d -> DomainDto.builder()
                         .id(d.getDomainId())
                         .name(d.getName())
-                        .concepts(d.getConcepts())
-                        .concepts2(d.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER))
+                        .concepts(d.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER)
+                                .entrySet()
+                                .stream()
+                                .map(kv -> new ConceptTreeItemDto(
+                                        kv.getKey().getName(),
+                                        kv.getKey().getDisplayName(),
+                                        kv.getKey().getBitflags(),
+                                        kv.getValue().stream().map(z -> new ConceptTreeItemDto(z.getName(), z.getDisplayName(), z.getBitflags())).toArray(ConceptTreeItemDto[]::new)))
+                                .collect(Collectors.toList()))
                         .laws(Stream.concat(d.getPositiveLaws().stream(), d.getNegativeLaws().stream())
                                 .filter(x -> x.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER))
                                 .collect(Collectors.toList()))

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { container } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConcept, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem } from "../types/exercise-settings";
 import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
 import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
@@ -79,9 +79,14 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         return value === 'Denied' ? 'FORBIDDEN'
             : value === 'Target' ? 'TARGETED' : 'PERMITTED'
     }
+    function getConceptFlags(c: DomainConcept) : ['Denied', 'Allowed'] | ['Denied', 'Allowed', 'Target'] {
+        return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
+    }
 
     const domainLaws = domains.find(z => z.id === card.domainId)?.laws;
-    const domainConcepts = domains.find(z => z.id === card.domainId)?.concepts;
+    const domainConcepts = domains.find(z => z.id === card.domainId)?.concepts
+        /*.map(x => [0, x.name, x] as [number, string, DomainConcept])
+        .flatMap(x => [x, ...x[2].childs.map(c => [1, x[1], c] as [number, string, DomainConcept])]);*/
 
 
     return (
@@ -139,16 +144,37 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                             <div className="row">
                                 <div className="col-md-12">
                                     {domainConcepts
-                                        .filter(c => (c.bitflags & DomainConceptFlag.VisibleToTeacher))
                                         .map((c, idx) =>
-                                                <div key={`concept_toggle_${card.id}_${c.name}_${idx}`} className="d-flex flex-row align-items-center" style={{ marginBottom: '10px' }}>
-                                                    <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
-                                                        selected={mapKindToValue(cardConcepts[c.name]?.kind)}
-                                                        values={['Denied', 'Allowed', 'Target']}
-                                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                        onChange={val => store.setCardConceptValue(c.name, mapValueToKind(val))} />
-                                                    <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
-                                    </div>)}
+                                                <>
+                                                    <div key={`concept_toggle_${card.id}_${c.name}_${idx}`} 
+                                                        className={`d-flex flex-row align-items-center`} 
+                                                        style={{ marginBottom: '10px' }}>
+                                                        <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
+                                                            selected={mapKindToValue(cardConcepts[c.name]?.kind)}
+                                                            values={getConceptFlags(c)}
+                                                            valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                                            onChange={val => {
+                                                                store.setCardConceptValue(c.name, mapValueToKind(val))
+                                                                c.childs.forEach(c => store.setCardConceptValue(c.name, mapValueToKind(val)));
+                                                            }} />
+                                                        <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
+                                                    </div>
+                                                    {c.childs.length > 0 &&
+                                                        <div>
+                                                            {c.childs.map(c =>
+                                                                <div key={`concept_toggle_${card.id}_${c.name}_${idx}`} 
+                                                                    className={`d-flex flex-row align-items-center`} 
+                                                                    style={{ marginBottom: '10px' }}>
+                                                                    <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
+                                                                        selected={mapKindToValue(cardConcepts[c.name]?.kind)}
+                                                                        values={getConceptFlags(c)}
+                                                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                                                        onChange={val => store.setCardConceptValue(c.name, mapValueToKind(val))} />
+                                                                    <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
+                                                                </div>
+                                                                )}                                                            
+                                                        </div>}
+                                                </>)}
                                 </div>
                             </div>
                         </div>

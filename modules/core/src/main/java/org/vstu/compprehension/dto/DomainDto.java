@@ -13,6 +13,5 @@ public class DomainDto {
     String id;
     String name;
     List<Law> laws;
-    List<Concept> concepts;
-    Map<Concept, List<Concept>> concepts2;
+    List<ConceptTreeItemDto> concepts;
 }

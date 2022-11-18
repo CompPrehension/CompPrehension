@@ -89,12 +89,14 @@ export type DomainConcept = {
     name: string,
     displayName: string,
     bitflags: number,
+    childs: DomainConcept[],
 }
-export const TDomainConcept : io.Type<DomainConcept> = io.type({
+export const TDomainConcept : io.Type<DomainConcept> = io.recursion('DomainConcept', () => io.type({
     name: io.string,
     displayName: io.string,
     bitflags: io.number,
-})
+    childs: io.array(TDomainConcept),
+}))
 
 export type Domain = {
     id: string,
