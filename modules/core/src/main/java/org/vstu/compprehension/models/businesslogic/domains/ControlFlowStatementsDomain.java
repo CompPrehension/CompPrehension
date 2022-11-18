@@ -42,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -140,7 +141,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // add empty laws that name each possible error
         for (String errClass : VOCAB.classDescendants("Erroneous")) {
-            negativeLaws.add(new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+            negativeLaws.add(new NegativeLaw(errClass, errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
         }
 
     }

@@ -75,9 +75,11 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
 
 export type DomainLaw = {
     name: string,
+    displayName: string,
 }
 export const TDomainLaw : io.Type<DomainLaw> = io.type({
-    name: io.string,    
+    name: io.string,
+    displayName: io.string,
 })
 
 export enum DomainConceptFlag {

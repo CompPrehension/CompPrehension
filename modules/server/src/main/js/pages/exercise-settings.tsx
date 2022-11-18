@@ -214,7 +214,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                         valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
                                         onChange={val => store.setCardLawValue(c.name, mapValueToKind(val))} />
                                 </div>
-                                <div style={{ marginLeft: '15px' }}>{c.name}</div>
+                                <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
                             </div>))}
                        </div>
                     || null
