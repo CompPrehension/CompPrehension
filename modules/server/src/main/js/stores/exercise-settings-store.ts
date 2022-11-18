@@ -7,7 +7,7 @@ import * as E from "fp-ts/lib/Either";
 
 @injectable()
 export class ExerciseSettingsStore {
-    @observable exercisesLoadStatus: 'NONE' | 'LOADING' | 'LOADED' = 'NONE';
+    @observable exercisesLoadStatus: 'NONE' | 'LOADING' | 'LOADED' | 'EXERCISELOADING' = 'NONE';
     @observable exercises: ExerciseListItem[] | null = null;
     @observable domains: Domain[] | null = null;
     @observable backends: string[] | null = null;
@@ -24,12 +24,14 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'LOADING');
-        const rawExercises = await this.exerciseSettingsController.getAllExercises();
-        const domains      = await this.exerciseSettingsController.getDomains();
-        const backends     = await this.exerciseSettingsController.getBackends();
-        const strategies   = await this.exerciseSettingsController.getStrategies();
-
-        if (E.isRight(rawExercises) && E.isRight(domains) && E.isRight(backends) && E.isRight(strategies)) {
+        const [rawExercises, domains, backends, strategies] = await Promise.all([
+            this.exerciseSettingsController.getAllExercises(),
+            this.exerciseSettingsController.getDomains(),
+            this.exerciseSettingsController.getBackends(),
+            this.exerciseSettingsController.getStrategies(),
+        ])
+        if (E.isRight(rawExercises) && E.isRight(domains) && 
+                E.isRight(backends) && E.isRight(strategies)) {
             runInAction(() => {
                 this.exercises = rawExercises.right;
                 this.domains = domains.right;
@@ -44,7 +46,7 @@ export class ExerciseSettingsStore {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
-        runInAction(() => this.exercisesLoadStatus = 'LOADING');
+        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
         const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId);
         if (E.isRight(rawExercise)) {
             runInAction(() => {
@@ -54,12 +56,42 @@ export class ExerciseSettingsStore {
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
     }
 
+    async createNewExecise() {
+        if (this.exercisesLoadStatus !== 'LOADED')
+            throw new Error("Exercises must be loaded first");
+
+        const newExerciseId = await  this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]);
+        if (!E.isRight(newExerciseId))
+            return;
+        
+        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
+        const [rawExercise, newExercisesList] = await Promise.all([
+            this.exerciseSettingsController.getExercise(newExerciseId.right),
+            this.exerciseSettingsController.getAllExercises(),
+        ]);
+        if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
+            runInAction(() => {
+                this.currentCard = rawExercise.right;
+                this.exercises = newExercisesList.right;
+            });
+        }
+        runInAction(() => this.exercisesLoadStatus = 'LOADED');    
+    }
+
 
     async saveCard() {
         if (!this.currentCard)
             return;
 
-        await this.exerciseSettingsController.saveExercise(this.currentCard);
+        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
+        await this.exerciseSettingsController.saveExercise(this.currentCard);        
+        const newExercisesList = await this.exerciseSettingsController.getAllExercises();
+        if (E.isRight(newExercisesList)) {
+            runInAction(() => {
+                this.exercises = newExercisesList.right;
+            })
+        }
+        runInAction(() => this.exercisesLoadStatus = 'LOADED');
     }
 
     @action
@@ -72,7 +104,12 @@ export class ExerciseSettingsStore {
     setCardDomain(domainId: string) {
         if (!this.currentCard)
             return;
-        this.currentCard.domainId = domainId;
+        if (domainId !== this.currentCard.domainId) {
+            this.currentCard.laws = [];
+            this.currentCard.concepts = [];
+            this.currentCard.domainId = domainId;
+        }
+        
     }
     @action
     setCardStrategy(strategyId: string) {

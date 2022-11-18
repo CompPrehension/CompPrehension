@@ -8,6 +8,7 @@ import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
 import { Link } from "react-router-dom";
 import { Loader } from "../components/common/loader";
+import { Modal } from "../components/common/modal";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -23,17 +24,27 @@ export const ExerciseSettings = observer(() => {
         })()
     }, []);
 
+    const onNewExerciseClicked = useCallback(() => {
+        (async () => {
+            await exerciseStore.createNewExecise();
+        })()
+    }, [exerciseStore.exercises?.length]);
+
+    if (exerciseStore.exercisesLoadStatus === 'LOADING') {
+        return <Loader />;
+    }
+
     return (
         <div className="container-fluid">
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
-                    <ul className="list-group">
+                    <button type="button" className="btn btn-primary mb-3" onClick={onNewExerciseClicked}>Create new</button>
+                    <ul className="list-group">                        
                         {exerciseStore.exercises?.map(e =>                            
                             <Link key={e.id} className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`} to={`?exerciseId=${e.id}`} onClick={() => exerciseStore.loadExercise(e.id)} >
                                 {e.name}
                             </Link>
                             )}
-                        <button style={{marginTop: "10px"}} type="button" className="btn btn-primary">Create new</button>
                     </ul>
                 </div>
                 <div className="col-xl-9 col-md-9 col-12">
@@ -46,6 +57,16 @@ export const ExerciseSettings = observer(() => {
                     />
                 </div>
             </div>
+            {/*
+            <Modal show={true}
+                   title="Create new execise"
+                   type="MODAL"
+                   size="xl"
+                   primaryBtnTitle="Create"
+                   secondaryBtnTitle="Cancel"
+                   closeButton>                
+            </Modal>
+            */}
         </div>
     );
 })
@@ -62,8 +83,8 @@ type ExerciseCardElementProps = {
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const { card, domains, backends, strategies, store } = props;
 
-    if (store.exercisesLoadStatus === 'LOADING')
-        return <Loader delay={100} />; 
+    if (store.exercisesLoadStatus === 'EXERCISELOADING')
+        return <Loader delay={200} />; 
 
     if (card == null)
         return (<div>No exercise selected</div>);

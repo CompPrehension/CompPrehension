@@ -1,12 +1,16 @@
 package org.vstu.compprehension.Service;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.ExerciseConceptEntity;
 import org.vstu.compprehension.models.entities.ExerciseLawsEntity;
+import org.vstu.compprehension.models.entities.ExerciseOptionsEntity;
+import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseConceptRepository;
 import org.vstu.compprehension.models.repository.ExerciseLawsRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
@@ -19,13 +23,17 @@ import java.util.stream.Collectors;
 
 @Service
 public class ExerciseService {
-
+    private final DomainRepository domainRepository;
     private final ExerciseRepository exerciseRepository;
     private final ExerciseLawsRepository exerciseLawsRepository;
     private final ExerciseConceptRepository exerciseConceptRepository;
 
     @Autowired
-    public ExerciseService(ExerciseRepository exerciseRepository, ExerciseLawsRepository exerciseLawsRepository, ExerciseConceptRepository exerciseConceptRepository) {
+    public ExerciseService(DomainRepository domainRepository,
+                           ExerciseRepository exerciseRepository,
+                           ExerciseLawsRepository exerciseLawsRepository,
+                           ExerciseConceptRepository exerciseConceptRepository) {
+        this.domainRepository = domainRepository;
         this.exerciseRepository = exerciseRepository;
         this.exerciseLawsRepository = exerciseLawsRepository;
         this.exerciseConceptRepository = exerciseConceptRepository;
@@ -34,6 +42,32 @@ public class ExerciseService {
     public ExerciseEntity getExercise(long exerciseId) {
         return exerciseRepository.findById(exerciseId).orElseThrow(()->
                 new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
+    }
+
+    public ExerciseEntity createExercise(@NotNull String name,
+                                         @NotNull String domainId,
+                                         @NotNull String strategyId
+    ) {
+        var domain = domainRepository.findById(domainId)
+                .orElseThrow();
+        var backendId = JenaBackend.BackendId;
+
+        var exercise = new ExerciseEntity();
+        exercise.setName(name);
+        exercise.setDomain(domain);
+        exercise.setComplexity(0.5f);
+        exercise.setTimeLimit(0.5f);
+        exercise.setBackendId(backendId);
+        exercise.setStrategyId(strategyId);
+        exercise.setNumberOfQuestions(10);
+        exercise.setOptions(ExerciseOptionsEntity.builder()
+                .forceNewAttemptCreationEnabled(true)
+                .correctAnswerGenerationEnabled(true)
+                .newQuestionGenerationEnabled(true)
+                .supplementaryQuestionsEnabled(true)
+                .build());
+        exerciseRepository.save(exercise);
+        return exercise;
     }
 
     public void saveExerciseCard(ExerciseCardDto card) {

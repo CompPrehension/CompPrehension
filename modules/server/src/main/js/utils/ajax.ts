@@ -47,6 +47,43 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
     return await ajax(url, params, validator);
 }
 
+/**
+ * Do PUT request
+ * @param {string} url Target url
+ * @param {object} body Request body
+ * @param {io.Type<T, T, unknown>} [validator] Optional response validator
+ * @returns Pair of either RequestError or ResposeBody
+ */
+ export async function ajaxPut<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
+    const params: RequestInit = {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+    };
+    console.log(`ajax put: ${url}`, body);
+    return await ajax(url, params, validator);
+}
+
+/**
+ * Do DELETE request
+ * @param {string} url Target url
+ * @param {object} body Request body
+ * @param {io.Type<T, T, unknown>} [validator] Optional response validator
+ * @returns Pair of either RequestError or ResposeBody
+ */
+ export async function ajaxDelete<T = unknown>(url: string, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
+    const params: RequestInit = {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
+    console.log(`ajax delete: ${url}`);
+    return await ajax(url, params, validator);
+}
+
 async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: io.Type<T, T, unknown>): PromiseEither<RequestError, T> {
     type FetcherResults = 
         | { code: 200, payload: T } 
