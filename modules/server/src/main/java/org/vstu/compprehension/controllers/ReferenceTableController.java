@@ -12,6 +12,8 @@ import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +49,22 @@ public class ReferenceTableController {
     @ResponseBody
     public List<DomainDto> getDomains() {
         var domainIds= domainFactory.getDomainIds();
+        // var result = new ArrayList<DomainDto>(domainIds.size());
+
+        // for (var domainId : domainIds) {
+        //    var domain = domainFactory.getDomain(domainId);
+        //    var rawConceptsTree = domain.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER);
+
+
+            //var conceptToParentMap = new HashMap<Concept, Concept>();
+            //for (var rawConcept: rawConceptsTree.entrySet()) {
+            //    for (var rawConceptChild: rawConcept.getValue()) {
+            //        conceptToParentMap.put(rawConceptChild, rawConcept.getKey());
+            //    }
+            //}
+        //}
+
+        //return result;
 
         return domainIds.stream()
                 .map(domainFactory::getDomain)
@@ -54,7 +72,9 @@ public class ReferenceTableController {
                         .id(d.getDomainId())
                         .name(d.getName())
                         .concepts(d.getConcepts())
+                        .concepts2(d.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER))
                         .laws(Stream.concat(d.getPositiveLaws().stream(), d.getNegativeLaws().stream())
+                                .filter(x -> x.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());

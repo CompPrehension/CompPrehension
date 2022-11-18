@@ -54,7 +54,7 @@ export class ExerciseSettingsStore {
 
 
     async saveCard() {
-        console.log(this.currentCard)
+        console.log(toJS(this.currentCard))
     }
 
     @action

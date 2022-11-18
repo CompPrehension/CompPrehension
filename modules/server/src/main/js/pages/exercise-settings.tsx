@@ -69,6 +69,9 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
             : value === 'Target' ? 'TARGETED' : 'PERMITTED'
     }
 
+    const domainLaws = domains.find(z => z.id === card.domainId)?.laws;
+    const domainConcepts = domains.find(z => z.id === card.domainId)?.concepts;
+
 
     return (
         <div>
@@ -94,7 +97,11 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         <div className="form-group">
                             <label className="font-weight-bold">Question complexity</label>
                             <div>
-                                <input type="range" className="form-control-range" id="formControlRange1" onChange={e => store.setCardQuestionComplexity(e.target.value)}/>
+                                <input type="range" 
+                                       className="form-control-range" 
+                                       id="formControlRange1"
+                                       value={(store.currentCard?.complexity ?? 0.5) * 100}
+                                       onChange={e => store.setCardQuestionComplexity(e.target.value)}/>
                             </div>
                         </div>
                     </div>
@@ -102,37 +109,45 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         <div className="form-group">
                             <label className="font-weight-bold">Answer length</label>
                             <div>
-                                <input type="range" className="form-control-range" id="formControlRange1" onChange={e => store.setCardAnswerLength(e.target.value)}/>
+                                <input type="range" 
+                                       className="form-control-range" 
+                                       id="formControlRange1"
+                                       value={(store.currentCard?.answerLength ?? 0.5) * 100}
+                                       onChange={e => store.setCardAnswerLength(e.target.value)}/>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="form-group">
-                    <div>
-                        <label className="font-weight-bold">Concepts</label>
-                    </div>
-                    <div className="row">
-                        <div className="col-md-12">
-                            {domains.find(z => z.id === card.domainId)?.concepts
-                                .filter(c => (c.bitflags & DomainConceptFlag.VisibleToTeacher))
-                                .map((c, idx) =>
-                                        <div key={`concept_toggle_${card.id}_${c.name}_${idx}`} className="d-flex flex-row align-items-center" style={{ marginBottom: '10px' }}>
-                                            <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
-                                                selected={mapKindToValue(cardConcepts[c.name]?.kind)}
-                                                values={['Denied', 'Allowed', 'Target']}
-                                                valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                onChange={val => 0} />
-                                            <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
-                            </div>)}
-                        </div>
-                    </div>
-                    {/* <div className="font-weight-bold text-justify" style={{ marginTop: '-10px', fontSize: '19px', letterSpacing: '3px' }}>...</div> */}
 
-                </div>
-                <div className="form-group">
-                    <label className="font-weight-bold">Laws</label>
-                    {domains.find(z => z.id === card.domainId)?.laws.map((c, idx) =>
+                {domainConcepts?.length 
+                    &&  <div className="form-group">
+                            <div>
+                                <label className="font-weight-bold">Concepts</label>
+                            </div>
+                            <div className="row">
+                                <div className="col-md-12">
+                                    {domainConcepts
+                                        .filter(c => (c.bitflags & DomainConceptFlag.VisibleToTeacher))
+                                        .map((c, idx) =>
+                                                <div key={`concept_toggle_${card.id}_${c.name}_${idx}`} className="d-flex flex-row align-items-center" style={{ marginBottom: '10px' }}>
+                                                    <ToggleSwitch id={`concept_toggle_${card.id}_${c.name}_${idx}`}
+                                                        selected={mapKindToValue(cardConcepts[c.name]?.kind)}
+                                                        values={['Denied', 'Allowed', 'Target']}
+                                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                                        onChange={val => 0} />
+                                                    <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
+                                    </div>)}
+                                </div>
+                            </div>
+                        </div>
+                    || null
+                }
+                {domainLaws?.length
+                    && <div className="form-group">
+                        <label className="font-weight-bold">Laws</label>
+                        {domainLaws
+                            .map((c, idx) =>
                             (<div key={`law_toggle_${card.id}_${idx}`} className="d-flex flex-row align-items-start justify-content-start" style={{ marginBottom: '10px' }}>
                                 <div>
                                     <ToggleSwitch id={`law_toggle_${card.id}_${idx}`}
@@ -142,9 +157,10 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                         onChange={val => 0} />
                                 </div>
                                 <div style={{ marginLeft: '15px' }}>{c.name}</div>
-                        </div>))}
-                    {/* <div className="font-weight-bold text-justify" style={{ marginTop: '-10px', fontSize: '19px', letterSpacing: '3px' }}>...</div> */}
-                </div>
+                            </div>))}
+                       </div>
+                    || null
+                }                
             </form>
             <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>Save</button>
         </div>

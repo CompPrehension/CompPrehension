@@ -17,7 +17,7 @@ public class ExerciseCardDto {
     float complexity;
     float answerLength;
     @NotNull List<ExerciseLawDto> laws;
-    @NotNull List<ExerciseLConceptDto> concepts;
+    @NotNull List<ExerciseConceptDto> concepts;
 
     //@NotNull List<String> tags;
     /*

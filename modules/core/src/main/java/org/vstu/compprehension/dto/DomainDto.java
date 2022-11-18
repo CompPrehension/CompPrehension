@@ -6,6 +6,7 @@ import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 
 import java.util.List;
+import java.util.Map;
 
 @Value @Builder
 public class DomainDto {
@@ -13,4 +14,5 @@ public class DomainDto {
     String name;
     List<Law> laws;
     List<Concept> concepts;
+    Map<Concept, List<Concept>> concepts2;
 }

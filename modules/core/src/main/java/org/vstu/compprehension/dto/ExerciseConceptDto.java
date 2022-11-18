@@ -5,7 +5,7 @@ import lombok.Value;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
 @Value @Builder
-public class ExerciseLConceptDto {
+public class ExerciseConceptDto {
     String name;
     RoleInExercise kind;
 }

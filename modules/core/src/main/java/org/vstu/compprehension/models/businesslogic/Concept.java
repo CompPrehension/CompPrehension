@@ -1,11 +1,13 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Value
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Concept {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
     public static int FLAG_VISIBLE_TO_TEACHER = 1;
@@ -15,6 +17,7 @@ public class Concept {
     /** All flags are OFF by default */
     public static int DEFAULT_FLAGS = 0;
 
+    @EqualsAndHashCode.Include
     String name;
     String displayName;
     int bitflags;

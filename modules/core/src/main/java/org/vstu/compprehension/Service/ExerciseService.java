@@ -2,7 +2,7 @@ package org.vstu.compprehension.Service;
 
 
 import org.vstu.compprehension.dto.ExerciseCardDto;
-import org.vstu.compprehension.dto.ExerciseLConceptDto;
+import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.entities.ExerciseEntity;
@@ -36,7 +36,7 @@ public class ExerciseService {
                         .name(l.getLawName())
                         .kind(l.getRoleInExercise())
                         .build()).collect(Collectors.toList()))
-                .concepts(exercise.getExerciseConcepts().stream().map(l -> ExerciseLConceptDto.builder()
+                .concepts(exercise.getExerciseConcepts().stream().map(l -> ExerciseConceptDto.builder()
                         .name(l.getConceptName())
                         .kind(l.getRoleInExercise())
                         .build()).collect(Collectors.toList()))
