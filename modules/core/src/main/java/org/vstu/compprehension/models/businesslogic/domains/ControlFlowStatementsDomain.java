@@ -99,7 +99,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // add concepts about expressions present in algorithms
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
-        Concept exprC = new Concept("exprs_in_use", "operations", List.of(), flags);
+        Concept exprC = new Concept("exprs_in_use", "Операции в коде", List.of(), flags);
         concepts.add(exprC);
         List<Concept> bases = List.of(exprC);
         concepts.addAll(List.of(
