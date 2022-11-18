@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { container } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem } from "../types/exercise-settings";
 import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
 import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
+import { Link } from "react-router-dom";
+import { Loader } from "../components/common/loader";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -13,6 +15,11 @@ export const ExerciseSettings = observer(() => {
     useEffect(() => {
         (async () => {
             await exerciseStore.loadExercises();
+
+            const currentExercise = new URL(window.location.href).searchParams.get("exerciseId");
+            if (currentExercise) {
+                await exerciseStore.loadExercise(Number.parseInt(currentExercise));
+            }
         })()
     }, []);
 
@@ -21,10 +28,11 @@ export const ExerciseSettings = observer(() => {
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
                     <ul className="list-group">
-                        {exerciseStore.exercises?.map(e =>
-                            <a key={e.id} href="#" className="list-group-item" onClick={() => exerciseStore.loadExercise(e.id)}>
+                        {exerciseStore.exercises?.map(e =>                            
+                            <Link key={e.id} className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`} to={`?exerciseId=${e.id}`} onClick={() => exerciseStore.loadExercise(e.id)} >
                                 {e.name}
-                            </a>)}
+                            </Link>
+                            )}
                         <button style={{marginTop: "10px"}} type="button" className="btn btn-primary">Create new</button>
                     </ul>
                 </div>
@@ -54,17 +62,20 @@ type ExerciseCardElementProps = {
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const { card, domains, backends, strategies, store } = props;
 
+    if (store.exercisesLoadStatus === 'LOADING')
+        return <Loader delay={100} />; 
+
     if (card == null)
         return (<div>No exercise selected</div>);
     
     const cardLaws = card.laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
     const cardConcepts = card.concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
 
-    function mapKindToValue(kind?: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED') : 'Denied' | 'Allowed' | 'Target' {
+    function mapKindToValue(kind?: ExerciseCardConceptKind) : 'Denied' | 'Allowed' | 'Target' {
         return kind === 'FORBIDDEN' ? 'Denied'
             : kind === 'TARGETED' ? 'Target' : 'Allowed'
     }
-    function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target') : 'FORBIDDEN' | 'PERMITTED' | 'TARGETED' {
+    function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target') : ExerciseCardConceptKind {
         return value === 'Denied' ? 'FORBIDDEN'
             : value === 'Target' ? 'TARGETED' : 'PERMITTED'
     }
@@ -135,7 +146,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                                         selected={mapKindToValue(cardConcepts[c.name]?.kind)}
                                                         values={['Denied', 'Allowed', 'Target']}
                                                         valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                        onChange={val => 0} />
+                                                        onChange={val => store.setCardConceptValue(c.name, mapValueToKind(val))} />
                                                     <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
                                     </div>)}
                                 </div>
@@ -154,7 +165,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                         selected={mapKindToValue(cardLaws[c.name]?.kind)}
                                         values={['Denied', 'Allowed', 'Target']}
                                         valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                        onChange={val => 0} />
+                                        onChange={val => store.setCardLawValue(c.name, mapValueToKind(val))} />
                                 </div>
                                 <div style={{ marginLeft: '15px' }}>{c.name}</div>
                             </div>))}

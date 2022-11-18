@@ -17,10 +17,10 @@ export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     backendId: io.string,*/
 })
 
-
+export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
 export type ExerciseCardConcept = {
     name: string,
-    kind: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED',
+    kind: ExerciseCardConceptKind,
 }
 export const TExerciseCardConcept: io.Type<ExerciseCardConcept> = io.type({
     name: io.string,
@@ -33,7 +33,7 @@ export const TExerciseCardConcept: io.Type<ExerciseCardConcept> = io.type({
 
 export type ExerciseCardLaw = {
     name: string,
-    kind: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED',
+    kind: ExerciseCardConceptKind,
 }
 export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
     name: io.string,

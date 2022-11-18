@@ -11,17 +11,19 @@ const ClickableLabel = ({ id, title, onChange, isChecked, style }: {id: string, 
 const ConcealedRadio = ({ id, value, name, selected }: { id: string, value: string, name: string, selected: string }) =>
   <input id={id} type="radio" name={name} checked={selected === value} readOnly={true} />;
 
-export type ToggleSwitchProps = {
+export type ToggleSwitchProps<T extends string> = {
     id: string,
-    values: string[],
+    values: T[],
     valueStyles?: (React.CSSProperties | null | undefined)[],
-    selected: string,
-    onChange?: (val: string) => void,
+    selected: T,
+    onChange?: (val: T) => void,
 }
 
-export const ToggleSwitch = (props: ToggleSwitchProps) => {
+type Test = ToggleSwitchProps<'x' | 'y'>
+
+export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => {
   const [selected, setSelected] = useState(props.selected)
-  const handleChange = (val: string) => {
+  const handleChange = (val: T) => {
     setSelected(val);
     props.onChange?.(val);
   };
@@ -42,7 +44,7 @@ export const ToggleSwitch = (props: ToggleSwitchProps) => {
               id={`${props.id}_${val}_checkbox`} 
               isChecked={val === selected}
               title={val}
-              onChange={handleChange} 
+              onChange={handleChange as (s: string) => void} 
               style={props.valueStyles?.[i] ?? undefined} />
           </span>
         );

@@ -1,7 +1,7 @@
 import { action, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, ExerciseCard, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConceptKind, ExerciseListItem } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 
 
@@ -43,13 +43,15 @@ export class ExerciseSettingsStore {
     async loadExercise(exerciseId : number) {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
-        
+
+        runInAction(() => this.exercisesLoadStatus = 'LOADING');
         const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId);
         if (E.isRight(rawExercise)) {
             runInAction(() => {
                 this.currentCard = rawExercise.right;
             });
         }
+        runInAction(() => this.exercisesLoadStatus = 'LOADED');
     }
 
 
@@ -89,5 +91,45 @@ export class ExerciseSettingsStore {
             return;
         const length = Number.parseInt(rawLength);
         this.currentCard.answerLength = length / 100.0;
+    }
+    @action
+    setCardConceptValue(conceptName: string, conceptValue: ExerciseCardConceptKind) {
+        if (!this.currentCard)
+            return;
+        const targetConceptIdx = this.currentCard.concepts.findIndex(x => x.name == conceptName);
+        let targetConcept = targetConceptIdx !== -1 ? this.currentCard.concepts[targetConceptIdx] : null;
+        if (conceptValue === 'PERMITTED' && targetConcept) {
+            if (targetConcept)
+                this.currentCard.laws.splice(targetConceptIdx, 1)
+            return;
+        }
+        if (!targetConcept) {
+            targetConcept = {
+                name: conceptName,
+                kind: conceptValue,
+            }
+            this.currentCard.concepts.push(targetConcept);
+        }
+        targetConcept.kind = conceptValue;
+    }
+    @action
+    setCardLawValue(lawName: string, lawValue: ExerciseCardConceptKind) {
+        if (!this.currentCard)
+            return;
+        const targetLawIdx = this.currentCard.laws.findIndex(x => x.name == lawName);
+        let targetLaw = targetLawIdx !== -1 ? this.currentCard.laws[targetLawIdx] : null;
+        if (lawValue === 'PERMITTED') {
+            if (targetLaw)
+                this.currentCard.laws.splice(targetLawIdx, 1)
+            return;
+        }
+        if (!targetLaw) {
+            targetLaw = {
+                name: lawName,
+                kind: lawValue,
+            }
+            this.currentCard.laws.push(targetLaw);
+        }
+        targetLaw.kind = lawValue;
     }
 }
