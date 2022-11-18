@@ -34,12 +34,9 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.function.Function;
@@ -531,7 +528,7 @@ public class ControlFlowStatementsDomain extends Domain {
         List<BackendFactEntity> facts = new ArrayList<>(getSchemaFacts(true));
         // statement facts are already prepared in the Question's JSON
         facts.addAll(factsListDeepCopy(q.getStatementFacts()));
-        entity.setStatementFacts(facts);
+        entity.setStatementFacts(_patchStatementFacts(facts, userLanguage));
         entity.setQuestionType(q.getQuestionType());
 
 
@@ -552,6 +549,38 @@ public class ControlFlowStatementsDomain extends Domain {
             default:
                 throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
         }
+    }
+
+    /** repair stmt_name fields - for global code & return/break/ statements */
+    private List<BackendFactEntity> _patchStatementFacts(List<BackendFactEntity> facts, Language userLanguage) {
+
+        FactsGraph fg = new FactsGraph(facts);
+
+        // fix names missing stmt kind prefixes
+        for (String kind : List.of("return", "break", "continue")) {
+            for (BackendFactEntity sf : fg.filterFacts(null, "rdf:type", kind)) {
+                for (BackendFactEntity lf : fg.filterFacts(sf.getSubject(), "stmt_name", null)) {
+                    String literal = lf.getObject();
+                    if (!literal.startsWith(kind)) {
+                        String s = kind;
+                        if (!literal.isEmpty()) {
+                            s += " " + literal;
+                        }
+                        // update in-place
+                        lf.setObject(s);
+                    }
+                }
+            }
+        }
+
+        String entryPoint = fg.findOne(null, "entry_point", null).getObject();
+        BackendFactEntity epf = fg.findOne(entryPoint, "stmt_name", null);
+        //// String s = "global code";
+        String s = getMessage("text.global_scope", userLanguage);
+        // update in-place
+        epf.setObject(s);
+
+        return fg.getFactsAsIs();
     }
 
     /**
@@ -1399,6 +1428,7 @@ public class ControlFlowStatementsDomain extends Domain {
             OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
             OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
             OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
+            OntProperty halt_of = model.getOntProperty(model.expandPrefix(":halt_of"));
             OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
             OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
             // get boundary of the initial action
@@ -1424,7 +1454,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     // move to next bound
                     nextBound = bound.getPropertyResourceValue(consequent).as(Individual.class);
                     // check if simple action (stmt or expr)
-                    if (bound.hasProperty(begin_of) && nextBound.hasProperty(end_of)) {
+                    if (bound.hasProperty(begin_of) && (nextBound.hasProperty(end_of) || nextBound.hasProperty(halt_of))) {
                         // ignore this link as simple statements show as a whole
                         --pathLen;
                     }
