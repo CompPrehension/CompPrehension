@@ -82,17 +82,17 @@ public class UserService {
         return userRepository.save(entity);
     }
 
-    private List<Role> fromLtiRoles(List<String> roles) {
+    private HashSet<Role> fromLtiRoles(List<String> roles) {
         if (roles.contains("Administrator")) {
-            return new ArrayList<>(Arrays.asList(Role.values().clone()));
+            return new HashSet<>(Arrays.asList(Role.values().clone()));
         }
 
         val teacherRoles = Arrays.asList("Instructor", "TeachingAssistant", "ContentDeveloper", "Mentor");
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
-            return new ArrayList<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
+            return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
         }
 
-        return new ArrayList<>(Arrays.asList(Role.STUDENT));
+        return new HashSet<>(List.of(Role.STUDENT));
     }
 
     public UserEntity getUserByEmail(String email){

@@ -10,8 +10,10 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.businesslogic.user.SavedUserContext;
 import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.Role;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Set;
 
 @Component
 @RequestScope
@@ -54,5 +56,11 @@ public class BasicAuthenticationUserContextAdapter implements UserContext {
     @Override
     public Language getPreferredLanguage() {
         return savedUser.getPreferredLanguage();
+    }
+
+    @NotNull
+    @Override
+    public Set<Role> getRoles() {
+        return savedUser.getRoles();
     }
 }
