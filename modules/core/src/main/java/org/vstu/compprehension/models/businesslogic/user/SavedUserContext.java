@@ -3,8 +3,10 @@ package org.vstu.compprehension.models.businesslogic.user;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,5 +46,11 @@ public class SavedUserContext implements UserContext {
     @Override
     public Language getPreferredLanguage() {
         return user.getPreferred_language();
+    }
+
+    @NotNull
+    @Override
+    public Set<Role> getRoles() {
+        return user.getRoles();
     }
 }
