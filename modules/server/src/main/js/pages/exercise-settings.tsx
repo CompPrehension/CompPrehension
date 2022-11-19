@@ -113,6 +113,11 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     return (
         <div>
             <form className="exercise-settings-form">
+                { ExerciseSettingsController.endpointPath.match("lti") &&
+                    <div className="form-group">
+                        <label htmlFor="exampleInputEmail1">LTI launch url</label>
+                        <input value={`${ExerciseSettingsController.endpointPath}pages/exercise?exerciseId=${card.id}`} className="form-control" disabled />
+                    </div>}
                 <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Name</label>
                     <input value={card.name} type="email" className="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" onChange={e => store.setCardName(e.target.value)} />
