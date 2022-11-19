@@ -19,3 +19,5 @@ export type MergeIntersectionsDeep<T> =
   T extends object 
     ? { [K in keyof T]: MergeIntersectionsDeep<T[K]> }
     : T
+
+export type KeysWithValsOfType<T,V> = keyof { [ P in keyof T as T[P] extends V ? P : never ] : P };

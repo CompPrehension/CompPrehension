@@ -2,13 +2,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { container } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { Domain, DomainConcept, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConcept, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardViewModel, ExerciseListItem } from "../types/exercise-settings";
 import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
 import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
 import { Link } from "react-router-dom";
 import { Loader } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
+import { boolean } from "io-ts";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -78,7 +79,7 @@ export const ExerciseSettings = observer(() => {
 
 type ExerciseCardElementProps = {
     store: ExerciseSettingsStore,
-    card?: ExerciseCard | null,
+    card?: ExerciseCardViewModel | null,
     domains: Domain[],
     backends: string[],
     strategies: string[],
@@ -164,12 +165,30 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         </div>
                     </div>
                 </div>
-                {/*
                 <div className="form-group">
-                    <label htmlFor="exTagsValues">Tags</label>
-                    <input id="exTagsValues" value={card.tags.join(', ')} className="form-control" disabled />
+                    <label htmlFor="survOptions" className="font-weight-bold">Survey</label>
+                    <div className="input-group mb-3">
+                        <div className="input-group-prepend">
+                            <div className="input-group-text">
+                            <input checked={card.options.surveyOptions?.enabled} 
+                                   type="checkbox" 
+                                   aria-label="Checkbox for following text input"
+                                   onChange={x => store.setCardSurveyEnabled(x.target.checked)} />
+                            </div>
+                        </div>
+                        <input id="survOptions" 
+                               type="text" 
+                               value={card.options.surveyOptions?.surveyId} 
+                               className="form-control" 
+                               aria-label="Text input with checkbox"
+                               disabled={!card.options.surveyOptions?.enabled} 
+                               onChange={x => store.setCardSurveyId(x.target.value)}/>
+                    </div>
                 </div>
-                */}                
+                <div className="form-group">
+                    <label htmlFor="exTagsValues"  className="font-weight-bold">Tags</label>
+                    <input id="exTagsValues" value={card.tags} className="form-control" onChange={v => store.setCardTags(v.target.value)} />
+                </div>             
                 {domainConcepts?.length
                     && <div className="form-group">
                         <div>

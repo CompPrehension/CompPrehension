@@ -79,6 +79,8 @@ public class ExerciseService {
         exercise.setName(card.getName());
         exercise.setStrategyId(card.getStrategyId());
         exercise.setBackendId(card.getBackendId());
+        exercise.setTags(String.join(", ", card.getTags()));
+        exercise.setOptions(card.getOptions());
 
         {
             var cardConcepts = new HashMap<String, ExerciseConceptDto>();
