@@ -188,7 +188,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                                         {coreConcept.childs.map(childConcept =>
                                                             <>
                                                                 <li key={`concept_toggle_${card.id}_${childConcept.name}_${idx}`}
-                                                                    className={`d-flex flex-row align-items-centers mt-2`}>
+                                                                    className={`d-flex flex-row align-items-centers mt-3`}>
                                                                     <ToggleSwitch id={`concept_toggle_${card.id}_${childConcept.name}_${idx}`}
                                                                         selected={mapKindToValue(cardConcepts[childConcept.name]?.kind)}
                                                                         values={getConceptFlags(childConcept)}
