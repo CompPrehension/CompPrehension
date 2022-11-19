@@ -41,8 +41,12 @@ export const ExerciseSettings = observer(() => {
                     <button type="button" className="btn btn-primary mb-3" onClick={onNewExerciseClicked}>Create new</button>
                     <ul className="list-group">
                         {exerciseStore.exercises?.map(e =>
-                            <Link key={e.id} className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`} to={`?exerciseId=${e.id}`} onClick={() => exerciseStore.loadExercise(e.id)} >
-                                {e.name}
+                            <Link key={e.id} 
+                                  className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`} 
+                                  to={`?exerciseId=${e.id}`} 
+                                  onClick={() => exerciseStore.loadExercise(e.id)}
+                                  title={e.name} >
+                                {e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name}
                             </Link>
                         )}
                     </ul>
@@ -115,8 +119,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
             <form className="exercise-settings-form">
                 { ExerciseSettingsController.endpointPath.match("lti") &&
                     <div className="form-group">
-                        <label htmlFor="exampleInputEmail1">LTI launch url</label>
-                        <input value={`${ExerciseSettingsController.endpointPath}pages/exercise?exerciseId=${card.id}`} className="form-control" disabled />
+                        <label htmlFor="ltiLaunchUrl">LTI launch url</label>
+                        <input id="ltiLaunchUrl" value={`${window.location.origin}/lti/pages/exercise?exerciseId=${card.id}`} className="form-control" disabled />
                     </div>}
                 <div className="form-group">
                     <label htmlFor="exampleInputEmail1">Name</label>
@@ -133,7 +137,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     <select className="form-control" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)}>
                         {strategies?.map(d => <option>{d}</option>)}
                     </select>
-                </div>
+                </div>                
                 <div className="row">
                     <div className="col-md-6">
                         <div className="form-group">
@@ -160,8 +164,12 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         </div>
                     </div>
                 </div>
-
-
+                {/*
+                <div className="form-group">
+                    <label htmlFor="exTagsValues">Tags</label>
+                    <input id="exTagsValues" value={card.tags.join(', ')} className="form-control" disabled />
+                </div>
+                */}                
                 {domainConcepts?.length
                     && <div className="form-group">
                         <div>

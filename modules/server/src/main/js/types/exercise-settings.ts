@@ -56,6 +56,7 @@ export type ExerciseCard = {
     answerLength: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
+    tags: string[],
     options: ExerciseOptions,
 }
 
@@ -69,6 +70,7 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     answerLength: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
+    tags: io.array(io.string),
     options: TExerciseOptions,
 })
 
