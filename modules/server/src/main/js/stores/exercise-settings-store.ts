@@ -1,8 +1,10 @@
 import { action, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, ExerciseCard, ExerciseCardConceptKind, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
+import { ExerciseOptions } from "../types/exercise-options";
+import { KeysWithValsOfType } from "../types/utils";
 
 
 @injectable()
@@ -12,10 +14,25 @@ export class ExerciseSettingsStore {
     @observable domains: Domain[] | null = null;
     @observable backends: string[] | null = null;
     @observable strategies: string[] | null = null;
-    @observable currentCard: ExerciseCard | null = null;
+    @observable currentCard: ExerciseCardViewModel | null = null;
 
     constructor(@inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController) {
         makeObservable(this);
+    }
+
+    private toCardViewModel(card: ExerciseCard): ExerciseCardViewModel {
+        return {
+            ...card,
+            tags: card.tags.join(', '),
+        }
+    }
+
+    private fromCardViewModel(card: ExerciseCardViewModel): ExerciseCard {
+        return {
+            ...card,
+            tags: card.tags.split(',')
+                .map(t => t.trim()),
+        }
     }
 
 
@@ -50,7 +67,7 @@ export class ExerciseSettingsStore {
         const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId);
         if (E.isRight(rawExercise)) {
             runInAction(() => {
-                this.currentCard = rawExercise.right;
+                this.currentCard = this.toCardViewModel(rawExercise.right);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
@@ -71,7 +88,7 @@ export class ExerciseSettingsStore {
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
             runInAction(() => {
-                this.currentCard = rawExercise.right;
+                this.currentCard = this.toCardViewModel(rawExercise.right);
                 this.exercises = newExercisesList.right;
             });
         }
@@ -84,7 +101,7 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        await this.exerciseSettingsController.saveExercise(this.currentCard);        
+        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard));        
         const newExercisesList = await this.exerciseSettingsController.getAllExercises();
         if (E.isRight(newExercisesList)) {
             runInAction(() => {
@@ -171,5 +188,44 @@ export class ExerciseSettingsStore {
             this.currentCard.laws.push(targetLaw);
         }
         targetLaw.kind = lawValue;
+    }
+    @action
+    setCardSurveyEnabled(enabled: boolean) {
+        if (!this.currentCard)
+            return;
+        if (!this.currentCard.options.surveyOptions) {
+            this.currentCard.options.surveyOptions = {
+                enabled,
+                surveyId: '',
+            }
+            return;
+        }
+        this.currentCard.options.surveyOptions.enabled = enabled;
+    }
+    @action
+    setCardSurveyId(surveyId: string) {
+        if (!this.currentCard)
+            return;
+        if (!this.currentCard.options.surveyOptions) {
+            this.currentCard.options.surveyOptions = {
+                enabled: true,
+                surveyId: surveyId,
+            }
+            return;
+        }
+        this.currentCard.options.surveyOptions.surveyId = surveyId;
+    }
+    @action
+    setCardTags(tags: string) {
+        if (!this.currentCard)
+            return;
+        this.currentCard.tags = tags;
+    }
+    
+    @action
+    setCardFlag(optionId: KeysWithValsOfType<ExerciseOptions, boolean>, checked: boolean) {
+        if (!this.currentCard)
+            return;        
+        this.currentCard.options[optionId] = checked;
     }
 }
