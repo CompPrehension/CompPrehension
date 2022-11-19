@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.dto.ConceptTreeItemDto;
 import org.vstu.compprehension.dto.DomainDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -12,6 +13,8 @@ import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,14 +50,39 @@ public class ReferenceTableController {
     @ResponseBody
     public List<DomainDto> getDomains() {
         var domainIds= domainFactory.getDomainIds();
+        /*
+        var result = new ArrayList<DomainDto>(domainIds.size());
+        for (var domainId : domainIds) {
+            var domain = domainFactory.getDomain(domainId);
+            var conceptsTree = domain.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER);
+            var concept = domain.getConcepts().get(0).getBaseConcepts()
+            var conceptToParentMap = new HashMap<Concept, Concept>();
+            for (var rawConcept: rawConceptsTree.entrySet()) {
+                for (var rawConceptChild: rawConcept.getValue()) {
+                    conceptToParentMap.put(rawConceptChild, rawConcept.getKey());
+                }
+            }
+        }
+         */
+
+        //return result;
 
         return domainIds.stream()
                 .map(domainFactory::getDomain)
                 .map(d -> DomainDto.builder()
                         .id(d.getDomainId())
                         .name(d.getName())
-                        .concepts(d.getConcepts())
+                        .concepts(d.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER)
+                                .entrySet()
+                                .stream()
+                                .map(kv -> new ConceptTreeItemDto(
+                                        kv.getKey().getName(),
+                                        kv.getKey().getDisplayName(),
+                                        kv.getKey().getBitflags(),
+                                        kv.getValue().stream().map(z -> new ConceptTreeItemDto(z.getName(), z.getDisplayName(), z.getBitflags())).toArray(ConceptTreeItemDto[]::new)))
+                                .collect(Collectors.toList()))
                         .laws(Stream.concat(d.getPositiveLaws().stream(), d.getNegativeLaws().stream())
+                                .filter(x -> x.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());

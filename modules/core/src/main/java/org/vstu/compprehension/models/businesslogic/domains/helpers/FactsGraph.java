@@ -26,6 +26,10 @@ public class FactsGraph {
         return new ArrayList<>(facts);
     }
 
+    public List<BackendFactEntity> getFactsAsIs() {
+        return facts;
+    }
+
     private void initEmptyFields() {
         facts = new ArrayList<>();
         subj2fs = new HashMap<>();

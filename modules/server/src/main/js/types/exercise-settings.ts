@@ -1,4 +1,5 @@
 import * as io from 'io-ts'
+import { ExerciseOptions, TExerciseOptions } from './exercise-options';
 
 export type ExerciseListItem = {
     id: number,
@@ -17,10 +18,10 @@ export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     backendId: io.string,*/
 })
 
-
+export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
 export type ExerciseCardConcept = {
     name: string,
-    kind: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED',
+    kind: ExerciseCardConceptKind,
 }
 export const TExerciseCardConcept: io.Type<ExerciseCardConcept> = io.type({
     name: io.string,
@@ -33,7 +34,7 @@ export const TExerciseCardConcept: io.Type<ExerciseCardConcept> = io.type({
 
 export type ExerciseCardLaw = {
     name: string,
-    kind: 'FORBIDDEN' | 'PERMITTED' | 'TARGETED',
+    kind: ExerciseCardConceptKind,
 }
 export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
     name: io.string,
@@ -52,9 +53,10 @@ export type ExerciseCard = {
     strategyId: string,
     backendId: string,
     complexity: number,
-    numberOfQuestions: number,
+    answerLength: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
+    options: ExerciseOptions,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -64,17 +66,20 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     strategyId: io.string,
     backendId: io.string,
     complexity: io.number,
-    numberOfQuestions: io.number,
+    answerLength: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
+    options: TExerciseOptions,
 })
 
 
 export type DomainLaw = {
     name: string,
+    displayName: string,
 }
 export const TDomainLaw : io.Type<DomainLaw> = io.type({
-    name: io.string,    
+    name: io.string,
+    displayName: io.string,
 })
 
 export enum DomainConceptFlag {
@@ -86,12 +91,14 @@ export type DomainConcept = {
     name: string,
     displayName: string,
     bitflags: number,
+    childs: DomainConcept[],
 }
-export const TDomainConcept : io.Type<DomainConcept> = io.type({
+export const TDomainConcept : io.Type<DomainConcept> = io.recursion('DomainConcept', () => io.type({
     name: io.string,
     displayName: io.string,
     bitflags: io.number,
-})
+    childs: io.array(TDomainConcept),
+}))
 
 export type Domain = {
     id: string,

@@ -291,7 +291,7 @@ public class JenaBackend implements Backend {
 
         long startTime = System.nanoTime();
         for (int salience : domainRuleSets.keySet().stream().sorted((a, b) -> -(a-b)).collect(Collectors.toList())) {
-            log.info("Running rules with salience: " + salience);
+            // log.info("Running rules with salience: " + salience);
 
             ArrayList<Rule> ruleSet = domainRuleSets.get(salience);
             GenericRuleReasoner reasoner = new GenericRuleReasoner(ruleSet);
@@ -303,7 +303,7 @@ public class JenaBackend implements Backend {
 
             long estimatedTime = System.nanoTime() - startStepTime;
             // print time report. TODO: remove the print
-            log.info("Time Jena spent on reasoning step: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
+            // log.info("Time Jena spent on reasoning step: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
 
             // use the inferred results (inf) ...
             model = ModelFactory.createOntologyModel(OWL_MEM);  // use empty to add to

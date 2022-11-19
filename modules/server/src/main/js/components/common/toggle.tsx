@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import React, { useState } from "react";
 
 const titleCase = (str: string) =>
@@ -11,18 +12,16 @@ const ClickableLabel = ({ id, title, onChange, isChecked, style }: {id: string, 
 const ConcealedRadio = ({ id, value, name, selected }: { id: string, value: string, name: string, selected: string }) =>
   <input id={id} type="radio" name={name} checked={selected === value} readOnly={true} />;
 
-export type ToggleSwitchProps = {
+export type ToggleSwitchProps<T extends string> = {
     id: string,
-    values: string[],
+    values: T[],
     valueStyles?: (React.CSSProperties | null | undefined)[],
-    selected: string,
-    onChange?: (val: string) => void,
+    selected: T,
+    onChange?: (val: T) => void,
 }
 
-export const ToggleSwitch = (props: ToggleSwitchProps) => {
-  const [selected, setSelected] = useState(props.selected)
-  const handleChange = (val: string) => {
-    setSelected(val);
+export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => {
+  const handleChange = (val: T) => {
     props.onChange?.(val);
   };
 
@@ -37,12 +36,12 @@ export const ToggleSwitch = (props: ToggleSwitchProps) => {
       {props.values.map((val, i) => {
         return (
           <span>
-            <ConcealedRadio id={`${props.id}_${val}_checkbox`} name={`${props.id}_switch`} value={val} selected={selected} />
+            <ConcealedRadio id={`${props.id}_${val}_checkbox`} name={`${props.id}_switch`} value={val} selected={props.selected} />
             <ClickableLabel 
               id={`${props.id}_${val}_checkbox`} 
-              isChecked={val === selected}
+              isChecked={val === props.selected}
               title={val}
-              onChange={handleChange} 
+              onChange={handleChange as (s: string) => void} 
               style={props.valueStyles?.[i] ?? undefined} />
           </span>
         );
@@ -50,3 +49,4 @@ export const ToggleSwitch = (props: ToggleSwitchProps) => {
     </div>
   );
 }
+

@@ -45,8 +45,8 @@ public class ExerciseEntity {
      * normalized question length, steps (нормированная длина вопроса в шагах)
      * range: [0..10]
      */
-    @Column(name = "timeLimit")
-    private Integer timeLimit;
+    @Column(name = "timeLimit", nullable = false)
+    private Float timeLimit;
 
     @Column(name = "hidden")
     private Boolean hidden;

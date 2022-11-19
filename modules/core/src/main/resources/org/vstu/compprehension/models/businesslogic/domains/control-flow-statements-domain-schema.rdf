@@ -674,7 +674,7 @@
 <owl:Class rdf:about="#loop">
   <rdfs:subClassOf rdf:resource="#action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">циклы</rdfs:label>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Циклы</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#conditional_loop">
@@ -764,7 +764,7 @@
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if ...</rdfs:label>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#expr">
@@ -785,11 +785,11 @@
 <owl:Class rdf:about="#break_continue">
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break, continue</rdfs:label>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break &amp; continue</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#return">
-  <rdfs:subClassOf rdf:resource="#break_continue"/>
+  <rdfs:subClassOf rdf:resource="#interrupt_action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">return</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
@@ -803,7 +803,7 @@
 </owl:Class>
 
 <owl:Class rdf:about="#continue">
-  <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <rdfs:subClassOf rdf:resource="#break_continue"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">continue</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>

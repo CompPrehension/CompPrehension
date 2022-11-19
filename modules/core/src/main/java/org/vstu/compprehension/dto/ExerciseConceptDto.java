@@ -7,7 +7,7 @@ import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExerciseLawDto {
+public class ExerciseConceptDto {
     private String name;
     private RoleInExercise kind;
 }

@@ -173,10 +173,18 @@ public abstract class AbstractRdfStorage {
             );  // avg + weight * (max - avg)
         }
 
+        List<Concept> targetConcepts = qr.getTargetConcepts();
+        String targetConceptStr = null;
+        if (!targetConcepts.isEmpty()) {
+            // "return","break","concept3", ...
+            targetConceptStr = targetConcepts.stream().map(c -> "\"" + c.getName() + "\"").collect(Collectors.joining(","));
+        }
+
         StringBuilder query = new StringBuilder("select distinct ?name ?complexity ?solution_steps \n" +  /// (?s as ?qUri)
                 //// "#(count(distinct ?law) as ?law_count) (count(distinct ?concept) as ?concept_count)\n" +
                 "(group_concat(distinct ?law;separator=\"; \") as ?laws)\n" +
                 "(group_concat(distinct ?concept;separator=\"; \") as ?concepts)\n" +
+//                "(max(?concepts_exist) as ?concepts_here)\n" +
                 " {  GRAPH <" + NS_questions.base() + "> {\n" +
                 "\t?s a <" + NS_questions.get("Question") + "> .\n" +
                 "    ?s <" + NS_questions.get("name") + "> ?name.\n" +
@@ -191,6 +199,9 @@ public abstract class AbstractRdfStorage {
                 "    bind(abs(" + complexity_threshold + " - ?complexity) as ?compl_diff).\n" +
                 "    bind(abs(" + desiredSolutionSteps + " - ?solution_steps) as ?steps_diff).\n" +
                 //  question data is present (not nil)
+                (targetConceptStr != null ?
+//                "    FILTER EXISTS{?s <" + NS_questions.get("has_concept") + "> ?cpt. FILTER (?cpt IN (" + targetConceptStr + "))}.\n" : "") +
+                "    FILTER (?concept IN (" + targetConceptStr + ")).\n" : "") +
                 ("    filter not exists { ?s <" + NS_questions.get("has_graph_q_data")
                      + "> () }.\n"  /// rdf:nil
                 ));
@@ -268,6 +279,8 @@ public abstract class AbstractRdfStorage {
         query.append("  }}\n" +
                 "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
                 "order by ?compl_diff ?steps_diff");
+//                "order by DESC(max(?concepts_exist)) ?compl_diff ?steps_diff");
+//                "order by DESC(?concepts_here) ?compl_diff ?steps_diff");
         if (limit > 0)
             query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
 
@@ -292,6 +305,8 @@ public abstract class AbstractRdfStorage {
                     if (stream != null) {
                         q = domain.parseQuestionTemplate(stream);
                         finalQuestions.add(q);
+                    } else {
+                        log.warn("File NOT found by storage: " + name);
                     }
                 } catch (IOException /*| NullPointerException*/ e) {
                     e.printStackTrace();
