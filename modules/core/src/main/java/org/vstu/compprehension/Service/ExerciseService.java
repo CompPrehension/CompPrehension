@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.ExerciseConceptEntity;
 import org.vstu.compprehension.models.entities.ExerciseLawsEntity;
@@ -184,6 +185,9 @@ public class ExerciseService {
                 .complexity(exercise.getComplexity())
                 .answerLength(exercise.getTimeLimit())
                 .options(exercise.getOptions())
+                .tags(exercise.getTags().stream()
+                        .map(Tag::getName)
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

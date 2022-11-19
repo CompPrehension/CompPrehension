@@ -18,6 +18,7 @@ public class ExerciseCardDto {
     private @NotNull String backendId;
     private float complexity;
     private float answerLength;
+    private @NotNull List<String> tags;
     private @NotNull List<ExerciseLawDto> laws;
     private @NotNull List<ExerciseConceptDto> concepts;
     private @NotNull ExerciseOptionsEntity options;

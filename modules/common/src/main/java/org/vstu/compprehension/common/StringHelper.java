@@ -45,4 +45,27 @@ public class StringHelper {
     public static String joinWithSpace(Object... parts) {
         return joinWithDelimiter(" ", parts);
     }
+
+    @Contract("null -> true")
+    public static boolean isNullOrEmpty(@Nullable String s) {
+        return s == null || s.length() == 0;
+    }
+
+    @Contract("null -> true")
+    public static boolean isNullOrWhitespace(@Nullable String s) {
+        return s == null || s.length() == 0 || isWhitespace(s);
+    }
+
+    private static boolean isWhitespace(String s) {
+        int length = s.length();
+        if (length > 0) {
+            for (int i = 0; i < length; i++) {
+                if (!Character.isWhitespace(s.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 }

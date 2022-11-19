@@ -4,6 +4,7 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.entities.EnumData.Complexity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
@@ -66,6 +67,7 @@ public class ExerciseEntity {
 
     public List<Tag> getTags() {
         return Arrays.stream(tags.split(","))
+                .filter(t -> !StringHelper.isNullOrWhitespace(t))
                 .map(Tag::new)
                 .collect(Collectors.toList());
     }
