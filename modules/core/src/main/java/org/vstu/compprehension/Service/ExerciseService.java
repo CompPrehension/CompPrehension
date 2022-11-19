@@ -66,6 +66,7 @@ public class ExerciseService {
                 .newQuestionGenerationEnabled(true)
                 .supplementaryQuestionsEnabled(true)
                 .build());
+        exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;
     }

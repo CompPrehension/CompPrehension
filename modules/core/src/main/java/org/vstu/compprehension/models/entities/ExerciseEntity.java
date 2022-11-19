@@ -51,7 +51,7 @@ public class ExerciseEntity {
     @Column(name = "hidden")
     private Boolean hidden;
 
-    @Column(name = "tags")
+    @Column(name = "tags", nullable = false)
     private String tags;
 
     @Type(type = "json")
