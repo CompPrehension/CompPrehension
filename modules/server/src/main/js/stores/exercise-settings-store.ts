@@ -24,6 +24,20 @@ export class ExerciseSettingsStore {
         return {
             ...card,
             tags: card.tags.join(', '),
+            stages: [
+                {
+                    numberOfQuestions: 10,
+                    laws: card.laws,
+                    concepts: card.concepts,
+                },
+                /*
+                {
+                    numberOfQuestions: 10,
+                    laws: card.laws,
+                    concepts: card.concepts,
+                },
+                */
+            ],
         }
     }
 
@@ -32,6 +46,8 @@ export class ExerciseSettingsStore {
             ...card,
             tags: card.tags.split(',')
                 .map(t => t.trim()),
+            laws: card.stages[0].laws,
+            concepts: card.stages[0].concepts,
         }
     }
 
@@ -47,8 +63,8 @@ export class ExerciseSettingsStore {
             this.exerciseSettingsController.getBackends(),
             this.exerciseSettingsController.getStrategies(),
         ])
-        if (E.isRight(rawExercises) && E.isRight(domains) && 
-                E.isRight(backends) && E.isRight(strategies)) {
+        if (E.isRight(rawExercises) && E.isRight(domains) &&
+            E.isRight(backends) && E.isRight(strategies)) {
             runInAction(() => {
                 this.exercises = rawExercises.right;
                 this.domains = domains.right;
@@ -59,7 +75,7 @@ export class ExerciseSettingsStore {
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
     }
 
-    async loadExercise(exerciseId : number) {
+    async loadExercise(exerciseId: number) {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
@@ -77,10 +93,10 @@ export class ExerciseSettingsStore {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
-        const newExerciseId = await  this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]);
+        const newExerciseId = await this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]);
         if (!E.isRight(newExerciseId))
             return;
-        
+
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
         const [rawExercise, newExercisesList] = await Promise.all([
             this.exerciseSettingsController.getExercise(newExerciseId.right),
@@ -92,7 +108,7 @@ export class ExerciseSettingsStore {
                 this.exercises = newExercisesList.right;
             });
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');    
+        runInAction(() => this.exercisesLoadStatus = 'LOADED');
     }
 
 
@@ -101,7 +117,7 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard));        
+        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard));
         const newExercisesList = await this.exerciseSettingsController.getAllExercises();
         if (E.isRight(newExercisesList)) {
             runInAction(() => {
@@ -122,11 +138,12 @@ export class ExerciseSettingsStore {
         if (!this.currentCard)
             return;
         if (domainId !== this.currentCard.domainId) {
-            this.currentCard.laws = [];
-            this.currentCard.concepts = [];
+            this.currentCard.stages[0].laws = [];
+            this.currentCard.stages[0].concepts = [];
+            this.currentCard.stages.splice(1);
             this.currentCard.domainId = domainId;
         }
-        
+
     }
     @action
     setCardStrategy(strategyId: string) {
@@ -138,8 +155,8 @@ export class ExerciseSettingsStore {
     setCardQuestionComplexity(rawComplexity: string) {
         if (!this.currentCard)
             return;
-        
-        const complexity = Number.parseInt(rawComplexity);        
+
+        const complexity = Number.parseInt(rawComplexity);
         this.currentCard.complexity = complexity / 100.0;
     }
     @action
@@ -149,15 +166,38 @@ export class ExerciseSettingsStore {
         const length = Number.parseInt(rawLength);
         this.currentCard.answerLength = length / 100.0;
     }
+    
     @action
-    setCardConceptValue(conceptName: string, conceptValue: ExerciseCardConceptKind) {
+    setCardCommonConceptValue(conceptName: string, conceptValue: ExerciseCardConceptKind) {
         if (!this.currentCard)
             return;
-        const targetConceptIdx = this.currentCard.concepts.findIndex(x => x.name == conceptName);
-        let targetConcept = targetConceptIdx !== -1 ? this.currentCard.concepts[targetConceptIdx] : null;
+        for(const stage of this.currentCard.stages) {
+            const targetConceptIdx = stage.concepts.findIndex(x => x.name == conceptName);
+            let targetConcept = targetConceptIdx !== -1 ? stage.concepts[targetConceptIdx] : null;
+            if (conceptValue === 'PERMITTED') {
+                if (targetConcept)
+                    stage.concepts.splice(targetConceptIdx, 1)
+                return;
+            }
+            if (!targetConcept) {
+                targetConcept = {
+                    name: conceptName,
+                    kind: conceptValue,
+                }
+                stage.concepts.push(targetConcept);
+            }
+            targetConcept.kind = conceptValue;
+        }
+    }
+    @action
+    setCardStageConceptValue(stageIdx: number, conceptName: string, conceptValue: ExerciseCardConceptKind) {
+        if (!this.currentCard || !this.currentCard.stages[stageIdx])
+            return;
+        const stage = this.currentCard.stages[stageIdx];const targetConceptIdx = stage.concepts.findIndex(x => x.name == conceptName);
+        let targetConcept = targetConceptIdx !== -1 ? stage.concepts[targetConceptIdx] : null;
         if (conceptValue === 'PERMITTED') {
             if (targetConcept)
-                this.currentCard.concepts.splice(targetConceptIdx, 1)
+                stage.concepts.splice(targetConceptIdx, 1)
             return;
         }
         if (!targetConcept) {
@@ -165,19 +205,42 @@ export class ExerciseSettingsStore {
                 name: conceptName,
                 kind: conceptValue,
             }
-            this.currentCard.concepts.push(targetConcept);
+            stage.concepts.push(targetConcept);
         }
         targetConcept.kind = conceptValue;
     }
     @action
-    setCardLawValue(lawName: string, lawValue: ExerciseCardConceptKind) {
+    setCardCommonLawValue(lawName: string, lawValue: ExerciseCardConceptKind) {
         if (!this.currentCard)
             return;
-        const targetLawIdx = this.currentCard.laws.findIndex(x => x.name == lawName);
-        let targetLaw = targetLawIdx !== -1 ? this.currentCard.laws[targetLawIdx] : null;
+        for(const stage of this.currentCard.stages) {
+            const targetLawIdx = stage.laws.findIndex(x => x.name == lawName);
+            let targetLaw = targetLawIdx !== -1 ? stage.laws[targetLawIdx] : null;
+            if (lawValue === 'PERMITTED') {
+                if (targetLaw)
+                    stage.laws.splice(targetLawIdx, 1)
+                return;
+            }
+            if (!targetLaw) {
+                targetLaw = {
+                    name: lawName,
+                    kind: lawValue,
+                }
+                stage.laws.push(targetLaw);
+            }
+            targetLaw.kind = lawValue;
+        }        
+    }
+    @action
+    setCardStageLawValue(stageIdx: number, lawName: string, lawValue: ExerciseCardConceptKind) {
+        if (!this.currentCard || !this.currentCard.stages[stageIdx])
+            return;
+        const stage = this.currentCard.stages[stageIdx];
+        const targetLawIdx = stage.laws.findIndex(x => x.name == lawName);
+        let targetLaw = targetLawIdx !== -1 ? stage.laws[targetLawIdx] : null;
         if (lawValue === 'PERMITTED') {
             if (targetLaw)
-                this.currentCard.laws.splice(targetLawIdx, 1)
+                stage.laws.splice(targetLawIdx, 1)
             return;
         }
         if (!targetLaw) {
@@ -185,7 +248,7 @@ export class ExerciseSettingsStore {
                 name: lawName,
                 kind: lawValue,
             }
-            this.currentCard.laws.push(targetLaw);
+            stage.laws.push(targetLaw);
         }
         targetLaw.kind = lawValue;
     }
@@ -221,11 +284,31 @@ export class ExerciseSettingsStore {
             return;
         this.currentCard.tags = tags;
     }
-    
+
     @action
     setCardFlag(optionId: KeysWithValsOfType<ExerciseOptions, boolean>, checked: boolean) {
         if (!this.currentCard)
-            return;        
+            return;
         this.currentCard.options[optionId] = checked;
+    }
+    @action
+    addStage() {
+        if (!this.currentCard)
+            return;
+        this.currentCard.stages.push({
+            numberOfQuestions: 10,
+            laws: [],
+            concepts: [],
+        });
+    }
+    @action
+    removeStage(stageIdx: number) {
+        if (!this.currentCard)
+            return;
+        const length = this.currentCard.stages.length;
+        if (stageIdx < 0 || stageIdx >= length)
+            return;
+
+        this.currentCard.stages.splice(stageIdx, 1);
     }
 }

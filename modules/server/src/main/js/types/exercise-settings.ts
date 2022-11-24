@@ -1,3 +1,4 @@
+import { NonEmptyArray } from 'fp-ts/lib/NonEmptyArray';
 import * as io from 'io-ts'
 import { ExerciseOptions, TExerciseOptions } from './exercise-options';
 
@@ -68,9 +69,10 @@ export type ExerciseCardViewModel = {
     backendId: string,
     complexity: number,
     answerLength: number,
-    concepts: ExerciseCardConcept[],
-    laws: ExerciseCardLaw[],
+    //concepts: ExerciseCardConcept[],
+    //laws: ExerciseCardLaw[],
     tags: string,
+    stages: NonEmptyArray<ExerciseStage>,
     options: ExerciseOptions,
 }
 
@@ -88,14 +90,22 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     options: TExerciseOptions,
 })
 
+export type ExerciseStage = {
+    numberOfQuestions: number,
+    concepts: ExerciseCardConcept[],
+    laws: ExerciseCardLaw[],
+}
+
 
 export type DomainLaw = {
     name: string,
     displayName: string,
+    bitflags: number,
 }
 export const TDomainLaw : io.Type<DomainLaw> = io.type({
     name: io.string,
     displayName: io.string,
+    bitflags: io.number,
 })
 
 export enum DomainConceptFlag {
