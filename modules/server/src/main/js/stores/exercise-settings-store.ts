@@ -30,13 +30,6 @@ export class ExerciseSettingsStore {
                     laws: card.laws,
                     concepts: card.concepts,
                 },
-                /*
-                {
-                    numberOfQuestions: 10,
-                    laws: card.laws,
-                    concepts: card.concepts,
-                },
-                */
             ],
         }
     }
@@ -251,6 +244,16 @@ export class ExerciseSettingsStore {
             stage.laws.push(targetLaw);
         }
         targetLaw.kind = lawValue;
+    }
+    @action
+    setCardStageNumberOfQuestions(stageIdx: number, rawNumberOfQuesions: string) {
+        if (!this.currentCard || !this.currentCard.stages[stageIdx])
+            return;
+        const stage = this.currentCard.stages[stageIdx];
+        if (!rawNumberOfQuesions.match(/^\d*$/))
+            return;
+        const numb = +rawNumberOfQuesions || 1;
+        stage.numberOfQuestions = numb;
     }
     @action
     setCardSurveyEnabled(enabled: boolean) {

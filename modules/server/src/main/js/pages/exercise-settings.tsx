@@ -285,6 +285,14 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                     }                                    
                                     <div className="card-body">
                                         <div className="form-group">Stage #{stageIdx + 1}</div>
+                                        <div className="form-group">
+                                            <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>Number of questions</label>
+                                            <input type="text" 
+                                                   className="form-control" 
+                                                   id={`numberOfQuestions_stage${stageIdx}`}
+                                                   value={stage.numberOfQuestions}
+                                                   onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
+                                        </div>
                                         {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
                                             <div className="form-group">
                                                 <label className="font-weight-bold">Concepts</label>
