@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.vstu.compprehension.models.entities.ExerciseOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 
 @Data
 @NoArgsConstructor @AllArgsConstructor

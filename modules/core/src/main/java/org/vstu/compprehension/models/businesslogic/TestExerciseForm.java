@@ -2,8 +2,8 @@ package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
-import org.vstu.compprehension.models.entities.ExerciseEntity;
-import org.vstu.compprehension.models.entities.ExerciseConceptEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import javax.persistence.*;
 import java.util.Date;

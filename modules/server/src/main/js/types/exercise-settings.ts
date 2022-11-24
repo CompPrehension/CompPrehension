@@ -1,6 +1,7 @@
 import { NonEmptyArray } from 'fp-ts/lib/NonEmptyArray';
 import * as io from 'io-ts'
 import { ExerciseOptions, TExerciseOptions } from './exercise-options';
+import { nonEmptyArray } from './utils';
 
 export type ExerciseListItem = {
     id: number,
@@ -47,6 +48,18 @@ export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
 })
 
 
+export type ExerciseStage = {
+    numberOfQuestions: number,
+    concepts: ExerciseCardConcept[],
+    laws: ExerciseCardLaw[],
+}
+export const TExerciseStage : io.Type<ExerciseStage> = io.type({
+    numberOfQuestions: io.number,
+    concepts: io.array(TExerciseCardConcept),
+    laws: io.array(TExerciseCardLaw),
+})
+
+
 export type ExerciseCard = {
     id: number,
     name: string,
@@ -55,8 +68,7 @@ export type ExerciseCard = {
     backendId: string,
     complexity: number,
     answerLength: number,
-    concepts: ExerciseCardConcept[],
-    laws: ExerciseCardLaw[],
+    stages: NonEmptyArray<ExerciseStage>,
     tags: string[],
     options: ExerciseOptions,
 }
@@ -69,13 +81,10 @@ export type ExerciseCardViewModel = {
     backendId: string,
     complexity: number,
     answerLength: number,
-    //concepts: ExerciseCardConcept[],
-    //laws: ExerciseCardLaw[],
     tags: string,
     stages: NonEmptyArray<ExerciseStage>,
     options: ExerciseOptions,
 }
-
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     id: io.number,
     name: io.string,
@@ -84,17 +93,10 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     backendId: io.string,
     complexity: io.number,
     answerLength: io.number,
-    concepts: io.array(TExerciseCardConcept),
-    laws: io.array(TExerciseCardLaw),
+    stages: nonEmptyArray(TExerciseStage),    
     tags: io.array(io.string),
     options: TExerciseOptions,
 })
-
-export type ExerciseStage = {
-    numberOfQuestions: number,
-    concepts: ExerciseCardConcept[],
-    laws: ExerciseCardLaw[],
-}
 
 
 export type DomainLaw = {

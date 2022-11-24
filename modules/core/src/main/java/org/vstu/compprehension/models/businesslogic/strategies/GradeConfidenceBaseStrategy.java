@@ -16,6 +16,8 @@ import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseLawEntity;
 
 import javax.inject.Singleton;
 import java.util.*;
@@ -440,8 +442,8 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         } else {
             // получить законы из упражнения
-            List<ExerciseLawsEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
-            for (ExerciseLawsEntity currentTargetLaw : targetLaws) {
+            List<ExerciseLawEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
+            for (ExerciseLawEntity currentTargetLaw : targetLaws) {
                 allLawsUsage.put(currentTargetLaw.getLawName(), new ArrayList<>());
             }
         }

@@ -1,8 +1,10 @@
-package org.vstu.compprehension.models.entities;
+package org.vstu.compprehension.models.entities.exercise;
 
+import lombok.Builder;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import javax.persistence.*;
 

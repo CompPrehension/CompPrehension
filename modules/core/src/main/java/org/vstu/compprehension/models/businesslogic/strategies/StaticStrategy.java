@@ -11,6 +11,9 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseLawEntity;
 
 import javax.inject.Singleton;
 import java.util.Comparator;
@@ -48,7 +51,7 @@ public class StaticStrategy implements AbstractStrategy {
         qr.setAllowedConcepts(exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
         qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
 
-        List<ExerciseLawsEntity> exLaws = exercise.getExerciseLaws();
+        List<ExerciseLawEntity> exLaws = exercise.getExerciseLaws();
         qr.setTargetLaws(exLaws.stream()
                 .filter(ec -> ec.getRoleInExercise()
                         .equals(RoleInExercise.TARGETED))

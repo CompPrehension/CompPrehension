@@ -24,13 +24,6 @@ export class ExerciseSettingsStore {
         return {
             ...card,
             tags: card.tags.join(', '),
-            stages: [
-                {
-                    numberOfQuestions: 10,
-                    laws: card.laws,
-                    concepts: card.concepts,
-                },
-            ],
         }
     }
 
@@ -39,8 +32,6 @@ export class ExerciseSettingsStore {
             ...card,
             tags: card.tags.split(',')
                 .map(t => t.trim()),
-            laws: card.stages[0].laws,
-            concepts: card.stages[0].concepts,
         }
     }
 

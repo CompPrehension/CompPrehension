@@ -1,9 +1,8 @@
 package org.vstu.compprehension.dto;
 
 import lombok.*;
-import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.entities.ExerciseOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 
 import java.util.List;
 
@@ -19,8 +18,7 @@ public class ExerciseCardDto {
     private float complexity;
     private float answerLength;
     private @NotNull List<String> tags;
-    private @NotNull List<ExerciseLawDto> laws;
-    private @NotNull List<ExerciseConceptDto> concepts;
+    private @NotNull List<ExerciseStageDto> stages;
     private @NotNull ExerciseOptionsEntity options;
 
     //@NotNull List<String> tags;

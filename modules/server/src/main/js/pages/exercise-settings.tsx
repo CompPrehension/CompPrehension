@@ -110,9 +110,9 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     }
 
     const stageDomainLaws = domains.find(z => z.id === card.domainId)?.laws
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+        //.filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
     const stageDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+        //.filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
     const sharedDomainLaws = [] as DomainLaw[] //domains.find(z => z.id === card.domainId)?.laws
         //.filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
     const sharedDomainConcepts = [] as DomainConcept[] //domains.find(z => z.id === card.domainId)?.concepts

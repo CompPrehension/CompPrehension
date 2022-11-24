@@ -6,19 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.entities.ExerciseConceptEntity;
-import org.vstu.compprehension.models.entities.ExerciseLawsEntity;
-import org.vstu.compprehension.models.entities.ExerciseOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.*;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseConceptRepository;
 import org.vstu.compprehension.models.repository.ExerciseLawsRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.entities.ExerciseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -67,6 +67,7 @@ public class ExerciseService {
                 .newQuestionGenerationEnabled(true)
                 .supplementaryQuestionsEnabled(true)
                 .build());
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(10, new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;
@@ -81,10 +82,13 @@ public class ExerciseService {
         exercise.setBackendId(card.getBackendId());
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
+        exercise.setStages(card.getStages()
+                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
+                .collect(Collectors.toList()));
 
         {
             var cardConcepts = new HashMap<String, ExerciseConceptDto>();
-            for (var c: card.getConcepts()) {
+            for (var c: card.getStages().get(0).getConcepts()) {
                 cardConcepts.put(c.getName(), c);
             }
             var rawExerciseConcepts = exercise.getExerciseConcepts();
@@ -125,10 +129,10 @@ public class ExerciseService {
 
         {
             var cardLaws = new HashMap<String, ExerciseLawDto>();
-            for (var l: card.getLaws()) {
+            for (var l: card.getStages().get(0).getLaws()) {
                 cardLaws.put(l.getName(), l);
             }
-            var exerciseLaws = new HashMap<String, ExerciseLawsEntity>();
+            var exerciseLaws = new HashMap<String, ExerciseLawEntity>();
             for (var l: exercise.getExerciseLaws()) {
                 exerciseLaws.put(l.getLawName(), l);
             }
@@ -138,7 +142,7 @@ public class ExerciseService {
                     .map(cardLaws::get)
                     .collect(Collectors.toList());
             for (var l: lawsToAdd) {
-                var le = new ExerciseLawsEntity();
+                var le = new ExerciseLawEntity();
                 le.setLawName(l.getName());
                 le.setRoleInExercise(l.getKind());
                 le.setExercise(exercise);
@@ -176,14 +180,9 @@ public class ExerciseService {
                 .domainId(exercise.getDomain().getName())
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
-                .laws(exercise.getExerciseLaws().stream().map(l -> ExerciseLawDto.builder()
-                        .name(l.getLawName())
-                        .kind(l.getRoleInExercise())
-                        .build()).collect(Collectors.toList()))
-                .concepts(exercise.getExerciseConcepts().stream().map(l -> ExerciseConceptDto.builder()
-                        .name(l.getConceptName())
-                        .kind(l.getRoleInExercise())
-                        .build()).collect(Collectors.toList()))
+                .stages(exercise.getStages()
+                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
+                        .collect(Collectors.toList()))
                 .complexity(exercise.getComplexity())
                 .answerLength(exercise.getTimeLimit())
                 .options(exercise.getOptions())

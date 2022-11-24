@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1669305804597-7" author="Administrator (generated)">
+        <dropForeignKeyConstraint baseTableName="additional_field" constraintName="FK_ADDITIONALFIELD_ON_EXERCISE"/>
+    </changeSet>
+    <changeSet id="1669305804597-8" author="Administrator (generated)">
+        <dropTable cascadeConstraints="true" tableName="additional_field"/>
+    </changeSet>
+
+</databaseChangeLog>
