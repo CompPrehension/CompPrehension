@@ -94,9 +94,6 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     if (card == null)
         return (<div>No exercise selected</div>);
 
-    const cardLaws = card.stages.flatMap(x => x.laws).reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
-    const cardConcepts = card.stages.flatMap(x => x.concepts).reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
-
     function mapKindToValue(kind?: ExerciseCardConceptKind): 'Denied' | 'Allowed' | 'Target' {
         return kind === 'FORBIDDEN' ? 'Denied'
             : kind === 'TARGETED' ? 'Target' : 'Allowed'
@@ -109,17 +106,18 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
     }
 
-    const stageDomainLaws = domains.find(z => z.id === card.domainId)?.laws
-        //.filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
-    const stageDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
-        //.filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
-    const sharedDomainLaws = [] as DomainLaw[] //domains.find(z => z.id === card.domainId)?.laws
-        //.filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
-    const sharedDomainConcepts = [] as DomainConcept[] //domains.find(z => z.id === card.domainId)?.concepts
-        //.filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
-    /*.map(x => [0, x.name, x] as [number, string, DomainConcept])
-    .flatMap(x => [x, ...x[2].childs.map(c => [1, x[1], c] as [number, string, DomainConcept])]);*/
 
+
+    const stageDomainLaws = domains.find(z => z.id === card.domainId)?.laws
+        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+    const stageDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
+        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+    const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
+    const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);    
+    const sharedDomainLaws = domains.find(z => z.id === card.domainId)?.laws
+        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+    const sharedDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
+        .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
 
     return (
         <div>

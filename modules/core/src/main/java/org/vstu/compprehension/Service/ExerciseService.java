@@ -76,12 +76,17 @@ public class ExerciseService {
     public void saveExerciseCard(ExerciseCardDto card) {
         var exercise = exerciseRepository.findById(card.getId()).orElseThrow(() ->
                 new NoSuchElementException("Exercise with id: " + card.getId() + " not found"));
+        var domain = domainRepository.findById(card.getDomainId())
+                .orElseThrow();
 
         exercise.setName(card.getName());
+        exercise.setDomain(domain);
         exercise.setStrategyId(card.getStrategyId());
         exercise.setBackendId(card.getBackendId());
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
+        exercise.setComplexity(card.getComplexity());
+        exercise.setTimeLimit(card.getAnswerLength());
         exercise.setStages(card.getStages()
                 .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
                 .collect(Collectors.toList()));

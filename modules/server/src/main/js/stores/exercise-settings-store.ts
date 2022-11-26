@@ -1,7 +1,7 @@
 import { action, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -161,7 +161,7 @@ export class ExerciseSettingsStore {
             if (conceptValue === 'PERMITTED') {
                 if (targetConcept)
                     stage.concepts.splice(targetConceptIdx, 1)
-                return;
+                continue;
             }
             if (!targetConcept) {
                 targetConcept = {
@@ -203,7 +203,7 @@ export class ExerciseSettingsStore {
             if (lawValue === 'PERMITTED') {
                 if (targetLaw)
                     stage.laws.splice(targetLawIdx, 1)
-                return;
+                continue;
             }
             if (!targetLaw) {
                 targetLaw = {
@@ -287,12 +287,25 @@ export class ExerciseSettingsStore {
     }
     @action
     addStage() {
-        if (!this.currentCard)
+        if (!this.currentCard || !this.domains)
             return;
+
+        const card = this.currentCard;
+
+        const sharedDomainLaws = this.domains.find(z => z.id === card.domainId)?.laws
+            .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+        const sharedDomainConcepts = this.domains.find(z => z.id === card.domainId)?.concepts
+            .flatMap(c => [c, ...c.childs])
+            .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+        var stageConcepts = card.stages[0].concepts
+            .filter(c => c.kind !== 'PERMITTED' && sharedDomainConcepts.some(x => x.name === c.name))
+        var stageLaws = card.stages[0].laws
+            .filter(l => l.kind !== 'PERMITTED' && sharedDomainLaws.some(x => x.name === l.name));
+
         this.currentCard.stages.push({
             numberOfQuestions: 10,
-            laws: [],
-            concepts: [],
+            laws: stageLaws,
+            concepts: stageConcepts,
         });
     }
     @action
