@@ -6,18 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.NegativeLaw;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
-import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
+import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseLawEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import javax.inject.Singleton;
 import java.util.*;
@@ -420,11 +418,12 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         HashMap<String, List<Boolean>> allLawsUsage = new HashMap<>();
 
         ExerciseEntity exercise = exerciseAttempt.getExercise();
+        ExerciseStageEntity stage = exercise.getStages().get(0);  // используем первый (скорее всего, единственный) этап упражнения
 
-        if (exercise.getExerciseLaws().isEmpty()) {
+        if (stage.getLaws().isEmpty()) {
 
             // получить законы из домена (все подряд)
-            Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+            Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
             List<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {
@@ -432,10 +431,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             }
 
         } else {
-            // получить законы из упражнения
-            List<ExerciseLawEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
-            for (ExerciseLawEntity currentTargetLaw : targetLaws) {
-                allLawsUsage.put(currentTargetLaw.getLawName(), new ArrayList<>());
+            // получить целевые (target) законы из упражнения
+            for (ExerciseLawDto currentLaw : stage.getLaws()) {
+                if (currentLaw.getKind() != RoleInExercise.TARGETED)
+                    continue;
+                allLawsUsage.put(currentLaw.getName(), new ArrayList<>());
             }
         }
 

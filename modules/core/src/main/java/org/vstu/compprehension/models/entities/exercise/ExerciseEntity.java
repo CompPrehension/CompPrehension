@@ -37,9 +37,6 @@ public class ExerciseEntity {
     @Column(name = "useGuidingQuestions")
     private Boolean useGuidingQuestions;
 
-    @Column(name = "numberOfQuestions", nullable = false)
-    private Integer numberOfQuestions;
-
     /**
      * normalized question length, steps (нормированная длина вопроса в шагах)
      * range: [0..10]
@@ -93,12 +90,6 @@ public class ExerciseEntity {
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseLawEntity> exerciseLaws;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseConceptEntity> exerciseConcepts;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;

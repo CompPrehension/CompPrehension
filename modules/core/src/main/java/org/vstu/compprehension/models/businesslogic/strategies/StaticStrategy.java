@@ -12,14 +12,13 @@ import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.EnumData.*;
-import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.InteractionEntity;
+import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseLawEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import javax.inject.Singleton;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -104,8 +103,21 @@ public class StaticStrategy implements AbstractStrategy {
     @Override
     public float grade(ExerciseAttemptEntity exerciseAttempt) {
         // consider last question only ...
-        long maxQid = exerciseAttempt.getQuestions().stream().max(Comparator.comparing(QuestionEntity::getId)).get().getId();
-        QuestionEntity lastQuestion = exerciseAttempt.getQuestions().stream().filter(q -> q.getId() == maxQid).findAny().orElse(null);
+        // since student may interact with a question not last added, so find an unsaved (the latest) interaction
+        InteractionEntity latestInteraction = exerciseAttempt.getQuestions().stream()
+                .flatMap(q ->
+                        (q.getInteractions() != null && q.getInteractions().size() > 0)?
+                                q.getInteractions().stream()
+                                :
+                                Stream.empty())
+                .filter(i -> i.getId() == null)  // assume latest has not been saved yet.
+//                .max(Comparator.comparing(InteractionEntity::getId))
+                .findAny()
+                .orElse(null);
+        if (latestInteraction == null)
+            return 0;
+
+        QuestionEntity lastQuestion = latestInteraction.getQuestion();
         if (lastQuestion == null)
             return 0;
 
@@ -136,7 +148,7 @@ public class StaticStrategy implements AbstractStrategy {
 
         // Должно быть задано не менее X вопросов, которые были завершены
         long completedQuestions = questions.stream()
-                .filter(q -> q.getInteractions().size() > 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() == 0)
+                .filter(q -> q.getInteractions().size() > 0 && q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() == 0)
                 .count();
         if(completedQuestions < minimumQuestionsToAsk)
             return Decision.CONTINUE;
