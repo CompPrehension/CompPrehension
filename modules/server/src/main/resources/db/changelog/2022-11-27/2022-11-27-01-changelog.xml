@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="166930681800-1" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="exercise" columnName="number_of_questions" />
+        </preConditions>
+        <dropColumn tableName="exercise">
+            <column name="number_of_questions"/>
+        </dropColumn>
+    </changeSet>
+
+    <changeSet id="166930681800-2" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="exercise_concepts"/>
+        </preConditions>
+        <dropTable tableName="exercise_concepts" />
+    </changeSet>
+
+    <changeSet id="166930681800-3" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="exercise_laws"/>
+        </preConditions>
+        <dropTable tableName="exercise_laws" />
+    </changeSet>
+</databaseChangeLog>
