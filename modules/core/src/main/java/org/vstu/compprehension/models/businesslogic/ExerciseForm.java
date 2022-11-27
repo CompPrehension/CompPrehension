@@ -1,6 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import org.vstu.compprehension.models.entities.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import java.util.ArrayList;
 import java.util.List;

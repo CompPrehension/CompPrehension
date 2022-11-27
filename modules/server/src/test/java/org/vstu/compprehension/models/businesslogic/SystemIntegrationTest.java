@@ -1,6 +1,5 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -13,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ExerciseConceptEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.repository.*;
 

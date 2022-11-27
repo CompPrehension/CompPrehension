@@ -6,11 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.common.MathHelper;
+import org.vstu.compprehension.dto.ExerciseConceptDto;
+import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseLawEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import javax.inject.Singleton;
 import java.util.Comparator;
@@ -43,32 +49,34 @@ public class StaticStrategy implements AbstractStrategy {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttempt(exerciseAttempt);
 
-        List<ExerciseConceptEntity> exConcepts = exercise.getExerciseConcepts();
-        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
-        qr.setAllowedConcepts(exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
-        qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getRoleInExercise().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getConceptName()).stream()).collect(Collectors.toList()));
+        ExerciseStageEntity exerciseStage = getStageForNextQuestion(exerciseAttempt);
 
-        List<ExerciseLawsEntity> exLaws = exercise.getExerciseLaws();
+        List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
+        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+        qr.setAllowedConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+        qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+
+        List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
         qr.setTargetLaws(exLaws.stream()
-                .filter(ec -> ec.getRoleInExercise()
+                .filter(ec -> ec.getKind()
                         .equals(RoleInExercise.TARGETED))
                 .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getLawName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getLawName()).stream()))
+                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
                 .collect(Collectors.toList()));
         qr.setAllowedLaws(exLaws.stream()
-                .filter(ec -> ec.getRoleInExercise()
+                .filter(ec -> ec.getKind()
                         .equals(RoleInExercise.PERMITTED))
                 .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getLawName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getLawName()).stream()))
+                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
                 .collect(Collectors.toList()));
         qr.setDeniedLaws(exLaws.stream()
-                .filter(ec -> ec.getRoleInExercise()
+                .filter(ec -> ec.getKind()
                         .equals(RoleInExercise.FORBIDDEN))
                 .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getLawName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getLawName()).stream()))
+                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
                 .collect(Collectors.toList()));
 //        HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
 //        HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
@@ -118,7 +126,7 @@ public class StaticStrategy implements AbstractStrategy {
         List<QuestionEntity> questions = exerciseAttempt.getQuestions();
 
         // get limit of questions defined by teacher in exercise GUI
-        int minimumQuestionsToAsk = exerciseAttempt.getExercise().getNumberOfQuestions();
+        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.getExercise());
 
         // Должно быть задано не менее X вопросов и последний вопрос должен быть завершён (завершение упражнения возможно только в момент завершения вопроса)
         if(questions.size() < minimumQuestionsToAsk ||

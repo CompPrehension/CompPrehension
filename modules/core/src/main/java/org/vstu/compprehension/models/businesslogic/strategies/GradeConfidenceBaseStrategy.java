@@ -16,6 +16,8 @@ import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseLawEntity;
 
 import javax.inject.Singleton;
 import java.util.*;
@@ -363,14 +365,9 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         if(result.size() == 0){
             for(String lName : targetLawsName){
-                Law lawToAdd = targetLaws.stream()
+                targetLaws.stream()
                         .filter(law -> lName.equals(law.getName()))
-                        .findFirst()
-                        .orElse(null);
-
-                if(lawToAdd != null) {
-                    result.add(lawToAdd);
-                }
+                        .findFirst().ifPresent(result::add);
             }
         }
 
@@ -396,11 +393,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             }
         }
 
-        if(minimumLawUsageCount == null || minimumLawUsageCount > countGradeWindow()){
-            return true;
-        }
-
-        return false;
+        return minimumLawUsageCount == null || minimumLawUsageCount > countGradeWindow();
     }
 
     protected HashMap<String, List<Boolean>> getTargetLawsInteractions(ExerciseAttemptEntity exerciseAttempt, int removeLastCount){
@@ -440,8 +433,8 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         } else {
             // получить законы из упражнения
-            List<ExerciseLawsEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
-            for (ExerciseLawsEntity currentTargetLaw : targetLaws) {
+            List<ExerciseLawEntity> targetLaws = exerciseAttempt.getExercise().getExerciseLaws();
+            for (ExerciseLawEntity currentTargetLaw : targetLaws) {
                 allLawsUsage.put(currentTargetLaw.getLawName(), new ArrayList<>());
             }
         }

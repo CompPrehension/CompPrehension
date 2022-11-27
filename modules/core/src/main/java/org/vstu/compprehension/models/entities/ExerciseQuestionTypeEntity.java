@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import javax.persistence.*;
 

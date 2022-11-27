@@ -1,5 +1,6 @@
-package org.vstu.compprehension.models.entities;
+package org.vstu.compprehension.models.entities.exercise;
 
+import lombok.Builder;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @Table(name = "ExerciseLaws")
-public class ExerciseLawsEntity {
+public class ExerciseLawEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

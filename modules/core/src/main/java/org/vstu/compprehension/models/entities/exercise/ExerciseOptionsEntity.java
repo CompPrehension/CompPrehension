@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities;
+package org.vstu.compprehension.models.entities.exercise;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

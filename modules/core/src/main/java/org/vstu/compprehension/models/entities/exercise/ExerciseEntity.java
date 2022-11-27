@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities;
+package org.vstu.compprehension.models.entities.exercise;
 
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import org.hibernate.annotations.Type;
@@ -6,13 +6,11 @@ import org.hibernate.annotations.TypeDef;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Tag;
-import org.vstu.compprehension.models.entities.EnumData.Complexity;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.util.Arrays;
@@ -59,6 +57,10 @@ public class ExerciseEntity {
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private ExerciseOptionsEntity options;
 
+    @Type(type = "json")
+    @Column(name = "stages_json", columnDefinition = "json", nullable = false)
+    private List<ExerciseStageEntity> stages;
+
     @Column(name = "backend_id", nullable = false, length = 100)
     private @NotNull String backendId;
 
@@ -89,15 +91,11 @@ public class ExerciseEntity {
     @JoinColumn(name = "domain_id", nullable = false)
     private DomainEntity domain;
 
-    @OneToMany(mappedBy = "exercise")
-    @LazyCollection(LazyCollectionOption.FALSE)
-    private List<AdditionalFieldEntity> additionalFields;
-
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseLawsEntity> exerciseLaws;
+    private List<ExerciseLawEntity> exerciseLaws;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseConceptEntity> exerciseConcepts;

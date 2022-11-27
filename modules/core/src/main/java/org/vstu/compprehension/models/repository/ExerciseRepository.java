@@ -1,14 +1,12 @@
 package org.vstu.compprehension.models.repository;
 
 import org.springframework.data.jpa.repository.Query;
-import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
-import org.vstu.compprehension.models.entities.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ExerciseRepository extends CrudRepository<ExerciseEntity, Long> {
