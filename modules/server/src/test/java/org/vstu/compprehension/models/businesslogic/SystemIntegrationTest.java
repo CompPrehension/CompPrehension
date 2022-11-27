@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
+import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.strategies.Strategy;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.repository.*;
 
@@ -902,15 +902,15 @@ public class SystemIntegrationTest {
         List<String> targetConcepts = new ArrayList<>();
 
         //Выделить из упражнения целевые и запрещенные законы
-        for (ExerciseConceptEntity ec : testExerciseAttempt.getExercise().getExerciseConcepts()) {
+        for (ExerciseConceptDto ec : testExerciseAttempt.getExercise().getStages().get(0).getConcepts()) {
 
-            if (ec.getRoleInExercise() == RoleInExercise.TARGETED) {
+            if (ec.getKind() == RoleInExercise.TARGETED) {
 
-                targetConcepts.add(ec.getConceptName());
+                targetConcepts.add(ec.getName());
 
-            } else if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
+            } else if (ec.getKind() == RoleInExercise.FORBIDDEN) {
 
-                deniedConcepts.add(ec.getConceptName());
+                deniedConcepts.add(ec.getName());
 
             }
         }

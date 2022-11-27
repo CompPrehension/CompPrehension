@@ -1,9 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseConceptEntity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,12 +35,6 @@ public class TestExerciseForm extends ExerciseForm {
 
     @Override
     public void fillForm(ExerciseEntity exercise) {
-        
-        for (ExerciseConceptEntity ec: exercise.getExerciseConcepts()) {
-            
-            if (ec.getRoleInExercise() == RoleInExercise.FORBIDDEN) {
-                //deniedConcepts.add(ec.getConcept());
-            }
-        }
-    }    
+
+    }
 }
