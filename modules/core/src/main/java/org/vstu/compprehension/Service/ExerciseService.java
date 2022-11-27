@@ -67,7 +67,7 @@ public class ExerciseService {
                 .newQuestionGenerationEnabled(true)
                 .supplementaryQuestionsEnabled(true)
                 .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(10, new ArrayList<>(), new ArrayList<>()))));
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;

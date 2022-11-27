@@ -365,14 +365,9 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         if(result.size() == 0){
             for(String lName : targetLawsName){
-                Law lawToAdd = targetLaws.stream()
+                targetLaws.stream()
                         .filter(law -> lName.equals(law.getName()))
-                        .findFirst()
-                        .orElse(null);
-
-                if(lawToAdd != null) {
-                    result.add(lawToAdd);
-                }
+                        .findFirst().ifPresent(result::add);
             }
         }
 
@@ -398,11 +393,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             }
         }
 
-        if(minimumLawUsageCount == null || minimumLawUsageCount > countGradeWindow()){
-            return true;
-        }
-
-        return false;
+        return minimumLawUsageCount == null || minimumLawUsageCount > countGradeWindow();
     }
 
     protected HashMap<String, List<Boolean>> getTargetLawsInteractions(ExerciseAttemptEntity exerciseAttempt, int removeLastCount){

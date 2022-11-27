@@ -21,7 +21,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExerciseStageEntity {
     @Builder.Default
-    private int numberOfQuestions = 10;
+    private int numberOfQuestions = 5;
     @Builder.Default
     private @NotNull List<ExerciseLawDto> laws = new ArrayList<>(0);
     @Builder.Default
