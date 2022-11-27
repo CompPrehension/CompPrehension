@@ -617,6 +617,8 @@
 
 <owl:Class rdf:about="#trace">
   <rdfs:subClassOf rdf:resource="#act_begin"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">трасса выполнения</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#act_end">
@@ -753,8 +755,6 @@
 
 <owl:Class rdf:about="#alt_branch">
   <rdfs:subClassOf rdf:resource="#sequence"/>
-  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if / else</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#func">
@@ -763,6 +763,8 @@
 
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if / else</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#expr">
@@ -808,15 +810,15 @@
 </owl:Class>
 
 <owl:Class rdf:about="#if">
-  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <rdfs:subClassOf rdf:resource="#alternative"/>
 </owl:Class>
 
 <owl:Class rdf:about="#else-if">
-  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <rdfs:subClassOf rdf:resource="#alternative"/>
 </owl:Class>
 
 <owl:Class rdf:about="#else">
-  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <rdfs:subClassOf rdf:resource="#alternative"/>
 </owl:Class>
 
 <owl:Class rdf:about="#Erroneous">
