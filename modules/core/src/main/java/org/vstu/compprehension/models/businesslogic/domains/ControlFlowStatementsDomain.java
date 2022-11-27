@@ -238,6 +238,12 @@ public class ControlFlowStatementsDomain extends Domain {
                     replacementMap.put("parent.name", parent_name);
                 }
 
+                if (lineTpl.contains("return_expr")) {
+                    assert name != null;
+                    String return_expr = name.replace("return", "").trim();
+                    replacementMap.put("return_expr", return_expr);
+                }
+
                 // add expression value if necessary
                 if (actionKind.equals("expr")) {
                     String valueStr;
@@ -254,6 +260,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 }
 
                 line = replaceInString(lineTpl, replacementMap);
+
+                line = line.replaceAll("  ", " ");  // collapse multiple spaces if any
 
                 // check if this line is wrong
                 if (responseIsWrong) {
