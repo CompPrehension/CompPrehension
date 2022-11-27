@@ -7,8 +7,11 @@ import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public interface AbstractStrategy {
     @NotNull String getStrategyId();
@@ -40,5 +43,46 @@ public interface AbstractStrategy {
             }
         }
         return deniedQuestions;
+    }
+
+
+    /** Find exercise stage for next question in an attempt
+     * @param exerciseAttempt attempt in progress
+     * @return stage applied for next question generated for this attempt
+     */
+    default ExerciseStageEntity getStageForNextQuestion(ExerciseAttemptEntity exerciseAttempt) {
+        if (exerciseAttempt == null || exerciseAttempt.getQuestions() == null) {
+            return null;
+        }
+
+        List<ExerciseStageEntity> stages = exerciseAttempt.getExercise().getStages();
+        int nQuestions = exerciseAttempt.getQuestions().size();
+        int questionsInStagesCumulative = 0;
+
+//        int nStages = stages.size();
+//        int stageIndex = 0;
+//        for (; stageIndex < nStages; ++stageIndex) {
+//            st = stages.get(stageIndex);
+        ExerciseStageEntity lastStage = null;
+        for (ExerciseStageEntity currStage : stages) {
+            questionsInStagesCumulative += currStage.getNumberOfQuestions();
+            if (nQuestions < questionsInStagesCumulative) {  // not `<=` since we want `next` question
+                return currStage;
+            }
+            lastStage = currStage;
+        }
+        // get last one if we go over the last stage
+        return lastStage;
+    }
+
+    /** Get total number of questions defined by exercise stages
+     * @param exercise exercise with stages
+     * @return sum of stages' question counts
+     */
+    default int getNumberOfQuestionsToAsk(ExerciseEntity exercise) {
+        if (exercise == null || exercise.getStages() == null) {
+            return -1;
+        }
+        return exercise.getStages().stream().map(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(0);
     }
 }
