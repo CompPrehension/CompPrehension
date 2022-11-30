@@ -25,6 +25,8 @@ import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.entities.QuestionMetadataBaseEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
@@ -90,6 +92,19 @@ public abstract class AbstractRdfStorage {
      */
     Dataset dataset = null;
     RemoteFileService fileService = null;
+    QuestionMetadataManager questionMetadataManager = null;
+
+    QuestionMetadataManager getQuestionMetadataManager() {
+        if (this.questionMetadataManager == null) {
+            if (this.domain != null) {
+                QuestionMetadataBaseRepository<? extends QuestionMetadataBaseEntity> repo =
+                        domain.getQuestionMetadataRepository();
+                if (repo != null)
+                    questionMetadataManager = new QuestionMetadataManager(repo);
+            }
+        }
+        return questionMetadataManager;
+    }
 
     /**
      * Make a SPARQL Update query that removes all (s, p, *) triples and inserts one (s, p, o) triple into a named
@@ -130,6 +145,10 @@ public abstract class AbstractRdfStorage {
      * @return questions found or empty list if the requirements cannot be satisfied
      */
     public List<Question> searchQuestions(QuestionRequest qr, int limit) {
+        if (getQuestionMetadataManager() != null) {
+            // ...
+        }
+
         /*Model qG =*/ getGraph(NS_questions.base());
 
         Checkpointer ch = new Checkpointer(log);
