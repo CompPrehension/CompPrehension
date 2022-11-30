@@ -79,7 +79,6 @@ public abstract class AbstractRdfStorage {
     public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
-    static Lang FASTER_RDF_SYNTAX = Lang.RDFTHRIFT;
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
 
@@ -176,7 +175,7 @@ public abstract class AbstractRdfStorage {
         List<Concept> targetConcepts = qr.getTargetConcepts();
         String targetConceptStr = null;
         if (!targetConcepts.isEmpty()) {
-            // "return","break","concept3", ...
+            // "loop","break","concept3", ...
             targetConceptStr = targetConcepts.stream().map(c -> "\"" + c.getName() + "\"").collect(Collectors.joining(","));
         }
 

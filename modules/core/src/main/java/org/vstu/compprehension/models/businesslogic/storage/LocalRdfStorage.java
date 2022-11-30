@@ -173,25 +173,19 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         // find first existing path, then get it's IN stream.
 
         String ext_ttl = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
-        String ext_bin = "." + FASTER_RDF_SYNTAX.getFileExtensions().get(0);
 
-        String qG_filepath_bin = qGraph_filepath.replaceFirst(ext_ttl, ext_bin);
 
 //        InputStream in = null;
         String path = null;
         Lang syntax = DEFAULT_RDF_SYNTAX;
         for (String p : List.of(
-                qG_filepath_bin,  // binary version takes priority
                 qGraph_filepath,
-                qG_filepath_bin + ".bak",
                 qGraph_filepath + ".bak"
         )) {
 //            path = Paths.get(p);
             File f = new File(p);
             if (f.exists() && !f.isDirectory()) {
                 path = p;
-                if (p.contains(ext_bin))
-                    syntax = FASTER_RDF_SYNTAX;
                 // found file successfully, exit loop.
                 break;
             }
