@@ -29,6 +29,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.repository.CtrlFlowQuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
@@ -69,13 +70,16 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
+    private final CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository;
 
     @Autowired
     public ControlFlowStatementsDomain(LocalizationService localizationService,
                                        DomainRepository domainRepository,
-                                       RandomProvider randomProvider) {
+                                       RandomProvider randomProvider,
+                                       CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository) {
         super(randomProvider);
         this.localizationService = localizationService;
+        this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
         name = "ControlFlowStatementsDomain";
 //        if (domainRepository != null)
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
@@ -153,6 +157,12 @@ public class ControlFlowStatementsDomain extends Domain {
         // init questions storage
         getRdfStorage();
     }
+
+    @Override
+    public CtrlFlowQuestionMetadataRepository getQuestionMetadataRepository() {
+        return ctrlFlowQuestionMetadataRepository;
+    }
+
 
     @Override
     public Model getSchemaForSolving() {

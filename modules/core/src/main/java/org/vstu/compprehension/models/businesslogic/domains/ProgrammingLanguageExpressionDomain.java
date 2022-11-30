@@ -33,6 +33,7 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -732,6 +733,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         return super.getDefaultQuestionTags(questionDomainType);
     }
+
+//    @Override
+//    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+//        return null;
+//    }
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
