@@ -80,6 +80,10 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         }
 
         initDB();
+
+        // test it
+//        this.getQuestionMetadataManager();
+//        log.info("getQuestionMetadataManager completed.");
     }
 
     public LocalRdfStorage(String qGraph_filepath, String templatesDir) {

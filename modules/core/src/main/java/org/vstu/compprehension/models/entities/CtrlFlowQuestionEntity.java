@@ -59,6 +59,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.version = version;
     }
 
+    @Override
     public Integer getStage() {
         return stage;
     }
@@ -67,6 +68,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.stage = stage;
     }
 
+    @Override
     public Integer getDistinctErrorsCount() {
         return distinctErrorsCount;
     }
@@ -75,6 +77,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.distinctErrorsCount = distinctErrorsCount;
     }
 
+    @Override
     public Integer getSolutionSteps() {
         return solutionSteps;
     }
@@ -83,6 +86,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.solutionSteps = solutionSteps;
     }
 
+    @Override
     public Double getIntegralComplexity() {
         return integralComplexity;
     }
@@ -91,6 +95,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.integralComplexity = integralComplexity;
     }
 
+    @Override
     public Double getSolutionStructuralComplexity() {
         return solutionStructuralComplexity;
     }
@@ -99,6 +104,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.solutionStructuralComplexity = solutionStructuralComplexity;
     }
 
+    @Override
     public Integer getViolationBits() {
         return violationBits;
     }
@@ -107,6 +113,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.violationBits = violationBits;
     }
 
+    @Override
     public Integer getLawBits() {
         return lawBits;
     }
@@ -115,6 +122,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.lawBits = lawBits;
     }
 
+    @Override
     public Integer getConceptBits() {
         return conceptBits;
     }
@@ -123,6 +131,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.conceptBits = conceptBits;
     }
 
+    @Override
     public Integer getTagBits() {
         return tagBits;
     }
@@ -131,6 +140,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.tagBits = tagBits;
     }
 
+    @Override
     public String getQDataGraph() {
         return qDataGraph;
     }
@@ -139,6 +149,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.qDataGraph = qDataGraph;
     }
 
+    @Override
     public Integer getTemplateId() {
         return templateId;
     }
@@ -147,6 +158,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.templateId = templateId;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -155,6 +167,7 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
         this.name = name;
     }
 
+    @Override
     public Integer getId() {
         return id;
     }
