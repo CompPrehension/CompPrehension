@@ -1,13 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
+import org.springframework.data.domain.PageRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataBaseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.utils.Checkpointer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class QuestionMetadataManager {
@@ -41,15 +40,34 @@ public class QuestionMetadataManager {
     }
 
     private void initBankStat() {
+        Checkpointer ch = new Checkpointer();
         ArrayList<QuestionMetadataBaseEntity> allQuestions = new ArrayList<>();
 
         Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAll();
+        ch.hit("initBankStat - query ran");
         iter.forEach(allQuestions::add);
+        ch.hit("initBankStat - query results collected");
 
         wholeBankStat = new QuestionGroupStat(allQuestions);
+        ch.hit("initBankStat - stats prepared");
+        ch.since_start("initBankStat - completed", false);
     }
 
+//    /** get entries with limit */
+//    List<QuestionMetadataBaseEntity> findQuestionsByConcepts(Collection<Integer> conceptBitEntries, int limit) {
+//        ArrayList<QuestionMetadataBaseEntity> foundQuestions = new ArrayList<>();
+//        Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAllWithConcepts(conceptBitEntries, PageRequest.of(0, limit/*, Sort.by(Sort.Direction.ASC, "seatNumber")*/));
+//        iter.forEach(foundQuestions::add);
+//        return foundQuestions;
+//    }
 
+    /** get entries unlimited */
+    List<QuestionMetadataBaseEntity> findQuestionsByConcepts(Collection<Integer> conceptBitEntries) {
+        ArrayList<QuestionMetadataBaseEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAllWithConcepts(conceptBitEntries);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
 
     private HashMap<String, Integer> _fillConcepts(HashMap<String, Integer> name2bit) {
         name2bit.put("pointer", 0x1);

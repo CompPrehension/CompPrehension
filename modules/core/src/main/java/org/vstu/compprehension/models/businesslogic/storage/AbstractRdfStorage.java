@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
@@ -25,6 +26,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.storage.stats.BitmaskStat;
 import org.vstu.compprehension.models.entities.QuestionMetadataBaseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
@@ -33,6 +35,8 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.lang.Long.bitCount;
 
 @Log4j2
 public abstract class AbstractRdfStorage {
@@ -137,6 +141,200 @@ public abstract class AbstractRdfStorage {
         return new NamespaceUtil(NS_questions.get("has_graph_" + role.ns().base()));
     }
 
+    // could the two following methods be collapsed into one?? (replacing metaMgr with HashMap from it) - no, lists clash.
+    private int conceptsToBitmask(List<Concept> concepts, QuestionMetadataManager metaMgr) {
+        int conceptBitmask = 0; //
+        for (Concept t : concepts) {
+            String name = t.getName();
+            int newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.conceptName2bit);
+            if (newBit == 0) {
+                // make use of children
+                for (Concept child : domain.getChildrenOfConcept(name)) {
+                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.conceptName2bit);
+                    if (newBit != 0)
+                        break;
+                }
+            }
+            conceptBitmask |= newBit;
+        }
+        return conceptBitmask;
+    }
+
+    private int lawsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
+        int lawBitmask = 0; //
+        for (Law t : laws) {
+            String name = t.getName();
+            int newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.lawName2bit);
+            if (newBit == 0) {
+                // make use of children
+                for (Law child : domain.getPositiveLawWithImplied(name)) {  // !! todo: Note: positive only.
+                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.lawName2bit);
+                    if (newBit != 0)
+                        break;
+                }
+            }
+            lawBitmask |= newBit;
+        }
+        return lawBitmask;
+    }
+
+    public List<Question> searchQuestionsWithAdvancedMetadata(QuestionRequest qr, int limit) {
+
+        Checkpointer ch = new Checkpointer(log);
+
+        QuestionMetadataManager metaMgr = getQuestionMetadataManager();
+        int queryLimit = (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+
+        Random random = domain.getRandomProvider().getRandom();
+
+        int targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
+        int allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
+        int deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
+
+        List<Integer> selectedConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
+                deniedConceptsBitmask, queryLimit, metaMgr.wholeBankStat.getConceptStat(), random);
+
+        /* TODO: use laws for expr Domain
+        int targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
+        int allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
+        int deniedLawsBitmask = lawsToBitmask(qr.getDeniedLaws(), metaMgr);
+
+        List<Integer> selectedLawKeys = fit3Bitmasks(targetLawsBitmask, allowedLawsBitmask,
+                deniedLawsBitmask, queryLimit, metaMgr.wholeBankStat.getViolationStat(), random);
+        */
+
+        ch.hit("searchQuestionsAdvanced - bitmasks prepared");
+
+        // TODO: use tags as well
+        List<QuestionMetadataBaseEntity> foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedConceptKeys /*, queryLimit*/);
+
+        ch.hit("searchQuestionsAdvanced - query executed");
+
+        // filter foundQuestionMetas, ranking by complexity, solution steps
+        // 0.8 .. 1.2
+        float changeCoeff = 0.8f + 0.4f * random.nextFloat();
+        float complexity = qr.getComplexity() * changeCoeff;
+        int solutionSteps = qr.getSolvingDuration();  // 0..10
+
+        foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
+                metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1),
+                metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10),
+                limit  // Note: queryLimit > limit
+                );
+
+        ch.hit("searchQuestionsAdvanced - " + foundQuestionMetas.size() + " candidates filtered");
+
+        List<Question> loadedQuestions = readQuestionsFromDisk(foundQuestionMetas);
+
+        ch.hit("searchQuestionsAdvanced - files loaded");
+        ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions", false);
+
+        return loadedQuestions;
+    }
+
+    private List<QuestionMetadataBaseEntity> filterQuestionMetas(List<QuestionMetadataBaseEntity> given, double scaledComplexity, double scaledSolutionLength, int limit) {
+        if (given.size() <= limit)
+            return given;
+
+        List<QuestionMetadataBaseEntity> ranking1 = given.stream()
+                .sorted(Comparator.comparingDouble(q -> q.complexityAbsDiff(scaledComplexity)))
+                .collect(Collectors.toList());
+
+        List<QuestionMetadataBaseEntity> ranking2 = given.stream()
+                .sorted(Comparator.comparingDouble(q -> q.getSolutionStepsAbsDiff(scaledSolutionLength)))
+                .collect(Collectors.toList());
+
+        List<QuestionMetadataBaseEntity> finalRanking = given.stream()
+                .sorted(Comparator.comparingInt(q -> (
+                        ranking1.indexOf(q) +
+                        ranking2.indexOf(q)
+                        )))
+                .collect(Collectors.toList());
+
+        return finalRanking.subList(0, limit);
+    }
+
+    private List<Integer> fit3Bitmasks(int targetBitmask, int allowedBitmask, int deniedBitmask,
+                                       int resCountLimit, BitmaskStat bitStat, Random random) {
+        // ensure no overlap
+        targetBitmask &= ~deniedBitmask;
+        allowedBitmask &= ~deniedBitmask;
+        allowedBitmask &= ~targetBitmask;
+
+
+        int alwBits;  // how many optional bits can be added to target, keeping the sample's size big enough.
+        int optionalBits = bitCount(allowedBitmask);
+        List<Integer> keysCriteria = null;
+        for (alwBits = optionalBits /*- 1*/; alwBits >= 0; --alwBits) {
+            keysCriteria = bitStat.keysWithBits(
+                    targetBitmask,
+                    allowedBitmask, alwBits,
+                    deniedBitmask);
+            if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
+                break;
+        }
+
+//        List<Integer> keysCriteriaReducingTargets = null;
+        if (alwBits == -1) {
+            int tarBits;  // how many target bits to take, since current criteria is too strong.
+            int targetBits = bitCount(targetBitmask);
+            for (tarBits = targetBits - 1; tarBits >= 0; --tarBits) {
+                keysCriteria = bitStat.keysWithBits(
+                        0,
+                        targetBitmask, tarBits,
+                        deniedBitmask);
+                if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
+                    break;
+            }
+            if (tarBits == -1) {
+                throw new RuntimeException("Denied [concepts] don't allow any questions to be found!.");
+            }
+
+        }
+
+        // decide how to extend targets with optionals
+        // play with deletion of keys, checking others to be still enough ...
+        int currSum = bitStat.sumForKeys(keysCriteria);
+        // init lookup
+        HashMap<Integer, Integer> key2count = new HashMap<>();
+        for (int key : keysCriteria) {
+            key2count.put(key, bitStat.getItems().get(key));
+        }
+        // remove keys randomly while curr sum is still enough
+        boolean stop = false;
+        while (!stop && currSum > 0) {
+            stop = true;
+            for (int key : List.copyOf(key2count.keySet())) {
+                int count = key2count.get(key);
+                if (currSum - count > resCountLimit) {  // we can try deleting this one
+                    float chance = count / (float)(currSum - resCountLimit);
+                    if (random.nextFloat() < chance) {  // with chance, drop it
+                        key2count.remove(key);
+                        currSum -= count;
+                        stop = false;
+                        /// log.info("Dropped key of bitmask: " + key);
+                    }
+                }
+            }
+        }
+        Set<Integer> selectedBitKeys = key2count.keySet();
+        return List.copyOf(selectedBitKeys);
+    }
+
+//    private List<Question> readQuestionsFromDisk(Collection<String> paths) {
+//        return paths.stream()
+//                .map(this::loadQuestion)
+//                .filter(Objects::nonNull)
+//                .collect(Collectors.toList());
+//    }
+    private List<Question> readQuestionsFromDisk(Collection<QuestionMetadataBaseEntity> metas) {
+        return metas.stream()
+                .map(this::loadQuestion)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+
     /**
      * Find question templates in the questions bank
      * @param qr QuestionRequest
@@ -147,7 +345,10 @@ public abstract class AbstractRdfStorage {
     public List<Question> searchQuestions(QuestionRequest qr, int limit) {
         if (getQuestionMetadataManager() != null) {
             // ...
+            return searchQuestionsWithAdvancedMetadata(qr, limit);
         }
+
+        int queryLimit = (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
 
         /*Model qG =*/ getGraph(NS_questions.base());
 
@@ -300,7 +501,7 @@ public abstract class AbstractRdfStorage {
 //                "order by DESC(max(?concepts_exist)) ?compl_diff ?steps_diff");
 //                "order by DESC(?concepts_here) ?compl_diff ?steps_diff");
         if (limit > 0)
-            query.append("\n  limit " + (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0)));
+            query.append("\n  limit " + queryLimit);
 
         ch.hit("searchQuestions - query prepared");
         List<Question> questions = new ArrayList<>();
@@ -318,21 +519,11 @@ public abstract class AbstractRdfStorage {
 //                RDFNode qDataUri = qG.getProperty(qNode, prop).getObject();
                 String name = nameForQuestionGraph(questionName, GraphRole.QUESTION_DATA);
 
-                Question q = null;
-                try (InputStream stream = fileService.getFileStream(name)) {
-                    if (stream != null) {
-                        q = domain.parseQuestionTemplate(stream);
-                        finalQuestions.add(q);
-                    } else {
-                        log.warn("File NOT found by storage: " + name);
-                    }
-                } catch (IOException /*| NullPointerException*/ e) {
-                    e.printStackTrace();
-                }
-
+                Question q = loadQuestion(name);
                 if (q == null) {
                     return;
                 }
+                finalQuestions.add(q);
 
                 q.getQuestionData().setQuestionName( questionName );
                 /*
@@ -442,6 +633,27 @@ public abstract class AbstractRdfStorage {
 
         ch.since_start("searchQuestions - completed with " + questions.size() + " questions", false);
         return questions;
+    }
+
+    private Question loadQuestion(QuestionMetadataBaseEntity qmeta) {
+        Question q = loadQuestion(qmeta.getQDataGraph());
+        if (q != null)
+            q.setTemplateId(qmeta.getTemplateId());
+        return q;
+    }
+
+    private Question loadQuestion(String path) {
+        Question q = null;
+        try (InputStream stream = fileService.getFileStream(path)) {
+            if (stream != null) {
+                q = domain.parseQuestionTemplate(stream);
+            } else {
+                log.warn("File NOT found by storage: " + path);
+            }
+        } catch (IOException | NullPointerException e) {
+            e.printStackTrace();
+        }
+        return q;
     }
 
     /** Find length of the longest prefix of `needle` with (one of) strings in `hive`
@@ -1192,16 +1404,21 @@ public abstract class AbstractRdfStorage {
 
         long startTime = System.nanoTime();
 
+//        long _key = srcModel.size();
+//        debug_dump(srcModel,_key + "-stor_in");
+
         // Note: changes done to inf are also applied to srcModel.
         InfModel inf = ModelFactory.createInfModel(reasoner, srcModel);
         inf.prepare();
 
         long estimatedTime = System.nanoTime() - startTime;
-        log.info("Time Jena spent on reasoning: " + String.format("%.5f",
+//        log.info
+        System.out.println("Time Jena spent on reasoning: " + String.format("%.5f",
                 (float) estimatedTime / 1000 / 1000 / 1000) + " seconds.");
 
-        Model result;
+//        debug_dump(inf,_key + "-stor_out");
 
+        Model result;
         if (retainNewFactsOnly) {
             // make a true copy
             result = ModelFactory.createDefaultModel().add(inf);
@@ -1210,6 +1427,22 @@ public abstract class AbstractRdfStorage {
         } else {
             result = inf;
         }
+//        debug_dump(result,_key + "-stor_end");
         return result;
     }
+
+    private void debug_dump(Model model, String name) {
+        if (true) {
+            String out_rdf_path = "c:/temp/" + name + ".n3";
+            FileOutputStream out = null;
+            try {
+                out = new FileOutputStream(out_rdf_path);
+                RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
+                System.out.println("Debug written: " + out_rdf_path + ". N of of triples: " + model.size());
+            } catch (FileNotFoundException e) {
+                System.out.println("Cannot write to file: " + out_rdf_path + "  Error: " + e);
+            }
+        }
+    }
+
 }

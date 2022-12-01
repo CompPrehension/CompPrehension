@@ -27,4 +27,12 @@ public interface QuestionMetadataBaseEntity {
     String getName();
 
     Integer getId();
+
+
+    default double complexityAbsDiff(double complexity) {
+        return Math.abs(getIntegralComplexity() - complexity);
+    }
+    default double getSolutionStepsAbsDiff(double steps) {
+        return Math.abs(getSolutionSteps() - steps);
+    }
 }

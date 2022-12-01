@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -20,6 +21,8 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,8 +54,13 @@ public class StaticStrategy implements AbstractStrategy {
         ExerciseStageEntity exerciseStage = getStageForNextQuestion(exerciseAttempt);
 
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
-        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
-        qr.setAllowedConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+        // take target concepts as is, use their children as `allowed`
+        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).map(ec -> domain.getConcept(ec.getName())).filter(Objects::nonNull).collect(Collectors.toList()));
+
+        Set<Concept> allowed = exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toSet());
+        allowed.addAll(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getChildrenOfConcept(ec.getName()).stream()).collect(Collectors.toSet()));
+        qr.setAllowedConcepts(List.copyOf(allowed));
+
         qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
 
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();

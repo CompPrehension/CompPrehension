@@ -36,6 +36,22 @@ public class NumericStat {
     }
 */
 
+    public double rescaleExternalValue(double value, double rangeMin, double rangeMax) {
+        double rangeMean = (rangeMin + rangeMax) / 2;
+        double desiredValue = mean;
+        if (value <= rangeMean) {
+            desiredValue = (
+                    min + (value / rangeMean) * (mean - min)
+            );  // min + weight * (avg - min)
+        }
+        else /*if (value > rangeMean)*/ {
+            desiredValue = (
+                    mean + ((value - rangeMean) / rangeMean) * (max - mean)
+            );  // avg + weight * (max - avg)
+        }
+        return desiredValue;
+    }
+
     private void acceptItems(Collection<Double> evidenceSet) {
         int count = 0;
         min = evidenceSet.stream().min(Double::compare).orElse(0.);

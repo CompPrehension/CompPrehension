@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.lang.Long.bitCount;
+
 public class BitmaskStat extends CategoricalStat<Integer> {
 
     public BitmaskStat(Collection<Integer> evidenceSet) {
@@ -22,14 +24,12 @@ public class BitmaskStat extends CategoricalStat<Integer> {
     public List<Integer> keysHavingAllBits(int requiredBits) {
         return items.keySet().stream()
                 .filter(k -> ((k & requiredBits) == requiredBits))
-                .map(this.items::get)
                 .collect(Collectors.toList());
     }
 
     public List<Integer> keysHavingSomeBits(int maskBits, int minCommonBits) {
         return items.keySet().stream()
-                .filter(k -> (countBits(k & maskBits) >= minCommonBits))
-                .map(this.items::get)
+                .filter(k -> (bitCount(k & maskBits) >= minCommonBits))
                 .collect(Collectors.toList());
     }
 
@@ -39,21 +39,7 @@ public class BitmaskStat extends CategoricalStat<Integer> {
                 .filter(k ->
                         ((k & forbiddenBits) == 0) &&
                         ((k & requiredBits) == requiredBits) &&
-                        (countBits(k & optionalBits) >= minCommonBits))
-                .map(this.items::get)
+                        (bitCount(k & optionalBits) >= minCommonBits))
                 .collect(Collectors.toList());
     }
-
-     public static int countBits(int i) {
-         int count = 0;
-         while (i != 0) {
-             count += i & 0x1;
-             i >>= 1;
-         }
-         return count;
-     }
-
-     public static int countCommonBits(int i1, int i2) {
-         return 0;
-     }
 }
