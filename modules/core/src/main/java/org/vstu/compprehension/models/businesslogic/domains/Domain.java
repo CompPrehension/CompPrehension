@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -42,6 +43,7 @@ public abstract class Domain {
      * version of domain (in db)
      */
     protected String version = "";
+    @Getter
     protected final RandomProvider randomProvider;
 
 
@@ -193,8 +195,20 @@ public abstract class Domain {
         return res;
     }
 
-    public List<Concept> getConceptWithChildren(String name) {
-        return getConceptsWithChildren(List.of(name));
+    public List<Concept> getChildrenOfConcept(String name_) {
+        return getConceptsWithChildren(List.of(name_)).stream()
+                .filter(t -> !name_.equals(t.getName()))
+                .collect(Collectors.toList());
+    }
+
+    public List<Concept> getChildrenOfConcepts(Collection<String> names) {
+        return getConceptsWithChildren(names).stream()
+                .filter(t -> !names.contains(t.getName()))
+                .collect(Collectors.toList());
+    }
+
+    public List<Concept> getConceptWithChildren(String name_) {
+        return getConceptsWithChildren(List.of(name_));
     }
 
     public List<Concept> getConceptsWithChildren(Collection<String> names) {

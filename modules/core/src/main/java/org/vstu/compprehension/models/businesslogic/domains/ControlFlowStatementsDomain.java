@@ -111,7 +111,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 new Concept("expr:func_call", "func() call", bases, flags),
                 new Concept("expr:explicit_cast", "(explicit)cast", bases, flags),
                 new Concept("expr:array", "array[]", bases, flags),
-                new Concept("expr:class_member_access", "access.to.member", bases, flags)
+                new Concept("expr:class_member_access", "access.to->member", bases, flags)
         ));
     }
 
