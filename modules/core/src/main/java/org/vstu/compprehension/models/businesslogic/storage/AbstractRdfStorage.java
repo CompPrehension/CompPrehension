@@ -27,7 +27,7 @@ import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.BitmaskStat;
-import org.vstu.compprehension.models.entities.QuestionMetadataBaseEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
@@ -101,7 +101,7 @@ public abstract class AbstractRdfStorage {
     QuestionMetadataManager getQuestionMetadataManager() {
         if (this.questionMetadataManager == null) {
             if (this.domain != null) {
-                QuestionMetadataBaseRepository<? extends QuestionMetadataBaseEntity> repo =
+                QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> repo =
                         domain.getQuestionMetadataRepository();
                 if (repo != null)
                     questionMetadataManager = new QuestionMetadataManager(repo);
@@ -207,7 +207,7 @@ public abstract class AbstractRdfStorage {
 
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
-        List<QuestionMetadataBaseEntity> foundQuestionMetas;
+        List<QuestionMetadataEntity> foundQuestionMetas;
 
         // TODO: use tags as well
         if (templatesInUse.isEmpty()) {
@@ -245,19 +245,19 @@ public abstract class AbstractRdfStorage {
         return loadedQuestions;
     }
 
-    private List<QuestionMetadataBaseEntity> filterQuestionMetas(List<QuestionMetadataBaseEntity> given, double scaledComplexity, double scaledSolutionLength, int limit) {
+    private List<QuestionMetadataEntity> filterQuestionMetas(List<QuestionMetadataEntity> given, double scaledComplexity, double scaledSolutionLength, int limit) {
         if (given.size() <= limit)
             return given;
 
-        List<QuestionMetadataBaseEntity> ranking1 = given.stream()
+        List<QuestionMetadataEntity> ranking1 = given.stream()
                 .sorted(Comparator.comparingDouble(q -> q.complexityAbsDiff(scaledComplexity)))
                 .collect(Collectors.toList());
 
-        List<QuestionMetadataBaseEntity> ranking2 = given.stream()
+        List<QuestionMetadataEntity> ranking2 = given.stream()
                 .sorted(Comparator.comparingDouble(q -> q.getSolutionStepsAbsDiff(scaledSolutionLength)))
                 .collect(Collectors.toList());
 
-        List<QuestionMetadataBaseEntity> finalRanking = given.stream()
+        List<QuestionMetadataEntity> finalRanking = given.stream()
                 .sorted(Comparator.comparingInt(q -> (
                         ranking1.indexOf(q) +
                         ranking2.indexOf(q)
@@ -341,7 +341,7 @@ public abstract class AbstractRdfStorage {
 //                .filter(Objects::nonNull)
 //                .collect(Collectors.toList());
 //    }
-    private List<Question> loadQuestions(Collection<QuestionMetadataBaseEntity> metas) {
+    private List<Question> loadQuestions(Collection<QuestionMetadataEntity> metas) {
         return metas.stream()
                 .map(this::loadQuestion)
                 .filter(Objects::nonNull)
@@ -649,7 +649,7 @@ public abstract class AbstractRdfStorage {
         return questions;
     }
 
-    private Question loadQuestion(@NotNull QuestionMetadataBaseEntity qMeta) {
+    private Question loadQuestion(@NotNull QuestionMetadataEntity qMeta) {
         Question q = loadQuestion(qMeta.getQDataGraph());
         if (q != null)
             q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());

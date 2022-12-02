@@ -1,8 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
-import org.springframework.data.domain.PageRequest;
-import org.vstu.compprehension.models.entities.QuestionMetadataBaseEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
@@ -11,13 +10,13 @@ import java.util.*;
 @Getter
 public class QuestionMetadataManager {
 
-    QuestionMetadataBaseRepository<? extends QuestionMetadataBaseEntity> questionRepository;
+    QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> questionRepository;
     QuestionGroupStat wholeBankStat;
     HashMap<String, Integer> conceptName2bit;
     HashMap<String, Integer> lawName2bit;
 
     public QuestionMetadataManager(
-            QuestionMetadataBaseRepository<? extends QuestionMetadataBaseEntity>questionMetadataRepository
+            QuestionMetadataBaseRepository<? extends QuestionMetadataEntity>questionMetadataRepository
     ) {
         this.questionRepository = questionMetadataRepository;
 //        this.questionRepository.;
@@ -41,9 +40,9 @@ public class QuestionMetadataManager {
 
     private void initBankStat() {
         Checkpointer ch = new Checkpointer();
-        ArrayList<QuestionMetadataBaseEntity> allQuestions = new ArrayList<>();
+        ArrayList<QuestionMetadataEntity> allQuestions = new ArrayList<>();
 
-        Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAll();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAll();
         ch.hit("initBankStat - query ran");
         iter.forEach(allQuestions::add);
         ch.hit("initBankStat - query results collected");
@@ -62,19 +61,19 @@ public class QuestionMetadataManager {
 //    }
 
     /** get entries unlimited */
-    List<QuestionMetadataBaseEntity> findQuestionsByConcepts(Collection<Integer> conceptBitEntries) {
-        ArrayList<QuestionMetadataBaseEntity> foundQuestions = new ArrayList<>();
-        Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAllWithConcepts(conceptBitEntries);
+    List<QuestionMetadataEntity> findQuestionsByConcepts(Collection<Integer> conceptBitEntries) {
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConcepts(conceptBitEntries);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }
 
-    List<QuestionMetadataBaseEntity> findQuestionsByConceptsWithoutTemplates(
+    List<QuestionMetadataEntity> findQuestionsByConceptsWithoutTemplates(
             Collection<Integer> conceptBitEntries,
             Collection<Integer> templatesIds
     ) {
-        ArrayList<QuestionMetadataBaseEntity> foundQuestions = new ArrayList<>();
-        Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAllWithConceptsWithoutTemplates(conceptBitEntries, templatesIds);
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsWithoutTemplates(conceptBitEntries, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }

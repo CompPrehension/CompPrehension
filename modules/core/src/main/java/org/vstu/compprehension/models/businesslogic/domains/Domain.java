@@ -286,7 +286,7 @@ public abstract class Domain {
         return rdfStorage;
     }
 
-    public QuestionMetadataBaseRepository<? extends QuestionMetadataBaseEntity> getQuestionMetadataRepository() {
+    public QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> getQuestionMetadataRepository() {
         return null;
     }
 

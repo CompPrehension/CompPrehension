@@ -8,7 +8,7 @@ import javax.persistence.*;
 @Getter @Setter
 @Entity
 @Table(name = "questions_meta")
-public class QuestionMetaEntity implements QuestionMetadataBaseEntity {
+public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -58,4 +58,11 @@ public class QuestionMetaEntity implements QuestionMetadataBaseEntity {
     @Column(name = "_version")
     private Integer version;
 
+
+    public double complexityAbsDiff(double complexity) {
+        return Math.abs(getIntegralComplexity() - complexity);
+    }
+    public double getSolutionStepsAbsDiff(double steps) {
+        return Math.abs(getSolutionSteps() - steps);
+    }
 }
