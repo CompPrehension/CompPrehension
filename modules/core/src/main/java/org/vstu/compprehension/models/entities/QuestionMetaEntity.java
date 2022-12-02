@@ -7,8 +7,8 @@ import javax.persistence.*;
 
 @Getter @Setter
 @Entity
-@Table(name = "ctfl_questions")
-public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
+@Table(name = "questions_meta")
+public class QuestionMetaEntity implements QuestionMetadataBaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -17,6 +17,9 @@ public class CtrlFlowQuestionEntity implements QuestionMetadataBaseEntity {
     // @Lob
     @Column(name = "name")
     private String name;
+
+    @Column(name = "domain_shortname")
+    private String domainShortname;
 
     @Column(name = "template_id", nullable = false)
     private Integer templateId;

@@ -79,8 +79,10 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             this.fileService.setDummyDirsForNewFile(2);  // 1 is the default
         }
 
-        initDB();
-
+        // hardcode: don't use RDF metadata when SQL metadata is available.
+        if (domain.getQuestionMetadataRepository() == null) {
+            initDB();
+        }
         // test it
 //        this.getQuestionMetadataManager();
 //        log.info("getQuestionMetadataManager completed.");

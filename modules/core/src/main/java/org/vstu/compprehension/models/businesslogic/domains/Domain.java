@@ -59,7 +59,10 @@ public abstract class Domain {
     public String getName() {
         return name;
     }
-    
+    public String getShortName() {
+        return name;  // same as name by default
+    }
+
     public String getVersion() {
         return version;
     }

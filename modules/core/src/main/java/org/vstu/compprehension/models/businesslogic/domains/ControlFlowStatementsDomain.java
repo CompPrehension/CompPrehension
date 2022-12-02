@@ -90,6 +90,11 @@ public class ControlFlowStatementsDomain extends Domain {
         // OFF: // update();
     }
 
+    @Override
+    public String getShortName() {
+        return "ctrl_flow";
+    }
+
     private static void initVocab() {
         if (VOCAB == null) {
             VOCAB = new DomainVocabulary(VOCAB_SCHEMA_PATH);

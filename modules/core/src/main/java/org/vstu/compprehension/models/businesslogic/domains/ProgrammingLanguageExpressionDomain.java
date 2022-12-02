@@ -97,6 +97,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new ProgrammingLanguageExpressionDomain(new LocalizationService());
     }
 
+    @Override
+    public String getShortName() {
+        return "expression";
+    }
+
     @NotNull
     @Override
     public String getDomainId() {
