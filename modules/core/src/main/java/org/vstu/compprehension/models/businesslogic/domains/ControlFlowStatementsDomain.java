@@ -29,6 +29,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.repository.CtrlFlowQuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
@@ -69,13 +70,16 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
+    private final CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository;
 
     @Autowired
     public ControlFlowStatementsDomain(LocalizationService localizationService,
                                        DomainRepository domainRepository,
-                                       RandomProvider randomProvider) {
+                                       RandomProvider randomProvider,
+                                       CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository) {
         super(randomProvider);
         this.localizationService = localizationService;
+        this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
         name = "ControlFlowStatementsDomain";
 //        if (domainRepository != null)
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
@@ -84,6 +88,11 @@ public class ControlFlowStatementsDomain extends Domain {
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
         // OFF: // update();
+    }
+
+    @Override
+    public String getShortName() {
+        return "ctrl_flow";
     }
 
     private static void initVocab() {
@@ -107,7 +116,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 new Concept("expr:func_call", "func() call", bases, flags),
                 new Concept("expr:explicit_cast", "(explicit)cast", bases, flags),
                 new Concept("expr:array", "array[]", bases, flags),
-                new Concept("expr:class_member_access", "access.to.member", bases, flags)
+                new Concept("expr:class_member_access", "access.to->member", bases, flags)
         ));
     }
 
@@ -153,6 +162,12 @@ public class ControlFlowStatementsDomain extends Domain {
         // init questions storage
         getRdfStorage();
     }
+
+    @Override
+    public CtrlFlowQuestionMetadataRepository getQuestionMetadataRepository() {
+        return ctrlFlowQuestionMetadataRepository;
+    }
+
 
     @Override
     public Model getSchemaForSolving() {
@@ -402,7 +417,7 @@ public class ControlFlowStatementsDomain extends Domain {
                         chance > 0.0 &&
                         randomProvider.getRandom().nextDouble() < chance)
         {
-            final int randomPoolSize = 16;
+            final int randomPoolSize = 10;  // 16;
             try {
                 // new version - invoke rdfStorage search
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);
@@ -494,6 +509,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 .multipleSelectionEnabled(true)
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
+                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()

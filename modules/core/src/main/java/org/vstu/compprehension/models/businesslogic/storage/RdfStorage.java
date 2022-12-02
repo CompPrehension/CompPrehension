@@ -20,7 +20,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFuseki;
 import org.apache.jena.rdfconnection.RDFConnectionRemote;
 import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.riot.RDFDataMgr;
@@ -525,7 +524,8 @@ RdfStorage.StopBackgroundDBFillUp()
         String sparql_endpoint_url = "http://localhost:7200/repositories/cf_pi";
 //        RdfStorage rs = new RdfStorage(sparql_endpoint);
 
-        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService(), null,  null);
+        ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService(), null,  null,
+                null /*new CtrlFlowQuestionRepository( )*/);
 //        rs.domain = cfd;
 
         RdfStorage rs = new RdfStorage(cfd);

@@ -2,19 +2,20 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -42,6 +43,7 @@ public abstract class Domain {
      * version of domain (in db)
      */
     protected String version = "";
+    @Getter
     protected final RandomProvider randomProvider;
 
 
@@ -57,7 +59,10 @@ public abstract class Domain {
     public String getName() {
         return name;
     }
-    
+    public String getShortName() {
+        return name;  // same as name by default
+    }
+
     public String getVersion() {
         return version;
     }
@@ -193,8 +198,20 @@ public abstract class Domain {
         return res;
     }
 
-    public List<Concept> getConceptWithChildren(String name) {
-        return getConceptsWithChildren(List.of(name));
+    public List<Concept> getChildrenOfConcept(String name_) {
+        return getConceptsWithChildren(List.of(name_)).stream()
+                .filter(t -> !name_.equals(t.getName()))
+                .collect(Collectors.toList());
+    }
+
+    public List<Concept> getChildrenOfConcepts(Collection<String> names) {
+        return getConceptsWithChildren(names).stream()
+                .filter(t -> !names.contains(t.getName()))
+                .collect(Collectors.toList());
+    }
+
+    public List<Concept> getConceptWithChildren(String name_) {
+        return getConceptsWithChildren(List.of(name_));
     }
 
     public List<Concept> getConceptsWithChildren(Collection<String> names) {
@@ -268,6 +285,11 @@ public abstract class Domain {
         }
         return rdfStorage;
     }
+
+    public QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> getQuestionMetadataRepository() {
+        return null;
+    }
+
 
     abstract public Question parseQuestionTemplate(InputStream stream);
 

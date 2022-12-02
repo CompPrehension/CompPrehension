@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.strategies;
 
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
@@ -35,7 +36,7 @@ public interface AbstractStrategy {
      * @param exerciseAttempt attempt
      * @return list of plain names
      */
-    default ArrayList<String> listQuestionsOfAttempt(ExerciseAttemptEntity exerciseAttempt) {
+    default ArrayList<String> listQuestionNamesOfAttempt(ExerciseAttemptEntity exerciseAttempt) {
         ArrayList<String> deniedQuestions = new ArrayList<>();
         if (exerciseAttempt != null && exerciseAttempt.getQuestions() != null) {
             for (QuestionEntity q : exerciseAttempt.getQuestions()) {
@@ -43,6 +44,18 @@ public interface AbstractStrategy {
             }
         }
         return deniedQuestions;
+    }
+    /**
+     * Return names of questions were generated within an exercise attempt
+     * @param exerciseAttempt attempt
+     * @return list {@link QuestionEntity} instances
+     */
+    default List<QuestionEntity> listQuestionsOfAttempt(ExerciseAttemptEntity exerciseAttempt) {
+        ArrayList<QuestionEntity> questions = new ArrayList<>();
+        if (exerciseAttempt != null && exerciseAttempt.getQuestions() != null) {
+            questions.addAll(exerciseAttempt.getQuestions());
+        }
+        return questions;
     }
 
 

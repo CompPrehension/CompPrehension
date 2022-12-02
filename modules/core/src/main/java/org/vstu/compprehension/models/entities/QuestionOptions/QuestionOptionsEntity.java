@@ -33,4 +33,6 @@ public class QuestionOptionsEntity implements Serializable {
     protected boolean requireContext;
     @Builder.Default
     private boolean showSupplementaryQuestions = true;
+    @Builder.Default
+    private int templateId = -1;
 }

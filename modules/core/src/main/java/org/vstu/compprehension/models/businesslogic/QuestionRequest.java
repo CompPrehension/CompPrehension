@@ -13,6 +13,7 @@ public class QuestionRequest {
 
     private List<Concept> targetConcepts;
 
+    /** Question Storage can treat this as "optional targets" or "preferred" */
     private List<Concept> allowedConcepts;
 
     private List<Law> targetLaws;
@@ -22,6 +23,7 @@ public class QuestionRequest {
     private List<Law> allowedLaws;
 
     private List<String> deniedQuestionNames;
+    private List<Integer> deniedQuestionTemplateIds = null;
 
 
     /**
