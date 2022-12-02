@@ -24,4 +24,10 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataBaseE
     @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :values")  // Note: db field `concept_bits` mapped by entity to `conceptBits`
     List<QuestionMetadataBaseEntity> findAllWithConcepts(@Param("values") Collection<Integer> conceptBitEntries);
 
+    @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :values AND q.templateId NOT IN :ids")
+    List<QuestionMetadataBaseEntity> findAllWithConceptsWithoutTemplates(
+            @Param("values") Collection<Integer> conceptBitEntries,
+            @Param("ids") Collection<Integer> templatesIds
+    );
+
 }

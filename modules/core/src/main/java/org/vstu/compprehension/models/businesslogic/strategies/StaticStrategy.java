@@ -88,7 +88,9 @@ public class StaticStrategy implements AbstractStrategy {
 //        HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
 //        HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
 
-        qr.setDeniedQuestionNames(listQuestionsOfAttempt(exerciseAttempt));
+        qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));
+        qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));
+
 //        qr.setComplexitySearchDirection(SearchDirections.TO_SIMPLE);
         qr.setComplexitySearchDirection(null);
          qr.setLawsSearchDirection(SearchDirections.TO_SIMPLE);

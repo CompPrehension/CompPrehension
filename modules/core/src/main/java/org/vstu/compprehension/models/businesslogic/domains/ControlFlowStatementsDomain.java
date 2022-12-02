@@ -412,7 +412,7 @@ public class ControlFlowStatementsDomain extends Domain {
                         chance > 0.0 &&
                         randomProvider.getRandom().nextDouble() < chance)
         {
-            final int randomPoolSize = 16;
+            final int randomPoolSize = 10;  // 16;
             try {
                 // new version - invoke rdfStorage search
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);
@@ -504,6 +504,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 .multipleSelectionEnabled(true)
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
+                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()

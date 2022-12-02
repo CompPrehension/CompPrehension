@@ -19,6 +19,10 @@ public class CategoricalStat<T> {
     }
 
     public int sumForKeys(Collection<? extends T> keys) {
+        if (keys == null) {
+            System.out.println("WARN: called CategoricalStat.sumForKeys(null) !!! ");
+            return 0;
+        }
         return keys.stream()
                 .map(k -> items.getOrDefault(k, 0))
                 .reduce(Integer::sum).orElse(0);

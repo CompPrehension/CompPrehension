@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
@@ -23,6 +22,7 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -205,10 +205,23 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        // TODO: use tags as well
-        List<QuestionMetadataBaseEntity> foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedConceptKeys /*, queryLimit*/);
+        List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
-        ch.hit("searchQuestionsAdvanced - query executed");
+        List<QuestionMetadataBaseEntity> foundQuestionMetas;
+
+        // TODO: use tags as well
+        if (templatesInUse.isEmpty()) {
+            foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedConceptKeys /*, queryLimit*/);
+        } else {
+            foundQuestionMetas = metaMgr.findQuestionsByConceptsWithoutTemplates(selectedConceptKeys , templatesInUse);
+        }
+        ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
+
+        while (foundQuestionMetas.size() > queryLimit * 4) {
+            // too many entries, drop one by one
+            foundQuestionMetas.remove(random.nextInt(foundQuestionMetas.size()));
+        }
+        ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
 
         // filter foundQuestionMetas, ranking by complexity, solution steps
         // 0.8 .. 1.2
@@ -222,9 +235,9 @@ public abstract class AbstractRdfStorage {
                 limit  // Note: queryLimit > limit
                 );
 
-        ch.hit("searchQuestionsAdvanced - " + foundQuestionMetas.size() + " candidates filtered");
+        ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
 
-        List<Question> loadedQuestions = readQuestionsFromDisk(foundQuestionMetas);
+        List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
 
         ch.hit("searchQuestionsAdvanced - files loaded");
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions", false);
@@ -276,6 +289,7 @@ public abstract class AbstractRdfStorage {
 
 //        List<Integer> keysCriteriaReducingTargets = null;
         if (alwBits == -1) {
+            System.out.println("Target concepts are impossible ...");
             int tarBits;  // how many target bits to take, since current criteria is too strong.
             int targetBits = bitCount(targetBitmask);
             for (tarBits = targetBits - 1; tarBits >= 0; --tarBits) {
@@ -321,13 +335,13 @@ public abstract class AbstractRdfStorage {
         return List.copyOf(selectedBitKeys);
     }
 
-//    private List<Question> readQuestionsFromDisk(Collection<String> paths) {
+//    private List<Question> readQuestionsFromDisk [/ loadQuestions](Collection<String> paths) {
 //        return paths.stream()
 //                .map(this::loadQuestion)
 //                .filter(Objects::nonNull)
 //                .collect(Collectors.toList());
 //    }
-    private List<Question> readQuestionsFromDisk(Collection<QuestionMetadataBaseEntity> metas) {
+    private List<Question> loadQuestions(Collection<QuestionMetadataBaseEntity> metas) {
         return metas.stream()
                 .map(this::loadQuestion)
                 .filter(Objects::nonNull)
@@ -635,10 +649,10 @@ public abstract class AbstractRdfStorage {
         return questions;
     }
 
-    private Question loadQuestion(QuestionMetadataBaseEntity qmeta) {
-        Question q = loadQuestion(qmeta.getQDataGraph());
+    private Question loadQuestion(@NotNull QuestionMetadataBaseEntity qMeta) {
+        Question q = loadQuestion(qMeta.getQDataGraph());
         if (q != null)
-            q.setTemplateId(qmeta.getTemplateId());
+            q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());
         return q;
     }
 

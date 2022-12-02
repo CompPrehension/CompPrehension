@@ -69,6 +69,16 @@ public class QuestionMetadataManager {
         return foundQuestions;
     }
 
+    List<QuestionMetadataBaseEntity> findQuestionsByConceptsWithoutTemplates(
+            Collection<Integer> conceptBitEntries,
+            Collection<Integer> templatesIds
+    ) {
+        ArrayList<QuestionMetadataBaseEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataBaseEntity> iter = questionRepository.findAllWithConceptsWithoutTemplates(conceptBitEntries, templatesIds);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
+
     private HashMap<String, Integer> _fillConcepts(HashMap<String, Integer> name2bit) {
         name2bit.put("pointer", 0x1);
         name2bit.put("C++", 0x2);

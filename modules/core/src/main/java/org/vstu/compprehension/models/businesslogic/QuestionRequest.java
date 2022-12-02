@@ -23,6 +23,7 @@ public class QuestionRequest {
     private List<Law> allowedLaws;
 
     private List<String> deniedQuestionNames;
+    private List<Integer> deniedQuestionTemplateIds = null;
 
 
     /**
