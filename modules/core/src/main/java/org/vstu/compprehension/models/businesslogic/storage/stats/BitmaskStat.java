@@ -15,9 +15,9 @@ public class BitmaskStat extends CategoricalStat<Integer> {
         for (Integer key : evidenceSet) {
             int count = 0;
             if (items.containsKey(key)) {
-                count = items.get(key) + 1;
+                count = items.get(key);
             }
-            items.put(key, count);
+            items.put(key, count + 1);
         }
     }
 

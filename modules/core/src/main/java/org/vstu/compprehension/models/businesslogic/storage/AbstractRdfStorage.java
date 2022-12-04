@@ -205,9 +205,9 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
-
         List<QuestionMetadataEntity> foundQuestionMetas;
+
+        List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
         // TODO: use tags as well
         if (templatesInUse.isEmpty()) {
@@ -289,24 +289,28 @@ public abstract class AbstractRdfStorage {
 
 //        List<Integer> keysCriteriaReducingTargets = null;
         if (alwBits == -1) {
-            System.out.println("Target concepts are impossible ...");
+            System.out.println("Target concepts can't be reached fully ...");
+            int newTargetCount = Math.min(resCountLimit, 2);
             int tarBits;  // how many target bits to take, since current criteria is too strong.
             int targetBits = bitCount(targetBitmask);
-            for (tarBits = targetBits - 1; tarBits >= 0; --tarBits) {
+            for (tarBits = targetBits - 1; (tarBits > 0 || keysCriteria.isEmpty()); --tarBits) {  // not: tarBits >= 0
                 keysCriteria = bitStat.keysWithBits(
                         0,
                         targetBitmask, tarBits,
                         deniedBitmask);
-                if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
+                if (bitStat.sumForKeys(keysCriteria) >= newTargetCount)
                     break;
             }
-            if (tarBits == -1) {
+            if (keysCriteria.isEmpty() /*tarBits < 1*/) {
+                System.out.println("Target concepts are impossible ...");
                 throw new RuntimeException("Denied [concepts] don't allow any questions to be found!.");
             }
 
+            return keysCriteria;
         }
 
-        // decide how to extend targets with optionals
+        // continuing with rich set of candidates ...
+        // decide how to "extend" targets with optionals
         // play with deletion of keys, checking others to be still enough ...
         int currSum = bitStat.sumForKeys(keysCriteria);
         // init lookup
