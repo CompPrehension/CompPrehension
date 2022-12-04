@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { container } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import * as E from "fp-ts/lib/Either";
-import { Domain, DomainConcept, DomainConceptFlag, DomainLaw, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardViewModel, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConcept, DomainConceptFlag, DomainLaw, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardViewModel, ExerciseListItem, Strategy } from "../types/exercise-settings";
 import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
 import { observer } from "mobx-react";
 import { ToggleSwitch } from "../components/common/toggle";
@@ -82,7 +82,7 @@ type ExerciseCardElementProps = {
     card?: ExerciseCardViewModel | null,
     domains: Domain[],
     backends: string[],
-    strategies: string[],
+    strategies: Strategy[],
 }
 
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
@@ -118,6 +118,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
     const sharedDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
         .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+    const currentStrategy = strategies.find(s => s.id === card.strategyId);
 
     return (
         <div>
@@ -140,7 +141,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 <div className="form-group">
                     <label className="font-weight-bold">Strategy</label>
                     <select className="form-control" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)}>
-                        {strategies?.map(d => <option>{d}</option>)}
+                        {strategies?.map(d => <option value={d.id}>{d.id}</option>)}
                     </select>
                 </div>
                 <div className="row">
@@ -283,14 +284,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                     }                                    
                                     <div className="card-body">
                                         <div className="form-group">Stage #{stageIdx + 1}</div>
-                                        <div className="form-group">
-                                            <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>Number of questions</label>
-                                            <input type="text" 
-                                                   className="form-control" 
-                                                   id={`numberOfQuestions_stage${stageIdx}`}
-                                                   value={stage.numberOfQuestions}
-                                                   onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
-                                        </div>
+                                        {currentStrategy?.options.multiStagesEnabled
+                                            && <div className="form-group">
+                                                    <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>Number of questions</label>
+                                                    <input type="text"
+                                                        className="form-control"
+                                                        id={`numberOfQuestions_stage${stageIdx}`}
+                                                        value={stage.numberOfQuestions}
+                                                        onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
+                                               </div>
+                                            || null
+                                        }                                        
                                         {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
                                             <div className="form-group">
                                                 <label className="font-weight-bold">Concepts</label>
@@ -361,14 +365,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                             </>)}
                     </div>
                 </div>
+                {card.stages.length < 5 && currentStrategy?.options.multiStagesEnabled
+                    ? <div style={{marginTop: "-1rem"}}>
+                        <button type="button" className="btn btn-success" onClick={() => store.addStage()}>Add stage</button>
+                      </div>
+                    : null
+                }
             </form >
-            {card.stages.length < 5
-                ? <div className="mb-2">
-                    <button type="button" className="btn btn-primary" onClick={() => store.addStage()}>Add stage</button>
-                  </div>
-                : null
-            }            
-            <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>Save</button>
+            <div className="mt-5">
+                <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>Save</button>
+                <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/basic/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>Save &amp; Open</button>
+            </div>
         </div >
 
 

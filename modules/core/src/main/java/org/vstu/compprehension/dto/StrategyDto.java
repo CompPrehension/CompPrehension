@@ -1,9 +1,11 @@
 package org.vstu.compprehension.dto;
 
+import lombok.Builder;
 import lombok.Value;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 
-@Value
+@Value @Builder
 public class StrategyDto {
-    String name;
-    String description;
+    String id;
+    StrategyOptions options;
 }

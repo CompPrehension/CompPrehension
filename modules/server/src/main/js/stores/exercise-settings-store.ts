@@ -1,7 +1,7 @@
 import { action, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -13,7 +13,7 @@ export class ExerciseSettingsStore {
     @observable exercises: ExerciseListItem[] | null = null;
     @observable domains: Domain[] | null = null;
     @observable backends: string[] | null = null;
-    @observable strategies: string[] | null = null;
+    @observable strategies: Strategy[] | null = null;
     @observable currentCard: ExerciseCardViewModel | null = null;
 
     constructor(@inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController) {
@@ -77,7 +77,7 @@ export class ExerciseSettingsStore {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
-        const newExerciseId = await this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]);
+        const newExerciseId = await this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]!.id);
         if (!E.isRight(newExerciseId))
             return;
 
@@ -133,7 +133,13 @@ export class ExerciseSettingsStore {
     setCardStrategy(strategyId: string) {
         if (!this.currentCard)
             return;
-        this.currentCard.strategyId = strategyId;
+        if (this.currentCard.strategyId !== strategyId) {
+            this.currentCard.stages[0].laws = [];
+            this.currentCard.stages[0].concepts = [];
+            this.currentCard.stages.splice(1);
+            this.currentCard.strategyId = strategyId;
+        }
+        
     }
     @action
     setCardQuestionComplexity(rawComplexity: string) {

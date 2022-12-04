@@ -141,3 +141,16 @@ export const TDomain : io.Type<Domain> = io.type({
     concepts: io.array(TDomainConcept),
 })
 
+export type Strategy = {
+    id: string,
+    options: {
+        multiStagesEnabled: boolean,
+    },
+}
+export const TStrategy: io.Type<Strategy> = io.type({
+    id: io.string,
+    options: io.type({
+        multiStagesEnabled: io.boolean,
+    }),
+})
+
