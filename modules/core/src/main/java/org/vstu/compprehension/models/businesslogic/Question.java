@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -14,6 +16,8 @@ public abstract class Question {
     protected QuestionEntity questionData;
     protected List<String> concepts;
     protected List<String> negativeLaws;
+    @Getter @Setter
+    protected QuestionMetadataEntity metadata = null;
     protected HashSet<String> tags;
     transient protected Domain domain;  // "transient" makes json reader ignore this field
     

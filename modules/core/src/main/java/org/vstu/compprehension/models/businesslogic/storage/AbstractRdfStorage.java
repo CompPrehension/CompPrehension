@@ -27,6 +27,7 @@ import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.BitmaskStat;
+import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
@@ -178,6 +179,22 @@ public abstract class AbstractRdfStorage {
         return lawBitmask;
     }
 
+    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionRequest qr, int n) {
+        List<QuestionEntity> list = qr.getExerciseAttempt().getQuestions();
+        List<QuestionMetadataEntity> result = new ArrayList<>();
+        long toSkip = Math.max(0, list.size() - n);
+        for (QuestionEntity questionEntity : list) {
+            if (toSkip > 0) {
+                toSkip--;
+                continue;
+            }
+            QuestionMetadataEntity meta = questionEntity.getOptions().getMetadata();
+            if (meta != null)
+                result.add(meta);
+        }
+        return result;
+    }
+
     public List<Question> searchQuestionsWithAdvancedMetadata(QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
@@ -190,9 +207,12 @@ public abstract class AbstractRdfStorage {
         int targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
         int allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
         int deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
+        int unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 5).stream()
+                .mapToInt(QuestionMetadataEntity::getConceptBits).
+                reduce((t, t2) -> t | t2).orElse(0);
 
         List<Integer> selectedConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
-                deniedConceptsBitmask, queryLimit, metaMgr.wholeBankStat.getConceptStat(), random);
+                deniedConceptsBitmask, unwantedConceptsBitmask, queryLimit, metaMgr.wholeBankStat.getConceptStat(), random);
 
         /* TODO: use laws for expr Domain
         int targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
@@ -267,12 +287,13 @@ public abstract class AbstractRdfStorage {
         return finalRanking.subList(0, limit);
     }
 
-    private List<Integer> fit3Bitmasks(int targetBitmask, int allowedBitmask, int deniedBitmask,
+    private List<Integer> fit3Bitmasks(int targetBitmask, int allowedBitmask, int deniedBitmask, int unwantedBitmask,
                                        int resCountLimit, BitmaskStat bitStat, Random random) {
         // ensure no overlap
         targetBitmask &= ~deniedBitmask;
         allowedBitmask &= ~deniedBitmask;
         allowedBitmask &= ~targetBitmask;
+        unwantedBitmask &= ~deniedBitmask;
 
 
         int alwBits;  // how many optional bits can be added to target, keeping the sample's size big enough.
@@ -309,6 +330,21 @@ public abstract class AbstractRdfStorage {
             return keysCriteria;
         }
 
+        // apply unwanted bits "adding" them to denied
+        long weakenedTargetBits = targetBitmask & ~unwantedBitmask;
+        long weakenedAllowedBits = targetBitmask & ~unwantedBitmask;
+//        deniedBitmask &=
+        int unwBits;  // how many unwanted bits can be added to denied, keeping the sample's size big enough.
+        int unwantedBits = bitCount(unwantedBitmask);
+        for (unwBits = 0; unwBits <= unwantedBits; ++unwBits) {
+            keysCriteria = bitStat.keysWithBits(
+                    weakenedTargetBits,
+                    weakenedAllowedBits, alwBits,
+                    deniedBitmask, unwantedBitmask, unwBits);
+            if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
+                break;
+        }
+
         // continuing with rich set of candidates ...
         // decide how to "extend" targets with optionals
         // play with deletion of keys, checking others to be still enough ...
@@ -339,17 +375,17 @@ public abstract class AbstractRdfStorage {
         return List.copyOf(selectedBitKeys);
     }
 
-//    private List<Question> readQuestionsFromDisk [/ loadQuestions](Collection<String> paths) {
-//        return paths.stream()
-//                .map(this::loadQuestion)
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toList());
-//    }
     private List<Question> loadQuestions(Collection<QuestionMetadataEntity> metas) {
-        return metas.stream()
-                .map(this::loadQuestion)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<Question> list = new ArrayList<>();
+        for (QuestionMetadataEntity meta : metas) {
+            Question question = loadQuestion(meta);
+            if (question != null) {
+                question.setMetadata(meta);
+                question.getQuestionData().getOptions().setMetadata(meta);
+                list.add(question);
+            }
+        }
+        return list;
     }
 
 
