@@ -24,22 +24,31 @@ import java.util.*;
 @Log4j2
 public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
-    private DomainFactory domainFactory;
-
-    @Autowired
-    public GradeConfidenceBaseStrategy(DomainFactory domainFactory) {
-        this.domainFactory = domainFactory;
-    }
-
+    private final DomainFactory domainFactory;
+    private final StrategyOptions options;
 
     protected int WINDOW_TO_GRADE = 7;
     protected float TARGET_GRADE = (float)0.8;
     protected int DEFAULT_LAW_COUNT = 5;
 
+    @Autowired
+    public GradeConfidenceBaseStrategy(DomainFactory domainFactory) {
+        this.domainFactory = domainFactory;
+        this.options = StrategyOptions.builder()
+                .multiStagesEnabled(false)
+                .build();
+    }
+
     @NotNull
     @Override
     public String getStrategyId() {
         return "GradeConfidenceBaseStrategy";
+    }
+
+    @NotNull
+    @Override
+    public StrategyOptions getOptions() {
+        return options;
     }
 
     @Override

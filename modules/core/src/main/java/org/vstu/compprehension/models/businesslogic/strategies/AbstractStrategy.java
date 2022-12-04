@@ -17,6 +17,8 @@ import java.util.List;
 public interface AbstractStrategy {
     @NotNull String getStrategyId();
 
+    @NotNull StrategyOptions getOptions();
+
     QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt);
 
     DisplayingFeedbackType determineDisplayingFeedbackType(QuestionEntity question);

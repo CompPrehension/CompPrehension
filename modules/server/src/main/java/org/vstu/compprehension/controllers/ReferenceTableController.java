@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.dto.ConceptTreeItemDto;
 import org.vstu.compprehension.dto.DomainDto;
+import org.vstu.compprehension.dto.StrategyDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
@@ -36,8 +37,15 @@ public class ReferenceTableController {
 
     @RequestMapping(value = {"/strategies"}, method = { RequestMethod.GET })
     @ResponseBody
-    public Set<String> getStrategies() {
-        return strategyFactory.getStrategyIds();
+    public List<StrategyDto> getStrategies() {
+        var strategyIds = strategyFactory.getStrategyIds();
+        return strategyIds.stream()
+                .map(strategyFactory::getStrategy)
+                .map(s -> StrategyDto.builder()
+                        .id(s.getStrategyId())
+                        .options(s.getOptions())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })

@@ -30,17 +30,27 @@ import java.util.stream.Stream;
 @Log4j2
 public class StaticStrategy implements AbstractStrategy {
 
-    private DomainFactory domainFactory;
+    private final DomainFactory domainFactory;
+    private final StrategyOptions options;
 
     @Autowired
     public StaticStrategy(DomainFactory domainFactory) {
         this.domainFactory = domainFactory;
+        this.options = StrategyOptions.builder()
+                .multiStagesEnabled(true)
+                .build();
     }
 
     @NotNull
     @Override
     public String getStrategyId() {
         return "StaticStrategy";
+    }
+
+    @NotNull
+    @Override
+    public StrategyOptions getOptions() {
+        return options;
     }
 
     @Override

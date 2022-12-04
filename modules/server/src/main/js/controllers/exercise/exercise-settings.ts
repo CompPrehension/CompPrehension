@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { Domain, ExerciseCard, ExerciseListItem, TDomain, TExerciseCard, TExerciseListItem } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseListItem, Strategy, TDomain, TExerciseCard, TExerciseListItem, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
@@ -39,8 +39,8 @@ export class ExerciseSettingsController {
         return ajaxDelete(`${ExerciseSettingsController.endpointPath}exercise?id=${encodeURIComponent(id)}`);
     }
 
-    getStrategies() : PromiseEither<RequestError, string[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/strategies`, io.array(io.string));
+    getStrategies() : PromiseEither<RequestError, Strategy[]> {
+        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/strategies`, io.array(TStrategy));
     }
 
     getBackends() : PromiseEither<RequestError, string[]> {

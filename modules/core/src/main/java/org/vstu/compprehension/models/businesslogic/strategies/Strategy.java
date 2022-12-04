@@ -32,11 +32,15 @@ public class Strategy implements AbstractStrategy {
 
     private final DomainFactory domainFactory;
     protected final RandomProvider randomProvider;
+    protected final StrategyOptions options;
 
     @Autowired
     public Strategy(DomainFactory domainFactory, RandomProvider randomProvider) {
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
+        this.options = StrategyOptions.builder()
+                .multiStagesEnabled(false)
+                .build();
     }
 
 
@@ -44,6 +48,12 @@ public class Strategy implements AbstractStrategy {
     @Override
     public String getStrategyId() {
         return "Strategy";
+    }
+
+    @NotNull
+    @Override
+    public StrategyOptions getOptions() {
+        return options;
     }
 
     public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
