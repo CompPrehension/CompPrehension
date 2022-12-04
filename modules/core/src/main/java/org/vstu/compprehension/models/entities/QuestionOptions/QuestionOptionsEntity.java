@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.io.Serializable;
 
@@ -35,4 +36,6 @@ public class QuestionOptionsEntity implements Serializable {
     private boolean showSupplementaryQuestions = true;
     @Builder.Default
     private int templateId = -1;
+    @Builder.Default
+    private QuestionMetadataEntity metadata = null;
 }

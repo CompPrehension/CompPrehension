@@ -23,8 +23,9 @@ public class QuestionRequest {
     private List<Law> allowedLaws;
 
     private List<String> deniedQuestionNames;
-    private List<Integer> deniedQuestionTemplateIds = null;
 
+    // ?? todo: delete field since we're using QuestionEntity.options.metadata
+    private List<Integer> deniedQuestionTemplateIds = null;
 
     /**
      * Условная единица, показывающая долго или быстро решается вопрос

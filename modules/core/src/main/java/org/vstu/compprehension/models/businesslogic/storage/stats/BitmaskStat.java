@@ -42,4 +42,15 @@ public class BitmaskStat extends CategoricalStat<Integer> {
                         (bitCount(k & optionalBits) >= minCommonBits))
                 .collect(Collectors.toList());
     }
+
+    public List<Integer> keysWithBits(long requiredBits, long optionalBits, int minCommonBits, long forbiddenBits, long unwantedOptionalBits, int minCommonUnwOptBits) {
+        assert (requiredBits & forbiddenBits) == 0;
+        return items.keySet().stream()
+                .filter(k ->
+                        ((k & forbiddenBits) == 0 &&
+                                bitCount(k & unwantedOptionalBits) <= minCommonUnwOptBits) &&
+                        ((k & requiredBits) == requiredBits) &&
+                        (bitCount(k & optionalBits) >= minCommonBits))
+                .collect(Collectors.toList());
+    }
 }
