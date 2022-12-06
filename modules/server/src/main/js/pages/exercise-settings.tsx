@@ -170,6 +170,35 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         </div>
                     </div>
                 </div>
+
+                <div className="form-group">
+                    <label className="font-weight-bold">Options</label>
+                    <div className="form-check">
+                        <input checked={card.options.forceNewAttemptCreationEnabled} 
+                               onChange={x => store.setCardFlag('forceNewAttemptCreationEnabled', x.target.checked)} 
+                               type="checkbox" className="form-check-input" id="forceNewAttemptCreationEnabled" />
+                        <label className="form-check-label" htmlFor="forceNewAttemptCreationEnabled">Always create a new attempt</label>
+                    </div>
+                    <div className="form-check">
+                        <input checked={card.options.correctAnswerGenerationEnabled} 
+                               onChange={x => store.setCardFlag('correctAnswerGenerationEnabled', x.target.checked)} 
+                               type="checkbox" className="form-check-input" id="correctAnswerGenerationEnabled" />
+                        <label className="form-check-label" htmlFor="correctAnswerGenerationEnabled">Allow 'generate correct answer' button</label>
+                    </div>
+                    <div className="form-check">
+                        <input checked={card.options.newQuestionGenerationEnabled} 
+                               onChange={x => store.setCardFlag('newQuestionGenerationEnabled', x.target.checked)} 
+                               type="checkbox" className="form-check-input" id="newQuestionGenerationEnabled" />
+                        <label className="form-check-label" htmlFor="newQuestionGenerationEnabled">Always show 'generate new question' button</label>
+                    </div>
+                    <div className="form-check">
+                        <input checked={card.options.supplementaryQuestionsEnabled} 
+                               onChange={x => store.setCardFlag('supplementaryQuestionsEnabled', x.target.checked)} 
+                               type="checkbox" className="form-check-input" id="supplementaryQuestionsEnabled" />
+                        <label className="form-check-label" htmlFor="supplementaryQuestionsEnabled">Allow supplementary questions</label>
+                    </div>
+                </div>
+
                 <div className="form-group">
                     <label htmlFor="survOptions" className="font-weight-bold">Survey</label>
                     <div className="input-group mb-3">
