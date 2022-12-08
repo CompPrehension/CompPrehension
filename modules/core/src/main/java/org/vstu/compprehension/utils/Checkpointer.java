@@ -43,6 +43,10 @@ public class Checkpointer {
         return delta;
     }
 
+    public double since_start(String label) {
+        return since_start(label, false);
+    }
+
     public double since_start(String label, boolean hit) {
         double now = timer();
         double delta = now - this.first;

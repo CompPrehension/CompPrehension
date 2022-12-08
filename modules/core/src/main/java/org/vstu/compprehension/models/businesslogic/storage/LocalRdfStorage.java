@@ -210,7 +210,7 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         ch.hit("fetchGraph() - model read");
         setLocalGraph(gUri, model);
         ch.hit("fetchGraph() - local graph set");
-        ch.since_start("fetchGraph() - total time", false);
+        ch.since_start("fetchGraph() - total time");
 
         return true;
     }

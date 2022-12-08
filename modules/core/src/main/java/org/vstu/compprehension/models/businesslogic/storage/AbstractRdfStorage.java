@@ -260,7 +260,7 @@ public abstract class AbstractRdfStorage {
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
 
         ch.hit("searchQuestionsAdvanced - files loaded");
-        ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions", false);
+        ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
 
         return loadedQuestions;
     }

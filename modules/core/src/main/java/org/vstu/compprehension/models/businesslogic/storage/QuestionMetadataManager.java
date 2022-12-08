@@ -49,7 +49,7 @@ public class QuestionMetadataManager {
 
         wholeBankStat = new QuestionGroupStat(allQuestions);
         ch.hit("initBankStat - stats prepared");
-        ch.since_start("initBankStat - completed", false);
+        ch.since_start("initBankStat - completed");
     }
 
 //    /** get entries with limit */
