@@ -17,16 +17,45 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntit
     @Query("select q from #{#entityName} q where q.stage = 3")  // Note: db field `_stage` mapped by entity to `stage`
     List<QuestionMetadataEntity> findAllReady();
 
-//    @Query("select q from #{#entityName} q where q.stage = 3 and q.concept_bits IN :conceptBitEntries")  // Note: db field `_stage` mapped by entity to `stage`
-//    List<QuestionMetadataBaseEntity> findAllWithConcepts(Collection<Integer> conceptBitEntries, Pageable pageable);
+//    @Query("select q from #{#entityName} q where q.stage = 3 and q.concept_bits Long:conceptBitEntries")  // Note: db field `_stage` mapped by entity to `stage`
+//    List<QuestionMetadataBaseEntity> findAllWithConcepts(Collection<Long> conceptBitEntries, Pageable pageable);
 
     @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :values")  // Note: db field `concept_bits` mapped by entity to `conceptBits`
-    List<QuestionMetadataEntity> findAllWithConcepts(@Param("values") Collection<Integer> conceptBitEntries);
+    List<QuestionMetadataEntity> findAllWithConcepts(@Param("values") Collection<Long> conceptBitEntries);
 
     @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :values AND q.templateId NOT IN :ids")
     List<QuestionMetadataEntity> findAllWithConceptsWithoutTemplates(
-            @Param("values") Collection<Integer> conceptBitEntries,
+            @Param("values") Collection<Long> conceptBitEntries,
             @Param("ids") Collection<Integer> templatesIds
     );
 
+//    @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :concepts AND q.lawBits IN :laws")
+    List<QuestionMetadataEntity> findAllWithConceptsLaws(
+            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("laws") Collection<Long> lawBitEntries
+    );
+
+//    @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :concepts AND q.lawBits IN :laws AND q.templateId NOT IN :ids")
+    List<QuestionMetadataEntity> findAllWithConceptsLawsWithoutTemplates(
+            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("laws") Collection<Long> lawBitEntries,
+            @Param("ids") Collection<Integer> templatesIds
+    );
+
+    // @Query ....
+    List<QuestionMetadataEntity> findAllWithConceptEntriesLawBitsWithoutTemplates(
+            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("lawR") long lawsRequiredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds
+    );
+
+    // @Query ....
+    List<QuestionMetadataEntity> findAllWithConceptLawBitsWithoutTemplates(
+            @Param("conceptR") long conceptsRequiredBitmask,
+            @Param("conceptD") long conceptsDeniedBitmask,
+            @Param("lawR") long lawsRequiredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds
+    );
 }

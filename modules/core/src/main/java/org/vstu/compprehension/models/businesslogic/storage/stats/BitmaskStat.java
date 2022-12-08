@@ -7,12 +7,12 @@ import java.util.stream.Collectors;
 
 import static java.lang.Long.bitCount;
 
-public class BitmaskStat extends CategoricalStat<Integer> {
+public class BitmaskStat extends CategoricalStat<Long> {
 
-    public BitmaskStat(Collection<Integer> evidenceSet) {
+    public BitmaskStat(Collection<Long> evidenceSet) {
         super();
 
-        for (Integer key : evidenceSet) {
+        for (Long key : evidenceSet) {
             int count = 0;
             if (items.containsKey(key)) {
                 count = items.get(key);
@@ -21,19 +21,19 @@ public class BitmaskStat extends CategoricalStat<Integer> {
         }
     }
 
-    public List<Integer> keysHavingAllBits(int requiredBits) {
+    public List<Long> keysHavingAllBits(long requiredBits) {
         return items.keySet().stream()
                 .filter(k -> ((k & requiredBits) == requiredBits))
                 .collect(Collectors.toList());
     }
 
-    public List<Integer> keysHavingSomeBits(int maskBits, int minCommonBits) {
+    public List<Long> keysHavingSomeBits(long maskBits, int minCommonBits) {
         return items.keySet().stream()
                 .filter(k -> (bitCount(k & maskBits) >= minCommonBits))
                 .collect(Collectors.toList());
     }
 
-    public List<Integer> keysWithBits(int requiredBits, int optionalBits, int minCommonBits, int forbiddenBits) {
+    public List<Long> keysWithBits(long requiredBits, long optionalBits, long minCommonBits, long forbiddenBits) {
         assert (requiredBits & forbiddenBits) == 0;
         return items.keySet().stream()
                 .filter(k ->
@@ -43,7 +43,7 @@ public class BitmaskStat extends CategoricalStat<Integer> {
                 .collect(Collectors.toList());
     }
 
-    public List<Integer> keysWithBits(long requiredBits, long optionalBits, int minCommonBits, long forbiddenBits, long unwantedOptionalBits, int minCommonUnwOptBits) {
+    public List<Long> keysWithBits(long requiredBits, long optionalBits, int minCommonBits, long forbiddenBits, long unwantedOptionalBits, int minCommonUnwOptBits) {
         assert (requiredBits & forbiddenBits) == 0;
         return items.keySet().stream()
                 .filter(k ->
