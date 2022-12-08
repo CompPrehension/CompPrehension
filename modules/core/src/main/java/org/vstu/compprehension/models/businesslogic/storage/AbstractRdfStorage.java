@@ -163,19 +163,20 @@ public abstract class AbstractRdfStorage {
 
     private int lawsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
         int lawBitmask = 0; //
-        for (Law t : laws) {
-            String name = t.getName();
-            int newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.lawName2bit);
-            if (newBit == 0) {
-                // make use of children
-                for (Law child : domain.getPositiveLawWithImplied(name)) {  // !! todo: Note: positive only.
-                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.lawName2bit);
-                    if (newBit != 0)
-                        break;
-                }
-            }
-            lawBitmask |= newBit;
-        }
+        // !! violations are not positive laws!
+//        for (Law t : laws) {
+//            String name = t.getName();
+//            int newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.violationName2bit);
+//            if (newBit == 0) {
+//                // make use of children
+//                for (Law child : domain.getPositiveLawWithImplied(name)) {  // !! todo: Note: positive only.
+//                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.violationName2bit);
+//                    if (newBit != 0)
+//                        break;
+//                }
+//            }
+//            lawBitmask |= newBit;
+//        }
         return lawBitmask;
     }
 
@@ -201,6 +202,7 @@ public abstract class AbstractRdfStorage {
 
         QuestionMetadataManager metaMgr = getQuestionMetadataManager();
         int queryLimit = (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+        int hardLimit = 25;
 
         Random random = domain.getRandomProvider().getRandom();
 
@@ -226,6 +228,12 @@ public abstract class AbstractRdfStorage {
 //                deniedLawsBitmask, unwantedLawsBitmask, queryLimit * 3 / 2, (!->) metaMgr.wholeBankStat.getViolationStat(), random);
         // */
 
+        // take violations from all questions is exercise attempt
+        long unwantedViolationsBitmask = qr.getExerciseAttempt().getQuestions().stream()
+                .map(qd -> qd.getOptions().getMetadata())
+                .filter(Objects::nonNull)
+                .mapToInt(QuestionMetadataEntity::getViolationBits)
+                .reduce((t, t2) -> t | t2).orElse(0);
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
@@ -234,30 +242,58 @@ public abstract class AbstractRdfStorage {
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
         // TODO: use tags as well
-        if (templatesInUse.isEmpty()) {
-            foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedConceptKeys /*, queryLimit*/);
-        } else {
-            foundQuestionMetas = metaMgr.findQuestionsByConceptsWithoutTemplates(selectedConceptKeys , templatesInUse);
-        }
+        foundQuestionMetas = metaMgr.findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
+                selectedConceptKeys,
+                targetLawsBitmask, deniedLawsBitmask,
+                templatesInUse);
+
+//        foundQuestionMetas = metaMgr.findQuestionsByBitmasksWithoutTemplates(
+//                targetConceptsBitmask, deniedConceptsBitmask,
+//                targetLawsBitmask, deniedLawsBitmask,
+//                templatesInUse);
+//
+//        if (templatesInUse.isEmpty()) {
+//            foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedConceptKeys /*, queryLimit*/);
+//        } else {
+//            foundQuestionMetas = metaMgr.findQuestionsByConceptsWithoutTemplates(selectedConceptKeys, templatesInUse);
+//        }
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
-        while (foundQuestionMetas.size() > queryLimit * 4) {
-            // too many entries, drop one by one
-            foundQuestionMetas.remove(random.nextInt(foundQuestionMetas.size()));
+        // handle empty result
+        if (foundQuestionMetas.isEmpty() && limit < 1000) {
+            ch.since_start("searchQuestionsAdvanced - recurse to search better solution, after");
+            return searchQuestionsWithAdvancedMetadata(qr, limit * 4);
         }
+
+        // too many entries, drop one by one
+        int iterCount = 0;
+        while (foundQuestionMetas.size() > Math.min(hardLimit, queryLimit * 4) && iterCount < foundQuestionMetas.size()) {
+            int randIdx = random.nextInt(foundQuestionMetas.size());
+            QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
+            if ((qm.getConceptBits() & unwantedConceptsBitmask) > 0
+                    && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
+            ) {
+                foundQuestionMetas.remove(randIdx);
+            }
+            ++iterCount;
+        }
+
         ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
 
         // filter foundQuestionMetas, ranking by complexity, solution steps
         // 0.8 .. 1.2
-        float changeCoeff = 0.8f + 0.4f * random.nextFloat();
+        float changeCoeff = 0.9f + 0.2f * random.nextFloat();
         float complexity = qr.getComplexity() * changeCoeff;
         int solutionSteps = qr.getSolvingDuration();  // 0..10
 
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1),
                 metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10),
-                limit  // Note: queryLimit > limit
-                );
+                unwantedConceptsBitmask,
+                unwantedLawsBitmask,
+                unwantedViolationsBitmask,
+                Math.min(limit, hardLimit)  // Note: queryLimit > limit
+            );
 
         ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
 
@@ -269,7 +305,14 @@ public abstract class AbstractRdfStorage {
         return loadedQuestions;
     }
 
-    private List<QuestionMetadataEntity> filterQuestionMetas(List<QuestionMetadataEntity> given, double scaledComplexity, double scaledSolutionLength, int limit) {
+    private List<QuestionMetadataEntity> filterQuestionMetas(
+            List<QuestionMetadataEntity> given,
+            double scaledComplexity,
+            double scaledSolutionLength,
+            long unwantedConceptsBitmask,
+            long unwantedLawsBitmask,
+            long unwantedViolationsBitmask,
+            int limit) {
         if (given.size() <= limit)
             return given;
 
@@ -281,10 +324,31 @@ public abstract class AbstractRdfStorage {
                 .sorted(Comparator.comparingDouble(q -> q.getSolutionStepsAbsDiff(scaledSolutionLength)))
                 .collect(Collectors.toList());
 
+        List<QuestionMetadataEntity> ranking3 = given.stream()
+                .sorted(Comparator.comparingInt(q -> bitCount(q.getConceptBits() & unwantedConceptsBitmask)))
+                .collect(Collectors.toList());
+
+        List<QuestionMetadataEntity> ranking4 = given.stream()
+                .sorted(Comparator.comparingInt(q -> bitCount(q.getLawBits() & unwantedLawsBitmask)))
+                .collect(Collectors.toList());
+
+        List<QuestionMetadataEntity> ranking5 = given.stream()
+                .sorted(Comparator.comparingInt(q -> bitCount(q.getViolationBits() & unwantedViolationsBitmask)))
+                .collect(Collectors.toList());
+
+        // want more diversity in question ?? count control values -> take more with '1' not with '0'
+        List<QuestionMetadataEntity> ranking6 = given.stream()
+                .sorted(Comparator.comparingInt(q -> -q.getDistinctErrorsCount()))
+                .collect(Collectors.toList());
+
         List<QuestionMetadataEntity> finalRanking = given.stream()
                 .sorted(Comparator.comparingInt(q -> (
                         ranking1.indexOf(q) +
-                        ranking2.indexOf(q)
+                        ranking2.indexOf(q) +
+                        ranking3.indexOf(q) +
+                        ranking4.indexOf(q) +
+                        ranking5.indexOf(q) +
+                        ranking6.indexOf(q)
                         )))
                 .collect(Collectors.toList());
 
@@ -334,19 +398,21 @@ public abstract class AbstractRdfStorage {
             return keysCriteria;
         }
 
-        // apply unwanted bits "adding" them to denied
-        long weakenedTargetBits = targetBitmask & ~unwantedBitmask;
-        long weakenedAllowedBits = targetBitmask & ~unwantedBitmask;
+        if (unwantedBitmask != 0) {
+            // apply unwanted bits "adding" them to denied
+            long weakenedTargetBits = targetBitmask & ~unwantedBitmask;
+            long weakenedAllowedBits = targetBitmask & ~unwantedBitmask;
 //        deniedBitmask &=
-        int unwBits;  // how many unwanted bits can be added to denied, keeping the sample's size big enough.
-        int unwantedBits = bitCount(unwantedBitmask);
-        for (unwBits = 0; unwBits <= unwantedBits; ++unwBits) {
-            keysCriteria = bitStat.keysWithBits(
-                    weakenedTargetBits,
-                    weakenedAllowedBits, alwBits,
-                    deniedBitmask, unwantedBitmask, unwBits);
-            if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
-                break;
+            int unwBits;  // how many unwanted bits can be added to denied, keeping the sample's size big enough.
+            int unwantedBits = bitCount(unwantedBitmask);
+            for (unwBits = 0; unwBits <= unwantedBits; ++unwBits) {
+                keysCriteria = bitStat.keysWithBits(
+                        weakenedTargetBits,
+                        weakenedAllowedBits, alwBits,
+                        deniedBitmask, unwantedBitmask, unwBits);
+                if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
+                    break;
+            }
         }
 
         // continuing with rich set of candidates ...

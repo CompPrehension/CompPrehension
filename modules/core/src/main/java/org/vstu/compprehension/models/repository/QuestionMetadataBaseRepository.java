@@ -29,4 +29,33 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntit
             @Param("ids") Collection<Integer> templatesIds
     );
 
+//    @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :concepts AND q.lawBits IN :laws")
+    List<QuestionMetadataEntity> findAllWithConceptsLaws(
+            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("laws") Collection<Long> lawBitEntries
+    );
+
+//    @Query("select q from #{#entityName} q where q.stage = 3 AND q.conceptBits IN :concepts AND q.lawBits IN :laws AND q.templateId NOT IN :ids")
+    List<QuestionMetadataEntity> findAllWithConceptsLawsWithoutTemplates(
+            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("laws") Collection<Long> lawBitEntries,
+            @Param("ids") Collection<Integer> templatesIds
+    );
+
+    // @Query ....
+    List<QuestionMetadataEntity> findAllWithConceptEntriesLawBitsWithoutTemplates(
+            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("lawR") long lawsRequiredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds
+    );
+
+    // @Query ....
+    List<QuestionMetadataEntity> findAllWithConceptLawBitsWithoutTemplates(
+            @Param("conceptR") long conceptsRequiredBitmask,
+            @Param("conceptD") long conceptsDeniedBitmask,
+            @Param("lawR") long lawsRequiredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds
+    );
 }

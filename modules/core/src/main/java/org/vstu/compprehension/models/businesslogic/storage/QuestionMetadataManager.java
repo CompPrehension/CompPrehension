@@ -69,12 +69,62 @@ public class QuestionMetadataManager {
         return foundQuestions;
     }
 
+    /** get entries unlimited */
+    List<QuestionMetadataEntity> findQuestionsByConceptsLaws(Collection<Long> conceptBitEntries, Collection<Long> lawBitEntries) {
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsLaws(conceptBitEntries, lawBitEntries);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
+
+
     List<QuestionMetadataEntity> findQuestionsByConceptsWithoutTemplates(
             Collection<Long> conceptBitEntries,
             Collection<Integer> templatesIds
     ) {
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsWithoutTemplates(conceptBitEntries, templatesIds);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
+
+    List<QuestionMetadataEntity> findQuestionsByConceptsLawsWithoutTemplates(
+            Collection<Long> conceptBitEntries, Collection<Long> lawBitEntries,
+            Collection<Integer> templatesIds
+    ) {
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsLawsWithoutTemplates(conceptBitEntries, lawBitEntries, templatesIds);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
+
+    List<QuestionMetadataEntity> findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
+            Collection<Long> conceptBitEntries,
+            Long lawRequiredBitmask, Long lawDeniedBitmask,
+            Collection<Integer> templatesIds
+    ) {
+        lawRequiredBitmask &= ~lawDeniedBitmask;
+        if (templatesIds == null || templatesIds.isEmpty()) {
+            templatesIds = List.of(0);
+        }
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptEntriesLawBitsWithoutTemplates(conceptBitEntries, lawRequiredBitmask, lawDeniedBitmask, templatesIds);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
+
+    List<QuestionMetadataEntity> findQuestionsByBitmasksWithoutTemplates(
+            Long conceptRequiredBitmask, Long conceptDeniedBitmask,
+            Long lawRequiredBitmask, Long lawDeniedBitmask,
+            Collection<Integer> templatesIds
+    ) {
+        conceptRequiredBitmask &= ~conceptDeniedBitmask;
+        lawRequiredBitmask &= ~lawDeniedBitmask;
+        if (templatesIds == null || templatesIds.isEmpty()) {
+            templatesIds = List.of(0);
+        }
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptLawBitsWithoutTemplates(conceptRequiredBitmask, conceptDeniedBitmask, lawRequiredBitmask, lawDeniedBitmask, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }
