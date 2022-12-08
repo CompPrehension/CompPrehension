@@ -12,8 +12,9 @@ public class QuestionMetadataManager {
 
     QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> questionRepository;
     QuestionGroupStat wholeBankStat;
-    HashMap<String, Integer> conceptName2bit;
-    HashMap<String, Integer> lawName2bit;
+    HashMap<String, Long> conceptName2bit;
+//    HashMap<String, Long> lawName2bit;
+    HashMap<String, Long> violationName2bit;
 
     public QuestionMetadataManager(
             QuestionMetadataBaseRepository<? extends QuestionMetadataEntity>questionMetadataRepository
@@ -28,14 +29,14 @@ public class QuestionMetadataManager {
 
         // use hardcoded name->bit mappings
         conceptName2bit = _fillConcepts(new HashMap<>());
-        lawName2bit = _fillViolations(new HashMap<>());
+        violationName2bit = _fillViolations(new HashMap<>());
         initBankStat();
     }
 
-    public static int namesToBitmask(Collection<String> names, Map<String, Integer> name2bitMapping) {
+    public static long namesToBitmask(Collection<String> names, Map<String, Long> name2bitMapping) {
         return names.stream()
-                .map(s -> name2bitMapping.getOrDefault(s, 0))
-                .reduce((a,b) -> a | b).orElse(0);
+                .map(s -> name2bitMapping.getOrDefault(s, 0L))
+                .reduce((a,b) -> a | b).orElse(0L);
     }
 
     private void initBankStat() {
@@ -61,7 +62,7 @@ public class QuestionMetadataManager {
 //    }
 
     /** get entries unlimited */
-    List<QuestionMetadataEntity> findQuestionsByConcepts(Collection<Integer> conceptBitEntries) {
+    List<QuestionMetadataEntity> findQuestionsByConcepts(Collection<Long> conceptBitEntries) {
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConcepts(conceptBitEntries);
         iter.forEach(foundQuestions::add);
@@ -69,7 +70,7 @@ public class QuestionMetadataManager {
     }
 
     List<QuestionMetadataEntity> findQuestionsByConceptsWithoutTemplates(
-            Collection<Integer> conceptBitEntries,
+            Collection<Long> conceptBitEntries,
             Collection<Integer> templatesIds
     ) {
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
@@ -78,48 +79,48 @@ public class QuestionMetadataManager {
         return foundQuestions;
     }
 
-    private HashMap<String, Integer> _fillConcepts(HashMap<String, Integer> name2bit) {
-        name2bit.put("pointer", 0x1);
-        name2bit.put("C++", 0x2);
-        name2bit.put("loops", 0x4);
-        name2bit.put("if/else", 0x8);
-        name2bit.put("expr:array", 0x10);
-        name2bit.put("expr:pointer", 0x20);
-        name2bit.put("expr:func_call", 0x40);
-        name2bit.put("expr:explicit_cast", 0x80);
-        name2bit.put("expr:class_member_access", 0x100);
-        name2bit.put("alternative", 0x200);
-        name2bit.put("else", 0x400);
-        name2bit.put("expr", 0x800);
-        name2bit.put("if", 0x1000);
-        name2bit.put("sequence", 0x2000);
-        name2bit.put("return", 0x4000);
-        name2bit.put("loop", 0x8000);
-        name2bit.put("while_loop", 0x10000);
-        name2bit.put("for_loop", 0x20000);
-        name2bit.put("else-if", 0x40000);
-        name2bit.put("nested_loop", 0x80000);
-        name2bit.put("do_while_loop", 0x100000);
-        name2bit.put("break", 0x200000);
-        name2bit.put("continue", 0x400000);
+    private HashMap<String, Long> _fillConcepts(HashMap<String, Long> name2bit) {
+        name2bit.put("pointer", 0x1L);
+        name2bit.put("C++", 0x2L);
+        name2bit.put("loops", 0x4L);
+        name2bit.put("if/else", 0x8L);
+        name2bit.put("expr:array", 0x10L);
+        name2bit.put("expr:pointer", 0x20L);
+        name2bit.put("expr:func_call", 0x40L);
+        name2bit.put("expr:explicit_cast", 0x80L);
+        name2bit.put("expr:class_member_access", 0x100L);
+        name2bit.put("alternative", 0x200L);
+        name2bit.put("else", 0x400L);
+        name2bit.put("expr", 0x800L);
+        name2bit.put("if", 0x1000L);
+        name2bit.put("sequence", 0x2000L);
+        name2bit.put("return", 0x4000L);
+        name2bit.put("loop", 0x8000L);
+        name2bit.put("while_loop", 0x10000L);
+        name2bit.put("for_loop", 0x20000L);
+        name2bit.put("else-if", 0x40000L);
+        name2bit.put("nested_loop", 0x80000L);
+        name2bit.put("do_while_loop", 0x100000L);
+        name2bit.put("break", 0x200000L);
+        name2bit.put("continue", 0x400000L);
         return name2bit;
     }
-    private HashMap<String, Integer> _fillViolations(HashMap<String, Integer> name2bit) {
-        name2bit.put("DuplicateOfAct", 0x1);
-        name2bit.put("ElseBranchAfterTrueCondition", 0x2);
-        name2bit.put("NoAlternativeEndAfterBranch", 0x4);
-        name2bit.put("NoBranchWhenConditionIsTrue", 0x8);
-        name2bit.put("NoFirstCondition", 0x10);
-        name2bit.put("SequenceFinishedTooEarly", 0x20);
-        name2bit.put("TooEarlyInSequence", 0x40);
-        name2bit.put("BranchOfFalseCondition", 0x80);
-        name2bit.put("LastConditionIsFalseButNoElse", 0x100);
-        name2bit.put("LastFalseNoEnd", 0x200);
-        name2bit.put("LoopStartIsNotCondition", 0x400);
-        name2bit.put("NoLoopEndAfterFailedCondition", 0x800);
-        name2bit.put("NoConditionAfterIteration", 0x1000);
-        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000);
-        name2bit.put("LoopStartIsNotIteration", 0x4000);
+    private HashMap<String, Long> _fillViolations(HashMap<String, Long> name2bit) {
+        name2bit.put("DuplicateOfAct", 0x1L);
+        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
+        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
+        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);
+        name2bit.put("NoFirstCondition", 0x10L);
+        name2bit.put("SequenceFinishedTooEarly", 0x20L);
+        name2bit.put("TooEarlyInSequence", 0x40L);
+        name2bit.put("BranchOfFalseCondition", 0x80L);
+        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);
+        name2bit.put("LastFalseNoEnd", 0x200L);
+        name2bit.put("LoopStartIsNotCondition", 0x400L);
+        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);
+        name2bit.put("NoConditionAfterIteration", 0x1000L);
+        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
+        name2bit.put("LoopStartIsNotIteration", 0x4000L);
         return name2bit;
     }
 

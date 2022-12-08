@@ -147,7 +147,7 @@ public abstract class AbstractRdfStorage {
         int conceptBitmask = 0; //
         for (Concept t : concepts) {
             String name = t.getName();
-            int newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.conceptName2bit);
+            long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.conceptName2bit);
             if (newBit == 0) {
                 // make use of children
                 for (Concept child : domain.getChildrenOfConcept(name)) {
@@ -204,24 +204,28 @@ public abstract class AbstractRdfStorage {
 
         Random random = domain.getRandomProvider().getRandom();
 
-        int targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
-        int allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
-        int deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
-        int unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 5).stream()
+        long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
+        long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
+        long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
+        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 5).stream()
                 .mapToInt(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
 
-        List<Integer> selectedConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
+        List<Long> selectedConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
                 deniedConceptsBitmask, unwantedConceptsBitmask, queryLimit, metaMgr.wholeBankStat.getConceptStat(), random);
 
-        /* TODO: use laws for expr Domain
-        int targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
-        int allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
-        int deniedLawsBitmask = lawsToBitmask(qr.getDeniedLaws(), metaMgr);
+        // TODO: use laws for expr Domain
+        long targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
+//        long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
+        long deniedLawsBitmask = lawsToBitmask(qr.getDeniedLaws(), metaMgr);
+        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 5).stream()
+                .mapToInt(QuestionMetadataEntity::getLawBits).
+                reduce((t, t2) -> t | t2).orElse(0);
 
-        List<Integer> selectedLawKeys = fit3Bitmasks(targetLawsBitmask, allowedLawsBitmask,
-                deniedLawsBitmask, queryLimit, metaMgr.wholeBankStat.getViolationStat(), random);
-        */
+//        List<Integer> selectedLawKeys = fit3Bitmasks(targetLawsBitmask, allowedLawsBitmask,
+//                deniedLawsBitmask, unwantedLawsBitmask, queryLimit * 3 / 2, (!->) metaMgr.wholeBankStat.getViolationStat(), random);
+        // */
+
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
@@ -287,7 +291,7 @@ public abstract class AbstractRdfStorage {
         return finalRanking.subList(0, limit);
     }
 
-    private List<Integer> fit3Bitmasks(int targetBitmask, int allowedBitmask, int deniedBitmask, int unwantedBitmask,
+    private List<Long> fit3Bitmasks(long targetBitmask, long allowedBitmask, long deniedBitmask, long unwantedBitmask,
                                        int resCountLimit, BitmaskStat bitStat, Random random) {
         // ensure no overlap
         targetBitmask &= ~deniedBitmask;
@@ -298,7 +302,7 @@ public abstract class AbstractRdfStorage {
 
         int alwBits;  // how many optional bits can be added to target, keeping the sample's size big enough.
         int optionalBits = bitCount(allowedBitmask);
-        List<Integer> keysCriteria = null;
+        List<Long> keysCriteria = null;
         for (alwBits = optionalBits /*- 1*/; alwBits >= 0; --alwBits) {
             keysCriteria = bitStat.keysWithBits(
                     targetBitmask,
@@ -350,15 +354,15 @@ public abstract class AbstractRdfStorage {
         // play with deletion of keys, checking others to be still enough ...
         int currSum = bitStat.sumForKeys(keysCriteria);
         // init lookup
-        HashMap<Integer, Integer> key2count = new HashMap<>();
-        for (int key : keysCriteria) {
+        HashMap<Long, Integer> key2count = new HashMap<>();
+        for (long key : keysCriteria) {
             key2count.put(key, bitStat.getItems().get(key));
         }
         // remove keys randomly while curr sum is still enough
         boolean stop = false;
         while (!stop && currSum > 0) {
             stop = true;
-            for (int key : List.copyOf(key2count.keySet())) {
+            for (long key : List.copyOf(key2count.keySet())) {
                 int count = key2count.get(key);
                 if (currSum - count > resCountLimit) {  // we can try deleting this one
                     float chance = count / (float)(currSum - resCountLimit);
@@ -371,7 +375,7 @@ public abstract class AbstractRdfStorage {
                 }
             }
         }
-        Set<Integer> selectedBitKeys = key2count.keySet();
+        Set<Long> selectedBitKeys = key2count.keySet();
         return List.copyOf(selectedBitKeys);
     }
 

@@ -11,12 +11,12 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
 
     @Override
     @Query("select q from #{#entityName} q where q.domainShortname = 'ctrl_flow' AND q.stage = 3 AND q.conceptBits IN :values")  // Note: db field `concept_bits` mapped by entity to `conceptBits`
-    List<QuestionMetadataEntity> findAllWithConcepts(@Param("values") Collection<Integer> conceptBitEntries);
+    List<QuestionMetadataEntity> findAllWithConcepts(@Param("values") Collection<Long> conceptBitEntries);
 
     @Override
     @Query("select q from #{#entityName} q where q.domainShortname = 'ctrl_flow' AND q.stage = 3 AND q.conceptBits IN :values AND q.templateId NOT IN :ids")
     List<QuestionMetadataEntity> findAllWithConceptsWithoutTemplates(
-            @Param("values") Collection<Integer> conceptBitEntries,
+            @Param("values") Collection<Long> conceptBitEntries,
             @Param("ids") Collection<Integer> templatesIds
     );
 

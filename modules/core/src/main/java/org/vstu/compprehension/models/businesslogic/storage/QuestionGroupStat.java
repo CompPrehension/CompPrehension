@@ -21,10 +21,10 @@ public class QuestionGroupStat {
     public QuestionGroupStat(Collection<QuestionMetadataEntity> questionSet) {
         super();
 
-        tagStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTagBits).collect(Collectors.toList()));
-        conceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getConceptBits).collect(Collectors.toList()));
-//        lawStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataBaseEntity::getLawBits).collect(Collectors.toList()));
-        violationStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getViolationBits).collect(Collectors.toList()));
+        tagStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTagBits).map(Long::valueOf).collect(Collectors.toList()));
+        conceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getConceptBits).map(Long::valueOf).collect(Collectors.toList()));
+//        lawStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataBaseEntity::getLawBits).map(Long::valueOf).collect(Collectors.toList()));
+        violationStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getViolationBits).map(Long::valueOf).collect(Collectors.toList()));
 
         complexityStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getIntegralComplexity).collect(Collectors.toList()), false);
         solutionStepsStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getSolutionSteps).map(Double::valueOf).collect(Collectors.toList()), false);
