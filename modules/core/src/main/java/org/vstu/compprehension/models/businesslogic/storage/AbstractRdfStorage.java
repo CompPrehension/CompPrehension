@@ -361,7 +361,7 @@ public abstract class AbstractRdfStorage {
         targetBitmask &= ~deniedBitmask;
         allowedBitmask &= ~deniedBitmask;
         allowedBitmask &= ~targetBitmask;
-        unwantedBitmask &= ~deniedBitmask;
+//        unwantedBitmask &= ~deniedBitmask;
 
 
         int alwBits;  // how many optional bits can be added to target, keeping the sample's size big enough.
@@ -382,7 +382,7 @@ public abstract class AbstractRdfStorage {
             int newTargetCount = Math.min(resCountLimit, 2);
             int tarBits;  // how many target bits to take, since current criteria is too strong.
             int targetBits = bitCount(targetBitmask);
-            for (tarBits = targetBits - 1; (tarBits > 0 || keysCriteria.isEmpty()); --tarBits) {  // not: tarBits >= 0
+            for (tarBits = targetBits - 1; tarBits >= 0 && (tarBits > 0 || keysCriteria.isEmpty()); --tarBits) {  // not: tarBits >= 0
                 keysCriteria = bitStat.keysWithBits(
                         0,
                         targetBitmask, tarBits,
@@ -398,22 +398,6 @@ public abstract class AbstractRdfStorage {
             return keysCriteria;
         }
 
-        if (unwantedBitmask != 0) {
-            // apply unwanted bits "adding" them to denied
-            long weakenedTargetBits = targetBitmask & ~unwantedBitmask;
-            long weakenedAllowedBits = targetBitmask & ~unwantedBitmask;
-//        deniedBitmask &=
-            int unwBits;  // how many unwanted bits can be added to denied, keeping the sample's size big enough.
-            int unwantedBits = bitCount(unwantedBitmask);
-            for (unwBits = 0; unwBits <= unwantedBits; ++unwBits) {
-                keysCriteria = bitStat.keysWithBits(
-                        weakenedTargetBits,
-                        weakenedAllowedBits, alwBits,
-                        deniedBitmask, unwantedBitmask, unwBits);
-                if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
-                    break;
-            }
-        }
 
         // continuing with rich set of candidates ...
         // decide how to "extend" targets with optionals
