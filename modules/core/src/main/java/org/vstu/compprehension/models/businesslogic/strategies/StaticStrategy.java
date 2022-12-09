@@ -122,35 +122,22 @@ public class StaticStrategy implements AbstractStrategy {
 
     @Override
     public float grade(ExerciseAttemptEntity exerciseAttempt) {
-        // consider last question only ...
-        // since student may interact with a question not last added, so find an unsaved (the latest) interaction
-        InteractionEntity latestInteraction = exerciseAttempt.getQuestions().stream()
-                .flatMap(q ->
-                        (q.getInteractions() != null && q.getInteractions().size() > 0)?
-                                q.getInteractions().stream()
-                                :
-                                Stream.empty())
-                .filter(i -> i.getId() == null)  // assume latest has not been saved yet.
-//                .max(Comparator.comparing(InteractionEntity::getId))
-                .findAny()
-                .orElse(null);
-        if (latestInteraction == null)
-            return 0;
+        // all questions defined by exercise
+        int nQuestionsExpected = exerciseAttempt.getExercise().getStages().stream().mapToInt(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
+        // current progress over all questions
+        float cumulativeGrade = 0;
+        for(QuestionEntity q : exerciseAttempt.getQuestions()) {
+            List<InteractionEntity> interactions = q.getInteractions();
+            int knownInteractions = interactions.size();
+            long correctInteractions = interactions.stream()
+                    .filter(inter -> inter != null && (inter.getViolations() == null || inter.getViolations().isEmpty()))
+                    .count();
+            if (knownInteractions == 0)
+                continue;  // nothing done yet.
+            cumulativeGrade += correctInteractions / (float) Math.max(4, knownInteractions);  // don't give best score for just first 1..3 interactions
+        }
 
-        QuestionEntity lastQuestion = latestInteraction.getQuestion();
-        if (lastQuestion == null)
-            return 0;
-
-        List<InteractionEntity> interactions = lastQuestion.getInteractions();
-        int knownInteractions = interactions.size();
-        if (knownInteractions == 0)
-            return 1;  // no mistakes yet. :)
-
-        long correctInteractions = interactions.stream()
-                .filter(inter -> inter != null && (inter.getViolations() == null || inter.getViolations().isEmpty()))
-                .count();
-
-        return (float) correctInteractions / knownInteractions;
+        return cumulativeGrade / nQuestionsExpected;
     }
 
     @Override

@@ -149,6 +149,7 @@ public abstract class Domain {
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
         Map<Concept, List<Concept>> res = new HashMap<>();
         Set<Concept> wanted = this.concepts.stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
             // ensure we are dealing with bottom-level concept
             List<Concept> children = this.getConceptWithChildren(ct.getName());
@@ -179,6 +180,7 @@ public abstract class Domain {
                 // concept is within a group
                 key = nearestWantedBase;
                 value = new ArrayList<>(List.of(ct));
+                added.add(ct);
 
             } else {
                 // concept does not belong to any group (has no bases we want)
@@ -189,10 +191,19 @@ public abstract class Domain {
             if (res.containsKey(key)) {
                 List<Concept> arr = res.get(key);
                 for (Concept oneValue : value)
-                    if (!arr.contains(oneValue))
+                    if (!arr.contains(oneValue)) {
                         arr.add(oneValue);
-            } else
+                        added.add(oneValue);
+                    }
+            } else {
                 res.put(key, value);
+                added.add(key);
+            }
+        }
+        // add all top-level bases we skipped
+        wanted.removeAll(added);
+        for (Concept t : wanted) {
+            res.put(t, new ArrayList<>());
         }
 
         return res;

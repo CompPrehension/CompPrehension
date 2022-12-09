@@ -34,12 +34,14 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
     );
 
     @Query(value = "select * from questions_meta q where q.domain_shortname = 'ctrl_flow' AND q._stage = 3 " +
-            "AND q.concept_bits IN :concepts " +
+            "AND q.trace_concept_bits IN :concepts " +
+            "AND q.concept_bits & :conceptD = 0 " +
             "AND q.law_bits & :lawR = :lawR AND q.law_bits & :lawD = 0 " +
             "AND q.template_id NOT IN :ids",
             nativeQuery = true)
     List<QuestionMetadataEntity> findAllWithConceptEntriesLawBitsWithoutTemplates(
-            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("concepts") Collection<Long> traceConceptBitEntries,
+            @Param("conceptD") long deniedConceptsBitmask,
             @Param("lawR") long lawsRequiredBitmask,
             @Param("lawD") long lawsDeniedBitmask,
             @Param("ids") Collection<Integer> templatesIds

@@ -674,11 +674,13 @@
 <owl:Class rdf:about="#loop">
   <rdfs:subClassOf rdf:resource="#action"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Циклы</rdfs:label>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Наличие цикла</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#conditional_loop">
   <rdfs:subClassOf rdf:resource="#loop"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Виды циклов</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#unconditional_loop">
@@ -756,7 +758,7 @@
 <owl:Class rdf:about="#alt_branch">
   <rdfs:subClassOf rdf:resource="#sequence"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
-  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if / else</rdfs:label>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Ветки развилки</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#func">
@@ -765,6 +767,26 @@
 
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Наличие развилки</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="#if">
+  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="#else-if">
+  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">else-if</rdfs:label>
+</owl:Class>
+
+<owl:Class rdf:about="#else">
+  <rdfs:subClassOf rdf:resource="#alt_branch"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">else</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#expr">
@@ -807,18 +829,6 @@
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">continue</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
-</owl:Class>
-
-<owl:Class rdf:about="#if">
-  <rdfs:subClassOf rdf:resource="#alt_branch"/>
-</owl:Class>
-
-<owl:Class rdf:about="#else-if">
-  <rdfs:subClassOf rdf:resource="#alt_branch"/>
-</owl:Class>
-
-<owl:Class rdf:about="#else">
-  <rdfs:subClassOf rdf:resource="#alt_branch"/>
 </owl:Class>
 
 <owl:Class rdf:about="#Erroneous">
@@ -929,8 +939,8 @@
 
 <owl:Class rdf:about="#NoFirstCondition">
   <involves_concept rdf:resource="#alternative"/>
-  <involves_concept rdf:resource="#expr"/>
   <involves_concept rdf:resource="#if"/>
+  <involves_concept rdf:resource="#expr"/>
   <rdfs:subClassOf rdf:resource="#Erroneous"/>
 </owl:Class>
 
@@ -942,8 +952,8 @@
 
 <owl:Class rdf:about="#CondtionNotNextToPrevCondition">
   <involves_concept rdf:resource="#alternative"/>
-  <involves_concept rdf:resource="#expr"/>
   <involves_concept rdf:resource="#else-if"/>
+  <involves_concept rdf:resource="#expr"/>
   <rdfs:subClassOf rdf:resource="#Erroneous"/>
 </owl:Class>
 
@@ -957,9 +967,9 @@
 
 <owl:Class rdf:about="#DuplicateOfCondition">
   <involves_concept rdf:resource="#alternative"/>
-  <involves_concept rdf:resource="#expr"/>
   <involves_concept rdf:resource="#if"/>
   <involves_concept rdf:resource="#else-if"/>
+  <involves_concept rdf:resource="#expr"/>
   <rdfs:subClassOf rdf:resource="#CondtionNotNextToPrevCondition"/>
   <rdfs:subClassOf rdf:resource="#ConditionAfterBranch"/>
 </owl:Class>
@@ -994,16 +1004,16 @@
 <owl:Class rdf:about="#ElseBranchNotNextToLastCondition">
   <involves_concept rdf:resource="#alt_branch"/>
   <involves_concept rdf:resource="#alternative"/>
-  <involves_concept rdf:resource="#expr"/>
   <involves_concept rdf:resource="#else"/>
+  <involves_concept rdf:resource="#expr"/>
   <rdfs:subClassOf rdf:resource="#BranchWithoutCondition"/>
 </owl:Class>
 
 <owl:Class rdf:about="#ElseBranchAfterTrueCondition">
   <involves_concept rdf:resource="#alt_branch"/>
   <involves_concept rdf:resource="#alternative"/>
-  <involves_concept rdf:resource="#expr"/>
   <involves_concept rdf:resource="#else"/>
+  <involves_concept rdf:resource="#expr"/>
   <rdfs:subClassOf rdf:resource="#ConditionMisuse"/>
   <rdfs:subClassOf rdf:resource="#BranchWithoutCondition"/>
   <rdfs:subClassOf rdf:resource="#ElseBranchNotNextToLastCondition"/>
@@ -1019,8 +1029,8 @@
 <owl:Class rdf:about="#LastConditionIsFalseButNoElse">
   <involves_concept rdf:resource="#alt_branch"/>
   <involves_concept rdf:resource="#alternative"/>
-  <involves_concept rdf:resource="#expr"/>
   <involves_concept rdf:resource="#else"/>
+  <involves_concept rdf:resource="#expr"/>
   <rdfs:subClassOf rdf:resource="#Erroneous"/>
 </owl:Class>
 

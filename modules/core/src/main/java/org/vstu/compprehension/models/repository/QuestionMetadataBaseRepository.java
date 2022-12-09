@@ -44,7 +44,8 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntit
 
     // @Query ....
     List<QuestionMetadataEntity> findAllWithConceptEntriesLawBitsWithoutTemplates(
-            @Param("concepts") Collection<Long> conceptBitEntries,
+            @Param("concepts") Collection<Long> traceConceptBitEntries,
+            @Param("conceptD") long deniedConceptsBitmask,
             @Param("lawR") long lawsRequiredBitmask,
             @Param("lawD") long lawsDeniedBitmask,
             @Param("ids") Collection<Integer> templatesIds
