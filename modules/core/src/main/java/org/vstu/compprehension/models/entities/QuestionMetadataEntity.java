@@ -29,16 +29,19 @@ public class QuestionMetadataEntity {
     private String qDataGraph;
 
     @Column(name = "tag_bits")
-    private Integer tagBits;
+    private Long tagBits;
 
     @Column(name = "concept_bits")
-    private Integer conceptBits;
+    private Long conceptBits;
 
     @Column(name = "law_bits")
-    private Integer lawBits;
+    private Long lawBits;
 
     @Column(name = "violation_bits")
-    private Integer violationBits;
+    private Long violationBits;
+
+    @Column(name = "trace_concept_bits")
+    private Long traceConceptBits;
 
     @Column(name = "solution_structural_complexity")
     private Double solutionStructuralComplexity;

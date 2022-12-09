@@ -44,12 +44,12 @@ public class QuestionMetadataManager {
         ArrayList<QuestionMetadataEntity> allQuestions = new ArrayList<>();
 
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAll();
-        ch.hit("initBankStat - query ran");
+//        ch.hit("initBankStat - query ran");
         iter.forEach(allQuestions::add);
-        ch.hit("initBankStat - query results collected");
+//        ch.hit("initBankStat - query results collected");
 
         wholeBankStat = new QuestionGroupStat(allQuestions);
-        ch.hit("initBankStat - stats prepared");
+//        ch.hit("initBankStat - stats prepared");
         ch.since_start("initBankStat - completed");
     }
 
@@ -99,7 +99,7 @@ public class QuestionMetadataManager {
     }
 
     List<QuestionMetadataEntity> findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
-            Collection<Long> conceptBitEntries,
+            Collection<Long> traceConceptBitEntries, long deniedConceptsBitmask,
             Long lawRequiredBitmask, Long lawDeniedBitmask,
             Collection<Integer> templatesIds
     ) {
@@ -108,7 +108,7 @@ public class QuestionMetadataManager {
             templatesIds = List.of(0);
         }
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptEntriesLawBitsWithoutTemplates(conceptBitEntries, lawRequiredBitmask, lawDeniedBitmask, templatesIds);
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptEntriesLawBitsWithoutTemplates(traceConceptBitEntries, deniedConceptsBitmask, lawRequiredBitmask, lawDeniedBitmask, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }

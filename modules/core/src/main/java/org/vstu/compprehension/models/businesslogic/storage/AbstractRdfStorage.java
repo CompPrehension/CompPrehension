@@ -210,18 +210,18 @@ public abstract class AbstractRdfStorage {
         long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
         long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
         long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 5).stream()
-                .mapToInt(QuestionMetadataEntity::getConceptBits).
+                .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
 
-        List<Long> selectedConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
-                deniedConceptsBitmask, unwantedConceptsBitmask, queryLimit, metaMgr.wholeBankStat.getConceptStat(), random);
+        List<Long> selectedTraceConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
+                deniedConceptsBitmask, 0 /*unwantedConceptsBitmask*/, queryLimit, metaMgr.wholeBankStat.getTraceConceptStat(), random);
 
         // TODO: use laws for expr Domain
         long targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
 //        long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
         long deniedLawsBitmask = lawsToBitmask(qr.getDeniedLaws(), metaMgr);
         long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 5).stream()
-                .mapToInt(QuestionMetadataEntity::getLawBits).
+                .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
 
 //        List<Integer> selectedLawKeys = fit3Bitmasks(targetLawsBitmask, allowedLawsBitmask,
@@ -232,7 +232,7 @@ public abstract class AbstractRdfStorage {
         long unwantedViolationsBitmask = qr.getExerciseAttempt().getQuestions().stream()
                 .map(qd -> qd.getOptions().getMetadata())
                 .filter(Objects::nonNull)
-                .mapToInt(QuestionMetadataEntity::getViolationBits)
+                .mapToLong(QuestionMetadataEntity::getViolationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
@@ -243,7 +243,7 @@ public abstract class AbstractRdfStorage {
 
         // TODO: use tags as well
         foundQuestionMetas = metaMgr.findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
-                selectedConceptKeys,
+                selectedTraceConceptKeys, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 templatesInUse);
 
@@ -253,9 +253,9 @@ public abstract class AbstractRdfStorage {
 //                templatesInUse);
 //
 //        if (templatesInUse.isEmpty()) {
-//            foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedConceptKeys /*, queryLimit*/);
+//            foundQuestionMetas = metaMgr.findQuestionsByConcepts(selectedTraceConceptKeys /*, queryLimit*/);
 //        } else {
-//            foundQuestionMetas = metaMgr.findQuestionsByConceptsWithoutTemplates(selectedConceptKeys, templatesInUse);
+//            foundQuestionMetas = metaMgr.findQuestionsByConceptsWithoutTemplates(selectedTraceConceptKeys, templatesInUse);
 //        }
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
