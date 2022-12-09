@@ -255,7 +255,7 @@
     "formulations": [
       {
         "name": "connect_InterruptedToplevel",
-        "formulation": "(?prev my:always_consequent ?halt_bnd), (?halt_bnd my:interrupt_origin ?o), (?halt_bnd my:halt_of ?st), (?alg my:entry_point ?st), (?e my:end_of ?st), -> drop(0), drop(1), (?prev my:always_consequent ?e), (?prev my:Interrupted ?e),.",
+        "formulation": "(?prev my:always_consequent ?halt_bnd), (?halt_bnd my:interrupt_origin ?_), (?halt_bnd my:halt_of ?st), (?alg my:entry_point ?st), (?e my:end_of ?st), -> drop(0), drop(1), (?prev my:always_consequent ?e), (?prev my:Interrupted ?e),.",
         "backend": "Jena"
       },
       {
@@ -1263,7 +1263,7 @@
       },
       {
         "name": "NoConditionAfterForInit-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?init_stmt), (?Loop rdf:type my:start_with_init), (?Loop my:init ?init_stmt), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:NoConditionAfterForInit), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:end_of ?init_stmt), (?Loop rdf:type my:start_with_init), (?Loop my:init ?init_stmt), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:NoConditionAfterForInit), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
@@ -1273,7 +1273,7 @@
       },
       {
         "name": "NoUpdateAfterIteration-loop_Error",
-        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?st), (?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?upd), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoUpdateAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:end_of ?st), (?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?upd), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoUpdateAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
         "backend": "Jena"
       },
       {
