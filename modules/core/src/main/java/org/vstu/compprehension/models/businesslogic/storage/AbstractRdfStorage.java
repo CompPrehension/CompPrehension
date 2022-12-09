@@ -267,10 +267,12 @@ public abstract class AbstractRdfStorage {
 
         // too many entries, drop one by one
         int iterCount = 0;
-        while (foundQuestionMetas.size() > Math.min(hardLimit, queryLimit * 4) && iterCount < foundQuestionMetas.size()) {
+        int iterLimit = foundQuestionMetas.size();
+        int actualLimit = Math.min(hardLimit, queryLimit * 4);
+        while (foundQuestionMetas.size() > actualLimit && iterCount < iterLimit) {
             int randIdx = random.nextInt(foundQuestionMetas.size());
             QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
-            if ((qm.getConceptBits() & unwantedConceptsBitmask) > 0
+            if (foundQuestionMetas.size() > actualLimit * 2 || (qm.getConceptBits() & unwantedConceptsBitmask) > 0
                     && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
             ) {
                 foundQuestionMetas.remove(randIdx);
