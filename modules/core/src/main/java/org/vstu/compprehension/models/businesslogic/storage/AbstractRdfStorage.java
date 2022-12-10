@@ -201,10 +201,20 @@ public abstract class AbstractRdfStorage {
         Checkpointer ch = new Checkpointer(log);
 
         QuestionMetadataManager metaMgr = getQuestionMetadataManager();
-        int queryLimit = (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+        int queryLimit = (limit * 3 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
         int hardLimit = 25;
 
         Random random = domain.getRandomProvider().getRandom();
+
+        // 0.8 .. 1.2
+        double changeCoeff = 0.9f + 0.2f * random.nextDouble();
+        double complexity = qr.getComplexity() * changeCoeff;
+        int solutionSteps = qr.getSolvingDuration();  // 0..10
+        complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
+        solutionSteps = (int)Math.round(metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10));
+
+        List<QuestionMetadataEntity> foundQuestionMetas;
+        List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
         long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
         long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
@@ -212,9 +222,6 @@ public abstract class AbstractRdfStorage {
         long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 5).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
-
-        List<Long> selectedTraceConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
-                deniedConceptsBitmask, 0 /*unwantedConceptsBitmask*/, queryLimit, metaMgr.wholeBankStat.getTraceConceptStat(), random);
 
         // TODO: use laws for expr Domain
         long targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
@@ -237,16 +244,24 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        List<QuestionMetadataEntity> foundQuestionMetas;
-
-        List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
+        foundQuestionMetas = metaMgr.findQuestionsAroundComplexityStepsWithoutTemplates(
+                complexity, solutionSteps,
+                targetConceptsBitmask, deniedConceptsBitmask,
+                targetLawsBitmask, deniedLawsBitmask,
+                templatesInUse,
+                queryLimit);
 
         // TODO: use tags as well
-        foundQuestionMetas = metaMgr.findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
-                selectedTraceConceptKeys, deniedConceptsBitmask,
-                targetLawsBitmask, deniedLawsBitmask,
-                templatesInUse);
+        if (foundQuestionMetas.isEmpty()) {
 
+            List<Long> selectedTraceConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
+                    deniedConceptsBitmask, 0 /*unwantedConceptsBitmask*/, queryLimit, metaMgr.wholeBankStat.getTraceConceptStat(), random);
+
+            foundQuestionMetas = metaMgr.findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
+                    selectedTraceConceptKeys, deniedConceptsBitmask,
+                    targetLawsBitmask, deniedLawsBitmask,
+                    templatesInUse);
+        }
 //        foundQuestionMetas = metaMgr.findQuestionsByBitmasksWithoutTemplates(
 //                targetConceptsBitmask, deniedConceptsBitmask,
 //                targetLawsBitmask, deniedLawsBitmask,
@@ -283,14 +298,10 @@ public abstract class AbstractRdfStorage {
         ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
 
         // filter foundQuestionMetas, ranking by complexity, solution steps
-        // 0.8 .. 1.2
-        float changeCoeff = 0.9f + 0.2f * random.nextFloat();
-        float complexity = qr.getComplexity() * changeCoeff;
-        int solutionSteps = qr.getSolvingDuration();  // 0..10
-
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
-                metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1),
-                metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10),
+                complexity,
+                solutionSteps,
+                targetConceptsBitmask,
                 unwantedConceptsBitmask,
                 unwantedLawsBitmask,
                 unwantedViolationsBitmask,
@@ -311,6 +322,7 @@ public abstract class AbstractRdfStorage {
             List<QuestionMetadataEntity> given,
             double scaledComplexity,
             double scaledSolutionLength,
+            long targetConceptsBitmask,
             long unwantedConceptsBitmask,
             long unwantedLawsBitmask,
             long unwantedViolationsBitmask,
@@ -327,16 +339,14 @@ public abstract class AbstractRdfStorage {
                 .collect(Collectors.toList());
 
         List<QuestionMetadataEntity> ranking3 = given.stream()
-                .sorted(Comparator.comparingInt(q -> bitCount(q.getConceptBits() & unwantedConceptsBitmask)))
+                .sorted(Comparator.comparingInt(
+                        q -> bitCount(q.getConceptBits() & unwantedConceptsBitmask)
+                        + bitCount(q.getLawBits() & unwantedLawsBitmask)
+                        + bitCount(q.getViolationBits() & unwantedViolationsBitmask)
+                        - bitCount(q.getConceptBits() & targetConceptsBitmask)
+                ))
                 .collect(Collectors.toList());
 
-        List<QuestionMetadataEntity> ranking4 = given.stream()
-                .sorted(Comparator.comparingInt(q -> bitCount(q.getLawBits() & unwantedLawsBitmask)))
-                .collect(Collectors.toList());
-
-        List<QuestionMetadataEntity> ranking5 = given.stream()
-                .sorted(Comparator.comparingInt(q -> bitCount(q.getViolationBits() & unwantedViolationsBitmask)))
-                .collect(Collectors.toList());
 
         // want more diversity in question ?? count control values -> take more with '1' not with '0'
         List<QuestionMetadataEntity> ranking6 = given.stream()

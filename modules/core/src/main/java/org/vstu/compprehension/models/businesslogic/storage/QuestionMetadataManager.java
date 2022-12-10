@@ -129,6 +129,24 @@ public class QuestionMetadataManager {
         return foundQuestions;
     }
 
+    List<QuestionMetadataEntity> findQuestionsAroundComplexityStepsWithoutTemplates(
+            double complexity, int solutionSteps,
+            Long conceptPreferredBitmask, Long conceptDeniedBitmask,
+            Long lawPreferredBitmask, Long lawDeniedBitmask,
+            Collection<Integer> templatesIds,
+            int limit
+    ) {
+        conceptPreferredBitmask &= ~conceptDeniedBitmask;
+        lawPreferredBitmask &= ~lawDeniedBitmask;
+        if (templatesIds == null || templatesIds.isEmpty()) {
+            templatesIds = List.of(0);
+        }
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityStepsWithoutTemplates(complexity, solutionSteps, conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, limit);
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    }
+
     private HashMap<String, Long> _fillConcepts(HashMap<String, Long> name2bit) {
         name2bit.put("pointer", 0x1L);
         name2bit.put("C++", 0x2L);

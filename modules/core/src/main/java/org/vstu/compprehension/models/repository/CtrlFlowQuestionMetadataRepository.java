@@ -48,7 +48,7 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
     );
 
     @Query(value = "select * from questions_meta q where q.domain_shortname = 'ctrl_flow' AND q._stage = 3 " +
-            "AND q.concept_bits & :conceptR = :conceptR AND q.concept_bits & :conceptD = 0 " +
+            "AND q.trace_concept_bits & :conceptR = :conceptR AND q.concept_bits & :conceptD = 0 " +
             "AND q.law_bits & :lawR = :lawR AND q.law_bits & :lawD = 0 " +
             "AND q.template_id NOT IN :ids",
             nativeQuery = true)
@@ -58,5 +58,23 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
             @Param("lawR") long lawsRequiredBitmask,
             @Param("lawD") long lawsDeniedBitmask,
             @Param("ids") Collection<Integer> templatesIds
+    );
+
+    @Query(value = "select * from questions_meta q where q.domain_shortname = 'ctrl_flow' AND q._stage = 3 " +
+            "AND IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) AND q.concept_bits & :conceptD = 0 " +
+            "AND IF(:lawA =0,1,q.law_bits & :lawA <> 0) AND q.law_bits & :lawD = 0 " +
+            "AND q.template_id NOT IN :ids " +
+            "order by abs((q.integral_complexity - :complexity)*27) * abs(q.solution_steps - :solutionSteps + 0.5) limit :lim",
+            //  order by abs((integral_complexity - 0.4)*27) * abs(solution_steps - 20 + 0.5) limit 42
+            nativeQuery = true)
+    List<QuestionMetadataEntity> findSampleAroundComplexityStepsWithoutTemplates(
+            @Param("complexity") double complexity,
+            @Param("solutionSteps") int solutionSteps,
+            @Param("conceptA") long conceptsPreferredBitmask,
+            @Param("conceptD") long conceptsDeniedBitmask,
+            @Param("lawA") long lawsPreferredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds,
+            @Param("lim") int limitNumber
     );
 }
