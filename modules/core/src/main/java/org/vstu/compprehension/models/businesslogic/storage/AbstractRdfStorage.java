@@ -343,7 +343,7 @@ public abstract class AbstractRdfStorage {
                         q -> bitCount(q.getConceptBits() & unwantedConceptsBitmask)
                         + bitCount(q.getLawBits() & unwantedLawsBitmask)
                         + bitCount(q.getViolationBits() & unwantedViolationsBitmask)
-                        - bitCount(q.getConceptBits() & targetConceptsBitmask)
+                        - bitCount(q.getConceptBits() & targetConceptsBitmask) * 3
                 ))
                 .collect(Collectors.toList());
 
@@ -358,8 +358,6 @@ public abstract class AbstractRdfStorage {
                         ranking1.indexOf(q) +
                         ranking2.indexOf(q) +
                         ranking3.indexOf(q) +
-                        ranking4.indexOf(q) +
-                        ranking5.indexOf(q) +
                         ranking6.indexOf(q)
                         )))
                 .collect(Collectors.toList());
