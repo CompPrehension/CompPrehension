@@ -46,8 +46,8 @@ public class ControlFlowStatementsDomainTest {
                 domain.getConcept("sequence")
         ));
         qr.setAllowedConcepts(List.of(
-                domain.getConcept("sequence"),
-                domain.getConcept("alt_branch")
+                domain.getConcept("sequence")
+                // domain.getConcept("alternative")
         ));
         qr.setDeniedConcepts(List.of(
                 domain.getConcept("loop")
