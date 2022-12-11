@@ -322,6 +322,15 @@ public abstract class Domain {
     public abstract List<HyperText> getFullSolutionTrace(Question question);
 
     /**
+     * Get text description of all steps to complete correct solution
+     * @param question not solved question
+     * @return list of step descriptions
+     */
+    public List<HyperText> getCompleteSolvedTrace(Question question) {
+        return List.of();
+    }
+
+    /**
      * TODO: do we need this function?
      * @return
      */
