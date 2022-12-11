@@ -36,9 +36,6 @@ public class QuestionService {
     AnswerObjectRepository answerObjectRepository;
 
     @Autowired
-    BackendFactRepository backendFactRepository;
-
-    @Autowired
     //private Strategy strategy;
     private StrategyFactory strategyFactory;
 
@@ -177,25 +174,6 @@ public class QuestionService {
             }
             answerObjectRepository.saveAll(question.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
         }
-
-        List<BackendFactEntity> newBackendFacts = new ArrayList<>();
-        if (question.getStatementFacts() != null) {
-            for (BackendFactEntity fact : question.getStatementFacts()) {
-                if (fact.getQuestion() == null) {
-                    fact.setQuestion(question);
-                    newBackendFacts.add(fact);
-                }
-            }
-        }
-        if (question.getSolutionFacts() != null) {
-            for (BackendFactEntity fact : question.getSolutionFacts()) {
-                if (fact.getQuestion() == null) {
-                    fact.setQuestion(question);
-                    newBackendFacts.add(fact);
-                }
-            }
-        }
-        backendFactRepository.saveAll(newBackendFacts);
 
         if (question.getInteractions() != null) {
             for (val interactionEntity : question.getInteractions()) {

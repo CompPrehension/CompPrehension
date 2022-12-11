@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1670788727197-6" author="Artem Prokudin">
+        <addColumn tableName="question">
+            <column name="solution_facts" type="json"/>
+            <column name="statement_facts" type="json"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1670788727197-7" author="Artem Prokudin">
+        <validCheckSum>ANY</validCheckSum>
+        <sql>
+            UPDATE 
+              question q, 
+              (
+                SELECT 
+                  q.id as question_id, 
+				  JSON_ARRAYAGG(source.fact_json) as facts 
+                FROM 
+                  (
+                    SELECT 
+                      bf.id as fact_id, 
+                      bf.backend_fact_id as question_id, 
+                      JSON_OBJECT(
+                        'object', bf.object, 
+                        'objectType', bf.object_type, 
+                        'subject', bf.subject, 
+                        'subjectType', bf.subject_type, 
+                        'verb', bf.verb
+                      ) as fact_json 
+                    FROM backend_facts bf 
+                    ORDER BY 
+                      bf.backend_fact_id, 
+                      bf.id
+                  ) as source
+                  RIGHT JOIN question q on source.question_id = q.id
+                GROUP BY 
+                  q.id
+              ) AS source 
+            SET 
+              q.solution_facts = IF(JSON_LENGTH(source.facts) = 1, JSON_ARRAY(), source.facts),
+              q.statement_facts = IF(JSON_LENGTH(source.facts) = 1, JSON_ARRAY(), source.facts)
+            WHERE 
+              q.id = source.question_id
+        </sql>
+    </changeSet>
+    <changeSet id="1670788727197-9" author="Artem Prokudin">
+        <addNotNullConstraint columnDataType="json" columnName="solution_facts" tableName="question"/>
+        <addNotNullConstraint columnDataType="json" columnName="statement_facts" tableName="question"/>
+    </changeSet>
+    <changeSet id="1670788727197-10" author="Artem Prokudin">
+        <dropForeignKeyConstraint baseTableName="backend_facts" constraintName="FK_BACKENDFACTS_ON_BACKENDFACT"/>
+    </changeSet>
+    <changeSet id="1670788727197-11" author="Artem Prokudin">
+        <dropTable cascadeConstraints="true" tableName="backend_facts"/>
+    </changeSet>
+    <changeSet id="1670788727197-12" author="Artem Prokudin">
+        <dropTable cascadeConstraints="true" tableName="backend_facts_sequence"/>
+    </changeSet>
+
+</databaseChangeLog>

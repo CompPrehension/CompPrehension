@@ -345,14 +345,14 @@ public class FrontendService {
     public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         var ea = createNewAttempt(exerciseId, userId);
 
-        for (int idx = 0; idx < 3; ++idx) {
+        for (int idx = 0; idx < 5; ++idx) {
             // generate next question
             var currentQuestion = generateQuestion(ea.getId());
 
             // solve question
             val question = questionService.getQuestion(currentQuestion.getQuestionId());
             val trace = question.getDomain().getCompleteSolvedTrace(question);
-            if (trace.isEmpty()) {
+            if (trace.isEmpty() && false) {
                 FeedbackDto currentFeedback;
                 currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
                 while (currentFeedback.getStepsLeft() > 0) {

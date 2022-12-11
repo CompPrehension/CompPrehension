@@ -9,6 +9,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity @Getter @Setter
@@ -58,8 +59,13 @@ public class QuestionEntity {
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFactEntity> statementFacts;
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFactEntity> solutionFacts;
+    @Type(type = "json")
+    @Column(name = "statement_facts", nullable = false)
+    @Basic(fetch = FetchType.LAZY)
+    private List<BackendFactEntity> statementFacts = new ArrayList<>();
+
+    @Type(type = "json")
+    @Column(name = "solution_facts", nullable = false)
+    @Basic(fetch = FetchType.LAZY)
+    private List<BackendFactEntity> solutionFacts = new ArrayList<>();
 }

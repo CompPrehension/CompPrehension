@@ -21,7 +21,4 @@ public class CorrectLawEntity {
 
     @Column(name = "law_name", nullable = false)
     private String lawName;
-
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFactEntity> violationFacts;
 }
