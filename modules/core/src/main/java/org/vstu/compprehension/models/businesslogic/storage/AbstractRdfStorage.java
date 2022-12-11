@@ -207,9 +207,10 @@ public abstract class AbstractRdfStorage {
         Random random = domain.getRandomProvider().getRandom();
 
         // 0.8 .. 1.2
-        double changeCoeff = 0.9f + 0.2f * random.nextDouble();
+        double changeCoeff = 0.85f + 0.3f * random.nextDouble();
         double complexity = qr.getComplexity() * changeCoeff;
         int solutionSteps = qr.getSolvingDuration();  // 0..10
+        solutionSteps += random.nextInt(5) - 2;
         complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
         solutionSteps = (int)Math.round(metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10));
 
@@ -219,15 +220,20 @@ public abstract class AbstractRdfStorage {
         long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
         long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
         long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
-        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 5).stream()
+        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
+
+        if (bitCount(unwantedConceptsBitmask) > 2) {
+            // drop several bits from targets (randomly chosen from unwanted)
+            targetConceptsBitmask &= ~(unwantedConceptsBitmask ^ (unwantedConceptsBitmask & random.nextLong()));
+        }
 
         // TODO: use laws for expr Domain
         long targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
 //        long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
         long deniedLawsBitmask = lawsToBitmask(qr.getDeniedLaws(), metaMgr);
-        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 5).stream()
+        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
 

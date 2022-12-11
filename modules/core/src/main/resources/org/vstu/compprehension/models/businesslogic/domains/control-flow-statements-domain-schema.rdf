@@ -769,24 +769,27 @@
 
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#if">
   <rdfs:subClassOf rdf:resource="#alt_branch"/>
-  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
+  <core:broader rdf:resource="#alternative"/>
+  <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">2</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#else-if">
   <rdfs:subClassOf rdf:resource="#alt_branch"/>
-  <core:broader rdf:resource="#if"/>
+  <core:broader rdf:resource="#alternative"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">else-if</rdfs:label>
 </owl:Class>
 
 <owl:Class rdf:about="#else">
   <rdfs:subClassOf rdf:resource="#alt_branch"/>
-  <core:broader rdf:resource="#if"/>
+  <core:broader rdf:resource="#alternative"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">else</rdfs:label>
 </owl:Class>
