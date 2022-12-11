@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class BackendFactEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "bf_generator")
-    @SequenceGenerator(name = "bf_generator", sequenceName = "BACKEND_FACTS_SEQUENCE")
+    @SequenceGenerator(name = "bf_generator", sequenceName = "BACKEND_FACTS_SEQUENCE", allocationSize = 500)
     private Long id;
 
     @Column(name = "object")

@@ -154,7 +154,8 @@ public class QuestionService {
     }
 
     public Question getQuestion(Long questionId) {
-        Question question = generateBusinessLogicQuestion(questionRepository.findById(questionId).get());
+        var rawQuestion = questionRepository.findByIdEager(questionId).orElseThrow();
+        Question question = generateBusinessLogicQuestion(rawQuestion);
         return question;
     }
 
