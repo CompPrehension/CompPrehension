@@ -37,6 +37,11 @@ public class NumericStat {
 */
 
     public double rescaleExternalValue(double value, double rangeMin, double rangeMax) {
+        double valueFactor = (value - rangeMin) / (rangeMax - rangeMin);
+        return min + valueFactor * (max - min);
+    }
+
+    public double rescaleExternalValueViaMean(double value, double rangeMin, double rangeMax) {
         double rangeMean = (rangeMin + rangeMax) / 2;
         double desiredValue = mean;
         if (value <= rangeMean) {

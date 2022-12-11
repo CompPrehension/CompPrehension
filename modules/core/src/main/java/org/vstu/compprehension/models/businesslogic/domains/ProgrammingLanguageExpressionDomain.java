@@ -533,6 +533,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
             deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
         }
+        questionRequest.setDeniedQuestionNames(List.of());
 
         List<Question> foundQuestions;
         try {

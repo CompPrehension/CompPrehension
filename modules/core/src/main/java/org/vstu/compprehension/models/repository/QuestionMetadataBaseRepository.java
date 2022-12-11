@@ -59,4 +59,16 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntit
             @Param("lawD") long lawsDeniedBitmask,
             @Param("ids") Collection<Integer> templatesIds
     );
+
+    // @Query ....
+    List<QuestionMetadataEntity> findSampleAroundComplexityStepsWithoutTemplates(
+            @Param("complexity") double complexity,
+            @Param("solutionSteps") int solutionSteps,
+            @Param("conceptA") long conceptsPreferredBitmask,
+            @Param("conceptD") long conceptsDeniedBitmask,
+            @Param("lawA") long lawsPreferredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds,
+            @Param("lim") int limitNumber
+    );
 }

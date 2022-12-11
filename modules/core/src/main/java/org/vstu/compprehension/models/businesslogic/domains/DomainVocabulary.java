@@ -36,6 +36,7 @@ public class DomainVocabulary {
         // make concepts in advance: baseConcepts can be appended after the instance created
         HashMap<String, Concept> concepts = new HashMap<>();
         // Resource ConceptClass = SKOS.Concept;
+//         Property subConceptProp = SKOS.broader;
 
         // find all [top] concepts and recurse from them
 //        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, ConceptClass);
@@ -117,7 +118,7 @@ public class DomainVocabulary {
             return;
 
         // find all child concepts
-        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, conceptNode);
+        ResIterator iter = model.listSubjectsWithProperty(SKOS.broader, conceptNode);
         while (iter.hasNext()) {
             Resource childConceptNode = iter.nextResource();
             readConceptFromResource(childConceptNode, conceptName2bases, concepts, name);
