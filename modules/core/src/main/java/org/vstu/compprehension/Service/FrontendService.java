@@ -20,6 +20,7 @@ import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
@@ -254,7 +255,11 @@ public class FrontendService {
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
-        val existingInteractions = question.getQuestionData().getInteractions();
+        var existingInteractions = question.getQuestionData().getInteractions();
+        if (existingInteractions == null) {
+            existingInteractions = new ArrayList<>();
+            question.getQuestionData().setInteractions(existingInteractions);
+        }
         val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
@@ -333,6 +338,33 @@ public class FrontendService {
     }
 
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
+        var ea = createNewAttempt(exerciseId, userId);
+        return Mapper.toDto(ea);
+    }
+
+    public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
+        var ea = createNewAttempt(exerciseId, userId);
+
+        for (int idx = 0; idx < 3; ++idx) {
+            // generate next question
+            var currentQuestion = generateQuestion(ea.getId());
+
+            // solve question
+            var currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
+            while(currentFeedback.getStepsLeft() > 0) {
+                currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
+            }
+
+            // stop if strategy decided to stop
+            if (currentFeedback.getStrategyDecision() == Decision.FINISH) {
+                break;
+            }
+        }
+
+        return Mapper.toDto(exerciseAttemptRepository.findById(ea.getId()).orElseThrow());
+    }
+
+    private ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
         // complete all incompleted attempts
         val incompletedAttempts = exerciseAttemptRepository.findAllByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
         log.info("Found {} existing attempt to complete", incompletedAttempts.size());
@@ -342,16 +374,16 @@ public class FrontendService {
         }
         exerciseAttemptRepository.saveAll(incompletedAttempts);
 
-        val exercise = exerciseService.getExercise(exerciseId);
-        val user = userService.getUser(userId);
+        var exercise = exerciseService.getExercise(exerciseId);
+        var user = userService.getUser(userId);
 
-        val ea = new ExerciseAttemptEntity();
+        var ea = new ExerciseAttemptEntity();
         ea.setExercise(exercise);
         ea.setUser(user);
         ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
         ea.setQuestions(new ArrayList<>(0));
         exerciseAttemptRepository.save(ea);
 
-        return Mapper.toDto(ea);
+        return ea;
     }
 }

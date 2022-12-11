@@ -1,20 +1,17 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.ToString;
+import lombok.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.util.List;
 
-@Entity
-@Data
+@Entity @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Question")
 @TypeDef(name = "json", typeClass = JsonStringType.class)
