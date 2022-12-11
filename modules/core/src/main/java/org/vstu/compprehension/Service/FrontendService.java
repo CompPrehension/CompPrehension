@@ -350,14 +350,19 @@ public class FrontendService {
             var currentQuestion = generateQuestion(ea.getId());
 
             // solve question
-            var currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
-            while(currentFeedback.getStepsLeft() > 0) {
+            val question = questionService.getQuestion(currentQuestion.getQuestionId());
+            val trace = question.getDomain().getCompleteSolvedTrace(question);
+            if (trace.isEmpty()) {
+                FeedbackDto currentFeedback;
                 currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
-            }
+                while (currentFeedback.getStepsLeft() > 0) {
+                    currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
+                }
 
-            // stop if strategy decided to stop
-            if (currentFeedback.getStrategyDecision() == Decision.FINISH) {
-                break;
+                // stop if strategy decided to stop
+                if (currentFeedback.getStrategyDecision() == Decision.FINISH) {
+                    break;
+                }
             }
         }
 
