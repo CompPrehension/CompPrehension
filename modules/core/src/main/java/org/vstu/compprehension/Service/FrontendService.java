@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
@@ -33,6 +35,7 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.common.Utils;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,7 +81,10 @@ public class FrontendService {
     @Autowired
     private DomainFactory domainFactory;
 
+    @Autowired
+    private EntityManager entityManager;
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
         val question = questionService.getQuestion(questionId);
@@ -201,6 +207,7 @@ public class FrontendService {
                 strategyAttemptDecision);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
@@ -208,6 +215,7 @@ public class FrontendService {
         return Mapper.toDto(question);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @Nullable QuestionDto generateSupplementaryQuestion(@NotNull Long exAttemptId, @NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
@@ -222,11 +230,13 @@ public class FrontendService {
         return supQuestion != null ? Mapper.toDto(supQuestion) : null;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto getQuestion(@NotNull Long questionId) throws Exception {
         val question = questionService.getQuestion(questionId);
         return Mapper.toDto(question);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) throws Exception {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
@@ -337,11 +347,14 @@ public class FrontendService {
         return result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         var ea = createNewAttempt(exerciseId, userId);
         return Mapper.toDto(ea);
     }
 
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {Throwable.class})
     public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         var ea = createNewAttempt(exerciseId, userId);
 
@@ -352,7 +365,7 @@ public class FrontendService {
             // solve question
             val question = questionService.getQuestion(currentQuestion.getQuestionId());
             val trace = question.getDomain().getCompleteSolvedTrace(question);
-            if (trace.isEmpty() && false) {
+            if (trace.isEmpty() && true) {
                 FeedbackDto currentFeedback;
                 currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
                 while (currentFeedback.getStepsLeft() > 0) {
@@ -366,7 +379,9 @@ public class FrontendService {
             }
         }
 
-        return Mapper.toDto(exerciseAttemptRepository.findById(ea.getId()).orElseThrow());
+        entityManager.refresh(ea);
+        var result = Mapper.toDto(ea);
+        return result;
     }
 
     private ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
