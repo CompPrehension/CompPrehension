@@ -58,3 +58,8 @@ export function nonEmptyArray<C extends io.Mixed>(
    map(codec.encode)
  )
 }
+
+export function getUrlParameterByName(name: string) : string | null {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}

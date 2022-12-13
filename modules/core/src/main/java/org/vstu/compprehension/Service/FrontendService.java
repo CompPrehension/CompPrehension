@@ -336,9 +336,17 @@ public class FrontendService {
         return result;
     }
 
+    public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) throws Exception {
+        val existingAttempt = exerciseAttemptRepository
+                .getById(attemptId);
+        return existingAttempt
+                .map(Mapper::toDto)
+                .orElse(null);
+    }
+
     public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         val existingAttempt = exerciseAttemptRepository
-                .findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
+                .getLastWithStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
         val result = existingAttempt
                 .map(Mapper::toDto)
                 .orElse(null);
@@ -386,7 +394,7 @@ public class FrontendService {
 
     private ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
         // complete all incompleted attempts
-        val incompletedAttempts = exerciseAttemptRepository.findAllByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
+        val incompletedAttempts = exerciseAttemptRepository.getAllByStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
         log.info("Found {} existing attempt to complete", incompletedAttempts.size());
         for(val att : incompletedAttempts) {
             att.setAttemptStatus(AttemptStatus.COMPLETED_BY_SYSTEM);

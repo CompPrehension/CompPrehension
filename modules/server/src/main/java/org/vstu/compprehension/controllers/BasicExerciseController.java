@@ -3,8 +3,10 @@ package org.vstu.compprehension.controllers;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.jena.shared.NotFoundException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +24,7 @@ import org.vstu.compprehension.utils.SessionHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("basic")
@@ -123,6 +126,19 @@ public class BasicExerciseController implements ExerciseController {
     @Override
     public List<Long> getExercises(HttpServletRequest request) throws Exception {
         return exerciseRepository.findAllIds();
+    }
+
+    @Override
+    public @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception {
+        val userId = getCurrentUser(request).getId();
+        var result = frontendService.getExerciseAttempt(attemptId);
+        if (result == null) {
+            throw new Exception("No such attempt");
+        }
+        if (!userId.equals(result.getUserId())){
+            throw new AuthorizationServiceException("Authorization error");
+        }
+        return result;
     }
 
     @Override

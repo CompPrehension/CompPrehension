@@ -101,6 +101,31 @@ export class ExerciseStore {
         }
     }
 
+
+    loadExerciseAttempt = flow(function* (this: ExerciseStore, attemptId: number) {
+        const { sessionInfo } = this;
+        if (!sessionInfo) {
+            throw new Error("Session is not defined");
+        }
+
+        this.forceSetValidState();
+        const exerciseId = sessionInfo.exercise.id;
+        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExerciseAttempt(attemptId);
+        if (E.isLeft(resultEither)) {
+            this.storeState = { tag: 'ERROR', error: resultEither.left };
+            return;
+        }
+
+        const result = resultEither.right;
+        if (!result) {
+            return false;
+        }
+
+        this.currentAttempt = result;
+        yield this.onAttemptLoaded();
+        return true;
+    });
+
     loadExistingExerciseAttempt = flow(function* (this: ExerciseStore) {
         const { sessionInfo } = this;
         if (!sessionInfo) {

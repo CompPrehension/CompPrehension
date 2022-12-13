@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Alert } from "react-bootstrap";
 import { SurveyComponent } from "../components/exercise/survey";
 import { Survey } from "../types/survey";
+import { getUrlParameterByName } from "../types/utils";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -33,13 +34,21 @@ export const Exercise = observer(() => {
             }
 
             await exerciseStore.loadSessionInfo();
+            const attemptId = getUrlParameterByName('attemptId');
+            if (attemptId && Number.isInteger(+attemptId)) {
+                setExerciseState('EXERCISE');
+                getAttemptAndLoadQuestion(+attemptId);
+                return;
+            }
+
             if (exerciseStore.sessionInfo?.exercise.options.forceNewAttemptCreationEnabled || 
                 !(await exerciseStore.loadExistingExerciseAttempt())) {
                 setExerciseState('EXERCISE');
                 createAttemptAndLoadQuestion();
-            } else {
-                setExerciseState('MODAL');
+                return;
             }
+                
+            setExerciseState('MODAL');
         })()
     }, []);
 
@@ -58,6 +67,13 @@ export const Exercise = observer(() => {
         (async () => {
             exerciseStore.currentQuestion.setQuestionState('LOADING');
             await exerciseStore.createExerciseAttempt();
+            loadQuestion();
+        })()
+    }, [exerciseStore]);
+    const getAttemptAndLoadQuestion = useCallback((attemptId: number) => {
+        (async () => {
+            exerciseStore.currentQuestion.setQuestionState('LOADING');
+            await exerciseStore.loadExerciseAttempt(attemptId);
             loadQuestion();
         })()
     }, [exerciseStore]);

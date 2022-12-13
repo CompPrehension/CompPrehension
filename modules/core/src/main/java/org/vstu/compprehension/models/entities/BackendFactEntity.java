@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 
 @Getter @Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 @Table(name = "BackendFacts")
 public class BackendFactEntity {

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.controllers.interfaces;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.dto.*;
@@ -14,6 +15,10 @@ public interface ExerciseController {
     @RequestMapping(value = {"/getExercises"}, method = { RequestMethod.GET })
     @ResponseBody
     List<Long> getExercises(HttpServletRequest request) throws Exception;
+
+    @RequestMapping(value = {"/getExerciseAttempt"}, method = { RequestMethod.GET })
+    @ResponseBody
+    @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception;
 
     /**
      * Get existing exercise attempt for current user
