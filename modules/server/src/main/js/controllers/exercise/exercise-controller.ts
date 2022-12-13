@@ -21,6 +21,7 @@ export interface IExerciseController {
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> ;
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt>;
+    createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt>;
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt>;
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]>;
     getExercises(): PromiseEither<RequestError, number[]>
@@ -71,6 +72,10 @@ export class ExerciseController implements IExerciseController {
 
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
         return ajaxGet(`${ExerciseController.endpointPath}createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
+    }
+
+    createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        return ajaxGet(`${ExerciseController.endpointPath}createDebugExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {

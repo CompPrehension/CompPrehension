@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.entities;
 
 import lombok.*;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
@@ -47,7 +48,7 @@ public class QuestionEntity {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<InteractionEntity> interactions;
+    private @NotNull List<InteractionEntity> interactions = new ArrayList<>(0);
 
     @ToString.Exclude
     @ManyToOne

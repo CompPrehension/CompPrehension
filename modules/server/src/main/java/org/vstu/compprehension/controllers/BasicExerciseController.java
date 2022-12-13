@@ -150,11 +150,11 @@ public class BasicExerciseController implements ExerciseController {
     @Override
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
         val userId = getCurrentUser(request).getId();
-        // return frontendService.createExerciseAttempt(exerciseId, userId);
-        return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
+        return frontendService.createExerciseAttempt(exerciseId, userId);
     }
 
-    public ExerciseAttemptDto generateSolvedExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+    @Override
+    public ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
         val userId = getCurrentUser(request).getId();
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
     }

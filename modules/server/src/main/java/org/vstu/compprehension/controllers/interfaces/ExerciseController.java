@@ -42,6 +42,10 @@ public interface ExerciseController {
     @ResponseBody
     ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception;
 
+    @RequestMapping(value = {"/createDebugExerciseAttempt"}, method = { RequestMethod.GET })
+    @ResponseBody
+    ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception;
+
     /**
      * Returns statistics for all user's exercise attempt
      * @param exerciseId Exercise id

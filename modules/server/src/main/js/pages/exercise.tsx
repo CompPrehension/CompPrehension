@@ -34,6 +34,14 @@ export const Exercise = observer(() => {
             }
 
             await exerciseStore.loadSessionInfo();
+            
+            if (getUrlParameterByName('debug') !== null) {
+                setExerciseState('EXERCISE');
+                createDebugAttemptAndLoadQuestion();
+                return;
+            }
+
+
             const attemptId = getUrlParameterByName('attemptId');
             if (attemptId && Number.isInteger(+attemptId)) {
                 setExerciseState('EXERCISE');
@@ -67,6 +75,13 @@ export const Exercise = observer(() => {
         (async () => {
             exerciseStore.currentQuestion.setQuestionState('LOADING');
             await exerciseStore.createExerciseAttempt();
+            loadQuestion();
+        })()
+    }, [exerciseStore]);
+    const createDebugAttemptAndLoadQuestion = useCallback(() => {
+        (async () => {
+            exerciseStore.currentQuestion.setQuestionState('LOADING');
+            await exerciseStore.createDebugExerciseAttempt();
             loadQuestion();
         })()
     }, [exerciseStore]);

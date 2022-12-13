@@ -367,7 +367,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         List<ResponseEntity> responses = new ArrayList<>();
 
-        List<InteractionEntity> interactions = q.getInteractions();
+        var interactions = q.getInteractions();
 
         if (interactions == null || interactions.isEmpty()) {
             return responses; // empty so far

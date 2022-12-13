@@ -266,10 +266,6 @@ public class FrontendService {
 
         // add interaction
         var existingInteractions = question.getQuestionData().getInteractions();
-        if (existingInteractions == null) {
-            existingInteractions = new ArrayList<>();
-            question.getQuestionData().setInteractions(existingInteractions);
-        }
         val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
@@ -366,7 +362,7 @@ public class FrontendService {
     public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         var ea = createNewAttempt(exerciseId, userId);
 
-        for (int idx = 0; idx < 5; ++idx) {
+        for (int idx = 0; idx < 10; ++idx) {
             // generate next question
             var currentQuestion = generateQuestion(ea.getId());
 
