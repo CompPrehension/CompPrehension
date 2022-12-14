@@ -1,10 +1,7 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.ToString;
-import lombok.val;
+import lombok.*;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
@@ -15,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @Table(name = "Interaction")
 public class InteractionEntity {

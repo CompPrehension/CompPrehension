@@ -20,6 +20,8 @@ export interface IExerciseController {
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback>;
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> ;
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
+    getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt>;
+    createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt>;
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt>;
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]>;
     getExercises(): PromiseEither<RequestError, number[]>
@@ -27,7 +29,7 @@ export interface IExerciseController {
 
 @injectable()
 export class ExerciseController implements IExerciseController {
-    static endpointPath: string = ExerciseController.initEndpointPath();
+        static endpointPath: string = ExerciseController.initEndpointPath();
     private static initEndpointPath(): string {
         const matches = /^\/(?:.+\/(?<!\/pages\/))?/.exec(window.location.pathname)
         if (matches) {
@@ -60,12 +62,20 @@ export class ExerciseController implements IExerciseController {
         return ajaxPost(`${ExerciseController.endpointPath}addQuestionAnswer`, interaction, TFeedback);
     }
 
+    getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        return ajaxGet(`${ExerciseController.endpointPath}getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
+    }
+
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''> {
-        return ajaxGet(`${ExerciseController.endpointPath}getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult); 
+        return ajaxGet(`${ExerciseController.endpointPath}getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult);
     }
 
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
         return ajaxGet(`${ExerciseController.endpointPath}createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
+    }
+
+    createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        return ajaxGet(`${ExerciseController.endpointPath}createDebugExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {

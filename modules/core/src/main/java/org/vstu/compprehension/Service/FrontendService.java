@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
@@ -20,6 +22,7 @@ import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
@@ -32,6 +35,7 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.common.Utils;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,7 +81,10 @@ public class FrontendService {
     @Autowired
     private DomainFactory domainFactory;
 
+    @Autowired
+    private EntityManager entityManager;
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
         val question = questionService.getQuestion(questionId);
@@ -200,6 +207,7 @@ public class FrontendService {
                 strategyAttemptDecision);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
@@ -207,6 +215,7 @@ public class FrontendService {
         return Mapper.toDto(question);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @Nullable QuestionDto generateSupplementaryQuestion(@NotNull Long exAttemptId, @NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
@@ -221,11 +230,13 @@ public class FrontendService {
         return supQuestion != null ? Mapper.toDto(supQuestion) : null;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto getQuestion(@NotNull Long questionId) throws Exception {
         val question = questionService.getQuestion(questionId);
         return Mapper.toDto(question);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) throws Exception {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
@@ -254,7 +265,7 @@ public class FrontendService {
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
-        val existingInteractions = question.getQuestionData().getInteractions();
+        var existingInteractions = question.getQuestionData().getInteractions();
         val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
@@ -321,9 +332,17 @@ public class FrontendService {
         return result;
     }
 
+    public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) throws Exception {
+        val existingAttempt = exerciseAttemptRepository
+                .getById(attemptId);
+        return existingAttempt
+                .map(Mapper::toDto)
+                .orElse(null);
+    }
+
     public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         val existingAttempt = exerciseAttemptRepository
-                .findFirstByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
+                .getLastWithStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
         val result = existingAttempt
                 .map(Mapper::toDto)
                 .orElse(null);
@@ -332,9 +351,46 @@ public class FrontendService {
         return result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
+        var ea = createNewAttempt(exerciseId, userId);
+        return Mapper.toDto(ea);
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = {Throwable.class})
+    public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
+        var ea = createNewAttempt(exerciseId, userId);
+
+        for (int idx = 0; idx < 10; ++idx) {
+            // generate next question
+            var currentQuestion = generateQuestion(ea.getId());
+
+            // solve question
+            val question = questionService.getQuestion(currentQuestion.getQuestionId());
+            val trace = question.getDomain().getCompleteSolvedTrace(question);
+            if (trace.isEmpty() && true) {
+                FeedbackDto currentFeedback;
+                currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
+                while (currentFeedback.getStepsLeft() > 0) {
+                    currentFeedback = generateNextCorrectAnswer(currentQuestion.getQuestionId());
+                }
+
+                // stop if strategy decided to stop
+                if (currentFeedback.getStrategyDecision() == Decision.FINISH) {
+                    break;
+                }
+            }
+        }
+
+        entityManager.refresh(ea);
+        var result = Mapper.toDto(ea);
+        return result;
+    }
+
+    private ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
         // complete all incompleted attempts
-        val incompletedAttempts = exerciseAttemptRepository.findAllByExerciseIdAndUserIdAndAttemptStatusOrderByIdDesc(exerciseId, userId, AttemptStatus.INCOMPLETE);
+        val incompletedAttempts = exerciseAttemptRepository.getAllByStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
         log.info("Found {} existing attempt to complete", incompletedAttempts.size());
         for(val att : incompletedAttempts) {
             att.setAttemptStatus(AttemptStatus.COMPLETED_BY_SYSTEM);
@@ -342,16 +398,16 @@ public class FrontendService {
         }
         exerciseAttemptRepository.saveAll(incompletedAttempts);
 
-        val exercise = exerciseService.getExercise(exerciseId);
-        val user = userService.getUser(userId);
+        var exercise = exerciseService.getExercise(exerciseId);
+        var user = userService.getUser(userId);
 
-        val ea = new ExerciseAttemptEntity();
+        var ea = new ExerciseAttemptEntity();
         ea.setExercise(exercise);
         ea.setUser(user);
         ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
         ea.setQuestions(new ArrayList<>(0));
         exerciseAttemptRepository.save(ea);
 
-        return Mapper.toDto(ea);
+        return ea;
     }
 }

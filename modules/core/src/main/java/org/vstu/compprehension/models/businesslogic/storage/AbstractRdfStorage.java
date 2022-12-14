@@ -774,7 +774,7 @@ public abstract class AbstractRdfStorage {
             } else {
                 log.warn("File NOT found by storage: " + path);
             }
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException | NullPointerException | IllegalStateException e) {
             e.printStackTrace();
         }
         return q;

@@ -184,6 +184,7 @@ public class Mapper {
                 .map(QuestionEntity::getId)
                 .toArray(Long[]::new);
         return ExerciseAttemptDto.builder()
+                .userId(attempt.getUser().getId())
                 .exerciseId(attempt.getExercise().getId())
                 .attemptId(attempt.getId())
                 .questionIds(questionIds)

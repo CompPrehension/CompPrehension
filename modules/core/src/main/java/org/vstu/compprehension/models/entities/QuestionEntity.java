@@ -1,20 +1,19 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.ToString;
+import lombok.*;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Data
+@Entity @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Question")
 @TypeDef(name = "json", typeClass = JsonStringType.class)
@@ -49,7 +48,7 @@ public class QuestionEntity {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<InteractionEntity> interactions;
+    private @NotNull List<InteractionEntity> interactions = new ArrayList<>(0);
 
     @ToString.Exclude
     @ManyToOne
@@ -61,8 +60,13 @@ public class QuestionEntity {
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFactEntity> statementFacts;
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFactEntity> solutionFacts;
+    @Type(type = "json")
+    @Column(name = "statement_facts", nullable = false)
+    @Basic(fetch = FetchType.LAZY)
+    private List<BackendFactEntity> statementFacts = new ArrayList<>();
+
+    @Type(type = "json")
+    @Column(name = "solution_facts", nullable = false)
+    @Basic(fetch = FetchType.LAZY)
+    private List<BackendFactEntity> solutionFacts = new ArrayList<>();
 }

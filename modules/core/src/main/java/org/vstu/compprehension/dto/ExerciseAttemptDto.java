@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ExerciseAttemptDto {
+    private Long userId;
     private Long attemptId;
     private Long exerciseId;
     private Long[] questionIds;

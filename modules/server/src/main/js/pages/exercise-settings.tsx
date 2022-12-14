@@ -404,7 +404,11 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
             <div className="mt-5">
                 <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>Save</button>
                 <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/basic/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>Save &amp; Open</button>
-            </div>
+                <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/basic/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()}>Open</button>
+                {currentStrategy?.options.multiStagesEnabled &&
+                    <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/basic/pages/exercise?exerciseId=${card.id}&debug`, '_blank')?.focus()}>Generate debug attempt</button>
+                }
+                </div>
         </div >
 
 

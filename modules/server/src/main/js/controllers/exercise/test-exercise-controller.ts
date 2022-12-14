@@ -50,6 +50,15 @@ export class TestExerciseController implements IExerciseController {
             questionIds: [1, 2, 3, 4, 5, 6, 7],
         });
     }
+    async createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        console.log(`createDebugExerciseAttempt?exerciseId=${exerciseId}`);
+        await delayPromise(3000);
+        return E.right({
+            attemptId: -1,
+            exerciseId: -1,
+            questionIds: [1, 2, 3, 4, 5, 6, 7],
+        });
+    }
     async getQuestion(questionId: number): PromiseEither<RequestError, Question> {
         console.log(`getQuestion?questionId=${questionId}`);
         await delayPromise(3000);
@@ -254,5 +263,9 @@ export class TestExerciseController implements IExerciseController {
     async getExercises(): PromiseEither<RequestError, number[]> {
         console.log(`getExercises`);
         return E.left({ message: "Method not implemented."});;
+    }    
+    async getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt> {
+        console.log(`getExerciseAttempt?attemptId=${attemptId}`);
+        return E.left({ message:"Method not implemented."});
     }
 }

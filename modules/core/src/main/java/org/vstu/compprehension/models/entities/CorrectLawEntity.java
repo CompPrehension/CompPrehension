@@ -1,13 +1,15 @@
 package org.vstu.compprehension.models.entities;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @Table(name = "CorrectLaw")
 public class CorrectLawEntity {
@@ -21,7 +23,4 @@ public class CorrectLawEntity {
 
     @Column(name = "law_name", nullable = false)
     private String lawName;
-
-    @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<BackendFactEntity> violationFacts;
 }
