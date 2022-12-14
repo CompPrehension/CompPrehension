@@ -185,6 +185,32 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
+    public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
+
+        ArrayList<CorrectAnswer> result = new ArrayList<>();
+
+        String qType = question.getQuestionData().getQuestionDomainType();
+        if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
+            // gather correct steps
+            List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+            OntModel model = getSolutionModelOfQuestion(question);
+
+            while (true) {
+                System.out.println("Getting getNextCorrectAnswer having " + correctTraceAnswersObjects.size());
+                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
+                if (ca == null)
+                    break;
+                result.add(ca);
+
+                AnswerObjectEntity answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
+                correctTraceAnswersObjects.add(answerObj);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     public List<HyperText> getCompleteSolvedTrace(Question question) {
 //        final String textMode = "text";
         final String textMode = "html";
@@ -202,10 +228,11 @@ public class ControlFlowStatementsDomain extends Domain {
 
             // gather correct steps
             List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+            OntModel model = getSolutionModelOfQuestion(question);
 
             while (true) {
                 System.out.println("Getting getNextCorrectAnswer having " + correctTraceAnswersObjects.size());
-                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects);
+                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
                 if (ca == null)
                     break;
 
@@ -1564,9 +1591,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
     }
 
-    @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
-
+    private OntModel getSolutionModelOfQuestion(Question q) {
         // find next consequent (using solved facts)
         List<BackendFactEntity> solutionFacts = q.getSolutionFacts();
 
@@ -1574,7 +1599,18 @@ public class ControlFlowStatementsDomain extends Domain {
         if (solutionFacts != null)
             solution.addAll(solutionFacts);
         solution.addAll(q.getStatementFacts());
-        OntModel model = factsToOntModel(solution);
+
+        return factsToOntModel(solution);
+    }
+
+    @Nullable
+    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+        return getNextCorrectAnswer(q, correctTraceAnswersObjects, getSolutionModelOfQuestion(q));
+    }
+
+    @Nullable
+    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
+
 
         // get shortcuts to properties
         OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));

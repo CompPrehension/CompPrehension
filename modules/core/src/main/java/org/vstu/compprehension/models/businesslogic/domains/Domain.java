@@ -330,6 +330,10 @@ public abstract class Domain {
         return List.of();
     }
 
+    public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
+        return List.of();
+    }
+
     /**
      * TODO: do we need this function?
      * @return
@@ -493,7 +497,7 @@ public abstract class Domain {
          */
         public List<Response> answers;
         /**
-         * Text explanation why it chosen
+         * Text explanation why it has chosen
          */
         public HyperText explanation;
         /**

@@ -29,6 +29,7 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.BitmaskStat;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
@@ -761,8 +762,12 @@ public abstract class AbstractRdfStorage {
 
     private Question loadQuestion(@NotNull QuestionMetadataEntity qMeta) {
         Question q = loadQuestion(qMeta.getQDataGraph());
-        if (q != null)
+        if (q != null) {
+            if (q.getQuestionData().getOptions() == null) {
+                q.getQuestionData().setOptions(new QuestionOptionsEntity());
+            }
             q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());
+        }
         return q;
     }
 
