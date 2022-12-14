@@ -13,7 +13,7 @@ public class QuestionMetadataManager {
     QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> questionRepository;
     QuestionGroupStat wholeBankStat;
     HashMap<String, Long> conceptName2bit;
-//    HashMap<String, Long> lawName2bit;
+    HashMap<String, Long> lawName2bit;
     HashMap<String, Long> violationName2bit;
 
     public QuestionMetadataManager(
@@ -29,6 +29,7 @@ public class QuestionMetadataManager {
 
         // use hardcoded name->bit mappings
         conceptName2bit = _fillConcepts(new HashMap<>());
+        lawName2bit = _fillLaws(new HashMap<>());
         violationName2bit = _fillViolations(new HashMap<>());
         initBankStat();
     }
@@ -148,6 +149,7 @@ public class QuestionMetadataManager {
     }
 
     private HashMap<String, Long> _fillConcepts(HashMap<String, Long> name2bit) {
+        // control Flow
         name2bit.put("pointer", 0x1L);
         name2bit.put("C++", 0x2L);
         name2bit.put("loops", 0x4L);
@@ -171,9 +173,49 @@ public class QuestionMetadataManager {
         name2bit.put("do_while_loop", 0x100000L);
         name2bit.put("break", 0x200000L);
         name2bit.put("continue", 0x400000L);
+        // Expression
+        name2bit.put("operator", 0x1L);  	// (1)
+        name2bit.put("operator_,", 0x2L);  	// (2)
+        name2bit.put("operator_==", 0x4L);  	// (4)
+        name2bit.put("operator_!", 0x8L);  	// (8)
+        name2bit.put("operator_&&", 0x10L);  	// (16)
+        name2bit.put("operator_<=", 0x20L);  	// (32)
+        name2bit.put("precedence", 0x40L);  	// (64)
+        name2bit.put("associativity", 0x80L);  	// (128)
+        name2bit.put("operator_!=", 0x100L);  	// (256)
+        name2bit.put("operator_>=", 0x200L);  	// (512)
+        name2bit.put("operator_binary_-", 0x400L);  	// (1024)
+        name2bit.put("operator_||", 0x800L);  	// (2048)
+        name2bit.put("operator_&", 0x1000L);  	// (4096)
+        name2bit.put("operator_=", 0x2000L);  	// (8192)
+        name2bit.put("operator_binary_+", 0x4000L);  	// (16384)
+        name2bit.put("operator_/", 0x8000L);  	// (32768)
+        name2bit.put("operator_unary_*", 0x10000L);  	// (65536)
+        name2bit.put("operator_binary_*", 0x20000L);  	// (131072)
+        name2bit.put("operator_<<", 0x40000L);  	// (262144)
+        name2bit.put("operator_unary_-", 0x80000L);  	// (524288)
+        name2bit.put("operator_|", 0x100000L);  	// (1048576)
+        name2bit.put("operator_^", 0x200000L);  	// (2097152)
+        name2bit.put("operator_<", 0x400000L);  	// (4194304)
+        name2bit.put("operator_>", 0x800000L);  	// (8388608)
+        name2bit.put("operator_postfix_++", 0x1000000L);  	// (16777216)
+        name2bit.put("operator_binary_&", 0x2000000L);  	// (33554432)
+        name2bit.put("operator_%", 0x4000000L);  	// (67108864)
+        name2bit.put("operator_postfix_--", 0x8000000L);  	// (134217728)
+        name2bit.put("operator_>>", 0x10000000L);  	// (268435456)
+        name2bit.put("operator_+=", 0x20000000L);  	// (536870912)
+        name2bit.put("operator_|=", 0x40000000L);  	// (1073741824)
+        name2bit.put("operator_~", 0x80000000L);  	// (2147483648)
+        name2bit.put("operator_&=", 0x100000000L);  	// (4294967296)
+        name2bit.put("operator_unary_+", 0x200000000L);  	// (8589934592)
+        name2bit.put("operator_-=", 0x400000000L);  	// (17179869184)
+        name2bit.put("operator_/=", 0x800000000L);  	// (34359738368)
+        name2bit.put("operator_<<=", 0x1000000000L);  	// (68719476736)
+        name2bit.put("operator_>>=", 0x2000000000L);  	// (137438953472)
         return name2bit;
     }
     private HashMap<String, Long> _fillViolations(HashMap<String, Long> name2bit) {
+        // control Flow
         name2bit.put("DuplicateOfAct", 0x1L);
         name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
         name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
@@ -189,7 +231,25 @@ public class QuestionMetadataManager {
         name2bit.put("NoConditionAfterIteration", 0x1000L);
         name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
         name2bit.put("LoopStartIsNotIteration", 0x4000L);
+        // Expression
+        name2bit.put("error_base_higher_precedence_right", 0x1L);    // (1)
+        name2bit.put("error_base_student_error_early_finish", 0x2L);    // (2)
+        name2bit.put("error_base_student_error_in_complex", 0x4L);    // (4)
+        name2bit.put("error_base_same_precedence_right_associativity_right", 0x8L);    // (8)
+        name2bit.put("error_base_higher_precedence_left", 0x10L);    // (16)
+        name2bit.put("error_base_student_error_strict_operands_order", 0x20L);    // (32)
+        name2bit.put("error_base_same_precedence_left_associativity_left", 0x40L);    // (64)
+        name2bit.put("error_base_student_error_unevaluated_operand", 0x80L);    // (128)    }
         return name2bit;
     }
-
+    private HashMap<String, Long> _fillLaws(HashMap<String, Long> name2bit) {
+        // control Flow (empty)
+        // Expression
+        name2bit.put("single_token_binary_execution", 0x1L);  	// (1)
+        name2bit.put("two_token_binary_execution", 0x2L);  	// (2)
+        name2bit.put("single_token_unary_prefix_execution", 0x4L);  	// (4)
+        name2bit.put("two_token_unary_execution", 0x8L);  	// (8)
+        name2bit.put("single_token_unary_postfix_execution", 0x10L);  	// (16)
+        return name2bit;
+    }
 }

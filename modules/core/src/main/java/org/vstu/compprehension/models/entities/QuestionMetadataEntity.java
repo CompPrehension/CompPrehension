@@ -24,7 +24,6 @@ public class QuestionMetadataEntity {
     @Column(name = "template_id", nullable = false)
     private Integer templateId;
 
-    // @Lob
     @Column(name = "q_data_graph")
     private String qDataGraph;
 

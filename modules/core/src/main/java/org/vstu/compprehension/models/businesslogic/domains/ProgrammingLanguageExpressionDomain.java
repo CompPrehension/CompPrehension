@@ -33,7 +33,7 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -63,13 +63,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
+    private final ExpressionQuestionMetadataRepository exprQuestionMetadataRepository;
 
     @Autowired
     public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
                                                DomainRepository domainRepository,
-                                               RandomProvider randomProvider) {
+                                               RandomProvider randomProvider,
+                                               ExpressionQuestionMetadataRepository exprQuestionMetadataRepository) {
         super(randomProvider);
         this.localizationService = localizationService;
+        this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
 
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
@@ -82,6 +85,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
         super(new RandomProvider());
         this.localizationService = localizationService;
+        exprQuestionMetadataRepository = null;
 
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = null;
@@ -327,6 +331,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // init questions storage
         getRdfStorage();
     }
+
+    @Override
+    public ExpressionQuestionMetadataRepository getQuestionMetadataRepository() {
+        return exprQuestionMetadataRepository;
+    }
+
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
