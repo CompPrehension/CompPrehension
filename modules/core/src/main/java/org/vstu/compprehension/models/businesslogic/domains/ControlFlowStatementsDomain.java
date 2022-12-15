@@ -231,7 +231,7 @@ public class ControlFlowStatementsDomain extends Domain {
             OntModel model = getSolutionModelOfQuestion(question);
 
             while (true) {
-                System.out.println("Getting getNextCorrectAnswer having " + correctTraceAnswersObjects.size());
+                System.out.println("Getting getNextCorrectAnswer № " + correctTraceAnswersObjects.size());
                 CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
                 if (ca == null)
                     break;

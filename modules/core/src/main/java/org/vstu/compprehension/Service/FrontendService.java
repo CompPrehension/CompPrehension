@@ -371,13 +371,20 @@ public class FrontendService {
 
         for (int idx = 0; idx < targetQuestionCount; ++idx) {
             var currentQuestion = generateQuestion(ea.getId());
-            var question = questionService.getQuestion(currentQuestion.getQuestionId());
+            var question = questionService.getSolvedQuestion(currentQuestion.getQuestionId());
             var allCorrectAnswers = domain.getAllAnswersOfSolvedQuestion(question);
-            if (allCorrectAnswers.size() > 0) {
+            for (val ca : allCorrectAnswers) {
+                val answers = ca.answers.stream()
+                        .map(a ->
+                                AnswerDto.builder().answer(
+                                    new Long[]{(long) a.getLeft().getAnswerId(), (long) a.getRight().getAnswerId()}
+                                ).build()
+                        )
+                        .toArray(AnswerDto[]::new);
                 addOrdinaryQuestionAnswer(InteractionDto.builder()
                         .attemptId(ea.getId())
                         .questionId(currentQuestion.getQuestionId())
-                        .answers(new AnswerDto[] { AnswerDto.builder().answer(allCorrectAnswers.get(allCorrectAnswers.size() - 1).answers.stream().map(x -> (long)x.getLeft().getAnswerId()).toArray(Long[]::new)).build() })
+                        .answers(answers)
                         .build());
             }
             entityManager.refresh(ea);
