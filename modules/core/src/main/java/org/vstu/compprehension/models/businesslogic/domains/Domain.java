@@ -334,6 +334,11 @@ public abstract class Domain {
         return List.of();
     }
 
+    public Question injectTraceInfoIntoQuestionText(Question question, Language lang) {
+        return question;
+    }
+
+
     /**
      * TODO: do we need this function?
      * @return
