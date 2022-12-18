@@ -371,22 +371,20 @@ public class FrontendService {
 
         for (int idx = 0; idx < targetQuestionCount; ++idx) {
             var currentQuestion = generateQuestion(ea.getId());
-            var question = questionService.getSolvedQuestion(currentQuestion.getQuestionId());
+            // var question = questionService.getSolvedQuestion(currentQuestion.getQuestionId());
+            /*
             var allCorrectAnswers = domain.getAllAnswersOfSolvedQuestion(question);
-            for (val ca : allCorrectAnswers) {
-                val answers = ca.answers.stream()
-                        .map(a ->
-                                AnswerDto.builder().answer(
-                                    new Long[]{(long) a.getLeft().getAnswerId(), (long) a.getRight().getAnswerId()}
-                                ).build()
-                        )
-                        .toArray(AnswerDto[]::new);
-                addOrdinaryQuestionAnswer(InteractionDto.builder()
-                        .attemptId(ea.getId())
-                        .questionId(currentQuestion.getQuestionId())
-                        .answers(answers)
-                        .build());
-            }
+            var allAnswers = allCorrectAnswers.stream()
+                    .flatMap(x -> x.answers.stream())
+                    .map(x -> AnswerDto.builder().answer(new Long[]{ (long)x.getLeft().getAnswerId(), (long)x.getRight().getAnswerId() }).build())
+                    .toArray(AnswerDto[]::new);
+            addOrdinaryQuestionAnswer(InteractionDto.builder()
+                    .attemptId(ea.getId())
+                    .questionId(currentQuestion.getQuestionId())
+                    .answers(allAnswers)
+                    .build());
+            */
+
             entityManager.refresh(ea);
         }
 
