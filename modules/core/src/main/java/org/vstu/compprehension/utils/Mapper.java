@@ -188,6 +188,7 @@ public class Mapper {
                 .exerciseId(attempt.getExercise().getId())
                 .attemptId(attempt.getId())
                 .questionIds(questionIds)
+                .status(attempt.getAttemptStatus())
                 .build();
     }
 

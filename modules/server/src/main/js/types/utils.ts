@@ -63,3 +63,13 @@ export function getUrlParameterByName(name: string) : string | null {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(name);
 }
+
+export function removeUrlParameter(name: string) : void {
+  const urlParams = new URLSearchParams(window.location.search);
+  urlParams.delete(name);
+
+  const newUrl = new URL(window.location.href);
+  newUrl.search = urlParams.toString();
+
+  history.pushState({}, '', newUrl.toString());
+}

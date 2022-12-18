@@ -41,6 +41,8 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -231,7 +233,7 @@ public class ControlFlowStatementsDomain extends Domain {
             OntModel model = getSolutionModelOfQuestion(question);
 
             while (true) {
-                System.out.println("Getting getNextCorrectAnswer having " + correctTraceAnswersObjects.size());
+                System.out.println("Getting getNextCorrectAnswer № " + correctTraceAnswersObjects.size());
                 CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
                 if (ca == null)
                     break;
@@ -633,11 +635,11 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setStatementFacts(_patchStatementFacts(facts, userLanguage));
         entity.setQuestionType(q.getQuestionType());
 
-
         switch (q.getQuestionType()) {
             case ORDER:
                 val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
+                patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity, this);
             case MATCHING:
@@ -651,6 +653,81 @@ public class ControlFlowStatementsDomain extends Domain {
             default:
                 throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
         }
+    }
+
+    /** show expr values aside the expressions (on the same line) */
+    public QuestionEntity patchQuestionTextShowValuesInline(QuestionEntity question, Language lang) {
+        String text = question.getQuestionText();
+        if (text.contains("<!-- patched: inline expr values -->"))
+            return question;
+
+        HashMap<String, String> id2subj = new HashMap<>();
+        HashMap<String, String> subj2name = new HashMap<>();
+        for (val answerObj : question.getAnswerObjects()) {
+            if (answerObj.getConcept().equals("expr")) {
+                String domainInfo = answerObj.getDomainInfo();
+                AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
+                val id = info.getExId();
+                if (!id2subj.containsKey(id)) {
+                    for (BackendFactEntity fact : question.getStatementFacts()) {
+                        if (fact.getVerb().equals("id")) {
+                            id2subj.put(fact.getObject(), fact.getSubject());
+                            if (fact.getObject().equals(id) && subj2name.containsKey(fact.getSubject())) {
+                                break;
+                            }
+                        }
+                        if (fact.getVerb().equals("stmt_name")) {
+                            subj2name.put(fact.getSubject(), fact.getObject());
+                        }
+                    }
+                }
+                String subj = id2subj.get(id);
+                String exprName = subj2name.get(subj);
+                if (subj == null || exprName == null) {
+                    log.info("Cannot find subject in statement facts for id=" + id);
+                    continue;
+                }
+
+                // find values for this expr
+                List<Integer> boolValues = null;
+                for (BackendFactEntity fact : question.getStatementFacts()) {
+                    if (fact.getSubject().equals(exprName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
+                        String values = fact.getObject();
+                        boolValues = Arrays.stream(values.split(","))
+                                .map(Integer::parseInt).collect(Collectors.toList());
+                        break;
+                    }
+                }
+                if (boolValues == null) {
+                    // the expr seems to be unreachable (thus there are no values for it)
+                    // log.info("Cannot find expr values in statement facts for id=" + id);
+                    continue;
+                }
+
+                // format "injection"
+                String valuesStr = boolValues.stream()
+                        .map(value -> getMessage("value.bool." + value, lang))
+                        .map(value -> "<span class=\"atom\">" + value + "</span>")
+                        .collect(Collectors.joining(", "));
+                valuesStr = " &rarr; " + valuesStr + "&nbsp;";
+                valuesStr = "<span class=\"compph-debug-info\">" + valuesStr + "</span>";
+
+                // find place where to insert
+                /* algorithm_element_id=\"4\" id=\"answer_9\" act_type=\"performed\" ...></span>n++</span>)&nbsp;&nbsp;<span class=\"comment\">// L_7</span></div> */
+                Pattern p = Pattern.compile("(algorithm_element_id=\""+id+"\".+?)(?=(?:&nbsp;)*<span class=\"comment\"|</div>)");
+                Matcher m = p.matcher(text);
+                if (m.find()) {
+                    String insertAfter = m.group();
+                    text = text.replace(insertAfter, insertAfter + valuesStr);
+                }
+            }
+        }
+
+        // add mark that the questions is already processed
+        text += "<!-- patched: inline expr values -->";
+        question.setQuestionText(text);
+
+        return question;
     }
 
     /** repair stmt_name fields - for global code & return/break/ statements */
