@@ -253,12 +253,6 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public Question injectTraceInfoIntoQuestionText(Question question, Language lang) {
-        patchQuestionTextShowValuesInline(question.getQuestionData(), lang);
-        return question;
-    }
-
-    @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         /// System.out.println("\t\tGetting the trace ...");
 
@@ -641,11 +635,11 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setStatementFacts(_patchStatementFacts(facts, userLanguage));
         entity.setQuestionType(q.getQuestionType());
 
-
         switch (q.getQuestionType()) {
             case ORDER:
                 val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
+                patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);
                 return new Ordering(entity, this);
             case MATCHING:
@@ -713,7 +707,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 // format "injection"
                 String valuesStr = boolValues.stream()
                         .map(value -> getMessage("value.bool." + value, lang))
-                        .map(value -> "<span class=\"atom\">" + value + "</span>")
+                        .map(value -> "<span class=\"atom compph-debug-info\">" + value + "</span>")
                         .collect(Collectors.joining(", "));
                 valuesStr = " &rarr; " + valuesStr + "&nbsp;";
 
