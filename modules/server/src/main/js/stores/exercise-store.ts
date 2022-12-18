@@ -11,6 +11,7 @@ import { RequestError } from "../types/request-error";
 import { Survey, SurveyQuestion, SurveyResultItem } from "../types/survey";
 import { SurveyController } from "../controllers/exercise/survey-controller";
 import { zero } from "fp-ts/lib/OptionT";
+import { getUrlParameterByName } from "../types/utils";
 
 @injectable()
 export class ExerciseStore {
@@ -21,6 +22,7 @@ export class ExerciseStore {
     @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, };
     @observable survey?: ExerciseSurveySettings = undefined;
+    @observable isDebug = false;
 
     constructor(@inject(ExerciseController) private readonly exerciseController: IExerciseController,
         @inject(SurveyController) private readonly surveyController: SurveyController,
@@ -33,6 +35,7 @@ export class ExerciseStore {
             this.exerciseState = 'INITIAL';
             this.storeState = { tag: 'VALID' };
         }
+        this.isDebug = getUrlParameterByName('debug') !== null;
         this.currentQuestion = currentQuestion;
 
         makeObservable(this);

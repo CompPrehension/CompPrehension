@@ -225,6 +225,9 @@ body ul {
   width: 46px;
 }
 
+.compph-exercise:not(.compph-exercise--debug) .compph-debug-info {
+  display: none !important;
+}
 
 .switch-field label:hover {
 	cursor: pointer;
