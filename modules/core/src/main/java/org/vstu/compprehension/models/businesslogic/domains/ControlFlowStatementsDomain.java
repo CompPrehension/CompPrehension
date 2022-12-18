@@ -707,9 +707,10 @@ public class ControlFlowStatementsDomain extends Domain {
                 // format "injection"
                 String valuesStr = boolValues.stream()
                         .map(value -> getMessage("value.bool." + value, lang))
-                        .map(value -> "<span class=\"atom compph-debug-info\">" + value + "</span>")
+                        .map(value -> "<span class=\"atom\">" + value + "</span>")
                         .collect(Collectors.joining(", "));
                 valuesStr = " &rarr; " + valuesStr + "&nbsp;";
+                valuesStr = "<span class=\"compph-debug-info\">" + valuesStr + "</span>";
 
                 // find place where to insert
                 /* algorithm_element_id=\"4\" id=\"answer_9\" act_type=\"performed\" ...></span>n++</span>)&nbsp;&nbsp;<span class=\"comment\">// L_7</span></div> */
