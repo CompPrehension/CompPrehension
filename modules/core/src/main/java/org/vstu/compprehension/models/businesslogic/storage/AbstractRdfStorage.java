@@ -144,8 +144,8 @@ public abstract class AbstractRdfStorage {
     }
 
     // could the two following methods be collapsed into one?? (replacing metaMgr with HashMap from it) - no, lists clash.
-    private int conceptsToBitmask(List<Concept> concepts, QuestionMetadataManager metaMgr) {
-        int conceptBitmask = 0; //
+    private long conceptsToBitmask(List<Concept> concepts, QuestionMetadataManager metaMgr) {
+        long conceptBitmask = 0; //
         for (Concept t : concepts) {
             String name = t.getName();
             long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.conceptName2bit);
@@ -162,22 +162,22 @@ public abstract class AbstractRdfStorage {
         return conceptBitmask;
     }
 
-    private int lawsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
-        int lawBitmask = 0; //
+    private long lawsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
+        long lawBitmask = 0; //
         // !! violations are not positive laws!
-//        for (Law t : laws) {
-//            String name = t.getName();
-//            int newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.violationName2bit);
-//            if (newBit == 0) {
-//                // make use of children
-//                for (Law child : domain.getPositiveLawWithImplied(name)) {  // !! todo: Note: positive only.
-//                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.violationName2bit);
-//                    if (newBit != 0)
-//                        break;
-//                }
-//            }
-//            lawBitmask |= newBit;
-//        }
+        for (Law t : laws) {
+            String name = t.getName();
+            long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.violationName2bit);
+            if (newBit == 0) {
+                // make use of children
+                for (Law child : domain.getPositiveLawWithImplied(name)) {  // !! todo: Note: positive only.
+                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.violationName2bit);
+                    if (newBit != 0)
+                        break;
+                }
+            }
+            lawBitmask |= newBit;
+        }
         return lawBitmask;
     }
 
@@ -202,7 +202,7 @@ public abstract class AbstractRdfStorage {
         Checkpointer ch = new Checkpointer(log);
 
         QuestionMetadataManager metaMgr = getQuestionMetadataManager();
-        int queryLimit = (limit * 3 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+        int queryLimit = (limit/* * 3*/ + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
         int hardLimit = 25;
 
         Random random = domain.getRandomProvider().getRandom();
@@ -291,19 +291,20 @@ public abstract class AbstractRdfStorage {
         int iterCount = 0;
         int iterLimit = foundQuestionMetas.size();
         int actualLimit = Math.min(hardLimit, queryLimit * 4);
-        while (foundQuestionMetas.size() > actualLimit && iterCount < iterLimit) {
-            int randIdx = random.nextInt(foundQuestionMetas.size());
-            QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
-            if (foundQuestionMetas.size() > actualLimit * 2 || (qm.getConceptBits() & unwantedConceptsBitmask) > 0
-                    && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
-            ) {
-                foundQuestionMetas.remove(randIdx);
+        if (foundQuestionMetas.size() > actualLimit) {
+            while (foundQuestionMetas.size() > actualLimit && iterCount < iterLimit) {
+                int randIdx = random.nextInt(foundQuestionMetas.size());
+                QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
+                if (foundQuestionMetas.size() > actualLimit * 2 || (qm.getConceptBits() & unwantedConceptsBitmask) > 0
+                        && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
+                ) {
+                    foundQuestionMetas.remove(randIdx);
+                }
+                ++iterCount;
             }
-            ++iterCount;
+
+            ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
         }
-
-        ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
-
         // filter foundQuestionMetas, ranking by complexity, solution steps
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 complexity,
