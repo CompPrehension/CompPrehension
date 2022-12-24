@@ -173,6 +173,8 @@ public class QuestionMetadataManager {
         name2bit.put("do_while_loop", 0x100000L);
         name2bit.put("break", 0x200000L);
         name2bit.put("continue", 0x400000L);
+                 //   stmt       0x800000L
+        name2bit.put("seq_longer_than1", 0x1000000L);
         // Expression
         name2bit.put("operator", 0x1L);  	// (1)
         name2bit.put("operator_,", 0x2L);  	// (2)

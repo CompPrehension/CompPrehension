@@ -68,7 +68,7 @@ public interface ExpressionQuestionMetadataRepository extends QuestionMetadataBa
             "AND IF(:conceptA =0,1,q.concept_bits & :conceptA <> 0) AND q.concept_bits & :conceptD = 0 " +
             "AND IF(:lawA =0,1,q.law_bits & :lawA <> 0) AND q.law_bits & :lawD = 0 " +
             "AND q.template_id NOT IN :ids " +
-            "order by abs((q.integral_complexity - :complexity)*13) * abs(q.solution_steps - :solutionSteps + 0.5) limit :lim",
+            "order by bit_count(q.concept_bits & :conceptA) DESC, abs((q.integral_complexity - :complexity)*13) * abs(q.solution_steps - :solutionSteps + 0.5) limit :lim",
             //  order by abs((integral_complexity - 0.4)*27) * abs(solution_steps - 20 + 0.5) limit 42
             nativeQuery = true)
     List<QuestionMetadataEntity> findSampleAroundComplexityStepsWithoutTemplates(

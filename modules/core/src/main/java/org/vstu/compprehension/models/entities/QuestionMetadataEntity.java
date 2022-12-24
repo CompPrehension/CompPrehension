@@ -60,11 +60,19 @@ public class QuestionMetadataEntity {
     @Column(name = "_version")
     private Integer version;
 
+    @Transient
+    private Long conceptBitsInRequest = 0L;
 
     public double complexityAbsDiff(double complexity) {
         return Math.abs(getIntegralComplexity() - complexity);
     }
     public double getSolutionStepsAbsDiff(double steps) {
         return Math.abs(getSolutionSteps() - steps);
+    }
+    public Long traceConceptsSatisfiedFromRequest() {
+        return traceConceptBits & conceptBitsInRequest;
+    }
+    public Long traceConceptsUnsatisfiedFromRequest() {
+        return ~traceConceptBits & conceptBitsInRequest;
     }
 }
