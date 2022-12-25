@@ -28,6 +28,7 @@ import java.util.Locale;
 @Configuration @EnableAsync
 public class WebConfig implements WebMvcConfigurer {
 
+    /*
     @Bean
     public TomcatContextCustomizer sameSiteCookiesConfig() {
         return context -> {
@@ -36,17 +37,19 @@ public class WebConfig implements WebMvcConfigurer {
             context.setCookieProcessor(cookieProcessor);
         };
     }
+    */
 
-    @Bean
-    public ServletRegistrationBean dispatcherRegistration() {
-        return new ServletRegistrationBean(dispatcherServlet());
-    }
+    //@Bean
+    //public ServletRegistrationBean dispatcherRegistration() {
+    //    return new ServletRegistrationBean(dispatcherServlet());
+    //}
 
-    @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet() {
-        return new LoggableDispatcherServlet();
-    }
+    //@Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
+    //public DispatcherServlet dispatcherServlet() {
+    //    return new LoggableDispatcherServlet();
+    //}
 
+    /*
     @Bean
     public LocaleResolver localeResolver() {
         final CookieLocaleResolver cookieLocaleResolver = new CookieLocaleResolver();
@@ -55,6 +58,7 @@ public class WebConfig implements WebMvcConfigurer {
         cookieLocaleResolver.setCookieSecure(true);
         return cookieLocaleResolver;
     }
+    */
 
     @Bean(name = "messageSource")
     public MessageSource getMessageSource() {
@@ -66,6 +70,7 @@ public class WebConfig implements WebMvcConfigurer {
         return messageSource;
     }
 
+    /*
     @Bean
     public LocaleChangeInterceptor localeInterceptor() {
         LocaleChangeInterceptor localeInterceptor = new LocaleChangeInterceptor();
@@ -80,4 +85,5 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(randomSeedSetInterceptor);
         registry.addInterceptor(localeInterceptor());
     }
+    */
 }

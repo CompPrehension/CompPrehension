@@ -10,10 +10,12 @@ import java.util.concurrent.Executor;
 
 @Configuration
 public class ExecutorConfig extends AsyncConfigurerSupport {
+    /*
     @Bean
     @Override
     public Executor getAsyncExecutor() {
         val executor = new ContextAwarePoolTaskExecutor();
         return executor;
     }
+    */
 }
