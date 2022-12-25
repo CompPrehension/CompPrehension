@@ -23,8 +23,8 @@ export class ExerciseStore {
     @observable currentAttemptId?: number = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion: QuestionStore;
-    @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
-    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, };
+    @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED' = 'INITIAL';
+    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
     @observable survey?: ExerciseSurveySettings = undefined;
     @observable isDebug = false;
 
@@ -32,13 +32,6 @@ export class ExerciseStore {
         @inject(SurveyController) private readonly surveyController: SurveyController,
         @inject(QuestionStore) currentQuestion: QuestionStore) {
         // calc store initial state
-        if (CompPh.exerciseLaunchError) {
-            this.exerciseState = 'LAUNCH_ERROR';
-            this.storeState = { tag: 'ERROR', error: { message: CompPh.exerciseLaunchError } };
-        } else {
-            this.exerciseState = 'INITIAL';
-            this.storeState = { tag: 'VALID' };
-        }
         this.isDebug = getUrlParameterByName('debug') !== null;
         this.currentQuestion = currentQuestion;
         
