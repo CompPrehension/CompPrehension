@@ -19,7 +19,7 @@ import org.vstu.compprehension.utils.Mapper;
 import java.util.List;
 
 @Controller
-@RequestMapping("survey")
+@RequestMapping("api/survey")
 @Log4j2
 public class QuestionSurveyController {
     private final UserContext user;

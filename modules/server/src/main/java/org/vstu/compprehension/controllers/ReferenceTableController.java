@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
-@RequestMapping({"basic/refTables", "lti/refTables" })
+@RequestMapping({"api/refTables" })
 public class ReferenceTableController {
     private final DomainFactory domainFactory;
     private final StrategyFactory strategyFactory;

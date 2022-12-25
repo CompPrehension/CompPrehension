@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping({ })
+@RequestMapping("api")
 public class ExerciseSettingsController {
     private final ExerciseRepository exerciseRepository;
     private final ExerciseService exerciseService;
@@ -46,14 +46,7 @@ public class ExerciseSettingsController {
         this.ltiLaunchSecret = ltiLaunchSecret;
     }
 
-    @RequestMapping(value = { "basic/exercise/all", "lti/exercise/all"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public List<ExerciseDto> getAll() {
-        return exerciseRepository.getAllExerciseItems();
-    }
-
-
-    @RequestMapping(value = { "basic/exercise", "lti/exercise"}, method = { RequestMethod.GET })
+    @RequestMapping(value = { "exercise" }, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id) {
         if (!currentUser.getRoles().contains(Role.TEACHER))
@@ -61,7 +54,7 @@ public class ExerciseSettingsController {
         return exerciseService.getExerciseCard(id);
     }
 
-    @RequestMapping(value = { "basic/exercise", "lti/exercise"}, method = { RequestMethod.POST })
+    @RequestMapping(value = { "exercise"}, method = { RequestMethod.POST })
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card) {
         if (!currentUser.getRoles().contains(Role.TEACHER))
@@ -70,7 +63,7 @@ public class ExerciseSettingsController {
         exerciseService.saveExerciseCard(card);
     }
 
-    @RequestMapping(value = { "basic/exercise", "lti/exercise"}, method = { RequestMethod.PUT })
+    @RequestMapping(value = { "exercise"}, method = { RequestMethod.PUT })
     @ResponseBody
     public long create(@RequestBody ObjectNode json) {
         if (!currentUser.getRoles().contains(Role.TEACHER))
@@ -82,6 +75,7 @@ public class ExerciseSettingsController {
         return exerciseService.createExercise(name, domainId, strategyId).getId();
     }
 
+    /*
     @SneakyThrows
     @RequestMapping(value = {  "lti/pages/exercise-settings"}, method=RequestMethod.POST)
     public String ltiLaunch(Model model, HttpServletRequest request, @RequestParam Map<String, String> requestParams) {
@@ -108,4 +102,5 @@ public class ExerciseSettingsController {
         session.setAttribute("ltiSessionInfo", params);
         return "index";
     }
+    */
 }

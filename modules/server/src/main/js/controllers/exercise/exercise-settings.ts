@@ -10,52 +10,44 @@ import { TOptionalRequestResult, TOptionalRequestResultV } from "../../utils/hel
 
 @injectable()
 export class ExerciseSettingsController {
-    static endpointPath: string = ExerciseSettingsController.initEndpointPath();
-    private static initEndpointPath(): string {
-        const matches = /^\/(?:.+\/(?<!\/pages\/))?/.exec(window.location.pathname)
-        if (matches) {
-            return `${API_URL}${matches[0].substring(1)}`;
-        }
-        return API_URL;
-    }
 
     getAllExercises(): PromiseEither<RequestError, ExerciseListItem[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}exercise/all`, io.array(TExerciseListItem));
+        return ajaxGet(`/api/exercise/all`, io.array(TExerciseListItem));
     }
 
     getExercise(id: number): PromiseEither<RequestError, ExerciseCard> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}exercise?id=${encodeURIComponent(id)}`, TExerciseCard);
+        return ajaxGet(`/api/exercise?id=${encodeURIComponent(id)}`, TExerciseCard);
     }
 
     saveExercise(card: ExerciseCard): PromiseEither<RequestError, void> {
-        return ajaxPost(`${ExerciseSettingsController.endpointPath}exercise`, toJS(card));
+        return ajaxPost(`/api/exercise`, toJS(card));
     }
 
     createExercise(name: string, domainId: string, strategyId: string): PromiseEither<RequestError, number> {
-        return ajaxPut(`${ExerciseSettingsController.endpointPath}exercise`, { name, domainId, strategyId }, io.number);
+        return ajaxPut(`/api/exercise`, { name, domainId, strategyId }, io.number);
     }
 
     deleteExercise(id: number): PromiseEither<RequestError, void> {
-        return ajaxDelete(`${ExerciseSettingsController.endpointPath}exercise?id=${encodeURIComponent(id)}`);
+        return ajaxDelete(`/api/exercise?id=${encodeURIComponent(id)}`);
     }
 
     getStrategies() : PromiseEither<RequestError, Strategy[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/strategies`, io.array(TStrategy));
+        return ajaxGet(`/api/refTables/strategies`, io.array(TStrategy));
     }
 
     getBackends() : PromiseEither<RequestError, string[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/backends`, io.array(io.string));
+        return ajaxGet(`/api/refTables/backends`, io.array(io.string));
     }
 
     getDomains() : PromiseEither<RequestError, Domain[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/domains`, io.array(TDomain));
+        return ajaxGet(`/api/refTables/domains`, io.array(TDomain));
     }
 
     getDomainLaws(domainsId: string) : PromiseEither<RequestError, string[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/domainLaws?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
+        return ajaxGet(`/api/refTables/domainLaws?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
 
     getDomainConcepts(domainsId: string) : PromiseEither<RequestError, string[]> {
-        return ajaxGet(`${ExerciseSettingsController.endpointPath}refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
+        return ajaxGet(`/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
 }

@@ -78,7 +78,7 @@ export const SurveyPage = observer(() => {
         */
     }, [exerciseStore]);
 
-    const surveyOptions = exerciseStore.sessionInfo?.exercise.options.surveyOptions;
+    const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
     const currentQuestionId = exerciseStore.currentQuestion.question?.questionId;
 
     if (!surveyOptions?.enabled)

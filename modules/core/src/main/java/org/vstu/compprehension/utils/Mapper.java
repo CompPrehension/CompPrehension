@@ -16,6 +16,7 @@ import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class Mapper {
                 .id(user.getId())
                 .displayName(displayName)
                 .email(user.getEmail())
-                .preferredLanguage(user.getPreferred_language())
+                .language(user.getPreferred_language().toLocaleString())
                 .build();
     }
 
@@ -63,7 +64,9 @@ public class Mapper {
                 .id(user.getId())
                 .displayName(user.getDisplayName())
                 .email(user.getEmail())
-                .preferredLanguage(user.getPreferredLanguage())
+                .language(user.getPreferredLanguage() != null
+                        ? user.getPreferredLanguage().toLocaleString()
+                        : Language.ENGLISH.toLocaleString())
                 .build();
     }
 

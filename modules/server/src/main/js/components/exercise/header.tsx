@@ -12,11 +12,10 @@ import { useTranslation } from "react-i18next";
 export const Header = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { t, i18n } = useTranslation();
-    const { currentAttempt, sessionInfo, currentQuestion } = exerciseStore;
-    if (!currentAttempt || !sessionInfo) {
+    const { currentAttempt, exercise, user, currentQuestion } = exerciseStore;
+    if (!currentAttempt || !exercise || !user) {
         return null;
     }
-    const { user } = sessionInfo;
     const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
     
     /*
@@ -36,7 +35,7 @@ export const Header = observer(() => {
                 <Pagination />
                 
                 <Navbar.Text className="px-2">
-                    {t('language_header')}: <a href="#" /*onClick={onLangClicked}*/>{sessionInfo.language}</a>
+                    {t('language_header')}: <a href="#" /*onClick={onLangClicked}*/>{user.language}</a>
                 </Navbar.Text>     
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">

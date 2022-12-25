@@ -12,15 +12,15 @@ export const GenerateNextQuestionBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    if (!exerciseStore.sessionInfo?.exercise.options.newQuestionGenerationEnabled) {
+    if (!exerciseStore.exercise?.options.newQuestionGenerationEnabled) {
         return null;
     }
     
-    const { sessionInfo, currentAttempt } = exerciseStore;
+    const { exercise, currentAttempt } = exerciseStore;
     const { question } = exerciseStore.currentQuestion;
     const isFeedbackLoading = exerciseStore.currentQuestion.questionState === 'ANSWER_EVALUATING';
     const isQuestionLoading = exerciseStore.currentQuestion.questionState === 'LOADING';
-    if (!question || !sessionInfo || !currentAttempt || isQuestionLoading || isFeedbackLoading) {
+    if (!question || !exercise || !currentAttempt || isQuestionLoading || isFeedbackLoading) {
         return null;
     }
     

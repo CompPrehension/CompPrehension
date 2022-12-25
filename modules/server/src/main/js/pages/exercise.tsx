@@ -41,15 +41,14 @@ export const Exercise = observer(() => {
                 return;
             }
 
-
-            const attemptId = getUrlParameterByName('attemptId');
-            if (attemptId && Number.isInteger(+attemptId)) {
+            const attemptId = exerciseStore.currentAttemptId;
+            if (attemptId && Number.isInteger(attemptId)) {
                 setExerciseState('EXERCISE');
                 getAttemptAndLoadQuestion(+attemptId);
                 return;
             }
 
-            if (exerciseStore.sessionInfo?.exercise.options.forceNewAttemptCreationEnabled || 
+            if (exerciseStore.exercise?.options.forceNewAttemptCreationEnabled || 
                 !(await exerciseStore.loadExistingExerciseAttempt())) {
                 setExerciseState('EXERCISE');
                 createAttemptAndLoadQuestion();

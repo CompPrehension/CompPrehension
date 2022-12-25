@@ -2,7 +2,6 @@ import { action, autorun, flow, makeObservable, observable, runInAction, toJS } 
 import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseAttempt } from "../types/exercise-attempt";
-import { SessionInfo } from "../types/session-info";
 import { inject, injectable } from "tsyringe";
 import { QuestionStore } from "./question-store";
 import i18next from "i18next";
@@ -12,11 +11,16 @@ import { Survey, SurveyQuestion, SurveyResultItem } from "../types/survey";
 import { SurveyController } from "../controllers/exercise/survey-controller";
 import { zero } from "fp-ts/lib/OptionT";
 import { getUrlParameterByName } from "../types/utils";
+import { UserInfo } from "../types/user-info";
+import { Exercise } from "../types/exercise";
 
 @injectable()
 export class ExerciseStore {
     @observable isSessionLoading: boolean = false;
-    @observable sessionInfo?: SessionInfo = undefined;
+    @observable user?: UserInfo = undefined;
+    @observable exerciseId: number;
+    @observable exercise?: Exercise = undefined;
+    @observable currentAttemptId?: number = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
     @observable currentQuestion: QuestionStore;
     @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED';
@@ -37,6 +41,18 @@ export class ExerciseStore {
         }
         this.isDebug = getUrlParameterByName('debug') !== null;
         this.currentQuestion = currentQuestion;
+        
+        const rawExerciseId = getUrlParameterByName('exerciseId');
+        if (rawExerciseId === null) {
+            this.exerciseState = 'LAUNCH_ERROR';
+            this.storeState = { tag: 'ERROR', error: { message: "Invalid exercise id" } };
+        }
+        this.exerciseId = rawExerciseId !== null ? +rawExerciseId : -1;
+
+        const rawAttemptId = getUrlParameterByName('attemptId');
+        if (rawAttemptId !== null) {
+            this.currentAttemptId = +rawAttemptId;
+        }
 
         makeObservable(this);
         this.registerOnStrategyDecisionChangedAction();
@@ -75,44 +91,57 @@ export class ExerciseStore {
         })
     }
 
-    loadSessionInfo = flow(function* (this: ExerciseStore) {
-        if (this.sessionInfo) {
-            throw new Error("Session exists");
+    loadSessionInfo = async () => {
+        if (this.exercise) {
+            throw new Error("exerciseInfo loaded");
         }
         if (this.isSessionLoading) {
             return;
         }
 
-        this.forceSetValidState();
-        this.isSessionLoading = true;
-        const dataEither: E.Either<RequestError, SessionInfo> = yield this.exerciseController.loadSessionInfo();
-        this.isSessionLoading = false;
+        runInAction(() => {
+            this.forceSetValidState();
+            this.isSessionLoading = true;
+        })
 
-        if (E.isLeft(dataEither)) {
-            this.storeState = { tag: 'ERROR', error: dataEither.left };
-            return;
+        const [user, exercise] = await Promise.all([
+            this.exerciseController.getCurrentUser(),
+            this.exerciseController.getExerciseShortInfo(this.exerciseId)
+        ])
+        
+        if (E.isRight(user) && E.isRight(exercise)) {
+            runInAction(() => {
+                this.isSessionLoading = false;
+                this.onSessionLoaded(user.right, exercise.right);
+            })
+        } else if (E.isLeft(user) && E.isLeft(exercise)) {
+            runInAction(() => {
+                this.isSessionLoading = false;
+                this.storeState = { tag: 'ERROR', error: user.left ?? exercise.left };
+            })
         }
+    };
 
-        this.onSessionLoaded(dataEither.right);
-    })
+    private onSessionLoaded(user: UserInfo, exercise: Exercise) {
+        runInAction(() => {
+            this.user = user;
+            this.exercise = exercise;
 
-    private onSessionLoaded(sessionInfo: SessionInfo) {
-        this.sessionInfo = sessionInfo
-
-        if (this.sessionInfo.language !== i18next.language) {
-            i18next.changeLanguage(this.sessionInfo.language);
-        }
+            if (user.language !== i18next.language) {
+                i18next.changeLanguage(user.language);
+            }
+        });
     }
 
 
     loadExerciseAttempt = flow(function* (this: ExerciseStore, attemptId: number) {
-        const { sessionInfo } = this;
-        if (!sessionInfo) {
-            throw new Error("Session is not defined");
+        const { exercise } = this;
+        if (!exercise) {
+            throw new Error("exerciseInfo is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = sessionInfo.exercise.id;
+        const exerciseId = exercise.id;
         const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExerciseAttempt(attemptId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
@@ -130,13 +159,13 @@ export class ExerciseStore {
     });
 
     loadExistingExerciseAttempt = flow(function* (this: ExerciseStore) {
-        const { sessionInfo } = this;
-        if (!sessionInfo) {
-            throw new Error("Session is not defined");
+        const { exercise } = this;
+        if (!exercise) {
+            throw new Error("exercise is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = sessionInfo.exercise.id;
+        const exerciseId = exercise.id;
         const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExistingExerciseAttempt(exerciseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
@@ -159,13 +188,13 @@ export class ExerciseStore {
     }
 
     createExerciseAttempt = flow(function* (this: ExerciseStore) {
-        const { sessionInfo } = this;
-        if (!sessionInfo) {
-            throw new Error("Session is not defined");
+        const { exercise } = this;
+        if (!exercise) {
+            throw new Error("exercise is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = sessionInfo.exercise.id;
+        const exerciseId = exercise.id;
         const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createExerciseAttempt(+exerciseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
@@ -177,13 +206,13 @@ export class ExerciseStore {
     });
 
     createDebugExerciseAttempt = flow(function* (this: ExerciseStore) {
-        const { sessionInfo } = this;
-        if (!sessionInfo) {
-            throw new Error("Session is not defined");
+        const { exercise } = this;
+        if (!exercise) {
+            throw new Error("exercise is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = sessionInfo.exercise.id;
+        const exerciseId = exercise.id;
         const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createDebugExerciseAttempt(+exerciseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
@@ -195,8 +224,8 @@ export class ExerciseStore {
     });
 
     generateQuestion = flow(function* (this: ExerciseStore) {
-        const { sessionInfo, currentAttempt } = this;
-        if (!sessionInfo || !currentAttempt) {
+        const { exercise, currentAttempt } = this;
+        if (!exercise || !currentAttempt) {
             throw new Error("Session is not defined");
         }
 
@@ -207,20 +236,20 @@ export class ExerciseStore {
 
     @action
     changeLanguage = (newLang: Language) => {
-        if (this.sessionInfo && this.sessionInfo.language !== newLang) {
-            this.sessionInfo.language = newLang;
+        if (this.user && this.user.language !== newLang) {
+            this.user.language = newLang;
             i18next.changeLanguage(newLang);
         }
     }
 
     @action
     loadSurvey = async () => {
-        if (this.survey || !this.currentAttempt || !this.sessionInfo)
+        if (this.survey || !this.currentAttempt || !this.exercise)
             return;
-        if (!this.sessionInfo.exercise.options.surveyOptions?.enabled || this.sessionInfo.exercise.options.surveyOptions.surveyId.length === 0)
+        if (!this.exercise.options.surveyOptions?.enabled || this.exercise.options.surveyOptions.surveyId.length === 0)
             return;
 
-        const surveyId = this.sessionInfo.exercise.options.surveyOptions.surveyId;
+        const surveyId = this.exercise.options.surveyOptions.surveyId;
         const attemptId = this.currentAttempt.attemptId;
         const [survey, surveyResults] = await Promise.all([
             this.surveyController.getSurvey(surveyId),

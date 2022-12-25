@@ -4,16 +4,19 @@ import { ExerciseStatisticsItem, TExerciseStatisticsItems } from "../../types/ex
 import { Feedback, TFeedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
 import { Question, TOptionalQuestion, TQuestion } from "../../types/question";
-import { SessionInfo, TSessionInfo } from "../../types/session-info";
 import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
 import { ajaxGet, ajaxPost, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts'
 import { RequestError } from "../../types/request-error";
 import { API_URL } from "../../appconfig";
+import { TUserInfo, UserInfo } from "../../types/user-info";
+import { Exercise, TExercise } from "../../types/exercise";
 
 
 export interface IExerciseController {
-    loadSessionInfo(): PromiseEither<RequestError, SessionInfo>;
+    // loadSessionInfo(): PromiseEither<RequestError, SessionInfo>;
+    getCurrentUser(): PromiseEither<RequestError, UserInfo>;
+    getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise>;
     getQuestion(questionId: number): PromiseEither<RequestError, Question>;
     generateQuestion(attemptId: number): PromiseEither<RequestError, Question>;
     generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question | null | undefined | ''>;
@@ -29,60 +32,62 @@ export interface IExerciseController {
 
 @injectable()
 export class ExerciseController implements IExerciseController {
-        static endpointPath: string = ExerciseController.initEndpointPath();
-    private static initEndpointPath(): string {
-        const matches = /^\/(?:.+\/(?<!\/pages\/))?/.exec(window.location.pathname)
-        if (matches) {
-            return `${API_URL}${matches[0].substring(1)}`;
-        }
-        return API_URL;
+
+    /*
+    loadSessionInfo(): PromiseEither<RequestError, SessionInfo> {
+        return ajaxGet(`/api/exercise/loadSessionInfo`, TSessionInfo);
+    }
+    */
+
+    getCurrentUser(): PromiseEither<RequestError, UserInfo> {
+        return ajaxGet(`/api/users/whoami`, TUserInfo);
     }
 
-    loadSessionInfo(): PromiseEither<RequestError, SessionInfo> {
-        return ajaxGet(`${ExerciseController.endpointPath}loadSessionInfo`, TSessionInfo);
+    getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise> {
+        return ajaxGet(`/api/exercise/shortInfo?id=${id}`, TExercise);
     }
 
     getQuestion(questionId: number): PromiseEither<RequestError, Question> {
-        return ajaxGet(`${ExerciseController.endpointPath}getQuestion?questionId=${questionId}`, TQuestion);
+        return ajaxGet(`/api/exercise/getQuestion?questionId=${questionId}`, TQuestion);
     }
 
     generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
-        return ajaxGet(`${ExerciseController.endpointPath}generateQuestion?attemptId=${attemptId}`, TQuestion); 
+        return ajaxGet(`/api/exercise/generateQuestion?attemptId=${attemptId}`, TQuestion); 
     }
 
     generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question | null | undefined | ''> {
-        return ajaxPost(`${ExerciseController.endpointPath}generateSupplementaryQuestion`, questionRequest, TOptionalQuestion);
+        return ajaxPost(`/api/exercise/generateSupplementaryQuestion`, questionRequest, TOptionalQuestion);
     }
 
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
-        return ajaxGet(`${ExerciseController.endpointPath}generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
+        return ajaxGet(`/api/exercise/generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
     }
 
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
-        return ajaxPost(`${ExerciseController.endpointPath}addQuestionAnswer`, interaction, TFeedback);
+        return ajaxPost(`/api/exercise/addQuestionAnswer`, interaction, TFeedback);
     }
 
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        return ajaxGet(`${ExerciseController.endpointPath}getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
+        return ajaxGet(`/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
     }
 
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''> {
-        return ajaxGet(`${ExerciseController.endpointPath}getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult);
+        return ajaxGet(`/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult);
     }
 
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        return ajaxGet(`${ExerciseController.endpointPath}createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
+        return ajaxGet(`/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        return ajaxGet(`${ExerciseController.endpointPath}createDebugExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
+        return ajaxGet(`/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
-        return ajaxGet(`${ExerciseController.endpointPath}getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems)
+        return ajaxGet(`/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems)
     }
 
     getExercises(): PromiseEither<RequestError, number[]> {
-        return ajaxGet(`${ExerciseController.endpointPath}getExercises`, io.array(io.number));
+        return ajaxGet(`/api/exercise/getExercises`, io.array(io.number));
     }
 }
