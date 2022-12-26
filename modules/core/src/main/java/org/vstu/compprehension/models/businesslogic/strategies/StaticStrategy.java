@@ -95,6 +95,10 @@ public class StaticStrategy implements AbstractStrategy {
                         domain.getPositiveLawWithImplied(ec.getName()).stream(),
                         domain.getNegativeLawWithImplied(ec.getName()).stream()))
                 .collect(Collectors.toList()));
+
+        Concept badConcept = domain.getConcept("SystemIntegrationTest");
+        if (badConcept != null)
+            qr.getDeniedConcepts().add(badConcept);
 //        HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
 //        HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
 

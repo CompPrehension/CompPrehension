@@ -222,7 +222,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_>>", List.of(singleTokenBinaryConcept, stream_io), "in >> var", invisible);
         addConcept("operator_<<", List.of(singleTokenBinaryConcept, stream_io), "out << msg", invisible);
 
-        // currently absent in the data:
+        // currently, absent in the data:
 //        Concept namespace_static = addConcept("namespace_static", List.of(), "Пространство имён", noFlags);
 //        addConcept("operator_:", List.of(singleTokenBinaryConcept, namespace_static), "Class:member", invisible);
 //        addConcept("operator_::", List.of(singleTokenBinaryConcept, namespace_static), "space::member", invisible);
@@ -419,6 +419,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
+                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
+                .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
