@@ -49,16 +49,16 @@ public class ExerciseSettingsController {
     @RequestMapping(value = { "exercise" }, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id) {
-        if (!currentUser.getRoles().contains(Role.TEACHER))
-            throw new AuthorizationServiceException("Current user dont have TEACHER rights");
+        //if (!currentUser.getRoles().contains(Role.TEACHER))
+        //    throw new AuthorizationServiceException("Current user dont have TEACHER rights");
         return exerciseService.getExerciseCard(id);
     }
 
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.POST })
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card) {
-        if (!currentUser.getRoles().contains(Role.TEACHER))
-            throw new AuthorizationServiceException("Current user dont have TEACHER rights");
+        //if (!currentUser.getRoles().contains(Role.TEACHER))
+        //    throw new AuthorizationServiceException("Current user dont have TEACHER rights");
 
         exerciseService.saveExerciseCard(card);
     }
@@ -66,8 +66,8 @@ public class ExerciseSettingsController {
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.PUT })
     @ResponseBody
     public long create(@RequestBody ObjectNode json) {
-        if (!currentUser.getRoles().contains(Role.TEACHER))
-            throw new AuthorizationServiceException("Current user dont have TEACHER rights");
+        //if (!currentUser.getRoles().contains(Role.TEACHER))
+        //    throw new AuthorizationServiceException("Current user dont have TEACHER rights");
 
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();

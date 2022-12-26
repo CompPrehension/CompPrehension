@@ -40,54 +40,54 @@ export class ExerciseController implements IExerciseController {
     */
 
     getCurrentUser(): PromiseEither<RequestError, UserInfo> {
-        return ajaxGet(`/api/users/whoami`, TUserInfo);
+        return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
     }
 
     getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise> {
-        return ajaxGet(`/api/exercise/shortInfo?id=${id}`, TExercise);
+        return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}`, TExercise);
     }
 
     getQuestion(questionId: number): PromiseEither<RequestError, Question> {
-        return ajaxGet(`/api/exercise/getQuestion?questionId=${questionId}`, TQuestion);
+        return ajaxGet(`${API_URL}/api/exercise/getQuestion?questionId=${questionId}`, TQuestion);
     }
 
     generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
-        return ajaxGet(`/api/exercise/generateQuestion?attemptId=${attemptId}`, TQuestion); 
+        return ajaxGet(`${API_URL}/api/exercise/generateQuestion?attemptId=${attemptId}`, TQuestion); 
     }
 
     generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question | null | undefined | ''> {
-        return ajaxPost(`/api/exercise/generateSupplementaryQuestion`, questionRequest, TOptionalQuestion);
+        return ajaxPost(`${API_URL}/api/exercise/generateSupplementaryQuestion`, questionRequest, TOptionalQuestion);
     }
 
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
-        return ajaxGet(`/api/exercise/generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
+        return ajaxGet(`${API_URL}/api/exercise/generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
     }
 
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
-        return ajaxPost(`/api/exercise/addQuestionAnswer`, interaction, TFeedback);
+        return ajaxPost(`${API_URL}/api/exercise/addQuestionAnswer`, interaction, TFeedback);
     }
 
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        return ajaxGet(`/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
+        return ajaxGet(`${API_URL}/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
     }
 
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''> {
-        return ajaxGet(`/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult);
+        return ajaxGet(`${API_URL}/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}`, TOptionalExerciseAttemptResult);
     }
 
     createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        return ajaxGet(`/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
+        return ajaxGet(`${API_URL}/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        return ajaxGet(`/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
+        return ajaxGet(`${API_URL}/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}`, TExerciseAttempt); 
     }
 
     getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
-        return ajaxGet(`/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems)
+        return ajaxGet(`${API_URL}/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems)
     }
 
     getExercises(): PromiseEither<RequestError, number[]> {
-        return ajaxGet(`/api/exercise/getExercises`, io.array(io.number));
+        return ajaxGet(`${API_URL}/api/exercise/getExercises`, io.array(io.number));
     }
 }

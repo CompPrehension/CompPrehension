@@ -14,7 +14,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
 
@@ -23,7 +25,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 public class WebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     @Override
     protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        return new NullAuthenticatedSessionStrategy();
+        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
     }
 
     @Autowired
@@ -41,12 +43,13 @@ public class WebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+
         http
+                .cors().and().csrf().disable()
                 .authorizeRequests()
-                //.antMatchers("/api/anonymous/**").permitAll()
-                .anyRequest().fullyAuthenticated()
-                .and()
-                .csrf().disable();
+                .antMatchers(new String[] { "/js/**", "/css/**", "/", "/lti/**" }).permitAll()
+                /*.antMatchers("/api/**")/*.fullyAuthenticated()*/
+                .anyRequest().authenticated();
     }
 
     /*
