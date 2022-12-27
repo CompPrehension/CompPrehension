@@ -30,7 +30,7 @@ public class BasicAuthenticationUserContextAdapter implements UserContext {
             return;
         }
 
-        savedUser = new SavedUserContext(userService.createOrUpdateFromAuthentication());
+        savedUser = new SavedUserContext(userService.getCurrentUser());
         session.setAttribute("currentUserInfo", savedUser);
     }
 

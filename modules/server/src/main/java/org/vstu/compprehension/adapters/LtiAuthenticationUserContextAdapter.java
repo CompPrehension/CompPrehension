@@ -1,5 +1,6 @@
 package org.vstu.compprehension.adapters;
 
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import java.util.Set;
 public class LtiAuthenticationUserContextAdapter implements UserContext {
     private final UserContext savedUser;
 
+    @SneakyThrows
     @Autowired
     public LtiAuthenticationUserContextAdapter(UserService userService, HttpServletRequest request) {
         var session = request.getSession();
@@ -35,7 +37,7 @@ public class LtiAuthenticationUserContextAdapter implements UserContext {
         if (ltiParams == null)
             throw new IllegalStateException("Couldn't find lti data");
 
-        savedUser = new SavedUserContext(userService.createOrUpdateFromLti((Map<String, String>)ltiParams));
+        savedUser = new SavedUserContext(userService.getCurrentUser());
         session.setAttribute("currentUserInfo", savedUser);
     }
 

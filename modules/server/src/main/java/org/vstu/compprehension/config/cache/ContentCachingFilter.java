@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-
+/*
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 @Component
 @WebFilter(filterName = "ContentCachingFilter", urlPatterns = "/*")
@@ -23,3 +23,4 @@ public class ContentCachingFilter extends OncePerRequestFilter {
         filterChain.doFilter(cachedBodyHttpServletRequest, httpServletResponse);
     }
 }
+*/

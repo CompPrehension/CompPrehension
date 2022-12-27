@@ -139,12 +139,6 @@
             <version>${spring.version}</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>5.3.2.RELEASE</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
     <properties>

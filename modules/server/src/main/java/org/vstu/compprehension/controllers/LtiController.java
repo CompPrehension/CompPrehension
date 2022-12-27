@@ -1,10 +1,8 @@
 package org.vstu.compprehension.controllers;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
-import lombok.extern.jackson.Jacksonized;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.net.URLCodec;
 import org.springframework.stereotype.Controller;
@@ -79,6 +77,7 @@ public class LtiController {
         rawParams.putAll(requestParams);
         if (rawParams.containsKey("id_token")) {
             var token = rawParams.get("id_token");
+            //IdToken idToken = IdToken.from(token);
             log.info("token: {}", token);
         }
 

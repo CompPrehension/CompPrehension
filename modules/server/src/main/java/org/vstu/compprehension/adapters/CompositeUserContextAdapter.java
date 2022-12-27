@@ -33,13 +33,13 @@ public class CompositeUserContextAdapter implements UserContext {
 
         var ltiInfo = request.getSession().getAttribute("ltiSessionInfo");
         if (ltiInfo != null) {
-            var userInfo = userService.createOrUpdateFromLti((Map<String, String>)ltiInfo);
+            var userInfo = userService.getCurrentUser();
             currentCtx = new SavedUserContext(userInfo);
             session.setAttribute("currentUserInfo", currentCtx);
             return;
         }
 
-        var userInfo = userService.createOrUpdateFromAuthentication();
+        var userInfo = userService.getCurrentUser();
         currentCtx = new SavedUserContext(userInfo);
         session.setAttribute("currentUserInfo", currentCtx);
     }

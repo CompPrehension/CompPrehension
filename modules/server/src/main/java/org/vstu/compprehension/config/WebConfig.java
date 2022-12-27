@@ -41,8 +41,9 @@ public class WebConfig implements WebMvcConfigurer {
             context.setCookieProcessor(cookieProcessor);
         };
     }
-*/
 
+*/
+    /*
     @Bean
     public ServletRegistrationBean dispatcherRegistration() {
         return new ServletRegistrationBean(dispatcherServlet());
@@ -52,6 +53,7 @@ public class WebConfig implements WebMvcConfigurer {
     public DispatcherServlet dispatcherServlet() {
         return new LoggableDispatcherServlet();
     }
+    */
 
     @Bean
     public LocaleResolver localeResolver() {
