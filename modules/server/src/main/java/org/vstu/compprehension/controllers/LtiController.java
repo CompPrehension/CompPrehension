@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.jackson.Jacksonized;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.net.URLCodec;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("lti")
+@Log4j2
 public class LtiController {
     @Data @Builder
     public static class LtiOidcLoginRequest {
@@ -62,6 +64,25 @@ public class LtiController {
                 UUID.randomUUID(),
                 URLEncoder.encode(params.ltiMessageHint, StandardCharsets.UTF_8),
                 "form_post");
+        response.setHeader("Location", redirectUrl);
+        response.setStatus(302);
+    }
+
+    @SneakyThrows
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"} )
+    public void exercise(@RequestParam long id, HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String, String> requestParams) {
+        var decodeCodec = new URLCodec();
+        var rawBody = IOUtils.toString(request.getInputStream(), request.getCharacterEncoding());
+        var rawParams = Arrays.stream(rawBody.split("&"))
+                .map(x -> x.split("="))
+                .collect(Collectors.toMap(x -> x[0], x -> { try { return decodeCodec.decode(x[1]); } catch (Exception e) { return ""; }}));
+        rawParams.putAll(requestParams);
+        if (rawParams.containsKey("id_token")) {
+            var token = rawParams.get("id_token");
+            log.info("token: {}", token);
+        }
+
+        var redirectUrl = String.format("/pages/exercise?exerciseId=%d", id);
         response.setHeader("Location", redirectUrl);
         response.setStatus(302);
     }
