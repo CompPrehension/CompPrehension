@@ -1,10 +1,22 @@
 package org.vstu.compprehension.controllers;
 
+import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.oauth2.sdk.id.JWTID;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import net.minidev.json.JSONArray;
 import org.apache.commons.codec.net.URLCodec;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.apache.commons.io.IOUtils;
@@ -13,9 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -76,9 +86,21 @@ public class LtiController {
                 .collect(Collectors.toMap(x -> x[0], x -> { try { return decodeCodec.decode(x[1]); } catch (Exception e) { return ""; }}));
         rawParams.putAll(requestParams);
         if (rawParams.containsKey("id_token")) {
-            var token = rawParams.get("id_token");
-            //IdToken idToken = IdToken.from(token);
-            log.info("token: {}", token);
+            var rawIdToken = rawParams.get("id_token");
+            var idToken = JWTParser.parse(rawIdToken);
+            final Map<String, Object> claims = idToken.getJWTClaimsSet().getClaims();
+            var oidcToken = new OidcIdToken(rawIdToken,
+                    idToken.getJWTClaimsSet().getIssueTime().toInstant(),
+                    idToken.getJWTClaimsSet().getExpirationTime().toInstant(),
+                    idToken.getJWTClaimsSet().getClaims());
+            var groups = (JSONArray) claims.get("https://purl.imsglobal.org/spec/lti/claim/roles");
+            var mappedAuthorities = groups.stream()
+                    .map(role -> new SimpleGrantedAuthority(Arrays.stream(role.toString().split("#")).reduce((first, second) -> second).orElseThrow()))
+                    .collect(Collectors.toSet());
+            OAuth2User user = new DefaultOidcUser(mappedAuthorities, oidcToken);
+            var t = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
+            SecurityContextHolder.getContext().setAuthentication(t);
+            log.info("raw: {}, real: {}", rawIdToken, idToken);
         }
 
         var redirectUrl = String.format("/pages/exercise?exerciseId=%d", id);

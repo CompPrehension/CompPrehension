@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -35,19 +36,27 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Trying to create user within Anonymous access");
         }
 
-        val currentPrincipalName = authentication.getName();
-        val roles = authentication.getAuthorities().stream()
+        var principal = authentication.getPrincipal();
+        if (!(principal instanceof OidcUser)) {
+            throw new Exception("Unexpected authorized user format");
+        }
+        var parsedIdToken = ((OidcUser)principal).getIdToken();
+
+        var principalName = authentication.getName();
+        var fullName = parsedIdToken.getFullName();
+        var email = parsedIdToken.getEmail();
+        var roles = authentication.getAuthorities().stream()
                 .map(r -> r.getAuthority().split("ROLE_"))
                 .flatMap(Arrays::stream)
                 .filter(r -> r.length() > 0).distinct()
                 .collect(Collectors.toList());
-        authentication.getDetails();
-        val externalId = "local_" + currentPrincipalName;
+        var externalId = parsedIdToken.getIssuer() + "_" + principalName;
 
         val entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
-        entity.setFirstName(currentPrincipalName);
-        entity.setLogin(currentPrincipalName);
+        entity.setFirstName(fullName);
+        entity.setLogin(email);
         entity.setPassword("undefined");
+        entity.setEmail(email);
         if (entity.getPreferred_language() == null) {
             entity.setPreferred_language(Language.ENGLISH);
         }
