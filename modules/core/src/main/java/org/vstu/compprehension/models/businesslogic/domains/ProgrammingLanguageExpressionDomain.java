@@ -412,7 +412,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return QUESTIONS;
     }
 
-    private String getMessage(String base_question_text, Language preferred_language) {
+    @Override
+    public String getMessage(String base_question_text, Language preferred_language) {
         return localizationService.getMessage(MESSAGE_PREFIX + base_question_text, Language.getLocale(preferred_language));
     }
 

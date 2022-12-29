@@ -2032,7 +2032,8 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
-    private String getMessage(String message_text, Language preferred_language) {
+    @Override
+    public String getMessage(String message_text, Language preferred_language) {
 
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
     }
