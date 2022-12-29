@@ -15,6 +15,9 @@ public class LocalizationService {
     @Autowired
     private MessageSource messageSource;
 
+    /**
+     * @return localized message for messageId or messageId itself (if the translation not found)
+     */
     public @NotNull String getMessage(@NotNull String messageId, @NotNull Locale locale) {
         try {
             return messageSource.getMessage(messageId, null, locale);

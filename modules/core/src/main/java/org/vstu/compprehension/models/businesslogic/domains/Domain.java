@@ -271,6 +271,25 @@ public abstract class Domain {
     }
 
 
+    /**
+     * Get localized domain-specific string
+     * @param messageKey language string key
+     * @param preferredLanguage target language (fallback is english)
+     * @return localized message
+     */
+    public abstract String getMessage(String messageKey, Language preferredLanguage);
+
+    /**
+     * Get localized domain-specific string
+     * @param messageKey language string key
+     * @param prefix prefix for language key (kind of namespace)
+     * @param preferredLanguage target language (fallback is english)
+     * @return localized message
+     */
+    public String getMessage(String messageKey, String prefix, Language preferredLanguage) {
+        log.info(messageKey);
+        return getMessage(prefix + messageKey, preferredLanguage);
+    }
 
     public Model getSchemaForSolving(/* String questionType (?) */) {
         // the default
