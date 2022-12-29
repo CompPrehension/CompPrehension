@@ -19,41 +19,29 @@ public class Concept {
 
     @EqualsAndHashCode.Include
     String name;
-    String displayName;
     int bitflags;
     List<Concept> baseConcepts;
 
     public Concept(String name) {
         this.name = name;
-        this.displayName = name;  // copy name as displayName
-        this.bitflags = DEFAULT_FLAGS;
-        this.baseConcepts = new ArrayList<>();
-    }
-
-    public Concept(String name, String displayName) {
-        this.name = name;
-        this.displayName = displayName;
         this.bitflags = DEFAULT_FLAGS;
         this.baseConcepts = new ArrayList<>();
     }
 
     public Concept(String name, int bitflags) {
         this.name = name;
-        this.displayName = name;  // copy name as displayName
         this.bitflags = bitflags;
         this.baseConcepts = new ArrayList<>();
     }
 
-    public Concept(String name, String displayName, List<Concept> baseConcepts) {
+    public Concept(String name, List<Concept> baseConcepts) {
         this.name = name;
-        this.displayName = displayName;
         this.bitflags = DEFAULT_FLAGS;
         this.baseConcepts = new ArrayList<>(baseConcepts);
     }
 
-    public Concept(String name, String displayName, List<Concept> baseConcepts, int bitflags) {
+    public Concept(String name, List<Concept> baseConcepts, int bitflags) {
         this.name = name;
-        this.displayName = displayName;
         this.bitflags = bitflags;
         this.baseConcepts = new ArrayList<>(baseConcepts);
     }

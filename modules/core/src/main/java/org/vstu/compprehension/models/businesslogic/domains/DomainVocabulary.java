@@ -87,11 +87,6 @@ public class DomainVocabulary {
     protected void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, HashMap<String, Concept> concepts, String baseConceptName) {
         String name = conceptNode.getLocalName();
 
-        // use name as displayName if label does not exist
-        String displayName = Optional.ofNullable(conceptNode.getProperty(RDFS.label))
-                .map(statement -> statement.getLiteral().getString())
-                .orElse(name);
-
         // read flags from resource's field
         int bitflags = Optional.ofNullable(conceptNode.getProperty(
                 model.createProperty(model.expandPrefix(":has_bitflags"))
@@ -101,11 +96,9 @@ public class DomainVocabulary {
 
         /// System.out.println("adding: " + name + " - " +  baseConceptName);
 
-        // other features like prefLabel are ignored so far
-
         if (!concepts.containsKey(name)) {
             // do not add any baseConcepts here (we'll add all later)
-            concepts.put(name, new Concept(name, displayName, List.of(), bitflags));
+            concepts.put(name, new Concept(name, List.of(), bitflags));
         }
 
         boolean shouldNotRecurse = conceptName2bases.containsKey(name);

@@ -246,13 +246,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
-        Concept concept = new Concept(name, displayName, baseConcepts, flags);
+        Concept concept = new Concept(name, /*displayName,*/ baseConcepts, flags);
         concepts.add(concept);
         return concept;
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
-        Concept concept = new Concept(name, name, baseConcepts);
+        Concept concept = new Concept(name, baseConcepts);
         concepts.add(concept);
         return concept;
     }
