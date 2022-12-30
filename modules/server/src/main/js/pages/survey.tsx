@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
-import { Header } from "../components/exercise/header";
+import { ExerciseHeader } from "../components/exercise/header";
 import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
@@ -88,7 +88,7 @@ export const SurveyPage = observer(() => {
         <>
             <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true || exerciseState === 'INITIAL'}>
                 <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
-                    <Header />
+                    <ExerciseHeader />
                     <div className="mt-5">
                         <div style={{ pointerEvents: 'none'}} >
                             <CurrentQuestion />
