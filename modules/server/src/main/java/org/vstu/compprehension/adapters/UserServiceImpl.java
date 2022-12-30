@@ -14,10 +14,7 @@ import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -66,18 +63,30 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(entity);
     }
 
-    private HashSet<Role> fromLtiRoles(List<String> roles) {
+    private HashSet<Role> fromLtiRoles(Collection<String> roles) {
         if (roles.contains("Administrator")) {
             return new HashSet<>(Arrays.asList(Role.values().clone()));
         }
 
         val teacherRoles = Arrays.asList("Instructor", "TeachingAssistant", "ContentDeveloper", "Mentor");
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
-            return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
+            return new HashSet<>(List.of(Role.TEACHER, Role.STUDENT));
         }
 
         return new HashSet<>(List.of(Role.STUDENT));
     }
+
+    private HashSet<Role> fromKeycloakRoles(Collection<String> roles) {
+        if (roles.contains("Administrator")) {
+            return new HashSet<>(Arrays.asList(Role.values().clone()));
+        }
+        if (roles.contains("Teacher")) {
+            return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
+        }
+        return new HashSet<>(List.of(Role.STUDENT));
+    }
+
+
 
 
 
