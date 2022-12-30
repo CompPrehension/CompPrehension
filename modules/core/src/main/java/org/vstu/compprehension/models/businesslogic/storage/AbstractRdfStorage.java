@@ -163,7 +163,7 @@ public abstract class AbstractRdfStorage {
         return conceptBitmask;
     }
 
-    private long lawsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
+    private long lawsAsViolationsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
         long lawBitmask = 0; //
         // !! violations are not positive laws!
         for (Law t : laws) {
@@ -171,12 +171,9 @@ public abstract class AbstractRdfStorage {
             long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.violationName2bit);
             if (newBit == 0) {
                 // make use of children
-                for (Law child : domain.getPositiveLawWithImplied(name)) {  // !! todo: Note: positive only.
-                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.violationName2bit);
-                    if (newBit != 0)
-                        break;
-                }
-            }
+                // newBit |= QuestionMetadataManager.namesToBitmask(domain.getPositiveLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()), metaMgr.violationName2bit);
+                newBit |= QuestionMetadataManager.namesToBitmask(domain.getNegativeLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()), metaMgr.violationName2bit);
+           }
             lawBitmask |= newBit;
         }
         return lawBitmask;
@@ -288,9 +285,9 @@ public abstract class AbstractRdfStorage {
         }
 
         // TODO: use laws for expr Domain
-        long targetLawsBitmask = lawsToBitmask(qr.getTargetLaws(), metaMgr);
+        long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws(), metaMgr);
 //        long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
-        long deniedLawsBitmask = lawsToBitmask(qr.getDeniedLaws(), metaMgr);
+        long deniedLawsBitmask = lawsAsViolationsToBitmask(qr.getDeniedLaws(), metaMgr);
         long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);

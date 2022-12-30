@@ -111,17 +111,17 @@ public class ControlFlowStatementsDomain extends Domain {
         // add concepts about expressions present in algorithms
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        Concept nested_loop = new Concept("nested_loop", "Вложенные циклы", List.of(), flagsAll);
+        Concept nested_loop = new Concept("nested_loop", List.of(), flagsAll);
         concepts.add(nested_loop);
-        Concept exprC = new Concept("exprs_in_use", "Операции в коде", List.of(), flags);
+        Concept exprC = new Concept("exprs_in_use", List.of(), flags);
         concepts.add(exprC);
         List<Concept> bases = List.of(exprC);
         concepts.addAll(List.of(
-                new Concept("expr:pointer", "*pointer", bases, flags),
-                new Concept("expr:func_call", "func() call", bases, flags),
-                new Concept("expr:explicit_cast", "(explicit)cast", bases, flags),
-                new Concept("expr:array", "array[]", bases, flags),
-                new Concept("expr:class_member_access", "access.to->member", bases, flags)
+                new Concept("expr:pointer", bases, flags),
+                new Concept("expr:func_call", bases, flags),
+                new Concept("expr:explicit_cast", bases, flags),
+                new Concept("expr:array", bases, flags),
+                new Concept("expr:class_member_access", bases, flags)
         ));
     }
 
@@ -2032,7 +2032,8 @@ public class ControlFlowStatementsDomain extends Domain {
         return 0;
     }
 
-    private String getMessage(String message_text, Language preferred_language) {
+    @Override
+    public String getMessage(String message_text, Language preferred_language) {
 
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
     }

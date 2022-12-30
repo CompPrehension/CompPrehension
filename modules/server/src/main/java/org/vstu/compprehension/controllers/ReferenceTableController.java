@@ -13,6 +13,7 @@ import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,12 +86,19 @@ public class ReferenceTableController {
                                 .stream()
                                 .map(kv -> new ConceptTreeItemDto(
                                         kv.getKey().getName(),
-                                        kv.getKey().getDisplayName(),
+                                        d.getMessage(kv.getKey().getName(), "concept.", Language.ENGLISH),
                                         kv.getKey().getBitflags(),
-                                        kv.getValue().stream().map(z -> new ConceptTreeItemDto(z.getName(), z.getDisplayName(), z.getBitflags())).toArray(ConceptTreeItemDto[]::new)))
+                                        kv.getValue().stream().map(z -> new ConceptTreeItemDto(
+                                                z.getName(),
+//                                                z.getDisplayName(), // replace with:
+                                                d.getMessage(z.getName(), "concept.", Language.ENGLISH),
+                                                z.getBitflags())
+                                        ).toArray(ConceptTreeItemDto[]::new)))
                                 .collect(Collectors.toList()))
                         .laws(Stream.concat(d.getPositiveLaws().stream(), d.getNegativeLaws().stream())
                                 .filter(x -> x.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER))
+                                // this cannot work but explains how to obtain translation:
+                                /* .map(L -> L.setDisplayName(d.getMessage(L.getName(), "law.", Language.ENGLISH))) */
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());
