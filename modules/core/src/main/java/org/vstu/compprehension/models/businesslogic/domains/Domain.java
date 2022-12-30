@@ -287,7 +287,6 @@ public abstract class Domain {
      * @return localized message
      */
     public String getMessage(String messageKey, String prefix, Language preferredLanguage) {
-        log.info(messageKey);
         return getMessage(prefix + messageKey, preferredLanguage);
     }
 
