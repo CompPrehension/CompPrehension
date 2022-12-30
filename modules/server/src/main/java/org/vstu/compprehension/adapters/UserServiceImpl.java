@@ -16,9 +16,7 @@ import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
