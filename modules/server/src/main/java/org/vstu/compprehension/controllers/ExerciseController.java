@@ -9,10 +9,10 @@ import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.Service.FrontendService;
+import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,13 +23,13 @@ import java.util.List;
 @Log4j2
 public class ExerciseController {
     private final FrontendService frontendService;
-    private final UserContext userContext;
+    private final UserService userService;
     private final ExerciseRepository exerciseRepository;
 
     @Autowired
-    public ExerciseController(FrontendService frontendService, UserContext userContext, ExerciseRepository exerciseRepository) {
+    public ExerciseController(FrontendService frontendService, UserService userService, ExerciseRepository exerciseRepository) {
         this.frontendService = frontendService;
-        this.userContext = userContext;
+        this.userService = userService;
         this.exerciseRepository = exerciseRepository;
     }
 
@@ -140,7 +140,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception {
-        val userId = userContext.getId();
+        val userId = userService.getCurrentUser().getId();
         var result = frontendService.getExerciseAttempt(attemptId);
         if (result == null) {
             throw new Exception("No such attempt");
@@ -161,7 +161,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        val userId = userContext.getId();
+        val userId = userService.getCurrentUser().getId();
         return frontendService.getExistingExerciseAttempt(exerciseId, userId);
     }
 
@@ -175,14 +175,14 @@ public class ExerciseController {
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        val userId = userContext.getId();
+        val userId = userService.getCurrentUser().getId();
         return frontendService.createExerciseAttempt(exerciseId, userId);
     }
 
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        val userId = userContext.getId();
+        val userId = userService.getCurrentUser().getId();
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
     }
 }

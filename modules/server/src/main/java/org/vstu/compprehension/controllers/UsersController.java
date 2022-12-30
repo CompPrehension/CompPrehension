@@ -6,27 +6,24 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.dto.ExerciseDto;
+import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
-import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.utils.Mapper;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("api/users")
 @Log4j2
 public class UsersController {
-    private final UserContext userContext;
+    private final UserService userService;
 
     @Autowired
-    public UsersController(UserContext userContext) {
-        this.userContext = userContext;
+    public UsersController(UserService userService) {
+        this.userService = userService;
     }
 
     @RequestMapping(value = { "whoami"}, method = { RequestMethod.GET })
     @ResponseBody
-    public UserInfoDto getAll() {
-        return Mapper.toDto(userContext);
+    public UserInfoDto getAll() throws Exception {
+        return Mapper.toDto(userService.getCurrentUser());
     }
 }
