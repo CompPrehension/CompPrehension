@@ -152,11 +152,9 @@ public abstract class AbstractRdfStorage {
             long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.conceptName2bit);
             if (newBit == 0) {
                 // make use of children
-                for (Concept child : domain.getChildrenOfConcept(name)) {
-                    newBit = QuestionMetadataManager.namesToBitmask(List.of(child.getName()), metaMgr.conceptName2bit);
-                    if (newBit != 0)
-                        break;
-                }
+                newBit = QuestionMetadataManager.namesToBitmask(
+                        domain.getChildrenOfConcept(name).stream().map(Concept::getName).collect(Collectors.toList()),
+                        metaMgr.conceptName2bit);
             }
             conceptBitmask |= newBit;
         }
@@ -172,7 +170,9 @@ public abstract class AbstractRdfStorage {
             if (newBit == 0) {
                 // make use of children
                 // newBit |= QuestionMetadataManager.namesToBitmask(domain.getPositiveLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()), metaMgr.violationName2bit);
-                newBit |= QuestionMetadataManager.namesToBitmask(domain.getNegativeLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()), metaMgr.violationName2bit);
+                newBit |= QuestionMetadataManager.namesToBitmask(
+                        domain.getNegativeLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()),
+                        metaMgr.violationName2bit);
            }
             lawBitmask |= newBit;
         }
@@ -264,10 +264,12 @@ public abstract class AbstractRdfStorage {
         // 0.8 .. 1.2
         double changeCoeff = 0.85f + 0.3f * random.nextDouble();
         double complexity = qr.getComplexity() * changeCoeff;
+        complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
+        /*
         int solutionSteps = qr.getSolvingDuration();  // 0..10
         solutionSteps += random.nextInt(5) - 2;
-        complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
         solutionSteps = (int)Math.round(metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10));
+        */
 
         List<QuestionMetadataEntity> foundQuestionMetas;
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
@@ -305,8 +307,8 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        foundQuestionMetas = metaMgr.findQuestionsAroundComplexityStepsWithoutTemplates(
-                complexity, solutionSteps,
+        foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
+                complexity,
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 templatesInUse,
@@ -362,7 +364,7 @@ public abstract class AbstractRdfStorage {
         // filter foundQuestionMetas, ranking by complexity, solution steps
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 complexity,
-                solutionSteps,
+//                solutionSteps,
                 targetConceptsBitmask,
                 unwantedConceptsBitmask,
                 unwantedLawsBitmask,
@@ -386,7 +388,7 @@ public abstract class AbstractRdfStorage {
     private List<QuestionMetadataEntity> filterQuestionMetas(
             List<QuestionMetadataEntity> given,
             double scaledComplexity,
-            double scaledSolutionLength,
+            /*double scaledSolutionLength,*/
             long targetConceptsBitmask,
             long unwantedConceptsBitmask,
             long unwantedLawsBitmask,
@@ -399,9 +401,9 @@ public abstract class AbstractRdfStorage {
                 .sorted(Comparator.comparingDouble(q -> q.complexityAbsDiff(scaledComplexity)))
                 .collect(Collectors.toList());
 
-        List<QuestionMetadataEntity> ranking2 = given.stream()
+        /*List<QuestionMetadataEntity> ranking2 = given.stream()
                 .sorted(Comparator.comparingDouble(q -> q.getSolutionStepsAbsDiff(scaledSolutionLength)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
 
         List<QuestionMetadataEntity> ranking3 = given.stream()
                 .sorted(Comparator.comparingInt(
@@ -421,7 +423,7 @@ public abstract class AbstractRdfStorage {
         List<QuestionMetadataEntity> finalRanking = given.stream()
                 .sorted(Comparator.comparingInt(q -> (
                         ranking1.indexOf(q) +
-                        ranking2.indexOf(q) +
+                        /*ranking2.indexOf(q) +*/
                         ranking3.indexOf(q) +
                         ranking6.indexOf(q)
                         )))
