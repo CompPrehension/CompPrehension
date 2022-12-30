@@ -41,9 +41,8 @@ public class WebConfig implements WebMvcConfigurer {
             context.setCookieProcessor(cookieProcessor);
         };
     }
+ */
 
-*/
-    /*
     @Bean
     public ServletRegistrationBean dispatcherRegistration() {
         return new ServletRegistrationBean(dispatcherServlet());
@@ -53,7 +52,6 @@ public class WebConfig implements WebMvcConfigurer {
     public DispatcherServlet dispatcherServlet() {
         return new LoggableDispatcherServlet();
     }
-    */
 
     @Bean
     public LocaleResolver localeResolver() {
@@ -89,18 +87,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(randomSeedSetInterceptor);
         registry.addInterceptor(localeInterceptor());
     }
-
-    /*
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/notFound").setViewName("forward:/index.html");
-    }
-
-    @Bean
-    public WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> containerCustomizer() {
-        return container -> {
-            container.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/notFound"));
-        };
-    }
-    */
 }
