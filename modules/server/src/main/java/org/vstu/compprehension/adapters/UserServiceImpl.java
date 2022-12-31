@@ -5,6 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
@@ -36,28 +37,43 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Unexpected authorized user format");
         }
         var parsedIdToken = ((OidcUser)principal).getIdToken();
+        if (parsedIdToken == null) {
+            throw new Exception("No id_token found");
+        }
 
         var principalName = authentication.getName();
         var fullName = parsedIdToken.getFullName();
         var email = parsedIdToken.getEmail();
-        var roles = authentication.getAuthorities().stream()
-                .map(r -> r.getAuthority().split("ROLE_"))
-                .flatMap(Arrays::stream)
-                .filter(r -> r.length() > 0).distinct()
-                .collect(Collectors.toList());
         var externalId = parsedIdToken.getIssuer() + "_" + principalName;
 
-        val entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
+        // use different role mappings for LTI & keycloak
+        HashSet<Role> roles;
+        Language language = null;
+        if ("1.3.0".equals(parsedIdToken.getClaimAsString("https://purl.imsglobal.org/spec/lti/claim/version"))) {
+            roles = fromLtiRoles(authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList()));
+            language = Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/launch_presentation"))
+                    .flatMap(x -> Optional.ofNullable(x.get("locale")))
+                    .map(l -> Language.fromString(l.toString()))
+                    .orElse(null);
+        } else {
+            var preparedRoles = authentication.getAuthorities().stream()
+                    .map(r -> r.getAuthority().split("ROLE_"))
+                    .flatMap(Arrays::stream)
+                    .filter(r -> r.length() > 0)
+                    .collect(Collectors.toSet());
+            roles = fromKeycloakRoles(preparedRoles);
+        }
+
+        var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
         entity.setFirstName(fullName);
         entity.setLogin(email);
-        entity.setPassword("undefined");
+        entity.setPassword(null);
         entity.setEmail(email);
-        if (entity.getPreferred_language() == null) {
-            entity.setPreferred_language(Language.ENGLISH);
-        }
-        entity.setRoles(fromLtiRoles(roles));
+        entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
+        entity.setRoles(roles);
         entity.setExternalId(externalId);
-
         return userRepository.save(entity);
     }
 
@@ -75,10 +91,10 @@ public class UserServiceImpl implements UserService {
     }
 
     private HashSet<Role> fromKeycloakRoles(Collection<String> roles) {
-        if (roles.contains("Administrator")) {
+        if (roles.contains("ROLE_Administrator")) {
             return new HashSet<>(Arrays.asList(Role.values().clone()));
         }
-        if (roles.contains("Teacher")) {
+        if (roles.contains("ROLE_Teacher")) {
             return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
         }
         return new HashSet<>(List.of(Role.STUDENT));
