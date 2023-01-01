@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,8 +74,27 @@ public class LtiController {
     @SneakyThrows
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"} )
     public void exercise(@RequestParam long id, HttpServletRequest request, HttpServletResponse response) {
+        authenticateFromLti13ResourceLinkRequest(request);
+
+        var redirectUrl = String.format("/pages/exercise?exerciseId=%d", id);
+        response.setHeader("Location", redirectUrl);
+        response.setStatus(302);
+    }
+
+    @SneakyThrows
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"} )
+    public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
+        authenticateFromLti13ResourceLinkRequest(request);
+
+        var redirectUrl = "/pages/exercise-settings";
+        response.setHeader("Location", redirectUrl);
+        response.setStatus(302);
+    }
+
+    private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request) throws AuthenticationException, ParseException {
         var formDataParams = HttpRequestHelper.getAllRequestParams(request);
         var rawIdToken = formDataParams.get("id_token");
+        var rawState = formDataParams.get("state");
         if (StringHelper.isNullOrWhitespace(rawIdToken)) {
             throw new AuthenticationException("No 'id_token' inside request params");
         }
@@ -96,9 +116,5 @@ public class LtiController {
         var t = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
         SecurityContextHolder.getContext().setAuthentication(t);
         log.info("user '{}:{}' is successfully authenticated from LTI with authorities {}", oidcToken.getFullName(), user.getName(), mappedAuthorities);
-
-        var redirectUrl = String.format("/pages/exercise?exerciseId=%d", id);
-        response.setHeader("Location", redirectUrl);
-        response.setStatus(302);
     }
 }
