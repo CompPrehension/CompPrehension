@@ -64,6 +64,7 @@ export class ExerciseSettingsStore {
                 this.backends = backends.right;
                 this.strategies = strategies.right;
                 this.user = user.right;
+                i18next.changeLanguage(user.right.language);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');

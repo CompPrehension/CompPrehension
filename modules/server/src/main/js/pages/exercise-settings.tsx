@@ -33,11 +33,13 @@ export const ExerciseSettings = observer(() => {
         })()
     }, [exerciseStore.exercises?.length]);
 
+    /*
     const onLangClicked = useCallback(() => {
         const currentLang = exerciseStore.user?.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
         exerciseStore.changeLanguage(newLang);
     }, [exerciseStore])
+    */
 
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
@@ -53,7 +55,7 @@ export const ExerciseSettings = observer(() => {
                 <Header text={t('exercisesettings_title')}
                         languageHint={t('language_header')}
                         language={exerciseStore.user?.language ?? "EN"}
-                        onLanguageClicked={onLangClicked}
+                        onLanguageClicked={/*onLangClicked*/null}
                         userHint={t('signedin_as_header')}
                         user={user.displayName} />
             </div>

@@ -6,10 +6,10 @@ import { Language } from "../../types/language";
 
 export type HeaderProps = {
     text?: string,
-    pagination?: React.ReactNode | React.ReactNode[],
+    pagination?: React.ReactNode | React.ReactNode[] | null,
     languageHint: string,
     language: Language,
-    onLanguageClicked?: () => void,
+    onLanguageClicked?: (() => void) | null,
     userHint: string,
     user: string,
     //onUserClicked?: () => void,
@@ -25,7 +25,7 @@ export const Header = observer((props: HeaderProps) => {
             <Navbar.Collapse className="justify-content-end">
                 {pagination}
                 <Navbar.Text className="px-2">
-                    {languageHint}: <a href="#" onClick={onLanguageClicked}>{language}</a>
+                    {languageHint}: <a href="#" onClick={onLanguageClicked ?? undefined}>{language}</a>
                 </Navbar.Text>
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">

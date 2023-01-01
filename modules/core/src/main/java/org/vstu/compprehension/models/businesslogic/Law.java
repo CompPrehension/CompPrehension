@@ -21,8 +21,6 @@ public abstract class Law {
     @Getter
     String name;
     @Getter
-    String displayName;
-    @Getter
     int bitflags;
     @Getter
     List<LawFormulation> formulations;
@@ -44,7 +42,7 @@ public abstract class Law {
     @Getter
     int salience;
 
-    public Law(String name, String displayName, List<LawFormulation> formulations, List<Concept> concepts, List<Tag> tags, int salience) {
+    public Law(String name, List<LawFormulation> formulations, List<Concept> concepts, List<Tag> tags, int salience) {
         this.name = name;
         this.formulations = formulations;
         this.concepts = concepts;
@@ -52,7 +50,6 @@ public abstract class Law {
         this.salience = salience;
         // default values
         this.bitflags = DEFAULT_FLAGS;
-        this.displayName = displayName; // copy
         this.impliesLaws = null;
     }
 

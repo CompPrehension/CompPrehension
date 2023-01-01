@@ -152,7 +152,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // add empty laws that name each possible error
         for (String errClass : VOCAB.classDescendants("Erroneous")) {
-            negativeLaws.add(new NegativeLaw(errClass, errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+            negativeLaws.add(new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
         }
 
     }
