@@ -1,5 +1,6 @@
 package org.vstu.compprehension.config.cache;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import java.io.IOException;
 @WebFilter(filterName = "ContentCachingFilter", urlPatterns = "/*")
 public class ContentCachingFilter extends OncePerRequestFilter {
     @Override
-    protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest httpServletRequest, @NotNull HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         CachedHttpServletRequest cachedBodyHttpServletRequest = new CachedHttpServletRequest(httpServletRequest);
         filterChain.doFilter(cachedBodyHttpServletRequest, httpServletResponse);
     }

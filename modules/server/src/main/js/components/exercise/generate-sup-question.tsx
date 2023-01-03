@@ -19,7 +19,7 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isButtonsVisible, setIsButtonsVisible] = useState(true);
     const [isAllVisible, setAllVisible] = useState(true);
-    if (!exerciseStore.sessionInfo?.exercise.options.supplementaryQuestionsEnabled || 
+    if (!exerciseStore.exercise?.options.supplementaryQuestionsEnabled || 
         violationLaw.canCreateSupplementaryQuestion === false) {
         return null;
     }

@@ -86,6 +86,9 @@ public class FrontendService {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
@@ -403,7 +406,7 @@ public class FrontendService {
         exerciseAttemptRepository.saveAll(incompletedAttempts);
 
         var exercise = exerciseService.getExercise(exerciseId);
-        var user = userService.getUser(userId);
+        var user = userRepository.findById(userId).orElseThrow();
 
         var ea = new ExerciseAttemptEntity();
         ea.setExercise(exercise);

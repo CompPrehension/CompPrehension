@@ -1,11 +1,8 @@
 package org.vstu.compprehension.config;
 
 import lombok.val;
-import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
-import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
-import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.config.interceptors.RandomSeedSetInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
@@ -29,22 +27,13 @@ import java.util.Locale;
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean
-    public TomcatContextCustomizer sameSiteCookiesConfig() {
-        return context -> {
-            final Rfc6265CookieProcessor cookieProcessor = new Rfc6265CookieProcessor();
-            cookieProcessor.setSameSiteCookies(SameSiteCookies.NONE.getValue());
-            context.setCookieProcessor(cookieProcessor);
-        };
-    }
-
-    @Bean
-    public ServletRegistrationBean dispatcherRegistration() {
-        return new ServletRegistrationBean(dispatcherServlet());
+    public ServletRegistrationBean dispatcherRegistration(@Autowired UserService userService) {
+        return new ServletRegistrationBean(dispatcherServlet(userService));
     }
 
     @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet() {
-        return new LoggableDispatcherServlet();
+    public DispatcherServlet dispatcherServlet(@Autowired UserService userService) {
+        return new LoggableDispatcherServlet(userService);
     }
 
     @Bean
@@ -65,6 +54,7 @@ public class WebConfig implements WebMvcConfigurer {
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
+
 
     @Bean
     public LocaleChangeInterceptor localeInterceptor() {

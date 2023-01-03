@@ -15,22 +15,22 @@ const Home = () => (
     <div className="container comp-ph-container">
         <Router>
             <Switch>
-                <Route path="/**/pages/statistics">ExerciseList
+                <Route path="/pages/statistics">ExerciseList
                     <Statistics />
                 </Route>
-                <Route path="/**/pages/exercise">
+                <Route path="/pages/exercise">
                     <Exercise />
                 </Route>
-                <Route path="/**/pages/exercise-settings">
+                <Route path="/pages/exercise-settings">
                     <ExerciseSettings />
                 </Route>
-                <Route path="/**/pages/strategy-settings">
+                <Route path="/pages/strategy-settings">
                     <StrategySettings />
                 </Route>
-                <Route path="/**/pages/survey">
+                <Route path="/pages/survey">
                     <SurveyPage />
                 </Route>
-                <Route path="/**/pages/exercises-list">
+                <Route path="/pages/exercises-list">
                     <ExercisesList />
                 </Route>
             </Switch>

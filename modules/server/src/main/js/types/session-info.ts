@@ -3,6 +3,7 @@ import * as io from 'io-ts'
 import { Exercise, TExercise } from "./exercise";
 import { Language, TLanguage } from "./language";
 
+/*
 export type SessionInfo = {
     sessionId: string,
     exercise: Exercise,
@@ -15,3 +16,4 @@ export const TSessionInfo : io.Type<SessionInfo> = io.type({
     user: TUserInfo,
     language: TLanguage,
 }, 'SessionInfo');
+*/

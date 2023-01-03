@@ -4,38 +4,36 @@ import { ExerciseStatisticsItem } from "../../types/exercise-statistics";
 import { Feedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
 import { Question } from "../../types/question";
-import { SessionInfo } from "../../types/session-info";
 import { PromiseEither } from "../../utils/ajax";
 import { IExerciseController } from "./exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
 import { RequestError } from "../../types/request-error";
 import { delayPromise } from "../../utils/helpers";
+import { Exercise } from "../../types/exercise";
+import { UserInfo } from "../../types/user-info";
 
 @injectable()
 export class TestExerciseController implements IExerciseController {
-    async loadSessionInfo(): PromiseEither<RequestError, SessionInfo> {
-        console.log(`loadSessionInfo`);
-        await delayPromise(1000);
+    async getCurrentUser(): PromiseEither<RequestError, UserInfo> {
         return E.right({
-            sessionId: 'test_session',
-            exercise: {
-                id: -1,
-                options: {
-                    forceNewAttemptCreationEnabled: false,
-                    correctAnswerGenerationEnabled: true,
-                    newQuestionGenerationEnabled: true,
-                    supplementaryQuestionsEnabled: true,
-                },
-            },
+            id: 999999,
+            displayName: 'front user',
+            email: 'test@mail.ru',
+            roles: ['ADMIN'],
             language: "EN",
-            user: {
-                id: 999999,
-                displayName: 'front user',
-                email: 'test@mail.ru',
-                roles: ['ADMIN'],
-            },            
-        });
+        })
+    }
+    async getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise> {
+        return E.right({
+            id: -1,
+            options: {
+                forceNewAttemptCreationEnabled: false,
+                correctAnswerGenerationEnabled: true,
+                newQuestionGenerationEnabled: true,
+                supplementaryQuestionsEnabled: true,
+            },
+        })
     }
     async getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, "" | ExerciseAttempt | null | undefined> {
         console.log(`getExistingExerciseAttempt?exerciseId=${exerciseId}`);

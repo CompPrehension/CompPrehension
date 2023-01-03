@@ -14,6 +14,5 @@ public class UserInfoDto {
     private Long id;
     private String displayName;
     private String email;
-    @JsonIgnore
-    private Language preferredLanguage;
+    private String language;
 }

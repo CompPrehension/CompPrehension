@@ -12,6 +12,6 @@ import java.util.Map;
 public class DomainDto {
     String id;
     String name;
-    List<Law> laws;
+    List<LawDto> laws;
     List<ConceptTreeItemDto> concepts;
 }

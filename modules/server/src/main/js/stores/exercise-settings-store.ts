@@ -5,6 +5,10 @@ import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConceptKind, Exerc
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
+import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
+import { UserInfo } from "../types/user-info";
+import { Language } from "../types/language";
+import i18next from "i18next";
 
 
 @injectable()
@@ -15,8 +19,12 @@ export class ExerciseSettingsStore {
     @observable backends: string[] | null = null;
     @observable strategies: Strategy[] | null = null;
     @observable currentCard: ExerciseCardViewModel | null = null;
+    @observable user: UserInfo | null = null;
 
-    constructor(@inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController) {
+    constructor(
+        @inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController,
+        @inject(ExerciseController) private readonly exerciseController: IExerciseController) {
+        
         makeObservable(this);
     }
 
@@ -41,22 +49,33 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'LOADING');
-        const [rawExercises, domains, backends, strategies] = await Promise.all([
+        const [rawExercises, domains, backends, strategies, user] = await Promise.all([
             this.exerciseSettingsController.getAllExercises(),
             this.exerciseSettingsController.getDomains(),
             this.exerciseSettingsController.getBackends(),
             this.exerciseSettingsController.getStrategies(),
+            this.exerciseController.getCurrentUser(),
         ])
         if (E.isRight(rawExercises) && E.isRight(domains) &&
-            E.isRight(backends) && E.isRight(strategies)) {
+            E.isRight(backends) && E.isRight(strategies) && E.isRight(user)) {
             runInAction(() => {
                 this.exercises = rawExercises.right;
                 this.domains = domains.right;
                 this.backends = backends.right;
                 this.strategies = strategies.right;
+                this.user = user.right;
+                i18next.changeLanguage(user.right.language);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
+    }
+
+    @action
+    changeLanguage = (newLang: Language) => {
+        if (this.user && this.user.language !== newLang) {
+            this.user.language = newLang;
+            i18next.changeLanguage(newLang);
+        }
     }
 
     async loadExercise(exerciseId: number) {

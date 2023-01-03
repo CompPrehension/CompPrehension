@@ -12,15 +12,13 @@ import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.dto.survey.SurveyDto;
 import org.vstu.compprehension.dto.survey.SurveyQuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.user.UserContext;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -54,16 +52,7 @@ public class Mapper {
                 .id(user.getId())
                 .displayName(displayName)
                 .email(user.getEmail())
-                .preferredLanguage(user.getPreferred_language())
-                .build();
-    }
-
-    public static @NotNull UserInfoDto toDto(@NotNull UserContext user) {
-        return UserInfoDto.builder()
-                .id(user.getId())
-                .displayName(user.getDisplayName())
-                .email(user.getEmail())
-                .preferredLanguage(user.getPreferredLanguage())
+                .language(user.getPreferred_language().toLocaleString())
                 .build();
     }
 

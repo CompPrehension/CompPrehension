@@ -10,14 +10,14 @@ import { useTranslation } from "react-i18next";
 export const GenerateNextAnswerBtn = observer(() => {    
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { t } = useTranslation();
-    if (!exerciseStore.sessionInfo?.exercise.options.correctAnswerGenerationEnabled) {
+    if (!exerciseStore.exercise?.options.correctAnswerGenerationEnabled) {
         return null;
     }    
-    const { sessionInfo, currentAttempt, currentQuestion } = exerciseStore;
+    const { exercise, currentAttempt, currentQuestion } = exerciseStore;
     const { question, feedback } = currentQuestion;
     const isFeedbackLoading = currentQuestion.questionState === 'ANSWER_EVALUATING';
     const isQuestionLoading = currentQuestion.questionState === 'LOADING';
-    if (!question || !sessionInfo || !currentAttempt || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
+    if (!question || !exercise || !currentAttempt || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
         return null;
     }
 

@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
-import { Header } from "../components/exercise/header";
+import { ExerciseHeader } from "../components/exercise/header";
 import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
@@ -41,15 +41,14 @@ export const Exercise = observer(() => {
                 return;
             }
 
-
-            const attemptId = getUrlParameterByName('attemptId');
-            if (attemptId && Number.isInteger(+attemptId)) {
+            const attemptId = exerciseStore.currentAttemptId;
+            if (attemptId && Number.isInteger(attemptId)) {
                 setExerciseState('EXERCISE');
                 getAttemptAndLoadQuestion(+attemptId);
                 return;
             }
 
-            if (exerciseStore.sessionInfo?.exercise.options.forceNewAttemptCreationEnabled || 
+            if (exerciseStore.exercise?.options.forceNewAttemptCreationEnabled || 
                 !(await exerciseStore.loadExistingExerciseAttempt())) {
                 setExerciseState('EXERCISE');
                 createAttemptAndLoadQuestion();
@@ -102,7 +101,7 @@ export const Exercise = observer(() => {
             <div className={`compph-exercise ${exerciseStore.isDebug && 'compph-exercise--debug'}` || ''}>
                 <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true || exerciseState === 'INITIAL'}>
                     <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
-                        <Header />
+                        <ExerciseHeader />
                         <div className="mt-5">
                             <CurrentQuestion />
                             {survey != null 
