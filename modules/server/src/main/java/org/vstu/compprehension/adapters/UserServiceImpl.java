@@ -59,8 +59,7 @@ public class UserServiceImpl implements UserService {
                     .orElse(null);
         } else {
             var preparedRoles = authentication.getAuthorities().stream()
-                    .map(r -> r.getAuthority().split("ROLE_"))
-                    .flatMap(Arrays::stream)
+                    .map(GrantedAuthority::getAuthority)
                     .filter(r -> r.length() > 0)
                     .collect(Collectors.toSet());
             roles = fromKeycloakRoles(preparedRoles);
