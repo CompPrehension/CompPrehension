@@ -414,7 +414,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public String getMessage(String base_question_text, Language preferred_language) {
-        return localizationService.getMessage(MESSAGE_PREFIX + base_question_text, Language.getLocale(preferred_language));
+        var found = localizationService.getMessage(MESSAGE_PREFIX + base_question_text, Language.getLocale(preferred_language));
+        if (found.equals(MESSAGE_PREFIX + base_question_text))
+            return base_question_text;
+        return found;
     }
 
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {

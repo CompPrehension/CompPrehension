@@ -80,4 +80,20 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
             @Param("ids") Collection<Integer> templatesIds,
             @Param("lim") int limitNumber
     );
+
+    @Query(value = "select * from questions_meta q where q.domain_shortname = "+DOMAIN_NAME+" AND q._stage = 3 " +
+            "AND IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) AND q.concept_bits & :conceptD = 0 " +
+            "AND IF(:lawA =0,1,q.violation_bits & :lawA <> 0) AND q.violation_bits & :lawD = 0 " +
+            "AND q.template_id NOT IN :ids " +
+            "order by bit_count(q.trace_concept_bits & :conceptA) DESC, abs(q.integral_complexity - :complexity) limit :lim",
+            nativeQuery = true)
+    List<QuestionMetadataEntity> findSampleAroundComplexityWithoutTemplates(
+            @Param("complexity") double complexity,
+            @Param("conceptA") long conceptsPreferredBitmask,
+            @Param("conceptD") long conceptsDeniedBitmask,
+            @Param("lawA") long lawsPreferredBitmask,
+            @Param("lawD") long lawsDeniedBitmask,
+            @Param("ids") Collection<Integer> templatesIds,
+            @Param("lim") int limitNumber
+    );
 }

@@ -65,7 +65,7 @@ public class ExerciseEntity {
     private @NotNull String strategyId;
 
     public List<Tag> getTags() {
-        return Arrays.stream(tags.split(","))
+        return Arrays.stream(tags.split("\\s*,\\s*"))
                 .filter(t -> !StringHelper.isNullOrWhitespace(t))
                 .map(Tag::new)
                 .collect(Collectors.toList());

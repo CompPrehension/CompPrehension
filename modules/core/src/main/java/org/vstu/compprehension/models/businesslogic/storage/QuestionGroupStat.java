@@ -22,14 +22,15 @@ public class QuestionGroupStat {
     public QuestionGroupStat(Collection<QuestionMetadataEntity> questionSet) {
         super();
 
-        tagStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTagBits).collect(Collectors.toList()));
-        conceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getConceptBits).collect(Collectors.toList()));
+        // some fields that are currently unused are out-commented below.
+//        tagStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTagBits).collect(Collectors.toList()));
+//        conceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getConceptBits).collect(Collectors.toList()));
         traceConceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTraceConceptBits).collect(Collectors.toList()));
 //        lawStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataBaseEntity::getLawBits).collect(Collectors.toList()));
-        violationStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getViolationBits).collect(Collectors.toList()));
+//        violationStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getViolationBits).collect(Collectors.toList()));
 
         complexityStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getIntegralComplexity).collect(Collectors.toList()), false);
-        solutionStepsStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getSolutionSteps).map(Double::valueOf).collect(Collectors.toList()), false);
+//        solutionStepsStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getSolutionSteps).map(Double::valueOf).collect(Collectors.toList()), false);
     }
 
 }
