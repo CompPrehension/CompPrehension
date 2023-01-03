@@ -23,21 +23,21 @@ public class ExerciseSettingsController {
 
     @RequestMapping(value = { "exercise" }, method = { RequestMethod.GET })
     @ResponseBody
-    @PreAuthorize("hasRole('ROLE_Administrator')")
+    @PreAuthorize("hasRole('ROLE_Teacher')")
     public ExerciseCardDto get(@RequestParam("id") long id) {
         return exerciseService.getExerciseCard(id);
     }
 
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.POST })
     @ResponseBody
-    @PreAuthorize("hasRole('ROLE_Administrator')")
+    @PreAuthorize("hasRole('ROLE_Teacher')")
     public void update(@RequestBody ExerciseCardDto card) {
         exerciseService.saveExerciseCard(card);
     }
 
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.PUT })
     @ResponseBody
-    @PreAuthorize("hasRole('ROLE_Administrator')")
+    @PreAuthorize("hasRole('ROLE_Teacher')")
     public long create(@RequestBody ObjectNode json) {
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();
