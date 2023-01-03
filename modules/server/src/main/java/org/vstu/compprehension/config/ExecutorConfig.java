@@ -8,7 +8,6 @@ import org.vstu.compprehension.utils.threads.ContextAwarePoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
-/*
 @Configuration
 public class ExecutorConfig extends AsyncConfigurerSupport {
     @Bean
@@ -18,4 +17,3 @@ public class ExecutorConfig extends AsyncConfigurerSupport {
         return executor;
     }
 }
-*/
