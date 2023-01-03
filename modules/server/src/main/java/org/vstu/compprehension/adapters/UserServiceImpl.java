@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
         if ("1.3.0".equals(parsedIdToken.getClaimAsString("https://purl.imsglobal.org/spec/lti/claim/version"))) {
             roles = fromLtiRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toSet()));
             language = Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/launch_presentation"))
                     .flatMap(x -> Optional.ofNullable(x.get("locale")))
                     .map(l -> Language.fromString(l.toString()))
@@ -78,11 +78,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private HashSet<Role> fromLtiRoles(Collection<String> roles) {
-        if (roles.contains("Administrator")) {
+        if (roles.contains("ROLE_Administrator")) {
             return new HashSet<>(Arrays.asList(Role.values().clone()));
         }
 
-        val teacherRoles = Arrays.asList("Instructor", "TeachingAssistant", "ContentDeveloper", "Mentor");
+        val teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_TeachingAssistant", "ROLE_ContentDeveloper", "ROLE_Mentor");
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
             return new HashSet<>(List.of(Role.TEACHER, Role.STUDENT));
         }
