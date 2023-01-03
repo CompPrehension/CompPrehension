@@ -1,8 +1,11 @@
 package org.vstu.compprehension.config;
 
 import lombok.val;
+import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
+import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +28,14 @@ import java.util.Locale;
 
 @Configuration @EnableAsync
 public class WebConfig implements WebMvcConfigurer {
+    @Bean
+    public TomcatContextCustomizer sameSiteCookiesConfig() {
+        return context -> {
+            final Rfc6265CookieProcessor cookieProcessor = new Rfc6265CookieProcessor();
+            cookieProcessor.setSameSiteCookies(SameSiteCookies.NONE.getValue());
+            context.setCookieProcessor(cookieProcessor);
+        };
+    }
 
     @Bean
     public ServletRegistrationBean dispatcherRegistration(@Autowired UserService userService) {
