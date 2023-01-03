@@ -16,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.utils.HttpRequestHelper;
+import org.vstu.compprehension.utils.SessionHelper;
 
 import javax.security.sasl.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +44,8 @@ public class LtiController {
     @SneakyThrows
     @RequestMapping(method = RequestMethod.POST, path = {"1_3/login"} )
     public void login1_3(HttpServletRequest request, HttpServletResponse response) {
+        SessionHelper.ensureNewSession(request);
+
         var formDataParams = HttpRequestHelper.getAllRequestParams(request);
         var params = LtiOidcLoginRequest.builder()
                 .ltiDeploymentId(formDataParams.get("lti_deployment_id"))
@@ -66,6 +69,7 @@ public class LtiController {
                 UUID.randomUUID(),
                 URLEncoder.encode(params.ltiMessageHint, StandardCharsets.UTF_8),
                 "form_post");
+
         log.info("LTI auth url created : {}", redirectUrl);
         response.setHeader("Location", redirectUrl);
         response.setStatus(302);
@@ -77,6 +81,7 @@ public class LtiController {
         authenticateFromLti13ResourceLinkRequest(request);
 
         var redirectUrl = String.format("/pages/exercise?exerciseId=%d", id);
+        log.info("Redirect to exercise, url:{}", redirectUrl);
         response.setHeader("Location", redirectUrl);
         response.setStatus(302);
     }
@@ -87,6 +92,7 @@ public class LtiController {
         authenticateFromLti13ResourceLinkRequest(request);
 
         var redirectUrl = "/pages/exercise-settings";
+        log.info("Redirect to exercise-settings, url:{}", redirectUrl);
         response.setHeader("Location", redirectUrl);
         response.setStatus(302);
     }
