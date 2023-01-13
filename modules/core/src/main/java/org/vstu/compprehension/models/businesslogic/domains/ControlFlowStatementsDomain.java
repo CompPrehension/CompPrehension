@@ -821,6 +821,25 @@ public class ControlFlowStatementsDomain extends Domain {
 
         // Replace in msg
         msg = replaceInString(msg, replacementMap);
+
+        // handle possible word duplications (from template and action description inserted)
+        Pattern p = Pattern.compile("\\b(\\w+\\s+)\\s*[\"«]?\\s*\\1");
+        Matcher m = p.matcher(msg);
+        // remove first of duplicated words
+        msg = m.replaceAll(mr -> mr.group(0).replaceFirst(mr.group(1), ""));
+
+        // Capitalize message (its first char)
+        for (int i = 0; i < 2; ++i) {
+            char ch = msg.charAt(i);
+            if (ch == '"' || ch == '«')
+                continue;
+            val s = msg.substring(i, i+1);
+            if (!s.toUpperCase().equals(s)) {
+                msg = msg.replaceFirst(s, s.toUpperCase());
+            }
+            break;
+        }
+
         return new HyperText(msg);
     }
 
@@ -1232,7 +1251,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 Resource act_individual = inst.asResource();
 
 
-                // filter classNodes
+                // filter classNodes of act instance
                 List<OntClass> classes = new ArrayList<>();
                 List<RDFNode> classNodes = model.listObjectsOfProperty(inst.asResource(), RDF.type).toList();
                 classNodes.forEach(rdfNode -> {
@@ -1292,9 +1311,13 @@ public class ControlFlowStatementsDomain extends Domain {
                                 }
                                 // prepend prefix
                                 value = phase_str + value;
+                                // change case of description intro (that differs when used with phase in Russian)
+                                value = value.replaceFirst("!\\{locale:text\\.", "!{locale:text.phased-");
                             }
                         }
-                        value = "\"" + value + "\"";
+
+                        // add to placeholders ...
+                        value = "«" + value + "»";
                         if (placeholders.containsKey(fieldName)) {
                             String prevData = placeholders.get(fieldName);
                             // if not in previous data
