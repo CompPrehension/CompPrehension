@@ -5,17 +5,18 @@ import { Language } from "../../types/language";
 
 
 export type HeaderProps = {
-    text?: string,
+    text?: string | null,
     pagination?: React.ReactNode | React.ReactNode[] | null,
     languageHint: string,
     language: Language,
     onLanguageClicked?: (() => void) | null,
     userHint: string,
     user: string,
-    //onUserClicked?: () => void,
+    userHref?: string | null,
+    onUserClicked?: (() => void) | null,
 }
 export const Header = observer((props: HeaderProps) => {
-    const { text, pagination, languageHint, language, onLanguageClicked, userHint, user } = props;
+    const { text, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref } = props;
 
     return (
         <Navbar className="px-0">
@@ -29,7 +30,7 @@ export const Header = observer((props: HeaderProps) => {
                 </Navbar.Text>
                 <Navbar.Toggle />        
                 <Navbar.Text className="px-2">
-                    {userHint}: <a href="#">{user}</a>
+                    {userHint}: <a href={userHref ?? "#"} onClick={onUserClicked ?? undefined}>{user}</a>
                 </Navbar.Text>
             </Navbar.Collapse>
         </Navbar>

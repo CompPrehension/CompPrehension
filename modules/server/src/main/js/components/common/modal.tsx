@@ -5,17 +5,17 @@ import { Optional } from "./optional";
 
 
 export type ModalProps = {
-    show?: boolean,
-    title?: string,
+    show?: boolean | null,
+    title?: string | null,
     type?: 'MODAL' | 'DIALOG',
     size?: 'sm' | 'lg' | 'xl',
-    primaryBtnTitle?: string,
-    handlePrimaryBtnClicked?: () => void,
-    secondaryBtnTitle?: string,
-    handleSecondaryBtnClicked?: () => void,
-    children?: React.ReactNode[] | React.ReactNode,
-    closeButton?: boolean,
-    handleClose?: () => void,
+    primaryBtnTitle?: string | null,
+    handlePrimaryBtnClicked?: (() => void) | null,
+    secondaryBtnTitle?: string | null,
+    handleSecondaryBtnClicked?: (() => void) | null,
+    children?: React.ReactNode[] | React.ReactNode | null,
+    closeButton?: boolean | null,
+    handleClose?: (() => void) | null,
 }
 
 export const Modal = (props: ModalProps) => {
@@ -33,9 +33,9 @@ export const Modal = (props: ModalProps) => {
 
     return (
         <Optional isVisible={show ?? true}>
-            <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose} size={size}>
+            <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose ?? undefined} size={size}>
                 <Optional isVisible={notNulAndUndefinded(title) && title.length > 0}>
-                    <RBModal.Header closeButton={closeButton}>
+                    <RBModal.Header closeButton={closeButton ?? undefined}>
                         <RBModal.Title>{title}</RBModal.Title>
                     </RBModal.Header>
                 </Optional>      
@@ -44,8 +44,8 @@ export const Modal = (props: ModalProps) => {
                 </RBModal.Body>
                 {(secondaryBtnTitle || primaryBtnTitle)
                     ? <RBModal.Footer>
-                        {secondaryBtnTitle && <Button variant="secondary" onClick={handleSecondaryBtnClicked}>{secondaryBtnTitle}</Button>}
-                        {primaryBtnTitle && <Button variant="primary" onClick={handlePrimaryBtnClicked}>{primaryBtnTitle}</Button>}
+                        {secondaryBtnTitle && <Button variant="secondary" onClick={handleSecondaryBtnClicked ?? undefined}>{secondaryBtnTitle}</Button>}
+                        {primaryBtnTitle && <Button variant="primary" onClick={handlePrimaryBtnClicked ?? undefined}>{primaryBtnTitle}</Button>}
                       </RBModal.Footer>
                     : null}            
             </ModalWrapper>
