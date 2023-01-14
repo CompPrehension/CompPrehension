@@ -53,6 +53,7 @@ import static org.vstu.compprehension.models.businesslogic.domains.helpers.Facts
 @Component @Log4j2
 @Singleton
 public class ControlFlowStatementsDomain extends Domain {
+    public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderActsSupplementary";
@@ -798,31 +799,41 @@ public class ControlFlowStatementsDomain extends Domain {
             return new HyperText("[Empty explanation] for law " + lawName);
         }
 
-        String localeKeyMark = "!{locale:";
-        int lenLkm = localeKeyMark.length();
-
         // Build replacement map
         Map<String, String> replacementMap = new HashMap<>();
         for (ExplanationTemplateInfoEntity item : violation.getExplanationTemplateInfo()) {
             String value = item.getValue();
 
             // handle special locale-dependent placeholders
-            int i, pos = 0;
-            while ((i = value.indexOf(localeKeyMark, pos)) > -1) {
-                int closingBracePos = value.indexOf("}", i + lenLkm);
-                String key = value.substring(i + lenLkm, closingBracePos);
-                String replaceTo = getMessage(key, userLang);
-                value = value.replace(value.substring(i, closingBracePos + 1), replaceTo);
-                pos = i - lenLkm - key.length() - 1 + replaceTo.length();
-            }
-
+            value = replaceLocaleMarks(userLang, value);
             replacementMap.put(item.getFieldName(), value);
         }
 
         // Replace in msg
         msg = replaceInString(msg, replacementMap);
+        msg = postProcessFormattedMessage(msg);
 
-        // handle possible word duplications (from template and action description inserted)
+        return new HyperText(msg);
+    }
+
+    /** handle special locale-dependent placeholders */
+    @NotNull
+    private String replaceLocaleMarks(Language userLang, String value) {
+        final int lenLkm = LOCALE_KEY_MARK.length();
+        int i, pos = 0;
+        while ((i = value.indexOf(LOCALE_KEY_MARK, pos)) > -1) {
+            int closingBracePos = value.indexOf("}", i + lenLkm);
+            String key = value.substring(i + lenLkm, closingBracePos);
+            String replaceTo = getMessage(key, userLang);
+            value = value.replace(value.substring(i, closingBracePos + 1), replaceTo);
+            pos = i - lenLkm - key.length() - 1 + replaceTo.length();
+        }
+        return value;
+    }
+
+    /** handle possible word duplications (from template and action description inserted) */
+    @NotNull
+    private String postProcessFormattedMessage(String msg) {
         Pattern p = Pattern.compile("\\s([\\p{L}]+\\s+)\\s*[\"«]?\\s*\\1");  //  [\p{L}] is partial (alphabetical only) unicode replacement of \w (https://stackoverflow.com/a/4305084/12824563)
         Matcher m = p.matcher(msg);
         // remove first of duplicated words
@@ -839,8 +850,7 @@ public class ControlFlowStatementsDomain extends Domain {
             }
             break;
         }
-
-        return new HyperText(msg);
+        return msg;
     }
 
     /**
@@ -1840,6 +1850,7 @@ public class ControlFlowStatementsDomain extends Domain {
         } else {
             reason_node = reason_nodes.get(0);
         }
+        Language userLang = getUserLanguage(q);
         HashMap<String, String> placeholders = new HashMap<>();
         if (reason_node != null) {
             for (StmtIterator it = model.listStatements((Resource) reason_node, null, (String) null); it.hasNext(); ) {
@@ -1848,7 +1859,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 if (getFieldProperties().contains(verb)) {
                     String fieldName = verb.replaceAll("field_", "");
                     String value = statement.getString();
-                    value = "\"" + value + "\"";
+                    value = replaceLocaleMarks(userLang, value);
+                    value = "«" + value + "»";
                     if (placeholders.containsKey(fieldName)) {
                         // append to previous data
                         value = placeholders.get(fieldName) + ", " + value;
@@ -1878,11 +1890,10 @@ public class ControlFlowStatementsDomain extends Domain {
 
         HyperText explanation;
         if (localMessageExists(reasonName)) {
-            Language userLang = getUserLanguage(q);
             String message = getMessage(reasonName, userLang);
             // Replace in message
             message = replaceInString(message, placeholders);
-
+            message = postProcessFormattedMessage(message);
             explanation = new HyperText(message);
         }
         else {
