@@ -1,14 +1,11 @@
 package org.vstu.compprehension.adapters;
 
-import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.stereotype.Service;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
@@ -21,7 +18,6 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    @Autowired
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -46,6 +42,8 @@ public class UserServiceImpl implements UserService {
         var email = parsedIdToken.getEmail();
         var externalId = parsedIdToken.getIssuer() + "_" + principalName;
 
+        var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
+
         // use different role mappings for LTI & keycloak
         HashSet<Role> roles;
         Language language = null;
@@ -63,9 +61,9 @@ public class UserServiceImpl implements UserService {
                     .filter(r -> r.length() > 0)
                     .collect(Collectors.toSet());
             roles = fromKeycloakRoles(preparedRoles);
+            language = entity.getPreferred_language();
         }
 
-        var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
         entity.setFirstName(fullName);
         entity.setLogin(email);
         entity.setPassword(null);
@@ -81,7 +79,7 @@ public class UserServiceImpl implements UserService {
             return new HashSet<>(Arrays.asList(Role.values().clone()));
         }
 
-        val teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_TeachingAssistant", "ROLE_ContentDeveloper", "ROLE_Mentor");
+        var teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_TeachingAssistant", "ROLE_ContentDeveloper", "ROLE_Mentor");
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
             return new HashSet<>(List.of(Role.TEACHER, Role.STUDENT));
         }
