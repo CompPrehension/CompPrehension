@@ -823,7 +823,7 @@ public class ControlFlowStatementsDomain extends Domain {
         msg = replaceInString(msg, replacementMap);
 
         // handle possible word duplications (from template and action description inserted)
-        Pattern p = Pattern.compile("\\b(\\w+\\s+)\\s*[\"«]?\\s*\\1");
+        Pattern p = Pattern.compile("\\s([\\p{L}]+\\s+)\\s*[\"«]?\\s*\\1");  //  [\p{L}] is partial (alphabetical only) unicode replacement of \w (https://stackoverflow.com/a/4305084/12824563)
         Matcher m = p.matcher(msg);
         // remove first of duplicated words
         msg = m.replaceAll(mr -> mr.group(0).replaceFirst(mr.group(1), ""));
