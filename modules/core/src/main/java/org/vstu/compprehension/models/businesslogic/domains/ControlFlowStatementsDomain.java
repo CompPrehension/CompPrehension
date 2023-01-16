@@ -2102,7 +2102,13 @@ public class ControlFlowStatementsDomain extends Domain {
         stringSubstitutor.setEnableUndefinedVariableException(true);
 
         // Replace in message
-        return stringSubstitutor.replace(s);
+        try {
+            return stringSubstitutor.replace(s);
+        }
+        catch (IllegalArgumentException exception) {
+            return exception.getMessage() + " -- " + s + " -- " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
+        }
+
     }
 
     private static void _test_Substitutor() {
