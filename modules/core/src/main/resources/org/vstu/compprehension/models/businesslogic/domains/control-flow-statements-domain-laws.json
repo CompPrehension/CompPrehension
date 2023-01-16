@@ -76,7 +76,7 @@
     ]
   },
   {
-    "name": "loop_helper",
+    "name": "loop_alternative_helper",
     "positive": true,
     "salience": 10,
     "tags": [
@@ -84,13 +84,10 @@
         "name": "loop"
       },
       {
-        "name": "helper"
-      },
-      {
-        "name": "mistake"
-      },
-      {
         "name": "alternative"
+      },
+      {
+        "name": "helper"
       }
     ],
     "concepts": [
@@ -112,10 +109,83 @@
     ],
     "formulations": [
       {
+        "name": "name-branch-if-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-branch-else-if-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-branch-else-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name--body-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
         "name": "fetch_kind_of_loop-helper",
         "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), noValue(?c2 rdfs:subClassOf ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
         "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_alternative_helper",
+    "positive": false,
+    "salience": 10,
+    "tags": [
+      {
+        "name": "loop"
       },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "if"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop"
+      }
+    ],
+    "formulations": [
       {
         "name": "name-branch-if-helper",
         "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
@@ -141,7 +211,6 @@
   {
     "name": "loop_helper",
     "positive": false,
-    "salience": 10,
     "tags": [
       {
         "name": "loop"
@@ -151,52 +220,13 @@
       },
       {
         "name": "mistake"
-      },
-      {
-        "name": "alternative"
       }
     ],
-    "concepts": [
-      {
-        "name": "if"
-      },
-      {
-        "name": "alternative"
-      },
-      {
-        "name": "else"
-      },
-      {
-        "name": "sequence"
-      },
-      {
-        "name": "loop"
-      }
-    ],
+    "concepts": [],
     "formulations": [
       {
         "name": "fetch_kind_of_loop-helper",
         "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), noValue(?c2 rdfs:subClassOf ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
-        "backend": "Jena"
-      },
-      {
-        "name": "name-branch-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
-        "backend": "Jena"
-      },
-      {
-        "name": "name-branch-else-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
-        "backend": "Jena"
-      },
-      {
-        "name": "name-branch-else-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
-        "backend": "Jena"
-      },
-      {
-        "name": "name--body-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
         "backend": "Jena"
       }
     ]
