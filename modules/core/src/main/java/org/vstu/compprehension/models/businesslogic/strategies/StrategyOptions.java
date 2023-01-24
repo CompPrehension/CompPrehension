@@ -12,4 +12,5 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class StrategyOptions {
     private boolean multiStagesEnabled;
+    private boolean visibleToUser = false;
 }

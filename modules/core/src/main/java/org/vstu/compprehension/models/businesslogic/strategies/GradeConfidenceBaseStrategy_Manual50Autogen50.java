@@ -23,6 +23,10 @@ public class GradeConfidenceBaseStrategy_Manual50Autogen50 extends GradeConfiden
     @Autowired
     public GradeConfidenceBaseStrategy_Manual50Autogen50(DomainFactory domainFactory, RandomProvider randomProvider) {
         super(domainFactory);
+        this.options = StrategyOptions.builder()
+                .multiStagesEnabled(false)
+                .visibleToUser(false)
+                .build();
         this.randomProvider = randomProvider;
     }
 

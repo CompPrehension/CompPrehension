@@ -45,6 +45,7 @@ public class ReferenceTableController {
         var strategyIds = strategyFactory.getStrategyIds();
         return strategyIds.stream()
                 .map(strategyFactory::getStrategy)
+                .filter(s -> s.getOptions().isVisibleToUser())
                 .map(s -> StrategyDto.builder()
                         .id(s.getStrategyId())
                         .options(s.getOptions())
