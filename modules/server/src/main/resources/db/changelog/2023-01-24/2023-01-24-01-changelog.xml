@@ -5,4 +5,8 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
 
+    <changeSet id="1670820230224-1" author="Mikhail Denisov">
+        <dropNotNullConstraint tableName="exercise" columnName="time_limit" columnDataType="float" />
+        <dropColumn tableName="exercise" columnName="time_limit" />
+    </changeSet>
 </databaseChangeLog>
