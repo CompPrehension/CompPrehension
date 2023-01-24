@@ -37,12 +37,6 @@ public class ExerciseEntity {
     @Column(name = "useGuidingQuestions")
     private Boolean useGuidingQuestions;
 
-    /**
-     * normalized question length, steps (нормированная длина вопроса в шагах)
-     * range: [0..10]
-     */
-    @Column(name = "timeLimit", nullable = false)
-    private Float timeLimit;
 
     @Column(name = "hidden")
     private Boolean hidden;
