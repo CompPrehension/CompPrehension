@@ -168,13 +168,6 @@ export class ExerciseSettingsStore {
         const complexity = Number.parseInt(rawComplexity);
         this.currentCard.complexity = complexity / 100.0;
     }
-    @action
-    setCardAnswerLength(rawLength: string) {
-        if (!this.currentCard)
-            return;
-        const length = Number.parseInt(rawLength);
-        this.currentCard.answerLength = length / 100.0;
-    }
     
     @action
     setCardCommonConceptValue(conceptName: string, conceptValue: ExerciseCardConceptKind) {

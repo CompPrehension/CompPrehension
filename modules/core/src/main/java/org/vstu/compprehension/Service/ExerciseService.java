@@ -46,7 +46,6 @@ public class ExerciseService {
         exercise.setName(name);
         exercise.setDomain(domain);
         exercise.setComplexity(0.5f);
-        exercise.setTimeLimit(0.5f);
         exercise.setBackendId(backendId);
         exercise.setStrategyId(strategyId);
         exercise.setOptions(ExerciseOptionsEntity.builder()
@@ -74,7 +73,6 @@ public class ExerciseService {
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
         exercise.setComplexity(card.getComplexity());
-        exercise.setTimeLimit(card.getAnswerLength());
         exercise.setStages(card.getStages()
                 .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
                 .collect(Collectors.toList()));
@@ -96,7 +94,6 @@ public class ExerciseService {
                         .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
                         .collect(Collectors.toList()))
                 .complexity(exercise.getComplexity())
-                .answerLength(exercise.getTimeLimit())
                 .options(exercise.getOptions())
                 .tags(exercise.getTags().stream()
                         .map(Tag::getName)
