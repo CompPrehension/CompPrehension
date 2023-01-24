@@ -167,18 +167,6 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                             </div>
                         </div>
                     </div>
-                    <div className="col-md-6">
-                        <div className="form-group">
-                            <label className="font-weight-bold">{t('exercisesettings_answlen')}</label>
-                            <div>
-                                <input type="range"
-                                    className="form-control-range"
-                                    id="formControlRange1"
-                                    value={(store.currentCard?.answerLength ?? 0.5) * 100}
-                                    onChange={e => store.setCardAnswerLength(e.target.value)} />
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div className="form-group">
