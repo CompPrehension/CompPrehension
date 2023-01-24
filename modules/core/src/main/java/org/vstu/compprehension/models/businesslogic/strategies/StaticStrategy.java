@@ -38,6 +38,7 @@ public class StaticStrategy implements AbstractStrategy {
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
                 .multiStagesEnabled(true)
+                .visibleToUser(true)
                 .build();
     }
 

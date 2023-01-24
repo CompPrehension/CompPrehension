@@ -25,7 +25,7 @@ import java.util.*;
 public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
     private final DomainFactory domainFactory;
-    private final StrategyOptions options;
+    protected StrategyOptions options;
 
     protected int WINDOW_TO_GRADE = 7;
     protected float TARGET_GRADE = (float)0.8;
@@ -36,6 +36,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
                 .multiStagesEnabled(false)
+                .visibleToUser(true)
                 .build();
     }
 
