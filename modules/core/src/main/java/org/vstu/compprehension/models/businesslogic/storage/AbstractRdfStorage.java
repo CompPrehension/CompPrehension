@@ -312,7 +312,7 @@ public abstract class AbstractRdfStorage {
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 templatesInUse,
-                queryLimit);
+                queryLimit, 2);
 
         // TODO: use tags as well
         if (foundQuestionMetas.isEmpty()) {

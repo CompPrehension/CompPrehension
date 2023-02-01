@@ -148,12 +148,24 @@ public class QuestionMetadataManager {
         return foundQuestions;
     }
 
+    /**
+     * @param complexity preferred complexity value
+     * @param conceptPreferredBitmask bits of concepts that should present (at least one is required)
+     * @param conceptDeniedBitmask concept bits to exclude hard
+     * @param lawPreferredBitmask bits of laws that should present (at least one is required)
+     * @param lawDeniedBitmask law bits to exclude hard
+     * @param templatesIds IDs of templates to exclude hard
+     * @param limit limit query results to first `limit` records
+     * @param randomPoolMultiplier how many times bigger than `limit` the random pool should be, must be >= 1 (normally 2..5)
+     * @return found question-metadata entries
+     */
     List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutTemplates(
             double complexity,
             Long conceptPreferredBitmask, Long conceptDeniedBitmask,
             Long lawPreferredBitmask, Long lawDeniedBitmask,
             Collection<Integer> templatesIds,
-            int limit
+            int limit,
+            double randomPoolMultiplier
     ) {
         conceptPreferredBitmask &= ~conceptDeniedBitmask;
         lawPreferredBitmask &= ~lawDeniedBitmask;
@@ -161,7 +173,7 @@ public class QuestionMetadataManager {
             templatesIds = List.of(0);
         }
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutTemplates(complexity, conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, limit);
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutTemplates(complexity, conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, limit, (int)(limit * randomPoolMultiplier));
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }
