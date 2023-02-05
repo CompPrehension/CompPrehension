@@ -80,6 +80,7 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntit
             @Param("lawA") long lawsPreferredBitmask,
             @Param("lawD") long lawsDeniedBitmask,
             @Param("ids") Collection<Integer> templatesIds,
-            @Param("lim") int limitNumber
+            @Param("lim") int limitNumber,
+            @Param("random_pool_lim") int randomPoolLimitNumber
     );
 }

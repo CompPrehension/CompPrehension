@@ -239,9 +239,9 @@ public abstract class AbstractRdfStorage {
             ratios.put(i, ratio);
         }
 
-        val minVal = ratios.values().stream().min(Double::compareTo).orElse(1D);
-        val maxVal = ratios.values().stream().max(Double::compareTo).orElse(1D);
-        val threshold = Math.nextUp(minVal + leastUsedRatio * (maxVal - minVal));
+        val minVal = ratios.values().stream().min(Double::compareTo).orElse(1d);
+//        val maxVal = ratios.values().stream().max(Double::compareTo).orElse(1d);
+        val threshold = Math.nextUp(minVal /*+ leastUsedRatio * (maxVal - minVal)*/);
         long resultBits = 0;
         for (int i: ratios.keySet()) {
             if (ratios.get(i) <= threshold) {
@@ -283,7 +283,7 @@ public abstract class AbstractRdfStorage {
                 reduce((t, t2) -> t | t2).orElse(0);
 
         if (bitCount(targetConceptsBitmaskInRequest) >= 2) {
-            targetConceptsBitmask = leastUsedConcepts(qr, targetConceptsBitmaskInRequest, 0.15);
+            targetConceptsBitmask = leastUsedConcepts(qr, targetConceptsBitmaskInRequest, 0.0);
         }
 
         // TODO: use laws for expr Domain
@@ -312,7 +312,7 @@ public abstract class AbstractRdfStorage {
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 templatesInUse,
-                queryLimit);
+                queryLimit, 2);
 
         // TODO: use tags as well
         if (foundQuestionMetas.isEmpty()) {

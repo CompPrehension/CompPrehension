@@ -70,9 +70,9 @@ public class QuestionMetadataEntity {
         return Math.abs(getSolutionSteps() - steps);
     }
     public Long traceConceptsSatisfiedFromRequest() {
-        return conceptBits & conceptBitsInRequest;  // traceConceptBits are not applicable to all domains...
+        return (traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInRequest;  // traceConceptBits are not applicable to all domains...
     }
     public Long traceConceptsUnsatisfiedFromRequest() {
-        return ~conceptBits & conceptBitsInRequest;
+        return ~(traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInRequest;
     }
 }
