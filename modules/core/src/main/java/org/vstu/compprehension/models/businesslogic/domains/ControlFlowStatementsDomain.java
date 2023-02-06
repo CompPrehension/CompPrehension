@@ -66,8 +66,11 @@ public class ControlFlowStatementsDomain extends Domain {
     // dictionary
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.rdf";
     private static DomainVocabulary VOCAB = null;
+    public static DomainVocabulary getVocabulary() {
+        return VOCAB;
+    }
 
-    static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
+    public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
@@ -98,7 +101,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return "ctrl_flow";
     }
 
-    private static void initVocab() {
+    public static void initVocab() {
         if (VOCAB == null) {
             VOCAB = new DomainVocabulary(VOCAB_SCHEMA_PATH);
         }
@@ -1968,7 +1971,7 @@ public class ControlFlowStatementsDomain extends Domain {
 //        return null;
 //    }
 
-    private static List<Question> readQuestions(InputStream inputStream) {
+    public static List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
 
         RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
@@ -2015,7 +2018,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    protected List<Question> getQuestionTemplates() {
+    public List<Question> getQuestionTemplates() {
         if (QUESTIONS == null) {
             QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
         }
@@ -2112,7 +2115,7 @@ public class ControlFlowStatementsDomain extends Domain {
             return stringSubstitutor.replace(s);
         }
         catch (IllegalArgumentException exception) {
-            return exception.getMessage() + " -- " + s + " -- " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
+            return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
 
     }
