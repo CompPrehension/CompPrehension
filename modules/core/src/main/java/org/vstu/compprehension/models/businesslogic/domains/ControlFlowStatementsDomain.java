@@ -638,7 +638,13 @@ public class ControlFlowStatementsDomain extends Domain {
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
+                var baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
+                if (true) {
+                    // add question name as html comment
+                    var name = q.getQuestionName();
+                    name = "<!-- question name: " + name + " -->";
+                    baseQuestionText = name + baseQuestionText;
+                }
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);

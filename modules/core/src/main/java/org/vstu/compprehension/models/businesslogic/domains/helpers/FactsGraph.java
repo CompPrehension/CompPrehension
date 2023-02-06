@@ -144,7 +144,7 @@ public class FactsGraph {
     /**
      * Remove facts that have Subject, Predicate and Object equal (the fact objects itself can be different)
      * @param undesirableFacts
-     * @return
+     * @return this, for chaining
      */
     public FactsGraph removeAllLike(List<BackendFactEntity> undesirableFacts) {
         for(BackendFactEntity f : undesirableFacts) {
