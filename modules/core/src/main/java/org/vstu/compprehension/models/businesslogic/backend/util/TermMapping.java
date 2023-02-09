@@ -3,15 +3,12 @@ package org.vstu.compprehension.models.businesslogic.backend.util;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.*;
 
-import java.util.HashMap;
-
-import static org.vstu.compprehension.models.businesslogic.backend.util.FactTriple.EMPTY;
 
 /** Term to RDF node mapping and inverse mapping.
  * It also counts consequent uses of cached items
@@ -26,7 +23,8 @@ public class TermMapping {
     protected String baseNS;
     protected String baseNSPrefix;
 
-    Model model;
+    @Getter
+    protected Model model;
 
     static BiMap<String, Resource> commonTerm2Resource;
     static {
@@ -47,6 +45,9 @@ public class TermMapping {
         commonTerm2Resource.put("owl:ObjectProperty", OWL.ObjectProperty);
         commonTerm2Resource.put("owl:DatatypeProperty", OWL.DatatypeProperty);
         commonTerm2Resource.put("owl:AnnotationProperty", OWL.AnnotationProperty);
+
+        commonTerm2Resource.put("dc:identifier", DCTerms.identifier);
+        commonTerm2Resource.put("meta:question", resource("http://meta.ns/", "question"));
     }
 
     protected static Resource resource(String uri, String local )
@@ -78,6 +79,8 @@ public class TermMapping {
         // http://www.w3.org/2004/02/skos/core#broader
         model.setNsPrefix("skos", SKOS.getURI());
         model.setNsPrefix("xsd", XSD.getURI());
+        model.setNsPrefix("dc", DCTerms.getURI());
+        model.setNsPrefix("meta", "http://meta.ns/");  // this is not a known uri, just invented "ad-hoc"
     }
 
     /** Expand simple name as local, or prefixed name as special
@@ -130,7 +133,7 @@ public class TermMapping {
      * a                            -> string
      * */
     public RDFNode objectToLiteralOrResource(String obj, String objType) {
-        if (objType == null || EMPTY.equals(objType)) {
+        if (objType == null || "".equals(objType)) {
             // just a string
             return model.createLiteral(obj);
         }
@@ -186,6 +189,11 @@ public class TermMapping {
         }
         if (ns.equals(baseNSPrefix)) {
             return r.getLocalName();
+        } else {
+            String uri = r.getURI();
+            if (uri.startsWith(baseNSPrefix)) {
+                return uri.substring(baseNSPrefix.length());
+            }
         }
 
         // not a local name

@@ -5,13 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import static org.apache.jena.sparql.vocabulary.ResultSetGraphVocab.solution;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -57,9 +61,9 @@ public class ControlFlowStatementsDomainTest {
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
 
         Backend backend = new JenaBackend();
-        List<BackendFactEntity> solution = backend.solve(
+        Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
-                domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
+                new ReasoningOptions(true, null));
         assertFalse(solution.isEmpty());
     }}

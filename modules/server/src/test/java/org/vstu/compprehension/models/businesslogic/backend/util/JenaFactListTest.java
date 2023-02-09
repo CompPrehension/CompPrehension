@@ -1,42 +1,33 @@
 package org.vstu.compprehension.models.businesslogic.backend.util;
 
 import org.apache.jena.rdf.model.Model;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
-import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain.QUESTIONS_CONFIG_PATH;
 
 //@SpringBootTest
-public class FactListTest {
+public class JenaFactListTest {
     private static List<Question> QUESTIONS = null;
-    FactList fl;
-
-    @Autowired
-    ControlFlowStatementsDomain domain;
-
+    JenaFactList fl;
 
     @BeforeAll
-    public static void setUpFirst() throws Exception {
+    public static void setUpFirst() {
 //        fl = new FactList();
         ControlFlowStatementsDomain.initVocab();
-        QUESTIONS = ControlFlowStatementsDomain.readQuestions(FactListTest.class.getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
+        QUESTIONS = ControlFlowStatementsDomain.readQuestions(JenaFactListTest.class.getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
     }
 
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
 //        fl = new FactList();
 //        domain = new DomainFactory().getDomain();
     }
@@ -44,10 +35,10 @@ public class FactListTest {
     @Test
     public void test_fromModel() {
         Model schemaModel = ControlFlowStatementsDomain.getVocabulary().getModel();
-        fl = new FactList(schemaModel);
+        fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
-        for (BackendFactEntity fact : fl) {
-//            ((FactTriple)fact).updateFactsFromStatement();
+        for (Fact fact : fl) {
+            ((JenaFact)fact).updateFactFromStatement();
             System.out.println(fact);
         }
     }
@@ -56,10 +47,11 @@ public class FactListTest {
     public void test_fromFacts() {
 //        Model schemaModel = ControlFlowStatementsDomain.getVocabulary().getModel();
         Question q = QUESTIONS.get(0);
-        fl = new FactList(q.getStatementFacts());
+        fl = new JenaFactList();
+        fl.addBackendFacts(q.getStatementFacts());
         System.out.println(fl.size());
-        for (BackendFactEntity fact : fl) {
-//            ((FactTriple)fact).updateFactsFromStatement();
+        for (Fact fact : fl) {
+            ((JenaFact)fact).updateFactFromStatement();
             System.out.println(fact);
         }
     }
@@ -67,22 +59,22 @@ public class FactListTest {
     @Test
     public void test_add() {
         Model schemaModel = ControlFlowStatementsDomain.getVocabulary().getModel();
-        fl = new FactList(schemaModel);
+        fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
 
         Question q = QUESTIONS.get(0);
-        FactList fl2 = new FactList(q.getStatementFacts());
+        JenaFactList fl2 = JenaFactList.fromBackendFacts(q.getStatementFacts());
         System.out.println(fl2.size());
 
         fl.addAll(fl2);
 
         System.out.println(fl.size());
-        for (BackendFactEntity fact : fl) {
+        for (Fact fact : fl) {
 //            ((FactTriple)fact).updateFactsFromStatement();
 //            String factStr = fact.toString();
 //            System.out.println(factStr);
             /*if (factStr.contains("http:"))*/ {
-                System.out.println(((FactTriple) fact).getStatement());
+                System.out.println(((JenaFact) fact).getStatement());
             }
         }
     }
@@ -90,14 +82,14 @@ public class FactListTest {
     @Test
     public void test_addFacts() {
         Model schemaModel = ControlFlowStatementsDomain.getVocabulary().getModel();
-        fl = new FactList(schemaModel);
+        fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
 
         Question q = QUESTIONS.get(0);
-        fl.addAll(q.getStatementFacts());
+        fl.addBackendFacts(q.getStatementFacts());
 
         System.out.println(fl.size());
-        for (BackendFactEntity fact : fl) {
+        for (Fact fact : fl) {
             String factStr = fact.toString();
             System.out.println(factStr);
         }

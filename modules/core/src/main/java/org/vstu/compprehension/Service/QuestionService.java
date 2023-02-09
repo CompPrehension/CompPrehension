@@ -1,5 +1,8 @@
 package org.vstu.compprehension.Service;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -7,8 +10,10 @@ import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -22,9 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 @Service
 public class QuestionService {
     private Core core = new Core();
@@ -84,20 +91,21 @@ public class QuestionService {
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
-        List<BackendFactEntity> solution = backend.solve(
-                new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFacts(),
-                domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()));
 
-        // carefully update solutionFacts with solution
         List<BackendFactEntity> storedSolution = question.getQuestionData().getSolutionFacts();
-        if (storedSolution == null) {
-            storedSolution = new ArrayList<>();
-            question.getQuestionData().setSolutionFacts(storedSolution);
-        }
-        FactsGraph.updateFactsList(storedSolution, solution);
 
-        saveQuestion(question.getQuestionData());
+        if (storedSolution == null || storedSolution.isEmpty()) {
+            // use reasoner to solve question
+            Collection<Fact> solution = backend.solve(
+                    new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
+                    question.getStatementFactsWithSchema(),
+                    new ReasoningOptions(true, domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts())));
+
+            // save facts to question
+            question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
+            saveQuestion(question.getQuestionData());
+        }
+
         return question;
     }
 
@@ -127,14 +135,14 @@ public class QuestionService {
 
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        List<BackendFactEntity> responseFacts = question.responseToFacts(responses);
+        Collection<Fact> responseFacts = question.responseToFacts(responses);
         Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
-        List<BackendFactEntity> violations = backend.judge(
+        Collection<Fact> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFacts(),
-                question.getSolutionFacts(),
+                question.getStatementFactsWithSchema(),
+                Fact.entitiesToFacts(question.getSolutionFacts()),
                 responseFacts,
-                domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts())
+                new ReasoningOptions(false, domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()))
         );
         return domain.interpretSentence(violations);
     }

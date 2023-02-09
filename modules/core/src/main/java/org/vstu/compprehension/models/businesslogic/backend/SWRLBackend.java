@@ -1,7 +1,9 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -131,7 +133,7 @@ public abstract class SWRLBackend implements Backend {
     }
 
     @Override
-    public List<BackendFactEntity> solve(List<Law> laws, List<BackendFactEntity> statement, List<String> solutionVerbs) {
+    public Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
         createOntology();
         for (Law law : laws) {
             addLaw(law);
@@ -143,11 +145,11 @@ public abstract class SWRLBackend implements Backend {
 
         callReasoner();
 
-        return getFacts(solutionVerbs);
+        return getFacts(reasoningOptions.getVerbs());
     }
 
     @Override
-    public List<BackendFactEntity> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, List<String> violationVerbs) {
+    public Collection<Fact> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
         createOntology();
 
         for (Law law : laws) {
@@ -166,17 +168,19 @@ public abstract class SWRLBackend implements Backend {
 
         callReasoner();
 
-        return getFacts(violationVerbs);
+        return getFacts(reasoningOptions.getVerbs());
     }
 
-    List<BackendFactEntity> getFacts(List<String> verbs) {
+    List<Fact> getFacts(Set<String> verbs) {
         List<BackendFactEntity> result = new ArrayList<>();
+        if (verbs == null)
+            throw new NotImplementedException("Old implementation of SWRLBackend does not support null or empty `verbs` on either `solve` or `judge`. 2023.02");
         for (String verb : verbs) {
             List<BackendFactEntity> verbFacts = getObjectProperties(verb);
             result.addAll(verbFacts);
             List<BackendFactEntity> verbFactsData = getDataProperties(verb);
             result.addAll(verbFactsData);
         }
-        return result;
+        return Fact.entitiesToFacts(result);
     }
 }

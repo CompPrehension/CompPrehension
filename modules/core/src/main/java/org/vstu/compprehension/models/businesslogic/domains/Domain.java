@@ -9,6 +9,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.entities.*;
@@ -417,26 +418,28 @@ public abstract class Domain {
     public abstract List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags);
 
     /**
-     * Get all needed solution BackendFactEntity verbs for db saving
+     * Get all needed solution Fact verbs for db saving
+     *
      * @param questionDomainType type of question
-     * @param statementFacts question statement facts
-     * @return list of BackendFactEntity verbs needed for solve question
+     * @param statementFacts     question statement facts
+     * @return list of Fact verbs needed for solve question
      */
-    public abstract List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
+    public abstract Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
     /**
-     * Get all needed violation BackendFactEntity verbs for db saving
+     * Get all needed violation Fact verbs for db saving
+     *
      * @param questionDomainType type of question
-     * @param statementFacts question statement facts
-     * @return list of BackendFactEntity verbs needed for interpret question
+     * @param statementFacts     question statement facts
+     * @return list of Fact verbs needed for interpret question
      */
-    public abstract List<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
+    public abstract Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
 
     /**
-     * Сформировать из ответов (которые были ранее добавлены к вопросу)
-     * студента факты в универсальной форме
+     * Сформировать из ответов студента (которые были ранее добавлены к вопросу)
+     * факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    public abstract List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects);
+    public abstract Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects);
 
     /**
      * Statistics for current step of question evaluation
@@ -476,7 +479,7 @@ public abstract class Domain {
      * Evaluate one iteration, collect info and find violations
      * @param violations violation facts
      */
-    public abstract InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations);
+    public abstract InterpretSentenceResult interpretSentence(Collection<Fact> violations);
 
     /**
      * Check that violation has supplementary questions
@@ -500,7 +503,7 @@ public abstract class Domain {
      * Get statistics for initial step of question evaluation
      * @param solution solution backend facts
      */
-    public abstract ProcessSolutionResult processSolution(List<BackendFactEntity> solution);
+    public abstract ProcessSolutionResult processSolution(Collection<Fact> solution);
 
     /**
      * Any available correct answer at current iteration

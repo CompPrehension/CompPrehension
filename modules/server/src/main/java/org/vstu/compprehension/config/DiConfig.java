@@ -8,10 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.adapters.BackendTaskQueue;
-import org.vstu.compprehension.adapters.CachedUserService;
-import org.vstu.compprehension.adapters.RateLimitBackendDecorator;
-import org.vstu.compprehension.adapters.UserServiceImpl;
+import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.backend.*;
 import org.vstu.compprehension.models.repository.UserRepository;
 
@@ -24,7 +21,10 @@ public class DiConfig {
     @RequestScope
     List<Backend> getAllBackends(@Autowired @Lazy JenaBackend jenaBackend, @Autowired @Lazy PelletBackend pelletBackend, @Autowired BackendTaskQueue taskQueue) {
         return List.of(
-              new RateLimitBackendDecorator(JenaBackend.BackendId, jenaBackend, taskQueue),
+              new RateLimitBackendDecorator(JenaBackend.BackendId, new SolutionCachingBackendDecorator(
+                      jenaBackend,
+                      "maximumSize=30,expireAfterAccess=10m"
+              ), taskQueue),
               new RateLimitBackendDecorator(PelletBackend.BackendId, pelletBackend, taskQueue)
         );
     }

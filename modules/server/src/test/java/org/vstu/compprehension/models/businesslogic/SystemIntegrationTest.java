@@ -4,6 +4,7 @@ import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.strategies.Strategy;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
@@ -894,7 +895,7 @@ public class SystemIntegrationTest {
     Domain.ProcessSolutionResult getSolveInfo(Long questionId) {
         Question question = getQuestion(questionId);
         Domain domain = domainFactory.getDomain(question.questionData.getDomainEntity().getName());
-        return domain.processSolution(question.getSolutionFacts());
+        return domain.processSolution(Fact.entitiesToFacts(question.getSolutionFacts()));
     }
 
     private boolean checkQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity testExerciseAttempt) {

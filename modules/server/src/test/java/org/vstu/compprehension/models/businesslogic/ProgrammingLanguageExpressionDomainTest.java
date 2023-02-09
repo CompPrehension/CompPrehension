@@ -4,6 +4,8 @@ import lombok.val;
 import org.vstu.compprehension.CompPrehensionApplication;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
@@ -192,12 +194,12 @@ public class ProgrammingLanguageExpressionDomainTest {
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), question.getQuestionText().getText());
 
         Backend backend = backendFactory.getBackend("Jena");
-        List<BackendFactEntity> solution = backend.solve(
+        Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
-                domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>()));
+                new ReasoningOptions(false, domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>())));
         assertFalse(solution.isEmpty());
-        question.getQuestionData().setSolutionFacts(solution);
+        question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
 
         Set<String> init = domain.possibleViolations(question, null);
         assertEquals(2, init.size());
@@ -233,12 +235,12 @@ public class ProgrammingLanguageExpressionDomainTest {
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
         Backend backend = backendFactory.getBackend("Jena");
-        List<BackendFactEntity> solution = backend.solve(
+        Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
-                domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>()));
+                new ReasoningOptions(false, domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>())));
         assertFalse(solution.isEmpty());
-        q.getQuestionData().setSolutionFacts(solution);
+        q.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
 
         Set<String> init = domain.possibleViolations(q, null);
         assertEquals(3, init.size());
@@ -304,12 +306,12 @@ public class ProgrammingLanguageExpressionDomainTest {
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
         Backend backend = backendFactory.getBackend("Jena");
-        List<BackendFactEntity> solution = backend.solve(
+        Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
-                domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>()));
+                new ReasoningOptions(false, domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>())));
         assertFalse(solution.isEmpty());
-        q.getQuestionData().setSolutionFacts(solution);
+        q.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
 
         Set<String> init = domain.possibleViolations(q, null);
         assertTrue(init.contains("error_base_student_error_unevaluated_operand"));

@@ -2,12 +2,15 @@ package org.vstu.compprehension.models.businesslogic;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -108,21 +111,20 @@ public abstract class Question {
     /**
      * Сформировать из ответов (которые были ранее добавлены к вопросу)
      * студента факты в универсальной форме
+     *
      * @return - факты в универсальной форме
      */
-    public abstract List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses);
-
-    /**
-     * Сформировать из ответов (которые были ранее добавлены к вопросу)
-     * студента факты в удобном для указанного backend-а виде
-     * @param backendId - id backend-а для которого будут сформированы
-     *                  факты
-     * @return - факты в том формате, в котором их поймет backend
-     */
-    public abstract List<BackendFactEntity> responseToFacts(long backendId);
+    public abstract Collection<Fact> responseToFacts(List<ResponseEntity> responses);
 
     public List<BackendFactEntity> getStatementFacts() {
         return questionData.getStatementFacts();
+    }
+
+    /** Get statement facts with common domain definitions for reasoning (schema) added */
+    public Collection<Fact> getStatementFactsWithSchema() {
+        JenaFactList fl = JenaFactList.fromBackendFacts(questionData.getStatementFacts());
+        fl.addFromModel(domain.getSchemaForSolving());
+        return fl;
     }
 
     public List<BackendFactEntity> getSolutionFacts() {

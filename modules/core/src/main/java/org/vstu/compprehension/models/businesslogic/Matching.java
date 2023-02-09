@@ -1,10 +1,11 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 
+import java.util.Collection;
 import java.util.List;
 
 public class Matching extends Question {
@@ -13,7 +14,7 @@ public class Matching extends Question {
         super(questionData, domain);
     }
 
-    public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
+    public Collection<Fact> responseToFacts(List<ResponseEntity> responses) {
         return domain.responseToFacts(
                 getQuestionDomainType(),
                 responses,
@@ -67,10 +68,6 @@ public class Matching extends Question {
 
         //return facts;
         
-    }
-
-    public List<BackendFactEntity> responseToFacts(long backendId) {
-        return null;
     }
 
     public Long getExerciseAttemptId() {

@@ -23,6 +23,7 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
@@ -735,6 +736,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public Model getSchemaForSolving() {
         Model schemaModel = ModelFactory.createDefaultModel();
+        // todo: cache it?
         return schemaModel.read(VOCAB_SCHEMA_PATH);
     }
 
@@ -798,9 +800,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return new ArrayList<>(List.of());
     }
 
-    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            return new HashSet<>(Arrays.asList(
                     "has_operand",
                     "has_left_operand",
                     "has_right_operand",
@@ -838,20 +840,20 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "student_end_evaluation"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            return new HashSet<>(List.of(
                     "get_type"
             ));
         } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            return new HashSet<>(List.of(
                     "high_precedence_diff_precedence"
             ));
         }
-        return new ArrayList<>();
+        return new HashSet<>();
     }
 
-    public List<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            return new HashSet<>(Arrays.asList(
                     "student_error_more_precedence",
                     "student_error_left_assoc",
                     "student_error_right_assoc",
@@ -882,11 +884,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "has_operand"
             ));
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            return new HashSet<>(List.of(
                     "wrong_type"
             ));
         } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
-            return new ArrayList<>(Arrays.asList(
+            return new HashSet<>(Arrays.asList(
                     "has_operand",
                     "has_operand_part",
                     "student_operand_type",
@@ -896,7 +898,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     "index"
             ));
         } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
-        return new ArrayList<>(Arrays.asList(
+        return new HashSet<>(Arrays.asList(
                 "high_precedence_diff_precedence",
                 "text",
                 "index",
@@ -904,17 +906,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 "student_precedence_type"
         ));
     }
-        return new ArrayList<>();
+        return new HashSet<>();
     }
 
     @Override
-    public List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            List<BackendFactEntity> result = new ArrayList<>();
+            List<Fact> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
             for (ResponseEntity response : responses) {
-                result.add(new BackendFactEntity(
+                result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
                         "student_pos_number",
@@ -922,7 +924,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         String.valueOf(pos)
                 ));
                 for (String earlier : used) {
-                    result.add(new BackendFactEntity(
+                    result.add(new Fact(
                             "owl:NamedIndividual",
                             earlier,
                             "student_pos_less",
@@ -931,7 +933,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     ));
                 }
                 if (response.getLeftAnswerObject().getDomainInfo().equals("end_token")) {
-                    result.add(new BackendFactEntity(
+                    result.add(new Fact(
                             "owl:NamedIndividual",
                             "end_token",
                             END_EVALUATION,
@@ -946,7 +948,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             for (AnswerObjectEntity answerObject : answerObjects) {
                 if (!used.contains(answerObject.getDomainInfo())) {
                     for (String earlier : used) {
-                        result.add(new BackendFactEntity(
+                        result.add(new Fact(
                                 "owl:NamedIndividual",
                                 earlier,
                                 "student_pos_less",
@@ -958,9 +960,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             return result;
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
-            List<BackendFactEntity> result = new ArrayList<>();
+            List<Fact> result = new ArrayList<>();
             for (ResponseEntity response : responses) {
-                result.add(new BackendFactEntity(
+                result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
                         "student_type",
@@ -970,9 +972,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             return result;
         } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
-            List<BackendFactEntity> result = new ArrayList<>();
+            List<Fact> result = new ArrayList<>();
             for (ResponseEntity response : responses) {
-                result.add(new BackendFactEntity(
+                result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
                         "student_operand_type",
@@ -982,9 +984,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
             return result;
         } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
-            List<BackendFactEntity> result = new ArrayList<>();
+            List<Fact> result = new ArrayList<>();
             for (ResponseEntity response : responses) {
-                result.add(new BackendFactEntity(
+                result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
                         "student_precedence_type",
@@ -1012,7 +1014,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         String lawName;
     }
 
-    private List<CorrectAnswerImpl> getCorrectAnswers(List<BackendFactEntity> solution) {
+    private List<CorrectAnswerImpl> getCorrectAnswers(Collection<Fact> solution) {
         Map<String, List<String>> before = new HashMap<>();
         Map<String, String> studentPos = new HashMap<>();
         Map<String, String> unevalOp = new HashMap<>();
@@ -1021,7 +1023,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         HashSet<String> allTokens = new HashSet<>();
 
         List<CorrectAnswerImpl> result = new ArrayList<>();
-        for (BackendFactEntity fact : solution) {
+        for (Fact fact : solution) {
             if (fact.getVerb().equals("before_direct")) {
                 if (!before.containsKey(fact.getObject())) {
                     before.put(fact.getObject(), new ArrayList<>());
@@ -1073,14 +1075,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
+    public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         Map<String, String> studentPos = new HashMap<>();
         Map<String, String> unevalOp = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
         HashSet<String> isNotCallableOperator = new HashSet<>();
         HashSet<String> allTokens = new HashSet<>();
         boolean hasEndToken = false;
-        for (BackendFactEntity fact : solution) {
+        for (Fact fact : solution) {
             if (fact.getVerb().equals("before_direct")) {
                 allTokens.add(fact.getObject());
                 allTokens.add(fact.getSubject());
@@ -1324,7 +1326,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .map(r -> new CorrectAnswer.Response(r.getLeftAnswerObject(), r.getRightAnswerObject(), r.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE))
                 .collect(Collectors.toList());*/
 
-        val solution = q.getSolutionFacts();
+        val solution = Fact.entitiesToFacts(q.getSolutionFacts());
         assert solution != null;
         solution.addAll(lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects()))).stream()
@@ -1679,11 +1681,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
+    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
         List<ViolationEntity> mistakes = new ArrayList<>();
 
         String questionType = "";
-        for (BackendFactEntity violation : violations) {
+        for (Fact violation : violations) {
             if (violation.getVerb().equals("student_operand_type")) {
                 questionType = OPERANDS_TYPE_QUESTION_TYPE;
             } else if (violation.getVerb().equals("student_precedence_type")) {
@@ -1701,11 +1703,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         if (questionType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             // retrieve subjects' info from facts ...
-            Map<String, BackendFactEntity> nameToText = new HashMap<>();
-            Map<String, BackendFactEntity> nameToPos = new HashMap<>();
-            Map<String, BackendFactEntity> nameToBeforeThirdOperator = new HashMap<>();
+            Map<String, Fact> nameToText = new HashMap<>();
+            Map<String, Fact> nameToPos = new HashMap<>();
+            Map<String, Fact> nameToBeforeThirdOperator = new HashMap<>();
 
-            for (BackendFactEntity violation : violations) {
+            for (Fact violation : violations) {
                 if (violation.getVerb().equals("text")) {
                     nameToText.put(violation.getSubject(), violation);
                 } else if (violation.getVerb().equals("index")) {
@@ -1716,7 +1718,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
 
             // filter facts and fill mistakes list ...
-            for (BackendFactEntity violation : violations) {
+            for (Fact violation : violations) {
                 ViolationEntity violationEntity = new ViolationEntity();
                 if (violation.getVerb().equals("student_error_more_precedence")) {
                     if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
@@ -1740,7 +1742,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     violationEntity.setLawName("error_wrong_type");
                 }
                 if (violationEntity.getLawName() != null) {
-                    ArrayList<BackendFactEntity> facts = new ArrayList<>(Arrays.asList(
+                    ArrayList<Fact> facts = new ArrayList<>(Arrays.asList(
                             violation,
                             nameToText.get(violation.getObject()),
                             nameToText.get(violation.getSubject()),
@@ -1751,7 +1753,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         facts.add(nameToPos.get(nameToBeforeThirdOperator.get(violation.getObject()).getObject()));
                         facts.add(nameToText.get(nameToBeforeThirdOperator.get(violation.getObject()).getObject()));
                     }
-                    violationEntity.setViolationFacts(facts);
+                    violationEntity.setViolationFacts(Fact.factsToEntities(facts));
                     mistakes.add(violationEntity);
                 }
             }
@@ -1764,7 +1766,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             Set<String> complexOperators = new HashSet<>();
             String targetOperator = "";
 
-            for (BackendFactEntity violation : violations) {
+            for (Fact violation : violations) {
                 if (!violation.getSubject().startsWith("op__0")) {
                     continue;
                 }
@@ -1834,7 +1836,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     violationFacts.add(new BackendFactEntity(kv.getKey(), "student_operand_type", kv.getValue()));
                     violationFacts.add(new BackendFactEntity(kv.getKey(), "real_operand_type", operatorType.get(kv.getKey())));
                     violationFacts.add(new BackendFactEntity(kv.getKey(), "index", String.valueOf(nameToPos.get(kv.getKey()))));
-                    violationEntity.setViolationFacts(new ArrayList<>());
+                    violationEntity.setViolationFacts(new ArrayList<>() /* violationFacts ??*/);
                     mistakes.add(violationEntity);
                 }
             }
@@ -1845,7 +1847,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             Map<String, Integer> nameToPos = new HashMap<>();
             String targetOperator = "";
 
-            for (BackendFactEntity violation : violations) {
+            for (Fact violation : violations) {
                 if (!violation.getSubject().startsWith("op__0")) {
                     continue;
                 }
@@ -1895,12 +1897,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    List<String> calculateCorrectlyAppliedLaws(List<BackendFactEntity> violations) {
+    List<String> calculateCorrectlyAppliedLaws(Collection<Fact> violations) {
         List<String> result = new ArrayList<>();
 
         Map<String, Integer> nameToStudentPos = new HashMap<>();
         Integer maxStudentPos = -1;
-        for (BackendFactEntity violation : violations) {
+        for (Fact violation : violations) {
             if (violation.getVerb().equals("student_pos_number")) {
                 Integer studentPosNumber = Integer.parseInt(violation.getObject());
                 maxStudentPos = max(maxStudentPos, studentPosNumber);
@@ -1908,7 +1910,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-        for (BackendFactEntity violation : violations) {
+        for (Fact violation : violations) {
             // Consider only errors that could happen at current step and where current token will be error reason
             if (!nameToStudentPos.getOrDefault(violation.getObject(), -2).equals(maxStudentPos) ||
                     nameToStudentPos.containsKey(violation.getSubject())) {
@@ -2128,13 +2130,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         OntModel model = jback.getModel();
         model.add(factsModel);
 
-        List<String> verbs = factsModel.listStatements().toList().stream()
-                .map(Statement::getPredicate)
-                .map(Property::getLocalName).distinct().collect(Collectors.toList());
         if (onlySolvedFacts) {
             return jback.getFacts(getViolationVerbs(EVALUATION_ORDER_QUESTION_TYPE, null));
         }
-        return jback.getFacts(verbs);
+        return jback.getFacts(null);
     }
 
     public OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
@@ -2143,7 +2142,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         OntModel model = jback.getModel();
 
-        jback.addFacts(backendFacts);
+        jback.addBackendFacts(backendFacts);
 
         return model;
     }

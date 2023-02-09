@@ -4,8 +4,11 @@ import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 
+import java.util.Collection;
 import java.util.List;
 
 public class RateLimitBackendDecorator implements Backend {
@@ -29,13 +32,13 @@ public class RateLimitBackendDecorator implements Backend {
 
     @SneakyThrows
     @Override
-    public List<BackendFactEntity> solve(List<Law> laws, List<BackendFactEntity> statement, List<String> solutionVerbs) {
-        return taskQueue.postAsync(() -> decoratee.solve(laws, statement, solutionVerbs)).get();
+    public Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
+        return taskQueue.postAsync(() -> decoratee.solve(laws, statement, reasoningOptions)).get();
     }
 
     @SneakyThrows
     @Override
-    public List<BackendFactEntity> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, List<String> violationVerbs) {
-        return taskQueue.postAsync(() -> decoratee.judge(laws, statement, correctAnswer, response, violationVerbs)).get();
+    public Collection<Fact> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
+        return taskQueue.postAsync(() -> decoratee.judge(laws, statement, correctAnswer, response, reasoningOptions)).get();
     }
 }
