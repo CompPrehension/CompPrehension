@@ -197,7 +197,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
-                new ReasoningOptions(false, domain.getSolutionVerbs(question.getQuestionDomainType(), new ArrayList<>())));
+                new ReasoningOptions(false, domain.getSolutionVerbs(question.getQuestionDomainType(), List.of()), null));
         assertFalse(solution.isEmpty());
         question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
 
@@ -238,7 +238,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
-                new ReasoningOptions(false, domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>())));
+                new ReasoningOptions(false, domain.getSolutionVerbs(q.getQuestionDomainType(), List.of()), null));
         assertFalse(solution.isEmpty());
         q.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
 
@@ -309,7 +309,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
-                new ReasoningOptions(false, domain.getSolutionVerbs(q.getQuestionDomainType(), new ArrayList<>())));
+                new ReasoningOptions(false, domain.getSolutionVerbs(q.getQuestionDomainType(), List.of()), null));
         assertFalse(solution.isEmpty());
         q.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
 

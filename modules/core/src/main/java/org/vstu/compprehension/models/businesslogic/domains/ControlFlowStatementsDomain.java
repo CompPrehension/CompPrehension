@@ -639,15 +639,15 @@ public class ControlFlowStatementsDomain extends Domain {
         // statement facts are already prepared in the Question's JSON
         facts.addAll(factsListDeepCopy(q.getStatementFacts()));
         facts = _patchStatementFacts(facts, userLanguage);
-        // add fact for caching reasoner's results: [meta:question dc:identifier <uniqueKey>]
-        String uniqueKey = Optional.ofNullable(q.getMetadata())
-                .map(qm -> getShortName()+":template-id:" + qm.getTemplateId())
-                .orElse(q.getQuestionName());
-        facts.add(new BackendFactEntity(
-                "meta:question",
-                "dc:identifier",
-                uniqueKey
-        ));
+//        // add fact for caching reasoner's results: [meta:question dc:identifier <uniqueKey>]
+//        String uniqueKey = Optional.ofNullable(q.getMetadata())
+//                .map(qm -> getShortName()+":template-id:" + qm.getTemplateId())
+//                .orElse(q.getQuestionName());
+//        facts.add(new BackendFactEntity(
+//                "meta:question",
+//                "dc:identifier",
+//                uniqueKey
+//        ));
         entity.setStatementFacts(facts);
         entity.setQuestionType(q.getQuestionType());
 

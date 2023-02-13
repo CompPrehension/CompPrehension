@@ -64,6 +64,6 @@ public class ControlFlowStatementsDomainTest {
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
-                new ReasoningOptions(true, null));
+                new ReasoningOptions());
         assertFalse(solution.isEmpty());
     }}

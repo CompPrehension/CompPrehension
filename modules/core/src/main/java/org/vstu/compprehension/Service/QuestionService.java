@@ -149,7 +149,10 @@ public class QuestionService {
                 question.getStatementFactsWithSchema(),
                 Fact.entitiesToFacts(question.getSolutionFacts()),
                 responseFacts,
-                new ReasoningOptions(false, domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()))
+                new ReasoningOptions(
+                        false,
+                        domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
+                        question.getQuestionUniqueTemplateName())
         );
         return domain.interpretSentence(violations);
     }

@@ -9,10 +9,7 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.utils.HyperText;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public abstract class Question {
     
@@ -64,6 +61,19 @@ public abstract class Question {
     public String getQuestionName() {
 
         return questionData.getQuestionName();
+    }
+
+    /** Make an identifier of the question template that is unique in system scope. Intended to be used as a solution key in reasoner's cache for this question and questions having the same solution (i.e. generated from the same template).
+     * @return name of the question template or question itself prefixed with domain short name
+     */
+    public String getQuestionUniqueTemplateName() {
+        String domainPrefix = domain.getShortName();
+
+        return domainPrefix + Optional.ofNullable(getMetadata())
+                .map(QuestionMetadataEntity::getTemplateId)
+                .filter(i -> i != 0)
+                .map(tId -> ":template-id:" + tId)
+                .orElse(":question:"+getQuestionName());
     }
 
     public AnswerObjectEntity getAnswerObject(int answerId) {

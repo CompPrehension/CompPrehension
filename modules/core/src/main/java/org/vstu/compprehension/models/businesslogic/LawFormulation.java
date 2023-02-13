@@ -11,6 +11,5 @@ public class LawFormulation {
     private String name;
     private String backend;
 
-    @JsonIgnore
     private Object parsedCache = null;
 }
