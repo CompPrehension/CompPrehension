@@ -92,19 +92,26 @@ public class QuestionService {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
 
+        // use reasoner to solve question
+        Collection<Fact> solution = backend.solve(
+                new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
+                question.getStatementFactsWithSchema(),
+                new ReasoningOptions(
+                        true,
+                        domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
+                        question.getQuestionUniqueTemplateName()
+                ));
+
         List<BackendFactEntity> storedSolution = question.getQuestionData().getSolutionFacts();
-
-        if (storedSolution == null || storedSolution.isEmpty()) {
-            // use reasoner to solve question
-            Collection<Fact> solution = backend.solve(
-                    new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
-                    question.getStatementFactsWithSchema(),
-                    new ReasoningOptions(true, domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts())));
-
-            // save facts to question
-            question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
-            saveQuestion(question.getQuestionData());
+        if (storedSolution != null && !storedSolution.isEmpty()) {
+            // add anything set as solution before
+            solution.addAll(Fact.entitiesToFacts(storedSolution));
         }
+        // save facts to question
+        question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
+
+        // don't save solution into DB
+        // // saveQuestion(question.getQuestionData());
 
         return question;
     }
