@@ -38,7 +38,19 @@ public class RateLimitBackendDecorator implements Backend {
 
     @SneakyThrows
     @Override
+    public Collection<Fact> solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions) {
+        return taskQueue.postAsync(() -> decoratee.solve(laws, statement, reasoningOptions)).get();
+    }
+
+    @SneakyThrows
+    @Override
     public Collection<Fact> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
+        return taskQueue.postAsync(() -> decoratee.judge(laws, statement, correctAnswer, response, reasoningOptions)).get();
+    }
+
+    @SneakyThrows
+    @Override
+    public Collection<Fact> judge(List<Law> laws, Collection<Fact> statement, Collection<Fact> correctAnswer, Collection<Fact> response, ReasoningOptions reasoningOptions) {
         return taskQueue.postAsync(() -> decoratee.judge(laws, statement, correctAnswer, response, reasoningOptions)).get();
     }
 }

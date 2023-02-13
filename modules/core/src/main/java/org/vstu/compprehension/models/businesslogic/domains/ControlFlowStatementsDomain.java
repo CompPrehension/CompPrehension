@@ -641,7 +641,7 @@ public class ControlFlowStatementsDomain extends Domain {
         facts = _patchStatementFacts(facts, userLanguage);
         // add fact for caching reasoner's results: [meta:question dc:identifier <uniqueKey>]
         String uniqueKey = Optional.ofNullable(q.getMetadata())
-                .map(qm -> "templateid:" + qm.getTemplateId())
+                .map(qm -> getShortName()+":template-id:" + qm.getTemplateId())
                 .orElse(q.getQuestionName());
         facts.add(new BackendFactEntity(
                 "meta:question",
