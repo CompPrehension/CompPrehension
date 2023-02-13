@@ -198,16 +198,29 @@ public class JenaBackend implements Backend {
             if (lawFormulation.getBackend().equals("OWL")) {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             } else if (lawFormulation.getBackend().equals(BACKEND_TYPE)) {
-                try {
-                    ruleSet.add(Rule.parseRule(lawFormulation.getFormulation()));
-                } catch (Rule.ParserException e) {
-                    log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
-                }
+                appendRuleSet(lawFormulation, ruleSet);
             } else if ("can_covert" == null) {
-
                 // TODO: convert rules if possible ?
             }
         }
+    }
+
+    private static void appendRuleSet(LawFormulation lawFormulation, ArrayList<Rule> ruleSet) {
+        Rule parsedRule;
+        Object cachedRule = lawFormulation.getParsedCache();
+        if (cachedRule instanceof Rule) {
+            // use rule cached in LawFormulation
+            parsedRule = (Rule) cachedRule;
+        } else {
+            // parse rule as usual
+            try {
+                parsedRule = Rule.parseRule(lawFormulation.getFormulation());
+            } catch (Rule.ParserException e) {
+                log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
+                return;
+            }
+        }
+        ruleSet.add(parsedRule);
     }
 
     void addStatementFact(BackendFactEntity fact) {
