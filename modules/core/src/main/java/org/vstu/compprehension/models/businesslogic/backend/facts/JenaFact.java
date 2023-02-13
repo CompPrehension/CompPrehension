@@ -194,7 +194,12 @@ public class JenaFact extends Fact {
                 // try find it in data model
                 Model dataModel = getModel();
                 if (dataModel != null) {
-                    Optional<Statement> st = dataModel.listStatements(statement.getSubject(), RDF.subject /* not rdf:type !*/, (String) null).toSet().stream().findAny();
+                    Resource subj = statement.getSubject();
+                    Optional<Statement> st = dataModel
+                            .listStatements(null, RDF.subject /* not rdf:type !*/, (String) null)
+                            /* I suppose that searching by predicate only should be faster than by subject & predicate */
+                            .filterKeep(t -> t.getSubject().equals(subj))
+                            .nextOptional();
                     st.ifPresent(value -> subjTypeStatement = value);
                 }
             }

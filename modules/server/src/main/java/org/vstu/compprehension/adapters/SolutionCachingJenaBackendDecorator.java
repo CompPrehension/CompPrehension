@@ -24,23 +24,13 @@ import java.util.List;
 public class SolutionCachingJenaBackendDecorator implements Backend {
 
     private final @NotNull JenaBackend decoratee;
-    private Cache<String /*solutionKey*/, JenaFactList> solutionCache = null;
+    private Cache<String /*solutionKey*/, JenaFactList> solutionCache;
 
     public SolutionCachingJenaBackendDecorator(@NotNull JenaBackend decoratee,
                                                @NotNull Cache<String, JenaFactList> jenaCache) {
         this.decoratee = decoratee;
         solutionCache = jenaCache;
     }
-
-    private void initSolutionCache() {
-        // (... In real life this would come from a command-line flag or config file)
-        String spec = "maximumSize=30,expireAfterAccess=10m";
-        initSolutionCache(spec);
-    }
-    private void initSolutionCache(@NotNull String cacheSpec) {
-        solutionCache = CacheBuilder.from(cacheSpec).build();
-    }
-
 
     @NotNull
     @Override
