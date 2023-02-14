@@ -415,8 +415,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public String getMessage(String base_question_text, Language preferred_language) {
-        var found = localizationService.getMessage(MESSAGE_PREFIX + base_question_text, Language.getLocale(preferred_language));
-        if (found.equals(MESSAGE_PREFIX + base_question_text))
+        String key = base_question_text;
+        if (!base_question_text.startsWith(MESSAGE_PREFIX)) {
+            key = MESSAGE_PREFIX + base_question_text;
+        }
+        var found = localizationService.getMessage(key, Language.getLocale(preferred_language));
+        if (found.equals(key))
             return base_question_text;
         return found;
     }
@@ -476,8 +480,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setSolutionFacts(q.getStatementFacts());
         }
         entity.setQuestionType(q.getQuestionType());
-
         String qName = q.getQuestionName();
+        if (qName == null) {
+            qName = q.getQuestionType().toString(); // set anything
+        }
+
         if (qName.length() > 254) qName = qName.substring(0, 254);
         entity.setQuestionName(qName);
 
