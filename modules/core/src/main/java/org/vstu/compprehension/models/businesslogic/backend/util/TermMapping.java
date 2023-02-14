@@ -73,6 +73,7 @@ public class TermMapping {
     private void initModel() {
         model = ModelFactory.createDefaultModel();
         model.setNsPrefix(DEFAULT_NS_PREFIX, baseNSPrefix);
+        model.setNsPrefix("", baseNSPrefix);
         model.setNsPrefix("rdf", RDF.getURI());
         model.setNsPrefix("rdfs",RDFS.getURI());
         model.setNsPrefix("owl", OWL.getURI());

@@ -84,6 +84,8 @@ public abstract class Domain {
     }
 
     public PositiveLaw getPositiveLaw(String name) {
+        if (name == null)
+            return null;
         for (PositiveLaw law : positiveLaws) {
             if (name.equals(law.getName())) {
                 return law;
@@ -93,6 +95,8 @@ public abstract class Domain {
     }
 
     public NegativeLaw getNegativeLaw(String name) {
+        if (name == null)
+            return null;
         for (NegativeLaw law : negativeLaws) {
             if (name.equals(law.getName())) {
                 return law;
@@ -118,6 +122,8 @@ public abstract class Domain {
         return res;
     }
     public List<NegativeLaw> getNegativeLawWithImplied(String name) {
+        if (name == null)
+            return List.of();
         NegativeLaw law = getNegativeLaw(name);
         if (law == null)
             return List.of();

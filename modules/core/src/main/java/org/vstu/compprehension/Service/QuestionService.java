@@ -97,7 +97,7 @@ public class QuestionService {
                 new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFactsWithSchema(),
                 new ReasoningOptions(
-                        true,
+                        false,
                         domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
                         question.getQuestionUniqueTemplateName()
                 ));

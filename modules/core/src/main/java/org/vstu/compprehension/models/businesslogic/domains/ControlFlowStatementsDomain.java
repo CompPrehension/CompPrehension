@@ -639,15 +639,6 @@ public class ControlFlowStatementsDomain extends Domain {
         // statement facts are already prepared in the Question's JSON
         facts.addAll(factsListDeepCopy(q.getStatementFacts()));
         facts = _patchStatementFacts(facts, userLanguage);
-//        // add fact for caching reasoner's results: [meta:question dc:identifier <uniqueKey>]
-//        String uniqueKey = Optional.ofNullable(q.getMetadata())
-//                .map(qm -> getShortName()+":template-id:" + qm.getTemplateId())
-//                .orElse(q.getQuestionName());
-//        facts.add(new BackendFactEntity(
-//                "meta:question",
-//                "dc:identifier",
-//                uniqueKey
-//        ));
         entity.setStatementFacts(facts);
         entity.setQuestionType(q.getQuestionType());
 
@@ -1761,7 +1752,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         String qaInfoPrefix;
         // check if actionFrom is an expr; if so, find its current value and update `consequentPropName` accordingly
-        if (actionFrom.hasOntClass(model.getOntClass(model.expandPrefix(":expr")))) {
+        if (actionFrom.hasOntClass(model.createOntResource(model.expandPrefix(":expr")))) {
             qaInfoPrefix = phase + ":" + exId + ":";  // 3rd partition (hypertext) should always present.
             int count = 0;
 
