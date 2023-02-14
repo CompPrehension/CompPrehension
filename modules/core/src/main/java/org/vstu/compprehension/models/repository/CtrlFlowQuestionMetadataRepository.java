@@ -86,7 +86,8 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
             "AND IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) AND q.concept_bits & :conceptD = 0 " +
             "AND IF(:lawA =0,1,q.violation_bits & :lawA <> 0) AND q.violation_bits & :lawD = 0 " +
             "AND q.template_id NOT IN :ids " +
-            "order by bit_count(q.trace_concept_bits & :conceptA) DESC, abs(q.integral_complexity - :complexity) limit :randomPoolLim" +
+            "order by bit_count(q.trace_concept_bits & :conceptA) + bit_count(q.violation_bits & :lawA) DESC, abs(q.integral_complexity - :complexity)" +
+            "limit :randomPoolLim" +
             ") T1 ORDER BY RAND() limit :lim",
             nativeQuery = true)
     List<QuestionMetadataEntity> findSampleAroundComplexityWithoutTemplates(

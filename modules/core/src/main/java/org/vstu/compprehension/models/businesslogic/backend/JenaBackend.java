@@ -7,8 +7,11 @@ import org.apache.jena.vocabulary.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -21,6 +24,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.PrintUtil;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -50,18 +54,24 @@ public class JenaBackend implements Backend {
     OntModel model;
     HashMap<Integer, ArrayList<Rule>> domainRuleSets = new HashMap<>();
 
+    public JenaFact convertFactEntity(BackendFactEntity factEntity) {
+        return new JenaFact(factEntity);
+    }
+    public JenaFact convertFact(Fact fact) {
+        return JenaFact.fromFact(fact);
+    }
+    public JenaFactList convertFactEntities(Collection<BackendFactEntity> factEntities) {
+        return JenaFactList.fromBackendFacts(factEntities);
+    }
+    public JenaFactList convertFacts(Collection<Fact> facts) {
+        return JenaFactList.fromFacts(facts);
+    }
+
+
     public static List<BackendFactEntity> modelToFacts(Model factsModel, String baseUri) {
-        JenaBackend jback = new JenaBackend();
-        jback.createOntology(baseUri);
-
-        // fill model
-        OntModel model = jback.getModel();
-        model.add(factsModel);
-
-        List<String> verbs = factsModel.listStatements().toList().stream()
-                .map(Statement::getPredicate)
-                .map(Property::getLocalName).distinct().collect(Collectors.toList());
-        return jback.getFacts(verbs);
+        JenaFactList fl = new JenaFactList(baseUri);
+        fl.addFromModel(factsModel);
+        return fl.asBackendFactList();
     }
 
 /*
@@ -188,16 +198,29 @@ public class JenaBackend implements Backend {
             if (lawFormulation.getBackend().equals("OWL")) {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             } else if (lawFormulation.getBackend().equals(BACKEND_TYPE)) {
-                try {
-                    ruleSet.add(Rule.parseRule(lawFormulation.getFormulation()));
-                } catch (Rule.ParserException e) {
-                    log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
-                }
+                appendRuleSet(lawFormulation, ruleSet);
             } else if ("can_covert" == null) {
-
                 // TODO: convert rules if possible ?
             }
         }
+    }
+
+    private static void appendRuleSet(LawFormulation lawFormulation, ArrayList<Rule> ruleSet) {
+        Rule parsedRule;
+        Object cachedRule = lawFormulation.getParsedCache();
+        if (cachedRule instanceof Rule) {
+            // use rule cached in LawFormulation
+            parsedRule = (Rule) cachedRule;
+        } else {
+            // parse rule as usual
+            try {
+                parsedRule = Rule.parseRule(lawFormulation.getFormulation());
+            } catch (Rule.ParserException e) {
+                log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
+                return;
+            }
+        }
+        ruleSet.add(parsedRule);
     }
 
     void addStatementFact(BackendFactEntity fact) {
@@ -287,21 +310,26 @@ public class JenaBackend implements Backend {
     }
 
 
-    private void callReasoner() {
+    private void callReasoner(boolean retainNewFactsOnly) {
 
         long startTime = System.nanoTime();
+        Model srcModel = null;
+        if (retainNewFactsOnly) {
+            // make a true copy
+            srcModel = ModelFactory.createDefaultModel().add(model);
+        }
         for (int salience : domainRuleSets.keySet().stream().sorted((a, b) -> -(a-b)).collect(Collectors.toList())) {
             // log.info("Running rules with salience: " + salience);
 
             ArrayList<Rule> ruleSet = domainRuleSets.get(salience);
             GenericRuleReasoner reasoner = new GenericRuleReasoner(ruleSet);
 
-            long startStepTime = System.nanoTime();
+//            long startStepTime = System.nanoTime();
 
             InfModel inf = ModelFactory.createInfModel(reasoner, model);
             inf.prepare();
 
-            long estimatedTime = System.nanoTime() - startStepTime;
+            // long estimatedTime = System.nanoTime() - startStepTime;
             // print time report. TODO: remove the print
             // log.info("Time Jena spent on reasoning step: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
 
@@ -309,12 +337,17 @@ public class JenaBackend implements Backend {
             model = ModelFactory.createOntologyModel(OWL_MEM);  // use empty to add to
             model.add( inf );
         }
+        if (retainNewFactsOnly) {
+            // cleanup the inferred results
+            model.remove(srcModel);
+        }
         long estimatedTime = System.nanoTime() - startTime;
         // print time report. TODO: remove the print
         log.info("Time Jena spent on reasoning total: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
     }
 
     private String convertDatatype(String jenaType) {
+        // get localname prefixed with "xsd:"
         String[] typeParts = jenaType.split("[.\\]]");
         return "xsd:" + typeParts[typeParts.length-1].toLowerCase();
     }
@@ -344,7 +377,7 @@ public class JenaBackend implements Backend {
     /** Returns local name or prefixed special name */
     private String uriToTerm(String uri) {
         if (uri == null) {
-            log.debug("uriToTerm(): Encountered NULL uri! Defaulting to '[]'");
+            log.info("uriToTerm(): Encountered NULL uri! Defaulting to '[]'");
             return "[]";
         }
 
@@ -435,34 +468,19 @@ public class JenaBackend implements Backend {
         return facts;
     }
 
-    public List<BackendFactEntity> getFacts(List<String> verbs) {
+    public List<BackendFactEntity> getFacts(Set<String> verbs) {
+        // todo: move functionality of this method to JenaFactList ?? (getBackendFactsFilteredByVerb(Set))
+
+        JenaFactList fl = new JenaFactList(model);
+        if (verbs == null || verbs.isEmpty())
+            return fl.asBackendFactList();
 
         List<BackendFactEntity> result = new ArrayList<>();
 
-        for (String verb : verbs) {
-
-            // find property by verb name
-            Property p;
-
-            String uri = termToUri(verb);
-            Resource resource = model.getResource(uri);
-            if (resource == null) {
-                log.warn("JenaBack.getFacts() WARNING: Cannot find resource for verb: " + verb);
-                // (?) resource = model.createProperty(uri);
-                continue;
+        for (Fact t : fl) {
+            if (verbs.contains(t.getVerb())) {
+                result.add(t.asBackendFact());
             }
-            try {
-                p = resource.as(Property.class);
-            } catch (ConversionException exception) {
-                log.warn("JenaBack.getFacts() WARNING: Cannot find property for verb: " + verb);
-                continue;
-            }
-
-            ///
-//            System.out.println("get relations of prop: " + p.getURI());
-            ///
-            List<BackendFactEntity> verbFacts = getPropertyRelations(p);
-            result.addAll(verbFacts);
         }
         return result;
     }
@@ -490,48 +508,102 @@ public class JenaBackend implements Backend {
     }
 
     @Override
-    public List<BackendFactEntity> solve(List<Law> laws, List<BackendFactEntity> statement, List<String> solutionVerbs) {
+    public JenaFactList solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
         createOntology();
         for (Law law : laws) {
             addLaw(law);
         }
 
-        addFacts(statement);
+        addBackendFacts(statement);
 
         debug_dump_model("solve");
-
-        callReasoner();
-
+        callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         debug_dump_model("solved");
 
-        return new FactsGraph(getFacts(solutionVerbs)).removeDuplicates().getFacts();
-    }
-
-    public void addFacts(List<BackendFactEntity> facts) {
-        for (BackendFactEntity fact : facts) {
-            addStatementFact(fact);
-        }
+        return new JenaFactList(model);
     }
 
     @Override
-    public List<BackendFactEntity> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, List<String> violationVerbs) {
+    public JenaFactList solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions) {
         createOntology();
+        for (Law law : laws) {
+            addLaw(law);
+        }
+        addFacts(statement);
+
+        debug_dump_model("solve-f");
+        callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
+        debug_dump_model("solved-f");
+
+        return new JenaFactList(model);
+    }
+
+    public void addBackendFacts(List<BackendFactEntity> facts) {
+        JenaFactList fl = new JenaFactList();
+        fl.setModel(this.model); // update model via updating fl
+        fl.addBackendFacts(facts);
+        // (see `addFacts` for alternative solution)
+    }
+    public void addFacts(Collection<Fact> facts) {
+        model.add(JenaFactList.fromFacts(facts).getModel());
+        // (see `addBackendFacts` for alternative solution)
+    }
+
+    @Override
+    public JenaFactList judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
+        Checkpointer ch = new Checkpointer(log);
+
+        createOntology();
+        ch.hit("judge: createOntology");
 
         for (Law law : laws) {
             addLaw(law);
         }
+        ch.hit("judge: add laws");
+
+        addBackendFacts(statement);
+        addBackendFacts(response);
+        addBackendFacts(correctAnswer);
+        ch.hit("judge: add facts");
+
+        debug_dump_model("judge");
+
+        callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
+        ch.hit("judge: callReasoner");
+
+        debug_dump_model("judged");
+
+        JenaFactList facts = new JenaFactList(model);
+        ch.hit("judge: get facts");
+        ch.since_start("judge: completed");
+        return facts;
+    }
+
+    public JenaFactList judge(List<Law> laws, Collection<Fact> statement, Collection<Fact> correctAnswer, Collection<Fact> response, ReasoningOptions reasoningOptions) {
+        Checkpointer ch = new Checkpointer(log);
+
+        createOntology();
+        ch.hit("judge-f: createOntology");
+
+        for (Law law : laws) {
+            addLaw(law);
+        }
+        ch.hit("judge-f: add laws");
 
         addFacts(statement);
         addFacts(response);
         addFacts(correctAnswer);
+        ch.hit("judge-f: add facts");
 
-        debug_dump_model("judge");
+        debug_dump_model("judge-f");
+        callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
+        ch.hit("judge-f: callReasoner");
+        debug_dump_model("judged-f");
 
-        callReasoner();
-
-        debug_dump_model("judged");
-
-        return new FactsGraph(getFacts(violationVerbs)).removeDuplicates().getFacts();
+        JenaFactList facts = new JenaFactList(model);
+        ch.hit("judge-f: get facts");
+        ch.since_start("judge-f: completed");
+        return facts;
     }
 
 
@@ -554,7 +626,7 @@ public class JenaBackend implements Backend {
         // Make sure that environment setup is OK
         JenaBackend b = new JenaBackend();
         b.createOntology();
-        b.getFacts(new ArrayList<>());
+        // b.getFacts(new HashSet<>());
         String uri = b.model.expandPrefix("type");
     }
 

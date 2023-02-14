@@ -19,7 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -46,6 +47,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
@@ -66,8 +68,11 @@ public class ControlFlowStatementsDomain extends Domain {
     // dictionary
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.rdf";
     private static DomainVocabulary VOCAB = null;
+    public static DomainVocabulary getVocabulary() {
+        return VOCAB;
+    }
 
-    static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
+    public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
@@ -98,7 +103,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return "ctrl_flow";
     }
 
-    private static void initVocab() {
+    public static void initVocab() {
         if (VOCAB == null) {
             VOCAB = new DomainVocabulary(VOCAB_SCHEMA_PATH);
         }
@@ -196,7 +201,7 @@ public class ControlFlowStatementsDomain extends Domain {
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             // gather correct steps
             List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
-            OntModel model = getSolutionModelOfQuestion(question);
+            OntModel model = modelToOntModel(getSolutionModelOfQuestion(question));
 
             while (true) {
                 System.out.println("Getting getNextCorrectAnswer having " + correctTraceAnswersObjects.size());
@@ -231,11 +236,11 @@ public class ControlFlowStatementsDomain extends Domain {
 
             // gather correct steps
             List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
-            OntModel model = getSolutionModelOfQuestion(question);
+            Model model = getSolutionModelOfQuestion(question);
 
             while (true) {
                 System.out.println("Getting getNextCorrectAnswer № " + correctTraceAnswersObjects.size());
-                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
+                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, modelToOntModel(model));
                 if (ca == null)
                     break;
 
@@ -563,7 +568,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return questionCopy;
     }
 
-    static List<BackendFactEntity> schemaFactsCache = null;
+    /*static List<BackendFactEntity> schemaFactsCache = null;
 
     static List<BackendFactEntity> getSchemaFacts() {
         if (schemaFactsCache == null) {
@@ -579,7 +584,7 @@ public class ControlFlowStatementsDomain extends Domain {
         }
 
         return schemaFacts;
-    }
+    }*/
 
     protected Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLanguage) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
@@ -629,16 +634,23 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
 
-        // add schema facts!
-        List<BackendFactEntity> facts = new ArrayList<>(getSchemaFacts(true));
+        // DON'T: add schema facts
+        List<BackendFactEntity> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
         // statement facts are already prepared in the Question's JSON
         facts.addAll(factsListDeepCopy(q.getStatementFacts()));
-        entity.setStatementFacts(_patchStatementFacts(facts, userLanguage));
+        facts = _patchStatementFacts(facts, userLanguage);
+        entity.setStatementFacts(facts);
         entity.setQuestionType(q.getQuestionType());
 
         switch (q.getQuestionType()) {
             case ORDER:
-                val baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
+                var baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
+                if (true) {
+                    // add question name as html comment
+                    var name = q.getQuestionName();
+                    name = "<!-- question name: " + name + " -->";
+                    baseQuestionText = name + baseQuestionText;
+                }
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);
@@ -928,12 +940,12 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public List<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         // proxy to static method
-        return getSolutionVerbsStatic(questionDomainType, statementFacts);
+        return null /*getSolutionVerbsStatic(questionDomainType, statementFacts)*/;
     }
 
-    public static List<String> getSolutionVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public static Set<String> getSolutionVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             Set<String> verbs = new HashSet<>(Arrays.asList(
 //            return new ArrayList<>(Arrays.asList(
@@ -974,9 +986,9 @@ public class ControlFlowStatementsDomain extends Domain {
                 reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
             verbs.addAll(reasonPropertiesCache);
             verbs.addAll(getFieldProperties());
-            return new ArrayList<>(verbs);
+            return verbs;
         }
-        return new ArrayList<>();
+        return new HashSet<>();
     }
 
     private static List<String> getFieldProperties() {
@@ -986,11 +998,11 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public List<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        return getViolationVerbsStatic(questionDomainType, statementFacts);
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+        return null /*getViolationVerbsStatic(questionDomainType, statementFacts)*/;
     }
 
-    public static List<String> getViolationVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public static Set<String> getViolationVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             Set<String> verbs = new HashSet<>(Arrays.asList(
                     // - "*whole_model*" //,
@@ -1021,13 +1033,13 @@ public class ControlFlowStatementsDomain extends Domain {
             ));
             // add solution verbs too!
             verbs.addAll(getSolutionVerbsStatic(questionDomainType, statementFacts));
-            return new ArrayList<>(verbs);
+            return verbs;
         }
-        return new ArrayList<>();
+        return new HashSet<>();
     }
 
     @Override
-    public List<BackendFactEntity> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
         // proxy to static method
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
 
@@ -1047,7 +1059,7 @@ public class ControlFlowStatementsDomain extends Domain {
             responses = responsesByQ;
 
             // init result facts with solution facts
-            List<BackendFactEntity> result = new ArrayList<>();
+            Collection<Fact> result = new ArrayList<>();
 
             //// result.addAll(getSchemaFacts());
             //// result.addAll(q.getStatementFacts());
@@ -1076,18 +1088,18 @@ public class ControlFlowStatementsDomain extends Domain {
                     //// null,
                     entryPointIri.split("_", 2)[0],
                     0, null, trace, null, false);
-            result.add(new BackendFactEntity(
+            result.add(new Fact(
                     "owl:NamedIndividual", trace,
                     "index",
                     "xsd:int", "0"
             ));
-            result.add(new BackendFactEntity(
+            result.add(new Fact(
                     "owl:NamedIndividual", trace,
                     "rdf:type",
                     "owl:Class", "act_begin" // RDFS rules are not included with rules having salience of 10, so cast "trace" to "act_begin" now
             ));
 //            make_triple(trace_obj, onto.exec_time, 0)  # set to 0 so next is 1
-            result.add(new BackendFactEntity(
+            result.add(new Fact(
                     "owl:NamedIndividual", trace,
                     "depth",
                     "xsd:int", "0"
@@ -1170,52 +1182,52 @@ public class ControlFlowStatementsDomain extends Domain {
 
 
     /** Append specific facts to `factsList` */
-    private void appendActFacts(List<BackendFactEntity> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace, Boolean exprValue, boolean isLatest) {
-        factsList.add(new BackendFactEntity(
+    private void appendActFacts(Collection<Fact> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace, Boolean exprValue, boolean isLatest) {
+        factsList.add(new Fact(
                 "owl:NamedIndividual", actIRI,
                 "rdf:type",
                 "owl:Class", ontoClass
         ));
-        factsList.add(new BackendFactEntity(
+        factsList.add(new Fact(
                 "owl:NamedIndividual", actIRI,
                 "id",
                 "xsd:int", String.valueOf(id)
         ));
         if (executesId != null) {
-            factsList.add(new BackendFactEntity(
+            factsList.add(new Fact(
                     "owl:NamedIndividual", actIRI,
                     "executes_id",
                     "xsd:int", String.valueOf(executesId)
             ));
         }
         if (studentIndex != null) {
-            factsList.add(new BackendFactEntity(
+            factsList.add(new Fact(
                     "owl:NamedIndividual", actIRI,
                     "student_index",
                     "xsd:int", String.valueOf(studentIndex)
             ));
         }
         if (prevActIRI != null) {
-            factsList.add(new BackendFactEntity(
+            factsList.add(new Fact(
                     "owl:NamedIndividual",
                     prevActIRI,                     "student_next",
                     "owl:NamedIndividual", actIRI
             ));
             if (isLatest) {
-                factsList.add(new BackendFactEntity(
+                factsList.add(new Fact(
                         "owl:NamedIndividual",
                         prevActIRI, "student_next_latest",
                         "owl:NamedIndividual", actIRI
                 ));
             }
         }
-        factsList.add(new BackendFactEntity(
+        factsList.add(new Fact(
                 "owl:NamedIndividual", actIRI,
                 "in_trace",
                 "owl:NamedIndividual", inTrace
         ));
         if (exprValue != null) {
-            factsList.add(new BackendFactEntity(
+            factsList.add(new Fact(
                     "owl:NamedIndividual", actIRI,
                     "expr_value",
                     "xsd:boolean", exprValue.toString()
@@ -1224,12 +1236,12 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public InterpretSentenceResult interpretSentence(List<BackendFactEntity> violations) {
+    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
         InterpretSentenceResult result = new InterpretSentenceResult();
         List<ViolationEntity> mistakes = new ArrayList<>();
         HashSet<String> mistakeTypes = new HashSet<>();
 
-        OntModel model = factsToOntModel(violations);
+        OntModel model = factsAndSchemaToOntModel(violations);
 
 //        ///
 //        try {
@@ -1424,13 +1436,13 @@ public class ControlFlowStatementsDomain extends Domain {
         return notHappenedMistakes(correctLaws, null);
     }
 
-    Set<String> notHappenedMistakes(List<String> correctLaws, List<BackendFactEntity> questionFacts) {
+    Set<String> notHappenedMistakes(List<String> correctLaws, Collection<Fact> questionFacts) {
         HashSet<String> mistakeNames = new HashSet<>();
 
         // may omit context mistakes in the mode when no question info provided
         if (questionFacts != null) {
             // find out if context mistakes are applicable here
-            for (BackendFactEntity f : questionFacts) {
+            for (Fact f : questionFacts) {
                 if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
                     mistakeNames.add("CorrespondingEndMismatched");
                     mistakeNames.add("EndedDeeper");
@@ -1543,44 +1555,24 @@ public class ControlFlowStatementsDomain extends Domain {
         throw new NotImplementedException();
     }
 
-    public static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
-        JenaBackend jback = new JenaBackend();
-
-        Model schema = VOCAB.getModel();
-        String base = schema.getNsPrefixURI("");
-        // strip # at right
-        base = base.replaceAll("#+$", "");
-        jback.createOntology(base);
-
-        OntModel model = jback.getModel();
-
-        // fill with schema
-        model.add(schema);
-
-        jback.addFacts(backendFacts);
-
-        return model;
+    private static OntModel modelToOntModel(Model model) {
+        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);        ontModel.add(model);
+        return ontModel;
     }
 
-    private static List<BackendFactEntity> modelToFacts(Model factsModel) {
-        JenaBackend jback = new JenaBackend();
-
+    private static OntModel factsAndSchemaToOntModel(Collection<Fact> facts) {
         Model schema = VOCAB.getModel();
-        String base = schema.getNsPrefixURI("");
-        // strip # at right
-        base = base.replaceAll("#+$", "");
-        jback.createOntology(base);
+        JenaFactList fl = JenaFactList.fromFacts(facts);
+        return modelToOntModel(schema.union(fl.getModel()));
+    }
 
-        // fill with schema
-        OntModel model = jback.getModel();
-        model.add(factsModel);
-
-        return jback.getFacts(getViolationVerbsStatic(EXECUTION_ORDER_QUESTION_TYPE, null));
+    private static Collection<Fact> modelToFacts(Model factsModel) {
+        return new JenaFactList(factsModel);
     }
 
     @Override
-    public ProcessSolutionResult processSolution(List<BackendFactEntity> solution) {
-        OntModel model = factsToOntModel(solution);
+    public ProcessSolutionResult processSolution(Collection<Fact> solution) {
+        OntModel model = factsAndSchemaToOntModel(solution);
 
         return processSolution(model);
     }
@@ -1701,21 +1693,20 @@ public class ControlFlowStatementsDomain extends Domain {
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
     }
 
-    private OntModel getSolutionModelOfQuestion(Question q) {
+    /**
+     * @param q question
+     * @return solution & statement facts as single model
+     */
+    private Model getSolutionModelOfQuestion(Question q) {
         // find next consequent (using solved facts)
-        List<BackendFactEntity> solutionFacts = q.getSolutionFacts();
-
-        List<BackendFactEntity> solution = new ArrayList<>();
-        if (solutionFacts != null)
-            solution.addAll(solutionFacts);
-        solution.addAll(q.getStatementFacts());
-
-        return factsToOntModel(solution);
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getSolutionFacts());
+        fl.addBackendFacts(q.getStatementFacts());
+        return fl.getModel();
     }
 
     @Nullable
     private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
-        return getNextCorrectAnswer(q, correctTraceAnswersObjects, getSolutionModelOfQuestion(q));
+        return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
     }
 
     @Nullable
@@ -1723,11 +1714,11 @@ public class ControlFlowStatementsDomain extends Domain {
 
 
         // get shortcuts to properties
-        OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
-        OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
-        OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
-        OntProperty id = model.getOntProperty(model.expandPrefix(":id"));
-        OntProperty entry_point = model.getOntProperty(model.expandPrefix(":entry_point"));
+        Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
+        Property begin_of = model.getProperty(model.expandPrefix(":begin_of"));
+        Property end_of = model.getProperty(model.expandPrefix(":end_of"));
+        Property id = model.getProperty(model.expandPrefix(":id"));
+        Property entry_point = model.getProperty(model.expandPrefix(":entry_point"));
 
         String phase;
         String exId;
@@ -1761,7 +1752,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
         String qaInfoPrefix;
         // check if actionFrom is an expr; if so, find its current value and update `consequentPropName` accordingly
-        if (actionFrom.hasOntClass(model.getOntClass(model.expandPrefix(":expr")))) {
+        if (actionFrom.hasOntClass(model.createOntResource(model.expandPrefix(":expr")))) {
             qaInfoPrefix = phase + ":" + exId + ":";  // 3rd partition (hypertext) should always present.
             int count = 0;
 
@@ -1808,7 +1799,7 @@ public class ControlFlowStatementsDomain extends Domain {
         Individual boundTo = bndTO.as(Individual.class);
 
         // check if we encountered the end of the program
-        OntProperty any_consequent = model.getOntProperty(model.expandPrefix(":consequent"));
+        Property any_consequent = model.getProperty(model.expandPrefix(":consequent"));
         if (null == boundTo.getPropertyResourceValue(any_consequent)) {
             // the last act of global_code has no outgoing properties, so hide it from outer code by reporting the end now
             return null;
@@ -1962,7 +1953,7 @@ public class ControlFlowStatementsDomain extends Domain {
 //        return null;
 //    }
 
-    private static List<Question> readQuestions(InputStream inputStream) {
+    public static List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
 
         RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
@@ -2009,7 +2000,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    protected List<Question> getQuestionTemplates() {
+    public List<Question> getQuestionTemplates() {
         if (QUESTIONS == null) {
             QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
         }
@@ -2025,18 +2016,18 @@ public class ControlFlowStatementsDomain extends Domain {
             }
         }
         String stmt_name = null;
-        boolean isEXpr = false;
+        boolean isExpr = false;
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getSubject().equals(instance)) {
                 if (fact.getVerb().equals("rdf:type") && fact.getObject().equals(actionRdfType)) {
-                    isEXpr = true;
+                    isExpr = true;
                 }
                 if (fact.getVerb().equals("stmt_name")) {
                     stmt_name = fact.getObject();
                 }
             }
         }
-        if (isEXpr)
+        if (isExpr)
             return stmt_name;
         return null;
     }
@@ -2106,7 +2097,7 @@ public class ControlFlowStatementsDomain extends Domain {
             return stringSubstitutor.replace(s);
         }
         catch (IllegalArgumentException exception) {
-            return exception.getMessage() + " -- " + s + " -- " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
+            return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
 
     }
@@ -2157,11 +2148,8 @@ public class ControlFlowStatementsDomain extends Domain {
             d.getQuestionTemplates();
             VOCAB.classDescendants("Erroneous");
 
-            JenaBackend jBack = new JenaBackend();
-            jBack.createOntology();
-            // jBack.getModel().add(VOCAB.getModel());
-            jBack.addFacts(modelToFacts(VOCAB.getModel()));
-            jBack.addFacts(QUESTIONS.get(0).getStatementFacts());
+            JenaFactList fl = new JenaFactList(VOCAB.getModel());
+            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
 //        jBack.debug_dump_model("question");
         }
     }

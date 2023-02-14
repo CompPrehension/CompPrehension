@@ -231,6 +231,13 @@ public abstract class AbstractRdfStorage {
         if (allConcepts.isEmpty())
             return currentTargetConceptBits;
 
+        // allConcepts -> bits
+        long allConceptsBits = 0;
+        for (int i: allConcepts) {
+            allConceptsBits |= (1L << i);
+        }
+        long unseenConcepts = currentTargetConceptBits & ~allConceptsBits;
+
         HashMap<Integer, Double> ratios = new HashMap<>();  // a concept bit position (2's power) -> relative frequency
         for (int i : allConcepts) {
             int sat = satisfied.getOrDefault(i, 0);
@@ -242,7 +249,7 @@ public abstract class AbstractRdfStorage {
         val minVal = ratios.values().stream().min(Double::compareTo).orElse(1d);
 //        val maxVal = ratios.values().stream().max(Double::compareTo).orElse(1d);
         val threshold = Math.nextUp(minVal /*+ leastUsedRatio * (maxVal - minVal)*/);
-        long resultBits = 0;
+        long resultBits = 0 | unseenConcepts;  // !
         for (int i: ratios.keySet()) {
             if (ratios.get(i) <= threshold) {
                 resultBits |= (1L << i);  // may debug print here
@@ -376,6 +383,7 @@ public abstract class AbstractRdfStorage {
 
         // set concepts from request (for future reference via questions' saved metadata)
         foundQuestionMetas.forEach(m -> m.setConceptBitsInRequest(targetConceptsBitmaskInRequest));
+        // ??? Save actual requested bits as well?
 
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
 

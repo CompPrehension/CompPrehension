@@ -773,7 +773,7 @@ RdfStorage.StopBackgroundDBFillUp()
                     Model solvedQuestionModel = rs.solveTemplate(questionInitModel.add(questionModel), GraphRole.QUESTION_SOLVED, true);
 
                     // Generate only questions with different error sets
-                    List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.base());
+                    List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.get());
                     Set<String> violations = domain.possibleViolations(facts, null);
                     if (possibleViolations.contains(violations)) {
                         System.out.println("Skip question with same violations: " + question.getKey());

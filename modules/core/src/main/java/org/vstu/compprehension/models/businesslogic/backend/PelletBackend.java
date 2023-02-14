@@ -1,7 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.context.annotation.RequestScope;
+import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.Node;
@@ -133,5 +137,15 @@ public class PelletBackend extends SWRLBackend {
     @Override
     public String getBackendId() {
         return BackendId;
+    }
+
+    @Override
+    public Collection<Fact> solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions) {
+        throw new NotImplementedException("PelletBackend implements solve() version that uses List<BackendFactEntity>");
+    }
+
+    @Override
+    public Collection<Fact> judge(List<Law> laws, Collection<Fact> statement, Collection<Fact> correctAnswer, Collection<Fact> response, ReasoningOptions reasoningOptions) {
+        throw new NotImplementedException("PelletBackend implements judge() version that uses List<BackendFactEntity>");
     }
 }

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
@@ -7,6 +8,7 @@ import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Choice extends Question {
@@ -16,11 +18,11 @@ public class Choice extends Question {
     }
 
     @Override
-    public List<BackendFactEntity> responseToFacts(List<ResponseEntity> responses) {
+    public Collection<Fact> responseToFacts(List<ResponseEntity> responses) {
 
         List<AnswerObjectEntity> answers = new ArrayList<>(super.
                 getAnswerObjects());
-        List<BackendFactEntity> facts = new ArrayList<>();
+        List<Fact> facts = new ArrayList<>();
 //        QuestionConceptChoice questionConcept = questionData.
 //                getQuestionConceptChoices().get(0);
 //        //Формируем факты из ответов студент
@@ -47,37 +49,6 @@ public class Choice extends Question {
 //        }
 
         return facts;
-    }
-
-    @Override
-    public List<BackendFactEntity> responseToFacts(long backendId) {
-        /*
-        List<AnswerObject> answers = super.getAnswerObjects();
-        List<Response> responses = super.studentResponses;
-        List<BackendFact> facts = new ArrayList<>();
-        List<QuestionConceptChoice> questionConcepts = questionData.getQuestionConceptChoices();
-        QuestionConceptChoice questionConcept = null;
-        for (QuestionConceptChoice qcc : questionConcepts) {
-            
-            if (qcc.getBackend().getId() == backendId) { 
-                
-                questionConcept = qcc;
-            }
-        }
-        
-        for (Response r : responses) {
-            
-            String object;
-            String subject;
-            String verb = ;
-
-            if
-
-            BackendFact fact = new BackendFact()
-            facts.add()
-        }
-        */
-        return null;
     }
 
     public Long getExerciseAttemptId() {

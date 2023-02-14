@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.PositiveLaw;
+import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import com.google.common.reflect.TypeToken;
@@ -155,7 +156,7 @@ class PelletBackendTest {
             facts.add(new BackendFactEntity(null, null, token));
         }
         List<BackendFactEntity> statement = domain.getBackendFacts(facts);
-        List<BackendFactEntity> solution = backend.solve(laws, statement, List.of(objectProperty));
+        List<BackendFactEntity> solution = backend.solve(laws, statement, new ReasoningOptions()).asBackendFactList();
 
         checkObjectProperty(solution, jsonRelations, expression.size());
     }
