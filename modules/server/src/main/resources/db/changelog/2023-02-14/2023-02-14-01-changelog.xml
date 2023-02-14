@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="1676396915000-1" author="Artem Prokudin">
+        <update tableName="survey_questions">
+            <column name="options_json" value='[{"id": "1", "text": "слишком сложно"}, {"id": "2", "text": "сложно"}, {"id": "3", "text": "средне"}, {"id": "4", "text": "легко"}, {"id": "5", "text": "слишком легко"}, {"id": "contains_errors", "text": "этот вопрос содержит ошибки"}, {"id": "unknown_tokens", "text": "я не понял(-а) этот вопрос из-за странных конструкций"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Как вы оцениваете сложность этого вопроса?%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="text" value='Как вы оцениваете время, необходимое для решения этого вопроса?' />
+            <column name="options_json" value='[{"id":"1","text":"слишком долго"},{"id":"2","text":"долго"},{"id":"3","text":"средне"},{"id":"4","text":"быстро"},{"id":"5","text":"очень быстро"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Как вы оцениваете скорость решения вами этого вопроса%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="text" value='Соответствует ли изменение сложности вашим предшествующим действиям (упрощает вопросы когда вам трудно и вы делаете ошибки, усложняет когда легко)?' />
+            <column name="options_json" value='[{"id":"1","text":"сложность как правило меняется соответственно"},{"id":"2","text":"сложность чаще меняется соответственно, чем нет"},{"id":"3","text":"нет, связь не заметна"},{"id":"4","text":"сложность чаще меняется наоборот"},{"id":"5","text":"сложность как правило меняется наоборот"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Соответствует ли возрастание / убывание сложности вашим предшествующим действиям%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="options_json" value='[{"id":"1","text":"слишком много"},{"id":"2","text":"больше, чем было необходимо для проверки и усвоения темы"},{"id":"3","text":"достаточно"},{"id":"4","text":"меньше, чем было необходимо для проверки и усвоения темы"},{"id":"5","text":"слишком мало"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Сколько вопросов было задано%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="text" value='Были ли повторяющиеся вопросы?' />
+            <column name="options_json" value='[{"id": "not", "text": "нет, не было"}, {"id": "slightly", "text": "да, изредка"}, {"id": "many", "text": "да, много"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Были ли повторяющиеся или сильно похожие вопросы?%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="options_json" value='[{"id": "1", "text": "удобной мне сложности вопросов для обучения не было"}, {"id": "2", "text": "под конец упражнения"}, {"id": "3", "text": "в середине упражнения"}, {"id": "4", "text": "в начале упражнения"}, {"id": "5", "text": "сразу, с первого вопроса"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Насколько быстро система нашла удобную вам сложность вопросов?%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="text" value='Считаете ли вы достаточной полноту покрытия изучаемой темы вопросами?' />
+            <column name="options_json" value='[{"id": "1", "text": "нет, вопросов слишком мало"}, {"id": "2", "text": "да, вопросов разных видов хватает"}, {"id": "3", "text": "да, но вопросов было слишком много"}, {"id": "5", "text": "не хватает вопросов на какую-то тему (укажите в текстовом поле, какую)"}]' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Считаете ли вы достаточной полноту покрытия изучаемой темы вопросами?%'</where>
+        </update>
+        <update tableName="survey_questions">
+            <column name="text" value='Хотите сообщить что-то ещё?' />
+            <where>`survey_id` = 'StrategyFeedbackSurvey' AND `text` LIKE N'%Хотите добавить что-то ещё?%'</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>
