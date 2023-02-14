@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.NegativeLaw;
@@ -19,6 +20,8 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import javax.inject.Singleton;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component @Singleton @Primary
 @Log4j2
@@ -27,9 +30,10 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     private final DomainFactory domainFactory;
     protected StrategyOptions options;
 
-    protected int WINDOW_TO_GRADE = 7;
-    protected float TARGET_GRADE = (float)0.8;
-    protected int DEFAULT_LAW_COUNT = 5;
+    protected static int WINDOW_TO_GRADE = 3 /*7*/;
+    protected static float TARGET_GRADE = 0.6f /*(float)0.8*/;
+    protected static float CONFIDENCE_MULTIPLIER = 1.0f /*(float)1.2*/;
+    protected static int DEFAULT_LAW_COUNT = 2 /*5*/;
 
     @Autowired
     public GradeConfidenceBaseStrategy(DomainFactory domainFactory) {
@@ -59,11 +63,25 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
         QuestionRequest result = new QuestionRequest();
-        result.setTargetConcepts(new ArrayList<>());
+
+        ExerciseStageEntity exerciseStage = exercise.getStages().get(0);
+        List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
+
+        result.setTargetConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).map(ec -> domain.getConcept(ec.getName())).filter(Objects::nonNull).collect(Collectors.toList()));
         result.setAllowedConcepts(new ArrayList<>());
         result.setAllowedLaws(new ArrayList<>());
-        result.setDeniedConcepts(new ArrayList<>());
-        result.setDeniedLaws(new ArrayList<>());
+        result.setDeniedConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+
+        List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
+
+        result.setDeniedLaws(exLaws.stream()
+                .filter(ec -> ec.getKind()
+                        .equals(RoleInExercise.FORBIDDEN))
+                .flatMap(ec -> Stream.concat(
+                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
+                .collect(Collectors.toList()));
+
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
         HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
 
@@ -74,7 +92,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         result.setComplexity(grade(exerciseAttempt));//TODO
         //result.setComplexity(1);//TODO
-        result.setSolvingDuration(30);
+        result.setSolvingDuration(5);
         result.setExerciseAttempt(exerciseAttempt);
 
         SearchDirections lawsDirections = isFirstQuestion ? SearchDirections.TO_SIMPLE: countLawsSearchDirections(difference);
@@ -166,7 +184,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             laws.addAll(allLaws.get(currentLaw));
             Collections.reverse(laws);
 
-            resultGrade += countGradeByUsage(laws, (float)1.2) * countConfidence(laws);
+            resultGrade += countGradeByUsage(laws, CONFIDENCE_MULTIPLIER * countConfidence(laws));
         }
 
 //        if(targetLaws.size() == 0){
@@ -180,7 +198,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     @Override
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
 
-        if(grade(exerciseAttempt) > countTargetGrade() && isAllLawsUsedWindowCount(exerciseAttempt)){
+        if(grade(exerciseAttempt) >= countTargetGrade() && isAllLawsUsedWindowCount(exerciseAttempt)){
             return Decision.FINISH;
         }
         return Decision.CONTINUE;
@@ -346,12 +364,12 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
                 laws.addAll(valueFirst);
             }
 
-            allLawsGrade.add(0, Pair.of(key, countGradeByUsage(laws, (float)1.2) * countConfidence(laws)));
+            allLawsGrade.add(0, Pair.of(key, countGradeByUsage(laws, CONFIDENCE_MULTIPLIER * countConfidence(laws))));
         }
 
         meanOfUsage = meanOfUsage / allLaws.keySet().size();
 
-        Collections.sort(allLawsGrade, new LawGradeComparator());
+        allLawsGrade.sort(new LawGradeComparator());
         //////Проверить в каком порядке сортируется
 
         //Выбрать минимально изученные законы в количестве countOfLaws
@@ -401,7 +419,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             }
         }
 
-        return minimumLawUsageCount == null || minimumLawUsageCount > countGradeWindow();
+        return minimumLawUsageCount == null || minimumLawUsageCount >= countGradeWindow();
     }
 
     protected HashMap<String, List<Boolean>> getTargetLawsInteractions(ExerciseAttemptEntity exerciseAttempt, int removeLastCount){
@@ -409,13 +427,17 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         allQuestions.addAll(exerciseAttempt.getQuestions());
         HashMap<String, List<Boolean>> allLawsUsage = basicLawsUsage(exerciseAttempt);
 
-        Collections.sort(allQuestions, new QuestionOrderComparator());
+        allQuestions.sort(new QuestionOrderComparator());
 
+        if (removeLastCount > 0 && allQuestions.size() >= removeLastCount) {
+            allQuestions = allQuestions.subList(0, allQuestions.size() - removeLastCount);
+        }
+        /*
         for(int i = 0; i < removeLastCount; i++){
             if(allQuestions.size() > 0) {
                 allQuestions.remove(allQuestions.size() - 1);
             }
-        }
+        } */
 
         return getQuestionsLawConceptUsage(allQuestions, allLawsUsage);
     }
@@ -430,7 +452,14 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         ExerciseStageEntity stage = exercise.getStages().get(0);  // используем первый (скорее всего, единственный) этап упражнения
 
-        if (stage.getLaws().isEmpty()) {
+        if (!stage.getLaws().isEmpty()) {
+            // получить целевые (target) законы из упражнения
+            for (ExerciseLawDto currentLaw : stage.getLaws()) {
+                if (currentLaw.getKind() == RoleInExercise.TARGETED)
+                    allLawsUsage.put(currentLaw.getName(), new ArrayList<>());
+            }
+        }
+        if (allLawsUsage.isEmpty()) {
 
             // получить законы из домена (все подряд)
             Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
@@ -438,14 +467,6 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             List<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {
                 allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
-            }
-
-        } else {
-            // получить целевые (target) законы из упражнения
-            for (ExerciseLawDto currentLaw : stage.getLaws()) {
-                if (currentLaw.getKind() != RoleInExercise.TARGETED)
-                    continue;
-                allLawsUsage.put(currentLaw.getName(), new ArrayList<>());
             }
         }
 
@@ -456,7 +477,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     private HashMap<String, List<Boolean>> getQuestionsLawConceptUsage(List<QuestionEntity> allQuestions, HashMap<String, List<Boolean>> allLawsUsage) {
         for (QuestionEntity currentQuestion : allQuestions) {
             List<InteractionEntity> allInteractions = currentQuestion.getInteractions();
-            Collections.sort(allInteractions, new InteractionOrderComparator());
+            allInteractions.sort(new InteractionOrderComparator());
 
             for (InteractionEntity currentInteraction : allInteractions) {
 
@@ -668,24 +689,24 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         return conceptUsageToAnalise;
     }
 
-    class QuestionOrderComparator implements Comparator<QuestionEntity> {
+    static class QuestionOrderComparator implements Comparator<QuestionEntity> {
         @Override
         public int compare(QuestionEntity a, QuestionEntity b) {
-            return a.getId() < b.getId() ? -1 : a.getId() == b.getId() ? 0 : 1;
+            return a.getId().compareTo(b.getId());
         }
     }
 
-    class InteractionOrderComparator implements Comparator<InteractionEntity> {
+    static class InteractionOrderComparator implements Comparator<InteractionEntity> {
         @Override
         public int compare(InteractionEntity a, InteractionEntity b) {
-            return a.getOrderNumber() < b.getOrderNumber() ? -1 : a.getOrderNumber() == b.getOrderNumber() ? 0 : 1;
+            return Integer.compare(a.getOrderNumber(), b.getOrderNumber());
         }
     }
 
-    class LawGradeComparator implements Comparator<Pair<String, Float>> {
+    static class LawGradeComparator implements Comparator<Pair<String, Float>> {
         @Override
         public int compare(Pair<String, Float> a, Pair<String, Float> b) {
-            return a.getSecond() < b.getSecond() ? -1 : a.getSecond() == b.getSecond() ? 0 : 1;
+            return a.getSecond().compareTo(b.getSecond());
         }
     }
 
