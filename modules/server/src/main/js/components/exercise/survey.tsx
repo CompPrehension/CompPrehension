@@ -6,6 +6,7 @@ import * as E from "fp-ts/lib/Either";
 import { Loader } from "../common/loader";
 import { Button, Form } from "react-bootstrap";
 import { Optional } from "../common/optional";
+import { useTranslation } from "react-i18next";
 
 export type SurveyComponentProps = {
     survey: Survey;
@@ -20,6 +21,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
     const [endpoint] = useState(() => container.resolve(SurveyController));
     const [surveyState, setSurveyState] = useState<'INITAL' | 'VALIDATION_ERROR' | 'SENDING_RESULTS' | 'COMPLETED'>(isCompleted ? 'COMPLETED' : 'INITAL');
     const [surveyAnswers, setSurveyAnswers] = useState<Record<number, string>>(props.value || {});    
+    const { t } = useTranslation();
     const surveyQuestions = props.survey.questions.filter(q => enabledSurveyQuestions.includes(q.id))
 
     var onAnswered = (questionId: number, answer: string) => {        
@@ -73,7 +75,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
                 </div>}
             {surveyState !== 'COMPLETED' && surveyState !== 'SENDING_RESULTS' && 
                 <div className="mt-2">
-                    <Button variant="primary" onClick={sendAnswers}>Send survey results</Button>
+                    <Button variant="primary" onClick={sendAnswers}>{t('survey_sendresults')}</Button>
                 </div>}
         </div>
     );

@@ -74,6 +74,8 @@ const resources = {
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
+
+            survey_sendresults: "Send survey results",
         },
     },
     RU: {
@@ -128,6 +130,8 @@ const resources = {
             exercisesettings_optDenied: "Запрет",
             exercisesettings_optAllowed: "Разреш.",
             exercisesettings_optTarget: "Цель",
+
+            survey_sendresults: "Отправить результаты опроса",
         },
     },
     PL: {
@@ -182,6 +186,8 @@ const resources = {
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
+
+            survey_sendresults: "Send survey results",
         },
     },
 };
