@@ -33,6 +33,7 @@ import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 import org.vstu.compprehension.common.Utils;
@@ -129,36 +130,47 @@ public class FrontendService {
     }
 
     private @NotNull FeedbackDto addOrdinaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
+        Checkpointer ch = new Checkpointer(log);
+
         val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
+        ch.hit("attempt found");
 
         // evaluate answer
         val tags = attempt.getExercise().getTags();
         val question = questionService.getSolvedQuestion(questionId);
+        ch.hit("solved question obtained");
         val responses = questionService.responseQuestion(question, answers);
         val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
+        ch.hit("responses collected");
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
+        ch.hit("judgeQuestion done");
 
         // add interaction
         val existingInteractions = question.getQuestionData().getInteractions();
         val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
+        ch.hit("add interaction ("+correctInteractionsCount+")");
 
         // add feedback
         val strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
         val grade = strategy.grade(attempt);
+        ch.hit("graded with strategy ("+grade+")");
         ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
         ie.getFeedback().setGrade(grade);
         feedbackRepository.save(ie.getFeedback());
+        ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
 
         // decide next exercise state
         val strategyAttemptDecision = strategy.decide(attempt);
         exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+
+        ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
 
         // calculate error message
         val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
@@ -173,6 +185,7 @@ public class FrontendService {
                 : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
                 : null;
+        ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
 
         // return result of the last correct interaction
         val correctInteraction = existingInteractions.stream()
@@ -197,9 +210,14 @@ public class FrontendService {
                     .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
-            return addOrdinaryQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
+            ch.hit("results made");
+            val res = addOrdinaryQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
+            ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
+            return res;
         }
 
+        ch.hit("results made");
+        ch.since_start("addOrdinaryQuestionAnswer() completed in");
 
         return Mapper.toFeedbackDto(question,
                 messages,
