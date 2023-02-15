@@ -12,9 +12,6 @@ export const GenerateNextQuestionBtn = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
-    if (!exerciseStore.exercise?.options.newQuestionGenerationEnabled) {
-        return null;
-    }
     
     const { exercise, currentAttempt } = exerciseStore;
     const { question } = exerciseStore.currentQuestion;

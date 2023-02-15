@@ -121,9 +121,9 @@ export const Exercise = observer(() => {
                                     </div>
                                 </Optional>
                                 <Optional isVisible={
-                                    exerciseStore.currentQuestion.questionState !== 'COMPLETED' || 
-                                    survey == null || 
-                                    survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === 'COMPLETED'}>
+                                    (survey == null && (exerciseStore.exercise?.options.newQuestionGenerationEnabled || exerciseStore.currentQuestion.questionState === 'COMPLETED'))
+                                    || 
+                                    ((survey != null && survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === 'COMPLETED'))}>
                                     <div className="mt-2">
                                         <GenerateNextQuestionBtn />
                                     </div>
