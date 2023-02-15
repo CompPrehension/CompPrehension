@@ -1,19 +1,20 @@
 package org.vstu.compprehension.models.businesslogic.storage.stats;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+@NoArgsConstructor
 @Data
 public class NumericStat {
-    int count;
-    double min;
-    double mean;
-    double max;
+
+    private int count;
+    private double min;
+    private double mean;
+    private double max;
     Set<Double> distinctValues = null;
 
     public NumericStat(Collection<Double> evidenceSet, boolean rememberValuesGiven) {

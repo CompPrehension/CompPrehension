@@ -1,10 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
+import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
+import java.math.BigInteger;
 import java.util.*;
 
 @Getter
@@ -42,14 +44,17 @@ public class QuestionMetadataManager {
 
     private void initBankStat() {
         Checkpointer ch = new Checkpointer();
-        ArrayList<QuestionMetadataEntity> allQuestions = new ArrayList<>();
 
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAll();
-//        ch.hit("initBankStat - query ran");
-        iter.forEach(allQuestions::add);
-//        ch.hit("initBankStat - query results collected");
+        Map<String, Object> data = questionRepository.getStatOnComplexityField();
+        NumericStat complStat = new NumericStat();
+        complStat.setCount(((BigInteger)data.get("count")).intValue());
+        complStat.setMin  ((Double) data.get("min"));
+        complStat.setMean ((Double) data.get("mean"));
+        complStat.setMax  ((Double) data.get("max"));
 
-        wholeBankStat = new QuestionGroupStat(allQuestions);
+        wholeBankStat = new QuestionGroupStat();
+        wholeBankStat.setComplexityStat(complStat);
+
 //        ch.hit("initBankStat - stats prepared");
         ch.since_start("initBankStat - completed");
     }
@@ -63,23 +68,23 @@ public class QuestionMetadataManager {
 //    }
 
     /** get entries unlimited */
-    List<QuestionMetadataEntity> findQuestionsByConcepts(Collection<Long> conceptBitEntries) {
+    /*List<QuestionMetadataEntity> findQuestionsByConcepts(Collection<Long> conceptBitEntries) {
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConcepts(conceptBitEntries);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    }*/
 
     /** get entries unlimited */
-    List<QuestionMetadataEntity> findQuestionsByConceptsLaws(Collection<Long> conceptBitEntries, Collection<Long> lawBitEntries) {
+    /*List<QuestionMetadataEntity> findQuestionsByConceptsLaws(Collection<Long> conceptBitEntries, Collection<Long> lawBitEntries) {
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsLaws(conceptBitEntries, lawBitEntries);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    }*/
 
 
-    List<QuestionMetadataEntity> findQuestionsByConceptsWithoutTemplates(
+    /*List<QuestionMetadataEntity> findQuestionsByConceptsWithoutTemplates(
             Collection<Long> conceptBitEntries,
             Collection<Integer> templatesIds
     ) {
@@ -87,9 +92,9 @@ public class QuestionMetadataManager {
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsWithoutTemplates(conceptBitEntries, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    }*/
 
-    List<QuestionMetadataEntity> findQuestionsByConceptsLawsWithoutTemplates(
+    /*List<QuestionMetadataEntity> findQuestionsByConceptsLawsWithoutTemplates(
             Collection<Long> conceptBitEntries, Collection<Long> lawBitEntries,
             Collection<Integer> templatesIds
     ) {
@@ -97,9 +102,9 @@ public class QuestionMetadataManager {
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptsLawsWithoutTemplates(conceptBitEntries, lawBitEntries, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    }*/
 
-    List<QuestionMetadataEntity> findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
+    /*List<QuestionMetadataEntity> findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
             Collection<Long> traceConceptBitEntries, long deniedConceptsBitmask,
             Long lawRequiredBitmask, Long lawDeniedBitmask,
             Collection<Integer> templatesIds
@@ -112,9 +117,9 @@ public class QuestionMetadataManager {
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptEntriesLawBitsWithoutTemplates(traceConceptBitEntries, deniedConceptsBitmask, lawRequiredBitmask, lawDeniedBitmask, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    }*/
 
-    List<QuestionMetadataEntity> findQuestionsByBitmasksWithoutTemplates(
+    /*List<QuestionMetadataEntity> findQuestionsByBitmasksWithoutTemplates(
             Long conceptRequiredBitmask, Long conceptDeniedBitmask,
             Long lawRequiredBitmask, Long lawDeniedBitmask,
             Collection<Integer> templatesIds
@@ -128,7 +133,7 @@ public class QuestionMetadataManager {
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findAllWithConceptLawBitsWithoutTemplates(conceptRequiredBitmask, conceptDeniedBitmask, lawRequiredBitmask, lawDeniedBitmask, templatesIds);
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    }*/
 
     List<QuestionMetadataEntity> findQuestionsAroundComplexityStepsWithoutTemplates(
             double complexity, int solutionSteps,

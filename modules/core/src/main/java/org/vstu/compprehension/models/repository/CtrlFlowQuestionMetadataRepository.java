@@ -1,16 +1,33 @@
 package org.vstu.compprehension.models.repository;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBaseRepository<QuestionMetadataEntity> {
 
     String DOMAIN_NAME = "'ctrl_flow'";
     /* Note: we currently use `violation_bits` column for matching "laws" */
+
+    @NotNull
+    @Override
+    @Query("select q from #{#entityName} q where q.domainShortname = "+DOMAIN_NAME+" AND q.stage = 3")
+    List<QuestionMetadataEntity> findAll();
+
+    @Override
+    @Query(value = "select " +
+            "count(*) as 'count', " +
+            "min(q.integral_complexity) as min, " +
+            "avg(q.integral_complexity) as mean, " +
+            "max(q.integral_complexity) as max " +
+            "from questions_meta q where q.domain_shortname = "+DOMAIN_NAME+" AND q._stage = 3",
+            nativeQuery = true)
+    Map<String, Object> getStatOnComplexityField();
 
     @Override
     @Query("select q from #{#entityName} q where q.domainShortname = "+DOMAIN_NAME+" AND q.stage = 3 AND q.conceptBits IN :values")  // Note: db field `concept_bits` mapped by entity to `conceptBits`

@@ -324,13 +324,13 @@ public abstract class AbstractRdfStorage {
         // TODO: use tags as well
         if (foundQuestionMetas.isEmpty()) {
 
-            List<Long> selectedTraceConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
-                    deniedConceptsBitmask, 0 /*unwantedConceptsBitmask*/, queryLimit, metaMgr.wholeBankStat.getTraceConceptStat(), random);
-
-            foundQuestionMetas = metaMgr.findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
-                    selectedTraceConceptKeys, deniedConceptsBitmask,
-                    targetLawsBitmask, deniedLawsBitmask,
-                    templatesInUse);
+//            List<Long> selectedTraceConceptKeys = fit3Bitmasks(targetConceptsBitmask, allowedConceptsBitmask,
+//                    deniedConceptsBitmask, 0 /*unwantedConceptsBitmask*/, queryLimit, metaMgr.wholeBankStat.getTraceConceptStat(), random);
+//
+//            foundQuestionMetas = metaMgr.findQuestionsByConceptEntriesLawBitmasksWithoutTemplates(
+//                    selectedTraceConceptKeys, deniedConceptsBitmask,
+//                    targetLawsBitmask, deniedLawsBitmask,
+//                    templatesInUse);
         }
 //        foundQuestionMetas = metaMgr.findQuestionsByBitmasksWithoutTemplates(
 //                targetConceptsBitmask, deniedConceptsBitmask,

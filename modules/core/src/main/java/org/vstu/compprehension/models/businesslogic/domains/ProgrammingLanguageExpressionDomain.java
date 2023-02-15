@@ -562,25 +562,27 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         questionRequest.setDeniedQuestionNames(List.of());
 
-        List<Question> foundQuestions;
-        try {
-            // new version - invoke rdfStorage search
-            foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
-
-            // search again if nothing found with "TO_COMPLEX"
-            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
-            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+        List<Question> foundQuestions = null;
+        if (!conceptNames.contains("SystemIntegrationTest")) {
+            try {
+                // new version - invoke rdfStorage search
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+
+                // search again if nothing found with "TO_COMPLEX"
+                SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+                if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+                }
+            } catch (RuntimeException ex) {
+                // file storage was not configured properly...
+                ex.printStackTrace();
+                foundQuestions = new ArrayList<>();
             }
-        } catch (RuntimeException ex) {
-            // file storage was not configured properly...
-            ex.printStackTrace();
-            foundQuestions = new ArrayList<>();
         }
 
         Question res;
-        if (!foundQuestions.isEmpty() && !conceptNames.contains("SystemIntegrationTest")) {
+        if (foundQuestions != null && !foundQuestions.isEmpty()) {
             res = foundQuestions.get(0);
         } else {
             // old version - search in domain's in-memory questions

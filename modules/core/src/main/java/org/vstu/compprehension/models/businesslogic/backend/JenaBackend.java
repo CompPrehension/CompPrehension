@@ -580,29 +580,29 @@ public class JenaBackend implements Backend {
     }
 
     public JenaFactList judge(List<Law> laws, Collection<Fact> statement, Collection<Fact> correctAnswer, Collection<Fact> response, ReasoningOptions reasoningOptions) {
-        Checkpointer ch = new Checkpointer(log);
+        // Checkpointer ch = new Checkpointer(log);
 
         createOntology();
-        ch.hit("judge-f: createOntology");
+        // ch.hit("judge-f: createOntology");
 
         for (Law law : laws) {
             addLaw(law);
         }
-        ch.hit("judge-f: add laws");
+        // ch.hit("judge-f: add laws");
 
         addFacts(statement);
         addFacts(response);
         addFacts(correctAnswer);
-        ch.hit("judge-f: add facts");
+        // ch.hit("judge-f: add facts");
 
         debug_dump_model("judge-f");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
-        ch.hit("judge-f: callReasoner");
+        // ch.hit("judge-f: callReasoner");
         debug_dump_model("judged-f");
 
         JenaFactList facts = new JenaFactList(model);
-        ch.hit("judge-f: get facts");
-        ch.since_start("judge-f: completed");
+        // ch.hit("judge-f: get facts");
+        // ch.since_start("judge-f: completed");
         return facts;
     }
 
