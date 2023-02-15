@@ -19,13 +19,17 @@ public class QuestionGroupStat {
     NumericStat complexityStat;  // integralComplexity
     NumericStat solutionStepsStat;  // solutionSteps
 
+    public QuestionGroupStat() {
+    }
+
+    @Deprecated
     public QuestionGroupStat(Collection<QuestionMetadataEntity> questionSet) {
         super();
 
         // some fields that are currently unused are out-commented below.
 //        tagStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTagBits).collect(Collectors.toList()));
 //        conceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getConceptBits).collect(Collectors.toList()));
-        traceConceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTraceConceptBits).collect(Collectors.toList()));
+//        traceConceptStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getTraceConceptBits).collect(Collectors.toList()));
 //        lawStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataBaseEntity::getLawBits).collect(Collectors.toList()));
 //        violationStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getViolationBits).collect(Collectors.toList()));
 
