@@ -3350,7 +3350,7 @@
     "positive": false,
     "impliesLaws": [
     	"error_base_higher_precedence_left",
-    	"error_base_higher_precedence_right",
+    	"error_base_higher_precedence_right"
     ],
     "formulations": [
     ],
@@ -3367,8 +3367,7 @@
     "positive": false,
     "impliesLaws": [
     	"error_base_unary_having_associativity_left",
-    	"error_base_binary_having_associativity_left",
-    	"error_base_ternary_having_associativity_left",
+    	"error_base_binary_having_associativity_left"
     ],
     "formulations": [
     ],
@@ -3407,20 +3406,6 @@
     ]
   },
   {
-    "name": "error_base_ternary_having_associativity_left",
-    "displayName": "Тернарный оператор с левой ассоциативностью (?:)",
-    "bitflags": 3,
-    "positive": false,
-    "formulations": [
-    ],
-    "concepts": [
-      {"name": "associativity"},
-      {"name": "ternary"}
-    ],
-    "tags": [
-    ]
-  },
-  {
     "name": "error_base_same_precedence_right_associativity_right",
     "displayName": "Правая ассоциативность",
     "bitflags": 2,
@@ -3428,6 +3413,7 @@
     "impliesLaws": [
     	"error_base_unary_having_associativity_right",
     	"error_base_binary_having_associativity_right",
+    	"error_base_ternary_having_associativity_right"
     ],
     "formulations": [
     ],
@@ -3466,6 +3452,20 @@
     ]
   },
   {
+    "name": "error_base_ternary_having_associativity_left",
+    "displayName": "Тернарный оператор с левой ассоциативностью (?:)",
+    "bitflags": 3,
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+      {"name": "ternary"}
+    ],
+    "tags": [
+    ]
+  },
+  {
     "name": "error_base_student_error_in_complex",
     "displayName": "Сгруппированные операнды ([], (), ?:)",
     "bitflags": 3,
@@ -3485,7 +3485,7 @@
     "bitflags": 2,
     "positive": false,
     "impliesLaws": [
-    	"error_base_student_error_in_complex",
+    	"error_base_student_error_in_complex"
     ],
     "formulations": [
     ],
@@ -3502,7 +3502,7 @@
     "bitflags": 2,
     "positive": false,
     "impliesLaws": [
-    	"error_base_student_error_in_complex",
+    	"error_base_student_error_in_complex"
     ],
     "formulations": [
     ],
@@ -3519,7 +3519,7 @@
     "bitflags": 2,
     "positive": false,
     "impliesLaws": [
-    	"error_base_student_error_in_complex",
+    	"error_base_student_error_in_complex"
     ],
     "formulations": [
     ],
