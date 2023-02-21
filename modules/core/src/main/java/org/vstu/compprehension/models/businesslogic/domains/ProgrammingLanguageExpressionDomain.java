@@ -215,7 +215,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", noFlags);
         addConcept("operator_.", List.of(singleTokenBinaryConcept, fieldAccess), "obj.field", invisible);
-        addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess), "ptr->field", invisible);
+        addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess, pointers), "ptr->field", invisible);
 
         Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
         Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", flags);  // c ? a : b
