@@ -3452,9 +3452,9 @@
     ]
   },
   {
-    "name": "error_base_ternary_having_associativity_left",
-    "displayName": "Тернарный оператор с левой ассоциативностью (?:)",
-    "bitflags": 3,
+    "name": "error_base_ternary_having_associativity_right",
+    "displayName": "Тернарный оператор с правой ассоциативностью (?:) [не в PHP]",
+    "bitflags": 0,
     "positive": false,
     "formulations": [
     ],
