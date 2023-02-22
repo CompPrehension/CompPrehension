@@ -63,6 +63,9 @@ public class QuestionMetadataEntity {
     @Transient
     private Long conceptBitsInRequest = 0L;
 
+    @Transient
+    private Long violationBitsInRequest = 0L;
+
     public double complexityAbsDiff(double complexity) {
         return Math.abs(getIntegralComplexity() - complexity);
     }
@@ -74,5 +77,12 @@ public class QuestionMetadataEntity {
     }
     public Long traceConceptsUnsatisfiedFromRequest() {
         return ~(traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInRequest;
+    }
+
+    public Long violationsSatisfiedFromRequest() {
+        return violationBits & violationBitsInRequest;
+    }
+    public Long violationsUnsatisfiedFromRequest() {
+        return ~violationBits & violationBitsInRequest;
     }
 }

@@ -3350,7 +3350,7 @@
     "positive": false,
     "impliesLaws": [
     	"error_base_higher_precedence_left",
-    	"error_base_higher_precedence_right",
+    	"error_base_higher_precedence_right"
     ],
     "formulations": [
     ],
@@ -3363,8 +3363,12 @@
   {
     "name": "error_base_same_precedence_left_associativity_left",
     "displayName": "Левая ассоциативность",
-    "bitflags": 3,
+    "bitflags": 2,
     "positive": false,
+    "impliesLaws": [
+    	"error_base_unary_having_associativity_left",
+    	"error_base_binary_having_associativity_left"
+    ],
     "formulations": [
     ],
     "concepts": [
@@ -3374,14 +3378,89 @@
     ]
   },
   {
-    "name": "error_base_same_precedence_right_associativity_right",
-    "displayName": "Правая ассоциативность",
+    "name": "error_base_unary_having_associativity_left",
+    "displayName": "Унарные операции с левой ассоциативностью (постфиксные)",
     "bitflags": 3,
     "positive": false,
     "formulations": [
     ],
     "concepts": [
+      {"name": "associativity"},
+      {"name": "unary"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_binary_having_associativity_left",
+    "displayName": "Бинарные операции с левой ассоциативностью",
+    "bitflags": 3,
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+      {"name": "binary"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_same_precedence_right_associativity_right",
+    "displayName": "Правая ассоциативность",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+    	"error_base_unary_having_associativity_right",
+    	"error_base_binary_having_associativity_right",
+    	"error_base_ternary_having_associativity_right"
+    ],
+    "formulations": [
+    ],
+    "concepts": [
       {"name": "associativity"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_unary_having_associativity_right",
+    "displayName": "Унарные операции с правой ассоциативностью",
+    "bitflags": 3,
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+      {"name": "unary"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_binary_having_associativity_right",
+    "displayName": "Бинарные операции с правой ассоциативностью (присваивание)",
+    "bitflags": 3,
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+      {"name": "binary"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_ternary_having_associativity_right",
+    "displayName": "Тернарный оператор с правой ассоциативностью (?:) [не в PHP]",
+    "bitflags": 0,
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "associativity"},
+      {"name": "ternary"}
     ],
     "tags": [
     ]
@@ -3406,7 +3485,7 @@
     "bitflags": 2,
     "positive": false,
     "impliesLaws": [
-    	"error_base_student_error_in_complex",
+    	"error_base_student_error_in_complex"
     ],
     "formulations": [
     ],
@@ -3423,7 +3502,7 @@
     "bitflags": 2,
     "positive": false,
     "impliesLaws": [
-    	"error_base_student_error_in_complex",
+    	"error_base_student_error_in_complex"
     ],
     "formulations": [
     ],
@@ -3440,7 +3519,7 @@
     "bitflags": 2,
     "positive": false,
     "impliesLaws": [
-    	"error_base_student_error_in_complex",
+    	"error_base_student_error_in_complex"
     ],
     "formulations": [
     ],

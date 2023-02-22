@@ -100,8 +100,10 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
 
     @Query(value = "SELECT * FROM (" +
             "select * from questions_meta q where q.domain_shortname = "+DOMAIN_NAME+" AND q._stage = 3 " +
-            "AND IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) AND q.concept_bits & :conceptD = 0 " +
-            "AND IF(:lawA =0,1,q.violation_bits & :lawA <> 0) AND q.violation_bits & :lawD = 0 " +
+            "AND q.concept_bits & :conceptD = 0 " +
+            "AND q.violation_bits & :lawD = 0 " +
+//            "AND (IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) " +
+//            "  OR IF(:lawA =0,1,q.violation_bits & :lawA <> 0)) " +
             "AND q.template_id NOT IN :ids " +
             "order by bit_count(q.trace_concept_bits & :conceptA) + bit_count(q.violation_bits & :lawA) DESC, abs(q.integral_complexity - :complexity)" +
             "limit :randomPoolLim" +
