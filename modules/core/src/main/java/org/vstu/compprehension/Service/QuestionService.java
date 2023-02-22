@@ -94,7 +94,7 @@ public class QuestionService {
 
         // use reasoner to solve question
         Collection<Fact> solution = backend.solve(
-                new ArrayList<>(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
+                /*new ArrayList<>*/(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFactsWithSchema(),
                 new ReasoningOptions(
                         false,
