@@ -213,7 +213,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
         addConcept("operator_&", List.of(pointers), "&val", invisible);
 
-        Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", noFlags);
+        Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", flags);
         addConcept("operator_.", List.of(singleTokenBinaryConcept, fieldAccess), "obj.field", invisible);
         addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess, pointers), "ptr->field", invisible);
 
