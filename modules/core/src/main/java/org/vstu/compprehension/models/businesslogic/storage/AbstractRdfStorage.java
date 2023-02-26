@@ -344,6 +344,7 @@ public abstract class AbstractRdfStorage {
 
         foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
                 complexity,
+                0.15,
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 templatesInUse,

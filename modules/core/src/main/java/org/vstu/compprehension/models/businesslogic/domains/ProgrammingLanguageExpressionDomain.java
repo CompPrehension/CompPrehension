@@ -213,7 +213,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
         addConcept("operator_&", List.of(pointers), "&val", invisible);
 
-        Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", noFlags);
+        Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", flags);
         addConcept("operator_.", List.of(singleTokenBinaryConcept, fieldAccess), "obj.field", invisible);
         addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess, pointers), "ptr->field", invisible);
 
@@ -488,10 +488,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (qName.length() > 254) qName = qName.substring(0, 254);
         entity.setQuestionName(qName);
 
-        String text = getMessage(q.getQuestionText().getText(), userLang);
-        if (text.equals("")) {
-            text = q.getQuestionText().getText();
-        }
+        String text = q.getQuestionText().getText();
 
         switch (q.getQuestionType()) {
             case ORDER:
@@ -624,7 +621,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         StringBuilder sb = new StringBuilder("");
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
-        int anwerIdx = -1;
+        int answerIdx = -1;
         for (BackendFactEntity fact : expression) {
             String tokenValue = "";
             if (fact.getSubjectType() != null) { // Token has value
@@ -632,9 +629,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
 
             if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++anwerIdx).append("' class='comp-ph-expr-op-btn comp-ph-expr-op-end' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn comp-ph-expr-op-end' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
             } else {
                 sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             }
@@ -2145,7 +2142,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return jback.getFacts(null);
     }
 
-    public OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
+    public static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
         JenaBackend jback = new JenaBackend();
         jback.createOntology(AbstractRdfStorage.NS_code.base());
 
