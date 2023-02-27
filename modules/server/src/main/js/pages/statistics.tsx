@@ -43,8 +43,8 @@ export const Statistics = () => {
                 </thead>
                 <tbody>
                     <LoadingWrapper isLoading={isLoading}>
-                        {statistics.map(s => (
-                            <tr>
+                        {statistics.map((s, idx) => (
+                            <tr key={idx}>
                                 <th scope="row">{s.attemptId}</th>
                                 <td>{s.questionsCount}</td>
                                 <td>{s.totalInteractionsCount}</td>

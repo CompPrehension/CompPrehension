@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useEffect } from "react";
 import { Answer } from "../../../types/answer";
 import { OrderQuestionFeedback } from "../../../types/feedback";
@@ -21,14 +21,17 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
     }
     const { options } = question;
     const orderNumberOptions = options.orderNumberOptions ?? { delimiter: '/', position: 'SUFFIX', }
-    const originalText = document.createElement('div');
-    originalText.innerHTML = question.text;
+    const originalText = useMemo(() => {
+        const originalText = document.createElement('div')
+        originalText.innerHTML = question.text;
+        return originalText;
+    }, []);    
 
     // actions on questionId changed (onInit)
     useEffect(() => {    
         // add button click event handlers
-        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
-            const idStr = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? ""; 
+        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
+            const idStr = e.getAttribute('data-answer-id') ?? '';
             const id = +idStr;
             e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
         })
@@ -49,7 +52,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
 
     useEffect(() => {
         // drop all changes, set original qustion text    
-        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
+        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
             const value = e.getAttribute('data-comp-ph-value');
             const pos = e.getAttribute("data-comp-ph-pos");
             e.innerHTML = originalText.querySelector(`#${e.id}`)?.innerHTML + (pos ? `<span class="comp-ph-expr-top-hint">${pos}</span>` : '') + (value ? `<span class="comp-ph-expr-bottom-hint">${value}</span>` : '')
@@ -75,26 +78,28 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         getAnswers().forEach((answer, idx, answers) => {
             const { answer:asnwerPair } = answer;
             const [h] = asnwerPair;
-            const answr = document.querySelector(`#question_${question.questionId}_answer_${h}`);
-            if (!answr) {
+            const answrs = document.querySelectorAll(`[data-answer-id='${h}']`);
+            if (!answrs.length) {
                 return 0;
             }
 
-            if (lastGeneratedAnswers.includes(answer)) {
-                answr.classList.add('comp-ph-question-answer--last-selected-by-system');
-            }
-
-            // add pos hint        
-            if (orderNumberOptions.position !== 'NONE') {
-                const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
-                const answerHtml = orderNumberOptions.position === 'PREFIX' ? [orderNumber, answr.innerHTML] :
-                                orderNumberOptions.position === 'SUFFIX' ? [answr.innerHTML, orderNumber] : [answr.innerHTML];            
-                answr.innerHTML = answerHtml.join(orderNumberOptions.delimiter);
-            }  
-            // disable if needed
-            if (!options.multipleSelectionEnabled) {            
-                answr.classList.add('disabled');
-            }
+            answrs.forEach(answr => {
+                if (lastGeneratedAnswers.includes(answer)) {
+                    answr.classList.add('comp-ph-question-answer--last-selected-by-system');
+                }
+    
+                // add pos hint        
+                if (orderNumberOptions.position !== 'NONE') {
+                    const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
+                    const answerHtml = orderNumberOptions.position === 'PREFIX' ? [orderNumber, answr.innerHTML] :
+                                    orderNumberOptions.position === 'SUFFIX' ? [answr.innerHTML, orderNumber] : [answr.innerHTML];            
+                    answr.innerHTML = answerHtml.join(orderNumberOptions.delimiter);
+                }  
+                // disable if needed
+                if (!options.multipleSelectionEnabled) {            
+                    answr.classList.add('disabled');
+                }
+            })            
         });
     }, [question.questionId, getAnswers().length])
     
@@ -102,7 +107,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
     const isTraceVisible = options.showTrace && notNulAndUndefinded(trace) && trace.length > 0;
 
     return (
-        <div>
+        <div id={`question_${question.questionId}`}>
             <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             <Optional isVisible={isTraceVisible}>
                 <p>

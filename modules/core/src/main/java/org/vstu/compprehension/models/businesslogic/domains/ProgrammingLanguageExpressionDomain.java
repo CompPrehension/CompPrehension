@@ -677,7 +677,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
                 sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn comp-ph-expr-op-end' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
             } else {
                 sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             }
@@ -712,7 +712,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     answerIdxStack.add(answerIdx);
                 }
             } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
-                sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-complete-btn comp-ph-expr-op-end'>").append(/*fact.getObject()*/ END_EVALUATION).append("</button>");
+                sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn'>").append(/*fact.getObject()*/ END_EVALUATION).append("</button>");
             } else {
                 // remember answer index of the first token of two-token operator
                 boolean needAddOrdinaryToken = true;

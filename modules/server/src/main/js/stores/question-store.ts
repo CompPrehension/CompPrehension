@@ -37,7 +37,13 @@ export class QuestionStore {
         // add question id to answers
         if (question.options.requireContext) {
             // regex searchs all tags with id='answer_id' and prepends them with question id
-            question.text = question.text.replaceAll(/(\<.*?\sid\s*?\=([\'\"]))\s*(answer_\d+?\2)(.*?\>)/igm, `$1question_${question.questionId}_$3$4`)
+            var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+            [...allMatches].forEach((match, matchIdx) => {
+                question.text = question.text.replace(
+                    match[0],
+                    `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`
+                )
+            })
         }
         
         this.question = question;
