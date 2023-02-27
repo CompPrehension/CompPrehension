@@ -499,6 +499,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 } else {
                     text = reformatQuestionText(q);
+                    if (true) {
+                        // DEBUG: add question name as html comment
+                        var name = q.getQuestionName();
+                        name = "<!-- question name: " + name + " -->";
+                        text = name + text;
+                    }
 
                     entity.setQuestionText(baseQuestionText + text
                             .replace("end evaluation", getMessage("END_EVALUATION", userLang))

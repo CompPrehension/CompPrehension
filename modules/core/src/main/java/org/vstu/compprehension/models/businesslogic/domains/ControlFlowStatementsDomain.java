@@ -646,7 +646,7 @@ public class ControlFlowStatementsDomain extends Domain {
             case ORDER:
                 var baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
                 if (true) {
-                    // add question name as html comment
+                    // DEBUG: add question name as html comment
                     var name = q.getQuestionName();
                     name = "<!-- question name: " + name + " -->";
                     baseQuestionText = name + baseQuestionText;
