@@ -9,8 +9,8 @@ type ClickableLabelProps = {
   isChecked: boolean, 
   style?: React.CSSProperties,
 }
-const ClickableLabel = ({ id, title, value, onChange, isChecked, style }: ClickableLabelProps) =>
-  <label htmlFor={id} onClick={() => onChange(value)} style={isChecked && style || undefined}>
+const ClickableLabel = ({ id, title, value, onChange, isChecked, style, ...props }: ClickableLabelProps) =>
+  <label htmlFor={id} onClick={() => onChange(value)} style={isChecked && style || undefined} {...props}>
     {title}
   </label>;
 
@@ -21,14 +21,15 @@ type ConcealedRadioProps = {
   name: string, 
   selected: string,
 }
-const ConcealedRadio = ({ id, value, name, selected }: ConcealedRadioProps) =>
-  <input id={id} type="radio" name={name} checked={selected === value} readOnly={true} />;
+const ConcealedRadio = ({ id, value, name, selected, ...props }: ConcealedRadioProps) =>
+  <input id={id} type="radio" name={name} checked={selected === value} readOnly={true} {...props} />;
 
 export type ToggleSwitchProps<T extends string> = {
     id: string,
     values: T[],
     displayNames?: string[],
     valueStyles?: (React.CSSProperties | null | undefined)[],
+    inputAttributes?: {},
     selected: T,
     onChange?: (val: T) => void,
 }
@@ -50,15 +51,18 @@ export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => 
           <span key={i}>
             <ConcealedRadio id={`${props.id}_${val}_checkbox`}
                             name={`${props.id}_switch`} 
+                            data-value={val}
                             value={val} 
-                            selected={props.selected} />
+                            selected={props.selected}
+                            {...props.inputAttributes} />
             <ClickableLabel 
               id={`${props.id}_${val}_checkbox`} 
               isChecked={val === props.selected}
               title={props.displayNames?.[i] ?? val}
               value={val}
               onChange={handleChange as (s: string) => void} 
-              style={props.valueStyles?.[i] ?? undefined} />
+              style={props.valueStyles?.[i] ?? undefined}
+              {...props.inputAttributes} />
           </span>
         );
       })}

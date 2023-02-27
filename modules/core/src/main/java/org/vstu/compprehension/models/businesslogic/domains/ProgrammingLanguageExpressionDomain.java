@@ -12,13 +12,14 @@ import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
@@ -497,6 +498,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
                     entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
                 } else {
+                    text = reformatQuestionText(q);
+                    if (true) {
+                        // DEBUG: add question name as html comment
+                        var name = q.getQuestionName();
+                        name = "<!-- question name: " + name + " -->";
+                        text = name + text;
+                    }
+
                     entity.setQuestionText(baseQuestionText + text
                             .replace("end evaluation", getMessage("END_EVALUATION", userLang))
                             .replace("student_end_evaluation", getMessage("STUDENT_END_EVALUATION", userLang)));
@@ -522,6 +531,49 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
+    }
+
+    @NotNull
+    private static String reformatQuestionText(Question q) {
+        // avoid changing generated files: re-generate html
+        OntModel m = factsToOntModel(q.getStatementFacts());
+        OntProperty text_prop = m.createOntProperty("http://vstu.ru/poas/code#text");
+        OntProperty token_type = m.createOntProperty("http://vstu.ru/poas/code#token_type");
+        OntProperty index = m.createOntProperty("http://vstu.ru/poas/code#index");
+        OntProperty not_selectable = m.createOntProperty("http://vstu.ru/poas/code#not_selectable");
+        // get facts for expression tokens (ordered)
+        List<BackendFactEntity> expression = new ArrayList<>();
+        List<Statement> operandStatements = m.listStatements(null, text_prop, (String) null).toList();
+        // sort array by subject's index (so tokens are in right order)
+        operandStatements.sort(Comparator.comparing(a -> Optional.ofNullable(
+                a.getSubject().getProperty(index))
+                .map(Statement::getInt)
+                .orElse(1000000)));
+        // statements to facts
+        for (Statement st : operandStatements) {
+            String tokenText = st.getString();
+            String tokenType = "variable";
+            Statement st_token = st.getSubject().getProperty(token_type);
+            if (st_token != null) {
+                Statement st_not_selectable = st.getSubject().getProperty(not_selectable);
+                if (st_not_selectable == null)
+                    tokenType = "operator";
+                // else: "variable"
+            } else {
+                tokenType = END_EVALUATION;
+                tokenText = END_EVALUATION;
+            }
+
+            BackendFactEntity fact = new BackendFactEntity(
+                    tokenType,
+                    "text", // probably redundant, may be null (?)
+                    tokenText);
+            expression.add(fact);
+        }
+
+        // replace with generated html
+        String text = ExpressionToHtmlEnablingButtonDuplicates(expression);
+        return text;
     }
 
     @Override
@@ -631,9 +683,61 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
                 sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
             } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn comp-ph-expr-op-end' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn' data-comp-ph-value=''>").append(fact.getObject()).append("</span>");
             } else {
                 sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(fact.getObject()).append("</span>");
+            }
+        }
+
+        sb.append("<!-- Original expression: ");
+        for (BackendFactEntity fact : expression) {
+            sb.append(fact.getObject()).append(" ");
+        }
+        sb.append("-->").append("</p>");
+        return QuestionTextToHtml(sb.toString());
+    }
+
+    public static String ExpressionToHtmlEnablingButtonDuplicates(List<BackendFactEntity> expression) {
+        StringBuilder sb = new StringBuilder("");
+        sb.append("<p class='comp-ph-expr'>");
+        int idx = 0;
+        int answerIdx = -1;
+        List<Integer> answerIdxStack = new ArrayList<>();  // pairedTwoTokenFirstAnswerIdxStack
+        // todo: save placeholders or "empty" (non-operator) tokens as well
+        for (BackendFactEntity fact : expression) {
+            String tokenValue = "";
+            // suppress the value of token (always leave empty)
+            /*if (fact.getSubjectType() != null) { // Token has value
+                tokenValue = fact.getSubjectType();
+            }*/
+
+            if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                // remember answer index of the first token of two-token operator
+                if (List.of("(", "[", "?").contains(fact.getObject())) {
+                    answerIdxStack.add(answerIdx);
+                }
+            } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
+                sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn'>").append(/*fact.getObject()*/ END_EVALUATION).append("</button>");
+            } else {
+                // remember answer index of the first token of two-token operator
+                boolean needAddOrdinaryToken = true;
+                if (!answerIdxStack.isEmpty() && List.of(")", "]", ":").contains(fact.getObject())) {
+                    // add clickable token with the same answer index as its first counterpart
+                    Integer repeatedAnswerIdx = answerIdxStack.remove(answerIdxStack.size() - 1);
+                    if (repeatedAnswerIdx != null) {
+                        sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(repeatedAnswerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                        needAddOrdinaryToken = false;
+                    }
+                }
+                if (needAddOrdinaryToken) {
+                    // add ordinary token
+                    sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+
+                    if (List.of("(", "[", "?").contains(fact.getObject())) {
+                        answerIdxStack.add(null);
+                    }
+                }
             }
         }
 

@@ -252,7 +252,16 @@ export class TestExerciseController implements IExerciseController {
     async addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
         console.log('addQuestionAnswer', interaction);
         await delayPromise(3000);
-        return E.left({ message:"Method not implemented."});
+        return E.right({
+            isCorrect: true,
+            grade: 0.8,   
+            correctAnswers: interaction.answers,
+            correctSteps: 1,
+            stepsLeft: 1,
+            stepsWithErrors: 1,
+            messages: null,
+            strategyDecision: 'CONTINUE',
+        });
     }
     async getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {
         console.log(`getExerciseStatistics?exerciseId=${exerciseId}`);

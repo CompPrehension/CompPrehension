@@ -171,9 +171,9 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
 
     useEffect(() => {
         // replace all placeholders on first render
-        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`)
+        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`)
             .forEach(elem => {
-                const answerId = +elem.id?.split(`question_${question.questionId}_answer_`)[1];
+                const answerId = +elem.getAttribute('data-answer-id')!;
                 const selector = <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
                                          components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }} 
                                          onChange={(v => {
@@ -192,7 +192,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
     }, [question.questionId]);
 
     return (
-        <div>
+        <div id={`question_${question.questionId}`}>
             <p className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
         </div>
     );

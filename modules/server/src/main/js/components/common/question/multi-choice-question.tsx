@@ -57,6 +57,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
                             <ToggleSwitch id={`question_${question.questionId}_anwser_${a.id}`} 
                                           selected={selectorTexts[getAnswers().filter(h => h.answer[0] === a.id)?.[0]?.answer?.[1]] ?? ""} 
                                           values={selectorTexts} 
+                                          inputAttributes={{ 'data-answer-id': a.id }}
                                           onChange={val => onSwitched(a.id, val)} />
                         </div>
                         <div>{a.text}</div>                        
@@ -85,10 +86,11 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
     // on First Render 
     useEffect(() => {    
         // add button click event handlers
-        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
-            const id = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
-            const component = <ToggleSwitch id={e.id} 
+        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
+            const id = +(e.getAttribute('data-answer-id') ?? -1);
+            const component = <ToggleSwitch id={`toggle_answer_${id}`} 
                                             selected={selectorTexts[getAnswers().filter(h => h.answer[0] === +id)?.[0]?.answer?.[1]] ?? ""} 
+                                            inputAttributes={{ 'data-answer-id': id }}
                                             values={selectorTexts} 
                                             onChange={val => onSwitched(+id, val)} />
             ReactDOM.render(component, e);
@@ -99,8 +101,8 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
     // apply history changes
     useEffect(() => {
         // drop all changes
-        document.querySelectorAll(`input[id^="question_${question.questionId}_answer_"]`).forEach((e: any) => {
-            const answerId = +e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
+        document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e: any) => {
+            const answerId = +e.getAttribute('data-answer-id') ?? -1;
             //if (!answersHistory.some(h => h[0] === id)) {
             e.checked = undefined;
             //}                
@@ -109,18 +111,17 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
         // apply history changes    
         getAnswers().forEach(({ answer }) => {
             const [id, value] = answer;
-            const inputId = `question_${question.questionId}_answer_${id}_${selectorTexts[value]}_checkbox`;
-            const answr: any = document.getElementById(inputId);
-            if (!answr) {
+            const answr: any = document.querySelector(`#toggle_answer_${id} input[data-value='${selectorTexts[value]}']`);
+            if (!answr || answr.checked) {
                 return;
             }
             setTimeout(() => answr.checked = true, 10)
             //answr.value = value;
         });
-    }, [question.questionId])
+    }, [question.questionId, getAnswers()])
     
     return (
-        <div>
+        <div id={`question_${question.questionId}`}>
             <p>
                 <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             </p>            

@@ -73,12 +73,13 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     // on First Render 
     useEffect(() => {    
         // add button click event handlers
-        document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach(e => {
-            const id = e.id?.split(`question_${question.questionId}_answer_`)[1] ?? -1;
+        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
+            const id = e.getAttribute('data-answer-id') ?? -1;
             const component = (<label htmlFor={`question_${question.questionId}_answer_${id}`}
                                       className={"comp-ph-singlechoice-label"}>
                                  <input id={`question_${question.questionId}_answer_${id}`} 
-                                        name={`switch_${question.questionId}`} 
+                                        name={`switch_${question.questionId}`}
+                                        data-answer-id={id}
                                         type="radio" 
                                         checked={getAnswers().some(h => h.answer[0] === +id)}
                                         onChange={(e) => selfOnChange(+id, e.target.checked)} 
@@ -93,14 +94,14 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     // apply history changes
     useEffect(() => {
         // drop all changes
-        document.querySelectorAll(`input[id^="question_${question.questionId}_answer_"]`).forEach((e: any) => {
+        document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e: any) => {
             e.checked = undefined;
         });
 
         // apply history changes    
         getAnswers().forEach(({ answer }) => {
             const id = answer[0];
-            const answr: any = document.getElementById(`question_${question.questionId}_answer_${id}`);
+            const answr: any = document.querySelector(`#question_${question.questionId} input[data-answer-id='${id}']`);
             if (!answr) {
                 return;
             }
@@ -109,7 +110,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     }, [question.questionId, getAnswers()])
 
     return (
-        <div>
+        <div id={`question_${question.questionId}`}>
             <p>
                 <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             </p>            
