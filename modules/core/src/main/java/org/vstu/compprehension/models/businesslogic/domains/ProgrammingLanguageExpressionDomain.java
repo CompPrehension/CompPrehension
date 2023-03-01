@@ -63,7 +63,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
     
     static final String MESSAGE_PREFIX = "expr_domain.";
-    
+    static final String SUPPLEMENTARY_PREFIX = "supplementary.";
+
     public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
@@ -490,6 +491,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionName(qName);
 
         String text = q.getQuestionText().getText();
+        if (text.startsWith(MESSAGE_PREFIX) || text.startsWith(SUPPLEMENTARY_PREFIX)) {
+            text = getMessage(text, userLang);
+        }
 
         switch (q.getQuestionType()) {
             case ORDER:
