@@ -202,18 +202,23 @@ public abstract class AbstractRdfStorage {
 
         HashMap<Integer, Integer> satisfied = new HashMap<>();  // a concept bit's position (2's power) -> count
         HashMap<Integer, Integer> unsatisfied = new HashMap<>();
+        long unreachable = 0L;  // bits shouldn't be tried since are blocked by "denied"s in current context
         for (val q : questions) {
             val m = q.getOptions().getMetadata();
             if (m == null)
                 continue;
-            long bits = m.traceConceptsSatisfiedFromRequest() & currentTargetConceptBits;
+            long bits = m.traceConceptsSatisfiedFromPlan() & currentTargetConceptBits;
             // count bits in previous questions, where common concepts were targeted
             addBitsToBitCountMap(satisfied, bits);
-            bits = m.traceConceptsUnsatisfiedFromRequest() & currentTargetConceptBits;
+            bits = m.traceConceptsUnsatisfiedFromPlan() & currentTargetConceptBits;
             addBitsToBitCountMap(unsatisfied, bits);
+            if (m.traceConceptsSatisfiedFromRequest() == 0) {
+                // nothing was found on that try => no more tries
+                unreachable |= m.getConceptBitsInRequest() & currentTargetConceptBits;
+            }
         }
 
-        return leastUsedBits(currentTargetConceptBits, satisfied, unsatisfied, leastUsedRatio);
+        return leastUsedBits(currentTargetConceptBits, satisfied, unsatisfied, leastUsedRatio, unreachable);
     }
 
     private long leastUsedViolations(QuestionRequest qr, long currentTargetViolationBits, double leastUsedRatio) {
@@ -223,21 +228,26 @@ public abstract class AbstractRdfStorage {
 
         HashMap<Integer, Integer> satisfied = new HashMap<>();  // a concept bit's position (2's power) -> count
         HashMap<Integer, Integer> unsatisfied = new HashMap<>();
+        long unreachable = 0L;  // bits shouldn't be tried since are blocked by "denied"s in current context
         for (val q : questions) {
             val m = q.getOptions().getMetadata();
             if (m == null)
                 continue;
-            long bits = m.violationsSatisfiedFromRequest() & currentTargetViolationBits;
+            long bits = m.violationsSatisfiedFromPlan() & currentTargetViolationBits;
             // count bits in previous questions, where common concepts were targeted
             addBitsToBitCountMap(satisfied, bits);
-            bits = m.violationsUnsatisfiedFromRequest() & currentTargetViolationBits;
+            bits = m.violationsUnsatisfiedFromPlan() & currentTargetViolationBits;
             addBitsToBitCountMap(unsatisfied, bits);
+            if (m.violationsSatisfiedFromRequest() == 0) {
+                // nothing was found on that try => no more tries
+                unreachable |= m.getViolationBitsInRequest() & currentTargetViolationBits;
+            }
         }
 
-        return leastUsedBits(currentTargetViolationBits, satisfied, unsatisfied, leastUsedRatio);
+        return leastUsedBits(currentTargetViolationBits, satisfied, unsatisfied, leastUsedRatio, unreachable);
     }
 
-    private static long leastUsedBits(long currentTargetBits, HashMap<Integer, Integer> satisfied, HashMap<Integer, Integer> unsatisfied, double leastUsedRatio) {
+    private static long leastUsedBits(long currentTargetBits, HashMap<Integer, Integer> satisfied, HashMap<Integer, Integer> unsatisfied, double leastUsedRatio, long unreachable) {
         Set<Integer> allBitsSet = new HashSet<>(satisfied.keySet());
         allBitsSet.addAll(unsatisfied.keySet());
 
@@ -249,10 +259,19 @@ public abstract class AbstractRdfStorage {
         for (int i: allBitsSet) {
             allBits |= (1L << i);
         }
-        long unseenBits = currentTargetBits & ~allBits;
+
+        allBits &= ~unreachable;
+        // don't alter allBitsSet but filter it when used below
+
+        if (allBits == 0)
+            return currentTargetBits;
+
+        long unseenBits = currentTargetBits & ~(allBits);
 
         HashMap<Integer, Double> ratios = new HashMap<>();  // a concept bit position (2's power) -> relative frequency
         for (int i : allBitsSet) {
+            if ((allBits & 1L << i) == 0) // filer out bits removed from allBits
+                continue;
             int sat = satisfied.getOrDefault(i, 0);
             int unsat = unsatisfied.getOrDefault(i, 0);
             double ratio = sat / (double) (sat + unsat);
@@ -262,7 +281,7 @@ public abstract class AbstractRdfStorage {
         val minVal = ratios.values().stream().min(Double::compareTo).orElse(1d);
 //        val maxVal = ratios.values().stream().max(Double::compareTo).orElse(1d);
         val threshold = Math.nextUp(minVal /*+ leastUsedRatio * (maxVal - minVal)*/);  // ignore since we assume leastUsedRatio == 0 so far
-        long resultBits = unseenBits;  // ! do not forget not filtered bits
+        long resultBits = unseenBits;  // ! do not forget unfiltered bits
         for (int i: ratios.keySet()) {
             if (ratios.get(i) <= threshold) {
                 resultBits |= (1L << i);  // may debug print here
@@ -291,8 +310,8 @@ public abstract class AbstractRdfStorage {
 
         Random random = domain.getRandomProvider().getRandom();
 
-        // 0.8 .. 1.2
-        double changeCoeff = 0.85f + 0.3f * random.nextDouble();
+        //  * (0.8 .. 1.2)
+        double changeCoeff = 0.8f + 0.4f * random.nextDouble();
         double complexity = qr.getComplexity() * changeCoeff;
         complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
         /*
@@ -305,12 +324,14 @@ public abstract class AbstractRdfStorage {
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
         long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
-        long targetConceptsBitmaskInRequest = targetConceptsBitmask;
-        long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);
+        /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
         long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
         long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
+        // guard: don't allow overlapping of target & denied
+        targetConceptsBitmask &= ~deniedConceptsBitmask;
+        long targetConceptsBitmaskInRequest = targetConceptsBitmask;
 
         if (bitCount(targetConceptsBitmaskInRequest) >= 2) {
             targetConceptsBitmask = leastUsedConcepts(qr, targetConceptsBitmaskInRequest, 0.0);
@@ -318,12 +339,14 @@ public abstract class AbstractRdfStorage {
 
         // TODO: use laws for expr Domain
         long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws(), metaMgr);
-        long targetViolationsBitmaskInRequest = targetLawsBitmask;
-//        long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);
+        /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
         long deniedLawsBitmask = lawsAsViolationsToBitmask(qr.getDeniedLaws(), metaMgr);
         long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
+        // guard: don't allow overlapping of target & denied
+        targetLawsBitmask &= ~deniedLawsBitmask;
+        long targetViolationsBitmaskInRequest = targetLawsBitmask;
 
         if (bitCount(targetViolationsBitmaskInRequest) >= 2) {
             targetLawsBitmask = leastUsedViolations(qr, targetViolationsBitmaskInRequest, 0.0);
@@ -345,6 +368,7 @@ public abstract class AbstractRdfStorage {
         foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
                 complexity,
                 0.15,
+                1, 30,  // currently, should be OK for all domains (TODO)
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 templatesInUse,
@@ -352,30 +376,30 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
-        // handle empty result
-        if (foundQuestionMetas.isEmpty() && limit < 1000) {
-            ch.since_start("searchQuestionsAdvanced - recurse to search better solution, after");
-            return searchQuestionsWithAdvancedMetadata(qr, limit * 4);
-        }
+//        // handle empty result
+//        if (foundQuestionMetas.isEmpty() && limit < 1000) {
+//            ch.since_start("searchQuestionsAdvanced - recurse to search better solution, after");
+//            return searchQuestionsWithAdvancedMetadata(qr, limit * 4);
+//        }
 
-        // too many entries, drop one by one
-        int iterCount = 0;
-        int iterLimit = foundQuestionMetas.size();
-        int actualLimit = Math.min(hardLimit, queryLimit * 4);
-        if (foundQuestionMetas.size() > actualLimit) {
-            while (foundQuestionMetas.size() > actualLimit && iterCount < iterLimit) {
-                int randIdx = random.nextInt(foundQuestionMetas.size());
-                QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
-                if (foundQuestionMetas.size() > actualLimit * 2 || (qm.getConceptBits() & unwantedConceptsBitmask) > 0
-                        && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
-                ) {
-                    foundQuestionMetas.remove(randIdx);
-                }
-                ++iterCount;
-            }
-
-            ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
-        }
+//        // too many entries, drop one by one
+//        int iterCount = 0;
+//        int iterLimit = foundQuestionMetas.size();
+//        int actualLimit = Math.min(hardLimit, queryLimit * 4);
+//        if (foundQuestionMetas.size() > actualLimit) {
+//            while (foundQuestionMetas.size() > actualLimit && iterCount < iterLimit) {
+//                int randIdx = random.nextInt(foundQuestionMetas.size());
+//                QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
+//                if (foundQuestionMetas.size() > actualLimit * 2 || (qm.getConceptBits() & unwantedConceptsBitmask) > 0
+//                        && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
+//                ) {
+//                    foundQuestionMetas.remove(randIdx);
+//                }
+//                ++iterCount;
+//            }
+//
+//            ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
+//        }
         // filter foundQuestionMetas, ranking by complexity, solution steps
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 complexity,
@@ -391,8 +415,10 @@ public abstract class AbstractRdfStorage {
 
         // set concepts from request (for future reference via questions' saved metadata)
         for (QuestionMetadataEntity m : foundQuestionMetas) {
-            m.setConceptBitsInRequest(targetConceptsBitmaskInRequest);
-            m.setViolationBitsInRequest(targetViolationsBitmaskInRequest);
+            m.setConceptBitsInPlan(targetConceptsBitmaskInRequest);
+            m.setViolationBitsInPlan(targetViolationsBitmaskInRequest);
+            m.setConceptBitsInRequest(targetConceptsBitmask);
+            m.setViolationBitsInRequest(targetLawsBitmask);
         }
         // ??? Save actual requested bits as well?
 

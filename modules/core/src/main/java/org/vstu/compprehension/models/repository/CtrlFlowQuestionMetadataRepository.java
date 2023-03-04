@@ -100,6 +100,8 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
 
     @Query(value = "SELECT * FROM (" +
             "select * from questions_meta q where q.domain_shortname = "+DOMAIN_NAME+" AND q._stage = 3 " +
+            "AND q.solution_steps >= :stepsMin " +
+            "AND q.solution_steps <= :stepsMax " +
             "AND q.concept_bits & :conceptD = 0 " +
             "AND q.violation_bits & :lawD = 0 " +
 //            "AND (IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) " +
@@ -107,11 +109,13 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
             "AND q.template_id NOT IN :ids " +
             "order by bit_count(q.trace_concept_bits & :conceptA) + bit_count(q.violation_bits & :lawA) + IF(abs(q.integral_complexity - :complexity) <= :complWindow, +10, -abs(q.integral_complexity - :complexity)) DESC " +
             "limit :randomPoolLim" +
-            ") T1 ORDER BY RAND() limit :lim",
+            ") T1 ORDER BY ((T1.concept_bits & :conceptA <> 0) + (T1.violation_bits & :lawA <> 0)) DESC, RAND() limit :lim",
             nativeQuery = true)
     List<QuestionMetadataEntity> findSampleAroundComplexityWithoutTemplates(
             @Param("complexity") double complexity,
             @Param("complWindow") double complexityWindow,
+            @Param("stepsMin") int solutionStepsMin,
+            @Param("stepsMax") int solutionStepsMax,
             @Param("conceptA") long conceptsPreferredBitmask,
             @Param("conceptD") long conceptsDeniedBitmask,
             @Param("lawA") long lawsPreferredBitmask,
