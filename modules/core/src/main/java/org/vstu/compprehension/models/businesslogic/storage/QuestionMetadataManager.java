@@ -167,6 +167,8 @@ public class QuestionMetadataManager {
     List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutTemplates(
             double complexity,
             double complexityMaxDifference,
+            int solutionStepsMin,
+            int solutionStepsMax,
             Long conceptPreferredBitmask, Long conceptDeniedBitmask,
             Long lawPreferredBitmask, Long lawDeniedBitmask,
             Collection<Integer> templatesIds,
@@ -179,7 +181,9 @@ public class QuestionMetadataManager {
             templatesIds = List.of(0);
         }
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutTemplates(complexity, complexityMaxDifference, conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, limit, (int)(limit * randomPoolMultiplier));
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutTemplates(complexity, complexityMaxDifference,
+                solutionStepsMin, solutionStepsMax,
+                conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, limit, (int)(limit * randomPoolMultiplier));
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }

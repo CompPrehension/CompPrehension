@@ -87,6 +87,8 @@ public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntit
     List<QuestionMetadataEntity> findSampleAroundComplexityWithoutTemplates(
             @Param("complexity") double complexity,
             @Param("complWindow") double complexityWindow,
+            @Param("stepsMin") int solutionStepsMin,
+            @Param("stepsMax") int solutionStepsMax,
             @Param("conceptA") long conceptsPreferredBitmask,
             @Param("conceptD") long conceptsDeniedBitmask,
             @Param("lawA") long lawsPreferredBitmask,

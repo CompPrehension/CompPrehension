@@ -63,7 +63,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
     
     static final String MESSAGE_PREFIX = "expr_domain.";
-    
+    static final String SUPPLEMENTARY_PREFIX = "supplementary.";
+
     public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
@@ -490,6 +491,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionName(qName);
 
         String text = q.getQuestionText().getText();
+        if (text.startsWith(MESSAGE_PREFIX) || text.startsWith(SUPPLEMENTARY_PREFIX)) {
+            text = getMessage(text, userLang);
+        }
 
         switch (q.getQuestionType()) {
             case ORDER:
@@ -704,7 +708,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         int answerIdx = -1;
         List<Integer> answerIdxStack = new ArrayList<>();  // pairedTwoTokenFirstAnswerIdxStack
         // todo: save placeholders or "empty" (non-operator) tokens as well
-        for (BackendFactEntity fact : expression) {
+        for (int i = 0, expressionSize = expression.size(); i < expressionSize; i++) {
+            BackendFactEntity fact = expression.get(i);
             String tokenValue = "";
             // suppress the value of token (always leave empty)
             /*if (fact.getSubjectType() != null) { // Token has value
@@ -720,20 +725,34 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             } else if (fact.getSubject() != null && fact.getSubject().equals(END_EVALUATION)) {
                 sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn'>").append(/*fact.getObject()*/ END_EVALUATION).append("</button>");
             } else {
-                // remember answer index of the first token of two-token operator
                 boolean needAddOrdinaryToken = true;
+                Integer answerIdxForButton = null;
+                // remember answer index of the first token of two-token operator
                 if (!answerIdxStack.isEmpty() && List.of(")", "]", ":").contains(fact.getObject())) {
-                    // add clickable token with the same answer index as its first counterpart
-                    Integer repeatedAnswerIdx = answerIdxStack.remove(answerIdxStack.size() - 1);
-                    if (repeatedAnswerIdx != null) {
-                        sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(repeatedAnswerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                    // we need a clickable token with the same answer index as its first counterpart (see below)
+                    answerIdxForButton = answerIdxStack.remove(answerIdxStack.size() - 1);
+                    if (answerIdxForButton != null) {
                         needAddOrdinaryToken = false;
                     }
                 }
+                if (i < expressionSize - 1 - 1) {  // not last, + ")" must be later
+                    // check out next token if it is a function's "("
+                    BackendFactEntity nextFact = expression.get(i + 1);
+                    if (nextFact.getObject().equals("(") && nextFact.getSubject().equals("operator")) {
+                        answerIdxForButton = answerIdx + 1; // value of the following token
+                        needAddOrdinaryToken = false;
+                    }
+                }
+                if (!needAddOrdinaryToken) {
+                    // add clickable token instead of plain token
+                    sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(answerIdxForButton).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                }
                 if (needAddOrdinaryToken) {
                     // add ordinary token
-                    sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                    sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' " +
+                            "data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
 
+                    // save placeholders or "empty" (non-operator) tokens as well: this keeps the stack valid
                     if (List.of("(", "[", "?").contains(fact.getObject())) {
                         answerIdxStack.add(null);
                     }
