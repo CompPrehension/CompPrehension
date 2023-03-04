@@ -1,7 +1,7 @@
 import { action, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem, Strategy } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConceptKind, ExerciseCardViewModel, ExerciseListItem, ExerciseStage, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -9,6 +9,7 @@ import { ExerciseController, IExerciseController } from "../controllers/exercise
 import { UserInfo } from "../types/user-info";
 import { Language } from "../types/language";
 import i18next from "i18next";
+import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 
 
 @injectable()
@@ -29,9 +30,19 @@ export class ExerciseSettingsStore {
     }
 
     private toCardViewModel(card: ExerciseCard): ExerciseCardViewModel {
+        const cardDomain = this.domains?.find(x => x.id === card.domainId);
+        if (!cardDomain)
+            throw new Error(`не найден домен ${card.domainId}`);    
+
         return {
             ...card,
             tags: card.tags.join(', '),
+            stages: card.stages
+                .map(stage => ({
+                    ...stage,
+                    concepts: stage.concepts.filter(c => cardDomain.concepts.some(cc => cc.name === c.name)),
+                    laws: stage.laws.filter(l => cardDomain.laws.some(ll => ll.name === l.name)),
+                })) as NonEmptyArray<ExerciseStage>,
         }
     }
 
