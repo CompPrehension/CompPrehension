@@ -106,7 +106,8 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
             "AND q.violation_bits & :lawD = 0 " +
 //            "AND (IF(:conceptA =0,1,q.trace_concept_bits & :conceptA <> 0) " +
 //            "  OR IF(:lawA =0,1,q.violation_bits & :lawA <> 0)) " +
-            "AND q.template_id NOT IN :ids " +
+            "AND q.template_id NOT IN :templateIDs " +
+            "AND q.id NOT IN :questionIDs " +
             "order by bit_count(q.trace_concept_bits & :conceptA) + bit_count(q.violation_bits & :lawA) + IF(abs(q.integral_complexity - :complexity) <= :complWindow, +10, -abs(q.integral_complexity - :complexity)) DESC " +
             "limit :randomPoolLim" +
             ") T1 ORDER BY ((T1.concept_bits & :conceptA <> 0) + (T1.violation_bits & :lawA <> 0)) DESC, RAND() limit :lim",
@@ -120,7 +121,8 @@ public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBase
             @Param("conceptD") long conceptsDeniedBitmask,
             @Param("lawA") long lawsPreferredBitmask,
             @Param("lawD") long lawsDeniedBitmask,
-            @Param("ids") Collection<Integer> templatesIds,
+            @Param("templateIDs") Collection<Integer> templatesIds,
+            @Param("questionIDs") Collection<Integer> questionsIds,
             @Param("lim") int limitNumber,
             @Param("randomPoolLim") int randomPoolLimitNumber
     );

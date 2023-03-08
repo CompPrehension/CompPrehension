@@ -371,7 +371,7 @@ public abstract class AbstractRdfStorage {
                 1, 30,  // currently, should be OK for all domains (TODO)
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
-                templatesInUse,
+                templatesInUse, List.of() /* <!! */,
                 queryLimit, 2);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
@@ -872,6 +872,7 @@ public abstract class AbstractRdfStorage {
                 q.getQuestionData().setOptions(new QuestionOptionsEntity());
             }
             q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());
+            q.getQuestionData().getOptions().setQuestionMetaId(qMeta.getId());
         }
         return q;
     }

@@ -38,5 +38,7 @@ public class QuestionOptionsEntity implements Serializable {
     @Builder.Default
     private int templateId = -1;
     @Builder.Default
+    private int questionMetaId = -1;
+    @Builder.Default
     private QuestionMetadataEntity metadata = null;
 }

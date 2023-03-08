@@ -172,18 +172,23 @@ public class QuestionMetadataManager {
             Long conceptPreferredBitmask, Long conceptDeniedBitmask,
             Long lawPreferredBitmask, Long lawDeniedBitmask,
             Collection<Integer> templatesIds,
+            Collection<Integer> questionsIds,
             int limit,
             double randomPoolMultiplier
     ) {
         conceptPreferredBitmask &= ~conceptDeniedBitmask;
         lawPreferredBitmask &= ~lawDeniedBitmask;
+        // lists cannot be empty in SQL: workaround
         if (templatesIds == null || templatesIds.isEmpty()) {
             templatesIds = List.of(0);
+        }
+        if (questionsIds == null || questionsIds.isEmpty()) {
+            questionsIds = List.of(0);
         }
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutTemplates(complexity, complexityMaxDifference,
                 solutionStepsMin, solutionStepsMax,
-                conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, limit, (int)(limit * randomPoolMultiplier));
+                conceptPreferredBitmask, conceptDeniedBitmask, lawPreferredBitmask, lawDeniedBitmask, templatesIds, questionsIds, limit, (int)(limit * randomPoolMultiplier));
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     }
