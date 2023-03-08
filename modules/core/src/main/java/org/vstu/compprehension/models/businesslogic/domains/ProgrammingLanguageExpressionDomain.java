@@ -209,7 +209,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_<<", List.of(singleTokenBinaryConcept, bitwise), "a << b", invisible);
 
         Concept arrays = addConcept("arrays", List.of(), "Массивы", noFlags);
-        Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", invisible);
+        Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", flags);
 
         Concept pointers = addConcept("pointers", List.of(singleTokenUnaryConcept), "Операции c указателями", flags);
         addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);

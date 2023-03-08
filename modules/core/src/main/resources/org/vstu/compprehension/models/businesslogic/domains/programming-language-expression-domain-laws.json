@@ -3468,6 +3468,20 @@
   {
     "name": "error_base_student_error_in_complex",
     "displayName": "Сгруппированные операнды ([], (), ?:)",
+    "bitflags": 2,
+    "positive": false,
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "two_token"},
+      {"name": "precedence"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_enclosing_operators",
+    "displayName": "Группирующие операции ([], f(), ?:)",
     "bitflags": 3,
     "positive": false,
     "formulations": [

@@ -296,6 +296,7 @@ public class QuestionMetadataManager {
         name2bit.put("error_base_binary_having_associativity_left", 0x800L);  	// (2048)
         name2bit.put("error_base_binary_having_associativity_right", 0x1000L);  // (4096)
         name2bit.put("error_base_unary_having_associativity_left", 0x2000L);  	// (8192)
+        name2bit.put("error_base_enclosing_operators", 0x4000L);  	// (16384)
         return name2bit;
     }
     private HashMap<String, Long> _fillLaws(HashMap<String, Long> name2bit) {
