@@ -145,34 +145,27 @@ public abstract class AbstractRdfStorage {
     }
 
     // could the two following methods be collapsed into one?? (replacing metaMgr with HashMap from it) - no, lists clash.
-    private long conceptsToBitmask(List<Concept> concepts, QuestionMetadataManager metaMgr) {
+    private long conceptsToBitmask(List<Concept> concepts) {
         long conceptBitmask = 0; //
         for (Concept t : concepts) {
-            String name = t.getName();
-            long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.conceptName2bit);
+            long newBit = t.getBitmask();
             if (newBit == 0) {
                 // make use of children
-                newBit = QuestionMetadataManager.namesToBitmask(
-                        domain.getChildrenOfConcept(name).stream().map(Concept::getName).collect(Collectors.toList()),
-                        metaMgr.conceptName2bit);
+                newBit = t.getBitmaskWithChildren();
             }
             conceptBitmask |= newBit;
         }
         return conceptBitmask;
     }
 
-    private long lawsAsViolationsToBitmask(List<Law> laws, QuestionMetadataManager metaMgr) {
+    private long lawsAsViolationsToBitmask(List<Law> laws) {
         long lawBitmask = 0; //
         // !! violations are not positive laws!
         for (Law t : laws) {
-            String name = t.getName();
-            long newBit = QuestionMetadataManager.namesToBitmask(List.of(name), metaMgr.violationName2bit);
+            long newBit = t.getBitmask();
             if (newBit == 0) {
                 // make use of children
-                // newBit |= QuestionMetadataManager.namesToBitmask(domain.getPositiveLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()), metaMgr.violationName2bit);
-                newBit |= QuestionMetadataManager.namesToBitmask(
-                        domain.getNegativeLawWithImplied(name).stream().map(Law::getName).collect(Collectors.toSet()),
-                        metaMgr.violationName2bit);
+                newBit = t.getBitmaskWithImplied();
            }
             lawBitmask |= newBit;
         }
@@ -322,9 +315,9 @@ public abstract class AbstractRdfStorage {
 
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
-        long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
+        long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts());
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
-        long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts(), metaMgr);
+        long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts());
         long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
@@ -337,9 +330,9 @@ public abstract class AbstractRdfStorage {
         }
 
         // TODO: use laws for expr Domain
-        long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws(), metaMgr);
+        long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws());
         /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
-        long deniedLawsBitmask = lawsAsViolationsToBitmask(qr.getDeniedLaws(), metaMgr);
+        long deniedLawsBitmask = lawsAsViolationsToBitmask(qr.getDeniedLaws());
         long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
@@ -416,10 +409,10 @@ public abstract class AbstractRdfStorage {
         for (QuestionMetadataEntity m : foundQuestionMetas) {
             m.setConceptBitsInPlan(targetConceptsBitmaskInRequest);
             m.setViolationBitsInPlan(targetViolationsBitmaskInRequest);
+            // Save actual requested bits as well
             m.setConceptBitsInRequest(targetConceptsBitmask);
             m.setViolationBitsInRequest(targetLawsBitmask);
         }
-        // ??? Save actual requested bits as well?
 
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
 
