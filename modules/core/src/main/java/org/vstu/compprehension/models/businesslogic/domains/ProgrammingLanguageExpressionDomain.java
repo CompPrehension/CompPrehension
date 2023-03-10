@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -40,6 +43,8 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -57,15 +62,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
     static final String PRECEDENCE_TYPE_QUESTION_TYPE = "PrecedenceType";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
+    static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
-    static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
-    static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
-    public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
+    static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
+    static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-messages";
     
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
-    public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
+    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-name-bit.yml";
+    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
@@ -83,6 +90,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
 
+        readName2bit();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
@@ -96,6 +104,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = null;
 
+        readName2bit();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
@@ -118,8 +127,25 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "ProgrammingLanguageExpressionDomain";
     }
 
+    private void readName2bit() {
+        Objects.requireNonNull(NAME2BIT_PATH);
+
+        InputStream stream = this.getClass().getClassLoader().getResourceAsStream(NAME2BIT_PATH);
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        // parse int values as long
+        objectMapper.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
+        try {
+            Map<String, Long> mapping = objectMapper.readValue(stream, HashMap.class);
+            // System.out.println(mapping);
+            name2bit = mapping;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Cannot load name2bit mapping");
+        }
+    }
+
     private void fillConcepts() {
-        concepts = new ArrayList<>();
+        concepts = new HashMap<>();
 
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
         int invisible = Concept.FLAG_TARGET_ENABLED;
@@ -246,24 +272,31 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
         Concept errorUnevaluatedOperand = addConcept("error_base_student_error_unevaluated_operand");
         Concept errorEarlyFinish = addConcept("error_base_student_error_early_finish");
+
+        fillConceptTree();
+
+        // assign mask bits to Concepts
+        for (Concept t : concepts.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
         Concept concept = new Concept(name, /*displayName,*/ baseConcepts, flags);
-        concepts.add(concept);
-        return concept;
+        return addConcept(concept);
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
         Concept concept = new Concept(name, baseConcepts);
-        concepts.add(concept);
-        return concept;
+        return addConcept(concept);
     }
 
     private Concept addConcept(String name) {
         Concept concept = new Concept(name);
-        concepts.add(concept);
-        return concept;
+        return addConcept(concept);
     }
 
     public static class SupplementaryAnswerTransition {
@@ -278,7 +311,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         public List<SupplementaryAnswerTransition> transitions;
     }
 
-    class SupplementaryConfig {
+    static class SupplementaryConfig {
         String name;
         List<SupplementaryAnswerConfig> answers;
     }
@@ -303,8 +336,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private void readLaws(InputStream inputStream) {
-        positiveLaws = new ArrayList<>();
-        negativeLaws = new ArrayList<>();
+        positiveLaws = new HashMap<>();
+        negativeLaws = new HashMap<>();
 
         RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory
@@ -320,9 +353,25 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         for (Law lawForm : lawForms) {
             if (lawForm.isPositiveLaw()) {
-                positiveLaws.add((PositiveLaw) lawForm);
+                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
             } else {
-                negativeLaws.add((NegativeLaw) lawForm);
+                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
+            }
+        }
+
+        fillLawsTree();
+
+        // assign mask bits to Laws
+        for (Law t : positiveLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
+        for (Law t : negativeLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
             }
         }
     }

@@ -320,7 +320,6 @@ public abstract class AbstractRdfStorage {
         solutionSteps = (int)Math.round(metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10));
         */
 
-        List<QuestionMetadataEntity> foundQuestionMetas;
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
 
         long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts(), metaMgr);
@@ -365,7 +364,7 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
+        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
                 complexity,
                 0.15,
                 1, 30,  // currently, should be OK for all domains (TODO)

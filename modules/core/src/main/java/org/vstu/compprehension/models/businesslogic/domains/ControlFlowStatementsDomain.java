@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -37,6 +38,7 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +47,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import java.io.File;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
@@ -71,9 +77,11 @@ public class ControlFlowStatementsDomain extends Domain {
     public static DomainVocabulary getVocabulary() {
         return VOCAB;
     }
+    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-name-bit.yml";
 
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
+
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
@@ -82,16 +90,17 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Autowired
     public ControlFlowStatementsDomain(LocalizationService localizationService,
-                                       DomainRepository domainRepository,
-                                       RandomProvider randomProvider,
-                                       CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository) {
+         DomainRepository domainRepository,
+         RandomProvider randomProvider,
+         CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository) {
         super(randomProvider);
         this.localizationService = localizationService;
         this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
         name = "ControlFlowStatementsDomain";
 //        if (domainRepository != null)
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
-        
+
+        readName2bit();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
@@ -110,31 +119,41 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     private void fillConcepts() {
-        concepts = new ArrayList<>();
+        concepts = new HashMap<>();
         initVocab();
-        concepts.addAll(VOCAB.readConcepts());
+        addConcepts(VOCAB.readConcepts());
 
         // add concepts about expressions present in algorithms
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
         Concept nested_loop = new Concept("nested_loop", List.of(), flagsAll);
-        concepts.add(nested_loop);
         Concept exprC = new Concept("exprs_in_use", List.of(), flags);
-        concepts.add(exprC);
         List<Concept> bases = List.of(exprC);
-        concepts.addAll(List.of(
+        addConcepts(List.of(
+                nested_loop,
+                exprC,
                 new Concept("expr:pointer", bases, flags),
                 new Concept("expr:func_call", bases, flags),
                 new Concept("expr:explicit_cast", bases, flags),
                 new Concept("expr:array", bases, flags),
                 new Concept("expr:class_member_access", bases, flags)
         ));
+
+        fillConceptTree();
+
+        // assign mask bits to Concepts
+        for (Concept t : concepts.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
     }
 
     private void readLaws(InputStream inputStream) {
         Objects.requireNonNull(inputStream);
-        positiveLaws = new ArrayList<>();
-        negativeLaws = new ArrayList<>();
+        positiveLaws = new HashMap<>();
+        negativeLaws = new HashMap<>();
 
         RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory
@@ -150,17 +169,50 @@ public class ControlFlowStatementsDomain extends Domain {
 
         for (Law lawForm : lawForms) {
             if (lawForm.isPositiveLaw()) {
-                positiveLaws.add((PositiveLaw) lawForm);
+                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
             } else {
-                negativeLaws.add((NegativeLaw) lawForm);
+                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
             }
         }
 
         // add empty laws that name each possible error
         for (String errClass : VOCAB.classDescendants("Erroneous")) {
-            negativeLaws.add(new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
         }
 
+
+        fillLawsTree();
+
+        // assign mask bits to Laws
+        for (Law t : positiveLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
+        for (Law t : negativeLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
+    }
+
+    private void readName2bit() {
+        Objects.requireNonNull(NAME2BIT_PATH);
+
+        InputStream stream = this.getClass().getClassLoader().getResourceAsStream(NAME2BIT_PATH);
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+        // parse int values as long
+        objectMapper.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
+        try {
+            Map<String, Long> mapping = objectMapper.readValue(stream, HashMap.class);
+            // System.out.println(mapping);
+            name2bit = mapping;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Cannot load name2bit mapping");
+        }
     }
 
     @Override
@@ -873,14 +925,14 @@ public class ControlFlowStatementsDomain extends Domain {
     public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
 
         List<Law> laws = new ArrayList<>();
-        laws.addAll(positiveLaws);
-        laws.addAll(negativeLaws);
+        laws.addAll(positiveLaws.values());
+        laws.addAll(negativeLaws.values());
         return laws;
     }
 
     // filter positive laws by question type and tags
     @Override
-    public List<PositiveLaw> getQuestionPositiveLaws(String domainQuestionType, List<Tag> tags) {
+    public Collection<PositiveLaw> getQuestionPositiveLaws(String domainQuestionType, List<Tag> tags) {
         /// debug OFF
         if (false && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE) || domainQuestionType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
@@ -909,7 +961,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return getPositiveLaws();
     }
 
-    public List<NegativeLaw> getQuestionNegativeLaws(String domainQuestionType, List<Tag> tags) {
+    public Collection<NegativeLaw> getQuestionNegativeLaws(String domainQuestionType, List<Tag> tags) {
         /// debug OFF
         if (false && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
@@ -2140,20 +2192,6 @@ public class ControlFlowStatementsDomain extends Domain {
 
     }
 
-    public static void main(String[] args) {
-        if (true)
-            _test_Substitutor();
-        else {
-            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
-            d.getQuestionTemplates();
-            VOCAB.classDescendants("Erroneous");
-
-            JenaFactList fl = new JenaFactList(VOCAB.getModel());
-            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
-//        jBack.debug_dump_model("question");
-        }
-    }
-
     private static class AnswerDomainInfo {
         private final String domainInfo;
         private String phase;
@@ -2188,4 +2226,18 @@ public class ControlFlowStatementsDomain extends Domain {
             return this;
         }
     }
+
+    public static void main(String[] args) {
+        if (true) {
+            _test_Substitutor();
+        } else {
+            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
+            d.getQuestionTemplates();
+            VOCAB.classDescendants("Erroneous");
+
+            JenaFactList fl = new JenaFactList(VOCAB.getModel());
+            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
+        }
+    }
+
 }
