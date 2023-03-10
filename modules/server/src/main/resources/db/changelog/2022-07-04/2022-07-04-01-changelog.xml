@@ -32,7 +32,7 @@
     <changeSet id="1656971501993-2" author="Mikhail Denisov">
         <preConditions onFail="MARK_RAN">
             <!-- Check that no concepts present for exercise 11 -->
-            <sqlCheck expectedResult="0">select exists(select 1 from exercise_concepts where exercise_id = 11) AS notEmpty</sqlCheck>
+            <sqlCheck expectedResult="1">select exists(select 1 from exercise_concepts where exercise_id = 11) AS notEmpty</sqlCheck>
         </preConditions>
 
         <insert tableName="exercise_concepts">

@@ -5,9 +5,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
     <changeSet id="1667844947700-1" author="Artem Prokudin">
+        <validCheckSum>ANY</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
-                SELECT COUNT(1) FROM `exercise` WHERE id = 20
+                SELECT COUNT(1) FROM `exercise` WHERE id IN (20, 21)
+            </sqlCheck>
+            <sqlCheck expectedResult="2">
+                SELECT COUNT(1) FROM `domain` WHERE name IN ('ControlFlowStatementsDomain', 'ProgrammingLanguageExpressionDomain')
             </sqlCheck>
         </preConditions>
         <sql>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="1678455680815-1" author="Artem Prokudin">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select exists(select 1 from domain where name = 'ControlFlowStatementsDomain')</sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `domain` (`name`,`version`,`short_name`,`options_json`)
+            VALUES ('ControlFlowStatementsDomain','1','control_flow','{\"QuestionsGraphPath\": \"C:/Temp2/compp/control_flow.ttl\", \"StorageSPARQLEndpointUrl\": null, \"StorageUploadFilesBaseUrl\": \"file:///C:/Temp2/compp/control_flow/\", \"StorageDummyDirsForNewFile\": 2, \"StorageDownloadFilesBaseUrl\": \"file:///C:/Temp2/compp/control_flow/\"}');
+        </sql>
+    </changeSet>
+    <changeSet id="1678455680815-2" author="Artem Prokudin">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">select exists(select 1 from domain where name = 'ProgrammingLanguageExpressionDomain')</sqlCheck>
+        </preConditions>
+        <sql>
+            INSERT INTO `domain` (`name`,`version`,`short_name`,`options_json`)
+            VALUES ('ProgrammingLanguageExpressionDomain','1','expression','{\"QuestionsGraphPath\": \"C:/Temp2/compp/expression.ttl\", \"StorageSPARQLEndpointUrl\": null, \"StorageUploadFilesBaseUrl\": \"file:///C:/Temp2/compp/expression/\", \"StorageDummyDirsForNewFile\": 2, \"StorageDownloadFilesBaseUrl\": \"file:///C:/Temp2/compp/expression/\"}');
+        </sql>
+    </changeSet>
+    <changeSet id="1678455680815-3" author="Artem Prokudin">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT EXISTS
+                   (SELECT 1 FROM information_schema.tables
+                    WHERE table_schema = (SELECT DATABASE()) AND table_name = 'questions_meta');
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            CREATE TABLE `questions_meta` (
+              `id` int(11) NOT NULL AUTO_INCREMENT,
+              `name` text,
+              `domain_shortname` varchar(45) NOT NULL DEFAULT 'ctrl_flow',
+              `template_id` int(11) NOT NULL,
+              `q_graph` text,
+              `q_data_graph` text,
+              `tag_bits` bigint(20) DEFAULT NULL,
+              `concept_bits` bigint(20) DEFAULT NULL,
+              `law_bits` bigint(20) DEFAULT NULL,
+              `violation_bits` bigint(20) DEFAULT NULL,
+              `trace_concept_bits` bigint(20) DEFAULT NULL,
+              `solution_structural_complexity` double DEFAULT NULL,
+              `integral_complexity` double DEFAULT NULL,
+              `solution_steps` int(11) DEFAULT NULL,
+              `distinct_errors_count` int(11) DEFAULT NULL,
+              `_stage` int(11) DEFAULT NULL,
+              `_version` int(11) DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              KEY `idx_domain_name` (`domain_shortname`)
+            ) DEFAULT CHARSET=utf8;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
