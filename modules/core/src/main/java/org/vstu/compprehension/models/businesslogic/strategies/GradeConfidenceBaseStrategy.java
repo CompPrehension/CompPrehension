@@ -67,20 +67,14 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         ExerciseStageEntity exerciseStage = exercise.getStages().get(0);
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
 
-        qr.setTargetConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).map(ec -> domain.getConcept(ec.getName())).filter(Objects::nonNull).collect(Collectors.toList()));
-        qr.setAllowedConcepts(new ArrayList<>());
-        qr.setAllowedLaws(new ArrayList<>());
-        qr.setDeniedConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+        qr.setTargetConcepts(filterExerciseStageConcepts(exConcepts, domain, RoleInExercise.TARGETED));
+        qr.setAllowedConcepts(List.of());
+        qr.setAllowedLaws(List.of());
+        qr.setDeniedConcepts(getExerciseStageConceptsWithChildren(exConcepts, domain, RoleInExercise.FORBIDDEN));
 
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
 
-        qr.setDeniedLaws(exLaws.stream()
-                .filter(ec -> ec.getKind()
-                        .equals(RoleInExercise.FORBIDDEN))
-                .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
-                .collect(Collectors.toList()));
+        qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
 
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
         HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
@@ -466,7 +460,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             // получить законы из домена (все подряд)
             Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-            List<NegativeLaw> targetLaws = domain.getNegativeLaws();
+            Collection<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {
                 allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
             }

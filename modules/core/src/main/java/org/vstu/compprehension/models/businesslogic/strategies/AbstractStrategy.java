@@ -1,11 +1,16 @@
 package org.vstu.compprehension.models.businesslogic.strategies;
 
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.dto.ExerciseConceptDto;
+import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.models.businesslogic.Concept;
+import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
@@ -13,6 +18,9 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface AbstractStrategy {
     @NotNull String getStrategyId();
@@ -32,6 +40,35 @@ public interface AbstractStrategy {
     float grade(ExerciseAttemptEntity exerciseAttempt);
 
     Decision decide(ExerciseAttemptEntity exerciseAttempt);
+
+    @NotNull
+    default List<Concept> filterExerciseStageConcepts(
+            @NotNull List<ExerciseConceptDto> stageConcepts,
+            Domain domain,
+            RoleInExercise role) {
+        return stageConcepts.stream().filter(ec -> ec.getKind().equals(role)).map(ec -> domain.getConcept(ec.getName())).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    @NotNull
+    default List<Concept> getExerciseStageConceptsWithChildren(
+            @NotNull List<ExerciseConceptDto> stageConcepts,
+            Domain domain,
+            RoleInExercise role) {
+        return stageConcepts.stream().filter(ec -> ec.getKind().equals(role)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList());
+    }
+
+    @NotNull
+    default List<Law> getExerciseStageLawsWithImplied(
+            @NotNull List<ExerciseLawDto> stageLaws,
+            Domain domain,
+            RoleInExercise role) {
+        return stageLaws.stream()
+                .filter(ec -> ec.getKind().equals(role))
+                .flatMap(ec -> Stream.concat(
+                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
+                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
+                .collect(Collectors.toList());
+    }
 
     /**
      * Return names of questions were generated within an exercise attempt
