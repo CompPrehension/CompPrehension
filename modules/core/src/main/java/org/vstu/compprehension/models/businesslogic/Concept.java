@@ -6,7 +6,7 @@ import java.util.*;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Concept {
+public class Concept implements TreeNodeWithBitmask {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
     public static int FLAG_VISIBLE_TO_TEACHER = 1;
     /** When present, this flag enables a concept to be selected as TARGET at exercise configuration page. */
@@ -73,10 +73,20 @@ public class Concept {
     	return (bitflags & flagCode) != 0;
     }
 
-    public long getBitmaskWithChildren() {
+    Long subTreeBitmaskCache = null;
+
+    /**
+     * @return bits of this concept and all childConcepts
+     */
+    public long getSubTreeBitmask() {
         if (childConcepts == null)
             return bitmask;
-        return bitmask | (childConcepts.stream().map(Concept::getBitmaskWithChildren).reduce((a, b) -> a|b).orElse(0L));
+
+        if (subTreeBitmaskCache != null)
+            return subTreeBitmaskCache;
+
+        return subTreeBitmaskCache =
+                bitmask | (childConcepts.stream().map(Concept::getSubTreeBitmask).reduce((a, b) -> a|b).orElse(0L));
     }
 
     /**
