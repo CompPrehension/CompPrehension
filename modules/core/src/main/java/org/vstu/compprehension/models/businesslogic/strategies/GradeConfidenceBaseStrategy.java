@@ -62,19 +62,16 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        QuestionRequest qr = new QuestionRequest();
 
         ExerciseStageEntity exerciseStage = exercise.getStages().get(0);
-        List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
+        QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
-        qr.setTargetConcepts(filterExerciseStageConcepts(exConcepts, domain, RoleInExercise.TARGETED));
-        qr.setAllowedConcepts(List.of());
-        qr.setAllowedLaws(List.of());
-        qr.setDeniedConcepts(getExerciseStageConceptsWithChildren(exConcepts, domain, RoleInExercise.FORBIDDEN));
+//        qr.setAllowedConcepts(List.of());
+//        qr.setAllowedLaws(List.of());
 
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
 
-        qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
+//        qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
 
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
         HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
@@ -145,14 +142,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         }
 
         qr.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
-        qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));
-        qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));
-
 
         loggingParams(studentType, studentsComplexity, lawsDirections);
         loggingRequest(qr);
 
-        return qr;
+        return adjustQuestionRequest(qr, exerciseAttempt);
     }
 
     @Override

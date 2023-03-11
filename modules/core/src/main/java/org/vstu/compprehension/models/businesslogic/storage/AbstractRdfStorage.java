@@ -151,7 +151,7 @@ public abstract class AbstractRdfStorage {
             long newBit = t.getBitmask();
             if (newBit == 0) {
                 // make use of children
-                newBit = t.getBitmaskWithChildren();
+                newBit = t.getSubTreeBitmask();
             }
             conceptBitmask |= newBit;
         }
@@ -165,7 +165,7 @@ public abstract class AbstractRdfStorage {
             long newBit = t.getBitmask();
             if (newBit == 0) {
                 // make use of children
-                newBit = t.getBitmaskWithImplied();
+                newBit = t.getSubTreeBitmask();
            }
             lawBitmask |= newBit;
         }
@@ -301,11 +301,7 @@ public abstract class AbstractRdfStorage {
         int queryLimit = (limit/* * 3*/ + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
         int hardLimit = 25;
 
-        Random random = domain.getRandomProvider().getRandom();
-
-        //  * (0.8 .. 1.2)
-        double changeCoeff = 0.8f + 0.4f * random.nextDouble();
-        double complexity = qr.getComplexity() * changeCoeff;
+        double complexity = qr.getComplexity();
         complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
         /*
         int solutionSteps = qr.getSolvingDuration();  // 0..10
@@ -314,6 +310,7 @@ public abstract class AbstractRdfStorage {
         */
 
         List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
+        List<Integer> questionsInUse = qr.getDeniedQuestionMetaIds();
 
         long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts());
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
@@ -323,13 +320,13 @@ public abstract class AbstractRdfStorage {
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInRequest = targetConceptsBitmask;
+        long targetConceptsBitmaskInRequest = conceptsToBitmask(qr.getTargetConceptsInPlan());
 
-        if (bitCount(targetConceptsBitmaskInRequest) >= 2) {
-            targetConceptsBitmask = leastUsedConcepts(qr, targetConceptsBitmaskInRequest, 0.0);
-        }
+//        if (bitCount(targetConceptsBitmaskInRequest) >= 2) {
+//            targetConceptsBitmask = leastUsedConcepts(qr, targetConceptsBitmaskInRequest, 0.0);
+//        }
 
-        // TODO: use laws for expr Domain
+        // use laws, for e.g. Expr domain
         long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws());
         /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
         long deniedLawsBitmask = lawsAsViolationsToBitmask(qr.getDeniedLaws());
@@ -338,15 +335,12 @@ public abstract class AbstractRdfStorage {
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInRequest = targetLawsBitmask;
+        long targetViolationsBitmaskInRequest = lawsAsViolationsToBitmask(qr.getTargetLawsInPlan());
 
-        if (bitCount(targetViolationsBitmaskInRequest) >= 2) {
-            targetLawsBitmask = leastUsedViolations(qr, targetViolationsBitmaskInRequest, 0.0);
-        }
+//        if (bitCount(targetViolationsBitmaskInRequest) >= 2) {
+//            targetLawsBitmask = leastUsedViolations(qr, targetViolationsBitmaskInRequest, 0.0);
+//        }
 
-//        List<Integer> selectedLawKeys = fit3Bitmasks(targetLawsBitmask, allowedLawsBitmask,
-//                deniedLawsBitmask, unwantedLawsBitmask, queryLimit * 3 / 2, (!->) metaMgr.wholeBankStat.getViolationStat(), random);
-        // */
 
         // take violations from all questions is exercise attempt
         long unwantedViolationsBitmask = qr.getExerciseAttempt().getQuestions().stream()
@@ -363,36 +357,11 @@ public abstract class AbstractRdfStorage {
                 1, 30,  // currently, should be OK for all domains (TODO)
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
-                templatesInUse, List.of() /* <!! */,
-                queryLimit, 2);
+                List.of()/*templatesInUse*/, questionsInUse,
+                queryLimit, 12);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
-//        // handle empty result
-//        if (foundQuestionMetas.isEmpty() && limit < 1000) {
-//            ch.since_start("searchQuestionsAdvanced - recurse to search better solution, after");
-//            return searchQuestionsWithAdvancedMetadata(qr, limit * 4);
-//        }
-
-//        // too many entries, drop one by one
-//        int iterCount = 0;
-//        int iterLimit = foundQuestionMetas.size();
-//        int actualLimit = Math.min(hardLimit, queryLimit * 4);
-//        if (foundQuestionMetas.size() > actualLimit) {
-//            while (foundQuestionMetas.size() > actualLimit && iterCount < iterLimit) {
-//                int randIdx = random.nextInt(foundQuestionMetas.size());
-//                QuestionMetadataEntity qm = foundQuestionMetas.get(randIdx);
-//                if (foundQuestionMetas.size() > actualLimit * 2 || (qm.getConceptBits() & unwantedConceptsBitmask) > 0
-//                        && (qm.getViolationBits() & unwantedViolationsBitmask) > 0
-//                ) {
-//                    foundQuestionMetas.remove(randIdx);
-//                }
-//                ++iterCount;
-//            }
-//
-//            ch.hit("searchQuestionsAdvanced - reduced to " + foundQuestionMetas.size() + " candidates");
-//        }
-        // filter foundQuestionMetas, ranking by complexity, solution steps
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 complexity,
 //                solutionSteps,
@@ -400,7 +369,7 @@ public abstract class AbstractRdfStorage {
                 unwantedConceptsBitmask,
                 unwantedLawsBitmask,
                 unwantedViolationsBitmask,
-                Math.min(limit, hardLimit)  // Note: queryLimit > limit
+                Math.min(limit, hardLimit)  // Note: queryLimit >= limit
             );
 
         ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
@@ -548,8 +517,6 @@ public abstract class AbstractRdfStorage {
         for (QuestionMetadataEntity meta : metas) {
             Question question = loadQuestion(meta);
             if (question != null) {
-                question.setMetadata(meta);
-                question.getQuestionData().getOptions().setMetadata(meta);
                 list.add(question);
             }
         }
@@ -865,6 +832,8 @@ public abstract class AbstractRdfStorage {
             }
             q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());
             q.getQuestionData().getOptions().setQuestionMetaId(qMeta.getId());
+            q.getQuestionData().getOptions().setMetadata(qMeta);
+            q.setMetadata(qMeta);
         }
         return q;
     }

@@ -12,20 +12,23 @@ public class QuestionRequest {
     private List<Concept> deniedConcepts;
 
     private List<Concept> targetConcepts;
+    private List<Concept> targetConceptsInPlan;
 
     /** Question Storage can treat this as "optional targets" or "preferred" */
     private List<Concept> allowedConcepts;
 
     private List<Law> targetLaws;
-    
+    private List<Law> targetLawsInPlan;
+
     private List<Law> deniedLaws;
 
     private List<Law> allowedLaws;
 
     private List<String> deniedQuestionNames;
 
-    // ?? todo: delete field since we're using QuestionEntity.options.metadata
+    // see also: QuestionEntity.options.metadata
     private List<Integer> deniedQuestionTemplateIds = null;
+    private List<Integer> deniedQuestionMetaIds = null;  // same as deniedQuestionNames but using ids instead of names
 
     /**
      * Условная единица, показывающая долго или быстро решается вопрос
