@@ -385,6 +385,10 @@ public abstract class AbstractRdfStorage {
 
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
 
+        if (loadedQuestions.size() == 1) {
+            // todo: increment the question's usage counter
+        }
+
         ch.hit("searchQuestionsAdvanced - files loaded");
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
 

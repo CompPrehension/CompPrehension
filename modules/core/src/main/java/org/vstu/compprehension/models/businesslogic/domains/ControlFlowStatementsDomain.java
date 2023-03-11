@@ -554,7 +554,7 @@ public class ControlFlowStatementsDomain extends Domain {
                         chance > 0.0 &&
                         randomProvider.getRandom().nextDouble() < chance)
         {
-            final int randomPoolSize = 10;  // 16;
+            final int randomPoolSize = 1;  // 16;
             try {
                 // new version - invoke rdfStorage search
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);

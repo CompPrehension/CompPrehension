@@ -668,13 +668,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
-                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
                 }
             } catch (RuntimeException ex) {
                 // file storage was not configured properly...
