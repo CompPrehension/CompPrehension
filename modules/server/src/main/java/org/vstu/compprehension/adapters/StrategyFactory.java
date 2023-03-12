@@ -1,19 +1,29 @@
-package org.vstu.compprehension.models.businesslogic.strategies;
+package org.vstu.compprehension.adapters;
 
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy;
+import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy_Manual50Autogen50;
+import org.vstu.compprehension.strategies.StaticStrategy;
+import org.vstu.compprehension.strategies.Strategy;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
+import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @Component @Singleton
-public class StrategyFactory {
+public class StrategyFactory implements AbstractStrategyFactory {
     private @NotNull HashMap<String, Class<? extends AbstractStrategy>> strategyToClassMap = new HashMap<>();
 
     @Autowired

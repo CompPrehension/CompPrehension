@@ -20,10 +20,8 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
@@ -64,7 +62,7 @@ public class FrontendService {
     private QuestionService questionService;
 
     @Autowired
-    private StrategyFactory strategyFactory;
+    private AbstractStrategyFactory strategyFactory;
 
     @Autowired
     private FeedbackRepository feedbackRepository;
@@ -248,6 +246,8 @@ public class FrontendService {
 
         val violation = new ViolationEntity(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
+
+        // domain.generateSupplementaryQuestion(question, violation)
 
         val supQuestion = questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
         return supQuestion != null ? Mapper.toDto(supQuestion) : null;

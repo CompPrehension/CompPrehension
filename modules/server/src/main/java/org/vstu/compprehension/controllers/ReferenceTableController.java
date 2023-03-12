@@ -14,7 +14,8 @@ import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
+import org.vstu.compprehension.adapters.StrategyFactory;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.stream.Stream;
 @RequestMapping({"api/refTables" })
 public class ReferenceTableController {
     private final DomainFactory domainFactory;
-    private final StrategyFactory strategyFactory;
+    private final AbstractStrategyFactory strategyFactory;
     private final BackendFactory backendFactory;
     private final UserService userService;
 

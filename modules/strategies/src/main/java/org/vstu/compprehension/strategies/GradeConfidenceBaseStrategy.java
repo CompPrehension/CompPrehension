@@ -1,29 +1,23 @@
-package org.vstu.compprehension.models.businesslogic.strategies;
+package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.util.Pair;
-import org.springframework.stereotype.Component;
-import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.NegativeLaw;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
-import javax.inject.Singleton;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@Component @Singleton @Primary
 @Log4j2
 public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
@@ -35,7 +29,6 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     protected static float CONFIDENCE_MULTIPLIER = 1.0f /*(float)1.2*/;
     protected static int DEFAULT_LAW_COUNT = 2 /*5*/;
 
-    @Autowired
     public GradeConfidenceBaseStrategy(DomainFactory domainFactory) {
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()

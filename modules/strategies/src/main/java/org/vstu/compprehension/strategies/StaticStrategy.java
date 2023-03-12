@@ -1,32 +1,26 @@
-package org.vstu.compprehension.models.businesslogic.strategies;
+package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.vstu.compprehension.dto.ExerciseConceptDto;
-import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.entities.EnumData.*;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
-import javax.inject.Singleton;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@Component @Singleton @Primary
 @Log4j2
 public class StaticStrategy implements AbstractStrategy {
 
