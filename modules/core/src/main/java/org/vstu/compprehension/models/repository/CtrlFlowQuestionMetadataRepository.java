@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBaseRepository<QuestionMetadataEntity> {
+public interface CtrlFlowQuestionMetadataRepository extends QuestionMetadataBaseRepository {
 
     String DOMAIN_NAME = "'ctrl_flow'";
     /* Note: we currently use `violation_bits` column for matching "laws" */

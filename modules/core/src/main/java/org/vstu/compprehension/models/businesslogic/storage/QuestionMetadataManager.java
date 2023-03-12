@@ -12,14 +12,14 @@ import java.util.*;
 @Getter
 public class QuestionMetadataManager {
 
-    QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> questionRepository;
+    QuestionMetadataBaseRepository questionRepository;
     QuestionGroupStat wholeBankStat;
     HashMap<String, Long> conceptName2bit;
     HashMap<String, Long> lawName2bit;
     HashMap<String, Long> violationName2bit;
 
     public QuestionMetadataManager(
-            QuestionMetadataBaseRepository<? extends QuestionMetadataEntity>questionMetadataRepository
+            QuestionMetadataBaseRepository questionMetadataRepository
     ) {
         this.questionRepository = questionMetadataRepository;
 

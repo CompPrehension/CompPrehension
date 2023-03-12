@@ -14,11 +14,11 @@ import java.util.Map;
 
 // Базовый пользовательский интерфейс
 @NoRepositoryBean
-public interface QuestionMetadataBaseRepository <T extends QuestionMetadataEntity> extends CrudRepository<T, Integer> {
+public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionMetadataEntity, Integer> {
 
     @NotNull
     @Override
-    Iterable<T> findAll();
+    Iterable<QuestionMetadataEntity> findAll();
 
     Map<String, Object> getStatOnComplexityField();
 

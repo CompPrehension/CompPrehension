@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public interface ExpressionQuestionMetadataRepository extends QuestionMetadataBaseRepository<QuestionMetadataEntity> {
+public interface ExpressionQuestionMetadataRepository extends QuestionMetadataBaseRepository {
 
     String DOMAIN_NAME = "'expression'";
     /* Note: we currently use `violation_bits` column for matching "laws" */

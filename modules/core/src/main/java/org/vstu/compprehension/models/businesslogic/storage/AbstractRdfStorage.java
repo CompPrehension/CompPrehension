@@ -104,8 +104,7 @@ public abstract class AbstractRdfStorage {
     QuestionMetadataManager getQuestionMetadataManager() {
         if (this.questionMetadataManager == null) {
             if (this.domain != null) {
-                QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> repo =
-                        domain.getQuestionMetadataRepository();
+                val repo = domain.getQuestionMetadataRepository();
                 if (repo != null)
                     questionMetadataManager = new QuestionMetadataManager(repo);
             }
