@@ -48,7 +48,6 @@ public abstract class Domain {
      * version of domain (in db)
      */
     protected String version = "";
-    protected Map<String, Long> name2bit = null;
     @Getter
     protected final RandomProvider randomProvider;
 

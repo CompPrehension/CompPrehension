@@ -100,7 +100,6 @@ public class ControlFlowStatementsDomain extends Domain {
 //        if (domainRepository != null)
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
 
-        readName2bit();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
@@ -142,6 +141,7 @@ public class ControlFlowStatementsDomain extends Domain {
         fillConceptTree();
 
         // assign mask bits to Concepts
+        val name2bit = _getConceptsName2bit();
         for (Concept t : concepts.values()) {
             val name = t.getName();
             if (name2bit.containsKey(name)) {
@@ -184,34 +184,18 @@ public class ControlFlowStatementsDomain extends Domain {
         fillLawsTree();
 
         // assign mask bits to Laws
-        for (Law t : positiveLaws.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
+//        for (Law t : positiveLaws.values()) {
+//            val name = t.getName();
+//            if (name2bit.containsKey(name)) {
+//                t.setBitmask(name2bit.get(name));
+//            }
+//        }
+        val name2bit = _getViolationsName2bit();
         for (Law t : negativeLaws.values()) {
             val name = t.getName();
             if (name2bit.containsKey(name)) {
                 t.setBitmask(name2bit.get(name));
             }
-        }
-    }
-
-    private void readName2bit() {
-        Objects.requireNonNull(NAME2BIT_PATH);
-
-        InputStream stream = this.getClass().getClassLoader().getResourceAsStream(NAME2BIT_PATH);
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
-        // parse int values as long
-        objectMapper.configure(DeserializationFeature.USE_LONG_FOR_INTS, true);
-        try {
-            Map<String, Long> mapping = objectMapper.readValue(stream, HashMap.class);
-            // System.out.println(mapping);
-            name2bit = mapping;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Cannot load name2bit mapping");
         }
     }
 
@@ -2151,8 +2135,58 @@ public class ControlFlowStatementsDomain extends Domain {
         catch (IllegalArgumentException exception) {
             return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
-
     }
+
+    private HashMap<String, Long> _getConceptsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(26);
+        name2bit.put("pointer", 0x1L);
+        name2bit.put("C++", 0x2L);
+        name2bit.put("loops", 0x4L);
+        name2bit.put("if/else", 0x8L);
+        name2bit.put("expr:array", 0x10L);
+        name2bit.put("expr:pointer", 0x20L);
+        name2bit.put("expr:func_call", 0x40L);
+        name2bit.put("expr:explicit_cast", 0x80L);
+        name2bit.put("expr:class_member_access", 0x100L);
+        name2bit.put("alternative", 0x200L);
+        name2bit.put("else", 0x400L);
+        name2bit.put("expr", 0x800L);
+        name2bit.put("if", 0x1000L);
+        name2bit.put("sequence", 0x2000L);
+        name2bit.put("return", 0x4000L);
+        name2bit.put("loop", 0x8000L);
+        name2bit.put("while_loop", 0x10000L);
+        name2bit.put("for_loop", 0x20000L);
+        name2bit.put("else-if", 0x40000L);
+        name2bit.put("nested_loop", 0x80000L);
+        name2bit.put("do_while_loop", 0x100000L);
+        name2bit.put("break", 0x200000L);
+        name2bit.put("continue", 0x400000L);
+                 //   stmt       0x800000L
+        name2bit.put("seq_longer_than1", 0x1000000L);
+        return name2bit;
+    }
+    private HashMap<String, Long> _getViolationsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(16);
+        name2bit.put("DuplicateOfAct", 0x1L);
+        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
+        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
+        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);
+        name2bit.put("NoFirstCondition", 0x10L);
+        name2bit.put("SequenceFinishedTooEarly", 0x20L);
+        name2bit.put("TooEarlyInSequence", 0x40L);
+        name2bit.put("BranchOfFalseCondition", 0x80L);
+        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);
+        name2bit.put("LastFalseNoEnd", 0x200L);
+        name2bit.put("LoopStartIsNotCondition", 0x400L);
+        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);
+        name2bit.put("NoConditionAfterIteration", 0x1000L);
+        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
+        name2bit.put("LoopStartIsNotIteration", 0x4000L);
+        return name2bit;
+    }
+
+
 
     private static void _test_Substitutor() {
 
