@@ -386,6 +386,10 @@ public abstract class AbstractRdfStorage {
 
         if (loadedQuestions.size() == 1) {
             // todo: increment the question's usage counter
+            val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
+            meta.setUsedCount(meta.getUsedCount() + 1);
+            meta.setLastAttemptId(qr.getExerciseAttempt().getId());
+            metaMgr.getQuestionRepository().save(meta);
         }
 
         ch.hit("searchQuestionsAdvanced - files loaded");
