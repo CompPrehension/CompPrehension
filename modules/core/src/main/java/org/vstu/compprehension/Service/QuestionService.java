@@ -31,7 +31,6 @@ import java.util.Optional;
 @Log4j2
 @Service
 public class QuestionService {
-    private Core core = new Core();
 
     @Autowired
     private QuestionRepository questionRepository;

@@ -15,34 +15,10 @@ public class DomainService {
 
     @Autowired
     public DomainService(DomainRepository domainRepository) { this.domainRepository = domainRepository; }
-    
-    public Iterable<DomainEntity> getDomainEntities() { return domainRepository.findAll(); }
 
-    public DomainEntity createDomainEntity(String domainName, String version) {
-        DomainEntity domainEntity = new DomainEntity();
-        domainEntity.setName(domainName);
-        domainEntity.setVersion(version);
-        domainRepository.save(domainEntity);
-        return domainEntity;
-    }
-
-    public boolean hasDomainEntity(String domainName) {
-        return domainRepository.existsById(domainName);
-    }
 
     public DomainEntity getDomainEntity(String domainName) {
         return domainRepository.findById(domainName).orElseThrow(() ->
                     new NoSuchElementException("Domain with id: " + domainName + " not Found"));
     }
-
-    @Autowired
-    private ProgrammingLanguageExpressionDomain programmingLanguageExpressionDomain;
-
-    /*public Domain getDomain(String name) throws Exception {
-        if (name.equals(ProgrammingLanguageExpressionDomain.getName())) {
-            return programmingLanguageExpressionDomain;
-        } else {
-            throw new Exception();
-        }
-    }*/
 }
