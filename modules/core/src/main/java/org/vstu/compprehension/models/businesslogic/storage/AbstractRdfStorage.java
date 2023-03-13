@@ -24,7 +24,6 @@ import org.apache.jena.util.PrintUtil;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -185,12 +184,19 @@ public abstract class AbstractRdfStorage {
         return result;
     }
 
-    public List<Question> searchQuestionsWithAdvancedMetadata(QuestionRequest qr, int limit) {
+    /**
+     * Find question templates in the questions bank. If no questions satisfy the requirements exactly, finds ones of similar complexity. Denied concepts and laws (laws map to violations on DB) cannot present in result questions anyway.
+     * @param qr QuestionRequest
+     * @param limit maximum questions to return (must be > 0)
+     * @return questions found or empty list if the requirements cannot be satisfied
+     */
+    public List<Question> searchQuestions(QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
 
         QuestionMetadataManager metaMgr = getQuestionMetadataManager();
-        int queryLimit = (limit/* * 3*/ + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
+        int nQuestionsInAttempt = Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0);
+        int queryLimit = limit + nQuestionsInAttempt;
         int hardLimit = 25;
 
         double complexity = qr.getComplexity();
@@ -226,7 +232,7 @@ public abstract class AbstractRdfStorage {
         long targetViolationsBitmaskInRequest = lawsAsViolationsToBitmask(qr.getTargetLawsInPlan());
 
 
-        // take violations from all questions is exercise attempt
+        // use violations from all questions is exercise attempt
         long unwantedViolationsBitmask = qr.getExerciseAttempt().getQuestions().stream()
                 .map(qd -> qd.getOptions().getMetadata())
                 .filter(Objects::nonNull)
@@ -344,306 +350,6 @@ public abstract class AbstractRdfStorage {
     }
 
 
-    /**
-     * Find question templates in the questions bank
-     * @param qr QuestionRequest
-     * @param limit maximum questions to return (set 0 or less to disable; note: this may be slow)
-     * // (ignore randomSeed) param randomSeed influence randomized order (if selection from many candidates is required)
-     * @return questions found or empty list if the requirements cannot be satisfied
-     */
-    public List<Question> searchQuestions(QuestionRequest qr, int limit) {
-        if (getQuestionMetadataManager() != null) {
-            // ...
-            return searchQuestionsWithAdvancedMetadata(qr, limit);
-        }
-
-        int queryLimit = (limit * 2 + Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0));
-
-        /*Model qG =*/ getGraph(NS_questions.base());
-
-        Checkpointer ch = new Checkpointer(log);
-
-        String complexity_cmp_op = "";
-        if (qr.getComplexitySearchDirection() != null)
-            complexity_cmp_op = (qr.getComplexitySearchDirection().getValue() < 0)? "<=" : ">=";
-        //
-        List<Double> complStat = complexityStat();  // [min, avg, max]
-        double complexity = qr.getComplexity();  // 0..1
-        double desiredComplexity = (complStat.get(1));  // avg
-        if (complexity <= 0.5) {
-            desiredComplexity = (
-                    complStat.get(0) +
-                            (complexity * 2) * (complStat.get(1) - complStat.get(0))
-            );  // min + weight * (avg - min)
-        }
-        else if (complexity > 0.5) {
-            desiredComplexity = (
-                    complStat.get(1) +
-                            ((complexity - 0.5) * 2) * (complStat.get(2) - complStat.get(1))
-            );  // avg + weight * (max - avg)
-        }
-        String complexity_threshold = "" + desiredComplexity;
-
-
-        List<Double> SolutionLengthStat = questionSolutionLengthStat();  // [min, avg, max]
-        int duration = qr.getSolvingDuration();  // 1..10
-        int desiredSolutionSteps = (int) Math.round(SolutionLengthStat.get(1));  // avg
-        if (duration < 5) {
-            desiredSolutionSteps = (int) Math.round(
-                    SolutionLengthStat.get(0) +
-                            ((duration - 1) / 4.0) * (SolutionLengthStat.get(1) - SolutionLengthStat.get(0))
-            );  // min + weight * (avg - min)
-        }
-        else if (duration > 5) {
-            desiredSolutionSteps = (int) Math.round(
-                    SolutionLengthStat.get(1) +
-                            ((duration - 5) / 5.0) * (SolutionLengthStat.get(2) - SolutionLengthStat.get(1))
-            );  // avg + weight * (max - avg)
-        }
-
-        List<Concept> targetConcepts = qr.getTargetConcepts();
-        String targetConceptStr = null;
-        if (!targetConcepts.isEmpty()) {
-            // "loop","break","concept3", ...
-            targetConceptStr = targetConcepts.stream().map(c -> "\"" + c.getName() + "\"").collect(Collectors.joining(","));
-        }
-
-        StringBuilder query = new StringBuilder("select distinct ?name ?complexity ?solution_steps \n" +  /// (?s as ?qUri)
-                //// "#(count(distinct ?law) as ?law_count) (count(distinct ?concept) as ?concept_count)\n" +
-                "(group_concat(distinct ?law;separator=\"; \") as ?laws)\n" +
-                "(group_concat(distinct ?concept;separator=\"; \") as ?concepts)\n" +
-//                "(max(?concepts_exist) as ?concepts_here)\n" +
-                " {  GRAPH <" + NS_questions.base() + "> {\n" +
-                "\t?s a <" + NS_questions.get("Question") + "> .\n" +
-                "    ?s <" + NS_questions.get("name") + "> ?name.\n" +
-                "    ?s <" + NS_questions.get("integral_complexity") + "> ?complexity.\n" +
-                "    ?s <" + NS_questions.get("solution_steps") + "> ?solution_steps.\n" +
-                "    ?s <" + NS_questions.get("has_concept") + "> ?concept.\n" +
-                "    ?s <" + NS_questions.get("has_violation") + "> ?law.\n" +
-                (
-                    complexity_cmp_op.isEmpty() ? "" :
-                    "    filter(?complexity " + complexity_cmp_op + " " + complexity_threshold + ").\n"
-                ) +
-                "    bind(abs(" + complexity_threshold + " - ?complexity) as ?compl_diff).\n" +
-                "    bind(abs(" + desiredSolutionSteps + " - ?solution_steps) as ?steps_diff).\n" +
-                //  question data is present (not nil)
-                (targetConceptStr != null ?
-//                "    FILTER EXISTS{?s <" + NS_questions.get("has_concept") + "> ?cpt. FILTER (?cpt IN (" + targetConceptStr + "))}.\n" : "") +
-                "    FILTER (?concept IN (" + targetConceptStr + ")).\n" : "") +
-                ("    filter not exists { ?s <" + NS_questions.get("has_graph_q_data")
-                     + "> () }.\n"  /// rdf:nil
-                ));
-        // add "denied" constraints
-            //  "    filter not exists { ?s <has_concept> \"denied_concept\" }\n" +
-            //  "    filter not exists { ?s <http://vstu.ru/poas/questions/has_law> \"denied_law\" }\n" +
-        for (Concept concept : qr.getDeniedConcepts()) {
-            String denied_concept = concept.getName();
-            query.append("    filter not exists { ?s <")
-                    .append(NS_questions.get("has_concept"))
-                    .append("> \"")
-                    .append(denied_concept).append("\" }\n");
-        }
-        if (qr.getDeniedLaws() != null)
-        for (Law law : qr.getDeniedLaws()) {
-            String denied_law = law.getName();
-            query.append("    filter not exists { ?s <")
-                    .append(NS_questions.get("has_violation"))
-                    .append("> \"")
-                    .append(denied_law).append("\" }\n");
-        }
-        // Laws (violations)
-        if (!qr.getTargetLaws().isEmpty())
-        {
-            // older version: just require all laws
-            //  "#    filter exists { ?s <http://vstu.ru/poas/questions/has_law> \"target_law\" }\n";
-
-            /* newer version: allow omitting rightmost laws if all laws cannot be here at once
-            filter exists { {
-                ?s <.../has_violation> "LastFalseNoEnd" .
-                ?s <.../has_violation> "NoConditionAfterIteration" .
-                ?s <.../has_violation> "NoLoopEndAfterFailedCondition" .
-                ?s <.../has_violation> "NoFirstCondition" .
-                ?s <.../has_violation> "LoopStartIsNotIteration" .
-              } UNION {
-                ?s <.../has_violation> "LastFalseNoEnd" .
-                ?s <.../has_violation> "NoConditionAfterIteration" .
-                ?s <.../has_violation> "NoLoopEndAfterFailedCondition" .
-                ?s <.../has_violation> "NoFirstCondition" .
-              } UNION {
-                ?s <.../has_violation> "LastFalseNoEnd" .
-                ?s <.../has_violation> "NoConditionAfterIteration" .
-                ?s <.../has_violation> "NoLoopEndAfterFailedCondition" .
-              } UNION {
-                ?s <.../has_violation> "LastFalseNoEnd" .
-                ?s <.../has_violation> "NoConditionAfterIteration" .
-              } UNION {
-                ?s <.../has_violation> "LastFalseNoEnd" .
-              }
-            }
-             */
-            String has_violation = NS_questions.get("has_violation");
-            query.append("    filter exists {{\n");
-            int lawsN = qr.getTargetLaws().size();
-            boolean allOnly = qr.getLawsSearchDirection() != null && qr.getLawsSearchDirection().getValue() > 0;
-
-            for (int i = lawsN; i > 0; --i) {
-                if (i != lawsN) {
-                    query.append("      } UNION {\n");
-                }
-                for (Law law : qr.getTargetLaws().subList(0, i)) {
-                    String target_law = law.getName();
-                    query.append("        ?s <")
-                            .append(has_violation)
-                            .append("> \"")
-                            .append(target_law).append("\" .\n");
-                }
-                if (allOnly)
-                    break;
-            }
-            query.append("    }}");
-        }
-//                "#    filter exists { ?s <http://vstu.ru/poas/questions/has_concept> \"target_concept\" }\n" +
-        // query footer
-        query.append("  }}\n" +
-                "group by ?name ?complexity ?solution_steps ?compl_diff\n" +
-                "order by ?compl_diff ?steps_diff");
-//                "order by DESC(max(?concepts_exist)) ?compl_diff ?steps_diff");
-//                "order by DESC(?concepts_here) ?compl_diff ?steps_diff");
-        if (limit > 0)
-            query.append("\n  limit " + queryLimit);
-
-        ch.hit("searchQuestions - query prepared");
-        List<Question> questions = new ArrayList<>();
-
-        try ( RDFConnection conn = RDFConnection.connect(dataset) ) {
-
-            List<Question> finalQuestions = questions;  // copy the reference as lambda syntax requires
-
-            // loop over query results
-            conn.querySelect(query.toString(), querySolution -> {
-
-                String questionName = querySolution.get("name").asLiteral().getString();
-//                Resource qNode = querySolution.get("qUri").asResource();
-//                Property prop = NS_questions.getPropertyOnModel(GraphRole.QUESTION_DATA.prefix, qG);
-//                RDFNode qDataUri = qG.getProperty(qNode, prop).getObject();
-                String name = nameForQuestionGraph(questionName, GraphRole.QUESTION_DATA);
-
-                Question q = loadQuestion(name);
-                if (q == null) {
-                    return;
-                }
-                finalQuestions.add(q);
-
-                q.getQuestionData().setQuestionName( questionName );
-                /*
-                QuestionEntity qe = new QuestionEntity();
-                // todo: pass the kind of question here
-                Question q = new Ordering(qe);
-                q.getConcepts().addAll( List.of(querySolution.get("concepts").asLiteral().getString().split("; ")) );
-                q.getNegativeLaws().addAll( List.of(querySolution.get("laws").asLiteral().getString().split("; ")) ); */
-
-                if (limit > 0) {  // calc the score as filtering is required
-                    int score = 0;  // how the question suits the request
-
-                    if (qr.getDeniedQuestionNames() != null && (qr.getDeniedQuestionNames().contains(questionName) || qr.getDeniedQuestionNames().contains(Domain.NAME_PREFIX_IS_HUMAN + questionName))) {
-                        score -= 10_000; // try to avoid returning the same question again
-                    }
-                    else
-                    {
-                        int prefixLen = lengthOfMaxCommonPrefixAmongStrings(questionName, qr.getDeniedQuestionNames());
-                        if (prefixLen > 0) {
-                            score -= 1000 * prefixLen / questionName.length();  // try to avoid similar questions (similar names indicate that these look close)
-                        }
-                    }
-
-                    // inspect laws
-                    if (qr.getLawsSearchDirection() == null || qr.getLawsSearchDirection().getValue() < 0) {
-                        int i = 0;
-                        int size = qr.getTargetLaws().size();
-                        //// score += 1 << size;  // maximize possible score for existing laws
-                        // set penalty for each missing law (earlier ones cost more)
-                        for (Law target : qr.getTargetLaws()) {
-                            i += 1;
-                            if (q.getNegativeLaws().contains(target.getName()))
-                                score += 1 << (size - i);
-                        }
-                    }
-                    if (qr.getAllowedLaws() != null && !qr.getAllowedLaws().isEmpty()) {
-                        // set penalty for each extra law that is not in allowed laws (if no allowed laws provided, allow everything)
-                        ArrayList<String> extraLaws = new ArrayList<>(q.getNegativeLaws());
-                        extraLaws.removeAll(qr.getTargetLaws().stream().map(Law::getName).collect(Collectors.toList()));
-                        if (!extraLaws.isEmpty()) {
-                            // found out how many laws are "not allowed"
-                            extraLaws.removeAll(qr.getAllowedLaws().stream().map(Law::getName).collect(Collectors.toList()));
-                        }
-                        score -= extraLaws.size();  // -1 for each extra law
-                    }
-
-
-                    // inspect concepts
-                    int i = 0;
-                    int size = qr.getTargetConcepts().size();
-                    score += size * size / 2;  // maximize possible score for existing concepts
-                    // set penalty for each missing law (earlier ones cost more)
-                    for (Concept target : qr.getTargetConcepts()) {
-                        i += 1;
-                        if (!q.getConcepts().contains(target.getName()))
-                            score -= (size - i);
-                    }
-
-                    if (qr.getAllowedConcepts() != null && !qr.getAllowedConcepts().isEmpty()) {
-                        // set penalty for each extra concept that is not in allowed concepts (if no allowed concepts provided, allow everything)
-                        ArrayList<String> extraConcepts = new ArrayList<>(q.getConcepts());
-                        extraConcepts.removeAll(qr.getTargetConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
-                        if (!extraConcepts.isEmpty()) {
-                            // found out how many Concepts are "not allowed"
-                            extraConcepts.removeAll(qr.getAllowedConcepts().stream().map(Concept::getName).collect(Collectors.toList()));
-                            score -= extraConcepts.size();  // -1 for each extra concept
-                        }
-                    }
-
-                    q.getQuestionData().setId((long) score);  // (ab)use ID for setting score temporarily
-                }
-
-                /*
-                // add some data about this question
-                qe.setStatementFacts(new ArrayList<>(List.of(new BackendFactEntity("<this_question>", "complexity", "" + querySolution.get("complexity").asLiteral().getDouble()))));
-                qe.getStatementFacts().add(new BackendFactEntity("<this_question>", "solution_steps", "" + querySolution.get("solution_steps").asLiteral().getDouble()));
-                 */
-
-            });
-
-        } catch (JenaException exception) {
-            exception.printStackTrace();
-        }
-
-        ch.hit("searchQuestions - query executed");
-        if (limit > 0 && !questions.isEmpty()) {
-            // sort to ensure best score first
-            questions.sort((o1, o2) -> -(int) (o1.getQuestionData().getId() - o2.getQuestionData().getId()));
-
-            // retain requested number of questions
-            questions = questions.subList(0, Math.min(limit, questions.size()));
-        }
-
-//        // insert to the questions some data (all we can here)
-//        for (Question q : questions) {
-//            QuestionEntity qe = q.getQuestionData();
-//            qe.setDomainEntity(domain.getEntity());
-//            qe.setExerciseAttempt(qr.getExerciseAttempt());
-//            //// qe.setOptions(domain.?);
-//
-//            qe.setStatementFacts( modelToFacts(
-//                    getQuestionModel(q.getQuestionName()),
-//                    // TODO: adapt base URI for each domain
-//                    NS_code.base()
-//                    ));
-//        }
-
-        ch.since_start("searchQuestions - completed with " + questions.size() + " questions", false);
-        return questions;
-    }
-
     private Question loadQuestion(@NotNull QuestionMetadataEntity qMeta) {
         Question q = loadQuestion(qMeta.getQDataGraph());
         if (q != null) {
@@ -670,21 +376,6 @@ public abstract class AbstractRdfStorage {
             e.printStackTrace();
         }
         return q;
-    }
-
-    /** Find length of the longest prefix of `needle` with (one of) strings in `hive`
-     * @param needle target string
-     * @param hive set of strings to match `needle` with
-     * @return length of common prefix or 0 if `hive` is empty or no common prefix found
-     */
-    public static int lengthOfMaxCommonPrefixAmongStrings(String needle, Collection<String> hive) {
-        int max = 0;
-        for(var s : hive) {
-            int current = StringHelper.findCommonPrefixLength(needle, s);
-            if (current > max)
-                max = current;
-        }
-        return max;
     }
 
     /**
