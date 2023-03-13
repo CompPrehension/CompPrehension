@@ -27,11 +27,9 @@ import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.storage.stats.BitmaskStat;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
@@ -187,111 +185,6 @@ public abstract class AbstractRdfStorage {
         return result;
     }
 
-    private long leastUsedConcepts(QuestionRequest qr, long currentTargetConceptBits, double leastUsedRatio) {
-        List<QuestionEntity> questions = qr.getExerciseAttempt().getQuestions();
-        if (questions.isEmpty())
-            return currentTargetConceptBits;
-
-        HashMap<Integer, Integer> satisfied = new HashMap<>();  // a concept bit's position (2's power) -> count
-        HashMap<Integer, Integer> unsatisfied = new HashMap<>();
-        long unreachable = 0L;  // bits shouldn't be tried since are blocked by "denied"s in current context
-        for (val q : questions) {
-            val m = q.getOptions().getMetadata();
-            if (m == null)
-                continue;
-            long bits = m.traceConceptsSatisfiedFromPlan() & currentTargetConceptBits;
-            // count bits in previous questions, where common concepts were targeted
-            addBitsToBitCountMap(satisfied, bits);
-            bits = m.traceConceptsUnsatisfiedFromPlan() & currentTargetConceptBits;
-            addBitsToBitCountMap(unsatisfied, bits);
-            if (m.traceConceptsSatisfiedFromRequest() == 0) {
-                // nothing was found on that try => no more tries
-                unreachable |= m.getConceptBitsInRequest() & currentTargetConceptBits;
-            }
-        }
-
-        return leastUsedBits(currentTargetConceptBits, satisfied, unsatisfied, leastUsedRatio, unreachable);
-    }
-
-    private long leastUsedViolations(QuestionRequest qr, long currentTargetViolationBits, double leastUsedRatio) {
-        List<QuestionEntity> questions = qr.getExerciseAttempt().getQuestions();
-        if (questions.isEmpty())
-            return currentTargetViolationBits;
-
-        HashMap<Integer, Integer> satisfied = new HashMap<>();  // a concept bit's position (2's power) -> count
-        HashMap<Integer, Integer> unsatisfied = new HashMap<>();
-        long unreachable = 0L;  // bits shouldn't be tried since are blocked by "denied"s in current context
-        for (val q : questions) {
-            val m = q.getOptions().getMetadata();
-            if (m == null)
-                continue;
-            long bits = m.violationsSatisfiedFromPlan() & currentTargetViolationBits;
-            // count bits in previous questions, where common concepts were targeted
-            addBitsToBitCountMap(satisfied, bits);
-            bits = m.violationsUnsatisfiedFromPlan() & currentTargetViolationBits;
-            addBitsToBitCountMap(unsatisfied, bits);
-            if (m.violationsSatisfiedFromRequest() == 0) {
-                // nothing was found on that try => no more tries
-                unreachable |= m.getViolationBitsInRequest() & currentTargetViolationBits;
-            }
-        }
-
-        return leastUsedBits(currentTargetViolationBits, satisfied, unsatisfied, leastUsedRatio, unreachable);
-    }
-
-    private static long leastUsedBits(long currentTargetBits, HashMap<Integer, Integer> satisfied, HashMap<Integer, Integer> unsatisfied, double leastUsedRatio, long unreachable) {
-        Set<Integer> allBitsSet = new HashSet<>(satisfied.keySet());
-        allBitsSet.addAll(unsatisfied.keySet());
-
-        if (allBitsSet.isEmpty())
-            return currentTargetBits;
-
-        // allBitsSet -> bits
-        long allBits = 0;
-        for (int i: allBitsSet) {
-            allBits |= (1L << i);
-        }
-
-        allBits &= ~unreachable;
-        // don't alter allBitsSet but filter it when used below
-
-        if (allBits == 0)
-            return currentTargetBits;
-
-        long unseenBits = currentTargetBits & ~(allBits);
-
-        HashMap<Integer, Double> ratios = new HashMap<>();  // a concept bit position (2's power) -> relative frequency
-        for (int i : allBitsSet) {
-            if ((allBits & 1L << i) == 0) // filer out bits removed from allBits
-                continue;
-            int sat = satisfied.getOrDefault(i, 0);
-            int unsat = unsatisfied.getOrDefault(i, 0);
-            double ratio = sat / (double) (sat + unsat);
-            ratios.put(i, ratio);
-        }
-
-        val minVal = ratios.values().stream().min(Double::compareTo).orElse(1d);
-//        val maxVal = ratios.values().stream().max(Double::compareTo).orElse(1d);
-        val threshold = Math.nextUp(minVal /*+ leastUsedRatio * (maxVal - minVal)*/);  // ignore since we assume leastUsedRatio == 0 so far
-        long resultBits = unseenBits;  // ! do not forget unfiltered bits
-        for (int i: ratios.keySet()) {
-            if (ratios.get(i) <= threshold) {
-                resultBits |= (1L << i);  // may debug print here
-            }
-        }
-        return resultBits;
-    }
-
-    private static void addBitsToBitCountMap(HashMap<Integer, Integer> bitPos2count, long bits) {
-        if (bits != 0) {
-            val bs = BitSet.valueOf(new long[]{bits});
-            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
-                bitPos2count.put(i, 1 + bitPos2count.getOrDefault(i, 0));
-                if (i == Integer.MAX_VALUE) break; // or (i+1) would overflow
-            }
-        }
-    }
-
     public List<Question> searchQuestionsWithAdvancedMetadata(QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
@@ -308,7 +201,7 @@ public abstract class AbstractRdfStorage {
         solutionSteps = (int)Math.round(metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10));
         */
 
-        List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();
+        /*List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();*/
         List<Integer> questionsInUse = qr.getDeniedQuestionMetaIds();
 
         long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts());
@@ -321,10 +214,6 @@ public abstract class AbstractRdfStorage {
         targetConceptsBitmask &= ~deniedConceptsBitmask;
         long targetConceptsBitmaskInRequest = conceptsToBitmask(qr.getTargetConceptsInPlan());
 
-//        if (bitCount(targetConceptsBitmaskInRequest) >= 2) {
-//            targetConceptsBitmask = leastUsedConcepts(qr, targetConceptsBitmaskInRequest, 0.0);
-//        }
-
         // use laws, for e.g. Expr domain
         long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws());
         /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
@@ -335,10 +224,6 @@ public abstract class AbstractRdfStorage {
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
         long targetViolationsBitmaskInRequest = lawsAsViolationsToBitmask(qr.getTargetLawsInPlan());
-
-//        if (bitCount(targetViolationsBitmaskInRequest) >= 2) {
-//            targetLawsBitmask = leastUsedViolations(qr, targetViolationsBitmaskInRequest, 0.0);
-//        }
 
 
         // take violations from all questions is exercise attempt
@@ -383,6 +268,7 @@ public abstract class AbstractRdfStorage {
         }
 
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
+        ch.hit("searchQuestionsAdvanced - files loaded");
 
         if (loadedQuestions.size() == 1) {
             // todo: increment the question's usage counter
@@ -390,9 +276,10 @@ public abstract class AbstractRdfStorage {
             meta.setUsedCount(meta.getUsedCount() + 1);
             meta.setLastAttemptId(qr.getExerciseAttempt().getId());
             metaMgr.getQuestionRepository().save(meta);
+
+            ch.hit("searchQuestionsAdvanced - Question usage +1");
         }
 
-        ch.hit("searchQuestionsAdvanced - files loaded");
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
 
         return loadedQuestions;
@@ -443,80 +330,6 @@ public abstract class AbstractRdfStorage {
                 .collect(Collectors.toList());
 
         return finalRanking.subList(0, limit);
-    }
-
-    private List<Long> fit3Bitmasks(long targetBitmask, long allowedBitmask, long deniedBitmask, long unwantedBitmask,
-                                       int resCountLimit, BitmaskStat bitStat, Random random) {
-        // ensure no overlap
-        targetBitmask &= ~deniedBitmask;
-        allowedBitmask &= ~deniedBitmask;
-        allowedBitmask &= ~targetBitmask;
-//        unwantedBitmask &= ~deniedBitmask;
-
-
-        int alwBits;  // how many optional bits can be added to target, keeping the sample's size big enough.
-        int optionalBits = bitCount(allowedBitmask);
-        List<Long> keysCriteria = null;
-        for (alwBits = optionalBits /*- 1*/; alwBits >= 0; --alwBits) {
-            keysCriteria = bitStat.keysWithBits(
-                    targetBitmask,
-                    allowedBitmask, alwBits,
-                    deniedBitmask);
-            if (bitStat.sumForKeys(keysCriteria) >= resCountLimit)
-                break;
-        }
-
-//        List<Integer> keysCriteriaReducingTargets = null;
-        if (alwBits == -1) {
-            System.out.println("Target concepts can't be reached fully ...");
-            int newTargetCount = Math.min(resCountLimit, 2);
-            int tarBits;  // how many target bits to take, since current criteria is too strong.
-            int targetBits = bitCount(targetBitmask);
-            for (tarBits = targetBits - 1; tarBits >= 0 && (tarBits > 0 || keysCriteria.isEmpty()); --tarBits) {  // not: tarBits >= 0
-                keysCriteria = bitStat.keysWithBits(
-                        0,
-                        targetBitmask, tarBits,
-                        deniedBitmask);
-                if (bitStat.sumForKeys(keysCriteria) >= newTargetCount)
-                    break;
-            }
-            if (keysCriteria.isEmpty() /*tarBits < 1*/) {
-                System.out.println("Target concepts are impossible ...");
-                throw new RuntimeException("Denied [concepts] don't allow any questions to be found!.");
-            }
-
-            return keysCriteria;
-        }
-
-
-        // continuing with rich set of candidates ...
-        // decide how to "extend" targets with optionals
-        // play with deletion of keys, checking others to be still enough ...
-        int currSum = bitStat.sumForKeys(keysCriteria);
-        // init lookup
-        HashMap<Long, Integer> key2count = new HashMap<>();
-        for (long key : keysCriteria) {
-            key2count.put(key, bitStat.getItems().get(key));
-        }
-        // remove keys randomly while curr sum is still enough
-        boolean stop = false;
-        while (!stop && currSum > 0) {
-            stop = true;
-            for (long key : List.copyOf(key2count.keySet())) {
-                int count = key2count.get(key);
-                if (currSum - count > resCountLimit) {  // we can try deleting this one
-                    float chance = count / (float)(currSum - resCountLimit);
-                    if (random.nextFloat() < chance) {  // with chance, drop it
-                        key2count.remove(key);
-                        currSum -= count;
-                        stop = false;
-                        /// log.info("Dropped key of bitmask: " + key);
-                    }
-                }
-            }
-        }
-        Set<Long> selectedBitKeys = key2count.keySet();
-        return List.copyOf(selectedBitKeys);
     }
 
     private List<Question> loadQuestions(Collection<QuestionMetadataEntity> metas) {
