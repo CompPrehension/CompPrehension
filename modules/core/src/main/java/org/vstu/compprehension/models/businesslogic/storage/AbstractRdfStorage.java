@@ -88,9 +88,6 @@ public abstract class AbstractRdfStorage {
     static Map<String, String> DOMAIN_TO_ENDPOINT;
     Domain domain;
 
-    protected List<Double> complexityStatCache = null;
-    protected List<Double> questionSolutionLengthStatCache = null;
-
     /**
      * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
      */
@@ -140,34 +137,6 @@ public abstract class AbstractRdfStorage {
         return new NamespaceUtil(NS_questions.get("has_graph_" + role.ns().base()));
     }
 
-    // could the two following methods be collapsed into one?? (replacing metaMgr with HashMap from it) - no, lists clash.
-    private long conceptsToBitmask(List<Concept> concepts) {
-        long conceptBitmask = 0; //
-        for (Concept t : concepts) {
-            long newBit = t.getBitmask();
-            if (newBit == 0) {
-                // make use of children
-                newBit = t.getSubTreeBitmask();
-            }
-            conceptBitmask |= newBit;
-        }
-        return conceptBitmask;
-    }
-
-    private long lawsAsViolationsToBitmask(List<Law> laws) {
-        long lawBitmask = 0; //
-        // !! violations are not positive laws!
-        for (Law t : laws) {
-            long newBit = t.getBitmask();
-            if (newBit == 0) {
-                // make use of children
-                newBit = t.getSubTreeBitmask();
-           }
-            lawBitmask |= newBit;
-        }
-        return lawBitmask;
-    }
-
     private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionRequest qr, int n) {
         List<QuestionEntity> list = qr.getExerciseAttempt().getQuestions();
         List<QuestionMetadataEntity> result = new ArrayList<>();
@@ -210,26 +179,26 @@ public abstract class AbstractRdfStorage {
         /*List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();*/
         List<Integer> questionsInUse = qr.getDeniedQuestionMetaIds();
 
-        long targetConceptsBitmask = conceptsToBitmask(qr.getTargetConcepts());
+        long targetConceptsBitmask = qr.getConceptsTargetedBitmask();
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
-        long deniedConceptsBitmask = conceptsToBitmask(qr.getDeniedConcepts());
+        long deniedConceptsBitmask = qr.getConceptsDeniedBitmask();
         long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInRequest = conceptsToBitmask(qr.getTargetConceptsInPlan());
+        long targetConceptsBitmaskInPlan = qr.getConceptsTargetedInPlanBitmask();
 
         // use laws, for e.g. Expr domain
-        long targetLawsBitmask = lawsAsViolationsToBitmask(qr.getTargetLaws());
+        long targetLawsBitmask = qr.getLawsTargetedBitmask();
         /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
-        long deniedLawsBitmask = lawsAsViolationsToBitmask(qr.getDeniedLaws());
+        long deniedLawsBitmask = qr.getLawsDeniedBitmask();
         long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInRequest = lawsAsViolationsToBitmask(qr.getTargetLawsInPlan());
+        long targetViolationsBitmaskInPlan = qr.getLawsTargetedInPlanBitmask();
 
 
         // use violations from all questions is exercise attempt
@@ -266,8 +235,8 @@ public abstract class AbstractRdfStorage {
 
         // set concepts from request (for future reference via questions' saved metadata)
         for (QuestionMetadataEntity m : foundQuestionMetas) {
-            m.setConceptBitsInPlan(targetConceptsBitmaskInRequest);
-            m.setViolationBitsInPlan(targetViolationsBitmaskInRequest);
+            m.setConceptBitsInPlan(targetConceptsBitmaskInPlan);
+            m.setViolationBitsInPlan(targetViolationsBitmaskInPlan);
             // Save actual requested bits as well
             m.setConceptBitsInRequest(targetConceptsBitmask);
             m.setViolationBitsInRequest(targetLawsBitmask);
@@ -376,59 +345,6 @@ public abstract class AbstractRdfStorage {
             e.printStackTrace();
         }
         return q;
-    }
-
-    /**
-     * @return [min, avg, max] statistics of integral_complexity property
-     */
-    List<Double> complexityStat() {
-        if (complexityStatCache == null) {
-            // init caches
-            questionSolutionLengthStat();
-        }
-        return complexityStatCache;
-    }
-
-    /**
-     * @return [min, avg, max] statistics of solution_steps property
-     */
-    List<Double> questionSolutionLengthStat() {
-        if (questionSolutionLengthStatCache != null) {
-            return questionSolutionLengthStatCache;
-        }
-
-        String solutionLengthStatQuery = "select " +
-                " (max(?solution_steps) as ?max)" +
-                " (min(?solution_steps) as ?min)" +
-                " (avg(?solution_steps) as ?avg)\n" +
-                " (max(?ic) as ?ic_max)" +
-                " (min(?ic) as ?ic_min)" +
-                " (avg(?ic) as ?ic_avg)\n" +
-                " {  GRAPH <" + NS_questions.base() + "> {\n" +
-                "    ?s a <" + NS_questions.get("Question") + "> .\n" +
-                "    ?s <" + NS_questions.get("solution_steps") + "> ?solution_steps .\n" +
-                "    ?s <" + NS_questions.get("integral_complexity") + "> ?ic .\n" +
-                "  }}";
-
-        List<Double> lenStat = new ArrayList<>();
-        List<Double> complStat = new ArrayList<>();
-        try (RDFConnection conn = RDFConnection.connect(dataset)) {
-
-            conn.querySelect(solutionLengthStatQuery, querySolution -> {
-                lenStat  .add(querySolution.get("min").asLiteral().getDouble());
-                lenStat  .add(querySolution.get("avg").asLiteral().getDouble());
-                lenStat  .add(querySolution.get("max").asLiteral().getDouble());
-                complStat.add(querySolution.get("ic_min").asLiteral().getDouble());
-                complStat.add(querySolution.get("ic_avg").asLiteral().getDouble());
-                complStat.add(querySolution.get("ic_max").asLiteral().getDouble());
-            });
-
-        } catch (JenaException exception) {
-            exception.printStackTrace();
-        }
-        questionSolutionLengthStatCache = lenStat;  // save to cache
-        complexityStatCache = complStat;  // save to cache
-        return lenStat;
     }
 
     Model getDomainSchemaForSolving() {
@@ -1014,16 +930,6 @@ public abstract class AbstractRdfStorage {
             exception.printStackTrace();
         }
         return names;
-    }
-
-    /**
-     * (Method overload) Find all questions or question templates within dataset.
-     *
-     * @param classUri full URI of `rdf:type` an instance should have
-     * @return list of names
-     */
-    public List<String> findAllQuestions(String classUri) {
-        return findAllQuestions(classUri, 0);
     }
 
     public boolean localGraphExists(String gUri) {

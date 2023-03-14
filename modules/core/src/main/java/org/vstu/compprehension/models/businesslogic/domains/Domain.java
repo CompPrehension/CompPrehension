@@ -389,13 +389,55 @@ public abstract class Domain {
      */
     public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
-    /**
-     * Generate explanation of violations
-     * @param violations list of student violations
-     * @param feedbackType TODO: use feedbackType or delete it
-     * @param lang user preferred language
-     * @return explanation for each violation in random order
-     */
+    /** Convert lists of concepts and laws to bitmasks */
+    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
+        qr.setConceptsTargetedBitmask(conceptsToBitmask(qr.getTargetConcepts()));
+//        qr.setConceptsAllowedBitmask(conceptsToBitmask(qr.getAllowedConcepts()));  // unused ?
+        qr.setConceptsDeniedBitmask(conceptsToBitmask(qr.getDeniedConcepts()));
+        qr.setConceptsTargetedInPlanBitmask(conceptsToBitmask(qr.getTargetConceptsInPlan()));
+
+        qr.setLawsTargetedBitmask(lawsToBitmask(qr.getTargetLaws()));
+//        qr.setAllowedLawsBitmask(awsToBitmask(qr.getAllowedLaws()));  // unused ?
+        qr.setLawsDeniedBitmask(lawsToBitmask(qr.getDeniedLaws()));
+        qr.setLawsTargetedInPlanBitmask(lawsToBitmask(qr.getTargetLawsInPlan()));
+
+        return qr;
+    }
+
+    protected static long conceptsToBitmask(List<Concept> concepts) {
+        long conceptBitmask = 0; //
+        for (Concept t : concepts) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            conceptBitmask |= newBit;
+        }
+        return conceptBitmask;
+    }
+
+    protected static long lawsToBitmask(List<Law> laws) {
+        long lawBitmask = 0;
+        // Note: violations are not positive laws.
+        for (Law t : laws) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            lawBitmask |= newBit;
+        }
+        return lawBitmask;
+    }
+
+        /**
+         * Generate explanation of violations
+         * @param violations list of student violations
+         * @param feedbackType TODO: use feedbackType or delete it
+         * @param lang user preferred language
+         * @return explanation for each violation in random order
+         */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
 
     /**
@@ -622,7 +664,7 @@ public abstract class Domain {
      * @param forbiddenQuestions texts of question that not suit TODO: use ExerciseAttemptEntity
      * @return new question template
      */
-    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> deniedConcepts, HashSet<String> targetNegativeLaws, HashSet<String> deniedNegativeLaws, HashSet<String> forbiddenQuestions) {
+    public Question findQuestion(List<Tag> tags, Set<String> targetConcepts, Set<String> deniedConcepts, Set<String> targetNegativeLaws, Set<String> deniedNegativeLaws, Set<String> forbiddenQuestions) {
         List<Question> questions = new ArrayList<>();
 
         int maxSuitCount = 0;

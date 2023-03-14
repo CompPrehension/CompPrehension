@@ -616,43 +616,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
-        // Prepare concept name sets ...
+
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
         }
-        HashSet<String> deniedConceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getDeniedConcepts()) {
-            deniedConceptNames.add(concept.getName());
-        }
-        deniedConceptNames.add("supplementary");
-
-        HashSet<String> lawNames = new HashSet<>();
-        if (questionRequest.getTargetLaws() != null) {
-            for (Law law : questionRequest.getTargetLaws()) {
-                lawNames.add(law.getName());
-            }
-        }
-
-        HashSet<String> deniedLawNames = new HashSet<>();
-        if (questionRequest.getDeniedLaws() != null) {
-            for (Law law : questionRequest.getDeniedLaws()) {
-                deniedLawNames.add(law.getName());
-            }
-        }
-
-        HashSet<String> deniedQuestions = new HashSet<>();
-        if (questionRequest.getExerciseAttempt() != null &&
-                questionRequest.getExerciseAttempt().getQuestions() != null &&
-                questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
-            deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
-        }
-        questionRequest.setDeniedQuestionNames(List.of());
 
         List<Question> foundQuestions = null;
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
+                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
@@ -673,6 +647,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             res = foundQuestions.get(0);
         } else {
             // old version - search in domain's in-memory questions
+            // Prepare concept name sets ...
+            HashSet<String> deniedConceptNames = new HashSet<>();
+            for (Concept concept : questionRequest.getDeniedConcepts()) {
+                deniedConceptNames.add(concept.getName());
+            }
+            deniedConceptNames.add("supplementary");
+
+            HashSet<String> lawNames = new HashSet<>();
+            if (questionRequest.getTargetLaws() != null) {
+                for (Law law : questionRequest.getTargetLaws()) {
+                    lawNames.add(law.getName());
+                }
+            }
+
+            HashSet<String> deniedLawNames = new HashSet<>();
+            if (questionRequest.getDeniedLaws() != null) {
+                for (Law law : questionRequest.getDeniedLaws()) {
+                    deniedLawNames.add(law.getName());
+                }
+            }
+
+            HashSet<String> deniedQuestions = new HashSet<>();
+            if (questionRequest.getExerciseAttempt() != null &&
+                    questionRequest.getExerciseAttempt().getQuestions() != null &&
+                    questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
+                deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
+            }
+            questionRequest.setDeniedQuestionNames(List.of());
+
             res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         }
 

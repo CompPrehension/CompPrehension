@@ -18,17 +18,20 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@AllArgsConstructor
 @Table(name = "QuestionRequestLog")
 @TypeDef(name = "json", typeClass = JsonStringType.class)
-public class QuestionRequestEntity {
+public class QuestionRequestLogEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     Long exerciseAttemptId;
+
+    // +++
+    String domainShortname;
 
     @Type(type = "json")
     private List<String> targetConceptNames;
@@ -53,6 +56,15 @@ public class QuestionRequestEntity {
 
     @Type(type = "json")
     private List<String> allowedLawNames;
+
+    // +++
+    // bit fields
+    long conceptsTargetedBitmask;  // set to 0 if traceConceptsTargetedBitmask set
+    long traceConceptsTargetedBitmask = 0;  // set if required for search
+    long conceptsDeniedBitmask;
+    long lawsTargetedBitmask;
+    long lawsDeniedBitmask;
+
 
     @Type(type = "json")
     private List<String> deniedQuestionNames;
@@ -97,7 +109,8 @@ public class QuestionRequestEntity {
 
     private int foundCount = -1;
 
-    Date date;
+//    Date date;
+    Date createdDate;
 
 
 }
