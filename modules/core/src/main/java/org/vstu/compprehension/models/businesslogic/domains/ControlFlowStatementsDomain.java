@@ -642,6 +642,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
                 .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
+                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
                 .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 

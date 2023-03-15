@@ -329,6 +329,7 @@ public abstract class AbstractRdfStorage {
             q.getQuestionData().getOptions().setQuestionMetaId(qMeta.getId());
             q.getQuestionData().getOptions().setMetadata(qMeta);
             q.setMetadata(qMeta);
+            // future todo: reflect any set data in Domain.makeQuestionCopy() as well
         }
         return q;
     }
