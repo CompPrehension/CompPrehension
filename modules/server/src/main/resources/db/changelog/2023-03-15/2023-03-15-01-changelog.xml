@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1678892963851-30" author="Mikhail Denisov">
+        <dropColumn columnName="date" tableName="question_request_log"/>
+    </changeSet>
+    <changeSet id="1678892963851-15" author="Mikhail Denisov">
+        <addColumn tableName="question_request_log">
+            <column name="created_date" type="DATETIME"/>
+            <column name="domain_shortname" type="VARCHAR(255)"/>
+            <column name="concepts_denied_bitmask" type="BIGINT"/>
+            <column name="concepts_targeted_bitmask" type="BIGINT"/>
+            <column name="laws_denied_bitmask" type="BIGINT"/>
+            <column name="laws_targeted_bitmask" type="BIGINT"/>
+            <column name="trace_concepts_targeted_bitmask" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+    <changeSet id="1678892963851-16" author="Mikhail Denisov">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="concepts_denied_bitmask"
+                              tableName="question_request_log"/>
+    </changeSet>
+    <changeSet id="1678892963851-18" author="Mikhail Denisov">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="concepts_targeted_bitmask"
+                              tableName="question_request_log"/>
+    </changeSet>
+    <changeSet id="1678892963851-22" author="Mikhail Denisov">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="laws_denied_bitmask"
+                              tableName="question_request_log"/>
+    </changeSet>
+    <changeSet id="1678892963851-24" author="Mikhail Denisov">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="laws_targeted_bitmask"
+                              tableName="question_request_log"/>
+    </changeSet>
+    <changeSet id="1678892963851-26" author="Mikhail Denisov">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="trace_concepts_targeted_bitmask"
+                              tableName="question_request_log"/>
+    </changeSet>
+
+</databaseChangeLog>
