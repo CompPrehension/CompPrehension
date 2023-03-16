@@ -35,7 +35,7 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -72,13 +72,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    private final ExpressionQuestionMetadataRepository exprQuestionMetadataRepository;
+    private final QuestionMetadataBaseRepository exprQuestionMetadataRepository;
 
     @Autowired
     public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
                                                DomainRepository domainRepository,
                                                RandomProvider randomProvider,
-                                               ExpressionQuestionMetadataRepository exprQuestionMetadataRepository,
+                                               QuestionMetadataBaseRepository exprQuestionMetadataRepository,
          QuestionRequestLogRepository questionRequestLogRepository) {
         super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
@@ -370,7 +370,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public ExpressionQuestionMetadataRepository getQuestionMetadataRepository() {
+    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
         return exprQuestionMetadataRepository;
     }
 

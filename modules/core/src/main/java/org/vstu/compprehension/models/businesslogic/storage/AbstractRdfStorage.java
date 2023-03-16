@@ -100,7 +100,7 @@ public abstract class AbstractRdfStorage {
             if (this.domain != null) {
                 val repo = domain.getQuestionMetadataRepository();
                 if (repo != null)
-                    questionMetadataManager = new QuestionMetadataManager(repo);
+                    questionMetadataManager = new QuestionMetadataManager(domain, repo);
             }
         }
         return questionMetadataManager;
@@ -170,14 +170,6 @@ public abstract class AbstractRdfStorage {
 
         double complexity = qr.getComplexity();
         complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
-        /*
-        int solutionSteps = qr.getSolvingDuration();  // 0..10
-        solutionSteps += random.nextInt(5) - 2;
-        solutionSteps = (int)Math.round(metaMgr.wholeBankStat.solutionStepsStat.rescaleExternalValue(solutionSteps, 0, 10));
-        */
-
-        /*List<Integer> templatesInUse = qr.getDeniedQuestionTemplateIds();*/
-        List<Integer> questionsInUse = qr.getDeniedQuestionMetaIds();
 
         long targetConceptsBitmask = qr.getConceptsTargetedBitmask();
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
@@ -210,14 +202,17 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
-                complexity,
-                0.15,
-                qr.getStepsMin(), qr.getStepsMax(),
-                targetConceptsBitmask, deniedConceptsBitmask,
-                targetLawsBitmask, deniedLawsBitmask,
-                List.of()/*templatesInUse*/, questionsInUse,
-                queryLimit, 12);
+        // (previous version with explicit parameters)
+//        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
+//                complexity,
+//                0.15,
+//                qr.getStepsMin(), qr.getStepsMax(),
+//                targetConceptsBitmask, deniedConceptsBitmask,
+//                targetLawsBitmask, deniedLawsBitmask,
+//                List.of()/*templatesInUse*/, questionsInUse,
+//                queryLimit, 12);
+
+        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.15, queryLimit, 12);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 

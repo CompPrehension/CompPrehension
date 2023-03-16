@@ -30,8 +30,8 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.CtrlFlowQuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
@@ -81,13 +81,13 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository;
+    private final QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository;
 
     @Autowired
     public ControlFlowStatementsDomain(LocalizationService localizationService,
          DomainRepository domainRepository,
          RandomProvider randomProvider,
-         CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository,
+         QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository,
          QuestionRequestLogRepository questionRequestLogRepository) {
         super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
@@ -207,7 +207,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public CtrlFlowQuestionMetadataRepository getQuestionMetadataRepository() {
+    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
         return ctrlFlowQuestionMetadataRepository;
     }
 
