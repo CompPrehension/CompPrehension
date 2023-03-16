@@ -30,7 +30,6 @@ public class QuestionRequestLogEntity {
 
     Long exerciseAttemptId;
 
-    // +++
     String domainShortname;
 
     @Type(type = "json")
@@ -57,7 +56,6 @@ public class QuestionRequestLogEntity {
     @Type(type = "json")
     private List<String> allowedLawNames;
 
-    // +++
     // bit fields
     long conceptsTargetedBitmask;  // set to 0 if traceConceptsTargetedBitmask set
     long traceConceptsTargetedBitmask = 0;  // set if required for search
@@ -86,6 +84,11 @@ public class QuestionRequestLogEntity {
      */
     private float complexity;
 
+    /** минимум шагов в решении */
+    private int stepsMin;
+    /** максимум шагов в решении */
+    private int stepsMax;
+
     /**
      * Направление поиска по сложности
      */
@@ -109,7 +112,6 @@ public class QuestionRequestLogEntity {
 
     private int foundCount = -1;
 
-//    Date date;
     Date createdDate;
 
 

@@ -138,6 +138,7 @@ public interface AbstractStrategy {
     default QuestionRequest initQuestionRequest(ExerciseAttemptEntity exerciseAttempt, ExerciseStageEntity exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttempt(exerciseAttempt);
+        qr.setDomainShortname(domain.getShortName());
 
         // concepts
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();

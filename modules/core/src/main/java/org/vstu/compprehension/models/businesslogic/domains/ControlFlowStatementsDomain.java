@@ -612,6 +612,10 @@ public class ControlFlowStatementsDomain extends Domain {
         qr.setTraceConceptsTargetedBitmask(qr.getConceptsTargetedBitmask());
         qr.setConceptsTargetedBitmask(0L);
 
+        // hard limits on solution length (questions outside this boundaries will never appear)
+        qr.setStepsMin(3);
+        qr.setStepsMax(30);
+
         return qr;
     }
 

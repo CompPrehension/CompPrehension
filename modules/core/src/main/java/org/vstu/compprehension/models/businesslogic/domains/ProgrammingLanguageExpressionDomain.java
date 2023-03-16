@@ -572,6 +572,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
     }
 
+    @Override
+    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
+        qr = super.fillBitmasksInQuestionRequest(qr);
+
+        // hard limits on solution length (questions outside this boundaries will never appear)
+        qr.setStepsMin(2);
+        qr.setStepsMax(23);
+
+        return qr;
+    }
+
     @NotNull
     private static String reformatQuestionText(Question q) {
         // avoid changing generated files: re-generate html

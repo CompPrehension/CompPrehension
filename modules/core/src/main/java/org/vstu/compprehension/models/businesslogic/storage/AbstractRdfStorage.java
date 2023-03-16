@@ -213,7 +213,7 @@ public abstract class AbstractRdfStorage {
         List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
                 complexity,
                 0.15,
-                1, 30,  // currently, should be OK for all domains (TODO)
+                qr.getStepsMin(), qr.getStepsMax(),
                 targetConceptsBitmask, deniedConceptsBitmask,
                 targetLawsBitmask, deniedLawsBitmask,
                 List.of()/*templatesInUse*/, questionsInUse,
