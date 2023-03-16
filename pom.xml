@@ -12,6 +12,7 @@
         <module>modules/server</module>
         <module>modules/common</module>
         <module>modules/core</module>
+        <module>modules/strategies</module>
     </modules>
 
     <properties>

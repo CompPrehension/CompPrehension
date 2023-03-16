@@ -269,6 +269,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.vstu.compprehension</groupId>
+            <artifactId>strategies</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>9.0.65</version>
@@ -347,6 +352,7 @@
                 <version>4.5.0</version>
                 <configuration>
                     <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+                    <changeLogFile>db/changelog/db.changelog-master.xml</changeLogFile>
                 </configuration>
                 <dependencies>
                     <dependency>

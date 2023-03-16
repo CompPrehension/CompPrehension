@@ -525,7 +525,7 @@ RdfStorage.StopBackgroundDBFillUp()
 //        RdfStorage rs = new RdfStorage(sparql_endpoint);
 
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService(), null,  null,
-                null /*new CtrlFlowQuestionRepository( )*/);
+                null /*new CtrlFlowQuestionRepository( )*/, null);
 //        rs.domain = cfd;
 
         RdfStorage rs = new RdfStorage(cfd);

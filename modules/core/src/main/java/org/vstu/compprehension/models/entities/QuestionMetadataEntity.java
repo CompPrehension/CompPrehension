@@ -60,6 +60,12 @@ public class QuestionMetadataEntity {
     @Column(name = "_version")
     private Integer version;
 
+    @Column(name = "used_count")
+    private Long usedCount;
+
+    @Column(name = "last_attempt_id")
+    private Long lastAttemptId;
+
 
     @Transient
     private Long conceptBitsInPlan = 0L; // planned by exercise

@@ -1,29 +1,23 @@
-package org.vstu.compprehension.models.businesslogic.strategies;
+package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.util.Pair;
-import org.springframework.stereotype.Component;
-import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.NegativeLaw;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
-import javax.inject.Singleton;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@Component @Singleton @Primary
 @Log4j2
 public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
@@ -35,7 +29,6 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     protected static float CONFIDENCE_MULTIPLIER = 1.0f /*(float)1.2*/;
     protected static int DEFAULT_LAW_COUNT = 2 /*5*/;
 
-    @Autowired
     public GradeConfidenceBaseStrategy(DomainFactory domainFactory) {
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
@@ -62,25 +55,16 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        QuestionRequest qr = new QuestionRequest();
 
         ExerciseStageEntity exerciseStage = exercise.getStages().get(0);
-        List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
+        QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
-        qr.setTargetConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).map(ec -> domain.getConcept(ec.getName())).filter(Objects::nonNull).collect(Collectors.toList()));
-        qr.setAllowedConcepts(new ArrayList<>());
-        qr.setAllowedLaws(new ArrayList<>());
-        qr.setDeniedConcepts(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
+//        qr.setAllowedConcepts(List.of());
+//        qr.setAllowedLaws(List.of());
 
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
 
-        qr.setDeniedLaws(exLaws.stream()
-                .filter(ec -> ec.getKind()
-                        .equals(RoleInExercise.FORBIDDEN))
-                .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
-                .collect(Collectors.toList()));
+//        qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
 
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
         HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
@@ -151,14 +135,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         }
 
         qr.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
-        qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));
-        qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));
-
 
         loggingParams(studentType, studentsComplexity, lawsDirections);
         loggingRequest(qr);
 
-        return qr;
+        return adjustQuestionRequest(qr, exerciseAttempt);
     }
 
     @Override
@@ -466,7 +447,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             // получить законы из домена (все подряд)
             Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-            List<NegativeLaw> targetLaws = domain.getNegativeLaws();
+            Collection<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {
                 allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
             }

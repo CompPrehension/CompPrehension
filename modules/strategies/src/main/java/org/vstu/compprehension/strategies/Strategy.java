@@ -1,12 +1,10 @@
-package org.vstu.compprehension.models.businesslogic.strategies;
+package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
-import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
@@ -14,6 +12,8 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
@@ -21,12 +21,10 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import javax.inject.Singleton;
 import java.util.*;
 
 import static java.lang.Math.abs;
 
-@Component @Singleton
 @Log4j2
 public class Strategy implements AbstractStrategy {
 
@@ -34,7 +32,6 @@ public class Strategy implements AbstractStrategy {
     protected final RandomProvider randomProvider;
     protected final StrategyOptions options;
 
-    @Autowired
     public Strategy(DomainFactory domainFactory, RandomProvider randomProvider) {
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
@@ -42,7 +39,6 @@ public class Strategy implements AbstractStrategy {
                 .multiStagesEnabled(false)
                 .build();
     }
-
 
     @NotNull
     @Override

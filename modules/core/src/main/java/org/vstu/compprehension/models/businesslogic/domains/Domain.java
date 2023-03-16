@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
@@ -17,10 +18,12 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,9 +31,12 @@ import java.util.stream.Collectors;
 @RequestScope
 public abstract class Domain {
     public static final String NAME_PREFIX_IS_HUMAN = "[human]";
-    protected List<PositiveLaw> positiveLaws;
-    protected List<NegativeLaw> negativeLaws;
-    protected List<Concept> concepts;
+    protected  Map<String, PositiveLaw> positiveLaws;
+    protected  Map<String, NegativeLaw> negativeLaws;
+
+    /** name to Concept mapping */
+    protected Map<String, Concept> concepts;
+
     protected AbstractRdfStorage rdfStorage;
     /**
      * Db entry
@@ -46,10 +52,13 @@ public abstract class Domain {
     protected String version = "";
     @Getter
     protected final RandomProvider randomProvider;
+    protected final QuestionRequestLogRepository questionRequestLogRepository;
 
 
-    public Domain(RandomProvider randomProvider) {
+
+    public Domain(RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository) {
         this.randomProvider = randomProvider;
+        this.questionRequestLogRepository = questionRequestLogRepository;
     }
 
     /**
@@ -72,37 +81,23 @@ public abstract class Domain {
         return domainEntity;
     }
 
-    public List<PositiveLaw> getPositiveLaws() {
-        return positiveLaws;
+    public Collection<PositiveLaw> getPositiveLaws() {
+        return positiveLaws.values();
     }
-    public List<NegativeLaw> getNegativeLaws() {
-        return negativeLaws;
+    public Collection<NegativeLaw> getNegativeLaws() {
+        return negativeLaws.values();
     }
 
-    public List<Concept> getConcepts() {
-        return concepts;
+    public Collection<Concept> getConcepts() {
+        return concepts.values();
     }
 
     public PositiveLaw getPositiveLaw(String name) {
-        if (name == null)
-            return null;
-        for (PositiveLaw law : positiveLaws) {
-            if (name.equals(law.getName())) {
-                return law;
-            }
-        }
-        return null;
+        return positiveLaws.getOrDefault(name, null);
     }
 
     public NegativeLaw getNegativeLaw(String name) {
-        if (name == null)
-            return null;
-        for (NegativeLaw law : negativeLaws) {
-            if (name.equals(law.getName())) {
-                return law;
-            }
-        }
-        return null;
+        return negativeLaws.getOrDefault(name, null);
     }
 
     public List<PositiveLaw> getPositiveLawWithImplied(String name) {
@@ -141,12 +136,7 @@ public abstract class Domain {
     }
 
     public Concept getConcept(String name) {
-        for (Concept concept : concepts) {
-            if (name.equals(concept.getName())) {
-                return concept;
-            }
-        }
-        return null;
+        return concepts.getOrDefault(name, null);
     }
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
@@ -155,11 +145,11 @@ public abstract class Domain {
      */
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
         Map<Concept, List<Concept>> res = new HashMap<>();
-        Set<Concept> wanted = this.concepts.stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Concept> wanted = this.concepts.values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
             // ensure we are dealing with bottom-level concept
-            List<Concept> children = this.getConceptWithChildren(ct.getName());
+            Collection<Concept> children = this.getConceptWithChildren(ct.getName());
             children.remove(ct);
             boolean hasChildren =
                     children.stream().anyMatch(wanted::contains);
@@ -216,24 +206,23 @@ public abstract class Domain {
         return res;
     }
 
-    public List<Concept> getChildrenOfConcept(String name_) {
+    public Collection<Concept> getChildrenOfConcept(String name_) {
         return getConceptsWithChildren(List.of(name_)).stream()
                 .filter(t -> !name_.equals(t.getName()))
                 .collect(Collectors.toList());
     }
 
-    public List<Concept> getChildrenOfConcepts(Collection<String> names) {
+    public Collection<Concept> getChildrenOfConcepts(Collection<String> names) {
         return getConceptsWithChildren(names).stream()
                 .filter(t -> !names.contains(t.getName()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
-    public List<Concept> getConceptWithChildren(String name_) {
+    public Collection<Concept> getConceptWithChildren(String name_) {
         return getConceptsWithChildren(List.of(name_));
     }
 
-    public List<Concept> getConceptsWithChildren(Collection<String> names) {
-        Map<String, List<Concept>> tm = getConceptTreeMapping();
+    public Collection<Concept> getConceptsWithChildren(Collection<String> names) {
         Set<String> res = new HashSet<>();
         Set<String> pool = new HashSet<>(names);
         while (!pool.isEmpty()) {
@@ -242,39 +231,63 @@ public abstract class Domain {
 //            res.addAll(pool.stream().flatMap(n -> tm.get(n).stream()).collect(Collectors.toSet()));
             for (String name : new HashSet<>(pool)) {
                 pool.remove(name);
-                if (tm.containsKey(name)) {
+                Concept currConcept =  concepts.getOrDefault(name, null);
+                if (currConcept != null && currConcept.getChildConcepts() != null) {
                     // try to add all children of current concept
-                    pool.addAll(tm.get(name).stream().map(Concept::getName).collect(Collectors.toSet()));
+                    pool.addAll(currConcept.getChildConcepts().stream().map(Concept::getName).collect(Collectors.toSet()));
                     pool.removeAll(res);  // guard: don't allow infinite recursion.
                 }
             }
         }
-        return res.stream().map(this::getConcept).filter(Objects::nonNull).collect(Collectors.toList());
+        return res.stream().map(this::getConcept).filter(Objects::nonNull).collect(Collectors.toSet());
 //        return new ArrayList<>(res);
     }
 
 
-    Map<String, List<Concept>> conceptTreeMappingCache = null;
+    protected Concept addConcept(Concept t) {
+        concepts.put(t.getName(), t);
+        return t;
+    }
+    protected Concept addConcept(String name, List<Concept> bases, int flags) {
+        return addConcept(new Concept(name, bases, flags));
+    }
 
-    /** get concepts mapping: {base: [child1, child2, ...], ...}  */
-    protected Map<String, List<Concept>> getConceptTreeMapping() {
-        if (conceptTreeMappingCache == null) {
-            Map<String, List<Concept>> hm = new HashMap<>();
-            for (Concept concept : concepts) {
-                if (concept.getBaseConcepts() == null)
-                    continue;
-                for (Concept base : concept.getBaseConcepts()) {
-                    String parentName = base.getName();
-                    if (!hm.containsKey(parentName)) {
-                        hm.put(parentName, new ArrayList<>(List.of(concept)));
-                    } else {
-                        hm.get(parentName).add(concept);
-                    }
+    protected void addConcepts(Collection<Concept> ts) {
+        for (Concept t : ts)
+            addConcept(t);
+    }
+
+    /** Set direct children to concepts. This is needed since parents (bases) of concepts are stored only */
+    protected void fillConceptTree() {
+        for (Concept concept : concepts.values()) {
+            if (concept.getBaseConcepts() == null)
+                continue;
+            for (Concept base : concept.getBaseConcepts()) {
+                if (base.getChildConcepts() == null) {
+                    base.setChildConcepts(new HashSet<>());
                 }
+                base.getChildConcepts().add(concept);
             }
-            conceptTreeMappingCache = hm;
         }
-        return conceptTreeMappingCache;
+    }
+
+    /** Set direct children to both positive and negative Laws. This is needed since names of laws are stored only */
+    protected void fillLawsTree() {
+        // set direct child Laws to Laws
+        for (Law t : positiveLaws.values()) {
+            if (t.getImpliesLaws() == null) {
+                t.setLawsImplied(List.of());
+            } else {
+                t.setLawsImplied(t.getImpliesLaws().stream().map(this::getPositiveLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
+            }
+        }
+        for (Law t : negativeLaws.values()) {
+            if (t.getImpliesLaws() == null) {
+                t.setLawsImplied(List.of());
+            } else {
+                t.setLawsImplied(t.getImpliesLaws().stream().map(this::getNegativeLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
+            }
+        }
     }
 
 
@@ -322,10 +335,20 @@ public abstract class Domain {
         return rdfStorage;
     }
 
-    public QuestionMetadataBaseRepository<? extends QuestionMetadataEntity> getQuestionMetadataRepository() {
+    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
         return null;
     }
 
+    public void saveQuestionRequest(QuestionRequest qr) {
+
+        val qrl = qr.getLogEntity();
+
+        Map<String, Object> res = getQuestionMetadataRepository().countQuestions(qr);
+        int questionsFound = ((BigInteger)res.getOrDefault("number", -2)).intValue();
+        qrl.setFoundCount(questionsFound);
+        qrl.setCreatedDate(new Date());
+        questionRequestLogRepository.save(qrl);
+    }
 
     abstract public Question parseQuestionTemplate(InputStream stream);
 
@@ -381,13 +404,55 @@ public abstract class Domain {
      */
     public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
-    /**
-     * Generate explanation of violations
-     * @param violations list of student violations
-     * @param feedbackType TODO: use feedbackType or delete it
-     * @param lang user preferred language
-     * @return explanation for each violation in random order
-     */
+    /** Convert lists of concepts and laws to bitmasks */
+    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
+        qr.setConceptsTargetedBitmask(conceptsToBitmask(qr.getTargetConcepts()));
+//        qr.setConceptsAllowedBitmask(conceptsToBitmask(qr.getAllowedConcepts()));  // unused ?
+        qr.setConceptsDeniedBitmask(conceptsToBitmask(qr.getDeniedConcepts()));
+        qr.setConceptsTargetedInPlanBitmask(conceptsToBitmask(qr.getTargetConceptsInPlan()));
+
+        qr.setLawsTargetedBitmask(lawsToBitmask(qr.getTargetLaws()));
+//        qr.setAllowedLawsBitmask(awsToBitmask(qr.getAllowedLaws()));  // unused ?
+        qr.setLawsDeniedBitmask(lawsToBitmask(qr.getDeniedLaws()));
+        qr.setLawsTargetedInPlanBitmask(lawsToBitmask(qr.getTargetLawsInPlan()));
+
+        return qr;
+    }
+
+    protected static long conceptsToBitmask(List<Concept> concepts) {
+        long conceptBitmask = 0; //
+        for (Concept t : concepts) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            conceptBitmask |= newBit;
+        }
+        return conceptBitmask;
+    }
+
+    protected static long lawsToBitmask(List<Law> laws) {
+        long lawBitmask = 0;
+        // Note: violations are not positive laws.
+        for (Law t : laws) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            lawBitmask |= newBit;
+        }
+        return lawBitmask;
+    }
+
+        /**
+         * Generate explanation of violations
+         * @param violations list of student violations
+         * @param feedbackType TODO: use feedbackType or delete it
+         * @param lang user preferred language
+         * @return explanation for each violation in random order
+         */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
 
     /**
@@ -397,8 +462,8 @@ public abstract class Domain {
      * @return list of laws
      */
     public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
-        List<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
-        List<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
+        Collection<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
+        Collection<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
         List<Law> laws = new ArrayList<>();
         laws.addAll(positiveLaws);
         laws.addAll(negativeLaws);
@@ -414,14 +479,14 @@ public abstract class Domain {
      * @param tags question tags
      * @return list of positive laws
      */
-    public abstract List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags);
+    public abstract Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags);
     /**
      * Get negative needed laws in this questionType
      * @param questionDomainType type of question
      * @param tags question tags
      * @return list of negative laws
      */
-    public abstract List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags);
+    public abstract Collection<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags);
 
     /**
      * Get all needed solution Fact verbs for db saving
@@ -614,7 +679,7 @@ public abstract class Domain {
      * @param forbiddenQuestions texts of question that not suit TODO: use ExerciseAttemptEntity
      * @return new question template
      */
-    public Question findQuestion(List<Tag> tags, HashSet<String> targetConcepts, HashSet<String> deniedConcepts, HashSet<String> targetNegativeLaws, HashSet<String> deniedNegativeLaws, HashSet<String> forbiddenQuestions) {
+    public Question findQuestion(List<Tag> tags, Set<String> targetConcepts, Set<String> deniedConcepts, Set<String> targetNegativeLaws, Set<String> deniedNegativeLaws, Set<String> forbiddenQuestions) {
         List<Question> questions = new ArrayList<>();
 
         int maxSuitCount = 0;

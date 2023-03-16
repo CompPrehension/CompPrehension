@@ -1,32 +1,26 @@
-package org.vstu.compprehension.models.businesslogic.strategies;
+package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.vstu.compprehension.common.MathHelper;
-import org.vstu.compprehension.dto.ExerciseConceptDto;
-import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.entities.EnumData.*;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
-import javax.inject.Singleton;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Random;
 
-@Component @Singleton @Primary
 @Log4j2
 public class StaticStrategy implements AbstractStrategy {
 
@@ -59,59 +53,22 @@ public class StaticStrategy implements AbstractStrategy {
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        QuestionRequest qr = new QuestionRequest();
-        qr.setExerciseAttempt(exerciseAttempt);
-
         ExerciseStageEntity exerciseStage = getStageForNextQuestion(exerciseAttempt);
 
-        List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
-        // take target concepts as is, use their children as `allowed`
-        qr.setTargetConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).map(ec -> domain.getConcept(ec.getName())).filter(Objects::nonNull).collect(Collectors.toList()));
-
-        Set<Concept> allowed = exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.PERMITTED)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toSet());
-        allowed.addAll(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getChildrenOfConcept(ec.getName()).stream()).collect(Collectors.toSet()));
-        qr.setAllowedConcepts(List.copyOf(allowed));
-
-        qr.setDeniedConcepts (exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.FORBIDDEN)).flatMap(ec -> domain.getConceptWithChildren(ec.getName()).stream()).collect(Collectors.toList()));
-
-        List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
-        qr.setTargetLaws(exLaws.stream()
-                .filter(ec -> ec.getKind()
-                        .equals(RoleInExercise.TARGETED))
-                .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
-                .collect(Collectors.toList()));
-        qr.setAllowedLaws(exLaws.stream()
-                .filter(ec -> ec.getKind()
-                        .equals(RoleInExercise.PERMITTED))
-                .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
-                .collect(Collectors.toList()));
-        qr.setDeniedLaws(exLaws.stream()
-                .filter(ec -> ec.getKind()
-                        .equals(RoleInExercise.FORBIDDEN))
-                .flatMap(ec -> Stream.concat(
-                        domain.getPositiveLawWithImplied(ec.getName()).stream(),
-                        domain.getNegativeLawWithImplied(ec.getName()).stream()))
-                .collect(Collectors.toList()));
+        QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
         Concept badConcept = domain.getConcept("SystemIntegrationTest");
         if (badConcept != null)
             qr.getDeniedConcepts().add(badConcept);
-//        HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
-//        HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
 
-        qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));
-        qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));
+        Random random = domain.getRandomProvider().getRandom();
 
-//        qr.setComplexitySearchDirection(SearchDirections.TO_SIMPLE);
-        qr.setComplexitySearchDirection(null);
-         qr.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-        qr.setChanceToPickAutogeneratedQuestion(1.0);
-        qr.setComplexity(exercise.getComplexity());  // [0..1], copy as is
-        return qr;
+        //  * (0.8 .. 1.2)
+        float changeCoeff = 0.8f + 0.4f * random.nextFloat();
+        float complexity = qr.getComplexity() * changeCoeff;
+        qr.setComplexity(complexity);
+
+        return adjustQuestionRequest(qr, exerciseAttempt);
     }
 
     @Override

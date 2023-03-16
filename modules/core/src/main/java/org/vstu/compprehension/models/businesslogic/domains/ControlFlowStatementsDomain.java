@@ -30,8 +30,9 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.CtrlFlowQuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -71,27 +72,30 @@ public class ControlFlowStatementsDomain extends Domain {
     public static DomainVocabulary getVocabulary() {
         return VOCAB;
     }
+    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-name-bit.yml";
 
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
+
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository;
+    private final QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository;
 
     @Autowired
     public ControlFlowStatementsDomain(LocalizationService localizationService,
-                                       DomainRepository domainRepository,
-                                       RandomProvider randomProvider,
-                                       CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository) {
-        super(randomProvider);
+         DomainRepository domainRepository,
+         RandomProvider randomProvider,
+         QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository,
+         QuestionRequestLogRepository questionRequestLogRepository) {
+        super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
         this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
         name = "ControlFlowStatementsDomain";
 //        if (domainRepository != null)
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
-        
+
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
@@ -110,31 +114,42 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     private void fillConcepts() {
-        concepts = new ArrayList<>();
+        concepts = new HashMap<>();
         initVocab();
-        concepts.addAll(VOCAB.readConcepts());
+        addConcepts(VOCAB.readConcepts());
 
         // add concepts about expressions present in algorithms
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
         Concept nested_loop = new Concept("nested_loop", List.of(), flagsAll);
-        concepts.add(nested_loop);
         Concept exprC = new Concept("exprs_in_use", List.of(), flags);
-        concepts.add(exprC);
         List<Concept> bases = List.of(exprC);
-        concepts.addAll(List.of(
+        addConcepts(List.of(
+                nested_loop,
+                exprC,
                 new Concept("expr:pointer", bases, flags),
                 new Concept("expr:func_call", bases, flags),
                 new Concept("expr:explicit_cast", bases, flags),
                 new Concept("expr:array", bases, flags),
                 new Concept("expr:class_member_access", bases, flags)
         ));
+
+        fillConceptTree();
+
+        // assign mask bits to Concepts
+        val name2bit = _getConceptsName2bit();
+        for (Concept t : concepts.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
     }
 
     private void readLaws(InputStream inputStream) {
         Objects.requireNonNull(inputStream);
-        positiveLaws = new ArrayList<>();
-        negativeLaws = new ArrayList<>();
+        positiveLaws = new HashMap<>();
+        negativeLaws = new HashMap<>();
 
         RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory
@@ -150,17 +165,34 @@ public class ControlFlowStatementsDomain extends Domain {
 
         for (Law lawForm : lawForms) {
             if (lawForm.isPositiveLaw()) {
-                positiveLaws.add((PositiveLaw) lawForm);
+                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
             } else {
-                negativeLaws.add((NegativeLaw) lawForm);
+                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
             }
         }
 
         // add empty laws that name each possible error
         for (String errClass : VOCAB.classDescendants("Erroneous")) {
-            negativeLaws.add(new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
         }
 
+
+        fillLawsTree();
+
+        // assign mask bits to Laws
+//        for (Law t : positiveLaws.values()) {
+//            val name = t.getName();
+//            if (name2bit.containsKey(name)) {
+//                t.setBitmask(name2bit.get(name));
+//            }
+//        }
+        val name2bit = _getViolationsName2bit();
+        for (Law t : negativeLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
     }
 
     @Override
@@ -175,7 +207,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public CtrlFlowQuestionMetadataRepository getQuestionMetadataRepository() {
+    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
         return ctrlFlowQuestionMetadataRepository;
     }
 
@@ -456,55 +488,20 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
-        // Prepare concept name sets ...
-        HashSet<String> conceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getTargetConcepts()) {
-            conceptNames.add(concept.getName());
-        }
-        HashSet<String> deniedConceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getDeniedConcepts()) {
-            deniedConceptNames.add(concept.getName());
-        }
-        deniedConceptNames.add("supplementary");
-
-        // Get negative and positive laws names ...
-        HashSet<String> lawNames = new HashSet<>();
-        if (questionRequest.getTargetLaws() != null) {
-            for (Law law : questionRequest.getTargetLaws()) {
-                lawNames.add(law.getName());
-            }
-        }
-
-        HashSet<String> deniedLawNames = new HashSet<>();
-        if (questionRequest.getDeniedLaws() != null) {
-            for (Law law : questionRequest.getDeniedLaws()) {
-                deniedLawNames.add(law.getName());
-            }
-        }
-
-//        HashSet<String> deniedQuestions = new HashSet<>();
-//        if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
-//            for (QuestionEntity q : questionRequest.getExerciseAttempt().getQuestions()) {
-//                deniedQuestions.add(q.getQuestionName());
-//            }
-//        }
-
-//        // update QR with denied questions
-//        questionRequest.setDeniedQuestionNames(deniedQuestions.stream().collect(Collectors.toUnmodifiableList()));
 
         Question res;
 
-
         List<Question> foundQuestions = new ArrayList<>();
         double chance = questionRequest.getChanceToPickAutogeneratedQuestion();
-        //noinspection ConstantConditions
         if (chance == 1.0 ||
                         chance > 0.0 &&
                         randomProvider.getRandom().nextDouble() < chance)
         {
-            final int randomPoolSize = 10;  // 16;
+            final int randomPoolSize = 1;  // 16;
             try {
                 // new version - invoke rdfStorage search
+                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
+                saveQuestionRequest(questionRequest);
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"
@@ -531,7 +528,43 @@ public class ControlFlowStatementsDomain extends Domain {
             }
         } else {
             // old version - search in domain's in-memory questions (created manually)
-            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, Optional.ofNullable(questionRequest.getDeniedQuestionNames()).map(HashSet::new).orElse(new HashSet<>(0)));
+            // Prepare concept name sets ...
+            HashSet<String> conceptNames = new HashSet<>();
+            for (Concept concept : questionRequest.getTargetConcepts()) {
+                conceptNames.add(concept.getName());
+            }
+            HashSet<String> deniedConceptNames = new HashSet<>();
+            for (Concept concept : questionRequest.getDeniedConcepts()) {
+                deniedConceptNames.add(concept.getName());
+            }
+            deniedConceptNames.add("supplementary");
+
+            // Get negative and positive laws names ...
+            HashSet<String> lawNames = new HashSet<>();
+            if (questionRequest.getTargetLaws() != null) {
+                for (Law law : questionRequest.getTargetLaws()) {
+                    lawNames.add(law.getName());
+                }
+            }
+
+            HashSet<String> deniedLawNames = new HashSet<>();
+            if (questionRequest.getDeniedLaws() != null) {
+                for (Law law : questionRequest.getDeniedLaws()) {
+                    deniedLawNames.add(law.getName());
+                }
+            }
+
+            //        HashSet<String> deniedQuestions = new HashSet<>();
+            //        if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
+            //            for (QuestionEntity q : questionRequest.getExerciseAttempt().getQuestions()) {
+            //                deniedQuestions.add(q.getQuestionName());
+            //            }
+            //        }
+
+            //        // update QR with denied questions
+            //        questionRequest.setDeniedQuestionNames(deniedQuestions.stream().collect(Collectors.toUnmodifiableList()));
+
+            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, Optional.ofNullable(questionRequest.getDeniedQuestionNames()).map(Set::copyOf).orElse(Set.of()));
         }
 
 
@@ -568,6 +601,21 @@ public class ControlFlowStatementsDomain extends Domain {
         return questionCopy;
     }
 
+    @Override
+    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
+        qr = super.fillBitmasksInQuestionRequest(qr);
+
+        // set trace concepts to search, not [formulation] concepts
+        qr.setTraceConceptsTargetedBitmask(qr.getConceptsTargetedBitmask());
+        qr.setConceptsTargetedBitmask(0L);
+
+        // hard limits on solution length (questions outside this boundaries will never appear)
+        qr.setStepsMin(3);
+        qr.setStepsMax(30);
+
+        return qr;
+    }
+
     /*static List<BackendFactEntity> schemaFactsCache = null;
 
     static List<BackendFactEntity> getSchemaFacts() {
@@ -595,6 +643,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
                 .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
+                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
                 .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
@@ -873,14 +922,14 @@ public class ControlFlowStatementsDomain extends Domain {
     public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
 
         List<Law> laws = new ArrayList<>();
-        laws.addAll(positiveLaws);
-        laws.addAll(negativeLaws);
+        laws.addAll(positiveLaws.values());
+        laws.addAll(negativeLaws.values());
         return laws;
     }
 
     // filter positive laws by question type and tags
     @Override
-    public List<PositiveLaw> getQuestionPositiveLaws(String domainQuestionType, List<Tag> tags) {
+    public Collection<PositiveLaw> getQuestionPositiveLaws(String domainQuestionType, List<Tag> tags) {
         /// debug OFF
         if (false && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE) || domainQuestionType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
@@ -909,7 +958,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return getPositiveLaws();
     }
 
-    public List<NegativeLaw> getQuestionNegativeLaws(String domainQuestionType, List<Tag> tags) {
+    public Collection<NegativeLaw> getQuestionNegativeLaws(String domainQuestionType, List<Tag> tags) {
         /// debug OFF
         if (false && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
@@ -2099,8 +2148,58 @@ public class ControlFlowStatementsDomain extends Domain {
         catch (IllegalArgumentException exception) {
             return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
-
     }
+
+    private HashMap<String, Long> _getConceptsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(26);
+        name2bit.put("pointer", 0x1L);
+        name2bit.put("C++", 0x2L);
+        name2bit.put("loops", 0x4L);
+        name2bit.put("if/else", 0x8L);
+        name2bit.put("expr:array", 0x10L);
+        name2bit.put("expr:pointer", 0x20L);
+        name2bit.put("expr:func_call", 0x40L);
+        name2bit.put("expr:explicit_cast", 0x80L);
+        name2bit.put("expr:class_member_access", 0x100L);
+        name2bit.put("alternative", 0x200L);
+        name2bit.put("else", 0x400L);
+        name2bit.put("expr", 0x800L);
+        name2bit.put("if", 0x1000L);
+        name2bit.put("sequence", 0x2000L);
+        name2bit.put("return", 0x4000L);
+        name2bit.put("loop", 0x8000L);
+        name2bit.put("while_loop", 0x10000L);
+        name2bit.put("for_loop", 0x20000L);
+        name2bit.put("else-if", 0x40000L);
+        name2bit.put("nested_loop", 0x80000L);
+        name2bit.put("do_while_loop", 0x100000L);
+        name2bit.put("break", 0x200000L);
+        name2bit.put("continue", 0x400000L);
+                 //   stmt       0x800000L
+        name2bit.put("seq_longer_than1", 0x1000000L);
+        return name2bit;
+    }
+    private HashMap<String, Long> _getViolationsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(16);
+        name2bit.put("DuplicateOfAct", 0x1L);
+        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
+        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
+        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);
+        name2bit.put("NoFirstCondition", 0x10L);
+        name2bit.put("SequenceFinishedTooEarly", 0x20L);
+        name2bit.put("TooEarlyInSequence", 0x40L);
+        name2bit.put("BranchOfFalseCondition", 0x80L);
+        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);
+        name2bit.put("LastFalseNoEnd", 0x200L);
+        name2bit.put("LoopStartIsNotCondition", 0x400L);
+        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);
+        name2bit.put("NoConditionAfterIteration", 0x1000L);
+        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
+        name2bit.put("LoopStartIsNotIteration", 0x4000L);
+        return name2bit;
+    }
+
+
 
     private static void _test_Substitutor() {
 
@@ -2140,20 +2239,6 @@ public class ControlFlowStatementsDomain extends Domain {
 
     }
 
-    public static void main(String[] args) {
-        if (true)
-            _test_Substitutor();
-        else {
-            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
-            d.getQuestionTemplates();
-            VOCAB.classDescendants("Erroneous");
-
-            JenaFactList fl = new JenaFactList(VOCAB.getModel());
-            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
-//        jBack.debug_dump_model("question");
-        }
-    }
-
     private static class AnswerDomainInfo {
         private final String domainInfo;
         private String phase;
@@ -2188,4 +2273,18 @@ public class ControlFlowStatementsDomain extends Domain {
             return this;
         }
     }
+
+    public static void main(String[] args) {
+        if (true) {
+            _test_Substitutor();
+        } else {
+            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
+            d.getQuestionTemplates();
+            VOCAB.classDescendants("Erroneous");
+
+            JenaFactList fl = new JenaFactList(VOCAB.getModel());
+            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
+        }
+    }
+
 }

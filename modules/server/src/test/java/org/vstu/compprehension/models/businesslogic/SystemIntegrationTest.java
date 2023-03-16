@@ -6,7 +6,6 @@ import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.strategies.Strategy;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -26,8 +25,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Transactional
 public class SystemIntegrationTest {
-    @Autowired
-    private Strategy strategy;
+    //@Autowired
+    //private Strategy strategy;
 
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
@@ -59,9 +58,8 @@ public class SystemIntegrationTest {
     @Test
     public void generateTest() throws Exception
     {
-
-        assertNotNull(strategy);
 /*
+        assertNotNull(strategy);
         val testExerciseAttemptList = IterableUtils
                 .toList(exerciseAttemptRepository.findAll())
                 .stream()

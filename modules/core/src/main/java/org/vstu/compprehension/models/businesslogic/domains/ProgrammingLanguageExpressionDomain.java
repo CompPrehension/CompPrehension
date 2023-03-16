@@ -35,7 +35,8 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -57,26 +58,29 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
     static final String PRECEDENCE_TYPE_QUESTION_TYPE = "PrecedenceType";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
+    static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
-    static final String QUESTIONS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-questions.json";
-    static final String SUPPLEMENTARY_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-supplementary-strategy.json";
-    public static final String MESSAGES_CONFIG_PATH = "classpath:/org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-messages";
+    static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
+    static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-messages";
     
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
-    public static final String VOCAB_SCHEMA_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-schema.rdf";
+    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-name-bit.yml";
+    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    private final ExpressionQuestionMetadataRepository exprQuestionMetadataRepository;
+    private final QuestionMetadataBaseRepository exprQuestionMetadataRepository;
 
     @Autowired
     public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
                                                DomainRepository domainRepository,
                                                RandomProvider randomProvider,
-                                               ExpressionQuestionMetadataRepository exprQuestionMetadataRepository) {
-        super(randomProvider);
+                                               QuestionMetadataBaseRepository exprQuestionMetadataRepository,
+         QuestionRequestLogRepository questionRequestLogRepository) {
+        super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
         this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
 
@@ -89,7 +93,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
-        super(new RandomProvider());
+        super(new RandomProvider(), null);
         this.localizationService = localizationService;
         exprQuestionMetadataRepository = null;
 
@@ -118,8 +122,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "ProgrammingLanguageExpressionDomain";
     }
 
+
     private void fillConcepts() {
-        concepts = new ArrayList<>();
+        concepts = new HashMap<>();
 
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
         int invisible = Concept.FLAG_TARGET_ENABLED;
@@ -209,7 +214,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_<<", List.of(singleTokenBinaryConcept, bitwise), "a << b", invisible);
 
         Concept arrays = addConcept("arrays", List.of(), "Массивы", noFlags);
-        Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", invisible);
+        Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", flags);
 
         Concept pointers = addConcept("pointers", List.of(singleTokenUnaryConcept), "Операции c указателями", flags);
         addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
@@ -246,24 +251,32 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
         Concept errorUnevaluatedOperand = addConcept("error_base_student_error_unevaluated_operand");
         Concept errorEarlyFinish = addConcept("error_base_student_error_early_finish");
+
+        fillConceptTree();
+
+        // assign mask bits to Concepts
+        val name2bit = _getConceptsName2bit();
+        for (Concept t : concepts.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
         Concept concept = new Concept(name, /*displayName,*/ baseConcepts, flags);
-        concepts.add(concept);
-        return concept;
+        return addConcept(concept);
     }
 
     private Concept addConcept(String name, List<Concept> baseConcepts) {
         Concept concept = new Concept(name, baseConcepts);
-        concepts.add(concept);
-        return concept;
+        return addConcept(concept);
     }
 
     private Concept addConcept(String name) {
         Concept concept = new Concept(name);
-        concepts.add(concept);
-        return concept;
+        return addConcept(concept);
     }
 
     public static class SupplementaryAnswerTransition {
@@ -278,7 +291,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         public List<SupplementaryAnswerTransition> transitions;
     }
 
-    class SupplementaryConfig {
+    static class SupplementaryConfig {
         String name;
         List<SupplementaryAnswerConfig> answers;
     }
@@ -303,8 +316,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private void readLaws(InputStream inputStream) {
-        positiveLaws = new ArrayList<>();
-        negativeLaws = new ArrayList<>();
+        positiveLaws = new HashMap<>();
+        negativeLaws = new HashMap<>();
 
         RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
                 RuntimeTypeAdapterFactory
@@ -320,9 +333,27 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         for (Law lawForm : lawForms) {
             if (lawForm.isPositiveLaw()) {
-                positiveLaws.add((PositiveLaw) lawForm);
+                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
             } else {
-                negativeLaws.add((NegativeLaw) lawForm);
+                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
+            }
+        }
+
+        fillLawsTree();
+
+        // assign mask bits to Laws
+        var name2bit = _getLawsName2bit();
+        for (Law t : positiveLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
+        name2bit = _getViolationsName2bit();
+        for (Law t : negativeLaws.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
             }
         }
     }
@@ -339,7 +370,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public ExpressionQuestionMetadataRepository getQuestionMetadataRepository() {
+    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
         return exprQuestionMetadataRepository;
     }
 
@@ -434,6 +465,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .multipleSelectionEnabled(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
                 .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
+                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
                 .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
@@ -537,6 +569,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
     }
 
+    @Override
+    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
+        qr = super.fillBitmasksInQuestionRequest(qr);
+
+        // hard limits on solution length (questions outside this boundaries will never appear)
+        qr.setStepsMin(2);
+        qr.setStepsMax(23);
+
+        return qr;
+    }
+
     @NotNull
     private static String reformatQuestionText(Question q) {
         // avoid changing generated files: re-generate html
@@ -582,50 +625,25 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
-        // Prepare concept name sets ...
+
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
         }
-        HashSet<String> deniedConceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getDeniedConcepts()) {
-            deniedConceptNames.add(concept.getName());
-        }
-        deniedConceptNames.add("supplementary");
-
-        HashSet<String> lawNames = new HashSet<>();
-        if (questionRequest.getTargetLaws() != null) {
-            for (Law law : questionRequest.getTargetLaws()) {
-                lawNames.add(law.getName());
-            }
-        }
-
-        HashSet<String> deniedLawNames = new HashSet<>();
-        if (questionRequest.getDeniedLaws() != null) {
-            for (Law law : questionRequest.getDeniedLaws()) {
-                deniedLawNames.add(law.getName());
-            }
-        }
-
-        HashSet<String> deniedQuestions = new HashSet<>();
-        if (questionRequest.getExerciseAttempt() != null &&
-                questionRequest.getExerciseAttempt().getQuestions() != null &&
-                questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
-            deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
-        }
-        questionRequest.setDeniedQuestionNames(List.of());
 
         List<Question> foundQuestions = null;
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
-                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
+                saveQuestionRequest(questionRequest);
+                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 5);
+                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
                 }
             } catch (RuntimeException ex) {
                 // file storage was not configured properly...
@@ -639,6 +657,35 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             res = foundQuestions.get(0);
         } else {
             // old version - search in domain's in-memory questions
+            // Prepare concept name sets ...
+            HashSet<String> deniedConceptNames = new HashSet<>();
+            for (Concept concept : questionRequest.getDeniedConcepts()) {
+                deniedConceptNames.add(concept.getName());
+            }
+            deniedConceptNames.add("supplementary");
+
+            HashSet<String> lawNames = new HashSet<>();
+            if (questionRequest.getTargetLaws() != null) {
+                for (Law law : questionRequest.getTargetLaws()) {
+                    lawNames.add(law.getName());
+                }
+            }
+
+            HashSet<String> deniedLawNames = new HashSet<>();
+            if (questionRequest.getDeniedLaws() != null) {
+                for (Law law : questionRequest.getDeniedLaws()) {
+                    deniedLawNames.add(law.getName());
+                }
+            }
+
+            HashSet<String> deniedQuestions = new HashSet<>();
+            if (questionRequest.getExerciseAttempt() != null &&
+                    questionRequest.getExerciseAttempt().getQuestions() != null &&
+                    questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
+                deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
+            }
+            questionRequest.setDeniedQuestionNames(List.of());
+
             res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         }
 
@@ -2589,4 +2636,82 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return responses;
     }
 
+    private HashMap<String, Long> _getConceptsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(26);
+        name2bit.put("operator", 0x1L);  	// (1)
+        name2bit.put("operator_,", 0x2L);  	// (2)
+        name2bit.put("operator_==", 0x4L);  	// (4)
+        name2bit.put("operator_!", 0x8L);  	// (8)
+        name2bit.put("operator_&&", 0x10L);  	// (16)
+        name2bit.put("operator_<=", 0x20L);  	// (32)
+        name2bit.put("precedence", 0x40L);  	// (64)
+        name2bit.put("associativity", 0x80L);  	// (128)
+        name2bit.put("operator_!=", 0x100L);  	// (256)
+        name2bit.put("operator_>=", 0x200L);  	// (512)
+        name2bit.put("operator_binary_-", 0x400L);  	// (1024)
+        name2bit.put("operator_||", 0x800L);  	// (2048)
+        name2bit.put("operator_&", 0x1000L);  	// (4096)
+        name2bit.put("operator_=", 0x2000L);  	// (8192)
+        name2bit.put("operator_binary_+", 0x4000L);  	// (16384)
+        name2bit.put("operator_/", 0x8000L);  	// (32768)
+        name2bit.put("operator_unary_*", 0x10000L);  	// (65536)
+        name2bit.put("operator_binary_*", 0x20000L);  	// (131072)
+        name2bit.put("operator_<<", 0x40000L);  	// (262144)
+        name2bit.put("operator_unary_-", 0x80000L);  	// (524288)
+        name2bit.put("operator_|", 0x100000L);  	// (1048576)
+        name2bit.put("operator_^", 0x200000L);  	// (2097152)
+        name2bit.put("operator_<", 0x400000L);  	// (4194304)
+        name2bit.put("operator_>", 0x800000L);  	// (8388608)
+        name2bit.put("operator_postfix_++", 0x1000000L);  	// (16777216)
+        name2bit.put("operator_binary_&", 0x2000000L);  	// (33554432)
+        name2bit.put("operator_%", 0x4000000L);  	// (67108864)
+        name2bit.put("operator_postfix_--", 0x8000000L);  	// (134217728)
+        name2bit.put("operator_>>", 0x10000000L);  	// (268435456)
+        name2bit.put("operator_+=", 0x20000000L);  	// (536870912)
+        name2bit.put("operator_|=", 0x40000000L);  	// (1073741824)
+        name2bit.put("operator_~", 0x80000000L);  	// (2147483648)
+        name2bit.put("operator_&=", 0x100000000L);  	// (4294967296)
+        name2bit.put("operator_unary_+", 0x200000000L);  	// (8589934592)
+        name2bit.put("operator_-=", 0x400000000L);  	// (17179869184)
+        name2bit.put("operator_/=", 0x800000000L);  	// (34359738368)
+        name2bit.put("operator_<<=", 0x1000000000L);  	// (68719476736)
+        name2bit.put("operator_>>=", 0x2000000000L);  	// (137438953472)
+        name2bit.put("operator_(", 0x4000000000L);  	// (274877906944)
+        name2bit.put("operator_->", 0x8000000000L);  	// (549755813888)
+        name2bit.put("operator_function_call", 0x10000000000L);  	// (1099511627776)
+        name2bit.put("operator_.", 0x20000000000L);  	// (2199023255552)
+        name2bit.put("operator_subscript", 0x40000000000L);  	// (4398046511104)
+        name2bit.put("operator_prefix_++", 0x80000000000L);  	// (8796093022208)
+        name2bit.put("operator_prefix_--", 0x100000000000L);  	// (17592186044416)
+        return name2bit;
+        // (developer tip: see sqlite2mysql)
+    }
+    private HashMap<String, Long> _getViolationsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(16);
+        name2bit.put("error_base_higher_precedence_right", 0x1L);    // (1)
+        name2bit.put("error_base_student_error_early_finish", 0x2L);    // (2)
+        name2bit.put("error_base_student_error_in_complex", 0x4L);    // (4)
+        name2bit.put("error_base_same_precedence_right_associativity_right", 0x8L);    // (8)
+        name2bit.put("error_base_higher_precedence_left", 0x10L);    // (16)
+        name2bit.put("error_base_student_error_strict_operands_order", 0x20L);    // (32)
+        name2bit.put("error_base_same_precedence_left_associativity_left", 0x40L);    // (64)
+        name2bit.put("error_base_student_error_unevaluated_operand", 0x80L);    // (128)    }
+        name2bit.put("associativity", 0x100L);  	// (256)
+        name2bit.put("error_base_unary_having_associativity_right", 0x200L);  	// (512)
+        name2bit.put("precedence", 0x400L);  	// (1024)
+        name2bit.put("error_base_binary_having_associativity_left", 0x800L);  	// (2048)
+        name2bit.put("error_base_binary_having_associativity_right", 0x1000L);  // (4096)
+        name2bit.put("error_base_unary_having_associativity_left", 0x2000L);  	// (8192)
+        name2bit.put("error_base_enclosing_operators", 0x4000L);  	// (16384)
+        return name2bit;
+    }
+    private HashMap<String, Long> _getLawsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(16);
+        name2bit.put("single_token_binary_execution", 0x1L);  	// (1)
+        name2bit.put("two_token_binary_execution", 0x2L);  	// (2)
+        name2bit.put("single_token_unary_prefix_execution", 0x4L);  	// (4)
+        name2bit.put("two_token_unary_execution", 0x8L);  	// (8)
+        name2bit.put("single_token_unary_postfix_execution", 0x10L);  	// (16)
+        return name2bit;
+    }
 }

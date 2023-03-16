@@ -20,10 +20,8 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyFactory;
+import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
@@ -64,7 +62,7 @@ public class FrontendService {
     private QuestionService questionService;
 
     @Autowired
-    private StrategyFactory strategyFactory;
+    private AbstractStrategyFactory strategyFactory;
 
     @Autowired
     private FeedbackRepository feedbackRepository;
@@ -138,7 +136,7 @@ public class FrontendService {
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        ch.hit("attempt found");
+        // ch.hit("attempt found");
 
         // evaluate answer
         val tags = attempt.getExercise().getTags();
@@ -155,7 +153,7 @@ public class FrontendService {
         val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
-        ch.hit("add interaction ("+correctInteractionsCount+")");
+        // ch.hit("add interaction ("+correctInteractionsCount+")");
 
         // add feedback
         val strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
@@ -185,7 +183,7 @@ public class FrontendService {
                 : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
                 : null;
-        ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
+        // ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
 
         // return result of the last correct interaction
         val correctInteraction = existingInteractions.stream()
@@ -210,7 +208,7 @@ public class FrontendService {
                     .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
-            ch.hit("results made");
+//            ch.hit("results made");
             val res = addOrdinaryQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
             ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;
@@ -248,6 +246,8 @@ public class FrontendService {
 
         val violation = new ViolationEntity(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
+
+        // domain.generateSupplementaryQuestion(question, violation)
 
         val supQuestion = questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
         return supQuestion != null ? Mapper.toDto(supQuestion) : null;
