@@ -136,7 +136,7 @@ public class FrontendService {
 
         ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        ch.hit("attempt found");
+        // ch.hit("attempt found");
 
         // evaluate answer
         val tags = attempt.getExercise().getTags();
@@ -153,7 +153,7 @@ public class FrontendService {
         val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
-        ch.hit("add interaction ("+correctInteractionsCount+")");
+        // ch.hit("add interaction ("+correctInteractionsCount+")");
 
         // add feedback
         val strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
@@ -183,7 +183,7 @@ public class FrontendService {
                 : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
                 : null;
-        ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
+        // ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
 
         // return result of the last correct interaction
         val correctInteraction = existingInteractions.stream()
@@ -208,7 +208,7 @@ public class FrontendService {
                     .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
-            ch.hit("results made");
+//            ch.hit("results made");
             val res = addOrdinaryQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
             ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;

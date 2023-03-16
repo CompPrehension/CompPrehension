@@ -247,7 +247,7 @@ public abstract class AbstractRdfStorage {
             meta.setLastAttemptId(qr.getExerciseAttempt().getId());
             metaMgr.getQuestionRepository().save(meta);
 
-            ch.hit("searchQuestionsAdvanced - Question usage +1");
+//            ch.hit("searchQuestionsAdvanced - Question usage +1");
         }
 
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
