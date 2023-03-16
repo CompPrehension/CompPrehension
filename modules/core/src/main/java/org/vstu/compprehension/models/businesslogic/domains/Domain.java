@@ -18,10 +18,12 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,10 +52,13 @@ public abstract class Domain {
     protected String version = "";
     @Getter
     protected final RandomProvider randomProvider;
+    protected final QuestionRequestLogRepository questionRequestLogRepository;
 
 
-    public Domain(RandomProvider randomProvider) {
+
+    public Domain(RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository) {
         this.randomProvider = randomProvider;
+        this.questionRequestLogRepository = questionRequestLogRepository;
     }
 
     /**
@@ -334,6 +339,16 @@ public abstract class Domain {
         return null;
     }
 
+    public void saveQuestionRequest(QuestionRequest qr) {
+
+        val qrl = qr.getLogEntity();
+
+        Map<String, Object> res = getQuestionMetadataRepository().countQuestions(qr);
+        int questionsFound = ((BigInteger)res.getOrDefault("number", -2)).intValue();
+        qrl.setFoundCount(questionsFound);
+        qrl.setCreatedDate(new Date());
+        questionRequestLogRepository.save(qrl);
+    }
 
     abstract public Question parseQuestionTemplate(InputStream stream);
 

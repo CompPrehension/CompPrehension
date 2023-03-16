@@ -1,12 +1,16 @@
 package org.vstu.compprehension.models.repository;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -98,4 +102,22 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
             @Param("lim") int limitNumber,
             @Param("random_pool_lim") int randomPoolLimitNumber
     );
+
+    @Query(value = "select count(*) as number from questions_meta q where " +
+            "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.solution_steps >= :#{#qr.stepsMin} " +
+            "AND q.solution_steps <= :#{#qr.stepsMax} " +
+            "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
+            "AND q.violation_bits & :#{#qr.lawsDeniedBitmask} = 0 " +
+
+            // at least one targeted concept and one targeted law must present
+            "   AND IF(:#{#qr.traceConceptsTargetedBitmask} =0,1,q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) " +
+            "   AND IF(:#{#qr.conceptsTargetedBitmask} =0,1,q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
+            "   AND IF(:#{#qr.lawsTargetedBitmask} =0,1,q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0) " +
+
+            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
+            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds}" + // note: must be non-empty
+            "", nativeQuery = true)
+    Map<String, Object> countQuestions(@Param("qr") QuestionRequest qr);
+
 }

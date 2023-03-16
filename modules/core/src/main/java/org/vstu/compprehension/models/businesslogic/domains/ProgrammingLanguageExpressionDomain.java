@@ -1,8 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -39,12 +36,11 @@ import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -82,8 +78,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
                                                DomainRepository domainRepository,
                                                RandomProvider randomProvider,
-                                               ExpressionQuestionMetadataRepository exprQuestionMetadataRepository) {
-        super(randomProvider);
+                                               ExpressionQuestionMetadataRepository exprQuestionMetadataRepository,
+         QuestionRequestLogRepository questionRequestLogRepository) {
+        super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
         this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
 
@@ -96,7 +93,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
-        super(new RandomProvider());
+        super(new RandomProvider(), null);
         this.localizationService = localizationService;
         exprQuestionMetadataRepository = null;
 
@@ -639,6 +636,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
+                saveQuestionRequest(questionRequest);
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"

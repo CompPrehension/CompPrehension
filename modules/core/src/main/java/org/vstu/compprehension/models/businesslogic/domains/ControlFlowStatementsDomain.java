@@ -1,6 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -33,12 +32,12 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.CtrlFlowQuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -47,10 +46,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import java.io.File;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
@@ -92,8 +87,9 @@ public class ControlFlowStatementsDomain extends Domain {
     public ControlFlowStatementsDomain(LocalizationService localizationService,
          DomainRepository domainRepository,
          RandomProvider randomProvider,
-         CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository) {
-        super(randomProvider);
+         CtrlFlowQuestionMetadataRepository ctrlFlowQuestionMetadataRepository,
+         QuestionRequestLogRepository questionRequestLogRepository) {
+        super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
         this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
         name = "ControlFlowStatementsDomain";
@@ -505,6 +501,7 @@ public class ControlFlowStatementsDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
+                saveQuestionRequest(questionRequest);
                 foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"
