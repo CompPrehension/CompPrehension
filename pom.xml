@@ -13,6 +13,7 @@
         <module>modules/common</module>
         <module>modules/core</module>
         <module>modules/strategies</module>
+        <module>modules/background-server</module>
     </modules>
 
     <properties>

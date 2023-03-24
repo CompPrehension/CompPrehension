@@ -1,0 +1,30 @@
+package org.vstu.compprehension.jobs.tasksgeneration;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ConfigurationProperties(prefix = "task-generation")
+@Getter @Setter @NoArgsConstructor
+public class TaskGenerationJobConfig {
+    private String githubOAuthToken;
+    private String pathToRepos;
+    private ParserConfig parser;
+    private GeneratorConfig generator;
+
+    @Getter @Setter @NoArgsConstructor
+    public static class ParserConfig {
+        public String pathToExecutable;
+        public String outputFolderPath;
+    }
+
+    @Getter @Setter @NoArgsConstructor
+    public static class GeneratorConfig {
+        public String pathToExecutable;
+        public String outputFolderPath;
+    }
+}
