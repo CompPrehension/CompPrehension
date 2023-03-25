@@ -72,7 +72,6 @@ public class ControlFlowStatementsDomain extends Domain {
     public static DomainVocabulary getVocabulary() {
         return VOCAB;
     }
-    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-name-bit.yml";
 
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;

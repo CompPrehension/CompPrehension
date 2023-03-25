@@ -68,7 +68,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
-    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-name-bit.yml";
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
@@ -2491,54 +2490,83 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Set<String> violations = possibleViolations(question, null);
         question.getNegativeLaws().addAll(violations);
 
-        List<String> tags = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
+        List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
 
-        question.getTags().addAll(tags);
+        question.getTags().addAll(tagNames);
 
         entity.setSolutionFacts(null);
 
-        for (String tag : tags) {
+        // TODO: write info to question metadata
+        QuestionMetadataEntity metadata = new QuestionMetadataEntity();
+        if (entity.getOptions() == null) {
+            entity.setOptions(new OrderQuestionOptionsEntity());
+        }
+        entity.getOptions().setMetadata(metadata);
+        question.setMetadata(metadata);
+
+        metadata.setDomainShortname(this.getShortName());
+        metadata.setStage(3);  // 3 = generated question
+        metadata.setUsedCount(0L);
+
+        /*for (String tag : tags) {
             rs.setQuestionMetadata(questionName, List.of(
                     Pair.of(AbstractRdfStorage.NS_questions.getUri("has_tag"),
                             NodeFactory.createLiteral(tag))
             ));
-        }
-        question.setTags(new HashSet<>(tags));
+        }*/
+        question.setTags(new HashSet<>(tagNames));
+        metadata.setTagBits(tagNames.stream().map(this::getTag).map(Tag::getBitmask).reduce((a,b) -> a|b).orElse(0L));
 
-        for (String law : lawNames) {
+
+        /*for (String law : lawNames) {
             rs.setQuestionMetadata(questionName, List.of(
                     Pair.of(AbstractRdfStorage.NS_questions.getUri("has_law"),
                             NodeFactory.createLiteral(law))
             ));
-        }
+        }*/
+        // ... no positive laws in Question
+        metadata.setLawBits(lawNames.stream().map(this::getPositiveLaw).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L));
 
-        for (String violation : violations) {
+        /*for (String violation : violations) {
             rs.setQuestionMetadata(questionName, List.of(
                     Pair.of(AbstractRdfStorage.NS_questions.getUri("has_violation"),
                             NodeFactory.createLiteral(violation))
             ));
-        }
+        }*/
+        question.setNegativeLaws(new ArrayList<>(violations));
+        metadata.setViolationBits(violations.stream().map(this::getConcept).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L));
 
-        for (String concept : concepts) {
+        /*for (String concept : concepts) {
             rs.setQuestionMetadata(questionName, List.of(
                     Pair.of(AbstractRdfStorage.NS_questions.getUri("has_concept"),
                             NodeFactory.createLiteral(concept))
             ));
-        }
+        }*/
+        question.setConcepts(new ArrayList<>(concepts));
+        metadata.setConceptBits(concepts.stream().map(this::getConcept).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L));
+        metadata.setTraceConceptBits(0L);  // trace concepts (encountered during solving the question) are not important for this domain.
 
         double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
-        double integralCompexity = 1/( 1 + Math.pow(Math.E,(-1*complexity)));
+        double integralComplexity = 1/( 1 + Math.exp(-1*complexity));
 
-        rs.setQuestionMetadata(questionName, List.of(
+
+        // add metadata to question (later it may be stored in DB)
+
+        metadata.setIntegralComplexity(integralComplexity);
+        metadata.setSolutionStructuralComplexity((double) ans_id);  // number of clickable operators
+        metadata.setSolutionSteps(solution_length);
+        metadata.setDistinctErrorsCount(violations.size());
+
+        /*rs.setQuestionMetadata(questionName, List.of(
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_structural_complexity"),
-                        NodeFactory.createLiteralByValue( solution_length / (float) ans_id, XSDDatatype.XSDfloat)),
+                        NodeFactory.createLiteralByValue( solution_length / *//*!!*//* (float) ans_id, XSDDatatype.XSDfloat)),
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("distinct_errors_count"),
                         NodeFactory.createLiteralByValue(violations.size(), XSDDatatype.XSDinteger)),
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_steps"),
                         NodeFactory.createLiteralByValue(solution_length, XSDDatatype.XSDinteger)),
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("integral_complexity"),
-                        NodeFactory.createLiteralByValue(integralCompexity, XSDDatatype.XSDfloat))
-        ));
+                        NodeFactory.createLiteralByValue(integralComplexity, XSDDatatype.XSDfloat))
+        ));*/
 
         return question;
     }

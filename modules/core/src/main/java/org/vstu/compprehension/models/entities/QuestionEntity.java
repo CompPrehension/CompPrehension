@@ -34,6 +34,9 @@ public class QuestionEntity {
     @Column(name = "question_name", length = 255)
     private String questionName;
 
+    /**
+     * Kind of question within Domain
+     */
     @Column(name = "question_domain_type")
     private String questionDomainType;
 

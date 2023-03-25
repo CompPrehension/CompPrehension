@@ -69,7 +69,7 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             log.warn("LocalRdfStorage: cannot get config from domain! Using default paths...");
 
             // default settings (if not available via domain)
-            String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
+            String name = domain.getShortName();
             assert name != null;  // Ensure you created a database file and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
             this.qGraph_filepath = FTP_BASE + name + "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
             log.info("qGraph_filepath is set to: " + qGraph_filepath);
