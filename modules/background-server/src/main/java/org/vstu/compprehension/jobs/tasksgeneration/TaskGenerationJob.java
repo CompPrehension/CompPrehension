@@ -40,18 +40,18 @@ public class TaskGenerationJob {
         // TODO проверка на то, что нужны новые вопросы
 
         // folders cleanup
-        if (Files.exists(Path.of(config.getPathToRepos())))
-            FileUtils.deleteDirectory(new File(config.getPathToRepos()));
+        if (Files.exists(Path.of(config.getSearcher().getOutputFolderPath())))
+            FileUtils.deleteDirectory(new File(config.getSearcher().getOutputFolderPath()));
         if (Files.exists(Path.of(config.getParser().getOutputFolderPath())))
             FileUtils.deleteDirectory(new File(config.getParser().getOutputFolderPath()));
         if (Files.exists(Path.of(config.getGenerator().getOutputFolderPath())))
             FileUtils.deleteDirectory(new File(config.getGenerator().getOutputFolderPath()));
-        log.info("folders cleanupped");
+        log.info("folders cleaned up");
 
         // download repos
         // TODO Добавить историю
         GitHub github = new GitHubBuilder()
-                .withOAuthToken(config.getGithubOAuthToken())
+                .withOAuthToken(config.getSearcher().getGithubOAuthToken())
                 .build();
         var repoSearchQuery = github.searchRepositories()
                 .language("c")
@@ -66,9 +66,9 @@ public class TaskGenerationJob {
             int idx = 0;
             for (var repo : repoSearchQuery) {
                 repo.readZip(s -> {
-                    Path zipFile = Path.of(config.getPathToRepos(), repo.getName() + ".zip")
+                    Path zipFile = Path.of(config.getSearcher().getOutputFolderPath(), repo.getName() + ".zip")
                             .toAbsolutePath();
-                    Path targetFolderPath = Path.of(config.getPathToRepos(), repo.getName())
+                    Path targetFolderPath = Path.of(config.getSearcher().getOutputFolderPath(), repo.getName())
                             .toAbsolutePath();
                     Files.createDirectories(targetFolderPath);
                     java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
@@ -86,5 +86,8 @@ public class TaskGenerationJob {
         }
 
         // do parsing
+        
+
+        log.info("completed");
     }
 }

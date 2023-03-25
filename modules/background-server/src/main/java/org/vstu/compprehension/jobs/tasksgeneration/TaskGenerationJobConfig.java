@@ -11,10 +11,15 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "task-generation")
 @Getter @Setter @NoArgsConstructor
 public class TaskGenerationJobConfig {
-    private String githubOAuthToken;
-    private String pathToRepos;
+    private ReposSearcherConfig searcher;
     private ParserConfig parser;
     private GeneratorConfig generator;
+
+    @Getter @Setter @NoArgsConstructor
+    public static class ReposSearcherConfig {
+        private String githubOAuthToken;
+        private String outputFolderPath;
+    }
 
     @Getter @Setter @NoArgsConstructor
     public static class ParserConfig {
