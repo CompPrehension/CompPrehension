@@ -54,6 +54,9 @@ public class QuestionMetadataEntity {
     @Column(name = "distinct_errors_count")
     private Integer distinctErrorsCount;
 
+    /** 3: ready for usage (or import, i.e. created),
+     *  4: imported,
+     *  other: invalid */
     @Column(name = "_stage")
     private Integer stage;
 
@@ -65,6 +68,11 @@ public class QuestionMetadataEntity {
 
     @Column(name = "last_attempt_id")
     private Long lastAttemptId;
+
+    /** compact representation of meaningful structure; used to determine similar questions
+     * */
+    @Column(name = "structure_hash")
+    private String structureHash;
 
 
     @Transient
