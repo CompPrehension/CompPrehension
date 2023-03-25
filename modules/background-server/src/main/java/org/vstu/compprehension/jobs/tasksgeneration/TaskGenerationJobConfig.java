@@ -23,13 +23,13 @@ public class TaskGenerationJobConfig {
 
     @Getter @Setter @NoArgsConstructor
     public static class ParserConfig {
-        public String pathToExecutable;
-        public String outputFolderPath;
+        private String pathToExecutable;
+        private String outputFolderPath;
     }
 
     @Getter @Setter @NoArgsConstructor
     public static class GeneratorConfig {
-        public String pathToExecutable;
-        public String outputFolderPath;
+        private String pathToExecutable;
+        private String outputFolderPath;
     }
 }
