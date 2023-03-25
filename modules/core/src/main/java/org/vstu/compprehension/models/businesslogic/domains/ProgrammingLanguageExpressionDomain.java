@@ -46,6 +46,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
@@ -122,6 +123,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "ProgrammingLanguageExpressionDomain";
     }
 
+
+    private void fillTags() {
+        tags = new HashMap<>();
+        // assign mask bits to Tags
+        for (val nameBit : _getTagsName2bit().entrySet()) {
+            Tag tag = new Tag();
+            tag.setName(nameBit.getKey());
+            tag.setBitmask(nameBit.getValue());
+            tags.put(tag.getName(), tag);
+        }
+    }
 
     private void fillConcepts() {
         concepts = new HashMap<>();
@@ -884,14 +896,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      */
     public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
 
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
-
-        return getQuestionLaws(questionDomainType, tags);
+        return getQuestionLaws(questionDomainType, getDefaultQuestionTags(questionDomainType));
     }
 
     @Override
@@ -926,13 +931,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         if (Objects.equals(questionDomainType, EVALUATION_ORDER_QUESTION_TYPE)) {
-            List<Tag> tags = new ArrayList<>();
-            for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
-                Tag tag = new Tag();
-                tag.setName(tagString);
-                tags.add(tag);
-            }
-            return tags;
+            return Stream.of("basics", "operators", "order", "evaluation", "errors", "C++").map(this::getTag).filter(Objects::nonNull).collect(Collectors.toList());
         }
         return super.getDefaultQuestionTags(questionDomainType);
     }
@@ -2504,6 +2503,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             NodeFactory.createLiteral(tag))
             ));
         }
+        question.setTags(new HashSet<>(tags));
 
         for (String law : lawNames) {
             rs.setQuestionMetadata(questionName, List.of(
@@ -2527,7 +2527,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
-        double intergalCompexity = 1/( 1 + Math.pow(Math.E,(-1*complexity)));
+        double integralCompexity = 1/( 1 + Math.pow(Math.E,(-1*complexity)));
 
         rs.setQuestionMetadata(questionName, List.of(
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_structural_complexity"),
@@ -2537,7 +2537,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_steps"),
                         NodeFactory.createLiteralByValue(solution_length, XSDDatatype.XSDinteger)),
                 Pair.of(AbstractRdfStorage.NS_questions.getUri("integral_complexity"),
-                        NodeFactory.createLiteralByValue(intergalCompexity, XSDDatatype.XSDfloat))
+                        NodeFactory.createLiteralByValue(integralCompexity, XSDDatatype.XSDfloat))
         ));
 
         return question;
@@ -2636,6 +2636,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return responses;
     }
 
+    private HashMap<String, Long> _getTagsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(8);
+        name2bit.put("C++", 1L);  	// (2 ^ 0)
+        name2bit.put("basics", 2L);  	// (2 ^ 1)
+        name2bit.put("errors", 4L);  	// (2 ^ 2)
+        name2bit.put("evaluation", 8L);  	// (2 ^ 3)
+        name2bit.put("operators", 16L);  	// (2 ^ 4)
+        name2bit.put("order", 32L);  	// (2 ^ 5)
+        return name2bit;
+    }
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);
         name2bit.put("operator", 0x1L);  	// (1)

@@ -113,6 +113,17 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
+    private void fillTags() {
+        tags = new HashMap<>();
+        // assign mask bits to Tags
+        for (val nameBit : _getTagsName2bit().entrySet()) {
+            Tag tag = new Tag();
+            tag.setName(nameBit.getKey());
+            tag.setBitmask(nameBit.getValue());
+            tags.put(tag.getName(), tag);
+        }
+    }
+
     private void fillConcepts() {
         concepts = new HashMap<>();
         initVocab();
@@ -2150,6 +2161,14 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
+    private HashMap<String, Long> _getTagsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(4);
+        name2bit.put("C++", 2L);  	// (2 ^ 1)
+        name2bit.put("trace", 4L);  	// (2 ^ 2)
+        name2bit.put("ordering", 8L);  	// (2 ^ 3)
+        name2bit.put("supplementary", 16L);  	// (2 ^ 4)
+        return name2bit;
+    }
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);
         name2bit.put("pointer", 0x1L);
