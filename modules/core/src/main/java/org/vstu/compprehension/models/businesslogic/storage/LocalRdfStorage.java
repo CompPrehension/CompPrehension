@@ -36,14 +36,6 @@ import java.util.Optional;
 @Log4j2
 public class LocalRdfStorage extends AbstractRdfStorage  {
 
-    //// static Lang RDF_DATASET_SYNTAX = Lang.TRIG;
-
-    static {
-        DOMAIN_TO_ENDPOINT = new HashMap<>(2);
-        DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "control_flow"); // not "control_flow/update"
-        DOMAIN_TO_ENDPOINT.put("ProgrammingLanguageExpressionDomain", "expression"); // not "expression/update"
-    }
-
     /**
      * Absolute path (ex. under FTP_BASE) to file containing domain-specific template/question metadata as RDF
      */
@@ -96,7 +88,7 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         // init fileService pointing to specified dir as plain filesystem
         if (! templatesDir.startsWith("file:///")) {
             // force prefix indicating filesystem type
-            templatesDir = templatesDir + "file:///";
+            templatesDir = "file:///" + templatesDir;
         }
         this.fileService = new RemoteFileService(templatesDir);
 
@@ -152,13 +144,13 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     }
 
 
-    @Override
+//    @Override
     public RDFConnection getConn() {
         throw new NotImplementedException("No remote connection can be returned for the LOCAL storage.");
         //// return null;
     }
 
-    @Override
+//    @Override
     boolean fetchGraph(String gUri, boolean fetchAlways) {
         if (!fetchAlways && localGraphExists(gUri))
             return true;
@@ -219,25 +211,25 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         return uploadGraph(NS_questions.base());
     }
 
-    public boolean saveQuestionData(String name, String data) {
+    public String saveQuestionData(String name, String data) {
         String filename = fileService.prepareNameForFile("q_data/" + name + ".json", false);
-        setQuestionMetadata(name, List.of(
+        /*setQuestionMetadata(name, List.of(
                 Pair.of(NS_questions.getUri("has_graph_q_data"),
                         NS_file.getUri(filename))
         ));
-
+*/
         try (OutputStream stream = fileService.saveFileStream(filename)) {
             stream.write(data.getBytes(StandardCharsets.UTF_8));
-            return true;
+            return filename;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
-    @Override
+    // @Override
     boolean uploadGraph(String gUri) {
-        if (!gUri.equals(NS_questions.base())) {
+        if (!USE_RDF_STORAGE || !gUri.equals(NS_questions.base())) {
             // just do nothing.
             return true;
         }
@@ -259,23 +251,10 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         return true;
     }
 
-    @Override
-    boolean runQueries(Collection<UpdateRequest> requests) {
-        // same as runQueriesLocally():
-        return runQueriesWithConnection(RDFConnection.connect(dataset), requests, true);
-    }
-
-    @Override
-    boolean runQueries(Collection<UpdateRequest> requests, boolean merge) {
-        // same as runQueriesLocally():
-        return runQueriesWithConnection(RDFConnection.connect(dataset), requests, merge);
-    }
-
-
-    public static void main(String [] args) {
-
+     /*public static void main(String [] args) {
 
         // convert Turtle to RDF/Binary (.rt)
+        // results: binary format takes more disk space than Turtle
         String filePath = "c:/data/compp/control_flow.ttl";
         String filePathOut = "c:/data/compp/control_flow." + Lang.RDFTHRIFT.getFileExtensions().get(0);
 
@@ -292,5 +271,5 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             e.printStackTrace();
         }
 
-    }
+    }*/
 }

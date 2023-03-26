@@ -1,51 +1,27 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.AskBuilder;
 import org.apache.jena.arq.querybuilder.ConstructBuilder;
-import org.apache.jena.arq.querybuilder.UpdateBuilder;
-import org.apache.jena.arq.querybuilder.WhereBuilder;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.TxnType;
-import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.impl.ResourceImpl;
-import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionRemote;
-import org.apache.jena.rdfconnection.RDFConnectionRemoteBuilder;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.JenaException;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.modify.request.UpdateClear;
 import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.XSD;
-import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
-import org.vstu.compprehension.utils.ApplicationContextProvider;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,14 +40,6 @@ public class RdfStorage extends AbstractRdfStorage {
     //// static String SPARQL_ENDPOINT_BASE = "http://vds84.server-1.biz:6515/";
     //// static String SPARQL_ENDPOINT_BASE = "http://localhost:6515/";
     static String SPARQL_ENDPOINT_BASE = "http://localhost:7200/repositories/cf_pi";
-
-
-    static {
-        DOMAIN_TO_ENDPOINT = new HashMap<>(2);
-        DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "control_flow"); // not "control_flow/update"
-//        DOMAIN_TO_ENDPOINT.put("ControlFlowStatementsDomain", "cf_pi");
-        DOMAIN_TO_ENDPOINT.put("ProgrammingLanguageExpressionDo/main", "expression"); // not "expression/update"
-    }
 
     static {
         JenaBackend.registerBuiltins();
@@ -100,7 +68,7 @@ public class RdfStorage extends AbstractRdfStorage {
             this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
         } else {
             // default settings (if not available via domain)
-            String name = DOMAIN_TO_ENDPOINT.get(domain.getName());
+            String name = domain.getShortName();
             assert name != null;  // Ensure you created a database in your external triple store and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
             this.sparql_endpoint = SPARQL_ENDPOINT_BASE; //// + name;
 
@@ -109,7 +77,7 @@ public class RdfStorage extends AbstractRdfStorage {
             this.fileService.setDummyDirsForNewFile(2);  // 1 is the default
         }
 
-        initDB();
+//        initDB();
     }
 
     public RdfStorage(String sparql_endpoint) {
@@ -120,11 +88,11 @@ public class RdfStorage extends AbstractRdfStorage {
         // init FTP pointing to some remote dir
         this.fileService = new RemoteFileService(FTP_BASE + "tmp" + "/");
 
-        initDB();
+//        initDB();
     }
 
     protected void initDB() {
-        try {
+        /*try {
 //            dataset = TDB2Factory.createDataset() ;  // directory
             dataset = DatasetFactory.createTxnMem();  // an in-memory. transactional Dataset
             log.debug("local dataset initialised");
@@ -149,52 +117,38 @@ public class RdfStorage extends AbstractRdfStorage {
 
             setLocalGraph(NS_questions.base(), qG);
             uploadGraph(NS_questions.base());
-        }
+        }*/
     }
 
 
     /*
             REMOTE DATABASE COMMUNICATION
-     */
+    */
 
     /** get connection to remote RDF DB (SPARQL endpoint)
-     * TODO: RDFConnectionFuseki -> RDFConnectionRemote */
-    @Override
+     * */
+//    @Override
     public RDFConnection getConn() {
-//        RDFConnectionRemoteBuilder cb = RDFConnectionFuseki.create()
-//                .destination(sparql_endpoint);
-
-        RDFConnectionRemoteBuilder cb = RDFConnectionRemote.create()
-                .destination(sparql_endpoint).queryEndpoint("").updateEndpoint("/statements");
-        return cb.build();
+        throw new RuntimeException("getConn: deprecated");
+//        RDFConnectionRemoteBuilder cb = RDFConnectionRemote.create()
+//                .destination(sparql_endpoint).queryEndpoint("").updateEndpoint("/statements");
+//        return cb.build();
     }
 
     /** Download and cache a graph
      * @param gUri graph name (an uri)
      * @return true on success
      */
-    @Override
     boolean fetchGraph(String gUri, boolean fetchAlways) {
+        throw new RuntimeException("fetchGraph: deprecated");
+
+        /*
         // check if "graphs" data loaded (as a single graph)
         if (! gUri.equals(NS_graphs.base()) && ! localGraphExists(NS_graphs.base())) {
             fetchGraph(NS_graphs.base());
         }
         if (!fetchAlways && localGraphExists(gUri))
             return true;
-
-//        // TODO: check if graph is up-to-date
-//        if (graphExists(g)) {
-//            Date localTime = null;
-//            Date remoteTime = null;
-//            // ...
-//
-//            int timeDiff = remoteTime.compareTo(localTime);
-//            if (timeDiff <= 0) {
-//                return true;
-//            } else {
-//                // TODO: update local metadata, too
-//            }
-//        }
 
         // load desired graph
         boolean remoteGraphExists = false;  // false is default for the case of any error
@@ -227,15 +181,16 @@ public class RdfStorage extends AbstractRdfStorage {
             }
         }
 
-        return false;
+        return false; */
     }
 
     /** Write whole local graph to remote storage (replace if one exists)
      * @param gUri graph uri
      * @return true on success
      */
-    @Override
     boolean uploadGraph(String gUri) {
+        return false;
+        /*
         // String errMsg = "Graph doesn't exist locally: " + gUri;
         assert localGraphExists(gUri);
 
@@ -255,20 +210,20 @@ public class RdfStorage extends AbstractRdfStorage {
         builder.addInsert( NodeFactory.createURI(gUri), localGraph );
         UpdateRequest insertGraphQuery = builder.buildRequest();
 
-        runQueriesOnRemoteDB(List.of(clearGraphSparql, insertGraphQuery), false /*may be slow but safe?*/);
+        runQueriesOnRemoteDB(List.of(clearGraphSparql, insertGraphQuery), false *//*may be slow but safe?*//*);
 
         if (false) {
             // update graph metadata - modifiedAt -> new date
             return actualizeUpdateTime(gUri);
         }
-        return true;
+        return true;*/
     }
 
-    /** Set UpdatedAt time for both remote and local versions of graph
+    /* * Set UpdatedAt time for both remote and local versions of graph
      * @param gUri graph uri
      * @return success
      */
-    boolean actualizeUpdateTime(String gUri) {
+    /*boolean actualizeUpdateTime(String gUri) {
         // update graph metadata:
         // modifiedAt -> new date
         String dateNowStr = Instant.now().toString();
@@ -284,27 +239,27 @@ public class RdfStorage extends AbstractRdfStorage {
         );
 
         return runQueries(List.of(upd_modifiedAt));
-    }
+    }*/
 
-    boolean runQueriesOnRemoteDB(Collection<UpdateRequest> requests, boolean merge) {
+    /*boolean runQueriesOnRemoteDB(Collection<UpdateRequest> requests, boolean merge) {
         return runQueriesWithConnection(getConn(), requests, merge);
     }
 
     boolean runQueriesLocally(Collection<UpdateRequest> requests, boolean merge) {
         return runQueriesWithConnection(RDFConnection.connect(dataset), requests, merge);
-    }
+    }*/
 
-    @Override
     boolean runQueries(Collection<UpdateRequest> requests) {
-       return runQueriesOnRemoteDB(requests, true)
+        return false;
+        /*return runQueriesOnRemoteDB(requests, true)
                 &&
-               runQueriesLocally(requests, true);
+               runQueriesLocally(requests, true);*/
     }
-    @Override
     boolean runQueries(Collection<UpdateRequest> requests, boolean merge) {
-        return runQueriesOnRemoteDB(requests, merge)
+        return false;
+        /*return runQueriesOnRemoteDB(requests, merge)
                 &&
-               runQueriesLocally(requests, merge);
+               runQueriesLocally(requests, merge);*/
     }
 
 
@@ -432,11 +387,11 @@ RdfStorage.StopBackgroundDBFillUp()
     * */
 
 
-    public static void main_2(String[] args) {
+    /*public static void main_2(String[] args) {
         // debug some things ...
 
-//        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ControlFlowStatementsDomain");
-        String sparql_endpoint = SPARQL_ENDPOINT_BASE + DOMAIN_TO_ENDPOINT.get("ProgrammingLanguageExpressionDomain");
+//        String sparql_endpoint = SPARQL_ENDPOINT_BASE + "control_flow";
+        String sparql_endpoint = SPARQL_ENDPOINT_BASE + "expression";
 
         RdfStorage rs = new RdfStorage(sparql_endpoint);
 
@@ -514,9 +469,9 @@ RdfStorage.StopBackgroundDBFillUp()
             // return true;
         } catch (JenaException exception) {
         }
-    }
+    }*/
 
-    public static void main_4(boolean forceResolve) {
+    /*public static void main_4(boolean forceResolve) {
         // debug some things ...
         // solve <question template> graphs with domain
 
@@ -525,7 +480,7 @@ RdfStorage.StopBackgroundDBFillUp()
 //        RdfStorage rs = new RdfStorage(sparql_endpoint);
 
         ControlFlowStatementsDomain cfd = new ControlFlowStatementsDomain(new LocalizationService(), null,  null,
-                null /*new CtrlFlowQuestionRepository( )*/, null);
+                null *//*new CtrlFlowQuestionRepository( )*//*, null);
 //        rs.domain = cfd;
 
         RdfStorage rs = new RdfStorage(cfd);
@@ -564,9 +519,9 @@ RdfStorage.StopBackgroundDBFillUp()
             i += 1;
             /// break;
         }
-    }
+    }*/
 
-    private static void _setQuestionAttributesExample(RdfStorage rs) {
+    /*private static void _setQuestionAttributesExample(RdfStorage rs) {
         rs.setQuestionMetadata("44__binary_heap_free_v_nocond_q94",
                 List.of(
                         Pair.of(NS_questions.getUri("has_tag"),
@@ -576,7 +531,7 @@ RdfStorage.StopBackgroundDBFillUp()
                         Pair.of(NS_questions.getUri("integral_complexity"),
                                 NodeFactory.createLiteralByValue(0.0921, XSDDatatype.XSDdouble))
                 ));
-    }
+    }*/
 
     public static List<String> listFullFilePathsInDir(String dir) throws IOException {
         try (Stream<Path> stream = java.nio.file.Files.list(Paths.get(dir))) {
@@ -588,7 +543,7 @@ RdfStorage.StopBackgroundDBFillUp()
         }
     }
 
-    public static void main_5(boolean forceResolve) {
+    /*public static void main_5(boolean forceResolve) {
         // create question(s) from template
 
         ProgrammingLanguageExpressionDomain pled = ApplicationContextProvider.getApplicationContext().getBean(ProgrammingLanguageExpressionDomain.class);
@@ -617,30 +572,9 @@ RdfStorage.StopBackgroundDBFillUp()
                 rs.solveQuestion(templateName, GraphRole.QUESTION_SOLVED);
             }
         }
-    }
+    }*/
 
-    static class Stats {
-        int min = 100000000;
-        int max = 0;
-        float mean;
-        int size = 0;
-
-        Stats (List<Integer> a) {
-            for (Integer x : a) {
-                min = Math.min(min, x);
-                max = Math.max(max, x);
-                size++;
-                mean += x;
-            }
-            mean /= size;
-        }
-
-        public void print(String name) {
-           System.out.println(name + " min=" + min + " max=" + max + " count=" + size + " mean=" + mean);
-        }
-    }
-
-    public static void main_3(String[] args) {
+    /*public static void main_3(String[] args) {
         // debug some things ...
         // upload <question template> graphs from files
 
@@ -701,10 +635,8 @@ RdfStorage.StopBackgroundDBFillUp()
                 Model solved = rs.solveTemplate(m, GraphRole.QUESTION_TEMPLATE, false);
                 rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE_SOLVED, solved);
             }
-
-
         }
-    }
+    }*/
 
     public static void generateQuestionsForExpressionsDomain() {
         generateQuestionsForExpressionsDomain("/Users/shadowgorn/Downloads/raw_qt/", "/Users/shadowgorn/Downloads/test_compp_expr/");
@@ -714,8 +646,12 @@ RdfStorage.StopBackgroundDBFillUp()
         ProgrammingLanguageExpressionDomain domain = ProgrammingLanguageExpressionDomain.makeHackedDomain();
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
-        FTP_BASE = storage_base_dir;
-        FTP_DOWNLOAD_BASE = storage_base_dir;
+        // set configuration for storage creation into domain options:
+        // FTP_BASE = storage_base_dir;
+        // FTP_DOWNLOAD_BASE = storage_base_dir;
+        DomainOptionsEntity cnf = domain.getEntity().getOptions();
+        cnf.setStorageDownloadFilesBaseUrl(storage_base_dir);
+        cnf.setStorageUploadFilesBaseUrl(storage_base_dir);
         LocalRdfStorage rs = new LocalRdfStorage(domain);
 
         // Find files in local directory
@@ -754,7 +690,7 @@ RdfStorage.StopBackgroundDBFillUp()
 
                 // Create template and save it and metadata
                 System.out.println(name + " \tUpload model number" + count);
-                rs.createQuestionTemplate(name);
+                /*rs.createQuestionTemplate(name);*/
                 Model m = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(m, file);
                 rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
@@ -783,7 +719,7 @@ RdfStorage.StopBackgroundDBFillUp()
                     possibleViolations.add(violations);
 
                     // create metadata entry
-                    rs.createQuestion(question.getKey(), name, false);
+                    /*rs.createQuestion(question.getKey(), name, false);*/
                     // set basic data of the question
                     rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, questionModel);
                     // set solved data of the question
@@ -809,7 +745,7 @@ RdfStorage.StopBackgroundDBFillUp()
 //        generateQuestionsForExpressionsDomain();
 //        main_3(args); // upload graphs as question templates
 //        main_4(false); // solve question templates
-        main_4(true); // solve question templates (force re-solve)
+//        main_4(true); // solve question templates (force re-solve)
         
         //// main_5(false); // make questions from templates
 
