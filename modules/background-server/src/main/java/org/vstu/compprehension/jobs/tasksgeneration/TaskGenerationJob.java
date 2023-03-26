@@ -14,10 +14,7 @@ import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepos
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -84,32 +81,36 @@ public class TaskGenerationJob {
                 }, null);
 
                 // пока только 10 репозиториев
-                if (++idx >= 10)
+                // if (++idx >= 10)
                     break;
             }
         }
 
         // do parsing
         for(var repo : downloadedRepos) {
-            log.info("Start parsing sources for repo {}", repo);
+            log.info("Start parsing sources for repo [{}]", repo);
 
-            var files = FileUtility.findFiles(repo, new String[] { "c", "m" });
+            var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
             log.info("Found {} *.c & *.m files", files.size());
 
-            var parserProcessCommandBuilder = new StringBuilder();
-            parserProcessCommandBuilder.append(config.getParser().getPathToExecutable());
-            parserProcessCommandBuilder.append(' ');
-            for (var file : files) {
-                parserProcessCommandBuilder.append(file);
-                parserProcessCommandBuilder.append(' ');
-            }
-            parserProcessCommandBuilder.append("-- ");
-            parserProcessCommandBuilder.append(config.getParser().getOutputFolderPath());
-            log.info("Parser executable command: {}", parserProcessCommandBuilder);
+            var parserProcessCommandBuilder = new ArrayList<String>();
+            parserProcessCommandBuilder.add(config.getParser().getPathToExecutable());
+            parserProcessCommandBuilder.addAll(files);
+            parserProcessCommandBuilder.add("--");
+            parserProcessCommandBuilder.add(config.getParser().getOutputFolderPath());
+            log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
             try {
+                log.info("Run parser");
                 Files.createDirectories(Path.of(config.getParser().getOutputFolderPath()));
-                var parserProcess = Runtime.getRuntime().exec(parserProcessCommandBuilder.toString());
+                var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
+                        .redirectErrorStream(true)
+                        .start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
+                    log.debug(line);
+                }
                 parserProcess.waitFor(10, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
                 log.warn("Parsing timeout exception", e);
@@ -117,8 +118,13 @@ public class TaskGenerationJob {
                 log.warn("Parsing exception", e);
             }
 
-            log.info("Repo processed");
+            log.info("Repo [{}] parsed", repo);
         }
+
+        // TODO question generation step
+        log.info("Start question generation");
+        var allTtlFiles = FileUtility.findFiles(Path.of(config.getParser().getOutputFolderPath()), new String[] { ".ttl" });
+        log.info("Found {} ttl files", allTtlFiles.size());
 
         log.info("completed");
     }
