@@ -254,6 +254,7 @@ public abstract class AbstractRdfStorage {
             val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
             meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
             meta.setLastAttemptId(qr.getExerciseAttempt().getId());
+            meta.setDateLastUsed(new Date());
             metaMgr.getQuestionRepository().save(meta);
 
 //            ch.hit("searchQuestionsAdvanced - Question usage +1");

@@ -4,10 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Getter @Setter
-@Entity
-@Table(name = "questions_meta")
+@MappedSuperclass  // See docs: https://www.baeldung.com/hibernate-inheritance
+//@Table(name = "questions_meta")
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,6 +66,9 @@ public class QuestionMetadataEntity {
 
     @Column(name = "used_count")
     private Long usedCount;
+
+    @Column(name = "date_last_used")
+    private Date dateLastUsed;
 
     @Column(name = "last_attempt_id")
     private Long lastAttemptId;

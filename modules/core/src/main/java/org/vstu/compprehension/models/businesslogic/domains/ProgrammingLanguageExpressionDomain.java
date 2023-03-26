@@ -2503,7 +2503,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
         if (metadata == null) {
-            metadata = new QuestionMetadataEntity();
+            metadata = new QuestionMetadataDraftEntity();
             entity.getOptions().setMetadata(metadata);
         }
         question.setMetadata(metadata);
@@ -2512,6 +2512,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         metadata.setDomainShortname(this.getShortName());
         metadata.setStage(3);  // 3 = generated question
         metadata.setUsedCount(0L);
+        metadata.setDateLastUsed(new Date());
 
         /*for (String tag : tags) {
             rs.setQuestionMetadata(questionName, List.of(
