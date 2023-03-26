@@ -2497,13 +2497,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setSolutionFacts(null);
 
         // TODO: write info to question metadata
-        QuestionMetadataEntity metadata = new QuestionMetadataEntity();
         if (entity.getOptions() == null) {
             entity.setOptions(new OrderQuestionOptionsEntity());
         }
-        entity.getOptions().setMetadata(metadata);
+
+        QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
+        if (metadata == null) {
+            metadata = new QuestionMetadataEntity();
+            entity.getOptions().setMetadata(metadata);
+        }
         question.setMetadata(metadata);
 
+        metadata.setName(questionName);
         metadata.setDomainShortname(this.getShortName());
         metadata.setStage(3);  // 3 = generated question
         metadata.setUsedCount(0L);
