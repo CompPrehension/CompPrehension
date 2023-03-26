@@ -82,6 +82,7 @@ public abstract class AbstractRdfStorage {
     // hardcoded FTP location:
 //    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
 //    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
+    // TODO: use as defaults only, open in constructor.
     public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
@@ -90,8 +91,11 @@ public abstract class AbstractRdfStorage {
 
     /**
      * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
+     * TODO: remove, since no rdf storage is in use any more
      */
+    @Deprecated
     Dataset dataset = null;
+
     RemoteFileService fileService = null;
     QuestionMetadataManager questionMetadataManager = null;
 
@@ -235,6 +239,11 @@ public abstract class AbstractRdfStorage {
             // Save actual requested bits as well
             m.setConceptBitsInRequest(targetConceptsBitmask);
             m.setViolationBitsInRequest(targetLawsBitmask);
+
+            /// debug check law bits
+            if (targetLawsBitmask != 0 && (targetLawsBitmask & m.getViolationBits()) == 0) {
+                log.warn("No LAW bits matched: " +targetLawsBitmask+ " " + m.getName());
+            }
         }
 
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);

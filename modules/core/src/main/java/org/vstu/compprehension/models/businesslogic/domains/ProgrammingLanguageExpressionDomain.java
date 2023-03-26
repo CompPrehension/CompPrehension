@@ -2470,7 +2470,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionName("");
 
         List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
-        entity.setQuestionText(ExpressionToHtml(textFacts));
+        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
         entity.setQuestionName(questionName);
 
         Question question = new Ordering(entity, null);

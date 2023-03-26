@@ -707,34 +707,35 @@ RdfStorage.StopBackgroundDBFillUp()
     }
 
     public static void generateQuestionsForExpressionsDomain() {
+        generateQuestionsForExpressionsDomain("/Users/shadowgorn/Downloads/raw_qt/", "/Users/shadowgorn/Downloads/test_compp_expr/");
+    }
+
+    public static void generateQuestionsForExpressionsDomain(String ttl_templates_dir, String storage_base_dir) {
         ProgrammingLanguageExpressionDomain domain = ProgrammingLanguageExpressionDomain.makeHackedDomain();
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
-        String rdf_base_dir = "/Users/shadowgorn/Downloads/test_compp_expr/";
-        String rdf_template_dir = "/Users/shadowgorn/Downloads/raw_qt/";
-
-        FTP_BASE = rdf_base_dir;
-        FTP_DOWNLOAD_BASE = rdf_base_dir;
+        FTP_BASE = storage_base_dir;
+        FTP_DOWNLOAD_BASE = storage_base_dir;
         LocalRdfStorage rs = new LocalRdfStorage(domain);
 
         // Find files in local directory
         List<String> files = new ArrayList<>();
         try {
-            files = listFullFilePathsInDir(rdf_template_dir);
+            files = listFullFilePathsInDir(ttl_templates_dir);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         System.out.println(files.size() + " files to parse");
+        int path_len = ttl_templates_dir.length();
         int count = 0;
         for (String file : files) {
             try {
-                int path_len = rdf_template_dir.length();
                 String name = file.substring(path_len);  // cut directory path
 
                 if (name.endsWith(".ttl")) {
                     name = name.substring(0, name.length() - ".ttl".length());
-                    name = name.replaceAll("[^a-zA-Z0-9_]", "");
+                    name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
                     System.out.println(name + " ...\t");
                 } else {
                     continue; //skip all other files
