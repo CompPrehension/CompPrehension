@@ -7,8 +7,8 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Getter @Setter
-@MappedSuperclass  // See docs: https://www.baeldung.com/hibernate-inheritance
-//@Table(name = "questions_meta")
+@Entity
+@Table(name = "questions_meta")
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,10 +73,14 @@ public class QuestionMetadataEntity {
     @Column(name = "last_attempt_id")
     private Long lastAttemptId;
 
-    /** compact representation of meaningful structure; used to determine similar questions
+    /** compact representation of meaningful structure; may be used to determine similar questions
      * */
     @Column(name = "structure_hash")
     private String structureHash;
+
+
+    @Transient
+    private boolean isDraft = false;
 
 
     @Transient

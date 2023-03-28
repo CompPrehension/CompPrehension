@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.apache.jena.arq.querybuilder.AskBuilder;
 import org.apache.jena.arq.querybuilder.ConstructBuilder;
 import org.apache.jena.query.Query;
@@ -10,12 +11,15 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.update.UpdateRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -729,6 +733,9 @@ RdfStorage.StopBackgroundDBFillUp()
                     System.out.println("Saving question: " + question.getKey());
                     Question domainQuestion = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION_SOLVED), rs);
                     rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
+                    // save metadata row
+                    val meta = domainQuestion.getQuestionData().getOptions().getMetadata();
+                    questionMetadataDraftRepository.save(QuestionMetadataDraftEntity.fromMetadataEntity(meta));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -737,6 +744,10 @@ RdfStorage.StopBackgroundDBFillUp()
         }
         rs.saveToFilesystem();
     }
+
+    @Autowired
+    static QuestionMetadataDraftRepository questionMetadataDraftRepository;
+
 
     public static void main(String[] args) {
         Path path = FileSystems.getDefault().getPath("").toAbsolutePath();
