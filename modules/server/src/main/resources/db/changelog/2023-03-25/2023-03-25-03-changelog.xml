@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1679783916939-17" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="questions_meta_draft"/>
+            </not>
+        </preConditions>
+        <comment>Copy the structure of existing table to new empty table.</comment>
+
+        <sql>
+          CREATE TABLE questions_meta_draft LIKE questions_meta;
+        </sql>
+        <rollback>
+           DROP TABLE IF EXISTS questions_meta_draft;
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
