@@ -21,7 +21,6 @@ public class QuestionMetadataDraftEntity {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    // @Lob
     @Column(name = "name")
     private String name;
 
@@ -31,8 +30,20 @@ public class QuestionMetadataDraftEntity {
     @Column(name = "template_id", nullable = false)
     private Integer templateId;
 
+    @Column(name = "qt_graph")
+    private String qtGraphPath;
+
+    @Column(name = "qt_s_graph")
+    private String qtSolvedGraphPath;
+
+    @Column(name = "q_graph")
+    private String qGraphPath;
+
+    @Column(name = "q_s_graph")
+    private String qSolvedGraphPath;
+
     @Column(name = "q_data_graph")
-    private String qDataGraph;
+    private String qDataGraphPath;
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -111,8 +122,8 @@ public class QuestionMetadataDraftEntity {
                 .id(other.getId())
                 .name(other.getName())
                 .domainShortname(other.getDomainShortname())
-                .templateId(other.getTemplateId())
-                .qDataGraph(other.getQDataGraph())
+                .templateId(Optional.ofNullable(other.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
+                .qDataGraphPath(other.getQDataGraph())
                 .tagBits(other.getTagBits())
                 .conceptBits(other.getConceptBits())
                 .lawBits(other.getLawBits())
