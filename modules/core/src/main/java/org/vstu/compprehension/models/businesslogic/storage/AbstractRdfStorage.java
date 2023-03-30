@@ -49,7 +49,7 @@ public abstract class AbstractRdfStorage {
     final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
     public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
     //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
-    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
+//    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
     final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
     //    graphs:
     //    class NamedGraph
@@ -89,6 +89,14 @@ public abstract class AbstractRdfStorage {
     public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
+
+    public static int STAGE_TEMPLATE = 1;
+    public static int STAGE_QUESTION = 2;
+    public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
+    public static int STAGE_CONSUMED = 4;
+    public static int GENERATOR_VERSION = 10;
+
+
     Domain domain;
 
     /**
@@ -638,8 +646,17 @@ public abstract class AbstractRdfStorage {
 
         // update questions metadata
         QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
-        if (meta == null)
-            return null;
+        if (meta == null) {
+            // return null;
+            // проинициализировать метаданные вопроса, далее сохранить в БД
+            meta = QuestionMetadataDraftEntity.builder()
+                    .name(questionName)
+                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
+                    .templateId(-1)
+                    .stage(STAGE_TEMPLATE)
+                    .version(GENERATOR_VERSION)
+                    .build();
+        }
 
         switch (role) {
             case QUESTION_TEMPLATE:
@@ -709,76 +726,40 @@ public abstract class AbstractRdfStorage {
         return false;
     }*/
 
-    /* *
+    /**
      * Create metadata representing empty Question, but not overwrite existing data if recreate == false.
      *
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    /*public boolean createQuestion(String questionName, String questionTemplateName, boolean recreate) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+    public QuestionMetadataDraftEntity createQuestion(String questionName, String questionTemplateName) {
 
-        if (qG != null) {
-            Resource nodeClass = NS_classQuestion.baseAsResourceOnModel(qG);
-            Resource qNode = findQuestionByName(questionName);
-
-            // deal with existing node
-            if (qNode != null) {
-                // check if this node is indeed a Question
-                boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
-                if (!rightType) {
-                    throw new RuntimeException("Cannot create Question: uri '" + qNode.getURI() + "' is already in " +
-                            "use.");
-                }
-
-                // simple decision: do nothing if metadata node exists
-                if (!recreate)
-                    return true;
-            }
-
-//            if (!createQuestionTemplate(questionTemplateName)) // check if template is valid
-//                return false;
-
-            Resource qtemplNode = findQuestionByName(questionTemplateName);
-
-            Node ngNode = NS_questions.baseAsUri();
-            qNode = NS_classQuestion.getResourceOnModel(questionName, qG);
-
-            List<UpdateRequest> commands = new ArrayList<>();
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode, qNode, RDF.type, nodeClass));
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                    qNode,
-                    NS_questions.getPropertyOnModel("name", qG),
-                    NodeFactory.createLiteral(questionName)));
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                    qNode,
-                    NS_questions.getPropertyOnModel("has_template", qG),
-                    qtemplNode));
-
-            // copy references to the graphs from template as is ...
-            // using "template-only" roles
-            for (GraphRole role : questionStages().subList(0, 2)) {
-                Property propOfRole = AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG);
-                RDFNode graphWithRole = qtemplNode.listProperties(propOfRole).nextStatement().getObject();
-                commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode, qNode, propOfRole, graphWithRole));
-            }
-
-            // initialize question's graphs as empty ...
-            // using "question-only" roles
-            for (GraphRole role : questionStages().subList(2, 4)) {
-                commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                        qNode,
-                        AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG),
-                        RDF.nil));
-            }
-
-            return runQueries(commands);
+        // find template metadata
+        QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
+        QuestionMetadataDraftEntity meta;
+        QuestionMetadataDraftEntity.QuestionMetadataDraftEntityBuilder builder;
+        int templateId;
+        if (templateMeta != null) {
+            // get builder to copy data from template
+            builder = templateMeta.toBuilder()
+                    .id(null); // reset id
+            templateId = templateMeta.getId();
+        } else {
+            builder = QuestionMetadataDraftEntity.builder()
+                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""));
+            templateId = -1;
         }
-        return false;
-    }*/
+
+        // проинициализировать метаданные вопроса, далее сохранить в БД
+        meta = builder.name(questionName)
+                    .templateId(templateId)
+                    .stage(STAGE_QUESTION)
+                    .version(GENERATOR_VERSION)
+                    .build();
+        meta = questionMetadataDraftRepository.save(meta);
+
+        return meta;
+    }
 
     /* *
      * Add metadata triples to a Question node. Only scalar values (Literals) are allowed as an object in a triple.

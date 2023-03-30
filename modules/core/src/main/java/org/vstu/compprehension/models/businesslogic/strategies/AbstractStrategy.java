@@ -134,7 +134,7 @@ public interface AbstractStrategy {
         return exercise.getStages().stream().map(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(0);
     }
 
-    /** Balance targets (concepts and laws) so to show as many of questions with them as possible within the attempt */
+    /** Fill target and denied concepts and laws, complexity and denied questions from the attempt */
     default QuestionRequest initQuestionRequest(ExerciseAttemptEntity exerciseAttempt, ExerciseStageEntity exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttempt(exerciseAttempt);

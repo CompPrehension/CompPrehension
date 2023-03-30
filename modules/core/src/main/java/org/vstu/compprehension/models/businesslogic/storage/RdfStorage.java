@@ -681,10 +681,10 @@ RdfStorage.StopBackgroundDBFillUp()
                 }
 
                 count++;
-                if (count % 100 == 0) {
-                    rs.saveToFilesystem();
-                    System.out.println("Dump metadata on disk");
-                }
+//                if (count % 100 == 0) {
+//                    rs.saveToFilesystem();
+//                    System.out.println("Dump metadata on disk");
+//                }
 
                 // Create template and save it and metadata
                 System.out.println(name + " \tUpload model number " + count);
@@ -696,7 +696,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 // Create solved template and save it and metadata
                 rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
 
-                System.out.println("Creating question: " + name);
+                System.out.println("Creating questions for template: " + name);
                 Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
                 Set<Set<String>> possibleViolations = new HashSet<>();
                 for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
@@ -716,17 +716,23 @@ RdfStorage.StopBackgroundDBFillUp()
                     }
                     possibleViolations.add(violations);
 
+                    // (note! names of template and question must differ)
+                    String questionName = question.getKey();
+                    if (questionName.equals(name)) {
+                        // guard for the case when the name was not changed
+                        questionName += "_v";
+                    }
                     // create metadata entry
-                    /*rs.createQuestion(question.getKey(), name, false);*/
+                    rs.createQuestion(questionName, name);
                     // set basic data of the question
-                    rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, questionModel);
+                    rs.setQuestionSubgraph(questionName, GraphRole.QUESTION, questionModel);
                     // set solved data of the question
-                    var metaDraft = rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION_SOLVED, solvedQuestionModel);
+                    var metaDraft = rs.setQuestionSubgraph(questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
                     // Save question data for domain in JSON
-                    System.out.println("Saving question: " + question.getKey());
-                    Question domainQuestion = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION_SOLVED), rs);
-                    String filename = rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
+                    System.out.println("Saving question: " + questionName);
+                    Question domainQuestion = domain.createQuestionFromModel(questionName, rs.getQuestionModel(questionName, GraphRole.QUESTION_SOLVED), rs);
+                    String filename = rs.saveQuestionData(questionName, domain.questionToJson(domainQuestion));
                     // save metadata row
                     metaDraft.setQDataGraphPath(filename);
                     rs.questionMetadataDraftRepository.save(metaDraft);
