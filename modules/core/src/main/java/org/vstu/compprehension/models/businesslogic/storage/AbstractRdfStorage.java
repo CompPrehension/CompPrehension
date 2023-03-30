@@ -1,16 +1,15 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
 import org.apache.jena.arq.querybuilder.WhereBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.TxnType;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
@@ -21,14 +20,18 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.PrintUtil;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.LawFormulation;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.QuestionEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
@@ -99,6 +102,10 @@ public abstract class AbstractRdfStorage {
 
     RemoteFileService fileService = null;
     QuestionMetadataManager questionMetadataManager = null;
+    @Setter
+    @Getter
+    QuestionMetadataDraftRepository questionMetadataDraftRepository;
+
 
     QuestionMetadataManager getQuestionMetadataManager() {
         if (this.questionMetadataManager == null) {
@@ -495,24 +502,26 @@ public abstract class AbstractRdfStorage {
 //    abstract boolean runQueries(Collection<UpdateRequest> requests, boolean merge);
 
     public String nameForQuestionGraph(String questionName, GraphRole role) {
-//        // look for <Question>-<subgraph> relation in metadata first
-//        Model qG = getGraph(NS_questions.base());
-//        // assert qG != null;
-//        RDFNode targetNamedGraph = null;
-//
-//        if (qG != null) {
-//            targetNamedGraph = findQuestionByName(questionName)
-//                    .listProperties(AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG))
-//                    .toList().stream()
-//                    .map(Statement::getObject)
-//                    .dropWhile(res -> res.equals(RDF.nil))
-//                    .reduce((first, second) -> first)
-//                    .orElse(null);
-//        }
-//        if (targetNamedGraph != null) {
-//            String qsgName = targetNamedGraph.asNode().getURI();
-//            return NS_file.localize(qsgName);
-//        }
+        // look for <Question>.<subgraph> property in metadata first
+        QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
+        String targetPath = null;
+        if (meta != null)
+            switch (role) {
+                case QUESTION_TEMPLATE:
+                    targetPath = meta.getQtGraphPath(); break;
+                case QUESTION_TEMPLATE_SOLVED:
+                    targetPath = meta.getQtSolvedGraphPath(); break;
+                case QUESTION:
+                    targetPath = meta.getQGraphPath(); break;
+                case QUESTION_SOLVED:
+                    targetPath = meta.getQSolvedGraphPath(); break;
+                case QUESTION_DATA:
+                    targetPath = meta.getQDataGraphPath(); break;
+            }
+
+        if (targetPath != null) {
+            return targetPath;
+        }
 
         // no known relation - get default for a new one
         String ext = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
@@ -524,18 +533,17 @@ public abstract class AbstractRdfStorage {
 //     * Find Resource denoting question or question template node with given name from 'questions' graph
 //     */
     // maybe rewrite
-//    Resource findQuestionByName(String questionName) {
-//        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
-//        if (qG != null) {
-//            List<Resource> qResources = qG.listSubjectsWithProperty(
-//                    NS_questions.getPropertyOnModel("name", qG),
-//                    questionName
-//            ).toList();
-//            if (!qResources.isEmpty())
-//                return qResources.get(0);
-//        }
-//        return null;
-//    }
+    QuestionMetadataDraftEntity findQuestionByName(String questionName) {
+        val repo = getQuestionMetadataDraftRepository();
+        if (repo == null)
+            return null;
+
+        val found = repo.findByName(questionName);
+        if (found.isEmpty())
+            return null;
+
+        return found.get(0);
+    }
 
     /**
      * Get Model with specified `role` for question or question template, if one exists, else `null` is returned.
@@ -617,29 +625,35 @@ public abstract class AbstractRdfStorage {
      * *solved-данных для него)
      *
      * @param questionName unqualified name of Question or QuestionTemplate
-     * @param role
-     * @param model
-     * @return
+     * @param role question subgraph role
+     * @param model data to store
+     * @return saved metadata instance if saved successful, else null
      */
-    public boolean setQuestionSubgraph(String questionName, GraphRole role, Model model) {
-        String qgUri = nameForQuestionGraph(questionName, role);
-        boolean success = sendModel(qgUri, model);
-        return success;
-//        if (!success)
-//            return false;
-//
-//        // update questions metadata
-//        Resource questionNode = findQuestionByName(questionName);
-//        Node qgNode = NS_file.getUri(qgUri);
-//
-//        UpdateRequest upd_setGraph = AbstractRdfStorage.makeUpdateTripleQuery(
-//                NS_questions.baseAsUri(),
-//                questionNode,
-//                AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsUri(),
-//                qgNode
-//        );
-//
-//        return runQueries(List.of(upd_setGraph));
+    public QuestionMetadataDraftEntity setQuestionSubgraph(String questionName, GraphRole role, Model model) {
+        String qgSubPath = nameForQuestionGraph(questionName, role);
+        boolean success = sendModel(qgSubPath, model);
+
+        if (!success)
+            return null;
+
+        // update questions metadata
+        QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
+        if (meta == null)
+            return null;
+
+        switch (role) {
+            case QUESTION_TEMPLATE:
+                meta.setQtGraphPath(qgSubPath); break;
+            case QUESTION_TEMPLATE_SOLVED:
+                meta.setQtSolvedGraphPath(qgSubPath); break;
+            case QUESTION:
+                meta.setQGraphPath(qgSubPath); break;
+            case QUESTION_SOLVED:
+                meta.setQSolvedGraphPath(qgSubPath); break;
+        }
+        meta = questionMetadataDraftRepository.save(meta);
+
+        return meta;
     }
 
     /* **
@@ -848,7 +862,7 @@ public abstract class AbstractRdfStorage {
             log.warn("Solved to empty for question: " + questionName);
 
         // set graph
-        return setQuestionSubgraph(questionName, desiredLevel, inferred);
+        return setQuestionSubgraph(questionName, desiredLevel, inferred) != null;
     }
 
     /**
@@ -970,7 +984,7 @@ public abstract class AbstractRdfStorage {
      * @return true on success
      */
     public boolean setLocalGraph(String gUri, Model model) {
-        if (USE_RDF_STORAGE && dataset != null) {
+        if (/*USE_RDF_STORAGE &&*/ dataset != null) {
             if (dataset.containsNamedModel(gUri))
                 dataset.replaceNamedModel(gUri, model);
             else
@@ -1015,7 +1029,7 @@ public abstract class AbstractRdfStorage {
                 // add anything to avoid re-calculation
                 inferred.add(m.listStatements().nextStatement());
             }
-            /*setLocalGraph(uri, inferred);*/
+            setLocalGraph(uri, inferred);
             m2 = inferred;
         }
         /*m2 = getLocalGraphByUri(uri);*/

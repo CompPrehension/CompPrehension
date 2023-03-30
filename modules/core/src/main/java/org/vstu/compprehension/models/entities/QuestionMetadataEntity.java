@@ -1,14 +1,16 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Getter @Setter
+@Builder
 @Entity
 @Table(name = "questions_meta")
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -80,17 +82,22 @@ public class QuestionMetadataEntity {
 
 
     @Transient
+    @Builder.Default
     private boolean isDraft = false;
 
 
     @Transient
+    @Builder.Default
     private Long conceptBitsInPlan = 0L; // planned by exercise
     @Transient
+    @Builder.Default
     private Long conceptBitsInRequest = 0L; // actually requested
 
     @Transient
+    @Builder.Default
     private Long violationBitsInPlan = 0L; // planned by exercise
     @Transient
+    @Builder.Default
     private Long violationBitsInRequest = 0L; // actually requested
 
 

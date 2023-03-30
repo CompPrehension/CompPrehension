@@ -6,11 +6,15 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 
-import java.util.Collection;
 import java.util.List;
 
 
 public interface QuestionMetadataDraftRepository extends CrudRepository<QuestionMetadataDraftEntity, Integer> {
+
+    @NotNull
+    @Query("select q from #{#entityName} q where q.name = :questionName")
+    List<QuestionMetadataDraftEntity> findByName(@Param("questionName") String questionName);
+
     /*
     @NotNull
     @Query("select q from #{#entityName} q where q.domainShortname = :domainName AND q.stage = :stage")

@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,8 +18,12 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.File;
@@ -43,6 +50,29 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
 
     public LocalRdfStorage(Domain domain) {
 
+        setDomain(domain);
+
+        // test it
+//        this.getQuestionMetadataManager();
+//        log.info("getQuestionMetadataManager completed.");
+    }
+
+    public LocalRdfStorage(String qGraph_filepath, String templatesDir) {
+
+        this.domain = null;
+        this.qGraph_filepath = qGraph_filepath;
+
+        // init fileService pointing to specified dir as plain filesystem
+        if (! templatesDir.startsWith("file:///")) {
+            // force prefix indicating filesystem type
+            templatesDir = "file:///" + templatesDir;
+        }
+        this.fileService = new RemoteFileService(templatesDir);
+
+        initDB();
+    }
+
+    public void setDomain(Domain domain) {
         assert domain != null;
         this.domain = domain;
 
@@ -75,24 +105,6 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         if (domain.getQuestionMetadataRepository() == null) {
             initDB();
         }
-        // test it
-//        this.getQuestionMetadataManager();
-//        log.info("getQuestionMetadataManager completed.");
-    }
-
-    public LocalRdfStorage(String qGraph_filepath, String templatesDir) {
-
-        this.domain = null;
-        this.qGraph_filepath = qGraph_filepath;
-
-        // init fileService pointing to specified dir as plain filesystem
-        if (! templatesDir.startsWith("file:///")) {
-            // force prefix indicating filesystem type
-            templatesDir = "file:///" + templatesDir;
-        }
-        this.fileService = new RemoteFileService(templatesDir);
-
-        initDB();
     }
 
     public LocalRdfStorage(String qGraph_filepath) {
@@ -108,10 +120,8 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
 
     protected void initDB() {
 
-        // strip prefix if present
-        if (this.qGraph_filepath.startsWith("file:///")) {
-            this.qGraph_filepath = this.qGraph_filepath.substring("file:///".length());
-        }
+        // init repository
+        setQuestionMetadataDraftRepository(ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class));
 
         try {
 //            dataset = TDB2Factory.createDataset() ;  // directory
@@ -125,21 +135,6 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             ex. printStackTrace();
         }
 
-        // init some named graphs
-//        setLocalGraph(NS_graphs.base(), ModelFactory.createDefaultModel());
-//        fetchGraph(NS_graphs.base(), true);
-
-        if (!fetchGraph(NS_questions.base(), true)) {
-
-            Model qG = ModelFactory.createDefaultModel();
-            Resource classQuestion = qG.createResource(NS_questions.get("Question"));
-            Resource classQuestionTpl = qG.createResource(NS_questions.get("QuestionTemplate"));
-            qG.add(new StatementImpl(classQuestion, RDF.type, OWL.Class));
-            qG.add(new StatementImpl(classQuestionTpl, RDF.type, OWL.Class));
-
-            setLocalGraph(NS_questions.base(), qG);
-            uploadGraph(NS_questions.base());
-        }
         log.info("LocalRdfStorage: init completed for: " + this.fileService.getBaseDownloadUri());
     }
 

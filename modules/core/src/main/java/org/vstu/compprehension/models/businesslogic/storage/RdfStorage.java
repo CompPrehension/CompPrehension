@@ -2,24 +2,17 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.jena.arq.querybuilder.AskBuilder;
-import org.apache.jena.arq.querybuilder.ConstructBuilder;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryExecution;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.update.UpdateRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -656,6 +649,7 @@ RdfStorage.StopBackgroundDBFillUp()
         DomainOptionsEntity cnf = domain.getEntity().getOptions();
         cnf.setStorageDownloadFilesBaseUrl(storage_base_dir);
         cnf.setStorageUploadFilesBaseUrl(storage_base_dir);
+        // TODO: using LocalRdfStorage while the code is in RdfStorage. Move something?
         LocalRdfStorage rs = new LocalRdfStorage(domain);
 
         // Find files in local directory
@@ -693,7 +687,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 }
 
                 // Create template and save it and metadata
-                System.out.println(name + " \tUpload model number" + count);
+                System.out.println(name + " \tUpload model number " + count);
                 /*rs.createQuestionTemplate(name);*/
                 Model m = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(m, file);
@@ -703,7 +697,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
 
                 System.out.println("Creating question: " + name);
-                Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION_TEMPLATE));
+                Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
                 Set<Set<String>> possibleViolations = new HashSet<>();
                 for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
                     // Create question model (with positive laws)
@@ -727,15 +721,18 @@ RdfStorage.StopBackgroundDBFillUp()
                     // set basic data of the question
                     rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION, questionModel);
                     // set solved data of the question
-                    rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION_SOLVED, solvedQuestionModel);
+                    var metaDraft = rs.setQuestionSubgraph(question.getKey(), GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
                     // Save question data for domain in JSON
                     System.out.println("Saving question: " + question.getKey());
                     Question domainQuestion = domain.createQuestionFromModel(question.getKey(), rs.getQuestionModel(question.getKey(), GraphRole.QUESTION_SOLVED), rs);
-                    rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
+                    String filename = rs.saveQuestionData(question.getKey(), domain.questionToJson(domainQuestion));
                     // save metadata row
+                    metaDraft.setQDataGraphPath(filename);
+                    rs.questionMetadataDraftRepository.save(metaDraft);
+                    // save data to question's metadata instance, too
                     val meta = domainQuestion.getQuestionData().getOptions().getMetadata();
-                    questionMetadataDraftRepository.save(QuestionMetadataDraftEntity.fromMetadataEntity(meta));
+                    meta.setQDataGraph(filename);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -744,9 +741,6 @@ RdfStorage.StopBackgroundDBFillUp()
         }
         rs.saveToFilesystem();
     }
-
-    @Autowired
-    static QuestionMetadataDraftRepository questionMetadataDraftRepository;
 
 
     public static void main(String[] args) {

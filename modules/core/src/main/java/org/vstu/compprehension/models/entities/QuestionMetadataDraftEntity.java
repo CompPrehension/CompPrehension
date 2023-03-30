@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * In essence, a copy of class {@link QuestionMetadataEntity} that maps to a different table (it seems no other way around to store similar data in different table). Method fromMetadataEntity creates a new instance of this class from existing instance of QuestionMetadataEntity class.
@@ -116,6 +117,39 @@ public class QuestionMetadataDraftEntity {
     @Builder.Default
     private Long violationBitsInRequest = 0L; // actually requested
 
+
+    public QuestionMetadataEntity toMetadataEntity() {
+        return QuestionMetadataEntity.builder()
+                .id(this.getId())
+                .name(this.getName())
+                .domainShortname(this.getDomainShortname())
+                .templateId(Optional.ofNullable(this.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
+                // don't set q_graph (it's useless there)
+                .qDataGraph(this.getQDataGraphPath())
+                .tagBits(this.getTagBits())
+                .conceptBits(this.getConceptBits())
+                .lawBits(this.getLawBits())
+                .violationBits(this.getViolationBits())
+                .traceConceptBits(this.getTraceConceptBits())
+                .solutionStructuralComplexity(this.getSolutionStructuralComplexity())
+                .integralComplexity(this.getIntegralComplexity())
+                .solutionSteps(this.getSolutionSteps())
+                .distinctErrorsCount(this.getDistinctErrorsCount())
+                .stage(this.getStage())
+                .version(this.getVersion())
+                .usedCount(this.getUsedCount())
+                .dateLastUsed(this.getDateLastUsed())
+                .lastAttemptId(this.getLastAttemptId())
+                .structureHash(this.getStructureHash())
+                // transient fields:
+                .isDraft(false)
+                /*.conceptBitsInPlan(other.getConceptBitsInPlan())*/
+                /*.conceptBitsInRequest(other.getConceptBitsInRequest())*/
+                /*.violationBitsInPlan(other.getViolationBitsInPlan())*/
+                /*.violationBitsInRequest(other.getViolationBitsInRequest())*/
+                .build();
+
+    }
 
     public static QuestionMetadataDraftEntity fromMetadataEntity(QuestionMetadataEntity other) {
         return QuestionMetadataDraftEntity.builder()
