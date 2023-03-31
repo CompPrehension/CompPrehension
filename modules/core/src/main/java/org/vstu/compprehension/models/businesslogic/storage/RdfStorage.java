@@ -649,7 +649,7 @@ RdfStorage.StopBackgroundDBFillUp()
         DomainOptionsEntity cnf = domain.getEntity().getOptions();
         cnf.setStorageDownloadFilesBaseUrl(storage_base_dir);
         cnf.setStorageUploadFilesBaseUrl(storage_base_dir);
-        // TODO: using LocalRdfStorage while the code is in RdfStorage. Move something?
+        // TODO: using LocalRdfStorage (while the code is) in RdfStorage. Move something?
         LocalRdfStorage rs = new LocalRdfStorage(domain);
 
         // Find files in local directory
@@ -670,7 +670,6 @@ RdfStorage.StopBackgroundDBFillUp()
                 if (name.endsWith(".ttl")) {
                     name = name.substring(0, name.length() - ".ttl".length());
                     name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
-                    System.out.println(name + " ...\t");
                 } else {
                     continue; //skip all other files
                 }
@@ -679,6 +678,7 @@ RdfStorage.StopBackgroundDBFillUp()
                     System.out.println("Skip solved template: " + name);
                     continue;
                 }
+                System.out.println(name + " ...\t");
 
                 count++;
 //                if (count % 100 == 0) {
@@ -723,17 +723,18 @@ RdfStorage.StopBackgroundDBFillUp()
                         questionName += "_v";
                     }
                     // create metadata entry
-                    rs.createQuestion(questionName, name);
+                    rs.createQuestion(questionName, name, false);
                     // set basic data of the question
                     rs.setQuestionSubgraph(questionName, GraphRole.QUESTION, questionModel);
                     // set solved data of the question
-                    var metaDraft = rs.setQuestionSubgraph(questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
+                    rs.setQuestionSubgraph(questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
                     // Save question data for domain in JSON
                     System.out.println("Saving question: " + questionName);
                     Question domainQuestion = domain.createQuestionFromModel(questionName, rs.getQuestionModel(questionName, GraphRole.QUESTION_SOLVED), rs);
                     String filename = rs.saveQuestionData(questionName, domain.questionToJson(domainQuestion));
                     // save metadata row
+                    var metaDraft = rs.findQuestionByName(questionName);
                     metaDraft.setQDataGraphPath(filename);
                     rs.questionMetadataDraftRepository.save(metaDraft);
                     // save data to question's metadata instance, too

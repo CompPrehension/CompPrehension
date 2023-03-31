@@ -124,7 +124,7 @@ public class QuestionMetadataDraftEntity {
                 .name(this.getName())
                 .domainShortname(this.getDomainShortname())
                 .templateId(Optional.ofNullable(this.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
-                // don't set q_graph (it's useless there)
+                // ... don't set q_graph (it's useless in production)
                 .qDataGraph(this.getQDataGraphPath())
                 .tagBits(this.getTagBits())
                 .conceptBits(this.getConceptBits())

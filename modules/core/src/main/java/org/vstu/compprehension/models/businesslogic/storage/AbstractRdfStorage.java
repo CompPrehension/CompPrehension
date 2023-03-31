@@ -40,6 +40,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Long.bitCount;
+import static org.apache.jena.vocabulary.SchemaDO.question;
 
 @Log4j2
 public abstract class AbstractRdfStorage {
@@ -537,11 +538,10 @@ public abstract class AbstractRdfStorage {
         //// return role.ns(NS_namedGraph.get()).get(questionName);
     }
 
-//    /**
-//     * Find Resource denoting question or question template node with given name from 'questions' graph
-//     */
-    // maybe rewrite
-    QuestionMetadataDraftEntity findQuestionByName(String questionName) {
+    /**
+     * Find and return row of question or question template with given name from 'question_meta_draft' table
+     */
+    public QuestionMetadataDraftEntity findQuestionByName(String questionName) {
         val repo = getQuestionMetadataDraftRepository();
         if (repo == null)
             return null;
@@ -576,6 +576,9 @@ public abstract class AbstractRdfStorage {
             Model gm = getQuestionSubgraph(questionName, role);
             if (gm != null)
                 m.add(gm);
+            else {
+                System.out.println("Sub-graph not found!  q: " + questionName);
+            }
 
             if (role == topRole)
                 break;
@@ -594,43 +597,43 @@ public abstract class AbstractRdfStorage {
 
     /**
      * Find what stage a question is in. Returned constant means which stage is reached by now.
-     * (Using "questions" metadata graph only, no more graphs fetched from remote.)
-     *
      * @param questionName question/questionTemplate unqualified name
      * @return one of questionStages(), or null if the question/questionTemplate does not exist.
      */
     public GraphRole getQuestionStatus(String questionName) {
-        Resource questionNode = null;  // findQuestionByName(questionName);
-        if (questionNode != null) {
-
-            GraphRole approvedStatus = GraphRole.SCHEMA;  // below any valid question status
-
-            for (GraphRole role : questionStages()) {
-                /// boolean exists = fetchGraph(uriForQuestionGraph(questionName, role));
-
-                boolean targetNamedGraphAbsent = questionNode
-                        .listProperties(AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(questionNode.getModel()))
-                        .toList()
-                        .stream()
-                        .map(Statement::getObject)
-                        .dropWhile(res -> res.equals(RDF.nil))
-                        .findAny().isEmpty();
-
-                if (targetNamedGraphAbsent) {
-                    break;  // now return approvedStatus
-                }
-                // else ...
-                approvedStatus = role;
-            }
-            return approvedStatus;
+        val meta = findQuestionByName(questionName);
+        if (meta == null) {
+            return null;
         }
-        return null;
+
+        GraphRole reachedRole = GraphRole.QUESTION_TEMPLATE;
+        for  (GraphRole role : questionStages()) {
+            String graphPath = null;
+            switch (role) {
+                case QUESTION_TEMPLATE:
+                    graphPath = meta.getQtGraphPath();
+                    break;
+                case QUESTION_TEMPLATE_SOLVED:
+                    graphPath = meta.getQtSolvedGraphPath();
+                    break;
+                case QUESTION:
+                    graphPath = meta.getQGraphPath();
+                    break;
+                case QUESTION_SOLVED:
+                    graphPath = meta.getQSolvedGraphPath();
+                    break;
+            }
+            if (graphPath != null)
+                reachedRole = role;
+            else
+                break;
+        }
+        return reachedRole;
     }
 
     /**
      * создание/обновление и отправка во внешнюю БД одного из 4-х видов подграфа вопроса (например, создание нового
-     * вопроса или добавление
-     * *solved-данных для него)
+     * вопроса или добавление solved-данных для него)
      *
      * @param questionName unqualified name of Question or QuestionTemplate
      * @param role question subgraph role
@@ -647,15 +650,12 @@ public abstract class AbstractRdfStorage {
         // update questions metadata
         QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
         if (meta == null) {
-            // return null;
-            // проинициализировать метаданные вопроса, далее сохранить в БД
-            meta = QuestionMetadataDraftEntity.builder()
-                    .name(questionName)
-                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
-                    .templateId(-1)
-                    .stage(STAGE_TEMPLATE)
-                    .version(GENERATOR_VERSION)
-                    .build();
+            // проинициализировать метаданные шаблона вопроса, далее сохранить в БД
+            if (role == GraphRole.QUESTION_TEMPLATE || role == GraphRole.QUESTION_TEMPLATE_SOLVED)
+                meta = createQuestionTemplate(questionName);
+            else {
+                throw new IllegalStateException("setQuestionSubgraph(): Question metadata row must be initialized in advance!");
+            }
         }
 
         switch (role) {
@@ -673,58 +673,34 @@ public abstract class AbstractRdfStorage {
         return meta;
     }
 
-    /* **
-     * Create metadata representing empty QuestionTemplate, but not overwrite existing data.
+    /**
+     * Create empty metadata row for QuestionTemplate, but not overwrite existing data.
      *
      * @param questionTemplateName unique identifier-like name of question template
-     * @return true on success
+     * @return fresh or existing QuestionMetadataDraftEntity instance
      */
-    /*public boolean createQuestionTemplate(String questionTemplateName) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+    public QuestionMetadataDraftEntity createQuestionTemplate(String questionTemplateName) {
+        // find template metadata
+        QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
 
-        if (qG != null) {
-            Resource nodeClass = qG.createResource(NS_classQuestionTemplate.base(), OWL.Class);
-            Resource qNode = findQuestionByName(questionTemplateName);
-
-            // deal with existing node
-            if (qNode != null) {
-                // check if this node is indeed a question Template
-                boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
-                if (!rightType) {
-                    throw new RuntimeException("Cannot create QuestionTemplate: uri '" + qNode.getURI() + "' is " +
-                            "already in use.");
-                }
-
-                // simple decision: do nothing if metadata node exists
-                return true;
-            }
-
-            Node ngNode = NS_questions.baseAsUri();
-            qNode = NS_classQuestionTemplate.getResourceOnModel(questionTemplateName, qG);
-
-            List<UpdateRequest> commands = new ArrayList<>();
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode, qNode, RDF.type, nodeClass));
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                    qNode,
-                    NS_questions.getUri("name"),
-                    NodeFactory.createLiteral(questionTemplateName)));
-
-            // initialize template's graphs as empty ...
-            // using "template-only" roles
-            for (GraphRole role : questionStages().subList(0, 2)) {
-                commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                        qNode,
-                        AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsUri(),
-                        RDF.nil));
-            }
-
-            boolean success = runQueries(commands);
-            return success;
+        if (templateMeta != null) {
+            return templateMeta;
         }
-        return false;
-    }*/
+
+        val builder = QuestionMetadataDraftEntity.builder();
+
+        // проинициализировать метаданные вопроса, далее сохранить в БД
+        templateMeta = builder.name(questionTemplateName)
+                .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
+                .templateId(-1)
+                .stage(STAGE_TEMPLATE)
+                .version(GENERATOR_VERSION)
+                .build();
+        templateMeta = questionMetadataDraftRepository.save(templateMeta);
+
+        return templateMeta;
+
+    }
 
     /**
      * Create metadata representing empty Question, but not overwrite existing data if recreate == false.
@@ -732,11 +708,22 @@ public abstract class AbstractRdfStorage {
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    public QuestionMetadataDraftEntity createQuestion(String questionName, String questionTemplateName) {
+    public QuestionMetadataDraftEntity createQuestion(String questionName, String questionTemplateName, boolean recreate) {
 
         // find template metadata
         QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
+
+
         QuestionMetadataDraftEntity meta;
+        if (!recreate) {
+            meta = findQuestionByName(questionName);
+            if (meta != null) {
+                if (templateMeta != null) {
+                    meta.setTemplateId(templateMeta.getId());
+                }
+                return meta;
+            }
+        }
         QuestionMetadataDraftEntity.QuestionMetadataDraftEntityBuilder builder;
         int templateId;
         if (templateMeta != null) {
