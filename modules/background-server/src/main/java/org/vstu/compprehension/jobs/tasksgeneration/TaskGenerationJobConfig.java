@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "task-generation")
 @Getter @Setter @NoArgsConstructor
 public class TaskGenerationJobConfig {
+    private String domainShortName;
     private ReposSearcherConfig searcher;
     private ParserConfig parser;
     private GeneratorConfig generator;
