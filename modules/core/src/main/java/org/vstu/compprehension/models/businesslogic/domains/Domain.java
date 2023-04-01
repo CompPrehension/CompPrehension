@@ -348,6 +348,12 @@ public abstract class Domain {
 
     public void saveQuestionRequest(QuestionRequest qr) {
 
+        // fill empty lists
+        if (qr.getDeniedQuestionMetaIds().isEmpty())
+            qr.getDeniedQuestionMetaIds().add(0);
+        if (qr.getDeniedQuestionTemplateIds().isEmpty())
+            qr.getDeniedQuestionTemplateIds().add(0);
+
         val qrl = qr.getLogEntity();
 
         Map<String, Object> res = getQuestionMetadataRepository().countQuestions(qr);
