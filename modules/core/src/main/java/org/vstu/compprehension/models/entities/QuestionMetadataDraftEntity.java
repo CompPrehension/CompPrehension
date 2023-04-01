@@ -22,6 +22,12 @@ public class QuestionMetadataDraftEntity {
     @Column(name = "id", nullable = false)
     private Integer id;
 
+    /**
+     * URL or name of GitHub repository from which this question was created
+     */
+    @Column(name = "origin")
+    private String origin;
+
     @Column(name = "name")
     private String name;
 
