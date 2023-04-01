@@ -115,5 +115,16 @@ public class QuestionRequestLogEntity {
     Date createdDate;
 
 
+    // fields filled by generator:
+
+    /** if > 0, no more need to process it (problem resolved) (positive number denotes the version of resolver; may need to re-calculate when requirements are updated)*/
+    private int outdated = 0;
+    /** number of times it was processed */
+    private int processedCount = 0;
+    /** set any time it tried to be processed by generator */
+    Date lastProcessedDate;
+    /** how many questions were added thanks to this request log entry */
+    private Integer addedQuestions = null;
+
 }
 
