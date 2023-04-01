@@ -1,25 +1,15 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
-import org.apache.jena.update.UpdateRequest;
-import org.apache.jena.vocabulary.OWL;
-import org.apache.jena.vocabulary.RDF;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
@@ -28,15 +18,11 @@ import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -121,7 +107,7 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     protected void initDB() {
 
         // init repository
-        setQuestionMetadataDraftRepository(ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class));
+        setQuestionMetadataDraftRepository(getMetadataDraftRepositoryStatic());
 
         try {
 //            dataset = TDB2Factory.createDataset() ;  // directory
@@ -138,8 +124,13 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         log.info("LocalRdfStorage: init completed for: " + this.fileService.getBaseDownloadUri());
     }
 
+    @NotNull
+    public static QuestionMetadataDraftRepository getMetadataDraftRepositoryStatic() {
+        return ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class);
+    }
 
-//    @Override
+
+    //    @Override
     public RDFConnection getConn() {
         throw new NotImplementedException("No remote connection can be returned for the LOCAL storage.");
         //// return null;

@@ -1,17 +1,15 @@
 package org.vstu.compprehension.jobs.tasksgeneration;
 
-import com.google.common.collect.Iterators;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.models.businesslogic.storage.RdfStorage;
 import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
@@ -20,19 +18,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+/**
+ * Currently, for Expression domain only.
+ */
 @Log4j2
 @Service
 public class TaskGenerationJob {
     private final ExpressionQuestionMetadataRepository matadataRep;
+    private final QuestionMetadataDraftRepository matadataDraftRep;
     private final TaskGenerationJobConfig config;
 
     @Autowired
-    public TaskGenerationJob(ExpressionQuestionMetadataRepository matadataRep, TaskGenerationJobConfig config) {
+    public TaskGenerationJob(ExpressionQuestionMetadataRepository matadataRep, QuestionMetadataDraftRepository matadataDraftRep, TaskGenerationJobConfig config) {
         this.matadataRep = matadataRep;
+        this.matadataDraftRep = matadataDraftRep;
         this.config = config;
     }
 
@@ -41,21 +44,38 @@ public class TaskGenerationJob {
     public void run() {
         // TODO проверка на то, что нужны новые вопросы
 
+        boolean _debugGenerator = false;
+        boolean cleanupFolders = !_debugGenerator;
+        boolean cleanupGeneratedFolder = false;
+        boolean downloadRepositories = !_debugGenerator;
+        boolean parseSources = !_debugGenerator;
+        boolean generateQuestions = true;
+
+
         // folders cleanup
-        if (false) {
+        if (cleanupFolders) {
             if (Files.exists(Path.of(config.getSearcher().getOutputFolderPath())))
                 FileUtils.deleteDirectory(new File(config.getSearcher().getOutputFolderPath()));
             if (Files.exists(Path.of(config.getParser().getOutputFolderPath())))
                 FileUtils.deleteDirectory(new File(config.getParser().getOutputFolderPath()));
-            if (Files.exists(Path.of(config.getGenerator().getOutputFolderPath())))
-                FileUtils.deleteDirectory(new File(config.getGenerator().getOutputFolderPath()));
+
+            // don't delete output: it may be reused later
+            if (cleanupGeneratedFolder) {
+                if (Files.exists(Path.of(config.getGenerator().getOutputFolderPath())))
+                    FileUtils.deleteDirectory(new File(config.getGenerator().getOutputFolderPath()));
+            }
+
             log.info("folders cleaned up");
         }
 
+        List<Path> downloadedRepos;
+
         // download repos
-        if (false)
+        if (downloadRepositories)
         {
             // TODO Добавить историю
+            var seenReposNames = matadataDraftRep.findAllOrigins(config.getDomainShortName(), 3 /*STAGE_QUESTION_DATA*/);
+
             GitHub github = new GitHubBuilder()
                     .withOAuthToken(config.getSearcher().getGithubOAuthToken())
                     .build();
@@ -67,10 +87,16 @@ public class TaskGenerationJob {
                     .order(GHDirection.DESC)
                     .list()
                     .withPageSize(30);
-            var downloadedRepos = new ArrayList<Path>();
+            downloadedRepos = new ArrayList<Path>();
             {
                 int idx = 0;
                 for (var repo : repoSearchQuery) {
+                    if (seenReposNames.contains(repo.getName())) {
+                        log.info("Skip processed GitHub repo: " + repo.getName());
+                        continue;
+                    }
+                    log.info("Downloading repo [{}] ...", repo.getFullName());
+
                     repo.readZip(s -> {
                         Path zipFile = Path.of(config.getSearcher().getOutputFolderPath(), repo.getName() + ".zip")
                                 .toAbsolutePath();
@@ -90,24 +116,38 @@ public class TaskGenerationJob {
                         break;
                 }
             }
+            // end of download
+        } else {
+            // debug:
+            downloadedRepos = List.of(Path.of("c:/data/compp-gen/expr/downloaded_repos/obs-studio"));
+        }
 
-            // do parsing
+        // do parsing
+        if (parseSources)
+        {
             for(var repo : downloadedRepos) {
                 log.info("Start parsing sources for repo [{}]", repo);
+
+                String leafFolder = repo.getFileName().toString();
+                Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
 
                 var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
                 log.info("Found {} *.c & *.m files", files.size());
 
-                var parserProcessCommandBuilder = new ArrayList<String>();
+                List<String> parserProcessCommandBuilder = new ArrayList<>();
                 parserProcessCommandBuilder.add(config.getParser().getPathToExecutable());
                 parserProcessCommandBuilder.addAll(files);
+
+                // reduce number of arguments on command line if necessary
+                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 8 + destination.toString().length());
+
                 parserProcessCommandBuilder.add("--");
-                parserProcessCommandBuilder.add(config.getParser().getOutputFolderPath());
+                parserProcessCommandBuilder.add(destination.toString());
                 log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
                 try {
-                    log.info("Run parser");
-                    Files.createDirectories(Path.of(config.getParser().getOutputFolderPath()));
+                    log.info("Run parser on repo: [{}]", leafFolder);
+                    Files.createDirectories(destination);
                     var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
                             .redirectErrorStream(true)
                             .start();
@@ -127,13 +167,29 @@ public class TaskGenerationJob {
             }
         }
 
-        // TODO question generation step
-        log.info("Start question generation");
-        var allTtlFiles = FileUtility.findFiles(Path.of(config.getParser().getOutputFolderPath()), new String[] { ".ttl" });
-        log.info("Found {} ttl files", allTtlFiles.size());
+        // question generation step
+        if (generateQuestions) {
+            // find all sub-folders in root directory of parser output directory
+            var rootDir = Path.of(config.getParser().getOutputFolderPath());
+            var repos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
 
-        // for Expression domain only:
-        RdfStorage.generateQuestionsForExpressionsDomain(config.getParser().getOutputFolderPath(), config.getGenerator().getOutputFolderPath());
+            log.info("Start question generation from " + repos.size() + " repository(-ies)");
+
+            for (var repoDir : repos) {
+//            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
+//            log.info("Found {} ttl files", allTtlFiles.size());
+
+                String leafFolder = repoDir.getFileName().toString();
+
+                // for Expression domain only:
+                RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), leafFolder);
+            }
+        }
+
+        // export generated questions to production bank if necessary
+        if (true){
+
+        }
 
         log.info("completed");
     }

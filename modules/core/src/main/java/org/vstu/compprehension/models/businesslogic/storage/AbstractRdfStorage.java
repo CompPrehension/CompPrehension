@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
 import org.apache.jena.arq.querybuilder.WhereBuilder;
@@ -668,9 +669,14 @@ public abstract class AbstractRdfStorage {
             case QUESTION_SOLVED:
                 meta.setQSolvedGraphPath(qgSubPath); break;
         }
-        meta = questionMetadataDraftRepository.save(meta);
+        meta = saveMetadataDraftEntity(meta);
 
         return meta;
+    }
+
+    @NotNull
+    public QuestionMetadataDraftEntity saveMetadataDraftEntity(QuestionMetadataDraftEntity meta) {
+        return questionMetadataDraftRepository.save(meta);
     }
 
     /**
@@ -696,7 +702,7 @@ public abstract class AbstractRdfStorage {
                 .stage(STAGE_TEMPLATE)
                 .version(GENERATOR_VERSION)
                 .build();
-        templateMeta = questionMetadataDraftRepository.save(templateMeta);
+        templateMeta = saveMetadataDraftEntity(templateMeta);
 
         return templateMeta;
 
@@ -743,9 +749,37 @@ public abstract class AbstractRdfStorage {
                     .stage(STAGE_QUESTION)
                     .version(GENERATOR_VERSION)
                     .build();
-        meta = questionMetadataDraftRepository.save(meta);
+        meta = saveMetadataDraftEntity(meta);
 
         return meta;
+    }
+
+    /** delete files and db entry for question (not for the template)
+     * @param questionName name of question to delete
+     */
+    public void deleteQuestion(String questionName /*, boolean keepTemplate*/) {
+        val meta = findQuestionByName(questionName);
+
+        // delete files for this question (not for the template)
+        try {
+            String qgSubPath = meta.getQGraphPath();
+            if (qgSubPath != null) {
+                fileService.deleteFile(qgSubPath);
+            }
+            qgSubPath = meta.getQSolvedGraphPath();
+            if (qgSubPath != null) {
+                fileService.deleteFile(qgSubPath);
+            }
+            qgSubPath = meta.getQDataGraphPath();
+            if (qgSubPath != null) {
+                fileService.deleteFile(qgSubPath);
+            }
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        // delete db entry
+        questionMetadataDraftRepository.delete(meta);
     }
 
     /* *

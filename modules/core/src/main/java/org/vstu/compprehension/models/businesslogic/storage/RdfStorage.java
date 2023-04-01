@@ -636,10 +636,10 @@ RdfStorage.StopBackgroundDBFillUp()
     }*/
 
     public static void generateQuestionsForExpressionsDomain() {
-        generateQuestionsForExpressionsDomain("/Users/shadowgorn/Downloads/raw_qt/", "/Users/shadowgorn/Downloads/test_compp_expr/");
+        generateQuestionsForExpressionsDomain("/Users/shadowgorn/Downloads/raw_qt/", "/Users/shadowgorn/Downloads/test_compp_expr/", "");
     }
 
-    public static void generateQuestionsForExpressionsDomain(String ttl_templates_dir, String storage_base_dir) {
+    public static void generateQuestionsForExpressionsDomain(String ttl_templates_dir, String storage_base_dir, String origin) {
         ProgrammingLanguageExpressionDomain domain = ProgrammingLanguageExpressionDomain.makeHackedDomain();
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
@@ -660,7 +660,7 @@ RdfStorage.StopBackgroundDBFillUp()
             e.printStackTrace();
         }
 
-        System.out.println(files.size() + " files to parse");
+        System.out.println(files.size() + " parsed files to generate questions from");
         int path_len = ttl_templates_dir.length();
         int count = 0;
         for (String file : files) {
@@ -678,7 +678,7 @@ RdfStorage.StopBackgroundDBFillUp()
                     System.out.println("Skip solved template: " + name);
                     continue;
                 }
-                System.out.println(name + " ...\t");
+                // System.out.println(name + " ...\t");
 
                 count++;
 //                if (count % 100 == 0) {
@@ -691,7 +691,10 @@ RdfStorage.StopBackgroundDBFillUp()
                 /*rs.createQuestionTemplate(name);*/
                 Model m = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(m, file);
-                rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
+                val templateMeta = rs.setQuestionSubgraph(name, GraphRole.QUESTION_TEMPLATE, m);
+                // set more info to the metadata
+                templateMeta.setOrigin(origin);
+                rs.saveMetadataDraftEntity(templateMeta);
 
                 // Create solved template and save it and metadata
                 rs.solveQuestion(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
@@ -730,13 +733,23 @@ RdfStorage.StopBackgroundDBFillUp()
                     rs.setQuestionSubgraph(questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
                     // Save question data for domain in JSON
-                    System.out.println("Saving question: " + questionName);
+                    System.out.println("Generating question: " + questionName);
                     Question domainQuestion = domain.createQuestionFromModel(questionName, rs.getQuestionModel(questionName, GraphRole.QUESTION_SOLVED), rs);
+
+                    if (domainQuestion == null) {
+                        System.out.println("--  Cancelled inappropriate question: " + questionName);
+                        // don't complete this question, generation aborted
+                        rs.deleteQuestion(questionName);
+                        continue;
+                    }
+
+                    // Save question data for domain in JSON
+                    System.out.println("++  Saving question: " + questionName);
                     String filename = rs.saveQuestionData(questionName, domain.questionToJson(domainQuestion));
                     // save metadata row
                     var metaDraft = rs.findQuestionByName(questionName);
                     metaDraft.setQDataGraphPath(filename);
-                    rs.questionMetadataDraftRepository.save(metaDraft);
+                    rs.saveMetadataDraftEntity(metaDraft);
                     // save data to question's metadata instance, too
                     val meta = domainQuestion.getQuestionData().getOptions().getMetadata();
                     meta.setQDataGraph(filename);

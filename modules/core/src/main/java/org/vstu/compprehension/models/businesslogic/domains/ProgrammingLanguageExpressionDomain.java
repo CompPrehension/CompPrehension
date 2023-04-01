@@ -2470,6 +2470,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionType(QuestionType.ORDER);
         entity.setQuestionName("");
 
+        // check the size of question
+        if (ans_id < 3 || ans_id > 30)
+            // too small or too large question
+            return null;
+
         List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
         entity.setQuestionText(ExpressionToHtml(textFacts));
 //        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
@@ -2544,7 +2549,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         meta.setDistinctErrorsCount(violations.size());
 
         // save current state into DB
-        meta = rs.getQuestionMetadataDraftRepository().save(meta);
+        meta = rs.saveMetadataDraftEntity(meta);
 
         QuestionMetadataEntity metadata = meta.toMetadataEntity();
         entity.getOptions().setMetadata(metadata);

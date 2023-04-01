@@ -116,7 +116,7 @@ public class RemoteFileService {
      * @return OutputStream or null if path is dir or is not writeable
      * @throws FileSystemException on communication error
      */
-    OutputStream saveFileStream(String localName) throws FileSystemException {
+    public OutputStream saveFileStream(String localName) throws FileSystemException {
         final FileObject file = mgr.resolveFile(baseUploadUri + localName);
         if (file.getType() == FileType.FOLDER || !file.isWriteable()) {
             return null;
@@ -127,6 +127,12 @@ public class RemoteFileService {
         }
         FileContent fc = file.getContent();
         return fc.getOutputStream();  // `BUFFER_SIZE` does not speed up
+    }
+
+    public void deleteFile(String localName) throws FileSystemException {
+        final FileObject file = mgr.resolveFile(baseUploadUri + localName);
+
+        file.delete();
     }
 
     /** `When dummyDirs > 0`, for each new file of form `dir1/dir2/xxx.yyy` additional dirs inserted, e.g. `dir1/dir2/5/a/xxx.yyy` if `dummyDirs == 2`.
