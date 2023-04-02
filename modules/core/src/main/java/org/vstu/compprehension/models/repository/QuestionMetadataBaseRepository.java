@@ -70,6 +70,7 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
 //            @Param("random_pool_lim") int randomPoolLimitNumber
 //    );
 
+
     @Query(value = "SELECT * FROM (" +
             "select * from questions_meta q where " +
             "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +

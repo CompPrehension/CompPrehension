@@ -9,11 +9,8 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
-import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
-import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.File;
@@ -122,11 +119,6 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         }
 
         log.info("LocalRdfStorage: init completed for: " + this.fileService.getBaseDownloadUri());
-    }
-
-    @NotNull
-    public static QuestionMetadataDraftRepository getMetadataDraftRepositoryStatic() {
-        return ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class);
     }
 
 

@@ -13,6 +13,7 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -42,10 +43,10 @@ public class RdfStorage extends AbstractRdfStorage {
         JenaBackend.registerBuiltins();
     }
 
-    /**
+    /*
      * Relative path under SPARQL_ENDPOINT_BASE to store domain-specific database in
      */
-    String sparql_endpoint = null;
+    // String sparql_endpoint = null;
 
     public RdfStorage(Domain domain) {
 
@@ -55,19 +56,14 @@ public class RdfStorage extends AbstractRdfStorage {
         if (false && domain.getEntity() != null) {
             // use options from Domain
             DomainOptionsEntity cnf = domain.getEntity().getOptions();
-            this.sparql_endpoint = cnf.getStorageSPARQLEndpointUrl();
+//            this.sparql_endpoint = cnf.getStorageSPARQLEndpointUrl();
 
-            // init FTP pointing to domain-specific remote dir
-            this.fileService = new RemoteFileService(
-                    cnf.getStorageUploadFilesBaseUrl(),
-                    Optional.ofNullable(cnf.getStorageDownloadFilesBaseUrl())
-                            .orElse(cnf.getStorageUploadFilesBaseUrl()));  // use upload Url for download by default
-            this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
+            initFileService(cnf);
         } else {
             // default settings (if not available via domain)
             String name = domain.getShortName();
             assert name != null;  // Ensure you created a database in your external triple store and mapped a domain to it in DOMAIN_TO_ENDPOINT map!
-            this.sparql_endpoint = SPARQL_ENDPOINT_BASE; //// + name;
+//            this.sparql_endpoint = SPARQL_ENDPOINT_BASE; //// + name;
 
             // init FTP pointing to domain-specific remote dir
             this.fileService = new RemoteFileService(FTP_BASE + name, FTP_DOWNLOAD_BASE + name);
@@ -77,15 +73,20 @@ public class RdfStorage extends AbstractRdfStorage {
 //        initDB();
     }
 
-    public RdfStorage(String sparql_endpoint) {
-
+    public RdfStorage(DomainOptionsEntity cnf) {
         this.domain = null;
-        this.sparql_endpoint = sparql_endpoint;
+        initFileService(cnf);
 
-        // init FTP pointing to some remote dir
-        this.fileService = new RemoteFileService(FTP_BASE + "tmp" + "/");
+        // initDB();
+    }
 
-//        initDB();
+    private void initFileService(DomainOptionsEntity cnf) {
+        // init FTP pointing to domain-specific remote dir
+        this.fileService = new RemoteFileService(
+                cnf.getStorageUploadFilesBaseUrl(),
+                Optional.ofNullable(cnf.getStorageDownloadFilesBaseUrl())
+                        .orElse(cnf.getStorageUploadFilesBaseUrl()));  // use upload Url for download as fallback
+        this.fileService.setDummyDirsForNewFile(cnf.getStorageDummyDirsForNewFile());
     }
 
     protected void initDB() {
@@ -636,10 +637,10 @@ RdfStorage.StopBackgroundDBFillUp()
     }*/
 
     public static void generateQuestionsForExpressionsDomain() {
-        generateQuestionsForExpressionsDomain("/Users/shadowgorn/Downloads/raw_qt/", "/Users/shadowgorn/Downloads/test_compp_expr/", "");
+        generateQuestionsForExpressionsDomain("/Users/shadowgorn/Downloads/raw_qt/", "/Users/shadowgorn/Downloads/test_compp_expr/", 2, "");
     }
 
-    public static void generateQuestionsForExpressionsDomain(String ttl_templates_dir, String storage_base_dir, String origin) {
+    public static void generateQuestionsForExpressionsDomain(String ttl_templates_dir, String storage_base_dir, int storageDummyDirsForNewFile, String origin) {
         ProgrammingLanguageExpressionDomain domain = ProgrammingLanguageExpressionDomain.makeHackedDomain();
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
@@ -649,6 +650,7 @@ RdfStorage.StopBackgroundDBFillUp()
         DomainOptionsEntity cnf = domain.getEntity().getOptions();
         cnf.setStorageDownloadFilesBaseUrl(storage_base_dir);
         cnf.setStorageUploadFilesBaseUrl(storage_base_dir);
+        cnf.setStorageDummyDirsForNewFile(storageDummyDirsForNewFile);
         // TODO: using LocalRdfStorage (while the code is) in RdfStorage. Move something?
         LocalRdfStorage rs = new LocalRdfStorage(domain);
 
@@ -760,6 +762,42 @@ RdfStorage.StopBackgroundDBFillUp()
             }
         }
         rs.saveToFilesystem();
+    }
+
+    public static int exportQDtaFilesToProductionBank(List<QuestionMetadataDraftEntity> questionsToExport, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
+
+        // init configuration for storage creation:
+        DomainOptionsEntity cnf = new DomainOptionsEntity();
+        cnf.setStorageDownloadFilesBaseUrl(storage_src_dir);
+        cnf.setStorageUploadFilesBaseUrl(storage_src_dir);
+        cnf.setStorageDummyDirsForNewFile(storageDummyDirsForNewFile);
+        RemoteFileService rsSrc = new RdfStorage(cnf).fileService;
+
+        // init configuration for storage creation:
+        /*DomainOptionsEntity cnf = new DomainOptionsEntity();*/
+        cnf.setStorageDownloadFilesBaseUrl(storage_dst_dir);
+        cnf.setStorageUploadFilesBaseUrl(storage_dst_dir);
+        cnf.setStorageDummyDirsForNewFile(storageDummyDirsForNewFile);
+        RemoteFileService rsDst = new RdfStorage(cnf).fileService;
+
+        int nExported = 0;
+        for (val q : questionsToExport) {
+            String localPath = q.getQDataGraphPath();
+
+            try {
+                rsDst.saveFileStream(localPath).write(rsSrc.getFileStream(localPath).readAllBytes());
+            } catch (IOException e) {
+                System.out.println("Error exporting file: " + localPath);
+                System.out.println("Error message: " + e.getMessage());
+                e.printStackTrace();
+                // exit !
+                return nExported;
+            }
+            System.out.printf("    OK [draft] --> [prod] file (%2d/%2d):  %s\n", ++nExported, questionsToExport.size(), localPath);
+        }
+
+        System.out.println("All ("+nExported+") question data files exported.");
+        return nExported;
     }
 
 

@@ -126,7 +126,7 @@ public class QuestionMetadataDraftEntity {
 
     public QuestionMetadataEntity toMetadataEntity() {
         return QuestionMetadataEntity.builder()
-                .id(this.getId())
+                .id(null)  // (this.getId())
                 .name(this.getName())
                 .domainShortname(this.getDomainShortname())
                 .templateId(Optional.ofNullable(this.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
@@ -159,7 +159,7 @@ public class QuestionMetadataDraftEntity {
 
     public static QuestionMetadataDraftEntity fromMetadataEntity(QuestionMetadataEntity other) {
         return QuestionMetadataDraftEntity.builder()
-                .id(other.getId())
+                .id(null)  // (other.getId())
                 .name(other.getName())
                 .domainShortname(other.getDomainShortname())
                 .templateId(Optional.ofNullable(other.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
@@ -186,7 +186,6 @@ public class QuestionMetadataDraftEntity {
                 /*.violationBitsInPlan(other.getViolationBitsInPlan())*/
                 /*.violationBitsInRequest(other.getViolationBitsInRequest())*/
                 .build();
-
     }
 
 }

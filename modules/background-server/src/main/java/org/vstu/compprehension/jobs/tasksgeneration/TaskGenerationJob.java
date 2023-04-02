@@ -7,9 +7,11 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.RdfStorage;
-import org.vstu.compprehension.models.repository.ExpressionQuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
@@ -28,28 +30,50 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 public class TaskGenerationJob {
-    private final ExpressionQuestionMetadataRepository matadataRep;
-    private final QuestionMetadataDraftRepository matadataDraftRep;
+    private final QuestionRequestLogRepository qrLogRep;
+    private final QuestionMetadataBaseRepository metadataRep;
+    private final QuestionMetadataDraftRepository metadataDraftRep;
     private final TaskGenerationJobConfig config;
 
     @Autowired
-    public TaskGenerationJob(ExpressionQuestionMetadataRepository matadataRep, QuestionMetadataDraftRepository matadataDraftRep, TaskGenerationJobConfig config) {
-        this.matadataRep = matadataRep;
-        this.matadataDraftRep = matadataDraftRep;
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataBaseRepository metadataRep, QuestionMetadataDraftRepository metadataDraftRep, TaskGenerationJobConfig config) {
+        this.qrLogRep = qrLogRep;
+        this.metadataRep = metadataRep;
+        this.metadataDraftRep = metadataDraftRep;
         this.config = config;
     }
 
     @SneakyThrows
     @Job
     public void run() {
+        while (runGeneration4Expr()) {
+            log.info("Run again: Generating questions for expression domain");
+        }
+    }
+
+    /**
+     * @return true if more processing needed
+     */
+    @SneakyThrows
+    public boolean runGeneration4Expr() {
+
         // TODO проверка на то, что нужны новые вопросы
+        int tooFewQuestions = 5;
+        int enoughQuestionsAdded = 15;  // mark QRLog resolved if such many questions were added
+        var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
+
+        if (qrLogsToProcess.isEmpty()) {
+            log.info("Nothing to process, finished job.");
+            return false;
+        }
 
         boolean _debugGenerator = false;
         boolean cleanupFolders = !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
         boolean parseSources = !_debugGenerator;
-        boolean generateQuestions = true;
+        boolean generateQuestions = !_debugGenerator;
+        boolean exportQuestionsToProduction = true;
 
 
         // folders cleanup
@@ -70,11 +94,11 @@ public class TaskGenerationJob {
 
         List<Path> downloadedRepos;
 
-        // download repos
+        // download repos (currently, one repository per run)
         if (downloadRepositories)
         {
             // TODO Добавить историю
-            var seenReposNames = matadataDraftRep.findAllOrigins(config.getDomainShortName(), 3 /*STAGE_QUESTION_DATA*/);
+            var seenReposNames = metadataDraftRep.findAllOrigins(config.getDomainShortName(), 3 /*STAGE_QUESTION_DATA*/);
 
             GitHub github = new GitHubBuilder()
                     .withOAuthToken(config.getSearcher().getGithubOAuthToken())
@@ -139,6 +163,7 @@ public class TaskGenerationJob {
                 parserProcessCommandBuilder.addAll(files);
 
                 // reduce number of arguments on command line if necessary
+                // TODO: loop over batches if required to split the task
                 parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 8 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
@@ -173,7 +198,7 @@ public class TaskGenerationJob {
             var rootDir = Path.of(config.getParser().getOutputFolderPath());
             var repos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
 
-            log.info("Start question generation from " + repos.size() + " repository(-ies)");
+            log.info("Start question generation from " + repos.size() + " repository(-ies) ...");
 
             for (var repoDir : repos) {
 //            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
@@ -182,15 +207,21 @@ public class TaskGenerationJob {
                 String leafFolder = repoDir.getFileName().toString();
 
                 // for Expression domain only:
-                RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), leafFolder);
+                RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageDummyDirsForNewFile(), leafFolder);
             }
         }
 
         // export generated questions to production bank if necessary
-        if (true){
-
+        if (exportQuestionsToProduction) {
+            log.info("Start exporting questions to production bank ...");
+            AbstractRdfStorage.exportGeneratedQuestionsToProductionBank(
+                    qrLogsToProcess, enoughQuestionsAdded,
+                    metadataRep, metadataDraftRep, qrLogRep,
+                    config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
         }
 
         log.info("completed");
+
+        return true;
     }
 }

@@ -32,7 +32,11 @@ import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
@@ -41,7 +45,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Long.bitCount;
-import static org.apache.jena.vocabulary.SchemaDO.question;
 
 @Log4j2
 public abstract class AbstractRdfStorage {
@@ -95,7 +98,7 @@ public abstract class AbstractRdfStorage {
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
-    public static int STAGE_CONSUMED = 4;
+    public static int STAGE_EXPORTED = 4;
     public static int GENERATOR_VERSION = 10;
 
 
@@ -116,6 +119,11 @@ public abstract class AbstractRdfStorage {
     @Getter
     QuestionMetadataDraftRepository questionMetadataDraftRepository;
 
+    @NotNull
+    public static QuestionMetadataDraftRepository getMetadataDraftRepositoryStatic() {
+        return ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class);
+    }
+
 
     QuestionMetadataManager getQuestionMetadataManager() {
         if (this.questionMetadataManager == null) {
@@ -126,33 +134,6 @@ public abstract class AbstractRdfStorage {
             }
         }
         return questionMetadataManager;
-    }
-
-    /**
-     * Make a SPARQL Update query that removes all (s, p, *) triples and inserts one (s, p, o) triple into a named
-     * graph ng.
-     *
-     * @param ng named graph
-     * @param s  subject
-     * @param p  predicate / property
-     * @param o  object
-     * @return UpdateRequest object
-     */
-    static UpdateRequest makeUpdateTripleQuery(Object ng, Object s, Object p, Object o) {
-        // delete & insert new triple
-        UpdateBuilder ub3 = new UpdateBuilder();
-        ub3.addInsert(ng, s, p, o); // quad
-        Var obj = Var.alloc("obj");
-        // quad
-        ub3.addDelete(ng, s, p, obj); // quad
-        ub3.addWhere(new WhereBuilder()
-                // OPTIONAL allows inserting new triples without replacing
-                .addOptional(new WhereBuilder()
-                        .addGraph(ng, s, p, obj))
-        );
-        UpdateRequest ur = ub3.buildRequest();
-        //// System.out.println(ur.toString());
-        return ur;
     }
 
     public static NamespaceUtil questionSubgraphPropertyFor(GraphRole role) {
@@ -866,6 +847,89 @@ public abstract class AbstractRdfStorage {
         // set graph
         return setQuestionSubgraph(questionName, desiredLevel, inferred) != null;
     }
+
+    /**
+     * Find generated questions that suit unsatisfied question-requests
+     * and send them to the production question bank.
+     * Note that database is the same tor generator and production environment; but file storage may be physically different,
+     * so sending files may require FTP write access.
+     * @param qrLogsToProcess unsatisfied question-request log entries
+     * @param enoughQuestionsAddedPerQR if reached this number of questions added for a QrLog then mark it as resolved
+     * @param metadataDraftRepo jpa repository
+     * @param qrLogRepo jpa repository
+     */
+    public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsAddedPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
+
+        if (qrLogsToProcess.isEmpty())
+            return;
+
+        // ID-indexed set of questions that suit all the question requests
+        var newQuestions = new HashMap<Integer, QuestionMetadataDraftEntity>();
+
+        for (val qrl : qrLogsToProcess) {
+            val questionsForQR = metadataDraftRepo.findSuitableQuestions(/*QuestionRequest.fromLogEntity*/(qrl));
+
+            int count = questionsForQR.size();
+
+            System.out.println("Found " + count + " draft questions for question-request log with id: " + qrl.getId());
+
+            // add questions to common set (avoiding duplicates)
+            questionsForQR.forEach(q -> newQuestions.put(q.getId(), q));
+
+            // increment qrl counter
+            int currentAddedQuestions = Optional.ofNullable(qrl.getAddedQuestions()).orElse(0);
+
+            if (count > 0) {
+                currentAddedQuestions += count;
+                qrl.setAddedQuestions(currentAddedQuestions);
+            }
+
+            qrl.setProcessedCount(Optional.ofNullable(qrl.getProcessedCount()).orElse(0) + 1);  // increment
+            qrl.setLastProcessedDate(new Date());   // set current date-time now but save to db later, if exported questions successfully
+
+            if (currentAddedQuestions >= enoughQuestionsAddedPerQR) {
+                // mark qrl as resolved
+                qrl.setOutdated(1);
+            }
+        }
+
+        if (newQuestions.isEmpty()) {
+            System.out.println("Nothing new found among draft questions, check if we still have something to export.");
+
+        } else {
+            // mark selected questions to be exported (set stage := 4)
+            newQuestions.values().forEach(q -> q.setStage(STAGE_EXPORTED));
+            metadataDraftRepo.saveAll(newQuestions.values());
+        }
+
+        // determine questions are to export (really new; this query excludes duplicates)
+        // find draft questions not yet exported with LEFT JOIN
+        val toExport = metadataDraftRepo.findNotYetExportedQuestions(qrLogsToProcess.get(0).getDomainShortname());  // restricted to one Domain only. TODO: allow arbitrary domains ?
+
+        if (toExport.isEmpty()) {
+            System.out.println("All draft questions already exported.");
+        } else {
+            // send ready questions data to production bank
+            int nExported = RdfStorage.exportQDtaFilesToProductionBank(toExport, storage_src_dir, storage_dst_dir, storageDummyDirsForNewFile);
+
+            // integrate question metadata into production metadata table
+            // Process only those questions that were successfully exported in previous operation.
+            var toImport = new ArrayList<QuestionMetadataEntity>(nExported);
+            for (val d : toExport.subList(0, nExported)) {
+                val q = d.toMetadataEntity();
+                // q.id is null (this q is inserted as new)
+                q.setStage(STAGE_READY);
+                toImport.add(q);
+            }
+
+            metadataRepo.saveAll(toImport);
+            System.out.println("Saved " + toImport.size() + " new question metadata rows into production table.");
+        }
+        // update processed qr log rows in DB (to persist changes made above)
+        qrLogRepo.saveAll(qrLogsToProcess);
+        System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
+    }
+
 
     /**
      * Find questions and/or question templates which have `unsolvedSubgraph` set to rdf:nil.

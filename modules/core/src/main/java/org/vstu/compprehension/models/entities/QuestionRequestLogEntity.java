@@ -1,10 +1,7 @@
 package org.vstu.compprehension.models.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.vstu.compprehension.models.businesslogic.Concept;
@@ -16,9 +13,10 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "QuestionRequestLog")
 @TypeDef(name = "json", typeClass = JsonStringType.class)
@@ -28,9 +26,9 @@ public class QuestionRequestLogEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    Long exerciseAttemptId;
+    private Long exerciseAttemptId;
 
-    String domainShortname;
+    private String domainShortname;
 
     @Type(type = "json")
     private List<String> targetConceptNames;
