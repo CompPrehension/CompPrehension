@@ -15,6 +15,7 @@ public class TaskGenerationJobConfig {
     private ReposSearcherConfig searcher;
     private ParserConfig parser;
     private GeneratorConfig generator;
+    private ExporterConfig exporter;
 
     @Getter @Setter @NoArgsConstructor
     public static class ReposSearcherConfig {
@@ -32,5 +33,11 @@ public class TaskGenerationJobConfig {
     public static class GeneratorConfig {
         private String pathToExecutable;
         private String outputFolderPath;
+    }
+
+    @Getter @Setter @NoArgsConstructor
+    public static class ExporterConfig {
+        private int StorageDummyDirsForNewFile;
+        private String StorageUploadFilesBaseUrl ;
     }
 }
