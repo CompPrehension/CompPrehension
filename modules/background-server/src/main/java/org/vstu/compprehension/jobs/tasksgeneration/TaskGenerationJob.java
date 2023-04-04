@@ -167,6 +167,7 @@ public class TaskGenerationJob {
                 parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 8 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
+                parserProcessCommandBuilder.add("expression");
                 parserProcessCommandBuilder.add(destination.toString());
                 log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
