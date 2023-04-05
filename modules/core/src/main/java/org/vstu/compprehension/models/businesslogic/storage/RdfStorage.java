@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.jena.rdf.model.Model;
@@ -16,6 +17,7 @@ import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -764,6 +766,7 @@ RdfStorage.StopBackgroundDBFillUp()
         rs.saveToFilesystem();
     }
 
+    @SneakyThrows
     public static int exportQDtaFilesToProductionBank(List<QuestionMetadataDraftEntity> questionsToExport, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
 
         // init configuration for storage creation:
@@ -784,16 +787,28 @@ RdfStorage.StopBackgroundDBFillUp()
         for (val q : questionsToExport) {
             String localPath = q.getQDataGraphPath();
 
-            try {
-                rsDst.saveFileStream(localPath).write(rsSrc.getFileStream(localPath).readAllBytes());
-            } catch (IOException e) {
-                System.out.println("Error exporting file: " + localPath);
-                System.out.println("Error message: " + e.getMessage());
-                e.printStackTrace();
-                // exit !
-                return nExported;
+            for (int i = 0; i < 3; i++) {  // retry loop
+                try {
+                    try (OutputStream stream = rsDst.saveFileStream(localPath)) {
+                        stream.write(rsSrc.getFileStream(localPath).readAllBytes());
+                        // auto-close the stream
+                    }
+                } catch (IOException e) {
+                    System.out.println("... Retry after 1s pause (take "+ (i+1) +") ...");;
+                    Thread.sleep(1000);
+                    if (i < 2)
+                        continue;
+                    else {
+                        System.out.println("Error exporting file: " + localPath);
+                        System.out.println("Error message: " + e.getMessage());
+                        e.printStackTrace();
+                        // exit !
+                        return nExported;
+                    }
+                }
+                break;
             }
-            System.out.printf("    OK [draft] --> [prod] file (%2d/%2d):  %s\n", ++nExported, questionsToExport.size(), localPath);
+            System.out.printf("    OK [draft] --> [prod] file ( %2d/%2d ):  %s\n", ++nExported, questionsToExport.size(), localPath);
         }
 
         System.out.println("All ("+nExported+") question data files exported.");
