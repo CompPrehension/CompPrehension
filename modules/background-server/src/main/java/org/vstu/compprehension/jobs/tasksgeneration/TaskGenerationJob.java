@@ -47,7 +47,8 @@ public class TaskGenerationJob {
     @Job
     public void run() {
         while (runGeneration4Expr()) {
-            log.info("Run again: Generating questions for expression domain");
+            // log.info("Run again: Generating questions for expression domain");
+            break;
         }
     }
 
@@ -58,8 +59,8 @@ public class TaskGenerationJob {
     public boolean runGeneration4Expr() {
 
         // TODO проверка на то, что нужны новые вопросы
-        int tooFewQuestions = 5;
-        int enoughQuestionsAdded = 15;  // mark QRLog resolved if such many questions were added
+        int tooFewQuestions = 50;
+        int enoughQuestionsAdded = 150;  // mark QRLog resolved if such many questions were added
         var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
@@ -98,7 +99,7 @@ public class TaskGenerationJob {
         if (downloadRepositories)
         {
             // TODO Добавить историю
-            var seenReposNames = metadataDraftRep.findAllOrigins(config.getDomainShortName(), 3 /*STAGE_QUESTION_DATA*/);
+            var seenReposNames = metadataDraftRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/);
 
             GitHub github = new GitHubBuilder()
                     .withOAuthToken(config.getSearcher().getGithubOAuthToken())
@@ -164,7 +165,7 @@ public class TaskGenerationJob {
 
                 // reduce number of arguments on command line if necessary
                 // TODO: loop over batches if required to split the task
-                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 8 + destination.toString().length());
+                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2+10+5 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
                 parserProcessCommandBuilder.add("expression");

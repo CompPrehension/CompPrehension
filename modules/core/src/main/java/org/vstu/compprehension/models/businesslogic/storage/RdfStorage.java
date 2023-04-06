@@ -808,7 +808,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 }
                 break;
             }
-            System.out.printf("    OK [draft] --> [prod] file ( %2d/%2d ):  %s\n", ++nExported, questionsToExport.size(), localPath);
+            System.out.printf(" OK [draft]->[prod] file  %2d/%d:  %s\n", ++nExported, questionsToExport.size(), localPath);
         }
 
         System.out.println("All ("+nExported+") question data files exported.");

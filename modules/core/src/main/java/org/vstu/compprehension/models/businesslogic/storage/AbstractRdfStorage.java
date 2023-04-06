@@ -854,11 +854,11 @@ public abstract class AbstractRdfStorage {
      * Note that database is the same tor generator and production environment; but file storage may be physically different,
      * so sending files may require FTP write access.
      * @param qrLogsToProcess unsatisfied question-request log entries
-     * @param enoughQuestionsAddedPerQR if reached this number of questions added for a QrLog then mark it as resolved
+     * @param enoughQuestionsPerQR if reached this number of questions reached for a QrLog then mark it as resolved
      * @param metadataDraftRepo jpa repository
      * @param qrLogRepo jpa repository
      */
-    public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsAddedPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
+    public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
 
         if (qrLogsToProcess.isEmpty())
             return;
@@ -867,11 +867,17 @@ public abstract class AbstractRdfStorage {
         var newQuestions = new HashMap<Integer, QuestionMetadataDraftEntity>();
 
         for (val qrl : qrLogsToProcess) {
-            val questionsForQR = metadataDraftRepo.findSuitableQuestions(/*QuestionRequest.fromLogEntity*/(qrl));
 
-            int count = questionsForQR.size();
+            int wantMoreCount = enoughQuestionsPerQR - qrl.getFoundCount();
 
-            System.out.println("Found " + count + " draft questions for question-request log with id: " + qrl.getId());
+            if (wantMoreCount <= 0)
+                continue;
+
+            val questionsForQR = metadataDraftRepo.findSuitableQuestions(qrl, wantMoreCount);
+
+            int count = questionsForQR.size();  // this many questions were found in the database (there may be less than requested)
+
+            System.out.println("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
 
             // add questions to common set (avoiding duplicates)
             questionsForQR.forEach(q -> newQuestions.put(q.getId(), q));
@@ -885,9 +891,9 @@ public abstract class AbstractRdfStorage {
             }
 
             qrl.setProcessedCount(Optional.ofNullable(qrl.getProcessedCount()).orElse(0) + 1);  // increment
-            qrl.setLastProcessedDate(new Date());   // set current date-time now but save to db later, if exported questions successfully
+            qrl.setLastProcessedDate(new Date());   // set current UTC date-time now, but save to db later, if exported questions successfully
 
-            if (currentAddedQuestions >= enoughQuestionsAddedPerQR) {
+            if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
                 // mark qrl as resolved
                 qrl.setOutdated(1);
             }

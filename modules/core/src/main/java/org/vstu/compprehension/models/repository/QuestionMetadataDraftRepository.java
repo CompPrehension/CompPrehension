@@ -19,10 +19,10 @@ public interface QuestionMetadataDraftRepository extends CrudRepository<Question
     List<QuestionMetadataDraftEntity> findByName(@Param("questionName") String questionName);
 
     @NotNull
-    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName AND q.stage = :stage")
+    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // AND q.stage = :stage
     List<String> findAllOrigins(
-            @Param("domainName") String domainName,
-            @Param("stage") int stage  // 1,2,3 or 4
+            @Param("domainName") String domainName
+//            @Param("stage") int stage  // 1,2,3 or 4
     );
 
 
@@ -39,11 +39,12 @@ public interface QuestionMetadataDraftRepository extends CrudRepository<Question
             "   AND IF(:#{#qr.traceConceptsTargetedBitmask} =0,1,q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) " +
             "   AND IF(:#{#qr.conceptsTargetedBitmask} =0,1,q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
             "   AND IF(:#{#qr.lawsTargetedBitmask} =0,1,q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0) " +
-            "", nativeQuery = true)
+            "limit :lim", nativeQuery = true)
     Collection<QuestionMetadataDraftEntity>
     findSuitableQuestions(
-            @Param("qr") QuestionRequestLogEntity qr
+            @Param("qr") QuestionRequestLogEntity qr,
             // // @Param("qr") QuestionRequest qr  // would also work since common fields are the same
+             @Param("lim") int limitNumber
     );
 
 
