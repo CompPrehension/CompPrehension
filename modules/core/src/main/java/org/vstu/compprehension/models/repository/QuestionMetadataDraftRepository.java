@@ -19,10 +19,9 @@ public interface QuestionMetadataDraftRepository extends CrudRepository<Question
     List<QuestionMetadataDraftEntity> findByName(@Param("questionName") String questionName);
 
     @NotNull
-    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // AND q.stage = :stage
+    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // ( AND q.stage = :stage ) ?
     List<String> findAllOrigins(
             @Param("domainName") String domainName
-//            @Param("stage") int stage  // 1,2,3 or 4
     );
 
 

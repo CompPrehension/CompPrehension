@@ -848,11 +848,23 @@ public abstract class AbstractRdfStorage {
         return setQuestionSubgraph(questionName, desiredLevel, inferred) != null;
     }
 
+    public static int getQrTooFewQuestions(int qrLogId) {
+        if (qrLogId != 0) {
+            // TODO: get the exercise the QR made from and fetch its expected number of students
+        }
+        return 50;
+    }
+
+    public static int getQrEnoughQuestions(int qrLogId) {
+        int base = getQrTooFewQuestions(qrLogId);
+        return base * 3;
+    }
+
     /**
      * Find generated questions that suit unsatisfied question-requests
      * and send them to the production question bank.
      * Note that database is the same tor generator and production environment; but file storage may be physically different,
-     * so sending files may require FTP write access.
+     * so sending files may require e.g. FTP write access.
      * @param qrLogsToProcess unsatisfied question-request log entries
      * @param enoughQuestionsPerQR if reached this number of questions reached for a QrLog then mark it as resolved
      * @param metadataDraftRepo jpa repository

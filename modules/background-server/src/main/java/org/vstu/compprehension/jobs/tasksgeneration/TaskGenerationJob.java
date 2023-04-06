@@ -59,8 +59,8 @@ public class TaskGenerationJob {
     public boolean runGeneration4Expr() {
 
         // TODO проверка на то, что нужны новые вопросы
-        int tooFewQuestions = 50;
-        int enoughQuestionsAdded = 150;  // mark QRLog resolved if such many questions were added
+        int tooFewQuestions = AbstractRdfStorage.getQrTooFewQuestions(0); // (e.g. 50)
+        int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
         var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
