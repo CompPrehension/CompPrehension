@@ -1,16 +1,16 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
 import org.apache.jena.arq.querybuilder.WhereBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.TxnType;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
@@ -21,14 +21,22 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.PrintUtil;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.LawFormulation;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.QuestionEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
@@ -46,7 +54,7 @@ public abstract class AbstractRdfStorage {
     final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
     public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
     //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
-    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
+//    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
     final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
     //    graphs:
     //    class NamedGraph
@@ -82,18 +90,40 @@ public abstract class AbstractRdfStorage {
     // hardcoded FTP location:
 //    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
 //    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
+    // TODO: use as defaults only, open in constructor.
     public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
-    static Map<String, String> DOMAIN_TO_ENDPOINT;
+
+    public static int STAGE_TEMPLATE = 1;
+    public static int STAGE_QUESTION = 2;
+    public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
+    public static int STAGE_EXPORTED = 4;
+    public static int GENERATOR_VERSION = 10;
+
+
     Domain domain;
 
     /**
      * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
+     * TODO: remove, since no rdf storage is in use any more
      */
+    @Deprecated
     Dataset dataset = null;
+    static boolean USE_RDF_STORAGE = false;
+
+
     RemoteFileService fileService = null;
     QuestionMetadataManager questionMetadataManager = null;
+    @Setter
+    @Getter
+    QuestionMetadataDraftRepository questionMetadataDraftRepository;
+
+    @NotNull
+    public static QuestionMetadataDraftRepository getMetadataDraftRepositoryStatic() {
+        return ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class);
+    }
+
 
     QuestionMetadataManager getQuestionMetadataManager() {
         if (this.questionMetadataManager == null) {
@@ -104,33 +134,6 @@ public abstract class AbstractRdfStorage {
             }
         }
         return questionMetadataManager;
-    }
-
-    /**
-     * Make a SPARQL Update query that removes all (s, p, *) triples and inserts one (s, p, o) triple into a named
-     * graph ng.
-     *
-     * @param ng named graph
-     * @param s  subject
-     * @param p  predicate / property
-     * @param o  object
-     * @return UpdateRequest object
-     */
-    static UpdateRequest makeUpdateTripleQuery(Object ng, Object s, Object p, Object o) {
-        // delete & insert new triple
-        UpdateBuilder ub3 = new UpdateBuilder();
-        ub3.addInsert(ng, s, p, o); // quad
-        Var obj = Var.alloc("obj");
-        // quad
-        ub3.addDelete(ng, s, p, obj); // quad
-        ub3.addWhere(new WhereBuilder()
-                // OPTIONAL allows inserting new triples without replacing
-                .addOptional(new WhereBuilder()
-                        .addGraph(ng, s, p, obj))
-        );
-        UpdateRequest ur = ub3.buildRequest();
-        //// System.out.println(ur.toString());
-        return ur;
     }
 
     public static NamespaceUtil questionSubgraphPropertyFor(GraphRole role) {
@@ -235,6 +238,11 @@ public abstract class AbstractRdfStorage {
             // Save actual requested bits as well
             m.setConceptBitsInRequest(targetConceptsBitmask);
             m.setViolationBitsInRequest(targetLawsBitmask);
+
+            /// debug check law bits
+            if (targetLawsBitmask != 0 && (targetLawsBitmask & m.getViolationBits()) == 0) {
+                log.warn("No LAW bits matched: " +targetLawsBitmask+ " " + m.getName());
+            }
         }
 
         List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
@@ -243,8 +251,9 @@ public abstract class AbstractRdfStorage {
         if (loadedQuestions.size() == 1) {
             // increment the question's usage counter
             val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
-            meta.setUsedCount(meta.getUsedCount() + 1);
+            meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
             meta.setLastAttemptId(qr.getExerciseAttempt().getId());
+            meta.setDateLastUsed(new Date());
             metaMgr.getQuestionRepository().save(meta);
 
 //            ch.hit("searchQuestionsAdvanced - Question usage +1");
@@ -390,24 +399,24 @@ public abstract class AbstractRdfStorage {
         return rules;
     }
 
-    public abstract RDFConnection getConn();
+//    public abstract RDFConnection getConn();
 
-    /** Download, cache and return a graph */
-    @Nullable
-    Model getGraph(String name) {
-        if (fetchGraph(name)) {
-            return getLocalGraphByUri(name);
-        }
-        return null;
-    }
+//    /** Download, cache and return a graph */
+//    @Nullable
+//    Model getGraph(String name) {
+//        if (fetchGraph(name)) {
+//            return getLocalGraphByUri(name);
+//        }
+//        return null;
+//    }
 
     /**
      * Download a file content from remote FTP, parse and return as Model
      */
     @Nullable
-    Model fetchModel(String name) {
+    Model fetchModel(String filepath) {
         Model m = ModelFactory.createDefaultModel();
-        try (InputStream stream = fileService.getFileStream(name)) {
+        try (InputStream stream = fileService.getFileStream(filepath)) {
             if (stream == null)
                 return null;
             RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
@@ -418,13 +427,13 @@ public abstract class AbstractRdfStorage {
         return m;
     }
 
-    /** Cache and send a graph to remote DB */
-    boolean sendGraph(String gUri, Model m) {
-        if (setLocalGraph(gUri, m)) {
-            return uploadGraph(gUri);
-        }
-        return false;
-    }
+//    /** Cache and send a graph to remote DB */
+//    boolean sendGraph(String gUri, Model m) {
+//        if (setLocalGraph(gUri, m)) {
+//            return uploadGraph(gUri);
+//        }
+//        return false;
+//    }
 
     /**
      * Send a model as file to remote FTP
@@ -439,69 +448,70 @@ public abstract class AbstractRdfStorage {
         return true;
     }
 
-    /**
+    /* **
      * Download and cache a graph if not cached yet
      */
-    boolean fetchGraph(String gUri) {
-        return fetchGraph(gUri, false);
-    }
+//    boolean fetchGraph(String gUri) {
+//        return fetchGraph(gUri, false);
+//    }
 
-    abstract boolean fetchGraph(String gUri, boolean fetchAlways);
+////    abstract boolean fetchGraph(String gUri, boolean fetchAlways);
 
-    abstract boolean uploadGraph(String gUri);
+//    abstract boolean uploadGraph(String gUri);
 
-    boolean runQueriesWithConnection(RDFConnection connection, Collection<UpdateRequest> requests, boolean merge) {
-        try (RDFConnection conn = connection) {
-            conn.begin(TxnType.WRITE);
+//    boolean runQueriesWithConnection(RDFConnection connection, Collection<UpdateRequest> requests, boolean merge) {
+//        try (RDFConnection conn = connection) {
+//            conn.begin(TxnType.WRITE);
+//
+//            if (merge && requests.size() > 1) {
+//                // join all
+//                StringBuilder bigRequest = new StringBuilder();
+//                for (UpdateRequest r : requests) {
+//                    if (bigRequest.length() > 0)
+//                        bigRequest.append("\n;\n");  // ";" is SPARQL separator
+//                    bigRequest.append(r.toString());
+//                }
+//                String finalRequest = bigRequest.toString();
+//                // run query once
+//                conn.update(finalRequest);
+//            } else {
+//                for (UpdateRequest r : requests) {
+//                    conn.update(r);
+//                }
+//            }
+//            conn.commit();
+//            return true;
+//        } catch (JenaException exception) {
+//            exception.printStackTrace();
+//            // System.out.println();
+//            return false;
+//        }
+//    }
 
-            if (merge && requests.size() > 1) {
-                // join all
-                StringBuilder bigRequest = new StringBuilder();
-                for (UpdateRequest r : requests) {
-                    if (bigRequest.length() > 0)
-                        bigRequest.append("\n;\n");  // ";" is SPARQL separator
-                    bigRequest.append(r.toString());
-                }
-                String finalRequest = bigRequest.toString();
-                // run query once
-                conn.update(finalRequest);
-            } else {
-                for (UpdateRequest r : requests) {
-                    conn.update(r);
-                }
-            }
-            conn.commit();
-            return true;
-        } catch (JenaException exception) {
-            exception.printStackTrace();
-            // System.out.println();
-            return false;
-        }
+//    abstract boolean runQueries(Collection<UpdateRequest> requests);
 
-    }
-
-    abstract boolean runQueries(Collection<UpdateRequest> requests);
-
-    abstract boolean runQueries(Collection<UpdateRequest> requests, boolean merge);
+//    abstract boolean runQueries(Collection<UpdateRequest> requests, boolean merge);
 
     public String nameForQuestionGraph(String questionName, GraphRole role) {
-        // look for <Question>-<subgraph> relation in metadata first
-        Model qG = getGraph(NS_questions.base());
-        // assert qG != null;
-        RDFNode targetNamedGraph = null;
+        // look for <Question>.<subgraph> property in metadata first
+        QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
+        String targetPath = null;
+        if (meta != null)
+            switch (role) {
+                case QUESTION_TEMPLATE:
+                    targetPath = meta.getQtGraphPath(); break;
+                case QUESTION_TEMPLATE_SOLVED:
+                    targetPath = meta.getQtSolvedGraphPath(); break;
+                case QUESTION:
+                    targetPath = meta.getQGraphPath(); break;
+                case QUESTION_SOLVED:
+                    targetPath = meta.getQSolvedGraphPath(); break;
+                case QUESTION_DATA:
+                    targetPath = meta.getQDataGraphPath(); break;
+            }
 
-        if (qG != null) {
-            targetNamedGraph = findQuestionByName(questionName)
-                    .listProperties(AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG))
-                    .toList().stream()
-                    .map(Statement::getObject)
-                    .dropWhile(res -> res.equals(RDF.nil))
-                    .reduce((first, second) -> first)
-                    .orElse(null);
-        }
-        if (targetNamedGraph != null) {
-            String qsgName = targetNamedGraph.asNode().getURI();
-            return NS_file.localize(qsgName);
+        if (targetPath != null) {
+            return targetPath;
         }
 
         // no known relation - get default for a new one
@@ -511,19 +521,18 @@ public abstract class AbstractRdfStorage {
     }
 
     /**
-     * Find Resource denoting question or question template node with given name from 'questions' graph
+     * Find and return row of question or question template with given name from 'question_meta_draft' table
      */
-    Resource findQuestionByName(String questionName) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
-        if (qG != null) {
-            List<Resource> qResources = qG.listSubjectsWithProperty(
-                    NS_questions.getPropertyOnModel("name", qG),
-                    questionName
-            ).toList();
-            if (!qResources.isEmpty())
-                return qResources.get(0);
-        }
-        return null;
+    public QuestionMetadataDraftEntity findQuestionByName(String questionName) {
+        val repo = getQuestionMetadataDraftRepository();
+        if (repo == null)
+            return null;
+
+        val found = repo.findByName(questionName);
+        if (found.isEmpty())
+            return null;
+
+        return found.get(0);
     }
 
     /**
@@ -549,6 +558,9 @@ public abstract class AbstractRdfStorage {
             Model gm = getQuestionSubgraph(questionName, role);
             if (gm != null)
                 m.add(gm);
+            else {
+                System.out.println("Sub-graph not found!  q: " + questionName);
+            }
 
             if (role == topRole)
                 break;
@@ -567,121 +579,114 @@ public abstract class AbstractRdfStorage {
 
     /**
      * Find what stage a question is in. Returned constant means which stage is reached by now.
-     * (Using "questions" metadata graph only, no more graphs fetched from remote.)
-     *
      * @param questionName question/questionTemplate unqualified name
      * @return one of questionStages(), or null if the question/questionTemplate does not exist.
      */
     public GraphRole getQuestionStatus(String questionName) {
-        Resource questionNode = findQuestionByName(questionName);
-        if (questionNode != null) {
-
-            GraphRole approvedStatus = GraphRole.SCHEMA;  // below any valid question status
-
-            for (GraphRole role : questionStages()) {
-                /// boolean exists = fetchGraph(uriForQuestionGraph(questionName, role));
-
-                boolean targetNamedGraphAbsent = questionNode
-                        .listProperties(AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(questionNode.getModel()))
-                        .toList()
-                        .stream()
-                        .map(Statement::getObject)
-                        .dropWhile(res -> res.equals(RDF.nil))
-                        .findAny().isEmpty();
-
-                if (targetNamedGraphAbsent) {
-                    break;  // now return approvedStatus
-                }
-                // else ...
-                approvedStatus = role;
-            }
-            return approvedStatus;
+        val meta = findQuestionByName(questionName);
+        if (meta == null) {
+            return null;
         }
-        return null;
+
+        GraphRole reachedRole = GraphRole.QUESTION_TEMPLATE;
+        for  (GraphRole role : questionStages()) {
+            String graphPath = null;
+            switch (role) {
+                case QUESTION_TEMPLATE:
+                    graphPath = meta.getQtGraphPath();
+                    break;
+                case QUESTION_TEMPLATE_SOLVED:
+                    graphPath = meta.getQtSolvedGraphPath();
+                    break;
+                case QUESTION:
+                    graphPath = meta.getQGraphPath();
+                    break;
+                case QUESTION_SOLVED:
+                    graphPath = meta.getQSolvedGraphPath();
+                    break;
+            }
+            if (graphPath != null)
+                reachedRole = role;
+            else
+                break;
+        }
+        return reachedRole;
     }
 
     /**
      * создание/обновление и отправка во внешнюю БД одного из 4-х видов подграфа вопроса (например, создание нового
-     * вопроса или добавление
-     * *solved-данных для него)
+     * вопроса или добавление solved-данных для него)
      *
      * @param questionName unqualified name of Question or QuestionTemplate
-     * @param role
-     * @param model
-     * @return
+     * @param role question subgraph role
+     * @param model data to store
+     * @return saved metadata instance if saved successful, else null
      */
-    public boolean setQuestionSubgraph(String questionName, GraphRole role, Model model) {
-        String qgUri = nameForQuestionGraph(questionName, role);
-        boolean success = sendModel(qgUri, model);
+    public QuestionMetadataDraftEntity setQuestionSubgraph(String questionName, GraphRole role, Model model) {
+        String qgSubPath = nameForQuestionGraph(questionName, role);
+        boolean success = sendModel(qgSubPath, model);
 
         if (!success)
-            return false;
+            return null;
 
         // update questions metadata
-        Resource questionNode = findQuestionByName(questionName);
-        Node qgNode = NS_file.getUri(qgUri);
+        QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
+        if (meta == null) {
+            // проинициализировать метаданные шаблона вопроса, далее сохранить в БД
+            if (role == GraphRole.QUESTION_TEMPLATE || role == GraphRole.QUESTION_TEMPLATE_SOLVED)
+                meta = createQuestionTemplate(questionName);
+            else {
+                throw new IllegalStateException("setQuestionSubgraph(): Question metadata row must be initialized in advance!");
+            }
+        }
 
-        UpdateRequest upd_setGraph = AbstractRdfStorage.makeUpdateTripleQuery(
-                NS_questions.baseAsUri(),
-                questionNode,
-                AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsUri(),
-                qgNode
-        );
+        switch (role) {
+            case QUESTION_TEMPLATE:
+                meta.setQtGraphPath(qgSubPath); break;
+            case QUESTION_TEMPLATE_SOLVED:
+                meta.setQtSolvedGraphPath(qgSubPath); break;
+            case QUESTION:
+                meta.setQGraphPath(qgSubPath); break;
+            case QUESTION_SOLVED:
+                meta.setQSolvedGraphPath(qgSubPath); break;
+        }
+        meta = saveMetadataDraftEntity(meta);
 
-        return runQueries(List.of(upd_setGraph));
+        return meta;
+    }
+
+    @NotNull
+    public QuestionMetadataDraftEntity saveMetadataDraftEntity(QuestionMetadataDraftEntity meta) {
+        return questionMetadataDraftRepository.save(meta);
     }
 
     /**
-     * Create metadata representing empty QuestionTemplate, but not overwrite existing data.
+     * Create empty metadata row for QuestionTemplate, but not overwrite existing data.
      *
      * @param questionTemplateName unique identifier-like name of question template
-     * @return true on success
+     * @return fresh or existing QuestionMetadataDraftEntity instance
      */
-    public boolean createQuestionTemplate(String questionTemplateName) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+    public QuestionMetadataDraftEntity createQuestionTemplate(String questionTemplateName) {
+        // find template metadata
+        QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
 
-        if (qG != null) {
-            Resource nodeClass = qG.createResource(NS_classQuestionTemplate.base(), OWL.Class);
-            Resource qNode = findQuestionByName(questionTemplateName);
-
-            // deal with existing node
-            if (qNode != null) {
-                // check if this node is indeed a question Template
-                boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
-                if (!rightType) {
-                    throw new RuntimeException("Cannot create QuestionTemplate: uri '" + qNode.getURI() + "' is " +
-                            "already in use.");
-                }
-
-                // simple decision: do nothing if metadata node exists
-                return true;
-            }
-
-            Node ngNode = NS_questions.baseAsUri();
-            qNode = NS_classQuestionTemplate.getResourceOnModel(questionTemplateName, qG);
-
-            List<UpdateRequest> commands = new ArrayList<>();
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode, qNode, RDF.type, nodeClass));
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                    qNode,
-                    NS_questions.getUri("name"),
-                    NodeFactory.createLiteral(questionTemplateName)));
-
-            // initialize template's graphs as empty ...
-            // using "template-only" roles
-            for (GraphRole role : questionStages().subList(0, 2)) {
-                commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                        qNode,
-                        AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsUri(),
-                        RDF.nil));
-            }
-
-            boolean success = runQueries(commands);
-            return success;
+        if (templateMeta != null) {
+            return templateMeta;
         }
-        return false;
+
+        val builder = QuestionMetadataDraftEntity.builder();
+
+        // проинициализировать метаданные вопроса, далее сохранить в БД
+        templateMeta = builder.name(questionTemplateName)
+                .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
+                .templateId(-1)
+                .stage(STAGE_TEMPLATE)
+                .version(GENERATOR_VERSION)
+                .build();
+        templateMeta = saveMetadataDraftEntity(templateMeta);
+
+        return templateMeta;
+
     }
 
     /**
@@ -690,72 +695,75 @@ public abstract class AbstractRdfStorage {
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    public boolean createQuestion(String questionName, String questionTemplateName, boolean recreate) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
+    public QuestionMetadataDraftEntity createQuestion(String questionName, String questionTemplateName, boolean recreate) {
 
-        if (qG != null) {
-            Resource nodeClass = NS_classQuestion.baseAsResourceOnModel(qG);
-            Resource qNode = findQuestionByName(questionName);
+        // find template metadata
+        QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
 
-            // deal with existing node
-            if (qNode != null) {
-                // check if this node is indeed a Question
-                boolean rightType = qG.listStatements(qNode, RDF.type, nodeClass).hasNext();
-                if (!rightType) {
-                    throw new RuntimeException("Cannot create Question: uri '" + qNode.getURI() + "' is already in " +
-                            "use.");
+
+        QuestionMetadataDraftEntity meta;
+        if (!recreate) {
+            meta = findQuestionByName(questionName);
+            if (meta != null) {
+                if (templateMeta != null) {
+                    meta.setTemplateId(templateMeta.getId());
                 }
-
-                // simple decision: do nothing if metadata node exists
-                if (!recreate)
-                    return true;
+                return meta;
             }
-
-            if (!createQuestionTemplate(questionTemplateName)) // check if template is valid
-                return false;
-
-            Resource qtemplNode = findQuestionByName(questionTemplateName);
-
-            Node ngNode = NS_questions.baseAsUri();
-            qNode = NS_classQuestion.getResourceOnModel(questionName, qG);
-
-            List<UpdateRequest> commands = new ArrayList<>();
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode, qNode, RDF.type, nodeClass));
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                    qNode,
-                    NS_questions.getPropertyOnModel("name", qG),
-                    NodeFactory.createLiteral(questionName)));
-
-            commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                    qNode,
-                    NS_questions.getPropertyOnModel("has_template", qG),
-                    qtemplNode));
-
-            // copy references to the graphs from template as is ...
-            // using "template-only" roles
-            for (GraphRole role : questionStages().subList(0, 2)) {
-                Property propOfRole = AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG);
-                RDFNode graphWithRole = qtemplNode.listProperties(propOfRole).nextStatement().getObject();
-                commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode, qNode, propOfRole, graphWithRole));
-            }
-
-            // initialize question's graphs as empty ...
-            // using "question-only" roles
-            for (GraphRole role : questionStages().subList(2, 4)) {
-                commands.add(AbstractRdfStorage.makeUpdateTripleQuery(ngNode,
-                        qNode,
-                        AbstractRdfStorage.questionSubgraphPropertyFor(role).baseAsPropertyOnModel(qG),
-                        RDF.nil));
-            }
-
-            return runQueries(commands);
         }
-        return false;
+        QuestionMetadataDraftEntity.QuestionMetadataDraftEntityBuilder builder;
+        int templateId;
+        if (templateMeta != null) {
+            // get builder to copy data from template
+            builder = templateMeta.toBuilder()
+                    .id(null); // reset id
+            templateId = templateMeta.getId();
+        } else {
+            builder = QuestionMetadataDraftEntity.builder()
+                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""));
+            templateId = -1;
+        }
+
+        // проинициализировать метаданные вопроса, далее сохранить в БД
+        meta = builder.name(questionName)
+                    .templateId(templateId)
+                    .stage(STAGE_QUESTION)
+                    .version(GENERATOR_VERSION)
+                    .build();
+        meta = saveMetadataDraftEntity(meta);
+
+        return meta;
     }
 
-    /**
+    /** delete files and db entry for question (not for the template)
+     * @param questionName name of question to delete
+     */
+    public void deleteQuestion(String questionName /*, boolean keepTemplate*/) {
+        val meta = findQuestionByName(questionName);
+
+        // delete files for this question (not for the template)
+        try {
+            String qgSubPath = meta.getQGraphPath();
+            if (qgSubPath != null) {
+                fileService.deleteFile(qgSubPath);
+            }
+            qgSubPath = meta.getQSolvedGraphPath();
+            if (qgSubPath != null) {
+                fileService.deleteFile(qgSubPath);
+            }
+            qgSubPath = meta.getQDataGraphPath();
+            if (qgSubPath != null) {
+                fileService.deleteFile(qgSubPath);
+            }
+        } catch (FileSystemException e) {
+            e.printStackTrace();
+        }
+
+        // delete db entry
+        questionMetadataDraftRepository.delete(meta);
+    }
+
+    /* *
      * Add metadata triples to a Question node. Only scalar values (Literals) are allowed as an object in a triple.
      * Tip: use {@link NodeFactory} to create property URIs and literals. Property URI is typically obtained via
      * NS_questions.getUri("...").
@@ -765,7 +773,7 @@ public abstract class AbstractRdfStorage {
      * @param propValPairs property-literal pairs for triples to be created
      * @return true on success
      */
-    public boolean setQuestionMetadata(String questionName, Collection<Pair<Node, Node>> propValPairs) {
+    /*public boolean setQuestionMetadata(String questionName, Collection<Pair<Node, Node>> propValPairs) {
         Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
 
         if (qG != null) {
@@ -791,7 +799,7 @@ public abstract class AbstractRdfStorage {
             return runQueries(List.of(insertQuery));
         }
         return false;
-    }
+    }*/
 
     /**
      * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
@@ -814,8 +822,8 @@ public abstract class AbstractRdfStorage {
      * @return true on success
      */
     public boolean solveQuestion(String questionName, GraphRole desiredLevel, int tooLargeTemplateThreshold) {
-        Model qG = getGraph(NS_questions.base());
-        assert qG != null;
+//        Model qG = getGraph(NS_questions.base());
+//        assert qG != null;
 
         Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
 
@@ -837,8 +845,109 @@ public abstract class AbstractRdfStorage {
             log.warn("Solved to empty for question: " + questionName);
 
         // set graph
-        return setQuestionSubgraph(questionName, desiredLevel, inferred);
+        return setQuestionSubgraph(questionName, desiredLevel, inferred) != null;
     }
+
+    public static int getQrTooFewQuestions(int qrLogId) {
+        if (qrLogId != 0) {
+            // TODO: get the exercise the QR made from and fetch its expected number of students
+        }
+        return 50;
+    }
+
+    public static int getQrEnoughQuestions(int qrLogId) {
+        int base = getQrTooFewQuestions(qrLogId);
+        return base * 3;
+    }
+
+    /**
+     * Find generated questions that suit unsatisfied question-requests
+     * and send them to the production question bank.
+     * Note that database is the same tor generator and production environment; but file storage may be physically different,
+     * so sending files may require e.g. FTP write access.
+     * @param qrLogsToProcess unsatisfied question-request log entries
+     * @param enoughQuestionsPerQR if reached this number of questions reached for a QrLog then mark it as resolved
+     * @param metadataDraftRepo jpa repository
+     * @param qrLogRepo jpa repository
+     */
+    public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
+
+        if (qrLogsToProcess.isEmpty())
+            return;
+
+        // ID-indexed set of questions that suit all the question requests
+        var newQuestions = new HashMap<Integer, QuestionMetadataDraftEntity>();
+
+        for (val qrl : qrLogsToProcess) {
+
+            int wantMoreCount = enoughQuestionsPerQR - qrl.getFoundCount();
+
+            if (wantMoreCount <= 0)
+                continue;
+
+            val questionsForQR = metadataDraftRepo.findSuitableQuestions(qrl, wantMoreCount);
+
+            int count = questionsForQR.size();  // this many questions were found in the database (there may be less than requested)
+
+            System.out.println("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
+
+            // add questions to common set (avoiding duplicates)
+            questionsForQR.forEach(q -> newQuestions.put(q.getId(), q));
+
+            // increment qrl counter
+            int currentAddedQuestions = Optional.ofNullable(qrl.getAddedQuestions()).orElse(0);
+
+            if (count > 0) {
+                currentAddedQuestions += count;
+                qrl.setAddedQuestions(currentAddedQuestions);
+            }
+
+            qrl.setProcessedCount(Optional.ofNullable(qrl.getProcessedCount()).orElse(0) + 1);  // increment
+            qrl.setLastProcessedDate(new Date());   // set current UTC date-time now, but save to db later, if exported questions successfully
+
+            if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
+                // mark qrl as resolved
+                qrl.setOutdated(1);
+            }
+        }
+
+        if (newQuestions.isEmpty()) {
+            System.out.println("Nothing new found among draft questions, check if we still have something to export.");
+
+        } else {
+            // mark selected questions to be exported (set stage := 4)
+            newQuestions.values().forEach(q -> q.setStage(STAGE_EXPORTED));
+            metadataDraftRepo.saveAll(newQuestions.values());
+        }
+
+        // determine questions are to export (really new; this query excludes duplicates)
+        // find draft questions not yet exported with LEFT JOIN
+        val toExport = metadataDraftRepo.findNotYetExportedQuestions(qrLogsToProcess.get(0).getDomainShortname());  // restricted to one Domain only. TODO: allow arbitrary domains ?
+
+        if (toExport.isEmpty()) {
+            System.out.println("All draft questions already exported.");
+        } else {
+            // send ready questions data to production bank
+            int nExported = RdfStorage.exportQDtaFilesToProductionBank(toExport, storage_src_dir, storage_dst_dir, storageDummyDirsForNewFile);
+
+            // integrate question metadata into production metadata table
+            // Process only those questions that were successfully exported in previous operation.
+            var toImport = new ArrayList<QuestionMetadataEntity>(nExported);
+            for (val d : toExport.subList(0, nExported)) {
+                val q = d.toMetadataEntity();
+                // q.id is null (this q is inserted as new)
+                q.setStage(STAGE_READY);
+                toImport.add(q);
+            }
+
+            metadataRepo.saveAll(toImport);
+            System.out.println("Saved " + toImport.size() + " new question metadata rows into production table.");
+        }
+        // update processed qr log rows in DB (to persist changes made above)
+        qrLogRepo.saveAll(qrLogsToProcess);
+        System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
+    }
+
 
     /**
      * Find questions and/or question templates which have `unsolvedSubgraph` set to rdf:nil.
@@ -847,6 +956,9 @@ public abstract class AbstractRdfStorage {
      * @return list of names
      */
     public List<String> unsolvedQuestions(/*String classUri,*/ GraphRole unsolvedSubgraph) {
+        if (!USE_RDF_STORAGE) {
+            return List.of();
+        }
         // find question templates to solve
         Node ng = NS_questions.baseAsUri();
         String unsolvedTemplates = new SelectBuilder()
@@ -892,6 +1004,9 @@ public abstract class AbstractRdfStorage {
      * @return list of names
      */
     public List<String> findAllQuestions(String classUri, int limit) {
+        if (!USE_RDF_STORAGE) {
+            return List.of();
+        }
         // find question templates to solve
         Node ng = NS_questions.baseAsUri();
         String queryNames = new SelectBuilder()
@@ -929,11 +1044,14 @@ public abstract class AbstractRdfStorage {
     }
 
     public boolean localGraphExists(String gUri) {
+        if (!USE_RDF_STORAGE) {
+            return false;
+        }
         return dataset.containsNamedModel(gUri);
     }
 
     public Model getLocalGraphByUri(String gUri) {
-        if (dataset != null) {
+        if (USE_RDF_STORAGE && dataset != null) {
             if (localGraphExists(gUri)) {
                 return dataset.getNamedModel(gUri);
             } else log.warn(String.format("Graph not found - name: '%s'", gUri));
@@ -950,7 +1068,7 @@ public abstract class AbstractRdfStorage {
      * @return true on success
      */
     public boolean setLocalGraph(String gUri, Model model) {
-        if (dataset != null) {
+        if (/*USE_RDF_STORAGE &&*/ dataset != null) {
             if (dataset.containsNamedModel(gUri))
                 dataset.replaceNamedModel(gUri, model);
             else
@@ -968,10 +1086,13 @@ public abstract class AbstractRdfStorage {
      * @return model of triples
      */
     public Model getSchema() {
-        String uri = NS_graphs.get(GraphRole.SCHEMA.ns().base());
-        if (!dataset.containsNamedModel(uri)) {
-            setLocalGraph(uri, getDomainSchemaForSolving());
+        if (!USE_RDF_STORAGE) {
+            return getDomainSchemaForSolving();
         }
+        String uri = NS_graphs.get(GraphRole.SCHEMA.ns().base());
+//        if (!dataset.containsNamedModel(uri)) {
+//            setLocalGraph(uri, getDomainSchemaForSolving());
+//        }
         return getLocalGraphByUri(uri);
     }
 
@@ -993,8 +1114,9 @@ public abstract class AbstractRdfStorage {
                 inferred.add(m.listStatements().nextStatement());
             }
             setLocalGraph(uri, inferred);
+            m2 = inferred;
         }
-        m2 = getLocalGraphByUri(uri);
+        /*m2 = getLocalGraphByUri(uri);*/
         if (m2 != null)
             m.add(m2);
 
@@ -1013,9 +1135,6 @@ public abstract class AbstractRdfStorage {
 
         long startTime = System.nanoTime();
 
-//        long _key = srcModel.size();
-//        debug_dump(srcModel,_key + "-stor_in");
-
         // Note: changes done to inf are also applied to srcModel.
         InfModel inf = ModelFactory.createInfModel(reasoner, srcModel);
         inf.prepare();
@@ -1024,8 +1143,6 @@ public abstract class AbstractRdfStorage {
 //        log.info
         System.out.println("Time Jena spent on reasoning: " + String.format("%.5f",
                 (float) estimatedTime / 1000 / 1000 / 1000) + " seconds.");
-
-//        debug_dump(inf,_key + "-stor_out");
 
         Model result;
         if (retainNewFactsOnly) {
@@ -1036,7 +1153,6 @@ public abstract class AbstractRdfStorage {
         } else {
             result = inf;
         }
-//        debug_dump(result,_key + "-stor_end");
         return result;
     }
 

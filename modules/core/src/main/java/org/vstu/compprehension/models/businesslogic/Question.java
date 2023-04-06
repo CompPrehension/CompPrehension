@@ -14,11 +14,14 @@ import java.util.*;
 public abstract class Question {
     
     protected QuestionEntity questionData;
+    @Setter
     protected List<String> concepts;
+    @Setter
     protected List<String> negativeLaws;
     @Getter @Setter
     protected QuestionMetadataEntity metadata = null;
-    protected HashSet<String> tags;
+    @Setter
+    protected Set<String> tags;
     transient protected Domain domain;  // "transient" makes json reader ignore this field
     
     public Question(QuestionEntity questionData, Domain domain) {
@@ -100,11 +103,8 @@ public abstract class Question {
     public List<String> getConcepts() {
         return concepts;
     }
-    /**
-     * Don't use it for normal questions, only for templates
-     * @return
-     */
-    public HashSet<String> getTags() {
+
+    public Set<String> getTags() {
         return tags;
     }
     /**

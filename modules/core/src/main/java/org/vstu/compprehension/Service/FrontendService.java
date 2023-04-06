@@ -407,6 +407,13 @@ public class FrontendService {
             */
 
             entityManager.refresh(ea);
+
+            // debug delay for massive question generation
+            if (false) {
+                // sleep
+                Thread.sleep(500);  // sleep
+                // sleep
+            }
         }
 
         return Mapper.toDto(ea);

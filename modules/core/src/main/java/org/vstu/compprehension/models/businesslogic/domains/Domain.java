@@ -37,6 +37,9 @@ public abstract class Domain {
     /** name to Concept mapping */
     protected Map<String, Concept> concepts;
 
+    /** name to Tag mapping */
+    protected Map<String, Tag> tags;
+
     protected AbstractRdfStorage rdfStorage;
     /**
      * Db entry
@@ -137,6 +140,10 @@ public abstract class Domain {
 
     public Concept getConcept(String name) {
         return concepts.getOrDefault(name, null);
+    }
+
+    public Tag getTag(String name) {
+        return tags.getOrDefault(name, null);
     }
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
@@ -340,6 +347,12 @@ public abstract class Domain {
     }
 
     public void saveQuestionRequest(QuestionRequest qr) {
+
+        // fill empty lists
+        if (qr.getDeniedQuestionMetaIds().isEmpty())
+            qr.getDeniedQuestionMetaIds().add(0);
+        if (qr.getDeniedQuestionTemplateIds().isEmpty())
+            qr.getDeniedQuestionTemplateIds().add(0);
 
         val qrl = qr.getLogEntity();
 

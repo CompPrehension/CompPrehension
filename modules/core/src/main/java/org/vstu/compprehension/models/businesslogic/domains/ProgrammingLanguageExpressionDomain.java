@@ -7,10 +7,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.text.StringSubstitutor;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.Model;
@@ -46,6 +43,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
@@ -67,7 +65,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
-    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-name-bit.yml";
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
@@ -87,6 +84,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
 
+        fillTags();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
@@ -98,8 +96,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         exprQuestionMetadataRepository = null;
 
         name = "ProgrammingLanguageExpressionDomain";
-        domainEntity = null;
+        // domainEntity = null;
+        domainEntity = new DomainEntity();
+        domainEntity.setOptions(new DomainOptionsEntity());
 
+        fillTags();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
@@ -122,6 +123,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return "ProgrammingLanguageExpressionDomain";
     }
 
+
+    private void fillTags() {
+        tags = new HashMap<>();
+        // assign mask bits to Tags
+        for (val nameBit : _getTagsName2bit().entrySet()) {
+            Tag tag = new Tag();
+            tag.setName(nameBit.getKey());
+            tag.setBitmask(nameBit.getValue());
+            tags.put(tag.getName(), tag);
+        }
+    }
 
     private void fillConcepts() {
         concepts = new HashMap<>();
@@ -884,14 +896,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      */
     public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
 
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
-
-        return getQuestionLaws(questionDomainType, tags);
+        return getQuestionLaws(questionDomainType, getDefaultQuestionTags(questionDomainType));
     }
 
     @Override
@@ -926,13 +931,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         if (Objects.equals(questionDomainType, EVALUATION_ORDER_QUESTION_TYPE)) {
-            List<Tag> tags = new ArrayList<>();
-            for (String tagString : List.of("basics", "operators", "order", "evaluation", "errors", "C++")) {
-                Tag tag = new Tag();
-                tag.setName(tagString);
-                tags.add(tag);
-            }
-            return tags;
+            return Stream.of("basics", "operators", "order", "evaluation", "errors", "C++").map(this::getTag).filter(Objects::nonNull).collect(Collectors.toList());
         }
         return super.getDefaultQuestionTags(questionDomainType);
     }
@@ -2471,8 +2470,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setQuestionType(QuestionType.ORDER);
         entity.setQuestionName("");
 
+        // check the size of question
+        if (ans_id < 3 || ans_id > 30)
+            // too small or too large question
+            return null;
+
         List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
         entity.setQuestionText(ExpressionToHtml(textFacts));
+//        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
         entity.setQuestionName(questionName);
 
         Question question = new Ordering(entity, null);
@@ -2492,53 +2497,63 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Set<String> violations = possibleViolations(question, null);
         question.getNegativeLaws().addAll(violations);
 
-        List<String> tags = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
+        List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
 
-        question.getTags().addAll(tags);
+        question.getTags().addAll(tagNames);
 
         entity.setSolutionFacts(null);
 
-        for (String tag : tags) {
-            rs.setQuestionMetadata(questionName, List.of(
-                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_tag"),
-                            NodeFactory.createLiteral(tag))
-            ));
+        // TODO: write info to question metadata
+        if (entity.getOptions() == null) {
+            entity.setOptions(new OrderQuestionOptionsEntity());
         }
 
-        for (String law : lawNames) {
-            rs.setQuestionMetadata(questionName, List.of(
-                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_law"),
-                            NodeFactory.createLiteral(law))
-            ));
+        QuestionMetadataDraftEntity meta = rs.findQuestionByName(questionName);
+        if (meta == null) {
+            meta = rs.createQuestion(questionName, questionName.split("_v")[0], false);
         }
+        // QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
+        // // entity.getOptions().setMetadata(metadata); // see below
 
-        for (String violation : violations) {
-            rs.setQuestionMetadata(questionName, List.of(
-                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_violation"),
-                            NodeFactory.createLiteral(violation))
-            ));
-        }
+        meta.setDraft(true);  // ordinary metadata instance but this may be useful to indicate it's still "draft", i.e. not yet accepted for import to main table.
 
-        for (String concept : concepts) {
-            rs.setQuestionMetadata(questionName, List.of(
-                    Pair.of(AbstractRdfStorage.NS_questions.getUri("has_concept"),
-                            NodeFactory.createLiteral(concept))
-            ));
-        }
+        // meta.setName(questionName);
+        meta.setDomainShortname(this.getShortName());
+        meta.setStage(AbstractRdfStorage.STAGE_READY);  // 3 = generated question
+        meta.setVersion(AbstractRdfStorage.GENERATOR_VERSION);  // v10 : generated by Domain
+        meta.setUsedCount(0L);
+        meta.setDateLastUsed(new Date()); // generated at this time
+
+        question.setTags(new HashSet<>(tagNames));
+        meta.setTagBits(tagNames.stream().map(this::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a,b) -> a|b).orElse(0L));
+
+        // positive only laws
+        meta.setLawBits(lawNames.stream().map(this::getPositiveLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L));
+
+        question.setNegativeLaws(new ArrayList<>(violations));
+        meta.setViolationBits(violations.stream().map(this::getNegativeLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L));
+
+        question.setConcepts(new ArrayList<>(concepts));
+        meta.setConceptBits(concepts.stream().map(this::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L));
+        meta.setTraceConceptBits(0L);  // trace concepts (encountered during solving the question) are not important for this domain.
 
         double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
-        double intergalCompexity = 1/( 1 + Math.pow(Math.E,(-1*complexity)));
+        double integralComplexity = 1/( 1 + Math.exp(-1*complexity));
 
-        rs.setQuestionMetadata(questionName, List.of(
-                Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_structural_complexity"),
-                        NodeFactory.createLiteralByValue( solution_length / (float) ans_id, XSDDatatype.XSDfloat)),
-                Pair.of(AbstractRdfStorage.NS_questions.getUri("distinct_errors_count"),
-                        NodeFactory.createLiteralByValue(violations.size(), XSDDatatype.XSDinteger)),
-                Pair.of(AbstractRdfStorage.NS_questions.getUri("solution_steps"),
-                        NodeFactory.createLiteralByValue(solution_length, XSDDatatype.XSDinteger)),
-                Pair.of(AbstractRdfStorage.NS_questions.getUri("integral_complexity"),
-                        NodeFactory.createLiteralByValue(intergalCompexity, XSDDatatype.XSDfloat))
-        ));
+
+        // add metadata to question (later it may be stored in DB)
+
+        meta.setIntegralComplexity(integralComplexity);
+        meta.setSolutionStructuralComplexity((double) ans_id);  // number of clickable operators
+        meta.setSolutionSteps(solution_length);
+        meta.setDistinctErrorsCount(violations.size());
+
+        // save current state into DB
+        meta = rs.saveMetadataDraftEntity(meta);
+
+        QuestionMetadataEntity metadata = meta.toMetadataEntity();
+        entity.getOptions().setMetadata(metadata);
+        question.setMetadata(metadata);
 
         return question;
     }
@@ -2636,6 +2651,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return responses;
     }
 
+    private HashMap<String, Long> _getTagsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(8);
+        name2bit.put("C++", 1L);  	// (2 ^ 0)
+        name2bit.put("basics", 2L);  	// (2 ^ 1)
+        name2bit.put("errors", 4L);  	// (2 ^ 2)
+        name2bit.put("evaluation", 8L);  	// (2 ^ 3)
+        name2bit.put("operators", 16L);  	// (2 ^ 4)
+        name2bit.put("order", 32L);  	// (2 ^ 5)
+        return name2bit;
+    }
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);
         name2bit.put("operator", 0x1L);  	// (1)

@@ -90,6 +90,18 @@
             <artifactId>github-api</artifactId>
             <version>1.314</version>
         </dependency>
+
+        <!-- FTP -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-vfs2</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.9.0</version>
+        </dependency>
     </dependencies>
 
 </project>

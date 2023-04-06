@@ -1,13 +1,16 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Getter @Setter
+@Builder
 @Entity
 @Table(name = "questions_meta")
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,6 +57,9 @@ public class QuestionMetadataEntity {
     @Column(name = "distinct_errors_count")
     private Integer distinctErrorsCount;
 
+    /** 3: ready for usage (or import, i.e. created),
+     *  4: imported,
+     *  other: invalid */
     @Column(name = "_stage")
     private Integer stage;
 
@@ -63,18 +69,35 @@ public class QuestionMetadataEntity {
     @Column(name = "used_count")
     private Long usedCount;
 
+    @Column(name = "date_last_used")
+    private Date dateLastUsed;
+
     @Column(name = "last_attempt_id")
     private Long lastAttemptId;
 
+    /** compact representation of meaningful structure; may be used to determine similar questions
+     * */
+    @Column(name = "structure_hash")
+    private String structureHash;
+
 
     @Transient
+    @Builder.Default
+    private boolean isDraft = false;
+
+
+    @Transient
+    @Builder.Default
     private Long conceptBitsInPlan = 0L; // planned by exercise
     @Transient
+    @Builder.Default
     private Long conceptBitsInRequest = 0L; // actually requested
 
     @Transient
+    @Builder.Default
     private Long violationBitsInPlan = 0L; // planned by exercise
     @Transient
+    @Builder.Default
     private Long violationBitsInRequest = 0L; // actually requested
 
 

@@ -11,9 +11,11 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "task-generation")
 @Getter @Setter @NoArgsConstructor
 public class TaskGenerationJobConfig {
+    private String domainShortName;
     private ReposSearcherConfig searcher;
     private ParserConfig parser;
     private GeneratorConfig generator;
+    private ExporterConfig exporter;
 
     @Getter @Setter @NoArgsConstructor
     public static class ReposSearcherConfig {
@@ -31,5 +33,11 @@ public class TaskGenerationJobConfig {
     public static class GeneratorConfig {
         private String pathToExecutable;
         private String outputFolderPath;
+    }
+
+    @Getter @Setter @NoArgsConstructor
+    public static class ExporterConfig {
+        private int StorageDummyDirsForNewFile;
+        private String StorageUploadFilesBaseUrl ;
     }
 }

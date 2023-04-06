@@ -2,14 +2,11 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
 import lombok.val;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.math.BigInteger;
@@ -46,9 +43,9 @@ public class QuestionMetadataManager {
         Map<String, Object> data = questionRepository.getStatOnComplexityField(domain.getShortName());
         NumericStat complStat = new NumericStat();
         complStat.setCount(((BigInteger)data.get("count")).intValue());
-        complStat.setMin  ((Double) data.get("min"));
-        complStat.setMean ((Double) data.get("mean"));
-        complStat.setMax  ((Double) data.get("max"));
+        complStat.setMin  ((Double) Optional.ofNullable(data.get("min") ).orElse(0.0));
+        complStat.setMean ((Double) Optional.ofNullable(data.get("mean")).orElse(0.5));
+        complStat.setMax  ((Double) Optional.ofNullable(data.get("max") ).orElse(1.0));
 
         wholeBankStat = new QuestionGroupStat();
         wholeBankStat.setComplexityStat(complStat);

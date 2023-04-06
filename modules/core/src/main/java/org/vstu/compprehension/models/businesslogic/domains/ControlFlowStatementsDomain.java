@@ -72,7 +72,6 @@ public class ControlFlowStatementsDomain extends Domain {
     public static DomainVocabulary getVocabulary() {
         return VOCAB;
     }
-    public static final String NAME2BIT_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-name-bit.yml";
 
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
@@ -110,6 +109,17 @@ public class ControlFlowStatementsDomain extends Domain {
     public static void initVocab() {
         if (VOCAB == null) {
             VOCAB = new DomainVocabulary(VOCAB_SCHEMA_PATH);
+        }
+    }
+
+    private void fillTags() {
+        tags = new HashMap<>();
+        // assign mask bits to Tags
+        for (val nameBit : _getTagsName2bit().entrySet()) {
+            Tag tag = new Tag();
+            tag.setName(nameBit.getKey());
+            tag.setBitmask(nameBit.getValue());
+            tags.put(tag.getName(), tag);
         }
     }
 
@@ -2150,6 +2160,14 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
+    private HashMap<String, Long> _getTagsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(4);
+        name2bit.put("C++", 2L);  	// (2 ^ 1)
+        name2bit.put("trace", 4L);  	// (2 ^ 2)
+        name2bit.put("ordering", 8L);  	// (2 ^ 3)
+        name2bit.put("supplementary", 16L);  	// (2 ^ 4)
+        return name2bit;
+    }
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);
         name2bit.put("pointer", 0x1L);
