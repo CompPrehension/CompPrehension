@@ -854,7 +854,7 @@ public abstract class AbstractRdfStorage {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }
-        return 50;
+        return 100;
     }
 
     public static int getQrEnoughQuestions(int qrLogId) {
@@ -961,7 +961,7 @@ public abstract class AbstractRdfStorage {
             if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
                 // mark qrl as resolved
                 qrl.setOutdated(1);
-                log.info("Resolved QR log since reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
+                log.info("Resolved a QR log: reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
             }
         }
 

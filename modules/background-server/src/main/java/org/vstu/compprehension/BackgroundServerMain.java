@@ -12,6 +12,7 @@ import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.time.Duration;
 
 @SpringBootApplication
 public class BackgroundServerMain {
@@ -35,7 +36,7 @@ public class BackgroundServerMain {
 
     @PostConstruct
     public void jobsConfig() {
-        jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
-//        jobScheduler.<TaskGenerationJob>scheduleRecurrently(Duration.ofHours(2), TaskGenerationJob::run);
+//        jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
+        jobScheduler.<TaskGenerationJob>scheduleRecurrently(Duration.ofHours(2), TaskGenerationJob::run);
     }
 }
