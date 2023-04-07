@@ -2413,6 +2413,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return questions;
     }
 
+    /**
+     * @param questionName name for the question
+     * @param model solved model
+     * @param rs instance of Storage
+     * @return fresh Ordering Question
+     */
     public Question createQuestionFromModel(String questionName, Model model, AbstractRdfStorage rs) {
         List<BackendFactEntity> facts = modelToFacts(model, false);
         facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
@@ -2422,7 +2428,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         int ans_id = 0;
         int solution_length = 0;
-        Map<Integer, BackendFactEntity> texts = new TreeMap<>();
+        Map<Integer, BackendFactEntity> texts = new TreeMap<>(); // expression tokens
         Map<Integer, BackendFactEntity> orderAnswers = new TreeMap<>();
 
         for (BackendFactEntity token : fg.filterFacts(null, "index", null)) {
@@ -2499,6 +2505,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
             lawNames.add(fact.getObject());
         }
+        // question.getPositiveLaws().addAll(lawNames); // no PositiveLaws in question entity
 
         Set<String> concepts = new HashSet<>();
         for (BackendFactEntity fact : fg.filterFacts(null, "concept", null)) {
@@ -2508,7 +2515,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         question.getConcepts().addAll(concepts);
         Set<String> violations = possibleViolations(question, null);
-        question.getNegativeLaws().addAll(violations);
 
         // use Python parser to infer possibly more concepts and violations
         // convert tokens to string omitting last one that is END_EVALUATION
@@ -2540,7 +2546,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         entity.setSolutionFacts(null);
 
-        // TODO: write info to question metadata
+        // make Options instance if absent
         if (entity.getOptions() == null) {
             entity.setOptions(new OrderQuestionOptionsEntity());
         }
@@ -2588,6 +2594,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // save current state into DB
         meta = rs.saveMetadataDraftEntity(meta);
 
+        // write info to question metadata
         QuestionMetadataEntity metadata = meta.toMetadataEntity();
         entity.getOptions().setMetadata(metadata);
         question.setMetadata(metadata);

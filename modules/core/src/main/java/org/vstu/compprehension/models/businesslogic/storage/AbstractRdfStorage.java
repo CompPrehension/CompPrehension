@@ -96,6 +96,7 @@ public abstract class AbstractRdfStorage {
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
 
+    // todo: reassign constants and merge prod & draft tables for questions_meta
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
@@ -560,7 +561,7 @@ public abstract class AbstractRdfStorage {
             if (gm != null)
                 m.add(gm);
             else {
-                System.out.println("Sub-graph not found!  q: " + questionName);
+                log.info("Sub-graph not found!  q: " + questionName);
             }
 
             if (role == topRole)
@@ -832,7 +833,7 @@ public abstract class AbstractRdfStorage {
         if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
             int subjectCount = existingData.listSubjects().toList().size();
             if (subjectCount > tooLargeTemplateThreshold) {
-                System.out.println("Skip too large template of size " + subjectCount + ": " + questionName);
+                log.info("Skip too large template of size " + subjectCount + ": " + questionName);
                 return false;
             }
         }
@@ -902,7 +903,7 @@ public abstract class AbstractRdfStorage {
         }
 
         if (newQuestions.isEmpty()) {
-            System.out.println("Nothing new found among draft questions, check if we still have something to export.");
+            log.info("Nothing new found among draft questions, check if we still have something to export.");
 
         } else {
             // mark selected questions to be exported (set stage := 4)
@@ -966,7 +967,7 @@ public abstract class AbstractRdfStorage {
 
         // update processed qr log rows in DB (to persist changes made above)
         qrLogRepo.saveAll(qrLogsToProcess);
-        System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
+        log.info("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
     }
 
 
@@ -1162,7 +1163,7 @@ public abstract class AbstractRdfStorage {
 
         long estimatedTime = System.nanoTime() - startTime;
 //        log.info
-        System.out.println("Time Jena spent on reasoning: " + String.format("%.5f",
+        log.info("Time Jena spent on reasoning: " + String.format("%.5f",
                 (float) estimatedTime / 1000 / 1000 / 1000) + " seconds.");
 
         Model result;

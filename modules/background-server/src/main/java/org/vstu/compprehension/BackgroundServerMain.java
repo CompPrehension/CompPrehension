@@ -2,7 +2,6 @@ package org.vstu.compprehension;
 
 import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.scheduling.JobScheduler;
-import org.jobrunr.scheduling.cron.Cron;
 import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +11,14 @@ import org.springframework.context.annotation.Bean;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
 
 import javax.annotation.PostConstruct;
-import java.time.Duration;
+import java.io.IOException;
 
 @SpringBootApplication
 public class BackgroundServerMain {
     @Autowired
     private JobScheduler jobScheduler;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         SpringApplication.run(BackgroundServerMain.class, args);
     }
 
