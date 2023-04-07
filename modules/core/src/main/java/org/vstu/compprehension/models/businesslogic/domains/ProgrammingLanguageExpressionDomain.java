@@ -34,6 +34,7 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -57,7 +58,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String PRECEDENCE_TYPE_QUESTION_TYPE = "PrecedenceType";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
-    static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
+    static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-messages";
@@ -1563,6 +1564,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     result.add("error_base_student_error_early_finish");
                 } else if (f.getVerb().equals("student_error_in_complex_base")) {
                     result.add("error_base_student_error_in_complex");
+
+                    // check subject's text
+                    boolean is_error_base_enclosing_operators = false;
+                    for (BackendFactEntity fa : solutionFacts) {
+                        if (fa.getVerb().equals("text") && fa.getSubject().equals(f.getSubject())) {
+                            is_error_base_enclosing_operators = List.of("(", "[", "?").contains(fa.getObject());
+                            break;
+                        }
+                    }
+                    if (is_error_base_enclosing_operators) {
+                        result.add("error_base_enclosing_operators");
+                    }
                 }
             }
         }
@@ -2496,6 +2509,30 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         question.getConcepts().addAll(concepts);
         Set<String> violations = possibleViolations(question, null);
         question.getNegativeLaws().addAll(violations);
+
+        // use Python parser to infer possibly more concepts and violations
+        // convert tokens to string omitting last one that is END_EVALUATION
+        String exprString = textFacts.stream().map(BackendFactEntity::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
+        List<String> concepts_violations = ExpressionSituationPythonCaller.invoke(exprString);
+        if (concepts_violations.size() == 2) { // validate the structure
+            // show if something new was inferred
+            Set<String> moreConcepts = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+            Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+
+            val newConcepts = new HashSet<>(moreConcepts);
+            newConcepts.removeAll(concepts);
+            if (!newConcepts.isEmpty()) {
+                log.info("python sub-service: inferred "+newConcepts.size()+" more concepts: " + newConcepts);
+                concepts.addAll(newConcepts);
+            }
+            val newViolations = new HashSet<>(moreViolations);
+            newViolations.removeAll(concepts);
+            if (!newViolations.isEmpty()) {
+                log.info("python sub-service: inferred "+newViolations.size()+" more violations: " + newViolations);
+                violations.addAll(newViolations);
+            }
+        }
+        // finished with the results of external Python tool.
 
         List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
 
