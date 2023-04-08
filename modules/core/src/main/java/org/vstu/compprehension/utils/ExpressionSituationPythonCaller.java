@@ -2,6 +2,7 @@ package org.vstu.compprehension.utils;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 
 import java.io.*;
@@ -21,11 +22,19 @@ public class ExpressionSituationPythonCaller {
     public static boolean initSubProcess() {
 
         String pythonScript = "expr_operator_concepts.py";
+        String resourcesDir = "modules/background-server/target/classes/";
         String ScriptFullPath;
 
-        ApplicationContext context = new ClassPathXmlApplicationContext();
-        Resource resource = context.getResource(pythonScript);
+        // ApplicationContext context = new ClassPathXmlApplicationContext();
+        ApplicationContext context = new FileSystemXmlApplicationContext();
+        Resource resource = context.getResource(resourcesDir + pythonScript);
         try {
+            // absolute path to path starting with additional '/': /C:/data/...
+            // System.out.println(ExpressionSituationPythonCaller.class.getClassLoader().getResource(pythonScript).getPath());
+            // System.out.println(resource.getURI().getPath());
+
+            // modules\background-server\target\classes\expr_operator_concepts.py
+            // System.out.println(resource.getFile().getPath());
             ScriptFullPath = resource.getFile().getPath();
         } catch (IOException e) {
             System.out.println("Error locating Python3 script: " + pythonScript);
@@ -88,7 +97,7 @@ public class ExpressionSituationPythonCaller {
 
         try {
             // empty input means "exit"
-            pipe("", 1);
+            pipe("", 0);
             process = null;
 
             if (inp != null) {
