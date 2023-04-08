@@ -2528,13 +2528,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             val newConcepts = new HashSet<>(moreConcepts);
             newConcepts.removeAll(concepts);
             if (!newConcepts.isEmpty()) {
-                log.info("python sub-service: inferred "+newConcepts.size()+" more concepts: " + newConcepts);
+                System.out.println("python sub-service: inferred "+newConcepts.size()+" more concepts: " + newConcepts);
                 concepts.addAll(newConcepts);
             }
             val newViolations = new HashSet<>(moreViolations);
             newViolations.removeAll(concepts);
             if (!newViolations.isEmpty()) {
-                log.info("python sub-service: inferred "+newViolations.size()+" more violations: " + newViolations);
+                System.out.println("python sub-service: inferred "+newViolations.size()+" more violations: " + newViolations);
                 violations.addAll(newViolations);
             }
         }

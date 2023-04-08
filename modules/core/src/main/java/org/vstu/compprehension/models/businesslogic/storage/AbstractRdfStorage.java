@@ -833,7 +833,7 @@ public abstract class AbstractRdfStorage {
         if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
             int subjectCount = existingData.listSubjects().toList().size();
             if (subjectCount > tooLargeTemplateThreshold) {
-                log.info("Skip too large template of size " + subjectCount + ": " + questionName);
+                System.out.println("Skip too large template of size " + subjectCount + ": " + questionName);
                 return false;
             }
         }
@@ -892,7 +892,7 @@ public abstract class AbstractRdfStorage {
 
             int count = questionsForQR.size();  // this many questions were found in the database (there may be less than requested)
 
-            log.info("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
+            System.out.println("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
 
             qrId2questionIDs.put(qrl.getId(), questionsForQR.stream()
                     .map(QuestionMetadataDraftEntity::getId)
@@ -903,7 +903,7 @@ public abstract class AbstractRdfStorage {
         }
 
         if (newQuestions.isEmpty()) {
-            log.info("Nothing new found among draft questions, check if we still have something to export.");
+            System.out.println("Nothing new found among draft questions, check if we still have something to export.");
 
         } else {
             // mark selected questions to be exported (set stage := 4)
@@ -918,7 +918,7 @@ public abstract class AbstractRdfStorage {
         List<QuestionMetadataEntity> toImport;
         Set<Integer> successfullyExportedIds;
         if (toExport.isEmpty()) {
-            log.info("All draft questions already exported.");
+            System.out.println("All draft questions have already exported.");
             successfullyExportedIds = Set.of();
         } else {
             // send ready questions data to production bank
@@ -936,7 +936,7 @@ public abstract class AbstractRdfStorage {
 
             val saved = metadataRepo.saveAll(toImport);
             successfullyExportedIds = StreamSupport.stream(saved.spliterator(), false).map(QuestionMetadataEntity::getId).collect(Collectors.toSet());
-            log.info("Saved " + toImport.size() + " new question metadata rows into production table.");
+            System.out.println("Saved " + toImport.size() + " new question metadata rows into production table.");
         }
 
         // var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
@@ -961,13 +961,13 @@ public abstract class AbstractRdfStorage {
             if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
                 // mark qrl as resolved
                 qrl.setOutdated(1);
-                log.info("Resolved a QR log: reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
+                System.out.println("Resolved a QR log: reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
             }
         }
 
         // update processed qr log rows in DB (to persist changes made above)
         qrLogRepo.saveAll(qrLogsToProcess);
-        log.info("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
+        System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
     }
 
 
