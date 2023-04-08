@@ -34,6 +34,7 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -57,7 +58,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String PRECEDENCE_TYPE_QUESTION_TYPE = "PrecedenceType";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
-    static final String LAWS_CONFIG_PATH = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-laws.json";
+    static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-messages";
@@ -1563,6 +1564,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     result.add("error_base_student_error_early_finish");
                 } else if (f.getVerb().equals("student_error_in_complex_base")) {
                     result.add("error_base_student_error_in_complex");
+
+                    // check subject's text
+                    boolean is_error_base_enclosing_operators = false;
+                    for (BackendFactEntity fa : solutionFacts) {
+                        if (fa.getVerb().equals("text") && fa.getSubject().equals(f.getSubject())) {
+                            is_error_base_enclosing_operators = List.of("(", "[", "?").contains(fa.getObject());
+                            break;
+                        }
+                    }
+                    if (is_error_base_enclosing_operators) {
+                        result.add("error_base_enclosing_operators");
+                    }
                 }
             }
         }
@@ -2400,6 +2413,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return questions;
     }
 
+    /**
+     * @param questionName name for the question
+     * @param model solved model
+     * @param rs instance of Storage
+     * @return fresh Ordering Question
+     */
     public Question createQuestionFromModel(String questionName, Model model, AbstractRdfStorage rs) {
         List<BackendFactEntity> facts = modelToFacts(model, false);
         facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
@@ -2409,7 +2428,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
         int ans_id = 0;
         int solution_length = 0;
-        Map<Integer, BackendFactEntity> texts = new TreeMap<>();
+        Map<Integer, BackendFactEntity> texts = new TreeMap<>(); // expression tokens
         Map<Integer, BackendFactEntity> orderAnswers = new TreeMap<>();
 
         for (BackendFactEntity token : fg.filterFacts(null, "index", null)) {
@@ -2486,6 +2505,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
             lawNames.add(fact.getObject());
         }
+        // question.getPositiveLaws().addAll(lawNames); // no PositiveLaws in question entity
 
         Set<String> concepts = new HashSet<>();
         for (BackendFactEntity fact : fg.filterFacts(null, "concept", null)) {
@@ -2495,7 +2515,30 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         question.getConcepts().addAll(concepts);
         Set<String> violations = possibleViolations(question, null);
-        question.getNegativeLaws().addAll(violations);
+
+        // use Python parser to infer possibly more concepts and violations
+        // convert tokens to string omitting last one that is END_EVALUATION
+        String exprString = textFacts.stream().map(BackendFactEntity::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
+        List<String> concepts_violations = ExpressionSituationPythonCaller.invoke(exprString);
+        if (concepts_violations.size() == 2) { // validate the structure
+            // show if something new was inferred
+            Set<String> moreConcepts = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+            Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+
+            val newConcepts = new HashSet<>(moreConcepts);
+            newConcepts.removeAll(concepts);
+            if (!newConcepts.isEmpty()) {
+                System.out.println("python sub-service: inferred "+newConcepts.size()+" more concepts: " + newConcepts);
+                concepts.addAll(newConcepts);
+            }
+            val newViolations = new HashSet<>(moreViolations);
+            newViolations.removeAll(concepts);
+            if (!newViolations.isEmpty()) {
+                System.out.println("python sub-service: inferred "+newViolations.size()+" more violations: " + newViolations);
+                violations.addAll(newViolations);
+            }
+        }
+        // finished with the results of external Python tool.
 
         List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
 
@@ -2503,7 +2546,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         entity.setSolutionFacts(null);
 
-        // TODO: write info to question metadata
+        // make Options instance if absent
         if (entity.getOptions() == null) {
             entity.setOptions(new OrderQuestionOptionsEntity());
         }
@@ -2551,6 +2594,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // save current state into DB
         meta = rs.saveMetadataDraftEntity(meta);
 
+        // write info to question metadata
         QuestionMetadataEntity metadata = meta.toMetadataEntity();
         entity.getOptions().setMetadata(metadata);
         question.setMetadata(metadata);

@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.lang.Long.bitCount;
 
@@ -95,6 +96,7 @@ public abstract class AbstractRdfStorage {
     public static String FTP_DOWNLOAD_BASE = FTP_BASE;
     static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
 
+    // todo: reassign constants and merge prod & draft tables for questions_meta
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
@@ -559,7 +561,7 @@ public abstract class AbstractRdfStorage {
             if (gm != null)
                 m.add(gm);
             else {
-                System.out.println("Sub-graph not found!  q: " + questionName);
+                log.info("Sub-graph not found!  q: " + questionName);
             }
 
             if (role == topRole)
@@ -852,7 +854,7 @@ public abstract class AbstractRdfStorage {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }
-        return 50;
+        return 100;
     }
 
     public static int getQrEnoughQuestions(int qrLogId) {
@@ -877,8 +879,9 @@ public abstract class AbstractRdfStorage {
 
         // ID-indexed set of questions that suit all the question requests
         var newQuestions = new HashMap<Integer, QuestionMetadataDraftEntity>();
+        var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
 
-        for (val qrl : qrLogsToProcess) {
+        for (QuestionRequestLogEntity qrl : qrLogsToProcess) {
 
             int wantMoreCount = enoughQuestionsPerQR - qrl.getFoundCount();
 
@@ -891,24 +894,12 @@ public abstract class AbstractRdfStorage {
 
             System.out.println("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
 
+            qrId2questionIDs.put(qrl.getId(), questionsForQR.stream()
+                    .map(QuestionMetadataDraftEntity::getId)
+                    .collect(Collectors.toSet()));
+
             // add questions to common set (avoiding duplicates)
             questionsForQR.forEach(q -> newQuestions.put(q.getId(), q));
-
-            // increment qrl counter
-            int currentAddedQuestions = Optional.ofNullable(qrl.getAddedQuestions()).orElse(0);
-
-            if (count > 0) {
-                currentAddedQuestions += count;
-                qrl.setAddedQuestions(currentAddedQuestions);
-            }
-
-            qrl.setProcessedCount(Optional.ofNullable(qrl.getProcessedCount()).orElse(0) + 1);  // increment
-            qrl.setLastProcessedDate(new Date());   // set current UTC date-time now, but save to db later, if exported questions successfully
-
-            if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
-                // mark qrl as resolved
-                qrl.setOutdated(1);
-            }
         }
 
         if (newQuestions.isEmpty()) {
@@ -924,15 +915,18 @@ public abstract class AbstractRdfStorage {
         // find draft questions not yet exported with LEFT JOIN
         val toExport = metadataDraftRepo.findNotYetExportedQuestions(qrLogsToProcess.get(0).getDomainShortname());  // restricted to one Domain only. TODO: allow arbitrary domains ?
 
+        List<QuestionMetadataEntity> toImport;
+        Set<Integer> successfullyExportedIds;
         if (toExport.isEmpty()) {
-            System.out.println("All draft questions already exported.");
+            System.out.println("All draft questions have already exported.");
+            successfullyExportedIds = Set.of();
         } else {
             // send ready questions data to production bank
             int nExported = RdfStorage.exportQDtaFilesToProductionBank(toExport, storage_src_dir, storage_dst_dir, storageDummyDirsForNewFile);
 
             // integrate question metadata into production metadata table
             // Process only those questions that were successfully exported in previous operation.
-            var toImport = new ArrayList<QuestionMetadataEntity>(nExported);
+            toImport = new ArrayList<QuestionMetadataEntity>(nExported);
             for (val d : toExport.subList(0, nExported)) {
                 val q = d.toMetadataEntity();
                 // q.id is null (this q is inserted as new)
@@ -940,9 +934,37 @@ public abstract class AbstractRdfStorage {
                 toImport.add(q);
             }
 
-            metadataRepo.saveAll(toImport);
+            val saved = metadataRepo.saveAll(toImport);
+            successfullyExportedIds = StreamSupport.stream(saved.spliterator(), false).map(QuestionMetadataEntity::getId).collect(Collectors.toSet());
             System.out.println("Saved " + toImport.size() + " new question metadata rows into production table.");
         }
+
+        // var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
+        // increment qrl counters & save
+        for (QuestionRequestLogEntity qrl : qrLogsToProcess) {
+
+            var questionIds = qrId2questionIDs.get(qrl.getId()); // planned
+            questionIds.retainAll(successfullyExportedIds); // alter the set since we don't need it's content anymore
+            int count = questionIds.size(); // count of actually exported questions (for this QR)
+
+            // increment qrl counter
+            int currentAddedQuestions = Optional.ofNullable(qrl.getAddedQuestions()).orElse(0);
+
+            if (count > 0) {
+                currentAddedQuestions += count;
+                qrl.setAddedQuestions(currentAddedQuestions);
+            }
+
+            qrl.setProcessedCount(Optional.of(qrl.getProcessedCount()).orElse(0) + 1);  // increment
+            qrl.setLastProcessedDate(new Date());   // set current UTC date-time now, but save to db later, if exported questions successfully
+
+            if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
+                // mark qrl as resolved
+                qrl.setOutdated(1);
+                System.out.println("Resolved a QR log: reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
+            }
+        }
+
         // update processed qr log rows in DB (to persist changes made above)
         qrLogRepo.saveAll(qrLogsToProcess);
         System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
@@ -1141,7 +1163,7 @@ public abstract class AbstractRdfStorage {
 
         long estimatedTime = System.nanoTime() - startTime;
 //        log.info
-        System.out.println("Time Jena spent on reasoning: " + String.format("%.5f",
+        log.info("Time Jena spent on reasoning: " + String.format("%.5f",
                 (float) estimatedTime / 1000 / 1000 / 1000) + " seconds.");
 
         Model result;

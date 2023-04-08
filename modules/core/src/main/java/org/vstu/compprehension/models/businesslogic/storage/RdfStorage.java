@@ -15,6 +15,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
+import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -763,6 +764,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 rs.saveToFilesystem();
             }
         }
+        ExpressionSituationPythonCaller.close();
         rs.saveToFilesystem();
     }
 
