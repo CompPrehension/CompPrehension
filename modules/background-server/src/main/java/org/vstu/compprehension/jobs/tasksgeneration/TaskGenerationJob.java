@@ -46,10 +46,8 @@ public class TaskGenerationJob {
     @SneakyThrows
     @Job
     public void run() {
-        while (runGeneration4Expr()) {
-            // log.info("Run again: Generating questions for expression domain");
-            break;
-        }
+        // log.info("Run again: Generating questions for expression domain");
+        runGeneration4Expr();
     }
 
     /**
@@ -58,23 +56,13 @@ public class TaskGenerationJob {
     @SneakyThrows
     public boolean runGeneration4Expr() {
 
-        // TODO проверка на то, что нужны новые вопросы
-        int tooFewQuestions = AbstractRdfStorage.getQrTooFewQuestions(0); // (e.g. 50)
-        int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
-
-        if (qrLogsToProcess.isEmpty()) {
-            log.info("Nothing to process, finished job.");
-            return false;
-        }
-
-        boolean _debugGenerator = false;
+        boolean _debugGenerator = true;
         boolean cleanupFolders = !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
         boolean parseSources = !_debugGenerator;
-        boolean generateQuestions = !_debugGenerator;
-        boolean exportQuestionsToProduction = true;
+        boolean generateQuestions = true;//!_debugGenerator;
+        boolean exportQuestionsToProduction = false;
 
 
         // folders cleanup
@@ -136,15 +124,15 @@ public class TaskGenerationJob {
                         return 0;
                     }, null);
 
-                    // пока только 10 репозиториев
-                    // if (++idx >= 10)
+                     // for now, 10 repositories only
+                     if (++idx >= 10)
                         break;
                 }
             }
             // end of download
         } else {
             // debug:
-            downloadedRepos = List.of(Path.of("c:/data/compp-gen/expr/downloaded_repos/obs-studio"));
+            downloadedRepos = List.of();
         }
 
         // do parsing
@@ -168,7 +156,10 @@ public class TaskGenerationJob {
                 parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2+10+5 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
+
+                // this parameter is absent in older version
                 parserProcessCommandBuilder.add("expression");
+
                 parserProcessCommandBuilder.add(destination.toString());
                 log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
@@ -203,8 +194,8 @@ public class TaskGenerationJob {
             log.info("Start question generation from " + repos.size() + " repository(-ies) ...");
 
             for (var repoDir : repos) {
-//            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
-//            log.info("Found {} ttl files", allTtlFiles.size());
+                var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
+                log.info("Found {} ttl files", allTtlFiles.size());
 
                 String leafFolder = repoDir.getFileName().toString();
 
@@ -217,8 +208,10 @@ public class TaskGenerationJob {
         if (exportQuestionsToProduction) {
             log.info("Start exporting questions to production bank ...");
             AbstractRdfStorage.exportGeneratedQuestionsToProductionBank(
-                    qrLogsToProcess, enoughQuestionsAdded,
-                    metadataRep, metadataDraftRep, qrLogRep,
+                    // qrLogsToProcess, enoughQuestionsAdded,
+                    config.getDomainShortName(),
+                    metadataRep, metadataDraftRep,
+                    //qrLogRep,
                     config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
         }
 

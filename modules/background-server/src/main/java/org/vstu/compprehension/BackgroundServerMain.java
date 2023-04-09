@@ -36,8 +36,8 @@ public class BackgroundServerMain {
 
     @PostConstruct
     public void jobsConfig() {
-//        jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
-        jobScheduler.<TaskGenerationJob>scheduleRecurrently(Duration.ofHours(2), TaskGenerationJob::run);
+        jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
+//        jobScheduler.<TaskGenerationJob>scheduleRecurrently(Duration.ofHours(2), TaskGenerationJob::run);
         /* Note:
         Jobrunr does not run a recurrent job if the previous run hasn't finished yet. (That's OK for us.)
         * */

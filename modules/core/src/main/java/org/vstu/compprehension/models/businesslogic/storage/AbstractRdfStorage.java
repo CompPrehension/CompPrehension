@@ -872,54 +872,21 @@ public abstract class AbstractRdfStorage {
      * @param metadataDraftRepo jpa repository
      * @param qrLogRepo jpa repository
      */
-    public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
+    public static void exportGeneratedQuestionsToProductionBank(
+        // List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsPerQR,
+        String domainShortname,
+        QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo,
+        // QuestionRequestLogRepository qrLogRepo,
+        String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
 
-        if (qrLogsToProcess.isEmpty())
-            return;
-
-        // ID-indexed set of questions that suit all the question requests
-        var newQuestions = new HashMap<Integer, QuestionMetadataDraftEntity>();
-        var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
-
-        for (QuestionRequestLogEntity qrl : qrLogsToProcess) {
-
-            int wantMoreCount = enoughQuestionsPerQR - qrl.getFoundCount();
-
-            if (wantMoreCount <= 0)
-                continue;
-
-            val questionsForQR = metadataDraftRepo.findSuitableQuestions(qrl, wantMoreCount);
-
-            int count = questionsForQR.size();  // this many questions were found in the database (there may be less than requested)
-
-            System.out.println("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
-
-            qrId2questionIDs.put(qrl.getId(), questionsForQR.stream()
-                    .map(QuestionMetadataDraftEntity::getId)
-                    .collect(Collectors.toSet()));
-
-            // add questions to common set (avoiding duplicates)
-            questionsForQR.forEach(q -> newQuestions.put(q.getId(), q));
-        }
-
-        if (newQuestions.isEmpty()) {
-            System.out.println("Nothing new found among draft questions, check if we still have something to export.");
-
-        } else {
-            // mark selected questions to be exported (set stage := 4)
-            newQuestions.values().forEach(q -> q.setStage(STAGE_EXPORTED));
-            metadataDraftRepo.saveAll(newQuestions.values());
-        }
 
         // determine questions are to export (really new; this query excludes duplicates)
         // find draft questions not yet exported with LEFT JOIN
-        val toExport = metadataDraftRepo.findNotYetExportedQuestions(qrLogsToProcess.get(0).getDomainShortname());  // restricted to one Domain only. TODO: allow arbitrary domains ?
+        val toExport = metadataDraftRepo.findNotYetExportedQuestions(domainShortname);  // restricted to one Domain only. TODO: allow arbitrary domains ?
 
         List<QuestionMetadataEntity> toImport;
-        Set<Integer> successfullyExportedIds;
         if (toExport.isEmpty()) {
             System.out.println("All draft questions have already exported.");
-            successfullyExportedIds = Set.of();
         } else {
             // send ready questions data to production bank
             int nExported = RdfStorage.exportQDtaFilesToProductionBank(toExport, storage_src_dir, storage_dst_dir, storageDummyDirsForNewFile);
@@ -935,39 +902,8 @@ public abstract class AbstractRdfStorage {
             }
 
             val saved = metadataRepo.saveAll(toImport);
-            successfullyExportedIds = StreamSupport.stream(saved.spliterator(), false).map(QuestionMetadataEntity::getId).collect(Collectors.toSet());
             System.out.println("Saved " + toImport.size() + " new question metadata rows into production table.");
         }
-
-        // var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
-        // increment qrl counters & save
-        for (QuestionRequestLogEntity qrl : qrLogsToProcess) {
-
-            var questionIds = qrId2questionIDs.get(qrl.getId()); // planned
-            questionIds.retainAll(successfullyExportedIds); // alter the set since we don't need it's content anymore
-            int count = questionIds.size(); // count of actually exported questions (for this QR)
-
-            // increment qrl counter
-            int currentAddedQuestions = Optional.ofNullable(qrl.getAddedQuestions()).orElse(0);
-
-            if (count > 0) {
-                currentAddedQuestions += count;
-                qrl.setAddedQuestions(currentAddedQuestions);
-            }
-
-            qrl.setProcessedCount(Optional.of(qrl.getProcessedCount()).orElse(0) + 1);  // increment
-            qrl.setLastProcessedDate(new Date());   // set current UTC date-time now, but save to db later, if exported questions successfully
-
-            if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
-                // mark qrl as resolved
-                qrl.setOutdated(1);
-                System.out.println("Resolved a QR log: reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
-            }
-        }
-
-        // update processed qr log rows in DB (to persist changes made above)
-        qrLogRepo.saveAll(qrLogsToProcess);
-        System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
     }
 
 
