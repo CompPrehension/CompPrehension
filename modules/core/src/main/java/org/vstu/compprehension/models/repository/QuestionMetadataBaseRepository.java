@@ -83,9 +83,11 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
             "order by bit_count(q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask})" +
             " + bit_count(q.concept_bits & :#{#qr.conceptsTargetedBitmask})" +
             " + bit_count(q.violation_bits & :#{#qr.lawsTargetedBitmask})" +
-            " + IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, +10, -abs(q.integral_complexity - :#{#qr.complexity}))" +
-            " - (2 * q.used_count)" +  // less often show "hot" questions
-            " DESC limit :randomPoolLim" +
+            " DESC, " +
+            " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
+            " ASC, " +
+            " q.used_count ASC " +  // less often show "hot" questions
+            " limit :randomPoolLim" +
             ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) + (T1.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) + (T1.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0)) DESC, RAND() limit :lim",
             nativeQuery = true)
     List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(
