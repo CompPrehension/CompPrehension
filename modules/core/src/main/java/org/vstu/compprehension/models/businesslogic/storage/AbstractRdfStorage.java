@@ -297,16 +297,16 @@ public abstract class AbstractRdfStorage {
 
 
         // want more diversity in question ?? count control values -> take more with '1' not with '0'
-        List<QuestionMetadataEntity> ranking6 = given.stream()
-                .sorted(Comparator.comparingInt(q -> -q.getDistinctErrorsCount()))
-                .collect(Collectors.toList());
+//        List<QuestionMetadataEntity> ranking6 = given.stream()
+//                .sorted(Comparator.comparingInt(q -> -q.getDistinctErrorsCount()))
+//                .collect(Collectors.toList());
 
         List<QuestionMetadataEntity> finalRanking = given.stream()
                 .sorted(Comparator.comparingInt(q -> (
                         ranking1.indexOf(q) +
                         /*ranking2.indexOf(q) +*/
-                        ranking3.indexOf(q) +
-                        ranking6.indexOf(q)
+                        ranking3.indexOf(q)
+                        /*ranking6.indexOf(q)*/
                         )))
                 .collect(Collectors.toList());
 
@@ -867,10 +867,7 @@ public abstract class AbstractRdfStorage {
      * and send them to the production question bank.
      * Note that database is the same tor generator and production environment; but file storage may be physically different,
      * so sending files may require e.g. FTP write access.
-     * @param qrLogsToProcess unsatisfied question-request log entries
-     * @param enoughQuestionsPerQR if reached this number of questions reached for a QrLog then mark it as resolved
      * @param metadataDraftRepo jpa repository
-     * @param qrLogRepo jpa repository
      */
     public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
 

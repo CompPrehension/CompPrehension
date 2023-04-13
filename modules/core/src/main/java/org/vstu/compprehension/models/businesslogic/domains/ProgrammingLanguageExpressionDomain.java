@@ -2775,7 +2775,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return name2bit;
     }
     private HashMap<String, Long> _getLawsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(16);
+        HashMap<String, Long> name2bit = new HashMap<>(8);
         name2bit.put("single_token_binary_execution", 0x1L);  	// (1)
         name2bit.put("two_token_binary_execution", 0x2L);  	// (2)
         name2bit.put("single_token_unary_prefix_execution", 0x4L);  	// (4)
