@@ -143,8 +143,9 @@ public class TaskGenerationJob {
             }
             // end of download
         } else {
-            // debug:
-            downloadedRepos = List.of(Path.of("c:/data/compp-gen/expr/downloaded_repos/obs-studio"));
+            // get all downloaded so far:
+            var rootDir = Path.of(config.getSearcher().getOutputFolderPath());
+            downloadedRepos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
         }
 
         // do parsing
