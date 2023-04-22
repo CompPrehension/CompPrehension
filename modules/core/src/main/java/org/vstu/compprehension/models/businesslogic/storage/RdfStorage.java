@@ -668,6 +668,9 @@ RdfStorage.StopBackgroundDBFillUp()
         System.out.println(files.size() + " parsed files to generate questions from");
         int path_len = ttl_templates_dir.length();
         int count = 0;
+        int qcount = 0;
+        int qcountLimit = 35;
+
         for (String file : files) {
             try {
                 String name = file.substring(path_len);  // cut directory path
@@ -686,6 +689,7 @@ RdfStorage.StopBackgroundDBFillUp()
                 // System.out.println(name + " ...\t");
 
                 count++;
+                if (qcount > qcountLimit) break;
 //                if (count % 100 == 0) {
 //                    rs.saveToFilesystem();
 //                    System.out.println("Dump metadata on disk");
@@ -707,7 +711,9 @@ RdfStorage.StopBackgroundDBFillUp()
                 System.out.println("Creating questions for template: " + name);
                 Model solvedTemplateModel = rs.getQuestionModel(name, GraphRole.QUESTION_TEMPLATE_SOLVED);
                 Set<Set<String>> possibleViolations = new HashSet<>();
-                for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 128).entrySet()) {
+                for (Map.Entry<String, Model> question : domain.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
+                    qcount++;
+                    if (qcount >= qcountLimit) break;
                     // Create question model (with positive laws)
                     Model questionInitModel = rs.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION)).add(question.getValue());
                     Model questionModel = rs.solveTemplate(questionInitModel, GraphRole.QUESTION, true);
