@@ -46,8 +46,13 @@ public class TaskGenerationJob {
     @SneakyThrows
     @Job
     public void run() {
-        // log.info("Run again: Generating questions for expression domain");
-        runGeneration4Expr();
+        log.info("Run generating questions for expression domain");
+        try {
+            runGeneration4Expr();
+        } catch (Exception e) {
+            log.warn("job exception", e);
+        }
+        System.exit(0);
     }
 
     /**
@@ -56,13 +61,15 @@ public class TaskGenerationJob {
     @SneakyThrows
     public boolean runGeneration4Expr() {
 
-        boolean _debugGenerator = true;
-        boolean cleanupFolders = !_debugGenerator;
+        // boolean _debugGenerator = false;
+        boolean cleanupFolders = false;
         boolean cleanupGeneratedFolder = false;
-        boolean downloadRepositories = !_debugGenerator;
-        boolean parseSources = !_debugGenerator;
-        boolean generateQuestions = true;//!_debugGenerator;
-        boolean exportQuestionsToProduction = false;
+        boolean downloadRepositories = false;
+        boolean parseSources = true;
+        boolean generateQuestions = true;
+        boolean exportQuestionsToProduction = true;
+        
+        int repositoriesToDownload = 10;
 
 
         // folders cleanup
@@ -124,15 +131,16 @@ public class TaskGenerationJob {
                         return 0;
                     }, null);
 
-                     // for now, 10 repositories only
-                     if (++idx >= 10)
+                     // for now, limited number of repositories
+                     if (++idx >= repositoriesToDownload)
                         break;
                 }
             }
             // end of download
         } else {
-            // debug:
-            downloadedRepos = List.of();
+            // get all downloaded so far:
+            var rootDir = Path.of(config.getSearcher().getOutputFolderPath());
+            downloadedRepos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
         }
 
         // do parsing
@@ -145,21 +153,14 @@ public class TaskGenerationJob {
                 Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
 
                 var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
+                files = files.subList(0, Math.min(50, files.size()));
                 log.info("Found {} *.c & *.m files", files.size());
 
                 List<String> parserProcessCommandBuilder = new ArrayList<>();
                 parserProcessCommandBuilder.add(config.getParser().getPathToExecutable());
                 parserProcessCommandBuilder.addAll(files);
-
-                // reduce number of arguments on command line if necessary
-                // TODO: loop over batches if required to split the task
-                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2+10+5 + destination.toString().length());
-
                 parserProcessCommandBuilder.add("--");
-
-                // this parameter is absent in older version
                 parserProcessCommandBuilder.add("expression");
-
                 parserProcessCommandBuilder.add(destination.toString());
                 log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
@@ -173,6 +174,7 @@ public class TaskGenerationJob {
                     String line;
                     while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
                         log.debug(line);
+                        //log.info("[Parser output] - {}", line);
                     }
                     parserProcess.waitFor(10, TimeUnit.MINUTES);
                 } catch (InterruptedException e) {
@@ -195,7 +197,7 @@ public class TaskGenerationJob {
 
             for (var repoDir : repos) {
                 var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
-                log.info("Found {} ttl files", allTtlFiles.size());
+                log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
 
                 String leafFolder = repoDir.getFileName().toString();
 

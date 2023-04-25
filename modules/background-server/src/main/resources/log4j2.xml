@@ -7,10 +7,12 @@
     </Appenders>
     <Loggers>
         <Root level="INFO">
-            <AppenderRef ref="Console" level="ERROR"/>
+            <AppenderRef ref="Console" level="INFO"/>
         </Root>
+        <!--
         <Logger name="org.vstu.compprehension.jobs" level="DEBUG">
             <AppenderRef ref="Console" level="INFO"/>
         </Logger>
+        -->
     </Loggers>
 </Configuration>

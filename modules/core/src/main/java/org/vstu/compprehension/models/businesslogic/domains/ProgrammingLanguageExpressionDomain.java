@@ -2516,6 +2516,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         question.getConcepts().addAll(concepts);
         Set<String> violations = possibleViolations(question, null);
 
+        /*
         // use Python parser to infer possibly more concepts and violations
         // convert tokens to string omitting last one that is END_EVALUATION
         String exprString = textFacts.stream().map(BackendFactEntity::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
@@ -2538,7 +2539,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 violations.addAll(newViolations);
             }
         }
-        // finished with the results of external Python tool.
+        // finished with the results of external Python tool. */
 
         List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
 
