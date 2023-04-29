@@ -84,10 +84,10 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             this.fileService.setDummyDirsForNewFile(2);  // 1 is the default
         }
 
-        // hardcode: don't use RDF metadata when SQL metadata is available.
-        if (domain.getQuestionMetadataRepository() == null) {
-            initDB();
-        }
+        // init repository
+        setQuestionMetadataDraftRepository(domain.getQuestionMetadataDraftRepository());
+
+        initDB();
     }
 
     public LocalRdfStorage(String qGraph_filepath) {
@@ -102,9 +102,6 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     }
 
     protected void initDB() {
-
-        // init repository
-        setQuestionMetadataDraftRepository(getMetadataDraftRepositoryStatic());
 
         try {
 //            dataset = TDB2Factory.createDataset() ;  // directory

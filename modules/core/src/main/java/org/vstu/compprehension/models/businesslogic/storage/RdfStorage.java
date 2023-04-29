@@ -11,10 +11,12 @@ import org.apache.jena.update.UpdateRequest;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 
 import java.io.IOException;
@@ -644,7 +646,11 @@ RdfStorage.StopBackgroundDBFillUp()
     }
 
     public static void generateQuestionsForExpressionsDomain(String ttl_templates_dir, String storage_base_dir, int storageDummyDirsForNewFile, String origin) {
-        ProgrammingLanguageExpressionDomain domain = ProgrammingLanguageExpressionDomain.makeHackedDomain();
+
+        val df = ApplicationContextProvider.getApplicationContext().getBean(DomainFactory.class);
+
+        ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
+
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
 
         // set configuration for storage creation into domain options:
