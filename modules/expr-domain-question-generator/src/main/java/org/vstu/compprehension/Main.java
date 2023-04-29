@@ -2,15 +2,22 @@ package org.vstu.compprehension;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import org.vstu.compprehension.models.businesslogic.storage.RdfStorage;
 
 public class Main {
     public static void main(String[] args) {
         Main main = new Main();
-        JCommander.newBuilder()
-                .addObject(main)
-                .build()
-                .parse(args);
+        try {
+            JCommander.newBuilder()
+                    .addObject(main)
+                    .build()
+                    .parse(args);
+        } catch (ParameterException e) {
+            System.out.println("CLI parameters error:");
+            System.out.println(e.getMessage());
+            return;
+        }
         main.run();
     }
 
