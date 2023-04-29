@@ -18,6 +18,7 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -343,6 +344,10 @@ public abstract class Domain {
     }
 
     public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+        return null;
+    }
+
+    public QuestionMetadataDraftRepository getQuestionMetadataDraftRepository() {
         return null;
     }
 

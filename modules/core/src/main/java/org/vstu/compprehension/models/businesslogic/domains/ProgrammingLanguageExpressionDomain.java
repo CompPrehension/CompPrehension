@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -33,6 +34,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
@@ -71,16 +73,19 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
     private final QuestionMetadataBaseRepository exprQuestionMetadataRepository;
+    @Getter
+    private final QuestionMetadataDraftRepository questionMetadataDraftRepository;
 
     @Autowired
     public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
                                                DomainRepository domainRepository,
                                                RandomProvider randomProvider,
                                                QuestionMetadataBaseRepository exprQuestionMetadataRepository,
-         QuestionRequestLogRepository questionRequestLogRepository) {
+                                               QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataDraftRepository questionMetadataDraftRepository) {
         super(randomProvider, questionRequestLogRepository);
         this.localizationService = localizationService;
         this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
+        this.questionMetadataDraftRepository = questionMetadataDraftRepository;
 
         name = "ProgrammingLanguageExpressionDomain";
         domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
@@ -95,6 +100,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         super(new RandomProvider(), null);
         this.localizationService = localizationService;
         exprQuestionMetadataRepository = null;
+        questionMetadataDraftRepository = null;
 
         name = "ProgrammingLanguageExpressionDomain";
         // domainEntity = null;
