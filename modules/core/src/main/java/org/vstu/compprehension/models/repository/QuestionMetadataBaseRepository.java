@@ -84,7 +84,8 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
             " + bit_count(q.concept_bits & :#{#qr.conceptsTargetedBitmask})" +
             " + bit_count(q.violation_bits & :#{#qr.lawsTargetedBitmask})" +
             " DESC, " +
-            " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
+            // // " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
+            " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
             " ASC, " +
             " q.used_count ASC " +  // less often show "hot" questions
             " limit :randomPoolLim" +

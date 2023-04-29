@@ -217,7 +217,7 @@ public abstract class AbstractRdfStorage {
 //                List.of()/*templatesInUse*/, questionsInUse,
 //                queryLimit, 12);
 
-        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.15, queryLimit, 12);
+        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.1, queryLimit, 12);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
