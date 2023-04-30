@@ -1,12 +1,10 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
-import org.apache.jena.arq.querybuilder.UpdateBuilder;
 import org.apache.jena.arq.querybuilder.WhereBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -18,8 +16,6 @@ import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
-import org.apache.jena.sparql.core.Var;
-import org.apache.jena.update.UpdateRequest;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
@@ -32,18 +28,13 @@ import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
-import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static java.lang.Long.bitCount;
 
@@ -103,9 +94,6 @@ public abstract class AbstractRdfStorage {
     public static int STAGE_EXPORTED = 4;
     public static int GENERATOR_VERSION = 10;
 
-
-    Domain domain;
-
     /**
      * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
      * TODO: remove, since no rdf storage is in use any more
@@ -115,27 +103,18 @@ public abstract class AbstractRdfStorage {
     static boolean USE_RDF_STORAGE = false;
 
 
-    RemoteFileService fileService = null;
-    QuestionMetadataManager questionMetadataManager = null;
-    @Setter
     @Getter
-    QuestionMetadataDraftRepository questionMetadataDraftRepository;
+    private final RemoteFileService fileService;
+    private final QuestionMetadataDraftRepository questionMetadataDraftRepository;
+    private final QuestionMetadataManager questionMetadataManager;
 
-    @NotNull
-    public static QuestionMetadataDraftRepository getMetadataDraftRepositoryStatic() {
-        return ApplicationContextProvider.getApplicationContext().getBean(QuestionMetadataDraftRepository.class);
-    }
-
-
-    QuestionMetadataManager getQuestionMetadataManager() {
-        if (this.questionMetadataManager == null) {
-            if (this.domain != null) {
-                val repo = domain.getQuestionMetadataRepository();
-                if (repo != null)
-                    questionMetadataManager = new QuestionMetadataManager(domain, repo);
-            }
-        }
-        return questionMetadataManager;
+    protected AbstractRdfStorage(
+            RemoteFileService fileService,
+            QuestionMetadataDraftRepository questionMetadataDraftRepository,
+            QuestionMetadataManager questionMetadataManager) {
+        this.fileService = fileService;
+        this.questionMetadataDraftRepository = questionMetadataDraftRepository;
+        this.questionMetadataManager = questionMetadataManager;
     }
 
     public static NamespaceUtil questionSubgraphPropertyFor(GraphRole role) {
@@ -164,11 +143,11 @@ public abstract class AbstractRdfStorage {
      * @param limit maximum questions to return (must be > 0)
      * @return questions found or empty list if the requirements cannot be satisfied
      */
-    public List<Question> searchQuestions(QuestionRequest qr, int limit) {
+    public List<Question> searchQuestions(Domain domain, QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
 
-        QuestionMetadataManager metaMgr = getQuestionMetadataManager();
+        QuestionMetadataManager metaMgr = this.questionMetadataManager;
         int nQuestionsInAttempt = Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0);
         int queryLimit = limit + nQuestionsInAttempt;
         int hardLimit = 25;
@@ -247,7 +226,7 @@ public abstract class AbstractRdfStorage {
             }
         }
 
-        List<Question> loadedQuestions = loadQuestions(foundQuestionMetas);
+        List<Question> loadedQuestions = loadQuestions(domain, foundQuestionMetas);
         ch.hit("searchQuestionsAdvanced - files loaded");
 
         if (loadedQuestions.size() == 1) {
@@ -313,10 +292,10 @@ public abstract class AbstractRdfStorage {
         return finalRanking.subList(0, limit);
     }
 
-    private List<Question> loadQuestions(Collection<QuestionMetadataEntity> metas) {
+    private List<Question> loadQuestions(Domain domain, Collection<QuestionMetadataEntity> metas) {
         List<Question> list = new ArrayList<>();
         for (QuestionMetadataEntity meta : metas) {
-            Question question = loadQuestion(meta);
+            Question question = loadQuestion(domain, meta);
             if (question != null) {
                 list.add(question);
             }
@@ -325,8 +304,8 @@ public abstract class AbstractRdfStorage {
     }
 
 
-    private Question loadQuestion(@NotNull QuestionMetadataEntity qMeta) {
-        Question q = loadQuestion(qMeta.getQDataGraph());
+    private Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
+        Question q = loadQuestion(domain, qMeta.getQDataGraph());
         if (q != null) {
             if (q.getQuestionData().getOptions() == null) {
                 q.getQuestionData().setOptions(new QuestionOptionsEntity());
@@ -340,7 +319,7 @@ public abstract class AbstractRdfStorage {
         return q;
     }
 
-    private Question loadQuestion(String path) {
+    private Question loadQuestion(Domain domain, String path) {
         Question q = null;
         try (InputStream stream = fileService.getFileStream(path)) {
             if (stream != null) {
@@ -354,7 +333,7 @@ public abstract class AbstractRdfStorage {
         return q;
     }
 
-    Model getDomainSchemaForSolving() {
+    Model getDomainSchemaForSolving(Domain domain) {
         if (domain != null) {
             return domain.getSchemaForSolving();
         }
@@ -363,7 +342,7 @@ public abstract class AbstractRdfStorage {
         return ModelFactory.createDefaultModel();
     }
 
-    List<Rule> getDomainRulesForSolvingAtLevel(GraphRole level) {
+    List<Rule> getDomainRulesForSolvingAtLevel(Domain domain, GraphRole level) {
         assert domain != null;
 
         // get rules
@@ -526,7 +505,7 @@ public abstract class AbstractRdfStorage {
      * Find and return row of question or question template with given name from 'question_meta_draft' table
      */
     public QuestionMetadataDraftEntity findQuestionByName(String questionName) {
-        val repo = getQuestionMetadataDraftRepository();
+        val repo = this.questionMetadataDraftRepository;
         if (repo == null)
             return null;
 
@@ -624,7 +603,7 @@ public abstract class AbstractRdfStorage {
      * @param model data to store
      * @return saved metadata instance if saved successful, else null
      */
-    public QuestionMetadataDraftEntity setQuestionSubgraph(String questionName, GraphRole role, Model model) {
+    public QuestionMetadataDraftEntity setQuestionSubgraph(Domain domain, String questionName, GraphRole role, Model model) {
         String qgSubPath = nameForQuestionGraph(questionName, role);
         boolean success = sendModel(qgSubPath, model);
 
@@ -636,7 +615,7 @@ public abstract class AbstractRdfStorage {
         if (meta == null) {
             // проинициализировать метаданные шаблона вопроса, далее сохранить в БД
             if (role == GraphRole.QUESTION_TEMPLATE || role == GraphRole.QUESTION_TEMPLATE_SOLVED)
-                meta = createQuestionTemplate(questionName);
+                meta = createQuestionTemplate(domain, questionName);
             else {
                 throw new IllegalStateException("setQuestionSubgraph(): Question metadata row must be initialized in advance!");
             }
@@ -668,7 +647,7 @@ public abstract class AbstractRdfStorage {
      * @param questionTemplateName unique identifier-like name of question template
      * @return fresh or existing QuestionMetadataDraftEntity instance
      */
-    public QuestionMetadataDraftEntity createQuestionTemplate(String questionTemplateName) {
+    public QuestionMetadataDraftEntity createQuestionTemplate(Domain domain, String questionTemplateName) {
         // find template metadata
         QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
 
@@ -697,7 +676,7 @@ public abstract class AbstractRdfStorage {
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    public QuestionMetadataDraftEntity createQuestion(String questionName, String questionTemplateName, boolean recreate) {
+    public QuestionMetadataDraftEntity createQuestion(Domain domain, String questionName, String questionTemplateName, boolean recreate) {
 
         // find template metadata
         QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
@@ -810,8 +789,8 @@ public abstract class AbstractRdfStorage {
      * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
      * @return true on success
      */
-    public boolean solveQuestion(String questionName, GraphRole desiredLevel) {
-        return solveQuestion(questionName, desiredLevel, -1);
+    public boolean solveQuestion(Domain domain, String questionName, GraphRole desiredLevel) {
+        return solveQuestion(domain, questionName, desiredLevel, -1);
     }
 
     /**
@@ -823,7 +802,7 @@ public abstract class AbstractRdfStorage {
      *                                  exceeding this number (maybe for reducing reasoner load).
      * @return true on success
      */
-    public boolean solveQuestion(String questionName, GraphRole desiredLevel, int tooLargeTemplateThreshold) {
+    public boolean solveQuestion(Domain domain, String questionName, GraphRole desiredLevel, int tooLargeTemplateThreshold) {
 //        Model qG = getGraph(NS_questions.base());
 //        assert qG != null;
 
@@ -839,15 +818,15 @@ public abstract class AbstractRdfStorage {
         }
 
         Model inferred = runReasoning(
-                getFullSchema().union(existingData),
-                getDomainRulesForSolvingAtLevel(desiredLevel),
+                getFullSchema(domain).union(existingData),
+                getDomainRulesForSolvingAtLevel(domain, desiredLevel),
                 true);
 
         if (inferred.isEmpty())
             log.warn("Solved to empty for question: " + questionName);
 
         // set graph
-        return setQuestionSubgraph(questionName, desiredLevel, inferred) != null;
+        return setQuestionSubgraph(domain, questionName, desiredLevel, inferred) != null;
     }
 
     public static int getQrTooFewQuestions(int qrLogId) {
@@ -857,115 +836,6 @@ public abstract class AbstractRdfStorage {
         return 100;
     }
 
-    public static int getQrEnoughQuestions(int qrLogId) {
-        int base = getQrTooFewQuestions(qrLogId);
-        return base * 3;
-    }
-
-    /**
-     * Find generated questions that suit unsatisfied question-requests
-     * and send them to the production question bank.
-     * Note that database is the same tor generator and production environment; but file storage may be physically different,
-     * so sending files may require e.g. FTP write access.
-     * @param metadataDraftRepo jpa repository
-     */
-    public static void exportGeneratedQuestionsToProductionBank(List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsPerQR, QuestionMetadataBaseRepository metadataRepo, QuestionMetadataDraftRepository metadataDraftRepo, QuestionRequestLogRepository qrLogRepo, String storage_src_dir, String storage_dst_dir, int storageDummyDirsForNewFile) {
-
-        if (qrLogsToProcess.isEmpty())
-            return;
-
-        // ID-indexed set of questions that suit all the question requests
-        var newQuestions = new HashMap<Integer, QuestionMetadataDraftEntity>();
-        var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
-
-        for (QuestionRequestLogEntity qrl : qrLogsToProcess) {
-
-            int wantMoreCount = enoughQuestionsPerQR - qrl.getFoundCount();
-
-            if (wantMoreCount <= 0)
-                continue;
-
-            val questionsForQR = metadataDraftRepo.findSuitableQuestions(qrl, wantMoreCount);
-
-            int count = questionsForQR.size();  // this many questions were found in the database (there may be less than requested)
-
-            System.out.println("Found " + count + " draft questions that suit question-request log with id: " + qrl.getId());
-
-            qrId2questionIDs.put(qrl.getId(), questionsForQR.stream()
-                    .map(QuestionMetadataDraftEntity::getId)
-                    .collect(Collectors.toSet()));
-
-            // add questions to common set (avoiding duplicates)
-            questionsForQR.forEach(q -> newQuestions.put(q.getId(), q));
-        }
-
-        if (newQuestions.isEmpty()) {
-            System.out.println("Nothing new found among draft questions, check if we still have something to export.");
-
-        } else {
-            // mark selected questions to be exported (set stage := 4)
-            newQuestions.values().forEach(q -> q.setStage(STAGE_EXPORTED));
-            metadataDraftRepo.saveAll(newQuestions.values());
-        }
-
-        // determine questions are to export (really new; this query excludes duplicates)
-        // find draft questions not yet exported with LEFT JOIN
-        val toExport = metadataDraftRepo.findNotYetExportedQuestions(qrLogsToProcess.get(0).getDomainShortname());  // restricted to one Domain only. TODO: allow arbitrary domains ?
-
-        List<QuestionMetadataEntity> toImport;
-        Set<Integer> successfullyExportedIds;
-        if (toExport.isEmpty()) {
-            System.out.println("All draft questions have already exported.");
-            successfullyExportedIds = Set.of();
-        } else {
-            // send ready questions data to production bank
-            int nExported = RdfStorage.exportQDtaFilesToProductionBank(toExport, storage_src_dir, storage_dst_dir, storageDummyDirsForNewFile);
-
-            // integrate question metadata into production metadata table
-            // Process only those questions that were successfully exported in previous operation.
-            toImport = new ArrayList<QuestionMetadataEntity>(nExported);
-            for (val d : toExport.subList(0, nExported)) {
-                val q = d.toMetadataEntity();
-                // q.id is null (this q is inserted as new)
-                q.setStage(STAGE_READY);
-                toImport.add(q);
-            }
-
-            val saved = metadataRepo.saveAll(toImport);
-            successfullyExportedIds = StreamSupport.stream(saved.spliterator(), false).map(QuestionMetadataEntity::getId).collect(Collectors.toSet());
-            System.out.println("Saved " + toImport.size() + " new question metadata rows into production table.");
-        }
-
-        // var qrId2questionIDs = new HashMap<Long, Set<Integer>>();
-        // increment qrl counters & save
-        for (QuestionRequestLogEntity qrl : qrLogsToProcess) {
-
-            var questionIds = qrId2questionIDs.get(qrl.getId()); // planned
-            questionIds.retainAll(successfullyExportedIds); // alter the set since we don't need it's content anymore
-            int count = questionIds.size(); // count of actually exported questions (for this QR)
-
-            // increment qrl counter
-            int currentAddedQuestions = Optional.ofNullable(qrl.getAddedQuestions()).orElse(0);
-
-            if (count > 0) {
-                currentAddedQuestions += count;
-                qrl.setAddedQuestions(currentAddedQuestions);
-            }
-
-            qrl.setProcessedCount(Optional.of(qrl.getProcessedCount()).orElse(0) + 1);  // increment
-            qrl.setLastProcessedDate(new Date());   // set current UTC date-time now, but save to db later, if exported questions successfully
-
-            if (qrl.getFoundCount() + currentAddedQuestions >= enoughQuestionsPerQR) {
-                // mark qrl as resolved
-                qrl.setOutdated(1);
-                System.out.println("Resolved a QR log: reached the desired number of questions (+"+currentAddedQuestions+"). Row id: "+qrl.getId());
-            }
-        }
-
-        // update processed qr log rows in DB (to persist changes made above)
-        qrLogRepo.saveAll(qrLogsToProcess);
-        System.out.println("Finally, saved "+qrLogsToProcess.size()+" question-request log rows.");
-    }
 
 
     /**
@@ -1104,9 +974,9 @@ public abstract class AbstractRdfStorage {
      * получение подграфа триплетов, хранящего базовую схему домена (необходимую для работы ризонера)
      * @return model of triples
      */
-    public Model getSchema() {
+    public Model getSchema(Domain domain) {
         if (!USE_RDF_STORAGE) {
-            return getDomainSchemaForSolving();
+            return getDomainSchemaForSolving(domain);
         }
         String uri = NS_graphs.get(GraphRole.SCHEMA.ns().base());
 //        if (!dataset.containsNamedModel(uri)) {
@@ -1119,15 +989,15 @@ public abstract class AbstractRdfStorage {
      * Get solved domain schema (for reasoning purposes)
      * @return model both schema and solved schema (the most of what exists - may be empty)
      */
-    public Model getFullSchema() {
+    public Model getFullSchema(Domain domain) {
         Model m = ModelFactory.createDefaultModel();
-        Model m2 = getSchema();
+        Model m2 = getSchema(domain);
         if (m2 != null)
             m.add(m2);
 
         String uri = NS_graphs.get(GraphRole.SCHEMA_SOLVED.ns().base());
         if (!dataset.containsNamedModel(uri) && !m.isEmpty()) {
-            Model inferred = runReasoning(m, getDomainRulesForSolvingAtLevel(GraphRole.SCHEMA), true);
+            Model inferred = runReasoning(m, getDomainRulesForSolvingAtLevel(domain, GraphRole.SCHEMA), true);
             if (inferred.isEmpty()) {
                 // add anything to avoid re-calculation
                 inferred.add(m.listStatements().nextStatement());
@@ -1142,10 +1012,10 @@ public abstract class AbstractRdfStorage {
         return m;
     }
 
-    public Model solveTemplate(Model srcModel, GraphRole desiredLevel, boolean retainNewFactsOnly) {
+    public Model solveTemplate(Domain domain, Model srcModel, GraphRole desiredLevel, boolean retainNewFactsOnly) {
         return runReasoning(
-                getFullSchema().union(srcModel),
-                getDomainRulesForSolvingAtLevel(desiredLevel),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
+                getFullSchema(domain).union(srcModel),
+                getDomainRulesForSolvingAtLevel(domain, desiredLevel),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
                 retainNewFactsOnly);
     }
 

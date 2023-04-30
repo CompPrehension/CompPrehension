@@ -3,7 +3,6 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -25,6 +24,8 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -51,8 +52,7 @@ import java.util.stream.Stream;
 import static java.lang.Math.max;
 import static java.lang.Math.random;
 
-@Component @Log4j2
-@Singleton
+@Log4j2
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
@@ -73,50 +73,26 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
     private final QuestionMetadataBaseRepository exprQuestionMetadataRepository;
-    @Getter
-    private final QuestionMetadataDraftRepository questionMetadataDraftRepository;
 
-    @Autowired
-    public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
-                                               DomainRepository domainRepository,
-                                               RandomProvider randomProvider,
-                                               QuestionMetadataBaseRepository exprQuestionMetadataRepository,
-                                               QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataDraftRepository questionMetadataDraftRepository) {
-        super(randomProvider, questionRequestLogRepository);
+    public ProgrammingLanguageExpressionDomain(
+            DomainEntity domainEntity,
+            LocalizationService localizationService,
+            RandomProvider randomProvider,
+            QuestionMetadataBaseRepository exprQuestionMetadataRepository,
+            QuestionMetadataDraftRepository exprQuestionMetadataDraftRepository,
+            QuestionRequestLogRepository questionRequestLogRepository) {
+
+        super(domainEntity, randomProvider, questionRequestLogRepository);
+
         this.localizationService = localizationService;
         this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
-        this.questionMetadataDraftRepository = questionMetadataDraftRepository;
-
-        name = "ProgrammingLanguageExpressionDomain";
-        domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
+        this.rdfStorage = new LocalRdfStorage(
+                domainEntity, exprQuestionMetadataDraftRepository, new QuestionMetadataManager(this, exprQuestionMetadataRepository));
 
         fillTags();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-    }
-
-    private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
-        super(new RandomProvider(), null);
-        this.localizationService = localizationService;
-        exprQuestionMetadataRepository = null;
-        questionMetadataDraftRepository = null;
-
-        name = "ProgrammingLanguageExpressionDomain";
-        // domainEntity = null;
-        domainEntity = new DomainEntity();
-        domainEntity.setOptions(new DomainOptionsEntity());
-
-        fillTags();
-        fillConcepts();
-        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
-        readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-        // using update() as init
-        // OFF: // update();
-    }
-    //Hacked version. don't use in production, only for develop
-    public static ProgrammingLanguageExpressionDomain makeHackedDomain() {
-        return new ProgrammingLanguageExpressionDomain(new LocalizationService());
     }
 
     @Override
@@ -656,13 +632,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
                 saveQuestionRequest(questionRequest);
-                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+                foundQuestions = getRdfStorage().searchQuestions(this, questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+                    foundQuestions = getRdfStorage().searchQuestions(this, questionRequest, 1);
                 }
             } catch (RuntimeException ex) {
                 // file storage was not configured properly...
@@ -2559,7 +2535,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         QuestionMetadataDraftEntity meta = rs.findQuestionByName(questionName);
         if (meta == null) {
-            meta = rs.createQuestion(questionName, questionName.split("_v")[0], false);
+            meta = rs.createQuestion(this, questionName, questionName.split("_v")[0], false);
         }
         // QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
         // // entity.getOptions().setMetadata(metadata); // see below

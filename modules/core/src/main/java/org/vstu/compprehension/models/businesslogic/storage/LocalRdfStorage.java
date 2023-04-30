@@ -10,7 +10,9 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.File;
@@ -31,30 +33,45 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
      */
     String qGraph_filepath = null;
 
-    public LocalRdfStorage(Domain domain) {
+    public LocalRdfStorage(DomainEntity domain,
+                           QuestionMetadataDraftRepository questionMetadataDraftRepository,
+                           QuestionMetadataManager questionMetadataManager) {
+        super(new RemoteFileService(
+                        domain.getOptions().getStorageUploadFilesBaseUrl(),
+                Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl())
+                        .orElse(domain.getOptions().getStorageUploadFilesBaseUrl())),
+                questionMetadataDraftRepository,
+                questionMetadataManager);
 
-        setDomain(domain);
+        // use options from Domain
+        DomainOptionsEntity cnf = domain.getOptions();
+        this.qGraph_filepath = Optional.ofNullable(cnf.getQuestionsGraphPath())
+                .orElse(cnf.getStorageSPARQLEndpointUrl());
+
+        //setDomain(domain);
 
         // test it
 //        this.getQuestionMetadataManager();
 //        log.info("getQuestionMetadataManager completed.");
     }
 
-    public LocalRdfStorage(String qGraph_filepath, String templatesDir) {
+/*
+    public LocalRdfStorage(String qGraph_filepath,
+                           RemoteFileService
+                           QuestionMetadataDraftRepository questionMetadataDraftRepository,
+                           QuestionMetadataManager questionMetadataManager) {
 
-        this.domain = null;
+        super(fileService, questionMetadataDraftRepository, questionMetadataManager);
         this.qGraph_filepath = qGraph_filepath;
 
-        // init fileService pointing to specified dir as plain filesystem
-        if (! templatesDir.startsWith("file:///")) {
-            // force prefix indicating filesystem type
-            templatesDir = "file:///" + templatesDir;
-        }
-        this.fileService = new RemoteFileService(templatesDir);
+        // init FTP pointing to some remote dir
+        this.fileService = new RemoteFileService(FTP_BASE + "tmp" + "/");
 
         initDB();
-    }
+    }*/
 
+
+    /*
     public void setDomain(Domain domain) {
         assert domain != null;
         this.domain = domain;
@@ -84,20 +101,6 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
             this.fileService.setDummyDirsForNewFile(2);  // 1 is the default
         }
 
-        // init repository
-        setQuestionMetadataDraftRepository(domain.getQuestionMetadataDraftRepository());
-
-        initDB();
-    }
-
-    public LocalRdfStorage(String qGraph_filepath) {
-
-        this.domain = null;
-        this.qGraph_filepath = qGraph_filepath;
-
-        // init FTP pointing to some remote dir
-        this.fileService = new RemoteFileService(FTP_BASE + "tmp" + "/");
-
         initDB();
     }
 
@@ -119,11 +122,8 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     }
 
 
-    //    @Override
-    public RDFConnection getConn() {
-        throw new NotImplementedException("No remote connection can be returned for the LOCAL storage.");
-        //// return null;
-    }
+     */
+
 
 //    @Override
     boolean fetchGraph(String gUri, boolean fetchAlways) {
@@ -187,13 +187,13 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     }
 
     public String saveQuestionData(String name, String data) {
-        String filename = fileService.prepareNameForFile("q_data/" + name + ".json", false);
+        String filename = getFileService().prepareNameForFile("q_data/" + name + ".json", false);
         /*setQuestionMetadata(name, List.of(
                 Pair.of(NS_questions.getUri("has_graph_q_data"),
                         NS_file.getUri(filename))
         ));
 */
-        try (OutputStream stream = fileService.saveFileStream(filename)) {
+        try (OutputStream stream = getFileService().saveFileStream(filename)) {
             stream.write(data.getBytes(StandardCharsets.UTF_8));
             return filename;
         } catch (IOException e) {

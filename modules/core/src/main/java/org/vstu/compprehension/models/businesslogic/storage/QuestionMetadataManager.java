@@ -42,7 +42,7 @@ public class QuestionMetadataManager {
 
         Map<String, Object> data = questionRepository.getStatOnComplexityField(domain.getShortName());
         NumericStat complStat = new NumericStat();
-        complStat.setCount(((BigInteger)data.get("count")).intValue());
+        complStat.setCount((Optional.ofNullable((BigInteger)data.get("count")).orElse(BigInteger.ZERO)).intValue());
         complStat.setMin  ((Double) Optional.ofNullable(data.get("min") ).orElse(0.0));
         complStat.setMean ((Double) Optional.ofNullable(data.get("mean")).orElse(0.5));
         complStat.setMax  ((Double) Optional.ofNullable(data.get("max") ).orElse(1.0));

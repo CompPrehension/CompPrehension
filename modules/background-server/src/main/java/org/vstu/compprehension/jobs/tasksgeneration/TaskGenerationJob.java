@@ -7,8 +7,6 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.RdfStorage;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
@@ -58,6 +56,7 @@ public class TaskGenerationJob {
     @SneakyThrows
     public boolean runGeneration4Expr() {
 
+        /*
         // TODO проверка на то, что нужны новые вопросы
         int tooFewQuestions = AbstractRdfStorage.getQrTooFewQuestions(0); // (e.g. 50)
         int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
@@ -67,6 +66,7 @@ public class TaskGenerationJob {
             log.info("Nothing to process, finished job.");
             return false;
         }
+        */
 
         boolean _debugGenerator = false;
         boolean cleanupFolders = !_debugGenerator;
@@ -158,6 +158,7 @@ public class TaskGenerationJob {
                 Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
 
                 var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
+                files = files.subList(0, Math.min(10, files.size()));
                 log.info("Found {} *.c & *.m files", files.size());
 
                 List<String> parserProcessCommandBuilder = new ArrayList<>();
@@ -210,11 +211,12 @@ public class TaskGenerationJob {
                 String leafFolder = repoDir.getFileName().toString();
 
                 // for Expression domain only:
-                RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageDummyDirsForNewFile(), leafFolder);
+                //RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageDummyDirsForNewFile(), leafFolder);
             }
         }
 
         // export generated questions to production bank if necessary
+        /*
         if (exportQuestionsToProduction) {
             log.info("Start exporting questions to production bank ...");
             AbstractRdfStorage.exportGeneratedQuestionsToProductionBank(
@@ -222,6 +224,7 @@ public class TaskGenerationJob {
                     metadataRep, metadataDraftRep, qrLogRep,
                     config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
         }
+        */
 
         log.info("completed");
 

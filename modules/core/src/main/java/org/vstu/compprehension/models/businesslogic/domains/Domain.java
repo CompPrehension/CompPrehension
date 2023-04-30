@@ -41,26 +41,27 @@ public abstract class Domain {
     /** name to Tag mapping */
     protected Map<String, Tag> tags;
 
-    protected AbstractRdfStorage rdfStorage;
-    /**
-     * Db entry
-     */
-    protected DomainEntity domainEntity;
+
+
     /**
      * domain name (used to get domain by name)
      */
-    protected String name = "";
+
     /**
      * version of domain (in db)
      */
     protected String version = "";
     @Getter
     protected final RandomProvider randomProvider;
-    protected final QuestionRequestLogRepository questionRequestLogRepository;
+    @Getter
+    private final QuestionRequestLogRepository questionRequestLogRepository;
+    @Getter
+    protected AbstractRdfStorage rdfStorage = null;
+    @Getter
+    private final DomainEntity domainEntity;
 
-
-
-    public Domain(RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository) {
+    public Domain(DomainEntity domainEntity, RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository) {
+        this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
         this.questionRequestLogRepository = questionRequestLogRepository;
     }
@@ -71,10 +72,10 @@ public abstract class Domain {
     public abstract void update();
 
     public String getName() {
-        return name;
+        return domainEntity.getName();
     }
     public String getShortName() {
-        return name;  // same as name by default
+        return domainEntity.getShortName();  // same as name by default
     }
 
     public String getVersion() {
@@ -334,13 +335,6 @@ public abstract class Domain {
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         // the default
         return new ArrayList<>();
-    }
-
-    public AbstractRdfStorage getRdfStorage() {
-        if (rdfStorage == null) {
-            rdfStorage = new LocalRdfStorage(this);
-        }
-        return rdfStorage;
     }
 
     public QuestionMetadataBaseRepository getQuestionMetadataRepository() {

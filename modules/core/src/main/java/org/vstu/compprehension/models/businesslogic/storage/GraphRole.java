@@ -1,6 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-enum GraphRole {
+public enum GraphRole {
     SCHEMA("schema#"), // all static assertions important for reasoning
     SCHEMA_SOLVED("schema_s#"), // inferences from schema itself
 //    QUESTIONS("questions#"),  // all question metadata
@@ -50,7 +50,7 @@ enum GraphRole {
         return null;
     }
 
-    static GraphRole getPrevious(GraphRole role) {
+    public static GraphRole getPrevious(GraphRole role) {
         int ordIndex = role.ordinal() - 1;
         for (GraphRole other : GraphRole.values()) {
             if (other.ordinal() == ordIndex)
