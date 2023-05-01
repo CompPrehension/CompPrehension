@@ -305,7 +305,7 @@ public abstract class AbstractRdfStorage {
 
 
     private Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
-        Question q = loadQuestion(domain, qMeta.getQDataGraph());
+        Question q = loadQuestion(domain, qMeta.getQDataGraphPath());
         if (q != null) {
             if (q.getQuestionData().getOptions() == null) {
                 q.getQuestionData().setOptions(new QuestionOptionsEntity());

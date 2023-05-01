@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Getter @Setter
 @Builder
@@ -27,8 +28,20 @@ public class QuestionMetadataEntity {
     @Column(name = "template_id", nullable = false)
     private Integer templateId;
 
+    @Column(name = "qt_graph")
+    private String qtGraphPath;
+
+    @Column(name = "qt_s_graph")
+    private String qtSolvedGraphPath;
+
+    @Column(name = "q_graph")
+    private String qGraphPath;
+
+    @Column(name = "q_s_graph")
+    private String qSolvedGraphPath;
+
     @Column(name = "q_data_graph")
-    private String qDataGraph;
+    private String qDataGraphPath;
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -81,9 +94,21 @@ public class QuestionMetadataEntity {
     private String structureHash;
 
 
-    @Transient
     @Builder.Default
     private boolean isDraft = false;
+
+    /**
+     * URL or name of GitHub repository from which this question was created
+     */
+    @Column(name = "origin")
+    private String origin;
+
+    @Column(name = "qrlog_ids", columnDefinition = "json")
+    private List<Integer> qrlogIds;
+
+    @Column(name = "date_created")
+    private Date dateCreated;
+
 
 
     @Transient

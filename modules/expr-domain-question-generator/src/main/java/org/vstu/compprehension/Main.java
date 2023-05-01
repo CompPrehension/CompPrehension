@@ -186,7 +186,7 @@ public class Main {
                     rs.saveMetadataDraftEntity(metaDraft);
                     // save data to question's metadata instance, too
                     val meta = domainQuestion.getQuestionData().getOptions().getMetadata();
-                    meta.setQDataGraph(filename);
+                    meta.setQDataGraphPath(filename);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
