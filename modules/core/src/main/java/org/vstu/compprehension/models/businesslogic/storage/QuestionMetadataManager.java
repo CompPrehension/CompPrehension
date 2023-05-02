@@ -6,7 +6,7 @@ import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.math.BigInteger;
@@ -16,7 +16,7 @@ import java.util.*;
 public class QuestionMetadataManager {
 
     Domain domain;
-    QuestionMetadataBaseRepository questionRepository;
+    QuestionMetadataRepository questionRepository;
     QuestionGroupStat wholeBankStat;
     HashMap<String, Long> conceptName2bit;
     HashMap<String, Long> lawName2bit;
@@ -24,7 +24,7 @@ public class QuestionMetadataManager {
 
     public QuestionMetadataManager(
             Domain domain,
-            QuestionMetadataBaseRepository questionMetadataRepository
+            QuestionMetadataRepository questionMetadataRepository
     ) {
         this.questionRepository = questionMetadataRepository;
 

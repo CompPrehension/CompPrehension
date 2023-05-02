@@ -7,7 +7,6 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
@@ -29,12 +28,12 @@ import java.util.stream.Collectors;
 @Service
 public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
-    private final QuestionMetadataBaseRepository metadataRep;
+    private final QuestionMetadataRepository metadataRep;
     private final QuestionMetadataRepository metadataDraftRep;
     private final TaskGenerationJobConfig config;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataBaseRepository metadataRep, QuestionMetadataRepository metadataDraftRep, TaskGenerationJobConfig config) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, QuestionMetadataRepository metadataDraftRep, TaskGenerationJobConfig config) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
         this.metadataDraftRep = metadataDraftRep;

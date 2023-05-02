@@ -16,7 +16,6 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
@@ -336,7 +335,7 @@ public abstract class Domain {
         return new ArrayList<>();
     }
 
-    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+    public QuestionMetadataRepository getQuestionMetadataRepository() {
         return null;
     }
 

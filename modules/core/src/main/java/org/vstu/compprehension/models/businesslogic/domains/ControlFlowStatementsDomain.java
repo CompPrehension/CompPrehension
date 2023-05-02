@@ -31,7 +31,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
@@ -78,7 +78,7 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository;
+    private final QuestionMetadataRepository ctrlFlowQuestionMetadataRepository;
     @Getter
     private final QuestionMetadataRepository questionMetadataDraftRepository;
 
@@ -86,7 +86,7 @@ public class ControlFlowStatementsDomain extends Domain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository,
+            QuestionMetadataRepository ctrlFlowQuestionMetadataRepository,
             QuestionMetadataRepository questionMetadataRepository,
             QuestionRequestLogRepository questionRequestLogRepository) {
         super(domainEntity, randomProvider, questionRequestLogRepository);
@@ -219,7 +219,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+    public QuestionMetadataRepository getQuestionMetadataRepository() {
         return ctrlFlowQuestionMetadataRepository;
     }
 

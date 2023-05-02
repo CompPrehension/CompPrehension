@@ -12,7 +12,6 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -30,7 +29,7 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionMetadataBaseRepository exprQuestionMetadataRepository,
+                             QuestionMetadataRepository exprQuestionMetadataRepository,
                              QuestionMetadataRepository exprQuestionMetadataDraftRepository,
                              QuestionRequestLogRepository questionRequestLogRepository) {
 

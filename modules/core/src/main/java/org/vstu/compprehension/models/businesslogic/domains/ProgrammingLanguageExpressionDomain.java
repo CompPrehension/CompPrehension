@@ -31,7 +31,6 @@ import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
@@ -68,13 +67,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    private final QuestionMetadataBaseRepository exprQuestionMetadataRepository;
+    private final QuestionMetadataRepository exprQuestionMetadataRepository;
 
     public ProgrammingLanguageExpressionDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataBaseRepository exprQuestionMetadataRepository,
+            QuestionMetadataRepository exprQuestionMetadataRepository,
             QuestionMetadataRepository exprQuestionMetadataDraftRepository,
             QuestionRequestLogRepository questionRequestLogRepository) {
 
@@ -361,7 +360,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+    public QuestionMetadataRepository getQuestionMetadataRepository() {
         return exprQuestionMetadataRepository;
     }
 
@@ -916,7 +915,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
 //    @Override
-//    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+//    public QuestionMetadataRepository getQuestionMetadataRepository() {
 //        return null;
 //    }
 
