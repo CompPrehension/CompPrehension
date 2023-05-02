@@ -16,9 +16,6 @@
             <column name="q_s_graph" type="text" afterColumn="q_graph"/>
         </addColumn>
     </changeSet>
-    <changeSet id="1683022406368-31" author="Mikhail Denisov">
-        <addNotNullConstraint columnDataType="BOOLEAN" columnName="is_draft" tableName="questions_meta"/>
-    </changeSet>
 
 </databaseChangeLog>
 
