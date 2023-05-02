@@ -62,7 +62,6 @@ public class Main {
                 new FakeLocalizationService(),
                 new FakeRandomProvider(),
                 new FakeQuestionMetadataRepository(),
-                new FakeQuestionMetadataDraftRepository(),
                 new FakeQuestionRequestLogRepository()
         );
 
@@ -77,7 +76,7 @@ public class Main {
         cnf.setStorageDummyDirsForNewFile(2);
         // TODO: using LocalRdfStorage (while the code is) in RdfStorage. Move something?
         LocalRdfStorage rs = new LocalRdfStorage(domain.getDomainEntity(),
-                new FakeQuestionMetadataDraftRepository(),
+                new FakeQuestionMetadataRepository(),
                 new QuestionMetadataManager(domain, new FakeQuestionMetadataRepository()));
 
         // Find files in local directory

@@ -67,40 +67,25 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    private final QuestionMetadataRepository exprQuestionMetadataRepository;
 
     public ProgrammingLanguageExpressionDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataRepository exprQuestionMetadataRepository,
-            QuestionMetadataRepository exprQuestionMetadataDraftRepository,
+            QuestionMetadataRepository questionMetadataRepository,
             QuestionRequestLogRepository questionRequestLogRepository) {
 
-        super(domainEntity, randomProvider, questionRequestLogRepository);
+        super(domainEntity, randomProvider, questionRequestLogRepository, questionMetadataRepository);
 
         this.localizationService = localizationService;
-        this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
         this.rdfStorage = new LocalRdfStorage(
-                domainEntity, exprQuestionMetadataDraftRepository, new QuestionMetadataManager(this, exprQuestionMetadataRepository));
+                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
 
         fillTags();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
-
-    @Override
-    public String getShortName() {
-        return "expression";
-    }
-
-    @NotNull
-    @Override
-    public String getDomainId() {
-        return "ProgrammingLanguageExpressionDomain";
-    }
-
 
     private void fillTags() {
         tags = new HashMap<>();
@@ -358,12 +343,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // init questions storage
         getRdfStorage();
     }
-
-    @Override
-    public QuestionMetadataRepository getQuestionMetadataRepository() {
-        return exprQuestionMetadataRepository;
-    }
-
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {

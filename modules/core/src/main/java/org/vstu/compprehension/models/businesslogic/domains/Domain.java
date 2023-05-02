@@ -54,14 +54,17 @@ public abstract class Domain {
     @Getter
     private final QuestionRequestLogRepository questionRequestLogRepository;
     @Getter
+    private final QuestionMetadataRepository questionMetadataRepository;
+    @Getter
     protected AbstractRdfStorage rdfStorage = null;
     @Getter
     private final DomainEntity domainEntity;
 
-    public Domain(DomainEntity domainEntity, RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository) {
+    public Domain(DomainEntity domainEntity, RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataRepository questionMetadataRepository) {
         this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
         this.questionRequestLogRepository = questionRequestLogRepository;
+        this.questionMetadataRepository = questionMetadataRepository;
     }
 
     /**
@@ -69,13 +72,16 @@ public abstract class Domain {
      */
     public abstract void update();
 
+
+    public @NotNull String getDomainId() {
+        return domainEntity.getName();
+    }
     public String getName() {
         return domainEntity.getName();
     }
     public String getShortName() {
         return domainEntity.getShortName();  // same as name by default
     }
-
     public String getVersion() {
         return version;
     }
@@ -335,10 +341,6 @@ public abstract class Domain {
         return new ArrayList<>();
     }
 
-    public QuestionMetadataRepository getQuestionMetadataRepository() {
-        return null;
-    }
-
     public QuestionMetadataRepository getQuestionMetadataDraftRepository() {
         return null;
     }
@@ -369,8 +371,6 @@ public abstract class Domain {
     public double getAcceptableRateOfIgnoredMistakes() {
         return 0.0834;  // = 1/12
     }
-
-    public abstract @NotNull String getDomainId();
 
     /**
      * Get text description of all steps to right solution

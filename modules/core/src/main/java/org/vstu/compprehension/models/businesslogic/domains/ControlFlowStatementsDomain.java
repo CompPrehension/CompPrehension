@@ -31,9 +31,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -78,34 +76,23 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final QuestionMetadataRepository ctrlFlowQuestionMetadataRepository;
-    @Getter
-    private final QuestionMetadataRepository questionMetadataDraftRepository;
 
     public ControlFlowStatementsDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataRepository ctrlFlowQuestionMetadataRepository,
             QuestionMetadataRepository questionMetadataRepository,
             QuestionRequestLogRepository questionRequestLogRepository) {
-        super(domainEntity, randomProvider, questionRequestLogRepository);
+        super(domainEntity, randomProvider, questionRequestLogRepository, questionMetadataRepository);
 
         this.localizationService = localizationService;
-        this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
-        this.questionMetadataDraftRepository = questionMetadataRepository;
         this.rdfStorage = new LocalRdfStorage(
-                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, ctrlFlowQuestionMetadataRepository));
+                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
         // OFF: // update();
-    }
-
-    @Override
-    public String getShortName() {
-        return "ctrl_flow";
     }
 
     public static void initVocab() {
@@ -217,12 +204,6 @@ public class ControlFlowStatementsDomain extends Domain {
         // init questions storage
         getRdfStorage();
     }
-
-    @Override
-    public QuestionMetadataRepository getQuestionMetadataRepository() {
-        return ctrlFlowQuestionMetadataRepository;
-    }
-
 
     @Override
     public Model getSchemaForSolving() {
@@ -2052,12 +2033,6 @@ public class ControlFlowStatementsDomain extends Domain {
                 Question.class);
 
         return question;
-    }
-
-    @NotNull
-    @Override
-    public String getDomainId() {
-        return "ControlFlowStatementsDomain";
     }
 
     @Override

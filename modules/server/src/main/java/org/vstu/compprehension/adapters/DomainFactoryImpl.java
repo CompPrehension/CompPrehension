@@ -29,8 +29,7 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionMetadataRepository exprQuestionMetadataRepository,
-                             QuestionMetadataRepository exprQuestionMetadataDraftRepository,
+                             QuestionMetadataRepository questionMetadataRepository,
                              QuestionRequestLogRepository questionRequestLogRepository) {
 
 
@@ -44,8 +43,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     progExprDomainEntity,
                     localizationService,
                     randomProvider,
-                    exprQuestionMetadataRepository,
-                    exprQuestionMetadataDraftRepository,
+                    questionMetadataRepository,
                     questionRequestLogRepository);
             domainToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
         }
@@ -58,8 +56,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     controlFlowDomainEntity,
                     localizationService,
                     randomProvider,
-                    exprQuestionMetadataRepository,
-                    exprQuestionMetadataDraftRepository,
+                    questionMetadataRepository,
                     questionRequestLogRepository);
             domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
         }
