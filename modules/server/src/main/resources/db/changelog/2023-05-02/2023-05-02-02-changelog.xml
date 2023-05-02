@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1683020046917-37" author="Mikhail Denisov">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="answer_object"
+                                 constraintName="FK_ANSWEROBJECT_ON_QUESTION" referencedColumnNames="id"
+                                 referencedTableName="question"/>
+    </changeSet>
+    <changeSet id="1683020046917-38" author="Mikhail Denisov">
+        <addForeignKeyConstraint baseColumnNames="domain_name" baseTableName="question"
+                                 constraintName="FK_QUESTION_ON_DOMAIN_NAME" referencedColumnNames="name"
+                                 referencedTableName="domain"/>
+    </changeSet>
+    <changeSet id="1683020046917-39" author="Mikhail Denisov">
+        <addForeignKeyConstraint baseColumnNames="exercise_attempt_id" baseTableName="question"
+                                 constraintName="FK_QUESTION_ON_EXERCISEATTEMPT" referencedColumnNames="id"
+                                 referencedTableName="exercise_attempt"/>
+    </changeSet>
+    <changeSet id="1683020046917-17" author="Mikhail Denisov">
+        <addNotNullConstraint columnDataType="INT" columnName="outdated" tableName="question_request_log"
+                              validate="true"/>
+    </changeSet>
+
+</databaseChangeLog>
