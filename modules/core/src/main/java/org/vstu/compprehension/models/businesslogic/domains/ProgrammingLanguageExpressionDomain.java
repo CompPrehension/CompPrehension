@@ -14,8 +14,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
@@ -33,15 +31,13 @@ import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import javax.inject.Singleton;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -79,7 +75,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionMetadataBaseRepository exprQuestionMetadataRepository,
-            QuestionMetadataDraftRepository exprQuestionMetadataDraftRepository,
+            QuestionMetadataRepository exprQuestionMetadataDraftRepository,
             QuestionRequestLogRepository questionRequestLogRepository) {
 
         super(domainEntity, randomProvider, questionRequestLogRepository);
@@ -2533,7 +2529,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setOptions(new OrderQuestionOptionsEntity());
         }
 
-        QuestionMetadataDraftEntity meta = rs.findQuestionByName(questionName);
+        QuestionMetadataEntity meta = rs.findQuestionByName(questionName);
         if (meta == null) {
             meta = rs.createQuestion(this, questionName, questionName.split("_v")[0], false);
         }

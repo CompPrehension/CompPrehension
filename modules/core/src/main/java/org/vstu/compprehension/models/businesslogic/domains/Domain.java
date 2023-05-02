@@ -12,13 +12,12 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -341,7 +340,7 @@ public abstract class Domain {
         return null;
     }
 
-    public QuestionMetadataDraftRepository getQuestionMetadataDraftRepository() {
+    public QuestionMetadataRepository getQuestionMetadataDraftRepository() {
         return null;
     }
 

@@ -4,19 +4,18 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
 import java.util.Collection;
 import java.util.List;
 
 
-public interface QuestionMetadataDraftRepository extends CrudRepository<QuestionMetadataDraftEntity, Integer> {
+public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer> {
 
     @NotNull
     @Query("select q from #{#entityName} q where q.name = :questionName")
-    List<QuestionMetadataDraftEntity> findByName(@Param("questionName") String questionName);
+    List<QuestionMetadataEntity> findByName(@Param("questionName") String questionName);
 
     @NotNull
     @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // ( AND q.stage = :stage ) ?
@@ -25,10 +24,11 @@ public interface QuestionMetadataDraftRepository extends CrudRepository<Question
     );
 
 
-    @Query(value = "select * from questions_meta_draft q " +
+    @Query(value = "select * from questions_meta q " +
             "where " +
             "q.domain_shortname = :#{#qr.domainShortname} and " +
             "1 AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
             "AND q.solution_steps >= :#{#qr.stepsMin} " +
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
@@ -39,7 +39,7 @@ public interface QuestionMetadataDraftRepository extends CrudRepository<Question
             "   AND IF(:#{#qr.conceptsTargetedBitmask} =0,1,q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
             "   AND IF(:#{#qr.lawsTargetedBitmask} =0,1,q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0) " +
             "limit :lim", nativeQuery = true)
-    Collection<QuestionMetadataDraftEntity>
+    Collection<QuestionMetadataEntity>
     findSuitableQuestions(
             @Param("qr") QuestionRequestLogEntity qr,
             // // @Param("qr") QuestionRequest qr  // would also work since common fields are the same
@@ -47,13 +47,14 @@ public interface QuestionMetadataDraftRepository extends CrudRepository<Question
     );
 
 
-    @Query(value = "select q.* from questions_meta_draft q" +
+    @Query(value = "select q.* from questions_meta q" +
             " LEFT JOIN questions_meta p ON (q.name = p.name AND q.domain_shortname = p.domain_shortname AND p._stage = 3) " +
             " where " +
-            " p.id is NULL AND " + // this draft is not in production table
+            "p.id is NULL AND " + // this draft is not in production table
             "q.domain_shortname = :domainShortname AND q._stage = 4 " + // 4 = STAGE_EXPORTED
+            "AND q.is_draft = 1 " +
             "", nativeQuery = true)
-    List<QuestionMetadataDraftEntity> findNotYetExportedQuestions(
+    List<QuestionMetadataEntity> findNotYetExportedQuestions(
             @Param("domainShortname") String domainShortname
     );
 

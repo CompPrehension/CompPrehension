@@ -1,18 +1,13 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.JenaException;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.File;
@@ -34,13 +29,13 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     String qGraph_filepath = null;
 
     public LocalRdfStorage(DomainEntity domain,
-                           QuestionMetadataDraftRepository questionMetadataDraftRepository,
+                           QuestionMetadataRepository questionMetadataRepository,
                            QuestionMetadataManager questionMetadataManager) {
         super(new RemoteFileService(
                         domain.getOptions().getStorageUploadFilesBaseUrl(),
                 Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl())
                         .orElse(domain.getOptions().getStorageUploadFilesBaseUrl())),
-                questionMetadataDraftRepository,
+                questionMetadataRepository,
                 questionMetadataManager);
 
         // use options from Domain

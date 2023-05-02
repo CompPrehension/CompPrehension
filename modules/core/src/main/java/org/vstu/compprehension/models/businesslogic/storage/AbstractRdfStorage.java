@@ -25,10 +25,10 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataDraftEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
@@ -105,15 +105,15 @@ public abstract class AbstractRdfStorage {
 
     @Getter
     private final RemoteFileService fileService;
-    private final QuestionMetadataDraftRepository questionMetadataDraftRepository;
+    private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
     protected AbstractRdfStorage(
             RemoteFileService fileService,
-            QuestionMetadataDraftRepository questionMetadataDraftRepository,
+            QuestionMetadataRepository questionMetadataRepository,
             QuestionMetadataManager questionMetadataManager) {
         this.fileService = fileService;
-        this.questionMetadataDraftRepository = questionMetadataDraftRepository;
+        this.questionMetadataRepository = questionMetadataRepository;
         this.questionMetadataManager = questionMetadataManager;
     }
 
@@ -475,7 +475,7 @@ public abstract class AbstractRdfStorage {
 
     public String nameForQuestionGraph(String questionName, GraphRole role) {
         // look for <Question>.<subgraph> property in metadata first
-        QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
+        QuestionMetadataEntity meta = findQuestionByName(questionName);
         String targetPath = null;
         if (meta != null)
             switch (role) {
@@ -488,7 +488,7 @@ public abstract class AbstractRdfStorage {
                 case QUESTION_SOLVED:
                     targetPath = meta.getQSolvedGraphPath(); break;
                 case QUESTION_DATA:
-                    targetPath = meta.getQDataGraphPath(); break;
+                    targetPath = meta.getQDataGraph(); break;
             }
 
         if (targetPath != null) {
@@ -504,8 +504,8 @@ public abstract class AbstractRdfStorage {
     /**
      * Find and return row of question or question template with given name from 'question_meta_draft' table
      */
-    public QuestionMetadataDraftEntity findQuestionByName(String questionName) {
-        val repo = this.questionMetadataDraftRepository;
+    public QuestionMetadataEntity findQuestionByName(String questionName) {
+        val repo = this.questionMetadataRepository;
         if (repo == null)
             return null;
 
@@ -603,7 +603,7 @@ public abstract class AbstractRdfStorage {
      * @param model data to store
      * @return saved metadata instance if saved successful, else null
      */
-    public QuestionMetadataDraftEntity setQuestionSubgraph(Domain domain, String questionName, GraphRole role, Model model) {
+    public QuestionMetadataEntity setQuestionSubgraph(Domain domain, String questionName, GraphRole role, Model model) {
         String qgSubPath = nameForQuestionGraph(questionName, role);
         boolean success = sendModel(qgSubPath, model);
 
@@ -611,7 +611,7 @@ public abstract class AbstractRdfStorage {
             return null;
 
         // update questions metadata
-        QuestionMetadataDraftEntity meta = findQuestionByName(questionName);
+        QuestionMetadataEntity meta = findQuestionByName(questionName);
         if (meta == null) {
             // проинициализировать метаданные шаблона вопроса, далее сохранить в БД
             if (role == GraphRole.QUESTION_TEMPLATE || role == GraphRole.QUESTION_TEMPLATE_SOLVED)
@@ -637,8 +637,10 @@ public abstract class AbstractRdfStorage {
     }
 
     @NotNull
-    public QuestionMetadataDraftEntity saveMetadataDraftEntity(QuestionMetadataDraftEntity meta) {
-        return questionMetadataDraftRepository.save(meta);
+    public QuestionMetadataEntity saveMetadataDraftEntity(QuestionMetadataEntity meta) {
+        if (meta.isDraft() == false)
+            meta.setDraft(true);
+        return questionMetadataRepository.save(meta);
     }
 
     /**
@@ -647,20 +649,21 @@ public abstract class AbstractRdfStorage {
      * @param questionTemplateName unique identifier-like name of question template
      * @return fresh or existing QuestionMetadataDraftEntity instance
      */
-    public QuestionMetadataDraftEntity createQuestionTemplate(Domain domain, String questionTemplateName) {
+    public QuestionMetadataEntity createQuestionTemplate(Domain domain, String questionTemplateName) {
         // find template metadata
-        QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
+        QuestionMetadataEntity templateMeta = findQuestionByName(questionTemplateName);
 
         if (templateMeta != null) {
             return templateMeta;
         }
 
-        val builder = QuestionMetadataDraftEntity.builder();
+        val builder = QuestionMetadataEntity.builder();
 
         // проинициализировать метаданные вопроса, далее сохранить в БД
         templateMeta = builder.name(questionTemplateName)
                 .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
                 .templateId(-1)
+                .isDraft(true)
                 .stage(STAGE_TEMPLATE)
                 .version(GENERATOR_VERSION)
                 .build();
@@ -676,13 +679,13 @@ public abstract class AbstractRdfStorage {
      * @param questionName unique identifier-like name of question
      * @return true on success
      */
-    public QuestionMetadataDraftEntity createQuestion(Domain domain, String questionName, String questionTemplateName, boolean recreate) {
+    public QuestionMetadataEntity createQuestion(Domain domain, String questionName, String questionTemplateName, boolean recreate) {
 
         // find template metadata
-        QuestionMetadataDraftEntity templateMeta = findQuestionByName(questionTemplateName);
+        QuestionMetadataEntity templateMeta = findQuestionByName(questionTemplateName);
 
 
-        QuestionMetadataDraftEntity meta;
+        QuestionMetadataEntity meta;
         if (!recreate) {
             meta = findQuestionByName(questionName);
             if (meta != null) {
@@ -692,7 +695,7 @@ public abstract class AbstractRdfStorage {
                 return meta;
             }
         }
-        QuestionMetadataDraftEntity.QuestionMetadataDraftEntityBuilder builder;
+        QuestionMetadataEntity.QuestionMetadataEntityBuilder builder;
         int templateId;
         if (templateMeta != null) {
             // get builder to copy data from template
@@ -700,7 +703,7 @@ public abstract class AbstractRdfStorage {
                     .id(null); // reset id
             templateId = templateMeta.getId();
         } else {
-            builder = QuestionMetadataDraftEntity.builder()
+            builder = QuestionMetadataEntity.builder()
                     .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""));
             templateId = -1;
         }
@@ -708,6 +711,7 @@ public abstract class AbstractRdfStorage {
         // проинициализировать метаданные вопроса, далее сохранить в БД
         meta = builder.name(questionName)
                     .templateId(templateId)
+                    .isDraft(true)
                     .stage(STAGE_QUESTION)
                     .version(GENERATOR_VERSION)
                     .build();
@@ -732,7 +736,7 @@ public abstract class AbstractRdfStorage {
             if (qgSubPath != null) {
                 fileService.deleteFile(qgSubPath);
             }
-            qgSubPath = meta.getQDataGraphPath();
+            qgSubPath = meta.getQDataGraph();
             if (qgSubPath != null) {
                 fileService.deleteFile(qgSubPath);
             }
@@ -741,7 +745,7 @@ public abstract class AbstractRdfStorage {
         }
 
         // delete db entry
-        questionMetadataDraftRepository.delete(meta);
+        questionMetadataRepository.delete(meta);
     }
 
     /* *

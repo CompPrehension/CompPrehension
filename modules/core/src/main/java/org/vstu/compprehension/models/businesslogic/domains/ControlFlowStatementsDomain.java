@@ -16,14 +16,11 @@ import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.*;
@@ -34,15 +31,13 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import javax.inject.Singleton;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -85,22 +80,22 @@ public class ControlFlowStatementsDomain extends Domain {
     private final LocalizationService localizationService;
     private final QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository;
     @Getter
-    private final QuestionMetadataDraftRepository questionMetadataDraftRepository;
+    private final QuestionMetadataRepository questionMetadataDraftRepository;
 
     public ControlFlowStatementsDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository,
-            QuestionMetadataDraftRepository questionMetadataDraftRepository,
+            QuestionMetadataRepository questionMetadataRepository,
             QuestionRequestLogRepository questionRequestLogRepository) {
         super(domainEntity, randomProvider, questionRequestLogRepository);
 
         this.localizationService = localizationService;
         this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
-        this.questionMetadataDraftRepository = questionMetadataDraftRepository;
+        this.questionMetadataDraftRepository = questionMetadataRepository;
         this.rdfStorage = new LocalRdfStorage(
-                domainEntity, questionMetadataDraftRepository, new QuestionMetadataManager(this, ctrlFlowQuestionMetadataRepository));
+                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, ctrlFlowQuestionMetadataRepository));
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));

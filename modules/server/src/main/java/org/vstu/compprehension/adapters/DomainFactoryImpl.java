@@ -13,14 +13,12 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataDraftRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
-import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 @Component
@@ -33,7 +31,7 @@ public class DomainFactoryImpl implements DomainFactory {
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
                              QuestionMetadataBaseRepository exprQuestionMetadataRepository,
-                             QuestionMetadataDraftRepository exprQuestionMetadataDraftRepository,
+                             QuestionMetadataRepository exprQuestionMetadataDraftRepository,
                              QuestionRequestLogRepository questionRequestLogRepository) {
 
 

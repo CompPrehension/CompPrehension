@@ -26,7 +26,8 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
             "min(q.integral_complexity) as min, " +
             "avg(q.integral_complexity) as mean, " +
             "max(q.integral_complexity) as max " +
-            "from questions_meta q where q.domain_shortname = :DOMAIN_NAME AND q._stage = 3",
+            "from questions_meta q where q.domain_shortname = :DOMAIN_NAME AND q._stage = 3 " +
+            "AND q.is_draft = 0",
             nativeQuery = true)
     Map<String, Object> getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
@@ -74,6 +75,7 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
     @Query(value = "SELECT * FROM (" +
             "select * from questions_meta q where " +
             "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
             "AND q.solution_steps >= :#{#qr.stepsMin} " +
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
@@ -100,6 +102,7 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
 
     @Query(value = "select count(*) as number from questions_meta q where " +
             "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
             "AND q.solution_steps >= :#{#qr.stepsMin} " +
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +

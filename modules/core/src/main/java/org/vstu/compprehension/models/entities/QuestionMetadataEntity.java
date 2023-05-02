@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 @Getter @Setter
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "questions_meta")
 @NoArgsConstructor
@@ -43,6 +43,11 @@ public class QuestionMetadataEntity {
 
     @Column(name = "q_data_graph")
     private String qDataGraph;
+
+    public void setQDataGraphPath(String path) {
+        // workaround due to change in field name in db/json
+        setQDataGraph(path);
+    }
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -172,5 +177,15 @@ public class QuestionMetadataEntity {
     /** Violations from request absent in question's violations */
     public Long violationsUnsatisfiedFromRequest() {
         return ~violationBits & violationBitsInRequest;
+    }
+
+    /**
+     * @return a copy with isDraft set to `false`; don't reset id
+     */
+    public QuestionMetadataEntity toMetadataEntity() {
+        return this.toBuilder()
+                // .id(null)  // don't reset id: reuse db row
+                .isDraft(false)
+                .build();
     }
 }
