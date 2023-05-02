@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.entities;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -41,7 +42,7 @@ public class QuestionMetadataEntity {
     private String qSolvedGraphPath;
 
     @Column(name = "q_data_graph")
-    private String qDataGraphPath;
+    private String qDataGraph;
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -94,6 +95,7 @@ public class QuestionMetadataEntity {
     private String structureHash;
 
 
+    @Column(name = "is_draft")
     @Builder.Default
     private boolean isDraft = false;
 
@@ -103,6 +105,7 @@ public class QuestionMetadataEntity {
     @Column(name = "origin")
     private String origin;
 
+    @Type(type = "json")
     @Column(name = "qrlog_ids", columnDefinition = "json")
     private List<Integer> qrlogIds;
 

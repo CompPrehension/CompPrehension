@@ -131,7 +131,7 @@ public class QuestionMetadataDraftEntity {
                 .domainShortname(this.getDomainShortname())
                 .templateId(Optional.ofNullable(this.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
                 // ... don't set q_graph (it's useless in production)
-                .qDataGraphPath(this.getQDataGraphPath())
+                .qDataGraph(this.getQDataGraphPath())
                 .tagBits(this.getTagBits())
                 .conceptBits(this.getConceptBits())
                 .lawBits(this.getLawBits())
@@ -163,7 +163,7 @@ public class QuestionMetadataDraftEntity {
                 .name(other.getName())
                 .domainShortname(other.getDomainShortname())
                 .templateId(Optional.ofNullable(other.getTemplateId()).orElse(-1))  // safe copy of NOT NULL field
-                .qDataGraphPath(other.getQDataGraphPath())
+                .qDataGraphPath(other.getQDataGraph())
                 .tagBits(other.getTagBits())
                 .conceptBits(other.getConceptBits())
                 .lawBits(other.getLawBits())
