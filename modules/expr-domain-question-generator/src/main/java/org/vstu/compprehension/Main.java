@@ -61,8 +61,7 @@ public class Main {
                 domainEntity,
                 new FakeLocalizationService(),
                 new FakeRandomProvider(),
-                new FakeQuestionMetadataRepository(),
-                new FakeQuestionRequestLogRepository()
+                new FakeQuestionMetadataRepository()
         );
 
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";

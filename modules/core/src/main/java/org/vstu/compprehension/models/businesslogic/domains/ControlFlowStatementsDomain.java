@@ -81,9 +81,8 @@ public class ControlFlowStatementsDomain extends Domain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataRepository questionMetadataRepository,
-            QuestionRequestLogRepository questionRequestLogRepository) {
-        super(domainEntity, randomProvider, questionRequestLogRepository, questionMetadataRepository);
+            QuestionMetadataRepository questionMetadataRepository) {
+        super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
         this.rdfStorage = new LocalRdfStorage(
@@ -494,7 +493,6 @@ public class ControlFlowStatementsDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                saveQuestionRequest(questionRequest);
                 foundQuestions = getRdfStorage().searchQuestions(this, questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"

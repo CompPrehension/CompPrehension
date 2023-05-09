@@ -72,10 +72,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataRepository questionMetadataRepository,
-            QuestionRequestLogRepository questionRequestLogRepository) {
+            QuestionMetadataRepository questionMetadataRepository) {
 
-        super(domainEntity, randomProvider, questionRequestLogRepository, questionMetadataRepository);
+        super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
         this.rdfStorage = new LocalRdfStorage(
@@ -605,7 +604,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                saveQuestionRequest(questionRequest);
                 foundQuestions = getRdfStorage().searchQuestions(this, questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"

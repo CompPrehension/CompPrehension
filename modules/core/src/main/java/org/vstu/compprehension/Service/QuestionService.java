@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
@@ -20,52 +21,67 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.utils.HyperText;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigInteger;
+import java.util.*;
 
 @Log4j2
 @Service
 public class QuestionService {
+    private final QuestionRepository questionRepository;
+    private final AnswerObjectRepository answerObjectRepository;
+    private final AbstractStrategyFactory strategyFactory;
+    private final BackendFactory backendFactory;
+    private final DomainService domainService;
+    private final InteractionRepository interactionRepository;
+    private final ResponseRepository responseRepository;
+    private final DomainFactory domainFactory;
+    private final QuestionRequestLogRepository questionRequestLogRepository;
+    private final QuestionMetadataRepository questionMetadataRepository;
 
     @Autowired
-    private QuestionRepository questionRepository;
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataRepository questionMetadataRepository) {
+        this.questionRepository = questionRepository;
+        this.answerObjectRepository = answerObjectRepository;
+        this.strategyFactory = strategyFactory;
+        this.backendFactory = backendFactory;
+        this.domainService = domainService;
+        this.interactionRepository = interactionRepository;
+        this.responseRepository = responseRepository;
+        this.domainFactory = domainFactory;
+        this.questionRequestLogRepository = questionRequestLogRepository;
+        this.questionMetadataRepository = questionMetadataRepository;
+    }
 
-    @Autowired
-    AnswerObjectRepository answerObjectRepository;
-
-    @Autowired
-    //private Strategy strategy;
-    private AbstractStrategyFactory strategyFactory;
-
-    @Autowired
-    private BackendFactory backendFactory;
-
-    @Autowired
-    private DomainService domainService;
-
-    @Autowired
-    private InteractionRepository interactionRepository;
-
-    @Autowired
-    private ResponseRepository responseRepository;
-
-    @Autowired
-    private DomainFactory domainFactory;
 
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
+        saveQuestionRequest(qr);
         Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
         return question;
     }
+
+    private void saveQuestionRequest(QuestionRequest qr) {
+        // fill empty lists
+        if (qr.getDeniedQuestionMetaIds().isEmpty())
+            qr.getDeniedQuestionMetaIds().add(0);
+        if (qr.getDeniedQuestionTemplateIds().isEmpty())
+            qr.getDeniedQuestionTemplateIds().add(0);
+
+        val qrl = qr.getLogEntity();
+
+        Map<String, Object> res = questionMetadataRepository.countQuestions(qr);
+        int questionsFound = ((BigInteger)res.getOrDefault("number", -2)).intValue();
+        qrl.setFoundCount(questionsFound);
+        qrl.setCreatedDate(new Date());
+        questionRequestLogRepository.save(qrl);
+    }
+
 
     public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());

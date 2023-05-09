@@ -52,19 +52,13 @@ public abstract class Domain {
     @Getter
     protected final RandomProvider randomProvider;
     @Getter
-    private final QuestionRequestLogRepository questionRequestLogRepository;
-    @Getter
-    private final QuestionMetadataRepository questionMetadataRepository;
-    @Getter
     protected AbstractRdfStorage rdfStorage = null;
     @Getter
     private final DomainEntity domainEntity;
 
-    public Domain(DomainEntity domainEntity, RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataRepository questionMetadataRepository) {
+    public Domain(DomainEntity domainEntity, RandomProvider randomProvider) {
         this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
-        this.questionRequestLogRepository = questionRequestLogRepository;
-        this.questionMetadataRepository = questionMetadataRepository;
     }
 
     /**
@@ -339,27 +333,6 @@ public abstract class Domain {
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         // the default
         return new ArrayList<>();
-    }
-
-    public QuestionMetadataRepository getQuestionMetadataDraftRepository() {
-        return null;
-    }
-
-    public void saveQuestionRequest(QuestionRequest qr) {
-
-        // fill empty lists
-        if (qr.getDeniedQuestionMetaIds().isEmpty())
-            qr.getDeniedQuestionMetaIds().add(0);
-        if (qr.getDeniedQuestionTemplateIds().isEmpty())
-            qr.getDeniedQuestionTemplateIds().add(0);
-
-        val qrl = qr.getLogEntity();
-
-        Map<String, Object> res = getQuestionMetadataRepository().countQuestions(qr);
-        int questionsFound = ((BigInteger)res.getOrDefault("number", -2)).intValue();
-        qrl.setFoundCount(questionsFound);
-        qrl.setCreatedDate(new Date());
-        questionRequestLogRepository.save(qrl);
     }
 
     abstract public Question parseQuestionTemplate(InputStream stream);
