@@ -43,10 +43,13 @@ public class TaskGenerationJob {
     @SneakyThrows
     @Job
     public void run() {
-        while (runGeneration4Expr()) {
-            // log.info("Run again: Generating questions for expression domain");
-            break;
+        log.info("Run generating questions for expression domain");
+        try {
+            runGeneration4Expr();
+        } catch (Exception e) {
+            log.warn("job exception", e);
         }
+        System.exit(0);
     }
 
     /**
@@ -74,6 +77,8 @@ public class TaskGenerationJob {
         boolean parseSources = !_debugGenerator;
         boolean generateQuestions = !_debugGenerator;
         boolean exportQuestionsToProduction = true;
+        
+        int repositoriesToDownload = 1;
 
 
         // folders cleanup
@@ -135,8 +140,8 @@ public class TaskGenerationJob {
                         return 0;
                     }, null);
 
-                    // пока только 10 репозиториев
-                    // if (++idx >= 10)
+                     // for now, limited number of repositories
+                     if (++idx >= repositoriesToDownload)
                         break;
                 }
             }
@@ -157,7 +162,7 @@ public class TaskGenerationJob {
                 Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
 
                 var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
-                files = files.subList(0, Math.min(10, files.size()));
+                files = files.subList(0, Math.min(50, files.size()));
                 log.info("Found {} *.c & *.m files", files.size());
 
                 List<String> parserProcessCommandBuilder = new ArrayList<>();
@@ -204,8 +209,8 @@ public class TaskGenerationJob {
             log.info("Start question generation from " + repos.size() + " repository(-ies) ...");
 
             for (var repoDir : repos) {
-//            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
-//            log.info("Found {} ttl files", allTtlFiles.size());
+                var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
+                log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
 
                 String leafFolder = repoDir.getFileName().toString();
 
