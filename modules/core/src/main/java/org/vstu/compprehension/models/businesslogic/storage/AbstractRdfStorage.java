@@ -153,7 +153,7 @@ public abstract class AbstractRdfStorage {
         int hardLimit = 25;
 
         double complexity = qr.getComplexity();
-        complexity = metaMgr.wholeBankStat.complexityStat.rescaleExternalValue(complexity, 0, 1);
+        complexity = metaMgr.getWholeBankStat().complexityStat.rescaleExternalValue(complexity, 0, 1);
 
         long targetConceptsBitmask = qr.getConceptsTargetedBitmask();
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
@@ -1000,7 +1000,7 @@ public abstract class AbstractRdfStorage {
             m.add(m2);
 
         String uri = NS_graphs.get(GraphRole.SCHEMA_SOLVED.ns().base());
-        if (!dataset.containsNamedModel(uri) && !m.isEmpty()) {
+        if (dataset != null && !dataset.containsNamedModel(uri) && !m.isEmpty()) {
             Model inferred = runReasoning(m, getDomainRulesForSolvingAtLevel(domain, GraphRole.SCHEMA), true);
             if (inferred.isEmpty()) {
                 // add anything to avoid re-calculation

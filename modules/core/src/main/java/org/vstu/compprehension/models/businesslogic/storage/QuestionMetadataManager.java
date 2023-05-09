@@ -15,20 +15,17 @@ import java.util.*;
 @Getter
 public class QuestionMetadataManager {
 
-    Domain domain;
-    QuestionMetadataRepository questionRepository;
-    QuestionGroupStat wholeBankStat;
-    HashMap<String, Long> conceptName2bit;
-    HashMap<String, Long> lawName2bit;
-    HashMap<String, Long> violationName2bit;
+    private final Domain domain;
+    private final QuestionMetadataRepository questionRepository;
+    private QuestionGroupStat wholeBankStat;
+    //private final HashMap<String, Long> conceptName2bit;
+    //private final HashMap<String, Long> lawName2bit;
+    //private final HashMap<String, Long> violationName2bit;
 
-    public QuestionMetadataManager(
-            Domain domain,
-            QuestionMetadataRepository questionMetadataRepository
+    public QuestionMetadataManager(Domain domain, QuestionMetadataRepository questionMetadataRepository
     ) {
+        this.domain = domain;
         this.questionRepository = questionMetadataRepository;
-
-        initBankStat(domain);
     }
 
     public static long namesToBitmask(Collection<String> names, Map<String, Long> name2bitMapping) {
@@ -37,9 +34,17 @@ public class QuestionMetadataManager {
                 .reduce((a,b) -> a | b).orElse(0L);
     }
 
-    private void initBankStat(Domain domain) {
-        Checkpointer ch = new Checkpointer();
+    public QuestionGroupStat getWholeBankStat() {
+        ensureBankStatLoaded();
+        return wholeBankStat;
+    }
 
+    private void ensureBankStatLoaded() {
+        if (wholeBankStat != null) {
+            return;
+        }
+
+        Checkpointer ch = new Checkpointer();
         Map<String, Object> data = questionRepository.getStatOnComplexityField(domain.getShortName());
         NumericStat complStat = new NumericStat();
         complStat.setCount((Optional.ofNullable((BigInteger)data.get("count")).orElse(BigInteger.ZERO)).intValue());
@@ -60,6 +65,8 @@ public class QuestionMetadataManager {
             int limit,
             int randomPoolLimit
     ) {
+        ensureBankStatLoaded();
+
         // lists cannot be empty in SQL: workaround
         val templatesIds = qr.getDeniedQuestionTemplateIds();
         if (templatesIds == null || templatesIds.isEmpty()) {

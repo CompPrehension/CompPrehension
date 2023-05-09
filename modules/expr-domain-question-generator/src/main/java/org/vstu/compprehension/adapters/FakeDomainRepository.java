@@ -23,7 +23,13 @@ public class FakeDomainRepository implements DomainRepository {
         e.setName("expression");
         e.setShortName("expr");
         e.setVersion("1.0.0");
-        e.setOptions(new DomainOptionsEntity());
+        e.setOptions(DomainOptionsEntity.builder()
+                        .QuestionsGraphPath("C:/Temp2/compp/expression.ttl")
+                        .StorageDownloadFilesBaseUrl("file:///C:/Temp2/compp/expression/")
+                        .StorageDummyDirsForNewFile(2)
+                        .StorageSPARQLEndpointUrl(null)
+                        .StorageUploadFilesBaseUrl("file:///C:/Temp2/compp/expression/")
+                        .build());
         return Optional.of(e);
     }
 
