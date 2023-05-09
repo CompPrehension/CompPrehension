@@ -5,6 +5,7 @@ import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class FakeDomainRepository implements DomainRepository {
     @Override
@@ -40,12 +41,12 @@ public class FakeDomainRepository implements DomainRepository {
 
     @Override
     public Iterable<DomainEntity> findAll() {
-        return findById(null).stream().toList();
+        return findById(null).stream().collect(Collectors.toList());
     }
 
     @Override
     public Iterable<DomainEntity> findAllById(Iterable<String> iterable) {
-        return findById(null).stream().toList();
+        return findById(null).stream().collect(Collectors.toList());
     }
 
     @Override
