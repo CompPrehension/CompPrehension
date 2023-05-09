@@ -85,19 +85,23 @@ public class QuestionMetadataEntity {
     @Column(name = "_version")
     private Integer version;
 
+    @Builder.Default
     @Column(name = "used_count")
-    private Long usedCount;
+    private Long usedCount = 0L;
 
+    @Builder.Default
     @Column(name = "date_last_used")
-    private Date dateLastUsed;
+    private Date dateLastUsed = null;
 
+    @Builder.Default
     @Column(name = "last_attempt_id")
-    private Long lastAttemptId;
+    private Long lastAttemptId = 0L;
 
     /** compact representation of meaningful structure; may be used to determine similar questions
      * */
+    @Builder.Default
     @Column(name = "structure_hash")
-    private String structureHash;
+    private String structureHash = "";
 
 
     @Column(name = "is_draft")
@@ -107,12 +111,14 @@ public class QuestionMetadataEntity {
     /**
      * URL or name of GitHub repository from which this question was created
      */
+    @Builder.Default
     @Column(name = "origin")
-    private String origin;
+    private String origin = "";
 
+    @Builder.Default
     @Type(type = "json")
     @Column(name = "qrlog_ids", columnDefinition = "json")
-    private List<Integer> qrlogIds;
+    private List<Integer> qrlogIds = null;
 
     @Column(name = "date_created")
     private Date dateCreated;
