@@ -31,6 +31,7 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -1650,9 +1651,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         SupplementaryStepEntity latestStep = supplementarySteps.isEmpty() ? null : supplementarySteps.get(supplementarySteps.size() - 1);
     
         //Создать соответствующую ситуации рдф-модель
-        //TODO получать модель из вопроса
-        String tempModelFile = DOMAIN_MODEL_DIRECTORY+"_1/1.ttl";
-        Model m = ModelFactory.createDefaultModel().read(RDFDataMgr.open(tempModelFile), null, "TTL").add(domainModel.domainRDF);
+        Model m = ProgrammingLanguageExpressionRDFTransformer.questionToModel(mainQuestion, lastInteraction, domainModel.domainRDF);
     
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation;
@@ -1706,8 +1705,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     
         //Создать соответствующую ситуации рдф-модель
         //TODO получать модель из вопроса
-        String tempModelFile = DOMAIN_MODEL_DIRECTORY+"_1/1.ttl";
-        Model m = ModelFactory.createDefaultModel().read(RDFDataMgr.open(tempModelFile), null, "TTL").add(domainModel.domainRDF);
+        InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
+        Model m = ProgrammingLanguageExpressionRDFTransformer.questionToModel(mainQuestionInteraction.getQuestion(), mainQuestionInteraction, domainModel.domainRDF);
+        
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(m);
     
@@ -1717,7 +1717,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
                 supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
         );
-        return Pair.of(change.getExplanation(), newSupplementaryChain);
+        return Pair.of(change.getExplanation() != null ? change.getExplanation() : new Explanation("...", false), newSupplementaryChain);
     }
     
     private static Map<String, Integer> aggregationMatching = Map.of("Верно", 1, "Неверно", -1, "Не имеет значения", 0);
