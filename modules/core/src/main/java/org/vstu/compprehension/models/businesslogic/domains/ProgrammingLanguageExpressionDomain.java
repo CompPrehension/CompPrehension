@@ -76,7 +76,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
-        this.rdfStorage = new LocalRdfStorage(
+        this.qMetaStorage = new LocalRdfStorage(
                 domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
 
         fillTags();
@@ -339,7 +339,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public void update() {
         // init questions storage
-        getRdfStorage();
+        getQMetaStorage();
     }
 
     @Override
@@ -603,13 +603,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                foundQuestions = getRdfStorage().searchQuestions(this, questionRequest, 1);
+                foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getRdfStorage().searchQuestions(this, questionRequest, 1);
+                    foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
                 }
             } catch (RuntimeException ex) {
                 // file storage was not configured properly...

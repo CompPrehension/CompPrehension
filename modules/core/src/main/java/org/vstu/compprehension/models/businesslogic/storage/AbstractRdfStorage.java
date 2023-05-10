@@ -638,8 +638,15 @@ public abstract class AbstractRdfStorage {
 
     @NotNull
     public QuestionMetadataEntity saveMetadataDraftEntity(QuestionMetadataEntity meta) {
-        if (meta.isDraft() == false)
+        if (!meta.isDraft())
             meta.setDraft(true);
+        return questionMetadataRepository.save(meta);
+    }
+
+    @NotNull
+    public QuestionMetadataEntity saveMetadataEntity(QuestionMetadataEntity meta) {
+        if (meta.isDraft())
+            meta.setDraft(false);
         return questionMetadataRepository.save(meta);
     }
 

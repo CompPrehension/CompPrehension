@@ -52,7 +52,7 @@ public abstract class Domain {
     @Getter
     protected final RandomProvider randomProvider;
     @Getter
-    protected AbstractRdfStorage rdfStorage = null;
+    protected AbstractRdfStorage qMetaStorage = null;
     @Getter
     private final DomainEntity domainEntity;
 
