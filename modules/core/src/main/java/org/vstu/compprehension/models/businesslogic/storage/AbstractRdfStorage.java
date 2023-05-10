@@ -342,7 +342,7 @@ public abstract class AbstractRdfStorage {
         return ModelFactory.createDefaultModel();
     }
 
-    List<Rule> getDomainRulesForSolvingAtLevel(Domain domain, GraphRole level) {
+    public List<Rule> getDomainRulesForSolvingAtLevel(Domain domain, GraphRole level) {
         assert domain != null;
 
         // get rules

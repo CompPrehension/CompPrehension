@@ -214,6 +214,8 @@ public class TaskGenerationJob {
 
                 String leafFolder = repoDir.getFileName().toString();
 
+                // TODO: call specific generation tool
+
                 // for Expression domain only:
                 //RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageDummyDirsForNewFile(), leafFolder);
             }
