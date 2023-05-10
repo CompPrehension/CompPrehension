@@ -3,6 +3,11 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import its.questions.gen.QuestioningSituation;
+import its.questions.gen.formulations.LocalizedDomainModel;
+import its.questions.gen.states.*;
+import its.questions.gen.strategies.FullBranchStrategy;
+import its.questions.gen.strategies.QuestionAutomata;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -13,13 +18,16 @@ import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
@@ -39,8 +47,7 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -65,6 +72,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
+    
+    static final String DOMAIN_MODEL_DIRECTORY = "../input_examples/";
 
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
@@ -1624,6 +1633,158 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         return null;
+    }
+    
+    private final LocalizedDomainModel domainModel = new LocalizedDomainModel(DOMAIN_MODEL_DIRECTORY);
+    private final QuestionAutomata supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
+    
+    public Pair<Question, SupplementaryStepEntity> makeSupplementaryQuestionNew(QuestionEntity mainQuestion,  Language userLang) {
+        //Получить ошибочную интеракцию с основным вопросом
+        List<InteractionEntity> interactions = mainQuestion.getInteractions();
+        if (interactions == null || interactions.isEmpty()) {
+            return null;
+        }
+        InteractionEntity lastInteraction = interactions.get(interactions.size() - 1);
+        //Получить последний шаг цепочки вспомогательных вопросов
+        List<SupplementaryStepEntity> supplementarySteps = lastInteraction.getRelatedSupplementarySteps();
+        SupplementaryStepEntity latestStep = supplementarySteps.isEmpty() ? null : supplementarySteps.get(supplementarySteps.size() - 1);
+    
+        //Создать соответствующую ситуации рдф-модель
+        //TODO получать модель из вопроса
+        String tempModelFile = DOMAIN_MODEL_DIRECTORY+"_1/1.ttl";
+        Model m = ModelFactory.createDefaultModel().read(RDFDataMgr.open(tempModelFile), null, "TTL").add(domainModel.domainRDF);
+    
+        //создать ситуацию, описывающую контекст задания вспомогательных вопросов
+        QuestioningSituation situation;
+        if(latestStep != null){
+            latestStep.getSituationInfo().setLocalizationCode("RU"); //FIXME
+            situation = latestStep.getSituationInfo().toQuestioningSituation(m);
+        }
+        else {
+            situation = new QuestioningSituation(m, "RU");
+        }
+    
+        //получить состояние автомата вопросов, к которому перешли на последнем шаге
+        QuestionState state = latestStep != null ? supplementaryAutomata.get(latestStep.getNextStateId()) : supplementaryAutomata.getInitState();
+        
+        
+        //Получить вопрос
+        Question generated = null;
+        while(generated == null){
+            QuestionStateResult res = state.getQuestion(situation);
+            if(res instanceof its.questions.gen.states.Question){
+                generated = transformQuestionFormats((its.questions.gen.states.Question) res, state.getId(), mainQuestion.getExerciseAttempt());
+            }
+            else {
+//                generated = stateChangeAsQuestion((QuestionStateChange) res, state.getId(), question.getExerciseAttempt());
+//                if(generated == null) state = ((QuestionStateChange) res).getNextState();
+                state = ((QuestionStateChange) res).getNextState();
+                if(state == null) generated = stateChangeAsQuestion((QuestionStateChange) res, 0, mainQuestion.getExerciseAttempt());
+            }
+        }
+        
+        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(lastInteraction, situation, generated.getQuestionData(), state == null ? 0 : state.getId());
+        return Pair.of(generated, supplementaryChain);
+    }
+    
+    public Pair<Explanation, SupplementaryStepEntity> judgeSupplementaryQuestionNew(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+        //получить состояние автомата вопросов, соответствующее данному вопросу
+        QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
+        //преобразовать ответы
+        List<Integer> answers = null;
+        if(state instanceof AggregationQuestionState || state instanceof RedirectQuestionState && ((RedirectQuestionState) state).redirectsTo() instanceof AggregationQuestionState){
+            /*answers = responses.stream()
+                    .sorted(Comparator.comparingInt(a -> a.getLeftAnswerObject().getAnswerId()))
+                    .map((r) -> r.getRightAnswerObject().getAnswerId())
+                    .collect(Collectors.toList());*/
+            answers = List.of(1, 1, 1); //FIXME нужна правильная (одновременная) отправка ответов с фронта
+        }
+        else {
+            assert responses.size() == 1;
+            answers = List.of(responses.get(0).getLeftAnswerObject().getAnswerId());
+        }
+    
+        //Создать соответствующую ситуации рдф-модель
+        //TODO получать модель из вопроса
+        String tempModelFile = DOMAIN_MODEL_DIRECTORY+"_1/1.ttl";
+        Model m = ModelFactory.createDefaultModel().read(RDFDataMgr.open(tempModelFile), null, "TTL").add(domainModel.domainRDF);
+        //создать ситуацию, описывающую контекст задания вспомогательных вопросов
+        QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(m);
+    
+        //получить фидбек ответа и изменение состояния
+        QuestionStateChange change = state.proceedWithAnswer(situation, answers);
+        
+        SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
+                supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
+        );
+        return Pair.of(change.getExplanation(), newSupplementaryChain);
+    }
+    
+    private static Map<String, Integer> aggregationMatching = Map.of("Верно", 1, "Неверно", -1, "Не имеет значения", 0);
+    private Question transformQuestionFormats(its.questions.gen.states.Question q, int creatorStateId, ExerciseAttemptEntity exerciseAttempt){
+        QuestionEntity generated = new QuestionEntity();
+        generated.setQuestionText(QuestionTextToHtml(q.getText()));
+        generated.setQuestionName(String.valueOf(creatorStateId));
+        generated.setQuestionDomainType(EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE);
+        generated.setExerciseAttempt(exerciseAttempt);
+        generated.setAnswerObjects(q.getOptions().stream().map((opt) -> {
+            AnswerObjectEntity ans = new AnswerObjectEntity();
+            ans.setAnswerId(opt.getSecond());
+            ans.setHyperText(opt.getFirst());
+            return ans;
+        }).collect(Collectors.toList()));
+        if(q.isAggregation() ){
+            generated.setQuestionType(QuestionType.MATCHING);
+            List<AnswerObjectEntity> answers = generated.getAnswerObjects();
+            for(AnswerObjectEntity a : answers){
+                a.setAnswerId(a.getAnswerId() + 2); //чтобы избежать пересечения с answerId ответов в aggregationMathching
+            }
+            for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
+                AnswerObjectEntity ans = new AnswerObjectEntity();
+                ans.setAnswerId(m.getValue());
+                ans.setHyperText(m.getKey());
+                ans.setRightCol(true);
+                answers.add(ans);
+            }
+            generated.setAnswerObjects(answers);
+            val opt = new MatchingQuestionOptionsEntity();
+            opt.setShowSupplementaryQuestions(true);
+            opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
+            generated.setOptions(opt);
+            return new Matching(generated, this);
+        }
+        else {
+            generated.setQuestionType(QuestionType.SINGLE_CHOICE);
+            val opt = new SingleChoiceOptionsEntity();
+            opt.setShowSupplementaryQuestions(true);
+            opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
+            generated.setOptions(opt);
+            return new SingleChoice(generated, this);
+        }
+    }
+    private Question stateChangeAsQuestion(QuestionStateChange q, int creatorStateId, ExerciseAttemptEntity exerciseAttempt){
+//        if(q.getExplanation() == null || q.getExplanation().getText().isEmpty())
+//            return null;
+        QuestionEntity generated = new QuestionEntity();
+        generated.setQuestionText(QuestionTextToHtml(q.getExplanation() == null ? "" : q.getExplanation().getText()));
+        generated.setQuestionName(String.valueOf(creatorStateId));
+        generated.setQuestionDomainType(EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE);
+        generated.setQuestionType(QuestionType.SINGLE_CHOICE);
+        generated.setExerciseAttempt(exerciseAttempt);
+        if(q.getNextState() == null || q.getNextState() instanceof EndQuestionState){
+            generated.setAnswerObjects(new ArrayList<>());
+        }
+        else {
+            AnswerObjectEntity ans = new AnswerObjectEntity();
+            ans.setAnswerId(0);
+            ans.setHyperText("Далее");
+            generated.setAnswerObjects(new ArrayList<>(List.of(ans)));
+        }
+        val opt = new SingleChoiceOptionsEntity();
+        opt.setShowSupplementaryQuestions(true);
+        opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
+        generated.setOptions(opt);
+        return new SingleChoice(generated, this);
     }
 
     Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {

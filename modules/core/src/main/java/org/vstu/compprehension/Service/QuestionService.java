@@ -1,5 +1,6 @@
 package org.vstu.compprehension.Service;
 
+import its.questions.gen.states.Explanation;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +12,7 @@ import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -34,6 +36,9 @@ public class QuestionService {
 
     @Autowired
     private QuestionRepository questionRepository;
+    
+    @Autowired
+    private SupplementaryStepRepository supplementaryStepRepository;
 
     @Autowired
     AnswerObjectRepository answerObjectRepository;
@@ -69,13 +74,32 @@ public class QuestionService {
 
     public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
-        val question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
-        if (question == null) {
-            return null;
+        Question question = null;
+        if(!(domain instanceof ProgrammingLanguageExpressionDomain)){
+            question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
+            if (question == null) {
+                return null;
+            }
+            question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+            saveQuestion(question.getQuestionData());
         }
-        question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-        saveQuestion(question.getQuestionData());
+        else {
+            val out = ((ProgrammingLanguageExpressionDomain) domain).makeSupplementaryQuestionNew(sourceQuestion, lang);
+            question = out.getFirst();
+            question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+            saveQuestion(question.getQuestionData());
+            supplementaryStepRepository.save(out.getSecond());
+        }
         return question;
+    }
+    
+    public Explanation judgeSupplementaryQuestionNew(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
+        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
+        assert domain instanceof ProgrammingLanguageExpressionDomain;
+        val out = ((ProgrammingLanguageExpressionDomain) domain).judgeSupplementaryQuestionNew(supplementaryInfo, responses);
+        supplementaryStepRepository.save(out.getSecond());
+        return out.getFirst();
     }
 
     public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {

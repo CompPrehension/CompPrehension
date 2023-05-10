@@ -20,6 +20,7 @@ import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -112,19 +113,27 @@ public class FrontendService {
         val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
 
         val responses = questionService.responseQuestion(question, answers);
-        val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
-        val violation = judgeResult.violations.stream()
-                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
-                .findFirst()
-                .orElse(null);
-        val locale = attempt.getUser().getPreferred_language().toLocale();
-        val messages = judgeResult.isAnswerCorrect
-                ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation) }
-                : new FeedbackDto.Message[] { FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation) };
-        return FeedbackDto.builder()
-                .messages(messages)
-                .isCorrect(judgeResult.isAnswerCorrect)
-                .build();
+        if(!(domain instanceof ProgrammingLanguageExpressionDomain) ) {
+            val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
+            val violation = judgeResult.violations.stream()
+                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
+                    .findFirst()
+                    .orElse(null);
+            val locale = attempt.getUser().getPreferred_language().toLocale();
+            val messages = judgeResult.isAnswerCorrect
+                    ? new FeedbackDto.Message[]{FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)}
+                    : new FeedbackDto.Message[]{FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation)};
+            return FeedbackDto.builder()
+                    .messages(messages)
+                    .isCorrect(judgeResult.isAnswerCorrect)
+                    .build();
+        }
+        else {
+            val expl = questionService.judgeSupplementaryQuestionNew(question, responses, attempt);
+            return FeedbackDto.builder()
+                    .messages(new FeedbackDto.Message[]{FeedbackDto.Message.Success(expl.getText(), new FeedbackViolationLawDto("", true))})
+                    .build();
+        }
     }
 
     private @NotNull FeedbackDto addOrdinaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
