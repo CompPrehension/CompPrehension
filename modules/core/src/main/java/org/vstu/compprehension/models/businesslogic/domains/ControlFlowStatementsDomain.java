@@ -1995,15 +1995,7 @@ public class ControlFlowStatementsDomain extends Domain {
     public static List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
 
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+        Gson gson = getQuestionGson();
 
         Question[] questions = gson.fromJson(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8),
@@ -2015,15 +2007,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream inputStream) {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+        Gson gson = getQuestionGson();
 
         Question question = gson.fromJson(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8),

@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -333,6 +336,19 @@ public abstract class Domain {
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         // the default
         return new ArrayList<>();
+    }
+
+    @NotNull
+    public static Gson getQuestionGson() {
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        return new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
     }
 
     abstract public Question parseQuestionTemplate(InputStream stream);

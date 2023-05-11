@@ -840,7 +840,7 @@ public abstract class AbstractRdfStorage {
         return setQuestionSubgraph(domain, questionName, desiredLevel, inferred) != null;
     }
 
-    public static int getQrTooFewQuestions(int qrLogId) {
+    public static int getTooFewQuestionsForQR(int qrLogId) {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }

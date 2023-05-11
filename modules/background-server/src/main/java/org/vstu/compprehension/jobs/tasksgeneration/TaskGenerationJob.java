@@ -1,18 +1,24 @@
 package org.vstu.compprehension.jobs.tasksgeneration;
 
+import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -60,18 +66,18 @@ public class TaskGenerationJob {
 
         /*
         // TODO проверка на то, что нужны новые вопросы
-        int tooFewQuestions = AbstractRdfStorage.getQrTooFewQuestions(0); // (e.g. 50)
         int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
+        */
+        int tooFewQuestions = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
         var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
             log.info("Nothing to process, finished job.");
             return false;
         }
-        */
 
         boolean _debugGenerator = false;
-        boolean cleanupFolders = !_debugGenerator;
+        boolean cleanupFolders = false; // !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
         boolean parseSources = !_debugGenerator;
@@ -213,8 +219,65 @@ public class TaskGenerationJob {
                 log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
 
                 String leafFolder = repoDir.getFileName().toString();
+                Path destination = Path.of(config.getGenerator().getOutputFolderPath(), leafFolder);
+                Files.createDirectories(destination);
+
+                List<String> cmd = new ArrayList<>();
+
+                cmd.add(config.getGenerator().getPathToExecutable());
+                cmd.add("--source");
+                cmd.add(String.valueOf(repoDir));
+                cmd.add("--output");
+                cmd.add(String.valueOf(destination));
+                cmd.add("--sourceId");
+                cmd.add(leafFolder);
+
 
                 // TODO: call specific generation tool
+
+                try {
+                    log.info("Run generator on repo: [{}]", leafFolder);
+                    Files.createDirectories(destination);
+                    var parserProcess = new ProcessBuilder(cmd)
+                            .redirectErrorStream(true)
+                            .start();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
+                    String line;
+                    while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
+                        log.debug(line);
+                    }
+                    parserProcess.waitFor(10, TimeUnit.MINUTES);
+                } catch (InterruptedException e) {
+                    log.warn("Question generation timeout exception", e);
+                } catch (Exception e) {
+                    log.warn("Question generation exception", e);
+                }
+
+                log.info("Repo [{}] used to make questions.", leafFolder);
+
+
+                // загрузить из папки полученные вопросы
+
+                var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
+                log.info("Found {} ttl files in: {}", allJsonFiles.size(), repoDir);
+
+                for (val file : allJsonFiles) {
+                    val q = loadQuestion(file);
+                    if (q == null) {
+                        continue;
+                    }
+
+                    // Проверить подходит ли он нам
+                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав данные вопроса
+                    // Вызвать__(q, qrLogsToProcess)
+                    for (val qr : qrLogsToProcess) {
+                        if (QuestionRequestLogRepository.doesQuestionSuitQR(q, qr)) {
+                            // TODO
+                        }
+                    }
+
+                }
+
 
                 // for Expression domain only:
                 //RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageDummyDirsForNewFile(), leafFolder);
@@ -236,4 +299,35 @@ public class TaskGenerationJob {
 
         return true;
     }
+
+    /**
+     * @see Domain::parseQuestionTemplate
+     * @param inputStream file contents
+     * @return loaded question
+     */
+    private static Question parseQuestionJson(InputStream inputStream) {
+        Gson gson = Domain.getQuestionGson();
+
+        Question question = gson.fromJson(
+                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
+                Question.class);
+
+        return question;
+    }
+
+    /**
+     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
+     * @param path absolute path to file location
+     * @return loaded question
+     */
+    private static Question loadQuestion(String path) {
+        Question q = null;
+        try (InputStream stream = new FileInputStream(path)) {
+            q = parseQuestionJson(stream);
+        } catch (IOException | NullPointerException | IllegalStateException e) {
+            e.printStackTrace();
+        }
+        return q;
+    }
+
 }
