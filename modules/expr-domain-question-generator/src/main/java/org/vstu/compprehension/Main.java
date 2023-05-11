@@ -3,30 +3,23 @@ package org.vstu.compprehension;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import lombok.val;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.riot.RDFDataMgr;
-import org.vstu.compprehension.adapters.*;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.adapters.FakeDomainRepository;
+import org.vstu.compprehension.adapters.FakeLocalizationService;
+import org.vstu.compprehension.adapters.FakeQuestionMetadataRepository;
+import org.vstu.compprehension.adapters.FakeRandomProvider;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
-import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
 
 public class Main {
     public static void main(String[] args) {
