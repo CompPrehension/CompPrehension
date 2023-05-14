@@ -7,7 +7,7 @@ import { Question } from "../../types/question";
 import { PromiseEither } from "../../utils/ajax";
 import { IExerciseController } from "./exercise-controller";
 import * as E from "fp-ts/lib/Either";
-import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
+import { SupplementaryFeedback, SupplementaryQuestion, SupplementaryQuestionRequest } from "../../types/supplementary-question";
 import { RequestError } from "../../types/request-error";
 import { delayPromise } from "../../utils/helpers";
 import { Exercise } from "../../types/exercise";
@@ -239,7 +239,7 @@ export class TestExerciseController implements IExerciseController {
         await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }
-    async generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question> {
+    async generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, SupplementaryQuestion> {
         console.log(`generateSupplementaryQuestion`, questionRequest);
         await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
@@ -261,6 +261,15 @@ export class TestExerciseController implements IExerciseController {
             stepsWithErrors: 1,
             messages: null,
             strategyDecision: 'CONTINUE',
+        });
+    }
+    
+    async addSupplementaryQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, SupplementaryFeedback> {
+        console.log('addSupplementaryQuestionAnswer', interaction);
+        await delayPromise(3000);
+        return E.right({
+            message: { type: 'SUCCESS', message: 'test'},
+            action: 'CONTINUE_AUTO',
         });
     }
     async getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]> {

@@ -1,37 +1,36 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useState } from 'react';
+import {  useState } from 'react';
 import { Alert, Button } from 'react-bootstrap';
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../stores/exercise-store";
-import { QuestionStore } from '../../stores/question-store';
 import { delayPromise } from '../../utils/helpers';
 import { Modal } from '../common/modal';
 import { Optional } from '../common/optional';
-import { Question } from './question';
 import { useTranslation } from "react-i18next";
-import { FeedbackViolationLaw } from '../../types/feedback';
+import { FeedbackMessage, FeedbackViolationLaw } from '../../types/feedback';
+import { SupplementaryQuestionStore } from '../../stores/sup-question-store';
+import { Loader } from '../common/loader';
+import { Answer } from '../../types/answer';
+import { QuestionComponent } from '../common/question/question';
+import { toJS } from 'mobx';
 
-export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: FeedbackViolationLaw }) => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
-    const [questionStore] = useState(() => container.resolve(QuestionStore));
-    const { t } = useTranslation();
+type GenerateSupQuestionProps = {
+    store: SupplementaryQuestionStore,
+    violationLaw: FeedbackViolationLaw,
+}
+
+export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) => {
+    const { violationLaw, store } = props;    
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isButtonsVisible, setIsButtonsVisible] = useState(true);
     const [isAllVisible, setAllVisible] = useState(true);
-    if (!exerciseStore.exercise?.options.supplementaryQuestionsEnabled || 
-        violationLaw.canCreateSupplementaryQuestion === false) {
-        return null;
-    }
+    const [currentViolationLaw, setCurrentViolationLaw] = useState(violationLaw);
+    const { t } = useTranslation();
 
     const onDetailsClicked = async () => { 
-        setIsButtonsVisible(false);  
+        setIsButtonsVisible(false);
         setIsModalVisible(true);
-        if (!exerciseStore.currentAttempt?.attemptId || !exerciseStore.currentQuestion.question) {
-            return;
-        }
-        await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, [violationLaw].map(v => v.name));
-        if (!questionStore.question) {
+        await store.generateSupplementaryQuestion([currentViolationLaw].map(v => v.name));
+        if (!store.question || store.feedback?.action === 'FINISH') {
             console.log(`no need to generate sup question`);
             setAllVisible(false);
         }
@@ -39,56 +38,127 @@ export const GenerateSupQuestion = observer(({ violationLaw } : { violationLaw: 
     const onGotitClicked = () => {
         setAllVisible(false);
     }
-    const OnAnswered = async () => {
-        try {
-            questionStore.isQuestionFreezed = true;
+    const onAnswered = async () => {
+        await store.sendAnswers();
+        const { feedback } = store;
+        if (!feedback) {
+            console.log(`empty feedback for question asnwer`);
+            setAllVisible(false);
+            return;
+        }
 
+        if (feedback.action === 'CONTINUE_AUTO') {                
             console.log(`show feedback for 3 seconds`);
             await delayPromise(3000);
-            //console.log(`hide feedback and wait for 1 seconds`);        
-            //questionStore.isFeedbackVisible = false;
-            //await delayPromise(1000);
-
-            const newViolationLaw = questionStore.feedback?.messages && questionStore.feedback.messages[0].violationLaw || null;
-            if (!newViolationLaw) {
-                console.log(`empty violation laws`);
-                setAllVisible(false);
-                return;            
-            }
-            if (!exerciseStore.currentAttempt?.attemptId || !exerciseStore.currentQuestion.question) {
-                console.log(`problems with attempt`);
-                return;
-            }
-            await questionStore.generateSupplementaryQuestion(exerciseStore.currentAttempt.attemptId, exerciseStore.currentQuestion.question?.questionId, [newViolationLaw].map(v => v.name));
-            if (!questionStore.question) {
-                console.log(`no need to generate sup question`);
-                // remove redurant feedback
-                //if (!!exerciseStore.currentQuestion.feedback?.messages) {
-                //    exerciseStore.currentQuestion.feedback.messages = exerciseStore.currentQuestion.feedback.messages.filter(m => m.type !== 'ERROR' || m.violationLaws?.[0] !== violationLaws?.[0]);
-                //}
-                setAllVisible(false);
-            }
-        } finally {
-            questionStore.isQuestionFreezed = false;
+            await onNextQuestionClicked();
         }
+    }
+    const onNextQuestionClicked = async () => {
+        const newViolationLaw = store.feedback?.message?.violationLaw || null;
+        if (!newViolationLaw) {
+            console.log(`empty violation laws`);
+            setAllVisible(false);
+            return;            
+        }
+
+        setCurrentViolationLaw(newViolationLaw)
+        await store.generateSupplementaryQuestion([newViolationLaw].map(v => v.name));
     }
 
     return (
         <Optional isVisible={isAllVisible}>
             <Optional isVisible={isButtonsVisible}>
                 <div className="d-flex flex-row mt-3">
-                    <Button onClick={onDetailsClicked} variant="primary">{t('generateSupQuestion_details')}</Button>
-                    <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('generateSupQuestion_gotit')}</Button>
+                    <Button onClick={onDetailsClicked} variant="primary">{t('exercise_supquestion_details')}</Button>
+                    <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('exercise_supquestion_gotit')}</Button>
                 </div>
             </Optional>            
             <Modal  type={'DIALOG'} size={'xl'} 
                     show={isModalVisible}
                     closeButton={false} 
                     handleClose={() => setIsModalVisible(false)}>
-                <Question store={questionStore} showExtendedFeedback={false} onChanged={OnAnswered}/>                
-                {questionStore.storeState.tag === 'ERROR' &&
-                    <div className="mt-2"><Alert variant='danger'>{questionStore.storeState.error.message}</Alert></div>}
+                <SupQuestion store={store} onSubmitted={onAnswered} onNextQuestionRequested={onNextQuestionClicked}/>
             </Modal>
         </Optional>
+    )
+})
+
+type SupQuestionProps = {
+    store: SupplementaryQuestionStore,
+    onSubmitted?: () => void,
+    onNextQuestionRequested?: () => void,
+}
+const SupQuestion = observer((props: SupQuestionProps) => {
+    const { store, onSubmitted, onNextQuestionRequested } = props;
+    const { t } = useTranslation();
+    const questionData = store.question;
+    if (store.questionState === 'LOADING') {
+        return <div className="mt-2"><Loader /></div>;
+    }
+    
+    const onChanged = async (newHistory: Answer[]) => {
+        store.setAnswer(newHistory);
+
+        if (!isQuestionWithExplicitSubmit) {
+            onSubmitted?.();
+        }
+    };
+    const getAnswer = () => store.answer as Answer[];
+    const getFeedback = () => undefined;
+
+    const isQuestionWithExplicitSubmit = questionData?.type !== 'SINGLE_CHOICE';
+    const showSendAnswerButton = isQuestionWithExplicitSubmit && store.answer.length > 0 && store.questionState === 'LOADED'
+    const showFeedback = store.questionState !== 'LOADED' && store.feedback;
+    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && store.questionState === 'COMPLETED'    
+    return (
+        <>
+            {questionData &&
+                <QuestionComponent 
+                    question={questionData} 
+                    answers={store.answer as Answer[]} 
+                    getAnswers={getAnswer} 
+                    onChanged={onChanged} 
+                    getFeedback={getFeedback} 
+                    isFeedbackLoading={store.isFeedbackLoading} 
+                    isQuestionFreezed={store.isQuestionFreezed}/>
+            }
+            {store.isFeedbackLoading && 
+                <div className="mt-2"><Loader /></div>
+            }
+            {(showSendAnswerButton) &&
+                <Button variant="primary" onClick={onSubmitted}>{t('exercise_supquestion_send_answer')}</Button>
+            }
+            {showFeedback && !questionData &&
+                <>{store.feedback!.message.message}</>
+            }
+            {showFeedback && questionData &&
+                <div className='mt-2'>
+                    <ShotFeedbackAlert message={store.feedback!.message}/>
+                </div>
+            }
+            {showNextQBtn &&
+                <div className='mt-3'>
+                    <Button variant="primary" onClick={onNextQuestionRequested}>{t('exercise_supquestion_next_question')}</Button>
+                </div>
+            }
+        </>
+    );
+})
+
+
+type ShotFeedbackAlertProps = {    
+    message: FeedbackMessage,
+    showGenerateSupQuestion?: boolean
+    supQuestionStore?: SupplementaryQuestionStore,
+}
+export const ShotFeedbackAlert = observer((props: ShotFeedbackAlertProps) => {
+    let { supQuestionStore, message, showGenerateSupQuestion } = props;    
+    showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
+
+    const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
+    return(
+        <Alert variant={variant}>
+            {message.message}
+        </Alert>
     )
 })

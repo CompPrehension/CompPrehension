@@ -55,6 +55,20 @@ public class ExerciseController {
     }
 
     /**
+     * Add an answer to the question
+     * @param interaction Interaction object
+     * @param request Current request
+     * @return Feedback
+     * @throws Exception Something got wrong
+     */
+    @RequestMapping(value = {"addSupplementaryQuestionAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
+            consumes = "application/json")
+    @ResponseBody
+    public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
+        return frontendService.addSupplementaryQuestionAnswer(interaction);
+    }
+
+    /**
      * Generate new question for exercise attempt
      * @param attemptId Exercise attempt id
      * @param request Current request
@@ -77,9 +91,9 @@ public class ExerciseController {
      */
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
-    public QuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();;
-        return frontendService.generateSupplementaryQuestion(questionRequest.getExerciseAttemptId(), questionRequest.getQuestionId(), questionRequest.getViolationLaws());
+    public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
+        val locale = LocaleContextHolder.getLocale();
+        return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
     /**

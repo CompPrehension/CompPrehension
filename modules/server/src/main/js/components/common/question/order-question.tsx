@@ -113,7 +113,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                 <p>
                     <table className="comp-ph-trace">
                         <tbody>                            
-                            {trace?.map(t => <tr><td dangerouslySetInnerHTML={{ __html: t }}></td></tr>)}                            
+                            {trace?.map((t, idx) => <tr key={idx}><td dangerouslySetInnerHTML={{ __html: t }}></td></tr>)}                            
                         </tbody>
                     </table>
                 </p>
