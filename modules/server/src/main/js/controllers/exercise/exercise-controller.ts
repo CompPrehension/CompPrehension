@@ -4,7 +4,7 @@ import { ExerciseStatisticsItem, TExerciseStatisticsItems } from "../../types/ex
 import { Feedback, TFeedback } from "../../types/feedback";
 import { Interaction } from "../../types/interaction";
 import { Question, TOptionalQuestion, TQuestion } from "../../types/question";
-import { SupplementaryQuestionRequest } from "../../types/supplementary-question-request";
+import { SupplementaryFeedback, SupplementaryQuestion, SupplementaryQuestionRequest, TSupplementaryFeedback, TSupplementaryQuestion } from "../../types/supplementary-question";
 import { ajaxGet, ajaxPost, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts'
 import { RequestError } from "../../types/request-error";
@@ -19,9 +19,10 @@ export interface IExerciseController {
     getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise>;
     getQuestion(questionId: number): PromiseEither<RequestError, Question>;
     generateQuestion(attemptId: number): PromiseEither<RequestError, Question>;
-    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question | null | undefined | ''>;
+    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, SupplementaryQuestion>;
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback>;
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> ;
+    addSupplementaryQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, SupplementaryFeedback> ;
     getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt>;
     createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt>;
@@ -55,8 +56,8 @@ export class ExerciseController implements IExerciseController {
         return ajaxGet(`${API_URL}/api/exercise/generateQuestion?attemptId=${attemptId}`, TQuestion); 
     }
 
-    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, Question | null | undefined | ''> {
-        return ajaxPost(`${API_URL}/api/exercise/generateSupplementaryQuestion`, questionRequest, TOptionalQuestion);
+    generateSupplementaryQuestion(questionRequest: SupplementaryQuestionRequest): PromiseEither<RequestError, SupplementaryQuestion> {
+        return ajaxPost(`${API_URL}/api/exercise/generateSupplementaryQuestion`, questionRequest, TSupplementaryQuestion);
     }
 
     generateNextCorrectAnswer(questionId: number): PromiseEither<RequestError, Feedback> {
@@ -65,6 +66,10 @@ export class ExerciseController implements IExerciseController {
 
     addQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, Feedback> {
         return ajaxPost(`${API_URL}/api/exercise/addQuestionAnswer`, interaction, TFeedback);
+    }
+    
+    addSupplementaryQuestionAnswer(interaction: Interaction): PromiseEither<RequestError, SupplementaryFeedback> {
+        return ajaxPost(`${API_URL}/api/exercise/addSupplementaryQuestionAnswer`, interaction, TSupplementaryFeedback);
     }
 
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt> {

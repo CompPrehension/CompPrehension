@@ -261,8 +261,6 @@ export class ExerciseStore {
                         results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {} as Record<number, string>) ?? {},
                     })).reduce((acc, i) => (acc[i.questionId] = i, acc), {} as Record<number, QuestionSurveyResult>),
                 }
-                console.log("Loaded survey")
-                console.log(toJS(this.survey))
             }
         })
     }

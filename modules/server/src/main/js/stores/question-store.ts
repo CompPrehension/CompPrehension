@@ -1,17 +1,14 @@
-import { action, flow, makeObservable, observable, runInAction, toJS } from "mobx";
+import { action, flow, makeObservable, observable, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import { Feedback } from "../types/feedback";
 import { Question } from "../types/question";
 import * as E from "fp-ts/lib/Either";
 import { Interaction } from "../types/interaction";
-import { SupplementaryQuestionRequest } from "../types/supplementary-question-request";
-import * as NEArray from 'fp-ts/lib/NonEmptyArray'
-import { pipe } from "fp-ts/lib/function";
-import * as O from 'fp-ts/lib/Option'
 import { Answer } from "../types/answer";
 import { RequestError } from "../types/request-error";
 import { notNulAndUndefinded } from "../utils/helpers";
+import { SupplementaryQuestionStore } from "./sup-question-store";
 
 /**
  * Store question data
@@ -26,11 +23,12 @@ export class QuestionStore {
     @observable question?: Question = undefined;
     @observable lastAnswer: ReadonlyArray<Answer> = [];
     @observable answersHistory: Array<ReadonlyArray<Answer>> = [];
+    @observable supplementaryQuestion?: SupplementaryQuestionStore;
     @observable questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
 
     constructor(@inject(ExerciseController) private exerciseController: IExerciseController) {
-        makeObservable(this);        
+        makeObservable(this);
     }
 
     private onQuestionLoaded = (question: Question) => {        
@@ -47,6 +45,7 @@ export class QuestionStore {
         }
         
         this.question = question;
+        this.supplementaryQuestion = new SupplementaryQuestionStore(this.exerciseController, question.questionId);
         this.feedback = question.feedback ?? undefined;
         this.isFeedbackVisible = true;
         this.answersHistory = [];
@@ -114,32 +113,6 @@ export class QuestionStore {
         }
 
         this.onQuestionLoaded(dataEither.right);
-    })
-
-    generateSupplementaryQuestion = flow(function* (this: QuestionStore, attemptId: number, questionId: number, violationLaws: string[]) {
-        this.setValidStoreState();
-
-        const questionRequest: SupplementaryQuestionRequest = {
-            exerciseAttemptId: attemptId,
-            questionId: questionId,
-            violationLaws: pipe(
-                NEArray.fromArray(violationLaws), 
-                O.getOrElse(() => ["invalid_law"] as NEArray.NonEmptyArray<string>),
-            ),
-        };
-
-        this.setQuestionState('LOADING');
-        const dataEither: E.Either<RequestError, Question | null | undefined | ''> = yield this.exerciseController.generateSupplementaryQuestion(questionRequest);
-        this.setQuestionState('LOADED');
-
-        if (E.isLeft(dataEither)) {
-            this.setErrorStoreState(dataEither.left);
-            return;
-        }
-
-        if (dataEither.right) {
-            this.onQuestionLoaded(dataEither.right);
-        }
     })
 
     generateNextCorrectAnswer = flow(function* (this: QuestionStore) {
