@@ -12,32 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-@Component
-@Singleton
-public class DomainFactory {
-    private @NotNull HashMap<String, Class<? extends Domain>> domainToClassMap = new HashMap<>();
+public interface DomainFactory {
+    @NotNull Set<String> getDomainIds();
 
-    @Autowired
-    public DomainFactory(@NotNull List<Domain> domains) {
-        for (var d : domains) {
-            domainToClassMap.put(d.getDomainId(), d.getClass());
-        }
-    }
-
-    public Set<String> getDomainIds() {
-        return domainToClassMap.keySet();
-    }
-
-    public @NotNull Domain getDomain(@NotNull String domainId) {
-        if (!domainToClassMap.containsKey(domainId)) {
-            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve domain with id %s", domainId));
-        }
-
-        try {
-            val clazz = domainToClassMap.get(domainId);
-            return ApplicationContextProvider.getApplicationContext().getBean(clazz);
-        } catch (Exception e) {
-            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve domain with id %s", domainId));
-        }
-    }
+    @NotNull Domain getDomain(@NotNull String domainId);
 }

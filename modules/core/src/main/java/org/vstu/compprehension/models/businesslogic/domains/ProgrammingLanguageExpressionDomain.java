@@ -13,9 +13,8 @@ import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
@@ -24,6 +23,9 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
+import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -31,26 +33,26 @@ import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import javax.inject.Singleton;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
+import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
 
-@Component @Log4j2
-@Singleton
+@Log4j2
 public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
@@ -70,60 +72,24 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    private final QuestionMetadataBaseRepository exprQuestionMetadataRepository;
 
-    @Autowired
-    public ProgrammingLanguageExpressionDomain(LocalizationService localizationService,
-                                               DomainRepository domainRepository,
-                                               RandomProvider randomProvider,
-                                               QuestionMetadataBaseRepository exprQuestionMetadataRepository,
-         QuestionRequestLogRepository questionRequestLogRepository) {
-        super(randomProvider, questionRequestLogRepository);
+    public ProgrammingLanguageExpressionDomain(
+            DomainEntity domainEntity,
+            LocalizationService localizationService,
+            RandomProvider randomProvider,
+            QuestionMetadataRepository questionMetadataRepository) {
+
+        super(domainEntity, randomProvider);
+
         this.localizationService = localizationService;
-        this.exprQuestionMetadataRepository = exprQuestionMetadataRepository;
-
-        name = "ProgrammingLanguageExpressionDomain";
-        domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
+        this.qMetaStorage = new LocalRdfStorage(
+                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
 
         fillTags();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
-
-    private ProgrammingLanguageExpressionDomain(LocalizationService localizationService) {
-        super(new RandomProvider(), null);
-        this.localizationService = localizationService;
-        exprQuestionMetadataRepository = null;
-
-        name = "ProgrammingLanguageExpressionDomain";
-        // domainEntity = null;
-        domainEntity = new DomainEntity();
-        domainEntity.setOptions(new DomainOptionsEntity());
-
-        fillTags();
-        fillConcepts();
-        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
-        readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-        // using update() as init
-        // OFF: // update();
-    }
-    //Hacked version. don't use in production, only for develop
-    public static ProgrammingLanguageExpressionDomain makeHackedDomain() {
-        return new ProgrammingLanguageExpressionDomain(new LocalizationService());
-    }
-
-    @Override
-    public String getShortName() {
-        return "expression";
-    }
-
-    @NotNull
-    @Override
-    public String getDomainId() {
-        return "ProgrammingLanguageExpressionDomain";
-    }
-
 
     private void fillTags() {
         tags = new HashMap<>();
@@ -379,14 +345,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public void update() {
         // init questions storage
-        getRdfStorage();
+        getQMetaStorage();
     }
-
-    @Override
-    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
-        return exprQuestionMetadataRepository;
-    }
-
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
@@ -649,14 +609,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                saveQuestionRequest(questionRequest);
-                foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+                foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, 1);
+                    foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
                 }
             } catch (RuntimeException ex) {
                 // file storage was not configured properly...
@@ -938,7 +897,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
 //    @Override
-//    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
+//    public QuestionMetadataRepository getQuestionMetadataRepository() {
 //        return null;
 //    }
 
@@ -2312,7 +2271,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private List<BackendFactEntity> modelToFacts(Model factsModel, boolean onlySolvedFacts) {
         JenaBackend jback = new JenaBackend();
-        jback.createOntology(AbstractRdfStorage.NS_code.base());
+        jback.createOntology(NS_code.base());
 
         // fill model
         OntModel model = jback.getModel();
@@ -2326,7 +2285,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
         JenaBackend jback = new JenaBackend();
-        jback.createOntology(AbstractRdfStorage.NS_code.base());
+        jback.createOntology(NS_code.base());
 
         OntModel model = jback.getModel();
 
@@ -2551,9 +2510,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setOptions(new OrderQuestionOptionsEntity());
         }
 
-        QuestionMetadataDraftEntity meta = rs.findQuestionByName(questionName);
+        QuestionMetadataEntity meta = null;
+        if (rs != null) {
+            meta = rs.findQuestionByName(questionName);
+            if (meta == null) {
+                meta = rs.createQuestion(this, questionName, questionName.split("_v")[0], false);
+            }
+        }
         if (meta == null) {
-            meta = rs.createQuestion(questionName, questionName.split("_v")[0], false);
+            meta = QuestionMetadataEntity.builder()
+                    .name(questionName)
+                    .build();
         }
         // QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
         // // entity.getOptions().setMetadata(metadata); // see below
@@ -2592,7 +2559,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         meta.setDistinctErrorsCount(violations.size());
 
         // save current state into DB
-        meta = rs.saveMetadataDraftEntity(meta);
+        if (rs != null) {
+            meta = rs.saveMetadataDraftEntity(meta);
+        }
 
         // write info to question metadata
         QuestionMetadataEntity metadata = meta.toMetadataEntity();
@@ -2604,6 +2573,147 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public String questionToJson(Question question) {
         return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
+    }
+
+    /**
+     * Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
+     * @param ttlTemplatePaths
+     * @param outputDir
+     * @param questionsLimit
+     * @param origin
+     */
+    public /*static*/ void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
+
+//        System.out.println(ttlTemplatePaths.size() + " parsed files to generate questions from");
+        int count = 0;
+        int qCount = 0;
+
+        for (String file : ttlTemplatePaths) {
+            try {
+                Path path = Path.of(file);
+
+                String name = path.getFileName().toString();
+
+                if (name.endsWith(".ttl")) {
+                    name = name.substring(0, name.length() - ".ttl".length());
+                    name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
+                } else {
+                    continue; //skip all other files
+                }
+
+//                if (rs.getQuestionStatus(name) == GraphRole.QUESTION_TEMPLATE_SOLVED) {
+//                    System.out.println("Skip solved template: " + name);
+//                    continue;
+//                }
+//                // System.out.println(name + " ...\t");
+
+                count++;
+                if (qCount > questionsLimit) break;
+
+                // Create a template
+                System.out.println(name + " \tUpload model number " + count);
+                /*rs.createQuestionTemplate(name);*/
+                Model templateModel = ModelFactory.createDefaultModel();
+                RDFDataMgr.read(templateModel, file);
+
+//                val templateMeta = qMetaStorage.setQuestionSubgraph(this, name, GraphRole.QUESTION_TEMPLATE, m);
+//                // set more info to the metadata
+//                templateMeta.setOrigin(origin);
+//                qMetaStorage.saveMetadataDraftEntity(templateMeta);
+//
+//                // Create solved template and save it and metadata
+//                qMetaStorage.solveQuestion(this, name, GraphRole.QUESTION_TEMPLATE_SOLVED);
+
+                Model domainSchemaModel = qMetaStorage.getFullSchema(this);
+
+                // solve the template
+                Model solvedTemplateModel = qMetaStorage.runReasoning(domainSchemaModel
+                        .union(templateModel),
+                        qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_TEMPLATE_SOLVED),
+                        false);
+
+                System.out.println("Creating questions for template: " + name);
+
+                Set<Set<String>> possibleViolations = new HashSet<>();
+                for (Map.Entry<String, Model> question : this.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
+                    qCount++;
+                    if (qCount >= questionsLimit) break;
+                    // Create question model (with positive laws)
+//                    Model questionInitModel = qMetaStorage.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION)).add(question.getValue());
+//                    Model questionModel = qMetaStorage.solveTemplate(this, questionInitModel, GraphRole.QUESTION, true);
+//                    questionModel.add(question.getValue());
+//                    Model solvedQuestionModel = qMetaStorage.solveTemplate(this, questionInitModel.add(questionModel), GraphRole.QUESTION_SOLVED, true);
+
+                    // Find potential errors: solve the question
+                    Model solvedQuestionModel = qMetaStorage.runReasoning(
+                            solvedTemplateModel.union(question.getValue()),
+                            qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_SOLVED),
+                            false);
+
+                    // Generate only questions with different error sets
+                    List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.get());
+                    Set<String> violations = this.possibleViolations(facts, null);
+                    if (possibleViolations.contains(violations)) {
+                        System.out.println("Skip question with same violations: " + question.getKey());
+                        continue;
+                    }
+                    possibleViolations.add(violations);
+
+                    // (note! names of template and question must differ)
+                    String questionName = question.getKey();
+                    if (questionName.equals(name)) {
+                        // guard for the case when the name was not changed
+                        questionName += "_v";
+                    }
+//                    // create metadata entry
+//                    qMetaStorage.createQuestion(this, questionName, name, false);
+//                    // set basic data of the question
+//                    qMetaStorage.setQuestionSubgraph(this, questionName, GraphRole.QUESTION, questionModel);
+//                    // set solved data of the question
+//                    qMetaStorage.setQuestionSubgraph(this, questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
+
+                    // Save question data for domain in JSON
+                    System.out.println("Generating question: " + questionName);
+                    Question domainQuestion = this.createQuestionFromModel(questionName, solvedQuestionModel, null /*don't use DB*/);
+
+                    if (domainQuestion == null) {
+                        System.out.println("--  Cancelled inappropriate question: " + questionName);
+                        // don't complete this question, generation aborted
+//                        qMetaStorage.deleteQuestion(questionName);
+                        continue;
+                    }
+
+                    domainQuestion.getMetadata().setOrigin(origin);
+                    domainQuestion.getQuestionData().getOptions()
+                            .getMetadata().setOrigin(origin);
+
+                    // Save question data for domain in JSON
+                    System.out.println("++  Saving question: " + questionName);
+
+                    // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
+
+                    String jsonData = this.questionToJson(domainQuestion);
+
+                    path = Path.of(outputDir, questionName + ".json");
+                    try {
+                        Files.writeString(path, jsonData);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+
+//                    String filename = qMetaStorage.saveMetadataEntity(questionName);
+//                    // save metadata row
+//                    var metaDraft = qMetaStorage.findQuestionByName(questionName);
+//                    metaDraft.setQDataGraphPath(filename);
+//                    qMetaStorage.saveMetadataDraftEntity(metaDraft);
+//                    // save data to question's metadata instance, too
+//                    val meta = domainQuestion.getQuestionData().getOptions().getMetadata();
+//                    meta.setQDataGraph(filename);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -2775,7 +2885,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return name2bit;
     }
     private HashMap<String, Long> _getLawsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(16);
+        HashMap<String, Long> name2bit = new HashMap<>(8);
         name2bit.put("single_token_binary_execution", 0x1L);  	// (1)
         name2bit.put("two_token_binary_execution", 0x2L);  	// (2)
         name2bit.put("single_token_unary_prefix_execution", 0x4L);  	// (4)

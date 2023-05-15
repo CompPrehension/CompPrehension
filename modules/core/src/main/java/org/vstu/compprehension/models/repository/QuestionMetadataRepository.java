@@ -8,72 +8,41 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-// Базовый интерфейс для поиска вопросов по их метаданным
+// Основной интерфейс для поиска вопросов по их метаданным
 @Primary
 @Repository
-public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionMetadataEntity, Integer> {
+public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer> {
 
     @NotNull
     @Override
     Iterable<QuestionMetadataEntity> findAll();
+
+    @NotNull
+    @Query("select q from #{#entityName} q where q.name = :questionName")
+    List<QuestionMetadataEntity> findByName(@Param("questionName") String questionName);
 
     @Query(value = "select " +
             "count(*) as 'count', " +
             "min(q.integral_complexity) as min, " +
             "avg(q.integral_complexity) as mean, " +
             "max(q.integral_complexity) as max " +
-            "from questions_meta q where q.domain_shortname = :DOMAIN_NAME AND q._stage = 3",
+            "from questions_meta q where q.domain_shortname = :DOMAIN_NAME AND q._stage = 3 " +
+            "AND q.is_draft = 0",
             nativeQuery = true)
     Map<String, Object> getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
     );
 
-
-//    // @Query ....
-//    List<QuestionMetadataEntity> findAllWithConceptLawBitsWithoutTemplates(
-//            @Param("conceptR") long conceptsRequiredBitmask,
-//            @Param("conceptD") long conceptsDeniedBitmask,
-//            @Param("lawR") long lawsRequiredBitmask,
-//            @Param("lawD") long lawsDeniedBitmask,
-//            @Param("ids") Collection<Integer> templatesIds
-//    );
-//
-//    // @Query ....
-//    List<QuestionMetadataEntity> findSampleAroundComplexityStepsWithoutTemplates(
-//            @Param("complexity") double complexity,
-//            @Param("solutionSteps") int solutionSteps,
-//            @Param("conceptA") long conceptsPreferredBitmask,
-//            @Param("conceptD") long conceptsDeniedBitmask,
-//            @Param("lawA") long lawsPreferredBitmask,
-//            @Param("lawD") long lawsDeniedBitmask,
-//            @Param("ids") Collection<Integer> templatesIds,
-//            @Param("lim") int limitNumber
-//    );
-//
-//    // @Query ....
-//    List<QuestionMetadataEntity> findSampleAroundComplexityWithoutTemplates(
-//            @Param("complexity") double complexity,
-//            @Param("complWindow") double complexityWindow,
-//            @Param("stepsMin") int solutionStepsMin,
-//            @Param("stepsMax") int solutionStepsMax,
-//            @Param("conceptA") long conceptsPreferredBitmask,
-//            @Param("conceptD") long conceptsDeniedBitmask,
-//            @Param("lawA") long lawsPreferredBitmask,
-//            @Param("lawD") long lawsDeniedBitmask,
-//            @Param("templateIDs") Collection<Integer> templatesIds,
-//            @Param("questionIDs") Collection<Integer> questionsIds,
-//            @Param("lim") int limitNumber,
-//            @Param("random_pool_lim") int randomPoolLimitNumber
-//    );
-
-
     @Query(value = "SELECT * FROM (" +
             "select * from questions_meta q where " +
             "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
             "AND q.solution_steps >= :#{#qr.stepsMin} " +
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
@@ -83,9 +52,12 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
             "order by bit_count(q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask})" +
             " + bit_count(q.concept_bits & :#{#qr.conceptsTargetedBitmask})" +
             " + bit_count(q.violation_bits & :#{#qr.lawsTargetedBitmask})" +
-            " + IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, +10, -abs(q.integral_complexity - :#{#qr.complexity}))" +
-            " - (2 * q.used_count)" +  // less often show "hot" questions
-            " DESC limit :randomPoolLim" +
+            " DESC, " +
+            // // " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
+            " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
+            " ASC, " +
+            " q.used_count ASC " +  // less often show "hot" questions
+            " limit :randomPoolLim" +
             ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) + (T1.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) + (T1.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0)) DESC, RAND() limit :lim",
             nativeQuery = true)
     List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(
@@ -97,6 +69,7 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
 
     @Query(value = "select count(*) as number from questions_meta q where " +
             "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
             "AND q.solution_steps >= :#{#qr.stepsMin} " +
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
@@ -111,5 +84,47 @@ public interface QuestionMetadataBaseRepository extends CrudRepository<QuestionM
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds}" + // note: must be non-empty
             "", nativeQuery = true)
     Map<String, Object> countQuestions(@Param("qr") QuestionRequest qr);
+
+
+    @NotNull
+    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // ( AND q.stage = :stage ) ?
+    List<String> findAllOrigins(
+            @Param("domainName") String domainName
+    );
+
+
+    @Query(value = "select * from questions_meta q " +
+            "where " +
+            "q.domain_shortname = :#{#qr.domainShortname} and " +
+            "1 AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
+            "AND q.solution_steps >= :#{#qr.stepsMin} " +
+            "AND q.solution_steps <= :#{#qr.stepsMax} " +
+            "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
+            "AND q.violation_bits & :#{#qr.lawsDeniedBitmask} = 0 " +
+
+            // at least one targeted concept and one targeted law must present
+            "   AND IF(:#{#qr.traceConceptsTargetedBitmask} =0,1,q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) " +
+            "   AND IF(:#{#qr.conceptsTargetedBitmask} =0,1,q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
+            "   AND IF(:#{#qr.lawsTargetedBitmask} =0,1,q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0) " +
+            "limit :lim", nativeQuery = true)
+    Collection<QuestionMetadataEntity>
+    findSuitableQuestions(
+            @Param("qr") QuestionRequestLogEntity qr,
+            // // @Param("qr") QuestionRequest qr  // would also work since common fields are the same
+             @Param("lim") int limitNumber
+    );
+
+
+    @Query(value = "select q.* from questions_meta q" +
+            " LEFT JOIN questions_meta p ON (q.name = p.name AND q.domain_shortname = p.domain_shortname AND p._stage = 3) " +
+            " where " +
+            "p.id is NULL AND " + // this draft is not in production table
+            "q.domain_shortname = :domainShortname AND q._stage = 4 " + // 4 = STAGE_EXPORTED
+            "AND q.is_draft = 1 " +
+            "", nativeQuery = true)
+    List<QuestionMetadataEntity> findNotYetExportedQuestions(
+            @Param("domainShortname") String domainShortname
+    );
 
 }

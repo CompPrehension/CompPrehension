@@ -22,8 +22,8 @@ public class FileUtility {
             result = walk
                     .filter(p -> !Files.isDirectory(p))
                     // convert path to string
-                    .map(p -> p.toString().toLowerCase())
-                    .filter(f -> isEndWith(f, fileExtensions))
+                    .map(p -> p.toString()/*.toLowerCase()*/)
+                    .filter(f -> isEndWith(f.toLowerCase(), fileExtensions))
                     .collect(Collectors.toList());
         }
         return result;

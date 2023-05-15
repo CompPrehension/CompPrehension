@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -12,12 +15,11 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -40,28 +42,26 @@ public abstract class Domain {
     /** name to Tag mapping */
     protected Map<String, Tag> tags;
 
-    protected AbstractRdfStorage rdfStorage;
-    /**
-     * Db entry
-     */
-    protected DomainEntity domainEntity;
+
+
     /**
      * domain name (used to get domain by name)
      */
-    protected String name = "";
+
     /**
      * version of domain (in db)
      */
     protected String version = "";
     @Getter
     protected final RandomProvider randomProvider;
-    protected final QuestionRequestLogRepository questionRequestLogRepository;
+    @Getter
+    protected AbstractRdfStorage qMetaStorage = null;
+    @Getter
+    private final DomainEntity domainEntity;
 
-
-
-    public Domain(RandomProvider randomProvider, QuestionRequestLogRepository questionRequestLogRepository) {
+    public Domain(DomainEntity domainEntity, RandomProvider randomProvider) {
+        this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
-        this.questionRequestLogRepository = questionRequestLogRepository;
     }
 
     /**
@@ -69,13 +69,16 @@ public abstract class Domain {
      */
     public abstract void update();
 
+
+    public @NotNull String getDomainId() {
+        return domainEntity.getName();
+    }
     public String getName() {
-        return name;
+        return domainEntity.getName();
     }
     public String getShortName() {
-        return name;  // same as name by default
+        return domainEntity.getShortName();  // same as name by default
     }
-
     public String getVersion() {
         return version;
     }
@@ -335,32 +338,17 @@ public abstract class Domain {
         return new ArrayList<>();
     }
 
-    public AbstractRdfStorage getRdfStorage() {
-        if (rdfStorage == null) {
-            rdfStorage = new LocalRdfStorage(this);
-        }
-        return rdfStorage;
-    }
-
-    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
-        return null;
-    }
-
-    public void saveQuestionRequest(QuestionRequest qr) {
-
-        // fill empty lists
-        if (qr.getDeniedQuestionMetaIds().isEmpty())
-            qr.getDeniedQuestionMetaIds().add(0);
-        if (qr.getDeniedQuestionTemplateIds().isEmpty())
-            qr.getDeniedQuestionTemplateIds().add(0);
-
-        val qrl = qr.getLogEntity();
-
-        Map<String, Object> res = getQuestionMetadataRepository().countQuestions(qr);
-        int questionsFound = ((BigInteger)res.getOrDefault("number", -2)).intValue();
-        qrl.setFoundCount(questionsFound);
-        qrl.setCreatedDate(new Date());
-        questionRequestLogRepository.save(qrl);
+    @NotNull
+    public static Gson getQuestionGson() {
+        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
+                RuntimeTypeAdapterFactory
+                        .of(Question.class, "questionType")
+                        .registerSubtype(Ordering.class, "ORDERING")
+                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
+                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
+                        .registerSubtype(Matching.class, "MATCHING");
+        return new GsonBuilder()
+                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
     }
 
     abstract public Question parseQuestionTemplate(InputStream stream);
@@ -372,8 +360,6 @@ public abstract class Domain {
     public double getAcceptableRateOfIgnoredMistakes() {
         return 0.0834;  // = 1/12
     }
-
-    public abstract @NotNull String getDomainId();
 
     /**
      * Get text description of all steps to right solution

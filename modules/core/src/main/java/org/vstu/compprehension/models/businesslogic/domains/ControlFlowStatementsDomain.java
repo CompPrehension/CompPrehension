@@ -15,13 +15,13 @@ import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -30,14 +30,11 @@ import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionO
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataBaseRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import javax.inject.Singleton;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -52,9 +49,7 @@ import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
-
-@Component @Log4j2
-@Singleton
+@Log4j2
 public class ControlFlowStatementsDomain extends Domain {
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
@@ -80,30 +75,22 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository;
 
-    @Autowired
-    public ControlFlowStatementsDomain(LocalizationService localizationService,
-         DomainRepository domainRepository,
-         RandomProvider randomProvider,
-         QuestionMetadataBaseRepository ctrlFlowQuestionMetadataRepository,
-         QuestionRequestLogRepository questionRequestLogRepository) {
-        super(randomProvider, questionRequestLogRepository);
+    public ControlFlowStatementsDomain(
+            DomainEntity domainEntity,
+            LocalizationService localizationService,
+            RandomProvider randomProvider,
+            QuestionMetadataRepository questionMetadataRepository) {
+        super(domainEntity, randomProvider);
+
         this.localizationService = localizationService;
-        this.ctrlFlowQuestionMetadataRepository = ctrlFlowQuestionMetadataRepository;
-        name = "ControlFlowStatementsDomain";
-//        if (domainRepository != null)
-        domainEntity = domainRepository.findById(getDomainId()).orElseThrow();
+        this.qMetaStorage = new LocalRdfStorage(
+                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         // using update() as init
         // OFF: // update();
-    }
-
-    @Override
-    public String getShortName() {
-        return "ctrl_flow";
     }
 
     public static void initVocab() {
@@ -213,14 +200,8 @@ public class ControlFlowStatementsDomain extends Domain {
     @Override
     public void update() {
         // init questions storage
-        getRdfStorage();
+        getQMetaStorage();
     }
-
-    @Override
-    public QuestionMetadataBaseRepository getQuestionMetadataRepository() {
-        return ctrlFlowQuestionMetadataRepository;
-    }
-
 
     @Override
     public Model getSchemaForSolving() {
@@ -511,14 +492,13 @@ public class ControlFlowStatementsDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                saveQuestionRequest(questionRequest);
-                foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);
+                foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getRdfStorage().searchQuestions(questionRequest, randomPoolSize);
+                    foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, randomPoolSize);
                 }
                 log.info("Autogenerated questions found: " + foundQuestions.size());
             } catch (RuntimeException ex) {
@@ -2015,15 +1995,7 @@ public class ControlFlowStatementsDomain extends Domain {
     public static List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
 
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+        Gson gson = getQuestionGson();
 
         Question[] questions = gson.fromJson(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8),
@@ -2035,27 +2007,13 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream inputStream) {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+        Gson gson = getQuestionGson();
 
         Question question = gson.fromJson(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Question.class);
 
         return question;
-    }
-
-    @NotNull
-    @Override
-    public String getDomainId() {
-        return "ControlFlowStatementsDomain";
     }
 
     @Override
