@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Log4j2
-public class LocalRdfStorage extends AbstractRdfStorage  {
+public class LocalRdfStorage extends AbstractRdfStorage {
 
     /**
      * Absolute path (ex. under FTP_BASE) to file containing domain-specific template/question metadata as RDF
@@ -33,8 +33,8 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
                            QuestionMetadataManager questionMetadataManager) {
         this(new RemoteFileService(
                         domain.getOptions().getStorageUploadFilesBaseUrl(),
-                Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl())
-                        .orElse(domain.getOptions().getStorageUploadFilesBaseUrl())),
+                        Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl())
+                                .orElse(domain.getOptions().getStorageUploadFilesBaseUrl())),
                 questionMetadataRepository,
                 questionMetadataManager);
 

@@ -693,7 +693,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     public static String ExpressionToHtml(List<BackendFactEntity> expression) {
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
         int answerIdx = -1;
@@ -721,7 +721,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     public static String ExpressionToHtmlEnablingButtonDuplicates(List<BackendFactEntity> expression) {
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
         int answerIdx = -1;

@@ -147,8 +147,8 @@ public class TaskGenerationJob {
                         return 0;
                     }, null);
 
-                     // for now, limited number of repositories
-                     if (++idx >= repositoriesToDownload)
+                    // for now, limited number of repositories
+                    if (++idx >= repositoriesToDownload)
                         break;
                 }
             }
@@ -160,17 +160,18 @@ public class TaskGenerationJob {
         }
 
         // do parsing
-        if (parseSources)
-        {
-            for(var repo : downloadedRepos) {
+        if (parseSources) {
+            for (var repo : downloadedRepos) {
                 log.info("Start parsing sources for repo [{}]", repo);
 
                 String leafFolder = repo.getFileName().toString();
                 Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
 
-                var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
+                var files = FileUtility.findFiles(repo, new String[]{".c", ".m"});
                 files = files.subList(0, Math.min(50, files.size()));
                 log.info("Found {} *.c & *.m files", files.size());
+
+                // TODO: make parser cmd customizable?
 
                 List<String> parserProcessCommandBuilder = new ArrayList<>();
                 parserProcessCommandBuilder.add(config.getParser().getPathToExecutable());
@@ -178,7 +179,7 @@ public class TaskGenerationJob {
 
                 // reduce number of arguments on command line if necessary
                 // TODO: loop over batches if required to split the task
-                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2+10+5 + destination.toString().length());
+                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
                 parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
@@ -331,7 +332,7 @@ public class TaskGenerationJob {
                     metadataRep, qrLogRep,
                     config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
         }
-        */
+        //*/
 
         log.info("completed");
 
