@@ -18,6 +18,20 @@ public abstract class Question {
     protected List<String> concepts;
     @Setter
     protected List<String> negativeLaws;
+
+    /**
+     * @return either question's metadata or data options' metadata, whichever is set, or null
+     */
+    public QuestionMetadataEntity getMetadataAny() {
+        if (metadata != null)
+            return metadata;
+        if (questionData != null && questionData.getOptions() != null) {
+            // metadata can still be null
+            return questionData.getOptions().getMetadata();
+        }
+        return null;
+    }
+
     @Getter @Setter
     protected QuestionMetadataEntity metadata = null;
     @Setter

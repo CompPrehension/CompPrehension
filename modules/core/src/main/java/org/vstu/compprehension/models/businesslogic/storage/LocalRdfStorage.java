@@ -31,7 +31,7 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
     public LocalRdfStorage(DomainEntity domain,
                            QuestionMetadataRepository questionMetadataRepository,
                            QuestionMetadataManager questionMetadataManager) {
-        super(new RemoteFileService(
+        this(new RemoteFileService(
                         domain.getOptions().getStorageUploadFilesBaseUrl(),
                 Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl())
                         .orElse(domain.getOptions().getStorageUploadFilesBaseUrl())),
@@ -48,6 +48,14 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         // test it
 //        this.getQuestionMetadataManager();
 //        log.info("getQuestionMetadataManager completed.");
+    }
+
+    public LocalRdfStorage(RemoteFileService remoteFileService,
+                           QuestionMetadataRepository questionMetadataRepository,
+                           QuestionMetadataManager questionMetadataManager) {
+        super(remoteFileService,
+                questionMetadataRepository,
+                questionMetadataManager);
     }
 
 /*
@@ -181,6 +189,11 @@ public class LocalRdfStorage extends AbstractRdfStorage  {
         return uploadGraph(NS_questions.base());
     }
 
+    /**
+     * @param name question name
+     * @param data JSON string
+     * @return local filepath of file saved under the storage root
+     */
     public String saveQuestionData(String name, String data) {
         String filename = getFileService().prepareNameForFile("q_data/" + name + ".json", false);
         /*setQuestionMetadata(name, List.of(

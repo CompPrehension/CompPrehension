@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
@@ -23,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -35,14 +39,12 @@ import java.util.stream.Collectors;
 public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
-    private final QuestionMetadataRepository metadataDraftRep;
     private final TaskGenerationJobConfig config;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, QuestionMetadataRepository metadataDraftRep, TaskGenerationJobConfig config) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
-        this.metadataDraftRep = metadataDraftRep;
         this.config = config;
     }
 
@@ -106,10 +108,9 @@ public class TaskGenerationJob {
         List<Path> downloadedRepos;
 
         // download repos (currently, one repository per run)
-        if (downloadRepositories)
-        {
-            // TODO Добавить историю
-            var seenReposNames = metadataDraftRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/);
+        if (downloadRepositories) {
+            // TODO Добавить историю по использованным репозиториям
+            var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/);
 
             GitHub github = new GitHubBuilder()
                     .withOAuthToken(config.getSearcher().getGithubOAuthToken())
@@ -180,7 +181,7 @@ public class TaskGenerationJob {
                 parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2+10+5 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
-                parserProcessCommandBuilder.add("expression");
+                parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
                 parserProcessCommandBuilder.add(destination.toString());
                 log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
@@ -219,7 +220,8 @@ public class TaskGenerationJob {
                 log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
 
                 String leafFolder = repoDir.getFileName().toString();
-                Path destination = Path.of(config.getGenerator().getOutputFolderPath(), leafFolder);
+                String questionOrigin = leafFolder;
+                Path destination = Path.of(config.getGenerator().getOutputFolderPath(), questionOrigin);
                 Files.createDirectories(destination);
 
                 List<String> cmd = new ArrayList<>();
@@ -259,7 +261,9 @@ public class TaskGenerationJob {
                 // загрузить из папки полученные вопросы
 
                 var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
-                log.info("Found {} ttl files in: {}", allJsonFiles.size(), repoDir);
+                log.info("Found {} json files in: {}", allJsonFiles.size(), repoDir);
+
+                LocalRdfStorage storage = getQuestionStorage();
 
                 for (val file : allJsonFiles) {
                     val q = loadQuestion(file);
@@ -267,15 +271,49 @@ public class TaskGenerationJob {
                         continue;
                     }
 
-                    // Проверить подходит ли он нам
-                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав данные вопроса
-                    // Вызвать__(q, qrLogsToProcess)
+                    QuestionMetadataEntity meta = q.getMetadataAny();
+                    if (meta == null) {
+                        // в вопросе нет метаданных, Невозможно проверить
+                        log.warn("[info] cannot save question which does not contain metadata. Source file: " + file);
+                        continue;
+                    }
+
+                    // init container: list of QR logs requiring this question
+                    meta.setQrlogIds(new ArrayList<>());
+
+                    // Проверить, подходит ли он нам
+                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
+                    boolean shouldSave = false;
                     for (val qr : qrLogsToProcess) {
-                        if (QuestionRequestLogRepository.doesQuestionSuitQR(q, qr)) {
+                        if (QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
                             // TODO
+                            shouldSave = true;
+                            meta.getQrlogIds().add(qr.getId());
                         }
                     }
 
+                    if (shouldSave) {
+
+                        // copy data file and save local sub-path to it
+                        String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                        meta.setQDataGraph(qDataPath);
+
+                        log.info("(1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
+
+                        // set more metadata
+                        meta.setDateCreated(new Date());
+                        meta.setUsedCount(0L);
+                        meta.setOrigin(questionOrigin);
+                        // meta.setDateLastUsed(null);
+                        // meta.setDomainShortname(config.getDomainShortName());
+
+                        // set metadata instance back to ensure the data is saved
+                        q.setMetadata(meta);
+                        q.getQuestionData().getOptions().setMetadata(meta);
+
+                        meta = storage.saveMetadataEntity(meta);
+                        log.info("(2) Saved metadata for that question, id: [{}]", meta.getId());
+                    }
                 }
 
 
@@ -290,7 +328,7 @@ public class TaskGenerationJob {
             log.info("Start exporting questions to production bank ...");
             AbstractRdfStorage.exportGeneratedQuestionsToProductionBank(
                     qrLogsToProcess, enoughQuestionsAdded,
-                    metadataRep, metadataDraftRep, qrLogRep,
+                    metadataRep, qrLogRep,
                     config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
         }
         */
@@ -301,9 +339,9 @@ public class TaskGenerationJob {
     }
 
     /**
-     * @see Domain::parseQuestionTemplate
      * @param inputStream file contents
      * @return loaded question
+     * @see Domain::parseQuestionTemplate
      */
     private static Question parseQuestionJson(InputStream inputStream) {
         Gson gson = Domain.getQuestionGson();
@@ -316,9 +354,9 @@ public class TaskGenerationJob {
     }
 
     /**
-     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
      * @param path absolute path to file location
      * @return loaded question
+     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
      */
     private static Question loadQuestion(String path) {
         Question q = null;
@@ -330,4 +368,14 @@ public class TaskGenerationJob {
         return q;
     }
 
+
+    private LocalRdfStorage getQuestionStorage() {
+        return new LocalRdfStorage(
+                new RemoteFileService(
+                        config.getExporter().getStorageUploadFilesBaseUrl(),
+                        config.getExporter().getStorageUploadFilesBaseUrl(),
+                        config.getExporter().getStorageDummyDirsForNewFile()),
+                metadataRep,
+                null);
+    }
 }
