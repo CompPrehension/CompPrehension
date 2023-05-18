@@ -244,6 +244,7 @@ public class TaskGenerationJob {
                     Files.createDirectories(destination);
                     var parserProcess = new ProcessBuilder(cmd)
                             .redirectErrorStream(true)
+                            .inheritIO()
                             .start();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
                     String line;
