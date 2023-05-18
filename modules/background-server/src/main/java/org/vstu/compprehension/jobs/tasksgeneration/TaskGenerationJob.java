@@ -240,6 +240,7 @@ public class TaskGenerationJob {
 
                 try {
                     log.info("Run generator on repo: [{}]", leafFolder);
+                    System.out.println("Shell command to run: [" + cmd.stream().reduce((a, b) -> a + " " + b).orElse("") + "]");
                     Files.createDirectories(destination);
                     var parserProcess = new ProcessBuilder(cmd)
                             .redirectErrorStream(true)
@@ -256,13 +257,13 @@ public class TaskGenerationJob {
                     log.warn("Question generation exception", e);
                 }
 
-                log.info("Repo [{}] used to make questions.", leafFolder);
+                log.info("Repo [{}] used to make questions.", questionOrigin);
 
 
                 // загрузить из папки полученные вопросы
 
-                var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
-                log.info("Found {} json files in: {}", allJsonFiles.size(), repoDir);
+                var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
+                log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
 
                 LocalRdfStorage storage = getQuestionStorage();
 

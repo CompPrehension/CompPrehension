@@ -2715,6 +2715,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 e.printStackTrace();
             }
         }
+
+        System.out.println("total questions generated: " + qCount);
     }
 
     @Override
