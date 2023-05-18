@@ -14,6 +14,7 @@
         <module>modules/core</module>
         <module>modules/strategies</module>
         <module>modules/background-server</module>
+        <module>modules/expr-domain-question-generator</module>
     </modules>
 
     <properties>
@@ -23,6 +24,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring.version>2.3.9.RELEASE</spring.version>
         <jackson.version>2.14.0</jackson.version>
+        <log4j2.version>2.20.0</log4j2.version>
     </properties>
 
     <!-- required depedencies -->
@@ -40,7 +42,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.2</version>
+            <version>${log4j2.version}</version>
         </dependency>
     </dependencies>
 

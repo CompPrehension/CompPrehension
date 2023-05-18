@@ -34,8 +34,8 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
+        use: 'babel-loader',
         exclude: /node_modules/,
-        use: 'babel-loader'
       },
       {
         test: /\.tsx?$/,
@@ -65,5 +65,11 @@ module.exports = {
         },
       }
     }
-  }
+  },
+  watchOptions: {
+    // for some systems, watching many files can result in a lot of CPU or memory usage
+    // https://webpack.js.org/configuration/watch/#watchoptionsignored
+    // don't use this pattern, if you have a monorepo with linked packages
+    ignored: /node_modules/,
+  },
 }

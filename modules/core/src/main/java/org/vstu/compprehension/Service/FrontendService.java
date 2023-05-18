@@ -10,13 +10,11 @@ import org.apache.jena.ext.com.google.common.collect.Streams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.dto.AnswerDto;
-import org.vstu.compprehension.dto.ExerciseAttemptDto;
-import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
-import org.vstu.compprehension.dto.InteractionDto;
+import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
@@ -47,6 +45,9 @@ import static org.vstu.compprehension.models.entities.EnumData.InteractionType.S
 @Service
 @Log4j2
 public class FrontendService {
+    @Autowired
+    private QuestionRepository questionRepository;
+
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
 
@@ -90,15 +91,7 @@ public class FrontendService {
     private UserRepository userRepository;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
-        val questionId = interaction.getQuestionId();
-        val question = questionService.getQuestion(questionId);
-        return question.isSupplementary()
-                ? addSupplementaryQuestionAnswer(interaction)
-                : addOrdinaryQuestionAnswer(interaction);
-    }
-
-    private @NotNull FeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
+    public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
@@ -120,23 +113,23 @@ public class FrontendService {
                     .findFirst()
                     .orElse(null);
             val locale = attempt.getUser().getPreferred_language().toLocale();
-            val messages = judgeResult.isAnswerCorrect
-                    ? new FeedbackDto.Message[]{FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)}
-                    : new FeedbackDto.Message[]{FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation)};
-            return FeedbackDto.builder()
-                    .messages(messages)
-                    .isCorrect(judgeResult.isAnswerCorrect)
-                    .build();
+            val message = judgeResult.isAnswerCorrect
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+            return new SupplementaryFeedbackDto(
+                    message,
+                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
         }
         else {
             val expl = questionService.judgeSupplementaryQuestionNew(question, responses, attempt);
-            return FeedbackDto.builder()
-                    .messages(new FeedbackDto.Message[]{FeedbackDto.Message.Success(expl.getText(), new FeedbackViolationLawDto("", true))})
-                    .build();
+            return new SupplementaryFeedbackDto(
+                    FeedbackDto.Message.Success(expl.getText(), new FeedbackViolationLawDto("", true)),
+                    expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto);
         }
     }
 
-    private @NotNull FeedbackDto addOrdinaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
+    @Transactional(propagation = Propagation.REQUIRED)
+    public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         Checkpointer ch = new Checkpointer(log);
 
         val exAttemptId = interaction.getAttemptId();
@@ -218,7 +211,7 @@ public class FrontendService {
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
 //            ch.hit("results made");
-            val res = addOrdinaryQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
+            val res = addQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
             ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;
         }
@@ -246,12 +239,9 @@ public class FrontendService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public @Nullable QuestionDto generateSupplementaryQuestion(@NotNull Long exAttemptId, @NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
-        val attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        val question = attempt.getQuestions().stream().filter(q -> q.getId().equals(questionId)).findFirst()
-                .orElseThrow(() -> new Exception("Can't find question with id " + questionId));
-        val lastInteraction = Iterables.getLast(question.getInteractions());
+    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
+        val question = questionRepository.findByIdEager(questionId)
+                .orElseThrow();
 
         val violation = new ViolationEntity(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
@@ -259,7 +249,10 @@ public class FrontendService {
         // domain.generateSupplementaryQuestion(question, violation)
 
         val supQuestion = questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
-        return supQuestion != null ? Mapper.toDto(supQuestion) : null;
+        var questionDto = supQuestion != null ? Mapper.toDto(supQuestion) : null;
+        return questionDto != null && questionDto.getAnswers().length > 0 ? SupplementaryQuestionDto.FromQuestion(Mapper.toDto(supQuestion))
+                : questionDto != null ? SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")), SupplementaryFeedbackDto.Action.Finish))
+                : SupplementaryQuestionDto.Empty();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

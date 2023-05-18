@@ -1,12 +1,14 @@
 package org.vstu.compprehension.models.entities;
 
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Getter @Setter
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "questions_meta")
 @NoArgsConstructor
@@ -27,8 +29,25 @@ public class QuestionMetadataEntity {
     @Column(name = "template_id", nullable = false)
     private Integer templateId;
 
+    @Column(name = "qt_graph")
+    private String qtGraphPath;
+
+    @Column(name = "qt_s_graph")
+    private String qtSolvedGraphPath;
+
+    @Column(name = "q_graph")
+    private String qGraphPath;
+
+    @Column(name = "q_s_graph")
+    private String qSolvedGraphPath;
+
     @Column(name = "q_data_graph")
     private String qDataGraph;
+
+    public void setQDataGraphPath(String path) {
+        // workaround due to change in field name in db/json
+        setQDataGraph(path);
+    }
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -66,24 +85,44 @@ public class QuestionMetadataEntity {
     @Column(name = "_version")
     private Integer version;
 
+    @Builder.Default
     @Column(name = "used_count")
-    private Long usedCount;
+    private Long usedCount = 0L;
 
+    @Builder.Default
     @Column(name = "date_last_used")
-    private Date dateLastUsed;
+    private Date dateLastUsed = null;
 
+    @Builder.Default
     @Column(name = "last_attempt_id")
-    private Long lastAttemptId;
+    private Long lastAttemptId = 0L;
 
     /** compact representation of meaningful structure; may be used to determine similar questions
      * */
+    @Builder.Default
     @Column(name = "structure_hash")
-    private String structureHash;
+    private String structureHash = "";
 
 
-    @Transient
+    @Column(name = "is_draft")
     @Builder.Default
     private boolean isDraft = false;
+
+    /**
+     * URL or name of GitHub repository from which this question was created
+     */
+    @Builder.Default
+    @Column(name = "origin")
+    private String origin = "";
+
+    @Builder.Default
+    @Type(type = "json")
+    @Column(name = "qrlog_ids", columnDefinition = "json")
+    private List<Integer> qrlogIds = null;
+
+    @Column(name = "date_created")
+    private Date dateCreated;
+
 
 
     @Transient
@@ -144,5 +183,15 @@ public class QuestionMetadataEntity {
     /** Violations from request absent in question's violations */
     public Long violationsUnsatisfiedFromRequest() {
         return ~violationBits & violationBitsInRequest;
+    }
+
+    /**
+     * @return a copy with isDraft set to `false`; don't reset id
+     */
+    public QuestionMetadataEntity toMetadataEntity() {
+        return this.toBuilder()
+                // .id(null)  // don't reset id: reuse db row
+                .isDraft(false)
+                .build();
     }
 }
