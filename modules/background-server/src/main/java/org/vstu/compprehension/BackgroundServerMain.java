@@ -20,7 +20,7 @@ public class BackgroundServerMain {
     private JobScheduler jobScheduler;
 
     /** Whether to execute the job once and then exit; otherwise the job will be called permanently with the specified INTERVAL */
-    public static boolean runOnce = false;
+    public static boolean runOnce = true;
     private static Duration INTERVAL = Duration.ofHours(2);
 
 
