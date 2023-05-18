@@ -78,7 +78,6 @@ public class ExpressionSituationPythonCaller {
             }
         }
         catch (IOException ignored) {
-            close();
             return Collections.nCopies(expectedOutputLines, "");
         }
 

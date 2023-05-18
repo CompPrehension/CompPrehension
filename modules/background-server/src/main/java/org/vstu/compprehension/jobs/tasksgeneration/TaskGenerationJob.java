@@ -265,6 +265,8 @@ public class TaskGenerationJob {
                 var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
                 log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
 
+                int skippedQuestions = 0; // loaded but not kept since not required by any QR
+
                 LocalRdfStorage storage = getQuestionStorage();
 
                 for (val file : allJsonFiles) {
@@ -315,8 +317,12 @@ public class TaskGenerationJob {
 
                         meta = storage.saveMetadataEntity(meta);
                         log.info("(2) Saved metadata for that question, id: [{}]", meta.getId());
+                    } else {
+                        skippedQuestions += 1;
                     }
                 }
+
+                log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
 
 
                 // for Expression domain only:
