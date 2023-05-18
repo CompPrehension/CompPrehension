@@ -20,8 +20,9 @@
     </changeSet>
 
     <changeSet id="1641417136728-8" author="Mikhail">
+        <validCheckSum>ANY</validCheckSum>
         <update tableName="domain">
-            <column name="short_name" value="control_flow" />
+            <column name="short_name" value="ctrl_flow" />
             <column name="options_json" value='{"StorageSPARQLEndpointUrl": "http://vds84.server-1.biz:6515/control_flow/", "StorageUploadFilesBaseUrl": "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/control_flow/", "StorageDownloadFilesBaseUrl": "http://vds84.server-1.biz/misc/ftp/compp/control_flow/", "StorageDummyDirsForNewFile": 2}' />
             <where>name = 'ControlFlowStatementsDomain'</where>
         </update>

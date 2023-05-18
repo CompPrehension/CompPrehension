@@ -3,7 +3,7 @@ INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`) VALUES (1
                 "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/expression/",
                 "StorageUploadFilesBaseUrl": "file:///C:/data/compp/expression/",
                 "QuestionsGraphPath": "C:/data/compp/expression.ttl"}' FORMAT JSON);
-INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`) VALUES (1, 'ControlFlowStatementsDomain', 'control_flow',
+INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`) VALUES (1, 'ControlFlowStatementsDomain', 'ctrl_flow',
 	'{"StorageSPARQLEndpointUrl": null,
                 "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
                 "StorageUploadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
