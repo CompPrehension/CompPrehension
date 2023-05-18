@@ -19,6 +19,11 @@ public class BackgroundServerMain {
     @Autowired
     private JobScheduler jobScheduler;
 
+    /** Whether to execute the job once and then exit; otherwise the job will be called permanently with the specified INTERVAL */
+    public static boolean runOnce = false;
+    private static Duration INTERVAL = Duration.ofHours(2);
+
+
     public static void main(String[] args) throws IOException {
         SpringApplication.run(BackgroundServerMain.class, args);
     }
@@ -36,10 +41,13 @@ public class BackgroundServerMain {
 
     @PostConstruct
     public void jobsConfig() {
-//        jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
-        jobScheduler.<TaskGenerationJob>scheduleRecurrently(Duration.ofHours(2), TaskGenerationJob::run);
-        /* Note:
-        Jobrunr does not run a recurrent job if the previous run hasn't finished yet. (That's OK for us.)
-        * */
+        if (runOnce) {
+            jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
+        } else {
+            jobScheduler.<TaskGenerationJob>scheduleRecurrently(INTERVAL, TaskGenerationJob::run);
+            /* Note:
+            Jobrunr does not run a recurrent job if the previous run hasn't finished yet. (That's OK for us.)
+            * */
+        }
     }
 }

@@ -9,6 +9,7 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.BackgroundServerMain;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
@@ -51,13 +52,15 @@ public class TaskGenerationJob {
     @SneakyThrows
     @Job
     public void run() {
-        log.info("Run generating questions for expression domain");
+        log.info("Run generating questions for expression domain ...");
         try {
             runGeneration4Expr();
         } catch (Exception e) {
             log.warn("job exception", e);
         }
-        System.exit(0);
+        if (BackgroundServerMain.runOnce) {
+            System.exit(0);
+        }
     }
 
     /**
