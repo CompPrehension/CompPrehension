@@ -78,14 +78,16 @@ public class TaskGenerationJob {
             return false;
         }
 
+        log.info("QR logs to process: {}", qrLogsToProcess.size());
+
         boolean _debugGenerator = false;
         boolean cleanupFolders = false; // !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
         boolean parseSources = !_debugGenerator;
-        boolean generateQuestions = !_debugGenerator;
-        boolean exportQuestionsToProduction = true;
-        
+        boolean generateQuestions = true;
+        // boolean exportQuestionsToProduction = true;
+
         int repositoriesToDownload = 1;
 
 
