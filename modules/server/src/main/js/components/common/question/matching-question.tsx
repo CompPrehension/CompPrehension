@@ -136,7 +136,7 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
             <div>
                 {question.answers.map(asw => 
                     <div className="row mb-3">
-                        <div className="col-md-6" dangerouslySetInnerHTML={{ __html: question.text}}>
+                        <div className="col-md-6" dangerouslySetInnerHTML={{ __html: asw.text}}>
                         </div>
                         <div className="col-md-auto">
                             <div style={{width: `${(8*groupsMaxLength) + 100}px`}}>
