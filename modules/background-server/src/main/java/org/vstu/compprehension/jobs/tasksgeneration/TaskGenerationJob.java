@@ -16,6 +16,7 @@ import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
@@ -26,9 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -69,10 +68,8 @@ public class TaskGenerationJob {
     @SneakyThrows
     public boolean runGeneration4Expr() {
 
-        /*
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        */
         int tooFewQuestions = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
         var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
@@ -274,6 +271,7 @@ public class TaskGenerationJob {
                 int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
                 LocalRdfStorage storage = getQuestionStorage();
+                Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
                 for (val file : allJsonFiles) {
                     val q = loadQuestion(file);
@@ -296,9 +294,18 @@ public class TaskGenerationJob {
                     boolean shouldSave = false;
                     for (val qr : qrLogsToProcess) {
                         if (QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
-                            // TODO
-                            shouldSave = true;
-                            meta.getQrlogIds().add(qr.getId());
+
+                            // Если вопрос ещё не сохранен в базу
+                            if (storage.findQuestionByName(meta.getName()) == null) {
+
+                                // set flag to use this question
+                                shouldSave = true;
+                                // update question metrics
+                                meta.getQrlogIds().add(qr.getId());
+                                // update qr metrics
+                                qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
+                                qrLogsProcessed.add(qr);
+                            }
                         }
                     }
 
@@ -329,6 +336,26 @@ public class TaskGenerationJob {
                 }
 
                 log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
+
+                if (qrLogsProcessed.size() > 0) {
+
+                    // update QR-log: statistics and possibly status
+                    for (var qr : qrLogsProcessed) {
+
+                        // increment processed counter for each repository touched by this qr
+                        qr.setProcessedCount(qr.getProcessedCount() + 1);
+                        if (qr.getFoundCount() + qr.getAddedQuestions() >= enoughQuestionsAdded) {
+                            // don't more need to process it.
+                            qr.setOutdated(1);
+                            log.info("Question-request-log (id: {}) resolved with {} questions added.", qr.getId(),
+                                    qr.getAddedQuestions());
+                        }
+                        qr.setLastProcessedDate(new Date());
+                    }
+                    qrLogRep.saveAll(qrLogsProcessed);
+
+                    log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
+                }
 
 
                 // for Expression domain only:
