@@ -38,6 +38,13 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
     const onGotitClicked = () => {
         setAllVisible(false);
     }
+    const tryContinueAuto = async () => {
+        if ((store.questionState == "COMPLETED" || !store.question) && store.feedback?.action === 'CONTINUE_AUTO') {
+            console.log(`show feedback for 3 seconds`);
+            await delayPromise(3000);
+            await onNextQuestionClicked();
+        }
+    }
     const onAnswered = async () => {
         await store.sendAnswers();
         const { feedback } = store;
@@ -46,12 +53,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
             setAllVisible(false);
             return;
         }
-
-        if (feedback.action === 'CONTINUE_AUTO') {                
-            console.log(`show feedback for 3 seconds`);
-            await delayPromise(3000);
-            await onNextQuestionClicked();
-        }
+        await tryContinueAuto();
     }
     const onNextQuestionClicked = async () => {
         const newViolationLaw = store.feedback?.message?.violationLaw || null;
@@ -63,6 +65,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
 
         setCurrentViolationLaw(newViolationLaw)
         await store.generateSupplementaryQuestion([newViolationLaw].map(v => v.name));
+        await tryContinueAuto();
     }
 
     return (
