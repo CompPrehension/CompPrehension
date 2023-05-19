@@ -1,9 +1,6 @@
 package org.vstu.compprehension.Service;
 
-import its.questions.gen.states.EndQuestionState;
-import its.questions.gen.states.Explanation;
-import its.questions.gen.states.QuestionStateChange;
-import its.questions.gen.states.QuestionStateResult;
+import its.questions.gen.states.*;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +12,7 @@ import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -205,7 +203,7 @@ public class QuestionService {
         Explanation expl = change.getExplanation();
         if(expl != null)
             return new SupplementaryFeedbackDto(
-                    FeedbackDto.Message.Success(expl.getText(), new FeedbackViolationLawDto("", true)),
+                    new FeedbackDto.Message(expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl.getText(), new FeedbackViolationLawDto("", true)),
                     change.getNextState() == null || change.getNextState() instanceof EndQuestionState
                             ? SupplementaryFeedbackDto.Action.Finish
                             : expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
