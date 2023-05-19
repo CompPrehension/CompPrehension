@@ -7,7 +7,6 @@ import its.questions.gen.states.QuestionStateResult;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
@@ -20,8 +19,8 @@ import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
+import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeBasedDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -99,20 +98,19 @@ public class QuestionService {
     }
 
 
-    public @Nullable SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
+    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
         Question question = null;
-        if(!(domain instanceof ProgrammingLanguageExpressionDomain)){
+        if(!(domain instanceof DecisionTreeBasedDomain)){
             question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
-            if (question == null) {
-                return null;
+            if (question != null) {
+                question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+                saveQuestion(question.getQuestionData());
             }
-            question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-            saveQuestion(question.getQuestionData());
             return questionAsSupplementaryQuestionDto(question);
         }
         else {
-            val out = ((ProgrammingLanguageExpressionDomain) domain).makeSupplementaryQuestionNew(sourceQuestion, lang);
+            val out = ((DecisionTreeBasedDomain) domain).makeSupplementaryQuestionDT(sourceQuestion, lang);
             SupplementaryStepEntity s = out.getSecond();
             if(out.getFirst() instanceof its.questions.gen.states.Question){
                 question = transformQuestionFormats((its.questions.gen.states.Question) out.getFirst(), domain, sourceQuestion.getExerciseAttempt());
@@ -128,13 +126,29 @@ public class QuestionService {
         }
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestionNew(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt, LocalizationService localizationService) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
-        assert domain instanceof ProgrammingLanguageExpressionDomain;
-        val out = ((ProgrammingLanguageExpressionDomain) domain).judgeSupplementaryQuestionNew(supplementaryInfo, responses);
-        supplementaryStepRepository.save(out.getSecond());
-        return stateChangeAsSupplementaryFeedbackDto(out.getFirst());
+        if(!(domain instanceof DecisionTreeBasedDomain)){
+            assert responses.size() == 1;
+            val judgeResult = domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
+            val violation = judgeResult.violations.stream()
+                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
+                    .findFirst()
+                    .orElse(null);
+            val locale = exerciseAttempt.getUser().getPreferred_language().toLocale();
+            val message = judgeResult.isAnswerCorrect
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+            return new SupplementaryFeedbackDto(
+                    message,
+                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
+        }
+        else {
+            val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
+            val out = ((DecisionTreeBasedDomain) domain).judgeSupplementaryQuestionDT(supplementaryInfo, responses);
+            supplementaryStepRepository.save(out.getSecond());
+            return stateChangeAsSupplementaryFeedbackDto(out.getFirst());
+        }
     }
 
     public static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
@@ -212,12 +226,6 @@ public class QuestionService {
             QuestionStateChange change = ((QuestionStateChange) q);
             return SupplementaryQuestionDto.FromMessage(stateChangeAsSupplementaryFeedbackDto(change));
         }
-    }
-
-    public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        assert responses.size() == 1;
-        return domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {

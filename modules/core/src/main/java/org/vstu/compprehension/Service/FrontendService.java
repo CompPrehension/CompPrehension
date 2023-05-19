@@ -18,7 +18,6 @@ import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -103,26 +102,9 @@ public class FrontendService {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
         }
 
-        val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
-
         val responses = questionService.responseQuestion(question, answers);
-        if(!(domain instanceof ProgrammingLanguageExpressionDomain) ) {
-            val judgeResult = questionService.judgeSupplementaryQuestion(question, responses, attempt);
-            val violation = judgeResult.violations.stream()
-                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
-                    .findFirst()
-                    .orElse(null);
-            val locale = attempt.getUser().getPreferred_language().toLocale();
-            val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
-            return new SupplementaryFeedbackDto(
-                    message,
-                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
-        }
-        else {
-            return questionService.judgeSupplementaryQuestionNew(question, responses, attempt);
-        }
+
+        return questionService.judgeSupplementaryQuestion(question, responses, attempt, localizationService);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

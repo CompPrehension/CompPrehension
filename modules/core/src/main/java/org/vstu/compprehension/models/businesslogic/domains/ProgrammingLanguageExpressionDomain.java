@@ -3,11 +3,6 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
-import its.questions.gen.QuestioningSituation;
-import its.questions.gen.formulations.LocalizedDomainModel;
-import its.questions.gen.states.*;
-import its.questions.gen.strategies.FullBranchStrategy;
-import its.questions.gen.strategies.QuestionAutomata;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -20,11 +15,9 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.data.util.Pair;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -58,12 +51,10 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
-import static org.vstu.compprehension.Service.QuestionService.aggregationPadding;
-import static org.vstu.compprehension.Service.QuestionService.aggregationShift;
 import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDomain extends Domain {
+public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -79,6 +70,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
     static final String DOMAIN_MODEL_DIRECTORY = "../input_examples/";
+
+    @Override
+    protected String getDomainModelDirectory() {
+        return DOMAIN_MODEL_DIRECTORY;
+    }
+
+    @Override
+    protected Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+        return ProgrammingLanguageExpressionRDFTransformer.questionToModel(lastMainQuestionInteraction.getQuestion(), lastMainQuestionInteraction, domainModel.domainRDF);
+    }
 
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
@@ -1595,87 +1596,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         return null;
-    }
-
-    private final LocalizedDomainModel domainModel = new LocalizedDomainModel(DOMAIN_MODEL_DIRECTORY);
-    private final QuestionAutomata supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
-
-    public Pair<QuestionStateResult, SupplementaryStepEntity> makeSupplementaryQuestionNew(QuestionEntity mainQuestion,  Language userLang) {
-        //Получить ошибочную интеракцию с основным вопросом
-        List<InteractionEntity> interactions = mainQuestion.getInteractions();
-        if (interactions == null || interactions.isEmpty()) {
-            return null;
-        }
-        InteractionEntity lastInteraction = interactions.get(interactions.size() - 1);
-        //Получить последний шаг цепочки вспомогательных вопросов
-        List<SupplementaryStepEntity> supplementarySteps = lastInteraction.getRelatedSupplementarySteps();
-        SupplementaryStepEntity latestStep = supplementarySteps.isEmpty() ? null : supplementarySteps.get(supplementarySteps.size() - 1);
-
-        //Создать соответствующую ситуации рдф-модель
-        Model m = ProgrammingLanguageExpressionRDFTransformer.questionToModel(mainQuestion, lastInteraction, domainModel.domainRDF);
-
-        //создать ситуацию, описывающую контекст задания вспомогательных вопросов
-        QuestioningSituation situation;
-        if(latestStep != null){
-            latestStep.getSituationInfo().setLocalizationCode("RU"); //FIXME
-            situation = latestStep.getSituationInfo().toQuestioningSituation(m);
-        }
-        else {
-            situation = new QuestioningSituation(m, "RU");
-        }
-
-        //получить состояние автомата вопросов, к которому перешли на последнем шаге
-        QuestionState state = latestStep != null ? supplementaryAutomata.get(latestStep.getNextStateId()) : supplementaryAutomata.getInitState();
-
-
-        //Получить вопрос
-        QuestionStateResult res = state.getQuestion(situation);
-        while(res instanceof QuestionStateChange &&
-                ((QuestionStateChange) res).getExplanation() == null &&
-                ((QuestionStateChange) res).getNextState() != null && !(((QuestionStateChange) res).getNextState() instanceof EndQuestionState)){
-            state = ((QuestionStateChange) res).getNextState();
-            res = state.getQuestion(situation);
-        }
-
-        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(lastInteraction, situation, null,
-                res instanceof  QuestionStateChange
-                        ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
-                        : state.getId()
-        );
-        return Pair.of(res, supplementaryChain);
-    }
-
-    public Pair<QuestionStateChange, SupplementaryStepEntity> judgeSupplementaryQuestionNew(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
-        //получить состояние автомата вопросов, соответствующее данному вопросу
-        QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
-        //преобразовать ответы
-        List<Integer> answers = null;
-        if(state instanceof AggregationQuestionState || state instanceof RedirectQuestionState && ((RedirectQuestionState) state).redirectsTo() instanceof AggregationQuestionState){
-            answers = new ArrayList(Collections.nCopies(aggregationPadding, 0));
-            for(ResponseEntity r : responses){
-                answers.set(r.getLeftAnswerObject().getAnswerId()-aggregationShift, r.getRightAnswerObject().getAnswerId());
-            }
-        }
-        else {
-            assert responses.size() == 1;
-            answers = List.of(responses.get(0).getLeftAnswerObject().getAnswerId());
-        }
-
-        //Создать соответствующую ситуации рдф-модель
-        //TODO получать модель из вопроса
-        InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
-        Model m = ProgrammingLanguageExpressionRDFTransformer.questionToModel(mainQuestionInteraction.getQuestion(), mainQuestionInteraction, domainModel.domainRDF);
-
-        //создать ситуацию, описывающую контекст задания вспомогательных вопросов
-        QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(m);
-
-        //получить фидбек ответа и изменение состояния
-        QuestionStateChange change = state.proceedWithAnswer(situation, answers);
-
-        SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
-                supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
-        );
-        return Pair.of(change, newSupplementaryChain);
     }
 
     Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {
