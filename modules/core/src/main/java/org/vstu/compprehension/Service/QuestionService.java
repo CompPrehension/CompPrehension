@@ -1,5 +1,6 @@
 package org.vstu.compprehension.Service;
 
+import its.questions.gen.formulations.Localization;
 import its.questions.gen.states.*;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -151,7 +152,6 @@ public class QuestionService {
 
     public static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
     public static final int aggregationShift = 2;
-    public static final Map<String, Integer> aggregationMatching = Map.of("Верно", 1, "Неверно", -1, "Не имеет значения", 0);
     public static Question transformQuestionFormats(its.questions.gen.states.Question q, Domain domain, ExerciseAttemptEntity exerciseAttempt){
         QuestionEntity generated = new QuestionEntity();
         generated.setQuestionText(q.getText());
@@ -170,6 +170,7 @@ public class QuestionService {
             for(AnswerObjectEntity a : answers){
                 a.setAnswerId(a.getAnswerId() + aggregationShift); //чтобы избежать пересечения с answerId ответов в aggregationMathching
             }
+            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(exerciseAttempt.getUser().getPreferred_language().toLocaleString()));
             for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
                 AnswerObjectEntity ans = new AnswerObjectEntity();
                 ans.setAnswerId(m.getValue());
