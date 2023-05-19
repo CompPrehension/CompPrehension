@@ -53,7 +53,7 @@ public class TaskGenerationJob {
     public void run() {
         log.info("Run generating questions for expression domain ...");
         try {
-            runGeneration4Expr();
+            runQuestionGeneration();
         } catch (Exception e) {
             log.warn("job exception", e);
         }
@@ -66,7 +66,7 @@ public class TaskGenerationJob {
      * @return true if more processing needed
      */
     @SneakyThrows
-    public boolean runGeneration4Expr() {
+    public boolean runQuestionGeneration() {
 
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
@@ -80,7 +80,7 @@ public class TaskGenerationJob {
 
         log.info("QR logs to process: {}", qrLogsToProcess.size());
 
-        boolean _debugGenerator = false;
+        boolean _debugGenerator = true;
         boolean cleanupFolders = false; // !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
