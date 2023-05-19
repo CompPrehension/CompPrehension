@@ -49,16 +49,12 @@ export class SupplementaryQuestionStore {
         const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);
 
         runInAction(() => {
-            this.setQuestionState('LOADED');
-
-            if (E.isLeft(dataEither)) {            
+            if (E.isLeft(dataEither)) {                
+                this.setQuestionState('LOADED');
                 return;
             }
             
-            this.onQuestionLoaded(dataEither.right.question);
-            if (dataEither.right.message) {
-                this.feedback = dataEither.right.message;
-            }
+            this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
         })
     }
 
@@ -77,10 +73,9 @@ export class SupplementaryQuestionStore {
         this.setQuestionState('ANSWER_EVALUATING');
         const feedbackEither = await this.exerciseController.addSupplementaryQuestionAnswer(body);
 
-        runInAction(() => {
-            this.setQuestionState('LOADED');
-       
+        runInAction(() => { 
             if (E.isLeft(feedbackEither)) {
+                this.setQuestionState('LOADED');
                 return;
             }
     
@@ -94,7 +89,7 @@ export class SupplementaryQuestionStore {
         this.answer = newAnswer;
     }
 
-    private onQuestionLoaded = (question?: Question | null) => {        
+    #onQuestionLoaded = (question?: Question | null, feedback?: SupplementaryFeedback | null) => {        
         // add question id to answers
         if (question?.options.requireContext) {
             // regex searchs all tags with id='answer_id' and prepends them with question id
@@ -108,12 +103,8 @@ export class SupplementaryQuestionStore {
         }
         
         this.question      = question ?? undefined;
-        this.feedback      = undefined;
+        this.feedback      = feedback ?? undefined;
         this.answer        = question?.responses ?? [];
-        this.questionState = !question ? 'INITIAL' : 'LOADED';
-
-        if (question?.feedback && question.feedback.stepsLeft === 0) {
-            this.setQuestionState('COMPLETED');
-        }
+        this.questionState = !question ? 'COMPLETED' : 'LOADED';
     }
 }
