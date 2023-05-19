@@ -25,7 +25,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         Model base = ProgrammingLanguageExpressionDomain.factsToOntModel(question.getStatementFacts());
         List<Resource> selected = lastQuestionInteraction.getResponses().stream().map((r) -> base.getResource("http://vstu.ru/poas/code#" + r.getLeftAnswerObject().getDomainInfo())).collect(Collectors.toList());
     
-        saveModel("base.ttl", base);
+        //saveModel("base.ttl", base);
         Model res = ModelFactory.createDefaultModel();
         res.add(domain);
         res.setNsPrefix("", JenaUtil.POAS_PREF);
@@ -61,8 +61,9 @@ public class ProgrammingLanguageExpressionRDFTransformer {
             if(getOtherComplex(baseToken) != null){
                 Resource otherBaseToken = getOtherComplex(baseToken);
                 Resource otherResToken = resTokenFromBase(otherBaseToken, resElement);
-                otherResToken.addProperty(ruProperty, loc.getFirst());
-                otherResToken.addProperty(enProperty, loc.getSecond());
+                Pair<String, String> otherloc = getLocalizedName(otherBaseToken, baseTokens.indexOf(otherBaseToken)+1);
+                otherResToken.addProperty(ruProperty, otherloc.getFirst());
+                otherResToken.addProperty(enProperty, otherloc.getSecond());
                 
                 baseTokensToTokens.put(otherBaseToken, otherResToken);
             }
