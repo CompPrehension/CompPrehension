@@ -202,19 +202,14 @@ public class QuestionService {
     }
     public static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
         Explanation expl = change.getExplanation();
-        if(expl != null)
-            return new SupplementaryFeedbackDto(
-                    new FeedbackDto.Message(expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl.getText(), new FeedbackViolationLawDto("", true)),
-                    change.getNextState() == null || change.getNextState() instanceof EndQuestionState
-                            ? SupplementaryFeedbackDto.Action.Finish
-                            : expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
-            );
-        else
-            return new SupplementaryFeedbackDto(
-                    FeedbackDto.Message.Success("...", new FeedbackViolationLawDto("", true)),
-                    change.getNextState() == null || change.getNextState() instanceof EndQuestionState
-                            ? SupplementaryFeedbackDto.Action.Finish
-                            : SupplementaryFeedbackDto.Action.ContinueAuto);
+        return new SupplementaryFeedbackDto(
+                new FeedbackDto.Message(expl != null && expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl != null ? expl.getText() : "...", new FeedbackViolationLawDto("", true)),
+                change.getNextState() == null ||
+                        change.getNextState() instanceof EndQuestionState ||
+                        (change.getNextState() instanceof RedirectQuestionState && ((RedirectQuestionState) change.getNextState()).redirectsTo() instanceof EndQuestionState)
+                        ? SupplementaryFeedbackDto.Action.Finish
+                        : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
+        );
     }
     public static SupplementaryQuestionDto stateResultAsSupplementaryQuestionDto(QuestionStateResult q, Domain domain, ExerciseAttemptEntity exerciseAttempt){
         if(q instanceof its.questions.gen.states.Question){
