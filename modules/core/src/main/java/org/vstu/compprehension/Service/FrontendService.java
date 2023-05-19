@@ -121,10 +121,7 @@ public class FrontendService {
                     judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
         }
         else {
-            val expl = questionService.judgeSupplementaryQuestionNew(question, responses, attempt);
-            return new SupplementaryFeedbackDto(
-                    FeedbackDto.Message.Success(expl.getText(), new FeedbackViolationLawDto("", true)),
-                    expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto);
+            return questionService.judgeSupplementaryQuestionNew(question, responses, attempt);
         }
     }
 
@@ -248,11 +245,7 @@ public class FrontendService {
 
         // domain.generateSupplementaryQuestion(question, violation)
 
-        val supQuestion = questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
-        var questionDto = supQuestion != null ? Mapper.toDto(supQuestion) : null;
-        return questionDto != null && questionDto.getAnswers().length > 0 ? SupplementaryQuestionDto.FromQuestion(Mapper.toDto(supQuestion))
-                : questionDto != null ? SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")), SupplementaryFeedbackDto.Action.Finish))
-                : SupplementaryQuestionDto.Empty();
+        return questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

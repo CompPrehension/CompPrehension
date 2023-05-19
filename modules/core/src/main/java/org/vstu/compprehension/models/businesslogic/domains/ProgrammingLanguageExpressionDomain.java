@@ -20,14 +20,12 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
-import org.springframework.stereotype.Component;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
@@ -49,7 +47,8 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.IOException;
-import java.io.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,6 +58,8 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
+import static org.vstu.compprehension.Service.QuestionService.aggregationPadding;
+import static org.vstu.compprehension.Service.QuestionService.aggregationShift;
 import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
 
 @Log4j2
@@ -1599,7 +1600,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     private final LocalizedDomainModel domainModel = new LocalizedDomainModel(DOMAIN_MODEL_DIRECTORY);
     private final QuestionAutomata supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
 
-    public Pair<Question, SupplementaryStepEntity> makeSupplementaryQuestionNew(QuestionEntity mainQuestion,  Language userLang) {
+    public Pair<QuestionStateResult, SupplementaryStepEntity> makeSupplementaryQuestionNew(QuestionEntity mainQuestion,  Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<InteractionEntity> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
@@ -1628,35 +1629,32 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
 
         //Получить вопрос
-        Question generated = null;
-        while(generated == null){
-            QuestionStateResult res = state.getQuestion(situation);
-            if(res instanceof its.questions.gen.states.Question){
-                generated = transformQuestionFormats((its.questions.gen.states.Question) res, state.getId(), mainQuestion.getExerciseAttempt());
-            }
-            else {
-//                generated = stateChangeAsQuestion((QuestionStateChange) res, state.getId(), question.getExerciseAttempt());
-//                if(generated == null) state = ((QuestionStateChange) res).getNextState();
-                state = ((QuestionStateChange) res).getNextState();
-                if(state == null) generated = stateChangeAsQuestion((QuestionStateChange) res, 0, mainQuestion.getExerciseAttempt());
-            }
+        QuestionStateResult res = state.getQuestion(situation);
+        while(res instanceof QuestionStateChange &&
+                ((QuestionStateChange) res).getExplanation() == null &&
+                ((QuestionStateChange) res).getNextState() != null && !(((QuestionStateChange) res).getNextState() instanceof EndQuestionState)){
+            state = ((QuestionStateChange) res).getNextState();
+            res = state.getQuestion(situation);
         }
 
-        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(lastInteraction, situation, generated.getQuestionData(), state == null ? 0 : state.getId());
-        return Pair.of(generated, supplementaryChain);
+        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(lastInteraction, situation, null,
+                res instanceof  QuestionStateChange
+                        ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
+                        : state.getId()
+        );
+        return Pair.of(res, supplementaryChain);
     }
 
-    public Pair<Explanation, SupplementaryStepEntity> judgeSupplementaryQuestionNew(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    public Pair<QuestionStateChange, SupplementaryStepEntity> judgeSupplementaryQuestionNew(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
         //преобразовать ответы
         List<Integer> answers = null;
         if(state instanceof AggregationQuestionState || state instanceof RedirectQuestionState && ((RedirectQuestionState) state).redirectsTo() instanceof AggregationQuestionState){
-            /*answers = responses.stream()
-                    .sorted(Comparator.comparingInt(a -> a.getLeftAnswerObject().getAnswerId()))
-                    .map((r) -> r.getRightAnswerObject().getAnswerId())
-                    .collect(Collectors.toList());*/
-            answers = List.of(1, 1, 1); //FIXME нужна правильная (одновременная) отправка ответов с фронта
+            answers = new ArrayList(Collections.nCopies(aggregationPadding, 0));
+            for(ResponseEntity r : responses){
+                answers.set(r.getLeftAnswerObject().getAnswerId()-aggregationShift, r.getRightAnswerObject().getAnswerId());
+            }
         }
         else {
             assert responses.size() == 1;
@@ -1677,74 +1675,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
                 supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
         );
-        return Pair.of(change.getExplanation() != null ? change.getExplanation() : new Explanation("...", false), newSupplementaryChain);
-    }
-
-    private static Map<String, Integer> aggregationMatching = Map.of("Верно", 1, "Неверно", -1, "Не имеет значения", 0);
-    private Question transformQuestionFormats(its.questions.gen.states.Question q, int creatorStateId, ExerciseAttemptEntity exerciseAttempt){
-        QuestionEntity generated = new QuestionEntity();
-        generated.setQuestionText(QuestionTextToHtml(q.getText()));
-        generated.setQuestionName(String.valueOf(creatorStateId));
-        generated.setQuestionDomainType(EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE);
-        generated.setExerciseAttempt(exerciseAttempt);
-        generated.setAnswerObjects(q.getOptions().stream().map((opt) -> {
-            AnswerObjectEntity ans = new AnswerObjectEntity();
-            ans.setAnswerId(opt.getSecond());
-            ans.setHyperText(opt.getFirst());
-            return ans;
-        }).collect(Collectors.toList()));
-        if(q.isAggregation() ){
-            generated.setQuestionType(QuestionType.MATCHING);
-            List<AnswerObjectEntity> answers = generated.getAnswerObjects();
-            for(AnswerObjectEntity a : answers){
-                a.setAnswerId(a.getAnswerId() + 2); //чтобы избежать пересечения с answerId ответов в aggregationMathching
-            }
-            for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
-                AnswerObjectEntity ans = new AnswerObjectEntity();
-                ans.setAnswerId(m.getValue());
-                ans.setHyperText(m.getKey());
-                ans.setRightCol(true);
-                answers.add(ans);
-            }
-            generated.setAnswerObjects(answers);
-            val opt = new MatchingQuestionOptionsEntity();
-            opt.setShowSupplementaryQuestions(true);
-            opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
-            generated.setOptions(opt);
-            return new Matching(generated, this);
-        }
-        else {
-            generated.setQuestionType(QuestionType.SINGLE_CHOICE);
-            val opt = new SingleChoiceOptionsEntity();
-            opt.setShowSupplementaryQuestions(true);
-            opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
-            generated.setOptions(opt);
-            return new SingleChoice(generated, this);
-        }
-    }
-    private Question stateChangeAsQuestion(QuestionStateChange q, int creatorStateId, ExerciseAttemptEntity exerciseAttempt){
-//        if(q.getExplanation() == null || q.getExplanation().getText().isEmpty())
-//            return null;
-        QuestionEntity generated = new QuestionEntity();
-        generated.setQuestionText(QuestionTextToHtml(q.getExplanation() == null ? "" : q.getExplanation().getText()));
-        generated.setQuestionName(String.valueOf(creatorStateId));
-        generated.setQuestionDomainType(EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE);
-        generated.setQuestionType(QuestionType.SINGLE_CHOICE);
-        generated.setExerciseAttempt(exerciseAttempt);
-        if(q.getNextState() == null || q.getNextState() instanceof EndQuestionState){
-            generated.setAnswerObjects(new ArrayList<>());
-        }
-        else {
-            AnswerObjectEntity ans = new AnswerObjectEntity();
-            ans.setAnswerId(0);
-            ans.setHyperText("Далее");
-            generated.setAnswerObjects(new ArrayList<>(List.of(ans)));
-        }
-        val opt = new SingleChoiceOptionsEntity();
-        opt.setShowSupplementaryQuestions(true);
-        opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
-        generated.setOptions(opt);
-        return new SingleChoice(generated, this);
+        return Pair.of(change, newSupplementaryChain);
     }
 
     Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {
