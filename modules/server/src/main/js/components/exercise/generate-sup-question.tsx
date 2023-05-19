@@ -96,20 +96,21 @@ const SupQuestion = observer((props: SupQuestionProps) => {
         return <div className="mt-2"><Loader /></div>;
     }
     
-    const onChanged = async (newHistory: Answer[]) => {
+    const onChanged = (newHistory: Answer[]) => {
         store.setAnswer(newHistory);
 
-        if (!isQuestionWithExplicitSubmit) {
+        if (store.questionSubmitMode === 'IMPLICIT') {
             onSubmitted?.();
         }
     };
     const getAnswer = () => store.answer as Answer[];
     const getFeedback = () => undefined;
 
-    const isQuestionWithExplicitSubmit = questionData?.type !== 'SINGLE_CHOICE';
-    const showSendAnswerButton = isQuestionWithExplicitSubmit && store.answer.length > 0 && store.questionState === 'LOADED'
-    const showFeedback = store.questionState !== 'LOADED' && store.feedback;
-    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && store.questionState === 'COMPLETED'    
+    const showSendAnswerButton = store.questionSubmitMode === 'EXPLICIT' && store.canSendQuestionAnswers;
+    const showQuestionFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !!questionData;
+    const showMessageFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !questionData;
+    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaw;
+
     return (
         <>
             {questionData &&
@@ -125,15 +126,15 @@ const SupQuestion = observer((props: SupQuestionProps) => {
             {store.isFeedbackLoading && 
                 <div className="mt-2"><Loader /></div>
             }
-            {(showSendAnswerButton) &&
+            {showSendAnswerButton &&
                 <Button variant="primary" onClick={onSubmitted}>{t('exercise_supquestion_send_answer')}</Button>
             }
-            {showFeedback && !questionData &&
+            {showMessageFeedback &&
                 <>{store.feedback!.message.message}</>
             }
-            {showFeedback && questionData &&
+            {showQuestionFeedback &&
                 <div className='mt-2'>
-                    <ShotFeedbackAlert message={store.feedback!.message}/>
+                    <ShortFeedbackAlert message={store.feedback!.message}/>
                 </div>
             }
             {showNextQBtn &&
@@ -146,12 +147,12 @@ const SupQuestion = observer((props: SupQuestionProps) => {
 })
 
 
-type ShotFeedbackAlertProps = {    
+type ShortFeedbackAlertProps = {    
     message: FeedbackMessage,
     showGenerateSupQuestion?: boolean
     supQuestionStore?: SupplementaryQuestionStore,
 }
-export const ShotFeedbackAlert = observer((props: ShotFeedbackAlertProps) => {
+export const ShortFeedbackAlert = observer((props: ShortFeedbackAlertProps) => {
     let { supQuestionStore, message, showGenerateSupQuestion } = props;    
     showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
 

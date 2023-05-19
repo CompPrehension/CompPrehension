@@ -6,6 +6,7 @@ import { Answer } from "../types/answer";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
+import { absurd } from "fp-ts/lib/function";
 
 export class SupplementaryQuestionStore {
     @observable sourceQuestionId: number;
@@ -36,6 +37,34 @@ export class SupplementaryQuestionStore {
         return this.questionState === 'ANSWER_EVALUATING'
     }
 
+    @computed
+    get canSendQuestionAnswers() : boolean {
+        if (!this.question)
+            return false;
+
+        switch (this.question.type) {
+            case 'SINGLE_CHOICE':
+            case 'MULTI_CHOICE':
+                return this.answer.length > 0;
+            case 'ORDER':
+                return true;
+            case 'MATCHING':
+                return this.question.groups.length === this.question.answers.length;
+            default:
+                // compile-time checking whether the question has `never` type 
+                // to ensure that all case branches have been processed
+                return absurd<boolean>(this.question);
+        }
+    }
+
+    @computed
+    get questionSubmitMode() : 'IMPLICIT' | 'EXPLICIT' | null  {
+        if (!this.question)
+            return null;
+
+        return this.question.type === 'SINGLE_CHOICE' ? 'IMPLICIT' : 'EXPLICIT';
+    }
+
     @action
     generateSupplementaryQuestion = async (violationLaws: string[]) => {     
         if (violationLaws.length === 0)
@@ -49,16 +78,12 @@ export class SupplementaryQuestionStore {
         const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);
 
         runInAction(() => {
-            this.setQuestionState('LOADED');
-
-            if (E.isLeft(dataEither)) {            
+            if (E.isLeft(dataEither)) {                
+                this.setQuestionState('LOADED');
                 return;
             }
             
-            this.onQuestionLoaded(dataEither.right.question);
-            if (dataEither.right.message) {
-                this.feedback = dataEither.right.message;
-            }
+            this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
         })
     }
 
@@ -77,10 +102,9 @@ export class SupplementaryQuestionStore {
         this.setQuestionState('ANSWER_EVALUATING');
         const feedbackEither = await this.exerciseController.addSupplementaryQuestionAnswer(body);
 
-        runInAction(() => {
-            this.setQuestionState('LOADED');
-       
+        runInAction(() => { 
             if (E.isLeft(feedbackEither)) {
+                this.setQuestionState('LOADED');
                 return;
             }
     
@@ -94,7 +118,7 @@ export class SupplementaryQuestionStore {
         this.answer = newAnswer;
     }
 
-    private onQuestionLoaded = (question?: Question | null) => {        
+    #onQuestionLoaded = (question?: Question | null, feedback?: SupplementaryFeedback | null) => {        
         // add question id to answers
         if (question?.options.requireContext) {
             // regex searchs all tags with id='answer_id' and prepends them with question id
@@ -108,12 +132,8 @@ export class SupplementaryQuestionStore {
         }
         
         this.question      = question ?? undefined;
-        this.feedback      = undefined;
+        this.feedback      = feedback ?? undefined;
         this.answer        = question?.responses ?? [];
-        this.questionState = !question ? 'INITIAL' : 'LOADED';
-
-        if (question?.feedback && question.feedback.stepsLeft === 0) {
-            this.setQuestionState('COMPLETED');
-        }
+        this.questionState = !question ? 'COMPLETED' : 'LOADED';
     }
 }
