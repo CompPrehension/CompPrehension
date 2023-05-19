@@ -99,15 +99,14 @@ const SupQuestion = observer((props: SupQuestionProps) => {
     const onChanged = (newHistory: Answer[]) => {
         store.setAnswer(newHistory);
 
-        if (!isQuestionWithExplicitSubmit) {
+        if (store.questionSubmitMode === 'IMPLICIT') {
             onSubmitted?.();
         }
     };
     const getAnswer = () => store.answer as Answer[];
     const getFeedback = () => undefined;
 
-    const isQuestionWithExplicitSubmit = questionData?.type !== 'SINGLE_CHOICE';
-    const showSendAnswerButton = isQuestionWithExplicitSubmit && store.answer.length > 0 && store.questionState === 'LOADED'
+    const showSendAnswerButton = store.questionSubmitMode === 'EXPLICIT' && store.canSendQuestionAnswers;
     const showQuestionFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !!questionData;
     const showMessageFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !questionData;
     const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaw;

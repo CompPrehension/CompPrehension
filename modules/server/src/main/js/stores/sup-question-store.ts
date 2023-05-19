@@ -6,6 +6,7 @@ import { Answer } from "../types/answer";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import { IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
+import { absurd } from "fp-ts/lib/function";
 
 export class SupplementaryQuestionStore {
     @observable sourceQuestionId: number;
@@ -34,6 +35,34 @@ export class SupplementaryQuestionStore {
     @computed
     get isFeedbackLoading() {
         return this.questionState === 'ANSWER_EVALUATING'
+    }
+
+    @computed
+    get canSendQuestionAnswers() : boolean {
+        if (!this.question)
+            return false;
+
+        switch (this.question.type) {
+            case 'SINGLE_CHOICE':
+            case 'MULTI_CHOICE':
+                return this.answer.length > 0;
+            case 'ORDER':
+                return true;
+            case 'MATCHING':
+                return this.question.groups.length === this.question.answers.length;
+            default:
+                // compile-time checking whether the question has `never` type 
+                // to ensure that all case branches have been processed
+                return absurd<boolean>(this.question);
+        }
+    }
+
+    @computed
+    get questionSubmitMode() : 'IMPLICIT' | 'EXPLICIT' | null  {
+        if (!this.question)
+            return null;
+
+        return this.question.type === 'SINGLE_CHOICE' ? 'IMPLICIT' : 'EXPLICIT';
     }
 
     @action
