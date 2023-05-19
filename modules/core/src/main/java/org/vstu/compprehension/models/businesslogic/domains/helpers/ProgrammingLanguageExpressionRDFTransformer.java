@@ -25,7 +25,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         Model base = ProgrammingLanguageExpressionDomain.factsToOntModel(question.getStatementFacts());
         List<Resource> selected = lastQuestionInteraction.getResponses().stream().map((r) -> base.getResource("http://vstu.ru/poas/code#" + r.getLeftAnswerObject().getDomainInfo())).collect(Collectors.toList());
     
-        //saveModel("base.ttl", base);
+        saveModel("base.ttl", base);
         Model res = ModelFactory.createDefaultModel();
         res.add(domain);
         res.setNsPrefix("", JenaUtil.POAS_PREF);
@@ -138,17 +138,23 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     private static String className(Resource baseToken){
         String classname;
         String text = getText(baseToken);
+        Property arityProperty = baseToken.getModel().getProperty("http://vstu.ru/poas/code#arity");
+        Property placeProperty = baseToken.getModel().getProperty("http://vstu.ru/poas/code#prefix_postfix");
         if(text.equals("(") || text.equals(")")) classname = "parenthesis";
         else if(text.equals("[") || text.equals("]")) classname = "brackets";
         else if(text.equals("&&") ) classname = "and";
         else if(text.equals("||") ) classname = "or";
         else if(text.equals("!") ) classname = "not";
+        else if(text.equals("==") ) classname = "equal";
+        else if(text.equals("!=") ) classname = "notequal";
         else if(text.equals("<") ) classname = "less";
         else if(text.equals("<=") ) classname = "lesseq";
         else if(text.equals(">") ) classname = "greater";
         else if(text.equals(">=") ) classname = "greatereq";
-        else if(text.equals("+") ) classname = "plus";
-        else if(text.equals("-") ) classname = "minus";
+        else if(text.equals("+") ) classname = baseToken.getProperty(arityProperty).getString().equals("binary") ? "plus" : "unaryPlus";
+        else if(text.equals("-") ) classname = baseToken.getProperty(arityProperty).getString().equals("binary") ? "minus" : "unaryMinus";
+        else if(text.equals("++") ) classname = baseToken.getProperty(placeProperty).getString().equals("prefix") ? "prefixInc" : "postfixInc";
+        else if(text.equals("--") ) classname = baseToken.getProperty(placeProperty).getString().equals("prefix") ? "prefixDec" : "postfixDec";
         else if(text.equals("*") ) classname = "multiplication";
         else if(text.equals("/") ) classname = "division";
         else if(text.equals("?") || text.equals(":")) classname = "ternaryConditional";
