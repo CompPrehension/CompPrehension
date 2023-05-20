@@ -39,7 +39,7 @@ export class SupplementaryQuestionStore {
 
     @computed
     get canSendQuestionAnswers() : boolean {
-        if (!this.question)
+        if (!this.question || this.questionState === "COMPLETED")
             return false;
 
         switch (this.question.type) {
