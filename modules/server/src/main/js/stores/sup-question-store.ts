@@ -49,7 +49,7 @@ export class SupplementaryQuestionStore {
             case 'ORDER':
                 return true;
             case 'MATCHING':
-                return this.question.groups.length === this.question.answers.length;
+                return this.answer.length === this.question.answers.length;
             default:
                 // compile-time checking whether the question has `never` type 
                 // to ensure that all case branches have been processed
