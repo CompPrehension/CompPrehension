@@ -18,28 +18,29 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.SingleChoiceOptionsEntity;
-import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class DecisionTreeBasedDomain extends Domain {
-    public DecisionTreeBasedDomain(DomainEntity domainEntity, RandomProvider randomProvider) {
-        super(domainEntity, randomProvider);
+public class DTSupplementaryQuestionHelper {
+    public DTSupplementaryQuestionHelper(Domain domain, String domainModelDirectory, Function<InteractionEntity, Model> mainQuestionToModelTransformer) {
+        this.domain = domain;
+        this.domainModel = new LocalizedDomainModel(domainModelDirectory);
+        this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
+        this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
     }
 
-    protected abstract String getDomainModelDirectory();
-
-    protected final LocalizedDomainModel domainModel = new LocalizedDomainModel(getDomainModelDirectory());
-    private final QuestionAutomata supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
-
-    protected abstract Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction);
+    private final Domain domain;
+    final LocalizedDomainModel domainModel ;
+    private final QuestionAutomata supplementaryAutomata;
+    private final Function<InteractionEntity, Model> mainQuestionToModelTransformer;
 
     //DT = Decision Tree
-    protected SupplementaryResponseGeneration makeSupplementaryQuestionDT(QuestionEntity mainQuestion, Language userLang) {
+    protected SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<InteractionEntity> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
@@ -51,7 +52,8 @@ public abstract class DecisionTreeBasedDomain extends Domain {
         SupplementaryStepEntity latestStep = supplementarySteps.isEmpty() ? null : supplementarySteps.get(supplementarySteps.size() - 1);
 
         //Создать соответствующую ситуации рдф-модель
-        Model m = mainQuestionToModel(lastInteraction);
+        Model m = mainQuestionToModelTransformer.apply(lastInteraction);
+        m.add(domainModel.domainRDF);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation;
@@ -90,7 +92,7 @@ public abstract class DecisionTreeBasedDomain extends Domain {
         return new SupplementaryResponseGeneration(response, supplementaryChain);
     }
 
-    protected SupplementaryFeedbackGeneration judgeSupplementaryQuestionDT(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    protected SupplementaryFeedbackGeneration judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
         //преобразовать ответы
@@ -108,7 +110,8 @@ public abstract class DecisionTreeBasedDomain extends Domain {
 
         //Создать соответствующую ситуации рдф-модель
         InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
-        Model m = mainQuestionToModel(mainQuestionInteraction);
+        Model m = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
+        m.add(domainModel.domainRDF);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(m);
@@ -128,7 +131,7 @@ public abstract class DecisionTreeBasedDomain extends Domain {
         QuestionEntity generated = new QuestionEntity();
         generated.setQuestionText(q.getText());
         //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
-        generated.setQuestionDomainType(this.getDefaultQuestionType(true));
+        generated.setQuestionDomainType(domain.getDefaultQuestionType(true));
         generated.setExerciseAttempt(exerciseAttempt);
         generated.setAnswerObjects(q.getOptions().stream().map((opt) -> {
             AnswerObjectEntity ans = new AnswerObjectEntity();
@@ -155,7 +158,7 @@ public abstract class DecisionTreeBasedDomain extends Domain {
             opt.setShowSupplementaryQuestions(true);
             opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
             generated.setOptions(opt);
-            return new Matching(generated, this);
+            return new Matching(generated, domain);
         }
         else {
             generated.setQuestionType(QuestionType.SINGLE_CHOICE);
@@ -163,7 +166,7 @@ public abstract class DecisionTreeBasedDomain extends Domain {
             opt.setShowSupplementaryQuestions(true);
             opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
             generated.setOptions(opt);
-            return new SingleChoice(generated, this);
+            return new SingleChoice(generated, domain);
         }
     }
     private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
@@ -179,7 +182,7 @@ public abstract class DecisionTreeBasedDomain extends Domain {
     }
     private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, ExerciseAttemptEntity exerciseAttempt){
         if(q instanceof Question){
-            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((its.questions.gen.states.Question) q, exerciseAttempt);
+            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseAttempt);
             return new SupplementaryResponse(supQuestion);
         }
         else {

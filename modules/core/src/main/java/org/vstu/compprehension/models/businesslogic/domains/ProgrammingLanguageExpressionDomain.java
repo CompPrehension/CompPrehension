@@ -57,7 +57,7 @@ import static java.lang.Math.random;
 import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain {
+public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -71,18 +71,6 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
     
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
-
-    static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
-
-    @Override
-    protected String getDomainModelDirectory() {
-        return this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY).getPath().substring(1); //FIXME костыль. заложить в DomainModel корректную работу с ресурсами
-    }
-
-    @Override
-    protected Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
-        return ProgrammingLanguageExpressionRDFTransformer.questionToModel(lastMainQuestionInteraction.getQuestion(), lastMainQuestionInteraction, domainModel.domainRDF);
-    }
 
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
@@ -1573,10 +1561,22 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
         return true;
     }
 
+    static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
+
+    private Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+        return ProgrammingLanguageExpressionRDFTransformer.questionToModel(lastMainQuestionInteraction.getQuestion(), lastMainQuestionInteraction);
+    }
+
+    private final DTSupplementaryQuestionHelper dtSupplementaryQuestionHelper = new DTSupplementaryQuestionHelper(
+            this,
+            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY).getPath().substring(1), //FIXME костыль. заложить в DomainModel корректную работу с ресурсами
+            this::mainQuestionToModel
+    );
+
     @Override
     public SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
         if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
-            return makeSupplementaryQuestionDT(sourceQuestion, lang);
+            return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {
             return new SupplementaryResponseGeneration(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
@@ -1586,7 +1586,7 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
     @Override
     public SupplementaryFeedbackGeneration judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
         if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
-            return judgeSupplementaryQuestionDT(supplementaryStep, responses);
+            return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
         }
         else {
             assert responses.size() == 1;

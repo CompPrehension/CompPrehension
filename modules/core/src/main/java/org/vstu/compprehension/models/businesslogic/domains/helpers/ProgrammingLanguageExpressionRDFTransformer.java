@@ -16,18 +16,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Log4j2
 public class ProgrammingLanguageExpressionRDFTransformer {
-    public static Model questionToModel(QuestionEntity question, InteractionEntity lastQuestionInteraction, Model domain){
+    public static Model questionToModel(QuestionEntity question, InteractionEntity lastQuestionInteraction){
         Model base = ProgrammingLanguageExpressionDomain.factsToOntModel(question.getStatementFacts());
         List<Resource> selected = lastQuestionInteraction.getResponses().stream().map((r) -> base.getResource("http://vstu.ru/poas/code#" + r.getLeftAnswerObject().getDomainInfo())).collect(Collectors.toList());
     
         //saveModel("base.ttl", base);
         Model res = ModelFactory.createDefaultModel();
-        res.add(domain);
         res.setNsPrefix("", JenaUtil.POAS_PREF);
         Property indexProperty = base.getProperty("http://vstu.ru/poas/code#index");
         Property typeProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.RDF_PREF, "type"));
