@@ -1,17 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { container } from "tsyringe";
-import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import * as E from "fp-ts/lib/Either";
-import { Domain, DomainConcept, DomainConceptFlag, DomainLaw, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardViewModel, ExerciseListItem, Strategy } from "../types/exercise-settings";
-import { ExerciseSettingsStore } from "../stores/exercise-settings-store";
-import { observer } from "mobx-react";
-import { ToggleSwitch } from "../components/common/toggle";
-import { Link } from "react-router-dom";
-import { Loader } from "../components/common/loader";
-import { Modal } from "../components/common/modal";
-import { boolean } from "io-ts";
-import { useTranslation } from "react-i18next";
-import { Header } from "../components/common/header";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
+import {container} from "tsyringe";
+import {
+    Domain,
+    DomainConcept,
+    DomainConceptFlag,
+    ExerciseCardConcept,
+    ExerciseCardConceptKind,
+    ExerciseCardLaw,
+    ExerciseCardViewModel,
+    Strategy
+} from "../types/exercise-settings";
+import {ExerciseSettingsStore} from "../stores/exercise-settings-store";
+import {observer} from "mobx-react";
+import {ToggleSwitch} from "../components/common/toggle";
+import {Link} from "react-router-dom";
+import {Loader} from "../components/common/loader";
+import {useTranslation} from "react-i18next";
+import {Header} from "../components/common/header";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -194,6 +199,12 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                onChange={x => store.setCardFlag('supplementaryQuestionsEnabled', x.target.checked)} 
                                type="checkbox" className="form-check-input" id="supplementaryQuestionsEnabled" />
                         <label className="form-check-label" htmlFor="supplementaryQuestionsEnabled">{t('exercisesettings_qopt_supQ')}</label>
+                    </div>
+                    <div className="form-check">
+                        <input checked={card.options.preferDecisionTreeBasedSupplementaryEnabled}
+                               onChange={x => store.setCardFlag('preferDecisionTreeBasedSupplementaryEnabled', x.target.checked)}
+                               type="checkbox" className="form-check-input" id="preferDecisionTreeBasedSupplementaryEnabled" />
+                        <label className="form-check-label" htmlFor="preferDecisionTreeBasedSupplementaryEnabled">{t('exercisesettings_qopt_preferDTsup')}</label>
                     </div>
                 </div>
 

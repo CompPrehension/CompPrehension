@@ -1,17 +1,21 @@
-import { injectable } from "tsyringe";
-import { ExerciseAttempt } from "../../types/exercise-attempt";
-import { ExerciseStatisticsItem } from "../../types/exercise-statistics";
-import { Feedback } from "../../types/feedback";
-import { Interaction } from "../../types/interaction";
-import { Question } from "../../types/question";
-import { PromiseEither } from "../../utils/ajax";
-import { IExerciseController } from "./exercise-controller";
+import {injectable} from "tsyringe";
+import {ExerciseAttempt} from "../../types/exercise-attempt";
+import {ExerciseStatisticsItem} from "../../types/exercise-statistics";
+import {Feedback} from "../../types/feedback";
+import {Interaction} from "../../types/interaction";
+import {Question} from "../../types/question";
+import {PromiseEither} from "../../utils/ajax";
+import {IExerciseController} from "./exercise-controller";
 import * as E from "fp-ts/lib/Either";
-import { SupplementaryFeedback, SupplementaryQuestion, SupplementaryQuestionRequest } from "../../types/supplementary-question";
-import { RequestError } from "../../types/request-error";
-import { delayPromise } from "../../utils/helpers";
-import { Exercise } from "../../types/exercise";
-import { UserInfo } from "../../types/user-info";
+import {
+    SupplementaryFeedback,
+    SupplementaryQuestion,
+    SupplementaryQuestionRequest
+} from "../../types/supplementary-question";
+import {RequestError} from "../../types/request-error";
+import {delayPromise} from "../../utils/helpers";
+import {Exercise} from "../../types/exercise";
+import {UserInfo} from "../../types/user-info";
 
 @injectable()
 export class TestExerciseController implements IExerciseController {
@@ -32,6 +36,7 @@ export class TestExerciseController implements IExerciseController {
                 correctAnswerGenerationEnabled: true,
                 newQuestionGenerationEnabled: true,
                 supplementaryQuestionsEnabled: true,
+                preferDecisionTreeBasedSupplementaryEnabled: false,
             },
         })
     }

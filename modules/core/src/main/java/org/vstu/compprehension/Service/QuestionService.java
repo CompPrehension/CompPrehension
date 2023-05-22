@@ -3,25 +3,27 @@ package org.vstu.compprehension.Service;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.AnswerDto;
+import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
+import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.HyperText;
-import org.springframework.stereotype.Service;
+import org.vstu.compprehension.utils.Mapper;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -36,12 +38,13 @@ public class QuestionService {
     private final DomainService domainService;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
+    private final SupplementaryStepRepository supplementaryStepRepository;
     private final DomainFactory domainFactory;
     private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionMetadataRepository questionMetadataRepository;
 
     @Autowired
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataRepository questionMetadataRepository) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataRepository questionMetadataRepository) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
@@ -49,6 +52,7 @@ public class QuestionService {
         this.domainService = domainService;
         this.interactionRepository = interactionRepository;
         this.responseRepository = responseRepository;
+        this.supplementaryStepRepository = supplementaryStepRepository;
         this.domainFactory = domainFactory;
         this.questionRequestLogRepository = questionRequestLogRepository;
         this.questionMetadataRepository = questionMetadataRepository;
@@ -83,21 +87,28 @@ public class QuestionService {
     }
 
 
-    public @Nullable Question generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
+    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
-        val question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
-        if (question == null) {
-            return null;
+        val responseGen = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
+        if(responseGen.getResponse().getQuestion() != null){
+            Question question = responseGen.getResponse().getQuestion();
+            question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+            saveQuestion(question.getQuestionData());
         }
-        question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-        saveQuestion(question.getQuestionData());
-        return question;
+        if(responseGen.getNewStep() != null){
+            supplementaryStepRepository.save(responseGen.getNewStep());
+        }
+        return Mapper.toDto(responseGen.getResponse());
     }
 
-    public Domain.InterpretSentenceResult judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        assert responses.size() == 1;
-        return domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
+        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
+        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses);
+        if(feedbackGen.getNewStep() != null){
+            supplementaryStepRepository.save(feedbackGen.getNewStep());
+        }
+        return feedbackGen.getFeedback();
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {

@@ -18,10 +18,14 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
@@ -1557,8 +1561,53 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return true;
     }
 
+    static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
+
+    private Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+        return ProgrammingLanguageExpressionRDFTransformer.questionToModel(lastMainQuestionInteraction.getQuestion(), lastMainQuestionInteraction);
+    }
+
+    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
+            this,
+            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY).getPath().substring(1), //FIXME костыль. заложить в DomainModel корректную работу с ресурсами
+            this::mainQuestionToModel
+    );
+
     @Override
-    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+        if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
+            return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
+        }
+        else {
+            return new SupplementaryResponseGenerationResult(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
+        }
+    }
+
+    @Override
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+        if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
+            return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
+        }
+        else {
+            assert responses.size() == 1;
+            val judgeResult = judgeSupplementaryQuestionBasic(question, responses.get(0).getLeftAnswerObject());
+            val violation = judgeResult.violations.stream()
+                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v)).build())
+                    .findFirst()
+                    .orElse(null);
+            val locale = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language().toLocale();
+            val message = judgeResult.isAnswerCorrect
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+            val feedback =  new SupplementaryFeedbackDto(
+                    message,
+                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
+            return new SupplementaryFeedbackGenerationResult(feedback, null);
+        }
+    }
+
+
+    public Question makeSupplementaryQuestionBasic(QuestionEntity question, ViolationEntity violation, Language userLang) {
         if (!needSupplementaryQuestion(violation)) {
             return null;
         }
@@ -1776,7 +1825,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 if (sameAnswers && isAnswerCorrect) {
                     ViolationEntity violationEntity = new ViolationEntity();
                     violationEntity.setLawName(newAnswer.getDomainInfo());
-                    return makeSupplementaryQuestion(originalQuestion, violationEntity, lang);
+                    return makeSupplementaryQuestionBasic(originalQuestion, violationEntity, lang);
                 }
 
                 answers.add(newAnswer);
@@ -1789,8 +1838,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return supplementaryQuestion;
     }
 
-    @Override
-    public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
+    public InterpretSentenceResult judgeSupplementaryQuestionBasic(Question question, AnswerObjectEntity answer) {
         InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
 
         interpretSentenceResult.violations = new ArrayList<>();

@@ -1,13 +1,13 @@
 import "reflect-metadata"
-import { container, Lifecycle } from "tsyringe";
-import { ExerciseController, IExerciseController } from "./controllers/exercise/exercise-controller";
-import { TestExerciseController } from "./controllers/exercise/test-exercise-controller";
-import { ExerciseStore } from "./stores/exercise-store";
-import { QuestionStore } from "./stores/question-store";
+import {container} from "tsyringe";
+import {ExerciseController} from "./controllers/exercise/exercise-controller";
+import {TestExerciseController} from "./controllers/exercise/test-exercise-controller";
+import {ExerciseStore} from "./stores/exercise-store";
+import {QuestionStore} from "./stores/question-store";
 import i18next from "i18next";
-import { initReactI18next } from "react-i18next";
-import { SurveyController } from "./controllers/exercise/survey-controller";
-import { ExerciseSettingsController } from "./controllers/exercise/exercise-settings";
+import {initReactI18next} from "react-i18next";
+import {SurveyController} from "./controllers/exercise/survey-controller";
+import {ExerciseSettingsController} from "./controllers/exercise/exercise-settings";
 
 // init DI container
 container.register(ExerciseController, { 
@@ -59,6 +59,7 @@ const resources = {
             exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
             exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
             exercisesettings_qopt_supQ: "Allow supplementary questions",
+            exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
             exercisesettings_survey: "Survey",
             exercisesettings_tags: "Tags",
             exercisesettings_commonConcepts: "Common concepts",
@@ -117,6 +118,7 @@ const resources = {
             exercisesettings_qopt_genCorAnsw: "Разрешить подсказку следующего шага",
             exercisesettings_qopt_forceShowGenNextQ: "Разрешить неоконченные вопросы",
             exercisesettings_qopt_supQ: "Разрешить вспомогательные вопросы",
+            exercisesettings_qopt_preferDTsup: "Предпочитать генерацию впомогательных вопросов по дереву рассуждений",
             exercisesettings_survey: "Опрос",
             exercisesettings_tags: "Тэги",
             exercisesettings_commonConcepts: "Общие концепты",
@@ -175,6 +177,7 @@ const resources = {
             exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
             exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
             exercisesettings_qopt_supQ: "Allow supplementary questions",
+            exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
             exercisesettings_survey: "Survey",
             exercisesettings_tags: "Tags",
             exercisesettings_commonConcepts: "Common concepts",
