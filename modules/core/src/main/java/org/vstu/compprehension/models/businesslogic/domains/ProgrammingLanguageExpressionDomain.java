@@ -69,11 +69,11 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
-    static final String DOMAIN_MODEL_DIRECTORY = "../input_examples/";
+    static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
     @Override
     protected String getDomainModelDirectory() {
-        return DOMAIN_MODEL_DIRECTORY;
+        return this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY).getPath().substring(1); //FIXME костыль. заложить в DomainModel корректную работу с ресурсами
     }
 
     @Override
