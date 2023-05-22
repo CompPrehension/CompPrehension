@@ -1,7 +1,5 @@
 package org.vstu.compprehension.Service;
 
-import its.questions.gen.formulations.Localization;
-import its.questions.gen.states.*;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -10,16 +8,11 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
-import org.vstu.compprehension.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
-import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeBasedDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
@@ -28,15 +21,12 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.SingleChoiceOptionsEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Service
@@ -99,127 +89,26 @@ public class QuestionService {
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
-        Question question = null;
-        if(!(domain instanceof DecisionTreeBasedDomain && sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled())){
-            question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
-            if (question != null) {
-                question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-                saveQuestion(question.getQuestionData());
-            }
-            return questionAsSupplementaryQuestionDto(question);
+        val responseGen = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
+        if(responseGen.getResponse().getQuestion() != null){
+            Question question = responseGen.getResponse().getQuestion();
+            question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
+            saveQuestion(question.getQuestionData());
         }
-        else {
-            val out = ((DecisionTreeBasedDomain) domain).makeSupplementaryQuestionDT(sourceQuestion, lang);
-            SupplementaryStepEntity s = out.getSecond();
-            if(out.getFirst() instanceof its.questions.gen.states.Question){
-                question = transformQuestionFormats((its.questions.gen.states.Question) out.getFirst(), domain, sourceQuestion.getExerciseAttempt());
-                question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-                saveQuestion(question.getQuestionData());
-                s.setSupplementaryQuestion(question.getQuestionData());
-            }
-            supplementaryStepRepository.save(out.getSecond());
-            if(question != null)
-                return questionAsSupplementaryQuestionDto(question);
-            else
-                return SupplementaryQuestionDto.FromMessage(stateChangeAsSupplementaryFeedbackDto((QuestionStateChange) out.getFirst()));
+        if(responseGen.getNewStep() != null){
+            supplementaryStepRepository.save(responseGen.getNewStep());
         }
+        return Mapper.toDto(responseGen.getResponse());
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt, LocalizationService localizationService) {
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        if(!(domain instanceof DecisionTreeBasedDomain && question.getQuestionData().getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled())){
-            assert responses.size() == 1;
-            val judgeResult = domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
-            val violation = judgeResult.violations.stream()
-                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
-                    .findFirst()
-                    .orElse(null);
-            val locale = exerciseAttempt.getUser().getPreferred_language().toLocale();
-            val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
-            return new SupplementaryFeedbackDto(
-                    message,
-                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
+        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
+        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses);
+        if(feedbackGen.getNewStep() != null){
+            supplementaryStepRepository.save(feedbackGen.getNewStep());
         }
-        else {
-            val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
-            val out = ((DecisionTreeBasedDomain) domain).judgeSupplementaryQuestionDT(supplementaryInfo, responses);
-            supplementaryStepRepository.save(out.getSecond());
-            return stateChangeAsSupplementaryFeedbackDto(out.getFirst());
-        }
-    }
-
-    public static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
-    public static final int aggregationShift = 2;
-    public static Question transformQuestionFormats(its.questions.gen.states.Question q, Domain domain, ExerciseAttemptEntity exerciseAttempt){
-        QuestionEntity generated = new QuestionEntity();
-        generated.setQuestionText(q.getText());
-        //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
-        generated.setQuestionDomainType(domain.getDefaultQuestionType(true));
-        generated.setExerciseAttempt(exerciseAttempt);
-        generated.setAnswerObjects(q.getOptions().stream().map((opt) -> {
-            AnswerObjectEntity ans = new AnswerObjectEntity();
-            ans.setAnswerId(opt.getSecond());
-            ans.setHyperText(opt.getFirst());
-            return ans;
-        }).collect(Collectors.toList()));
-        if(q.isAggregation() ){
-            generated.setQuestionType(QuestionType.MATCHING);
-            List<AnswerObjectEntity> answers = generated.getAnswerObjects();
-            for(AnswerObjectEntity a : answers){
-                a.setAnswerId(a.getAnswerId() + aggregationShift); //чтобы избежать пересечения с answerId ответов в aggregationMathching
-            }
-            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(exerciseAttempt.getUser().getPreferred_language().toLocaleString()));
-            for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
-                AnswerObjectEntity ans = new AnswerObjectEntity();
-                ans.setAnswerId(m.getValue());
-                ans.setHyperText(m.getKey());
-                ans.setRightCol(true);
-                answers.add(ans);
-            }
-            generated.setAnswerObjects(answers);
-            val opt = new MatchingQuestionOptionsEntity();
-            opt.setShowSupplementaryQuestions(true);
-            opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
-            generated.setOptions(opt);
-            return new Matching(generated, domain);
-        }
-        else {
-            generated.setQuestionType(QuestionType.SINGLE_CHOICE);
-            val opt = new SingleChoiceOptionsEntity();
-            opt.setShowSupplementaryQuestions(true);
-            opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
-            generated.setOptions(opt);
-            return new SingleChoice(generated, domain);
-        }
-    }
-    public static SupplementaryQuestionDto questionAsSupplementaryQuestionDto(Question supQuestion){
-        QuestionDto questionDto = supQuestion != null ? Mapper.toDto(supQuestion) : null;
-        return questionDto != null && questionDto.getAnswers().length > 0 ? SupplementaryQuestionDto.FromQuestion(Mapper.toDto(supQuestion))
-                : questionDto != null ? SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")), SupplementaryFeedbackDto.Action.Finish))
-                : SupplementaryQuestionDto.Empty();
-    }
-    public static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
-        Explanation expl = change.getExplanation();
-        return new SupplementaryFeedbackDto(
-                new FeedbackDto.Message(expl != null && expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl != null ? expl.getText() : "...", new FeedbackViolationLawDto("", true)),
-                change.getNextState() == null ||
-                        change.getNextState() instanceof EndQuestionState ||
-                        (change.getNextState() instanceof RedirectQuestionState && ((RedirectQuestionState) change.getNextState()).redirectsTo() instanceof EndQuestionState)
-                        ? SupplementaryFeedbackDto.Action.Finish
-                        : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
-        );
-    }
-    public static SupplementaryQuestionDto stateResultAsSupplementaryQuestionDto(QuestionStateResult q, Domain domain, ExerciseAttemptEntity exerciseAttempt){
-        if(q instanceof its.questions.gen.states.Question){
-            Question supQuestion = transformQuestionFormats((its.questions.gen.states.Question) q, domain, exerciseAttempt);
-            return questionAsSupplementaryQuestionDto(supQuestion);
-        }
-        else {
-            QuestionStateChange change = ((QuestionStateChange) q);
-            return SupplementaryQuestionDto.FromMessage(stateChangeAsSupplementaryFeedbackDto(change));
-        }
+        return feedbackGen.getFeedback();
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {

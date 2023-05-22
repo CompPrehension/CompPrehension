@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -1571,7 +1574,40 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
     }
 
     @Override
-    public Question makeSupplementaryQuestion(QuestionEntity question, ViolationEntity violation, Language userLang) {
+    public SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+        if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
+            return makeSupplementaryQuestionDT(sourceQuestion, lang);
+        }
+        else {
+            return new SupplementaryResponseGeneration(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
+        }
+    }
+
+    @Override
+    public SupplementaryFeedbackGeneration judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+        if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
+            return judgeSupplementaryQuestionDT(supplementaryStep, responses);
+        }
+        else {
+            assert responses.size() == 1;
+            val judgeResult = judgeSupplementaryQuestionBasic(question, responses.get(0).getLeftAnswerObject());
+            val violation = judgeResult.violations.stream()
+                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v)).build())
+                    .findFirst()
+                    .orElse(null);
+            val locale = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language().toLocale();
+            val message = judgeResult.isAnswerCorrect
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+            val feedback =  new SupplementaryFeedbackDto(
+                    message,
+                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
+            return new SupplementaryFeedbackGeneration(feedback, null);
+        }
+    }
+
+
+    public Question makeSupplementaryQuestionBasic(QuestionEntity question, ViolationEntity violation, Language userLang) {
         if (!needSupplementaryQuestion(violation)) {
             return null;
         }
@@ -1789,7 +1825,7 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
                 if (sameAnswers && isAnswerCorrect) {
                     ViolationEntity violationEntity = new ViolationEntity();
                     violationEntity.setLawName(newAnswer.getDomainInfo());
-                    return makeSupplementaryQuestion(originalQuestion, violationEntity, lang);
+                    return makeSupplementaryQuestionBasic(originalQuestion, violationEntity, lang);
                 }
 
                 answers.add(newAnswer);
@@ -1802,8 +1838,7 @@ public class ProgrammingLanguageExpressionDomain extends DecisionTreeBasedDomain
         return supplementaryQuestion;
     }
 
-    @Override
-    public InterpretSentenceResult judgeSupplementaryQuestion(Question question, AnswerObjectEntity answer) {
+    public InterpretSentenceResult judgeSupplementaryQuestionBasic(Question question, AnswerObjectEntity answer) {
         InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
 
         interpretSentenceResult.violations = new ArrayList<>();

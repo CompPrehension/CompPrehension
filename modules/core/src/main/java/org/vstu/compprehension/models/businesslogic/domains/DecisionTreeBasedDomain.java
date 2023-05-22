@@ -1,22 +1,30 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.questions.gen.QuestioningSituation;
+import its.questions.gen.formulations.Localization;
 import its.questions.gen.formulations.LocalizedDomainModel;
+import its.questions.gen.states.Question;
 import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
 import its.questions.gen.strategies.QuestionAutomata;
+import lombok.val;
 import org.apache.jena.rdf.model.Model;
-import org.springframework.data.util.Pair;
+import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
+import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.QuestionType;
+import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionOptions.SingleChoiceOptionsEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static org.vstu.compprehension.Service.QuestionService.aggregationPadding;
-import static org.vstu.compprehension.Service.QuestionService.aggregationShift;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class DecisionTreeBasedDomain extends Domain {
     public DecisionTreeBasedDomain(DomainEntity domainEntity, RandomProvider randomProvider) {
@@ -31,7 +39,7 @@ public abstract class DecisionTreeBasedDomain extends Domain {
     protected abstract Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction);
 
     //DT = Decision Tree
-    public Pair<QuestionStateResult, SupplementaryStepEntity> makeSupplementaryQuestionDT(QuestionEntity mainQuestion, Language userLang) {
+    protected SupplementaryResponseGeneration makeSupplementaryQuestionDT(QuestionEntity mainQuestion, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<InteractionEntity> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
@@ -74,10 +82,15 @@ public abstract class DecisionTreeBasedDomain extends Domain {
                         ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
                         : state.getId()
         );
-        return Pair.of(res, supplementaryChain);
+
+        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, mainQuestion.getExerciseAttempt());
+        if(response.getQuestion() != null){
+            supplementaryChain.setSupplementaryQuestion(response.getQuestion().getQuestionData());
+        }
+        return new SupplementaryResponseGeneration(response, supplementaryChain);
     }
 
-    public Pair<QuestionStateChange, SupplementaryStepEntity> judgeSupplementaryQuestionDT(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    protected SupplementaryFeedbackGeneration judgeSupplementaryQuestionDT(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
         //преобразовать ответы
@@ -106,6 +119,73 @@ public abstract class DecisionTreeBasedDomain extends Domain {
         SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
                 supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
         );
-        return Pair.of(change, newSupplementaryChain);
+        return new SupplementaryFeedbackGeneration(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
     }
+
+    private static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
+    private static final int aggregationShift = 2;
+    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, ExerciseAttemptEntity exerciseAttempt){
+        QuestionEntity generated = new QuestionEntity();
+        generated.setQuestionText(q.getText());
+        //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
+        generated.setQuestionDomainType(this.getDefaultQuestionType(true));
+        generated.setExerciseAttempt(exerciseAttempt);
+        generated.setAnswerObjects(q.getOptions().stream().map((opt) -> {
+            AnswerObjectEntity ans = new AnswerObjectEntity();
+            ans.setAnswerId(opt.getSecond());
+            ans.setHyperText(opt.getFirst());
+            return ans;
+        }).collect(Collectors.toList()));
+        if(q.isAggregation() ){
+            generated.setQuestionType(QuestionType.MATCHING);
+            List<AnswerObjectEntity> answers = generated.getAnswerObjects();
+            for(AnswerObjectEntity a : answers){
+                a.setAnswerId(a.getAnswerId() + aggregationShift); //чтобы избежать пересечения с answerId ответов в aggregationMathching
+            }
+            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(exerciseAttempt.getUser().getPreferred_language().toLocaleString()));
+            for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
+                AnswerObjectEntity ans = new AnswerObjectEntity();
+                ans.setAnswerId(m.getValue());
+                ans.setHyperText(m.getKey());
+                ans.setRightCol(true);
+                answers.add(ans);
+            }
+            generated.setAnswerObjects(answers);
+            val opt = new MatchingQuestionOptionsEntity();
+            opt.setShowSupplementaryQuestions(true);
+            opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
+            generated.setOptions(opt);
+            return new Matching(generated, this);
+        }
+        else {
+            generated.setQuestionType(QuestionType.SINGLE_CHOICE);
+            val opt = new SingleChoiceOptionsEntity();
+            opt.setShowSupplementaryQuestions(true);
+            opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
+            generated.setOptions(opt);
+            return new SingleChoice(generated, this);
+        }
+    }
+    private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
+        Explanation expl = change.getExplanation();
+        return new SupplementaryFeedbackDto(
+                new FeedbackDto.Message(expl != null && expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl != null ? expl.getText() : "...", new FeedbackViolationLawDto("", true)),
+                change.getNextState() == null ||
+                        change.getNextState() instanceof EndQuestionState ||
+                        (change.getNextState() instanceof RedirectQuestionState && ((RedirectQuestionState) change.getNextState()).redirectsTo() instanceof EndQuestionState)
+                        ? SupplementaryFeedbackDto.Action.Finish
+                        : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
+        );
+    }
+    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, ExerciseAttemptEntity exerciseAttempt){
+        if(q instanceof Question){
+            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((its.questions.gen.states.Question) q, exerciseAttempt);
+            return new SupplementaryResponse(supQuestion);
+        }
+        else {
+            QuestionStateChange change = ((QuestionStateChange) q);
+            return new SupplementaryResponse(stateChangeAsSupplementaryFeedbackDto(change));
+        }
+    }
+
 }
