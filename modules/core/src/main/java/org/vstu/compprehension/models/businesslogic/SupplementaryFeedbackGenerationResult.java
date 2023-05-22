@@ -8,7 +8,7 @@ import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.models.entities.SupplementaryStepEntity;
 
 @AllArgsConstructor
-public class SupplementaryFeedbackGeneration {
+public class SupplementaryFeedbackGenerationResult {
     @Getter
     @NotNull final private SupplementaryFeedbackDto feedback;
     @Getter

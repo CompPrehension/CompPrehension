@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.SupplementaryStepEntity;
 
 @AllArgsConstructor
-public class SupplementaryResponseGeneration {
+public class SupplementaryResponseGenerationResult {
     @Getter
     @NotNull private SupplementaryResponse response;
     @Getter

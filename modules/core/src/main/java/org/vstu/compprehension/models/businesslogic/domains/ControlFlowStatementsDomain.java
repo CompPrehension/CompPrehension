@@ -1585,12 +1585,12 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
         throw new NotImplementedException();
     }
 
     @Override
-    public SupplementaryFeedbackGeneration judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
         throw new NotImplementedException();
     }
 

@@ -560,9 +560,9 @@ public abstract class Domain {
      * @param sourceQuestion source question
      * @return supplementary question
      */
-    public abstract SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang);
+    public abstract SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang);
 
-    public abstract SupplementaryFeedbackGeneration judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses);
+    public abstract SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses);
 
 
     /**

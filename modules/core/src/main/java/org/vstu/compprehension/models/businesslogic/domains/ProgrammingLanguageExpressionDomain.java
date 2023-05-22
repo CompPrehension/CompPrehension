@@ -1574,17 +1574,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     );
 
     @Override
-    public SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
         if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {
-            return new SupplementaryResponseGeneration(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
+            return new SupplementaryResponseGenerationResult(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
         }
     }
 
     @Override
-    public SupplementaryFeedbackGeneration judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
         if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
             return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
         }
@@ -1602,7 +1602,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             val feedback =  new SupplementaryFeedbackDto(
                     message,
                     judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
-            return new SupplementaryFeedbackGeneration(feedback, null);
+            return new SupplementaryFeedbackGenerationResult(feedback, null);
         }
     }
 

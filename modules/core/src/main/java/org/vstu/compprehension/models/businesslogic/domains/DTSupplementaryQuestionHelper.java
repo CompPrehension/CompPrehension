@@ -40,7 +40,7 @@ public class DTSupplementaryQuestionHelper {
     private final Function<InteractionEntity, Model> mainQuestionToModelTransformer;
 
     //DT = Decision Tree
-    protected SupplementaryResponseGeneration makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
+    protected SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<InteractionEntity> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
@@ -89,10 +89,10 @@ public class DTSupplementaryQuestionHelper {
         if(response.getQuestion() != null){
             supplementaryChain.setSupplementaryQuestion(response.getQuestion().getQuestionData());
         }
-        return new SupplementaryResponseGeneration(response, supplementaryChain);
+        return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
-    protected SupplementaryFeedbackGeneration judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    protected SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
         //преобразовать ответы
@@ -122,7 +122,7 @@ public class DTSupplementaryQuestionHelper {
         SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
                 supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
         );
-        return new SupplementaryFeedbackGeneration(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
+        return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
     }
 
     private static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
