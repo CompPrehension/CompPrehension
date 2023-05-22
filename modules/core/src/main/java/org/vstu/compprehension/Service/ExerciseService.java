@@ -3,14 +3,16 @@ package org.vstu.compprehension.Service;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.entities.exercise.*;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +55,7 @@ public class ExerciseService {
                 .correctAnswerGenerationEnabled(true)
                 .newQuestionGenerationEnabled(true)
                 .supplementaryQuestionsEnabled(true)
+                .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
         exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");

@@ -6,32 +6,32 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeBasedDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.SingleChoiceOptionsEntity;
 import org.vstu.compprehension.models.repository.*;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.utils.HyperText;
-import org.springframework.stereotype.Service;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.math.BigInteger;
@@ -100,7 +100,7 @@ public class QuestionService {
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
         Question question = null;
-        if(!(domain instanceof DecisionTreeBasedDomain)){
+        if(!(domain instanceof DecisionTreeBasedDomain && sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled())){
             question = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
             if (question != null) {
                 question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
@@ -127,7 +127,7 @@ public class QuestionService {
 
     public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt, LocalizationService localizationService) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        if(!(domain instanceof DecisionTreeBasedDomain)){
+        if(!(domain instanceof DecisionTreeBasedDomain && question.getQuestionData().getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled())){
             assert responses.size() == 1;
             val judgeResult = domain.judgeSupplementaryQuestion(question, responses.get(0).getLeftAnswerObject());
             val violation = judgeResult.violations.stream()
