@@ -1567,7 +1567,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return ProgrammingLanguageExpressionRDFTransformer.questionToModel(lastMainQuestionInteraction.getQuestion(), lastMainQuestionInteraction);
     }
 
-    private final DTSupplementaryQuestionHelper dtSupplementaryQuestionHelper = new DTSupplementaryQuestionHelper(
+    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY).getPath().substring(1), //FIXME костыль. заложить в DomainModel корректную работу с ресурсами
             this::mainQuestionToModel

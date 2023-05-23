@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class DTSupplementaryQuestionHelper {
-    public DTSupplementaryQuestionHelper(Domain domain, String domainModelDirectory, Function<InteractionEntity, Model> mainQuestionToModelTransformer) {
+public class DecisionTreeSupQuestionHelper {
+    public DecisionTreeSupQuestionHelper(Domain domain, String domainModelDirectory, Function<InteractionEntity, Model> mainQuestionToModelTransformer) {
         this.domain = domain;
         this.domainModel = new LocalizedDomainModel(domainModelDirectory);
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
