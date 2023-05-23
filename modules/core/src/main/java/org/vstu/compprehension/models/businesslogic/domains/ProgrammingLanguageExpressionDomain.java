@@ -1569,7 +1569,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY).getPath().substring(1), //FIXME костыль. заложить в DomainModel корректную работу с ресурсами
+            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
             this::mainQuestionToModel
     );
 
