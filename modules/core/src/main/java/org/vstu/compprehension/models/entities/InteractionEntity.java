@@ -55,6 +55,10 @@ public class InteractionEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "createdByInteraction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ResponseEntity> newResponses;
+    
+    @ToString.Exclude
+    @OneToMany(mappedBy = "mainQuestionInteraction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<SupplementaryStepEntity> relatedSupplementarySteps;
 
     @ToString.Exclude
     @ManyToOne

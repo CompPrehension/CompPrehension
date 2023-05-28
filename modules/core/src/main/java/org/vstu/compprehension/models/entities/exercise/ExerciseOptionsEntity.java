@@ -19,6 +19,7 @@ public class ExerciseOptionsEntity {
     private Boolean supplementaryQuestionsEnabled;
     private Boolean correctAnswerGenerationEnabled;
     private Boolean forceNewAttemptCreationEnabled;
+    private boolean preferDecisionTreeBasedSupplementaryEnabled; //FIXME ? почему все остальные тоже не boolean - нуллабельность здесь только мешает
 
     @Data
     @AllArgsConstructor @NoArgsConstructor

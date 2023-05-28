@@ -12,13 +12,15 @@ import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.dto.survey.SurveyDto;
 import org.vstu.compprehension.dto.survey.SurveyQuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.SupplementaryResponse;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
-import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -220,5 +222,16 @@ public class Mapper {
                 .strategyDecision(strategyDecision)
                 .isCorrect(isCorrect)
                 .build();
+    }
+
+
+    public static @NotNull SupplementaryQuestionDto toDto(@NotNull SupplementaryResponse response){
+        if(response.getQuestion() != null) {
+            QuestionDto questionDto = Mapper.toDto(response.getQuestion());
+            return questionDto.getAnswers().length > 0 ? SupplementaryQuestionDto.FromQuestion(questionDto)
+                    : SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")), SupplementaryFeedbackDto.Action.Finish));
+        }
+        else
+            return SupplementaryQuestionDto.FromMessage(response.getFeedback());
     }
 }

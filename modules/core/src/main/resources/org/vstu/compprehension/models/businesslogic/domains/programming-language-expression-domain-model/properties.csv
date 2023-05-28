@@ -1,0 +1,11 @@
+countOfTokens|INTEGER||TRUE|element|1-2|количество токенов <subj>|Сколько токенов имеет <subj>?|<verb:>имеет <val> токенов
+arity|ENUM|arity|TRUE|operator||арность <subj>|Каким оператором является <subj>?|<adj:>
+place|ENUM|place|TRUE|operator||положение <subj>|Каким оператором является <subj>?|<adj:>
+precedence|INTEGER||TRUE|operator||приоритет <subj>|Каков приоритет <subj>?|<verb:>имеет приоритет, равный <val>
+associativity|ENUM|associativity|TRUE|operator||ассоциативность <subj>|Какую ассоциативность имеет <subj>?|<adj:>
+needsLeftOperand|BOOLEAN||TRUE|operator||<subj> нужен левый операнд|Необходим ли <subj> левый операнд?|<verb:>имеет левый операнд
+needsRightOperand|BOOLEAN||TRUE|operator||<subj> нужен правый операнд|Необходим ли <subj> правый операнд?|<verb:>имеет правый операнд
+needsInnerOperand|BOOLEAN||TRUE|operator||<subj> нужен внутренний операнд|Необходим ли <subj> внутренний операнд?|<verb:>имеет внутренний операнд
+hasStrictOperandOrder|BOOLEAN||TRUE|operator||<subj> имеет строгий порядок операндов|Является ли <subj> оператором со строгим порядком операндов?|<verb:>имеет строгий порядок операндов
+state|ENUM|state|FALSE|operand||состояние <subj>|Каково состояние <subj>?|<adj:>
+evaluatesTo|ENUM|evaluatesTo|FALSE|operand||значение <subj>|Какое значение имеет <subj>?|<adj:>
