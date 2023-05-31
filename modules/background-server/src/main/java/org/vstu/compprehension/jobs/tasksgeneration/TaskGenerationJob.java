@@ -84,6 +84,7 @@ public class TaskGenerationJob {
         boolean cleanupFolders = false; // !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
+        boolean skipEverDownloadedRepositories = true;
         boolean parseSources = !_debugGenerator;
         boolean generateQuestions = true;
         // boolean exportQuestionsToProduction = true;
@@ -93,15 +94,30 @@ public class TaskGenerationJob {
 
         // folders cleanup
         if (cleanupFolders) {
-            if (Files.exists(Path.of(config.getSearcher().getOutputFolderPath())))
-                FileUtils.deleteDirectory(new File(config.getSearcher().getOutputFolderPath()));
-            if (Files.exists(Path.of(config.getParser().getOutputFolderPath())))
-                FileUtils.deleteDirectory(new File(config.getParser().getOutputFolderPath()));
+            val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
+
+            if (Files.exists(downloadedPath)) {
+                if (!skipEverDownloadedRepositories) {
+                    // Можно удалить всё, что скачано
+                    FileUtils.deleteDirectory(downloadedPath.toFile());
+                } else {
+                    // оставляем пустые папки как индикацию проделанной работы
+                    Files.list(downloadedPath)
+                            .forEach(FileUtility::clearDirectory);
+                }
+            }
+
+            val parsedPath = Path.of(config.getParser().getOutputFolderPath());
+
+            if (Files.exists(parsedPath))
+                FileUtils.deleteDirectory(parsedPath.toFile());
 
             // don't delete output: it may be reused later
+
             if (cleanupGeneratedFolder) {
-                if (Files.exists(Path.of(config.getGenerator().getOutputFolderPath())))
-                    FileUtils.deleteDirectory(new File(config.getGenerator().getOutputFolderPath()));
+                val generatedPath = Path.of(config.getParser().getOutputFolderPath());
+                if (Files.exists(generatedPath))
+                    FileUtils.deleteDirectory(generatedPath.toFile());
             }
 
             log.info("folders cleaned up");
@@ -112,7 +128,14 @@ public class TaskGenerationJob {
         // download repos (currently, one repository per run)
         if (downloadRepositories) {
             // TODO Добавить историю по использованным репозиториям
-            var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/);
+            var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toList());
+
+            if (skipEverDownloadedRepositories) {
+                // add repo names (on disk) to seenReposNames
+                var repos = Files.list(Path.of(config.getSearcher().getOutputFolderPath())).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).collect(Collectors.toSet());
+                repos.addAll(seenReposNames);
+                seenReposNames = new ArrayList<>(repos);
+            }
 
             GitHub github = new GitHubBuilder()
                     .withOAuthToken(config.getSearcher().getGithubOAuthToken())
@@ -305,6 +328,10 @@ public class TaskGenerationJob {
                                 // update qr metrics
                                 qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
                                 qrLogsProcessed.add(qr);
+
+                            } else {
+                                log.info("... Skipped existing question with name: {} ", meta.getName());
+                                break;
                             }
                         }
                     }
@@ -322,7 +349,8 @@ public class TaskGenerationJob {
                         meta.setUsedCount(0L);
                         meta.setOrigin(questionOrigin);
                         // meta.setDateLastUsed(null);
-                        // meta.setDomainShortname(config.getDomainShortName());
+                        meta.setDomainShortname(config.getDomainShortName());
+                        meta.setTemplateId(-1);
 
                         // set metadata instance back to ensure the data is saved
                         q.setMetadata(meta);
