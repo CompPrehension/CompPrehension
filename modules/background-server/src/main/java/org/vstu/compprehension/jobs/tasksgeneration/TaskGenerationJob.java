@@ -80,8 +80,8 @@ public class TaskGenerationJob {
 
         log.info("QR logs to process: {}", qrLogsToProcess.size());
 
-        boolean _debugGenerator = true;
-        boolean cleanupFolders = false; // !_debugGenerator;
+        boolean _debugGenerator = false;
+        boolean cleanupFolders = true; // !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
         boolean skipEverDownloadedRepositories = true;
