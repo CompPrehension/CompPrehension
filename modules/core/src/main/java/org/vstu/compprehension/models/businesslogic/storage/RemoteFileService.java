@@ -48,6 +48,11 @@ public class RemoteFileService {
         mgr = getFSManager();
     }
 
+    public RemoteFileService(String baseUploadUri, String baseDownloadUri, int dummyDirsForNewFile) {
+        this(baseUploadUri, baseDownloadUri);
+        this.dummyDirsForNewFile = dummyDirsForNewFile;
+    }
+
     /**
      * Create file service with endpoint for both upload and download files.
      * @param baseUri URL to base dir to store/read data via both writable and readable protocol

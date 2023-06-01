@@ -697,7 +697,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     public static String ExpressionToHtml(List<BackendFactEntity> expression) {
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
         int answerIdx = -1;
@@ -725,7 +725,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     public static String ExpressionToHtmlEnablingButtonDuplicates(List<BackendFactEntity> expression) {
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
         int answerIdx = -1;
@@ -2620,7 +2620,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     public String questionToJson(Question question) {
-        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
+        return questionToJson(question, "ORDERING");
+//        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
     }
 
     /**
@@ -2762,6 +2763,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 e.printStackTrace();
             }
         }
+
+        System.out.println("total questions generated: " + qCount);
     }
 
     @Override

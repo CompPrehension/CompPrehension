@@ -44,8 +44,9 @@ public class QuestionMetadataEntity {
     @Column(name = "q_data_graph")
     private String qDataGraph;
 
+    /** workaround due to change in field name in db/json.
+     * Normally, use `setQDataGraph(path)`. */
     public void setQDataGraphPath(String path) {
-        // workaround due to change in field name in db/json
         setQDataGraph(path);
     }
 
@@ -118,7 +119,7 @@ public class QuestionMetadataEntity {
     @Builder.Default
     @Type(type = "json")
     @Column(name = "qrlog_ids", columnDefinition = "json")
-    private List<Integer> qrlogIds = null;
+    private List<Long> qrlogIds = null;
 
     @Column(name = "date_created")
     private Date dateCreated;

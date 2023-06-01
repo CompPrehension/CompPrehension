@@ -67,9 +67,6 @@ public class Main {
         cnf.setStorageUploadFilesBaseUrl(outputPath);
         cnf.setStorageDummyDirsForNewFile(2);
         // TODO: using LocalRdfStorage (while the code is) in RdfStorage. Move something?
-        LocalRdfStorage rs = new LocalRdfStorage(domain.getDomainEntity(),
-                new FakeQuestionMetadataRepository(),
-                new QuestionMetadataManager(domain, new FakeQuestionMetadataRepository()));
 
         // Find files in local directory
         List<String> files = new ArrayList<>();

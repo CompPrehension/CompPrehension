@@ -1,7 +1,9 @@
 package org.vstu.compprehension.utils;
 
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +31,28 @@ public class FileUtility {
         return result;
 
     }
+
+    /** Clears directory contents recursively, retaining the empty directory itself.
+     * @param path dir to clear
+     */
+    public static boolean clearDirectory(Path path) /*throws IOException*/ {
+
+        if (!Files.isDirectory(path)) {
+            throw new IllegalArgumentException("Path must be a directory!");
+        }
+
+        // just iterate and delete anything within the dir
+        try {
+            Files.list(path)
+                    .map(Path::toFile)
+                    .forEach(FileUtils::deleteQuietly);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
 
     public static int MAX_CMD_LENGTH = 32768;  // in Windows
 

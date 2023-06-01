@@ -45,7 +45,7 @@ public class DomainFactoryImpl implements DomainFactory {
         }
         {
             var controlFlowDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("control_flow"))
+                    .stream().filter(x -> x.getShortName().equals("ctrl_flow"))
                     .findFirst()
                     .orElseThrow();
             var controlFlowDomain = new ControlFlowStatementsDomain(

@@ -357,6 +357,10 @@ public abstract class Domain {
         return 0.0834;  // = 1/12
     }
 
+    public static String questionToJson(Question question, String questionType) {
+        return "{\"questionType\": \"" + questionType + "\", " + new Gson().toJson(question).substring(1);
+    }
+
     /**
      * Get text description of all steps to right solution
      * @param question tested question

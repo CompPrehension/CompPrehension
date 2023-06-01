@@ -41,12 +41,12 @@ public class FakeDomainRepository implements DomainRepository {
 
     @Override
     public Iterable<DomainEntity> findAll() {
-        return findById(null).stream().collect(Collectors.toList());
+        return findById("").stream().collect(Collectors.toList());
     }
 
     @Override
     public Iterable<DomainEntity> findAllById(Iterable<String> iterable) {
-        return findById(null).stream().collect(Collectors.toList());
+        return findById("").stream().collect(Collectors.toList());
     }
 
     @Override

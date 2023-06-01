@@ -9,9 +9,14 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.BackgroundServerMain;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
@@ -22,8 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -35,39 +39,37 @@ import java.util.stream.Collectors;
 public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
-    private final QuestionMetadataRepository metadataDraftRep;
     private final TaskGenerationJobConfig config;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, QuestionMetadataRepository metadataDraftRep, TaskGenerationJobConfig config) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
-        this.metadataDraftRep = metadataDraftRep;
         this.config = config;
     }
 
     @SneakyThrows
     @Job
     public void run() {
-        log.info("Run generating questions for expression domain");
+        log.info("Run generating questions for expression domain ...");
         try {
-            runGeneration4Expr();
+            runQuestionGeneration();
         } catch (Exception e) {
             log.warn("job exception", e);
         }
-        System.exit(0);
+        if (config.isRunOnce()) {
+            System.exit(0);
+        }
     }
 
     /**
      * @return true if more processing needed
      */
     @SneakyThrows
-    public boolean runGeneration4Expr() {
+    public boolean runQuestionGeneration() {
 
-        /*
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        */
         int tooFewQuestions = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
         var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
@@ -76,28 +78,46 @@ public class TaskGenerationJob {
             return false;
         }
 
+        log.info("QR logs to process: {}", qrLogsToProcess.size());
+
         boolean _debugGenerator = false;
-        boolean cleanupFolders = false; // !_debugGenerator;
+        boolean cleanupFolders = true; // !_debugGenerator;
         boolean cleanupGeneratedFolder = false;
         boolean downloadRepositories = !_debugGenerator;
+        boolean skipEverDownloadedRepositories = true;
         boolean parseSources = !_debugGenerator;
-        boolean generateQuestions = !_debugGenerator;
-        boolean exportQuestionsToProduction = true;
-        
+        boolean generateQuestions = true;
+        // boolean exportQuestionsToProduction = true;
+
         int repositoriesToDownload = 1;
 
 
         // folders cleanup
         if (cleanupFolders) {
-            if (Files.exists(Path.of(config.getSearcher().getOutputFolderPath())))
-                FileUtils.deleteDirectory(new File(config.getSearcher().getOutputFolderPath()));
-            if (Files.exists(Path.of(config.getParser().getOutputFolderPath())))
-                FileUtils.deleteDirectory(new File(config.getParser().getOutputFolderPath()));
+            val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
+
+            if (Files.exists(downloadedPath)) {
+                if (!skipEverDownloadedRepositories) {
+                    // Можно удалить всё, что скачано
+                    FileUtils.deleteDirectory(downloadedPath.toFile());
+                } else {
+                    // оставляем пустые папки как индикацию проделанной работы
+                    Files.list(downloadedPath)
+                            .forEach(FileUtility::clearDirectory);
+                }
+            }
+
+            val parsedPath = Path.of(config.getParser().getOutputFolderPath());
+
+            if (Files.exists(parsedPath))
+                FileUtils.deleteDirectory(parsedPath.toFile());
 
             // don't delete output: it may be reused later
+
             if (cleanupGeneratedFolder) {
-                if (Files.exists(Path.of(config.getGenerator().getOutputFolderPath())))
-                    FileUtils.deleteDirectory(new File(config.getGenerator().getOutputFolderPath()));
+                val generatedPath = Path.of(config.getParser().getOutputFolderPath());
+                if (Files.exists(generatedPath))
+                    FileUtils.deleteDirectory(generatedPath.toFile());
             }
 
             log.info("folders cleaned up");
@@ -106,10 +126,16 @@ public class TaskGenerationJob {
         List<Path> downloadedRepos;
 
         // download repos (currently, one repository per run)
-        if (downloadRepositories)
-        {
-            // TODO Добавить историю
-            var seenReposNames = metadataDraftRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/);
+        if (downloadRepositories) {
+            // TODO Добавить историю по использованным репозиториям
+            var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toList());
+
+            if (skipEverDownloadedRepositories) {
+                // add repo names (on disk) to seenReposNames
+                var repos = Files.list(Path.of(config.getSearcher().getOutputFolderPath())).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).collect(Collectors.toSet());
+                repos.addAll(seenReposNames);
+                seenReposNames = new ArrayList<>(repos);
+            }
 
             GitHub github = new GitHubBuilder()
                     .withOAuthToken(config.getSearcher().getGithubOAuthToken())
@@ -146,8 +172,8 @@ public class TaskGenerationJob {
                         return 0;
                     }, null);
 
-                     // for now, limited number of repositories
-                     if (++idx >= repositoriesToDownload)
+                    // for now, limited number of repositories
+                    if (++idx >= repositoriesToDownload)
                         break;
                 }
             }
@@ -159,17 +185,18 @@ public class TaskGenerationJob {
         }
 
         // do parsing
-        if (parseSources)
-        {
-            for(var repo : downloadedRepos) {
+        if (parseSources) {
+            for (var repo : downloadedRepos) {
                 log.info("Start parsing sources for repo [{}]", repo);
 
                 String leafFolder = repo.getFileName().toString();
                 Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
 
-                var files = FileUtility.findFiles(repo, new String[] { ".c", ".m" });
+                var files = FileUtility.findFiles(repo, new String[]{".c", ".m"});
                 files = files.subList(0, Math.min(50, files.size()));
                 log.info("Found {} *.c & *.m files", files.size());
+
+                // TODO: make parser cmd customizable?
 
                 List<String> parserProcessCommandBuilder = new ArrayList<>();
                 parserProcessCommandBuilder.add(config.getParser().getPathToExecutable());
@@ -177,10 +204,10 @@ public class TaskGenerationJob {
 
                 // reduce number of arguments on command line if necessary
                 // TODO: loop over batches if required to split the task
-                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2+10+5 + destination.toString().length());
+                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
 
                 parserProcessCommandBuilder.add("--");
-                parserProcessCommandBuilder.add("expression");
+                parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
                 parserProcessCommandBuilder.add(destination.toString());
                 log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 
@@ -219,7 +246,8 @@ public class TaskGenerationJob {
                 log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
 
                 String leafFolder = repoDir.getFileName().toString();
-                Path destination = Path.of(config.getGenerator().getOutputFolderPath(), leafFolder);
+                String questionOrigin = leafFolder;
+                Path destination = Path.of(config.getGenerator().getOutputFolderPath(), questionOrigin);
                 Files.createDirectories(destination);
 
                 List<String> cmd = new ArrayList<>();
@@ -237,9 +265,11 @@ public class TaskGenerationJob {
 
                 try {
                     log.info("Run generator on repo: [{}]", leafFolder);
+                    System.out.println("Shell command to run: [" + cmd.stream().reduce((a, b) -> a + " " + b).orElse("") + "]");
                     Files.createDirectories(destination);
                     var parserProcess = new ProcessBuilder(cmd)
                             .redirectErrorStream(true)
+                            .inheritIO()
                             .start();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
                     String line;
@@ -253,13 +283,18 @@ public class TaskGenerationJob {
                     log.warn("Question generation exception", e);
                 }
 
-                log.info("Repo [{}] used to make questions.", leafFolder);
+                log.info("Repo [{}] used to make questions.", questionOrigin);
 
 
                 // загрузить из папки полученные вопросы
 
-                var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
-                log.info("Found {} ttl files in: {}", allJsonFiles.size(), repoDir);
+                var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
+                log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
+
+                int skippedQuestions = 0; // loaded but not kept since not required by any QR
+
+                LocalRdfStorage storage = getQuestionStorage();
+                Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
                 for (val file : allJsonFiles) {
                     val q = loadQuestion(file);
@@ -267,15 +302,87 @@ public class TaskGenerationJob {
                         continue;
                     }
 
-                    // Проверить подходит ли он нам
-                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав данные вопроса
-                    // Вызвать__(q, qrLogsToProcess)
+                    QuestionMetadataEntity meta = q.getMetadataAny();
+                    if (meta == null) {
+                        // в вопросе нет метаданных, Невозможно проверить
+                        log.warn("[info] cannot save question which does not contain metadata. Source file: " + file);
+                        continue;
+                    }
+
+                    // init container: list of QR logs requiring this question
+                    meta.setQrlogIds(new ArrayList<>());
+
+                    // Проверить, подходит ли он нам
+                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
+                    boolean shouldSave = false;
                     for (val qr : qrLogsToProcess) {
-                        if (QuestionRequestLogRepository.doesQuestionSuitQR(q, qr)) {
-                            // TODO
+                        if (QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
+
+                            // Если вопрос ещё не сохранен в базу
+                            if (storage.findQuestionByName(meta.getName()) == null) {
+
+                                // set flag to use this question
+                                shouldSave = true;
+                                // update question metrics
+                                meta.getQrlogIds().add(qr.getId());
+                                // update qr metrics
+                                qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
+                                qrLogsProcessed.add(qr);
+
+                            } else {
+                                log.info("... Skipped existing question with name: {} ", meta.getName());
+                                break;
+                            }
                         }
                     }
 
+                    if (shouldSave) {
+
+                        // copy data file and save local sub-path to it
+                        String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                        meta.setQDataGraph(qDataPath);
+
+                        log.info("(1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
+
+                        // set more metadata
+                        meta.setDateCreated(new Date());
+                        meta.setUsedCount(0L);
+                        meta.setOrigin(questionOrigin);
+                        // meta.setDateLastUsed(null);
+                        meta.setDomainShortname(config.getDomainShortName());
+                        meta.setTemplateId(-1);
+
+                        // set metadata instance back to ensure the data is saved
+                        q.setMetadata(meta);
+                        q.getQuestionData().getOptions().setMetadata(meta);
+
+                        meta = storage.saveMetadataEntity(meta);
+                        log.info("(2) Saved metadata for that question, id: [{}]", meta.getId());
+                    } else {
+                        skippedQuestions += 1;
+                    }
+                }
+
+                log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
+
+                if (qrLogsProcessed.size() > 0) {
+
+                    // update QR-log: statistics and possibly status
+                    for (var qr : qrLogsProcessed) {
+
+                        // increment processed counter for each repository touched by this qr
+                        qr.setProcessedCount(qr.getProcessedCount() + 1);
+                        if (qr.getFoundCount() + qr.getAddedQuestions() >= enoughQuestionsAdded) {
+                            // don't more need to process it.
+                            qr.setOutdated(1);
+                            log.info("Question-request-log (id: {}) resolved with {} questions added.", qr.getId(),
+                                    qr.getAddedQuestions());
+                        }
+                        qr.setLastProcessedDate(new Date());
+                    }
+                    qrLogRep.saveAll(qrLogsProcessed);
+
+                    log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
                 }
 
 
@@ -290,10 +397,10 @@ public class TaskGenerationJob {
             log.info("Start exporting questions to production bank ...");
             AbstractRdfStorage.exportGeneratedQuestionsToProductionBank(
                     qrLogsToProcess, enoughQuestionsAdded,
-                    metadataRep, metadataDraftRep, qrLogRep,
+                    metadataRep, qrLogRep,
                     config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
         }
-        */
+        //*/
 
         log.info("completed");
 
@@ -301,9 +408,9 @@ public class TaskGenerationJob {
     }
 
     /**
-     * @see Domain::parseQuestionTemplate
      * @param inputStream file contents
      * @return loaded question
+     * @see Domain::parseQuestionTemplate
      */
     private static Question parseQuestionJson(InputStream inputStream) {
         Gson gson = Domain.getQuestionGson();
@@ -316,9 +423,9 @@ public class TaskGenerationJob {
     }
 
     /**
-     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
      * @param path absolute path to file location
      * @return loaded question
+     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
      */
     private static Question loadQuestion(String path) {
         Question q = null;
@@ -330,4 +437,14 @@ public class TaskGenerationJob {
         return q;
     }
 
+
+    private LocalRdfStorage getQuestionStorage() {
+        return new LocalRdfStorage(
+                new RemoteFileService(
+                        config.getExporter().getStorageUploadFilesBaseUrl(),
+                        config.getExporter().getStorageUploadFilesBaseUrl(),
+                        config.getExporter().getStorageDummyDirsForNewFile()),
+                metadataRep,
+                null);
+    }
 }

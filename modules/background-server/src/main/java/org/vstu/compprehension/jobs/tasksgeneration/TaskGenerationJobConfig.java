@@ -16,6 +16,8 @@ public class TaskGenerationJobConfig {
     private ParserConfig parser;
     private GeneratorConfig generator;
     private ExporterConfig exporter;
+    private boolean runOnce;
+    private int intervalMinutes;
 
     @Getter @Setter @NoArgsConstructor
     public static class ReposSearcherConfig {
