@@ -57,7 +57,7 @@ public class TaskGenerationJob {
         } catch (Exception e) {
             log.warn("job exception", e);
         }
-        if (BackgroundServerMain.runOnce) {
+        if (config.isRunOnce()) {
             System.exit(0);
         }
     }

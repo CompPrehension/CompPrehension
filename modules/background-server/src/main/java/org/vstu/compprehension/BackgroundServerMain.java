@@ -6,6 +6,7 @@ import org.jobrunr.scheduling.JobRequestScheduler;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.storage.InMemoryStorageProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
@@ -22,8 +23,10 @@ public class BackgroundServerMain {
     private JobScheduler jobScheduler;
 
     /** Whether to execute the job once and then exit; otherwise the job will be called permanently with the specified INTERVAL */
-    public static boolean runOnce = false;
-    private static Duration INTERVAL = Duration.ofHours(2);
+    @Value("${task-generation.run_once}")
+    private boolean runOnce;
+    @Value("${task-generation.interval_minutes}")
+    private int intervalMinutes;
 
 
     public static void main(String[] args) throws IOException {
@@ -55,7 +58,8 @@ public class BackgroundServerMain {
         if (runOnce) {
             jobScheduler.<TaskGenerationJob>enqueue(TaskGenerationJob::run);
         } else {
-            jobScheduler.<TaskGenerationJob>scheduleRecurrently(INTERVAL, TaskGenerationJob::run);
+            Duration interval = Duration.ofMinutes(intervalMinutes);
+            jobScheduler.<TaskGenerationJob>scheduleRecurrently(interval, TaskGenerationJob::run);
             /* Note:
             Jobrunr does not run a recurrent job if the previous run hasn't finished yet. (That's OK for us.)
             * */
