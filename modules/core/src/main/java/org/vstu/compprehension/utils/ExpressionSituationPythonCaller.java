@@ -77,7 +77,8 @@ public class ExpressionSituationPythonCaller {
                 ret.add(inp.readLine());
             }
         }
-        catch (IOException ignored) {
+        catch (IOException | NullPointerException ignored) {
+            System.out.println("WARN: cannot access/use python sub-process.");
             return Collections.nCopies(expectedOutputLines, "");
         }
 
