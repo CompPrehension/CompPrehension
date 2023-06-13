@@ -64,13 +64,14 @@ public class ExpressionSituationPythonCaller {
 
     public static List<String> pipe(String msg, int expectedOutputLines) {
 
-        if (process == null) {
-            initSubProcess();
-        }
-
-        List<String> ret = new ArrayList<>(expectedOutputLines);
-
+        List<String> ret;
         try {
+            if (process == null) {
+                initSubProcess();
+            }
+
+            ret = new ArrayList<>(expectedOutputLines);
+
             out.write( msg + "\n" );
             out.flush();
             for (int i = 0; i < expectedOutputLines; i++) {
