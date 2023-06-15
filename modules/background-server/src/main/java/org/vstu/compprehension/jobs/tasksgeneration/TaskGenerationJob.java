@@ -154,6 +154,7 @@ public class TaskGenerationJob {
                 for (var repo : repoSearchQuery) {
                     if (seenReposNames.contains(repo.getName())) {
                         log.info("Skip processed GitHub repo: " + repo.getName());
+                        Thread.sleep(30);
                         continue;
                     }
                     log.info("Downloading repo [{}] ...", repo.getFullName());
@@ -213,7 +214,9 @@ public class TaskGenerationJob {
 
                 try {
                     log.info("Run parser on repo: [{}]", leafFolder);
-                    Files.createDirectories(destination);
+                    try {
+                        Files.createDirectories(destination);
+                    } catch (java.nio.file.AccessDeniedException ignored) {}
                     var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
                             .redirectErrorStream(true)
                             .start();

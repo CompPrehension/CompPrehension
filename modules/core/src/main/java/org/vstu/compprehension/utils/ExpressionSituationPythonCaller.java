@@ -39,7 +39,7 @@ public class ExpressionSituationPythonCaller {
         } catch (IOException e) {
             System.out.println("Error locating Python3 script: " + pythonScript);
             System.out.println(e.getMessage());
-            e.printStackTrace();
+//            e.printStackTrace();
             return false;
         }
 
@@ -52,7 +52,7 @@ public class ExpressionSituationPythonCaller {
             close();
             System.out.println("Error initializing Python3 sub-process. cmd:" + cmd);
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            // e.printStackTrace();
             return false;
         }
 
