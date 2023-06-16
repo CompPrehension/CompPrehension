@@ -296,6 +296,7 @@ public class TaskGenerationJob {
                 var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
                 log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
 
+                int savedQuestions = 0;
                 int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
                 LocalRdfStorage storage = getQuestionStorage();
@@ -309,7 +310,7 @@ public class TaskGenerationJob {
 
                     QuestionMetadataEntity meta = q.getMetadataAny();
                     if (meta == null) {
-                        // в вопросе нет метаданных, Невозможно проверить
+                        // в вопросе нет метаданных, невозможно проверить
                         log.warn("[info] cannot save question which does not contain metadata. Source file: " + file);
                         continue;
                     }
@@ -347,7 +348,9 @@ public class TaskGenerationJob {
                         String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
                         meta.setQDataGraph(qDataPath);
 
-                        log.info("(1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
+                        log.info("\n\n");
+                        log.info("+++ (1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
+                        log.info("\n\n");
 
                         // set more metadata
                         meta.setDateCreated(new Date());
@@ -362,13 +365,15 @@ public class TaskGenerationJob {
                         q.getQuestionData().getOptions().setMetadata(meta);
 
                         meta = storage.saveMetadataEntity(meta);
-                        log.info("(2) Saved metadata for that question, id: [{}]", meta.getId());
+                        log.info("+++ (2) Saved metadata for that question, id: [{}]", meta.getId());
+                        savedQuestions += 1;
                     } else {
                         skippedQuestions += 1;
                     }
                 }
 
                 log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
+                log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
 
                 if (qrLogsProcessed.size() > 0) {
 
