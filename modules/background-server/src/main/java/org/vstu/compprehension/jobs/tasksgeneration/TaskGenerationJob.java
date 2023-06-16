@@ -151,10 +151,12 @@ public class TaskGenerationJob {
             downloadedRepos = new ArrayList<Path>();
             {
                 int idx = 0;
+                int skipped = 0;
                 for (var repo : repoSearchQuery) {
                     if (seenReposNames.contains(repo.getName())) {
-                        log.info("Skip processed GitHub repo: " + repo.getName());
-                        Thread.sleep(30);
+                        skipped += 1;
+                        log.info("Skip processed GitHub repo [" + String.format("%3d", skipped) + "]: " + repo.getName());
+                        Thread.sleep(700);
                         continue;
                     }
                     log.info("Downloading repo [{}] ...", repo.getFullName());
