@@ -348,9 +348,8 @@ public class TaskGenerationJob {
                         String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
                         meta.setQDataGraph(qDataPath);
 
-                        log.info("\n\n");
+                        log.info("* * * ");
                         log.info("+++ (1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
-                        log.info("\n\n");
 
                         // set more metadata
                         meta.setDateCreated(new Date());
