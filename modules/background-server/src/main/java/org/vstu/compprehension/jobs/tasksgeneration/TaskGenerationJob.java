@@ -151,9 +151,12 @@ public class TaskGenerationJob {
             downloadedRepos = new ArrayList<Path>();
             {
                 int idx = 0;
+                int skipped = 0;
                 for (var repo : repoSearchQuery) {
                     if (seenReposNames.contains(repo.getName())) {
-                        log.info("Skip processed GitHub repo: " + repo.getName());
+                        skipped += 1;
+                        log.info("Skip processed GitHub repo [" + String.format("%3d", skipped) + "]: " + repo.getName());
+                        Thread.sleep(700);
                         continue;
                     }
                     log.info("Downloading repo [{}] ...", repo.getFullName());
@@ -213,7 +216,9 @@ public class TaskGenerationJob {
 
                 try {
                     log.info("Run parser on repo: [{}]", leafFolder);
-                    Files.createDirectories(destination);
+                    try {
+                        Files.createDirectories(destination);
+                    } catch (java.nio.file.AccessDeniedException ignored) {}
                     var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
                             .redirectErrorStream(true)
                             .start();
@@ -291,6 +296,7 @@ public class TaskGenerationJob {
                 var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
                 log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
 
+                int savedQuestions = 0;
                 int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
                 LocalRdfStorage storage = getQuestionStorage();
@@ -304,7 +310,7 @@ public class TaskGenerationJob {
 
                     QuestionMetadataEntity meta = q.getMetadataAny();
                     if (meta == null) {
-                        // в вопросе нет метаданных, Невозможно проверить
+                        // в вопросе нет метаданных, невозможно проверить
                         log.warn("[info] cannot save question which does not contain metadata. Source file: " + file);
                         continue;
                     }
@@ -342,7 +348,8 @@ public class TaskGenerationJob {
                         String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
                         meta.setQDataGraph(qDataPath);
 
-                        log.info("(1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
+                        log.info("* * * ");
+                        log.info("+++ (1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
 
                         // set more metadata
                         meta.setDateCreated(new Date());
@@ -357,13 +364,15 @@ public class TaskGenerationJob {
                         q.getQuestionData().getOptions().setMetadata(meta);
 
                         meta = storage.saveMetadataEntity(meta);
-                        log.info("(2) Saved metadata for that question, id: [{}]", meta.getId());
+                        log.info("+++ (2) Saved metadata for that question, id: [{}]", meta.getId());
+                        savedQuestions += 1;
                     } else {
                         skippedQuestions += 1;
                     }
                 }
 
                 log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
+                log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
 
                 if (qrLogsProcessed.size() > 0) {
 

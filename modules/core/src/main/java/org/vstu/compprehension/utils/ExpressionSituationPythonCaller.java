@@ -39,7 +39,7 @@ public class ExpressionSituationPythonCaller {
         } catch (IOException e) {
             System.out.println("Error locating Python3 script: " + pythonScript);
             System.out.println(e.getMessage());
-            e.printStackTrace();
+//            e.printStackTrace();
             return false;
         }
 
@@ -52,7 +52,7 @@ public class ExpressionSituationPythonCaller {
             close();
             System.out.println("Error initializing Python3 sub-process. cmd:" + cmd);
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            // e.printStackTrace();
             return false;
         }
 
@@ -64,20 +64,22 @@ public class ExpressionSituationPythonCaller {
 
     public static List<String> pipe(String msg, int expectedOutputLines) {
 
-        if (process == null) {
-            initSubProcess();
-        }
-
-        List<String> ret = new ArrayList<>(expectedOutputLines);
-
+        List<String> ret;
         try {
+            if (process == null) {
+                initSubProcess();
+            }
+
+            ret = new ArrayList<>(expectedOutputLines);
+
             out.write( msg + "\n" );
             out.flush();
             for (int i = 0; i < expectedOutputLines; i++) {
                 ret.add(inp.readLine());
             }
         }
-        catch (IOException ignored) {
+        catch (IOException | NullPointerException ignored) {
+            System.out.println("WARN: cannot access/use python sub-process.");
             return Collections.nCopies(expectedOutputLines, "");
         }
 

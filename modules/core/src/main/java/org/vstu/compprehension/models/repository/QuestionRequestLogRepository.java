@@ -34,8 +34,8 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
         // проверка запрещаемых критериев
         if (meta.getSolutionSteps() < qr.getStepsMin()
             || meta.getSolutionSteps() > qr.getStepsMax()
-            || (meta.getConceptBits() & qr.getConceptsDeniedBitmask()) == 0
-            || (meta.getViolationBits() & qr.getLawsDeniedBitmask()) == 0
+            || (meta.getConceptBits() & qr.getConceptsDeniedBitmask()) != 0
+            || (meta.getViolationBits() & qr.getLawsDeniedBitmask()) != 0
         ) {
             return false;
         }
