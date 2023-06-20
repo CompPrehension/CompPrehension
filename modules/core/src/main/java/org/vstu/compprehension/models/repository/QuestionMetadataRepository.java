@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.OFF_SORT_BY_Q_USED_COUNT;
+
 // Основной интерфейс для поиска вопросов по их метаданным
 @Primary
 @Repository
@@ -37,6 +39,66 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             nativeQuery = true)
     Map<String, Object> getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
+    );
+
+    /** for experiment purposes only: forbid all denied as usual; just pick ones with at least 1 target, and follow complexity bounds. */
+    @Query(value = "SELECT * FROM (" +
+            "select * from questions_meta q where " +
+            "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
+            "AND q.solution_steps >= :#{#qr.stepsMin} " +
+            "AND q.solution_steps <= :#{#qr.stepsMax} " +
+            "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
+            "AND q.violation_bits & :#{#qr.lawsDeniedBitmask} = 0 " +
+
+            // at least one targeted concept or one targeted law must present
+            "   AND (1 <= IF(:#{#qr.traceConceptsTargetedBitmask} =0,0,q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) " +
+            "     + IF(:#{#qr.conceptsTargetedBitmask} =0,0,q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
+            "     + IF(:#{#qr.lawsTargetedBitmask} =0,0,q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0)) " +
+
+            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
+            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
+            "order by " +
+
+            " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
+            " ASC, " +
+//            " q.used_count ASC " +  // less often show "hot" questions
+            " limit :randomPoolLim" +
+            ") T1 ORDER BY RAND() limit :lim",
+            nativeQuery = true)
+    List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds_simpleRandom(
+            @Param("qr") QuestionRequest qr,
+            @Param("complWindow") double complexityWindow,
+            @Param("lim") int limitNumber,
+            @Param("randomPoolLim") int randomPoolLimitNumber
+    );  /// ^^^^^^ experiment
+
+    @Query(value = "SELECT * FROM (" +
+            "select * from questions_meta q where " +
+            "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
+            "AND q.is_draft = :#{#qr.isDraft} " +
+            "AND q.solution_steps >= :#{#qr.stepsMin} " +
+            "AND q.solution_steps <= :#{#qr.stepsMax} " +
+            "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
+            "AND q.violation_bits & :#{#qr.lawsDeniedBitmask} = 0 " +
+            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
+            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
+            "order by bit_count(q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask})" +
+            " + bit_count(q.concept_bits & :#{#qr.conceptsTargetedBitmask})" +
+            " + bit_count(q.violation_bits & :#{#qr.lawsTargetedBitmask})" +
+            " DESC, " +
+            // // " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
+            " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
+            " ASC, " +
+            (OFF_SORT_BY_Q_USED_COUNT? " q.used_count ASC " : "") +  // less often show "hot" questions
+            " limit :randomPoolLim" +
+            ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) + (T1.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) + (T1.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0)) DESC, RAND() limit :lim",
+            nativeQuery = true)
+    List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds_parametrized(
+            @Param("qr") QuestionRequest qr,
+            @Param("complWindow") double complexityWindow,
+            @Param("lim") int limitNumber,
+            @Param("randomPoolLim") int randomPoolLimitNumber
     );
 
     @Query(value = "SELECT * FROM (" +

@@ -12,6 +12,8 @@ import org.vstu.compprehension.utils.Checkpointer;
 import java.math.BigInteger;
 import java.util.*;
 
+import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.BASELINE_RANDOM_SEARCH;
+
 @Getter
 public class QuestionMetadataManager {
 
@@ -78,8 +80,16 @@ public class QuestionMetadataManager {
         }
         if (randomPoolLimit < limit)
             randomPoolLimit = limit;
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,
+
+        Iterable<? extends QuestionMetadataEntity> iter;
+        if (BASELINE_RANDOM_SEARCH) {
+            iter = questionRepository.findSampleAroundComplexityWithoutQIds_simpleRandom(qr, complexityMaxDifference,
                 limit, randomPoolLimit);
+        } else {
+            iter = questionRepository.findSampleAroundComplexityWithoutQIds_parametrized(qr, complexityMaxDifference,
+                limit, randomPoolLimit);
+        }
+
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         iter.forEach(foundQuestions::add);
         return foundQuestions;

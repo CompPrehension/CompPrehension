@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.OFF_QR_ADJUSTMENT;
+
 public interface AbstractStrategy {
     @NotNull String getStrategyId();
 
@@ -181,6 +183,9 @@ public interface AbstractStrategy {
         // copy targets to "inPlan" fields, actual targets may change
         qr.setTargetConceptsInPlan(qr.getTargetConcepts());
         qr.setTargetLawsInPlan(qr.getTargetLaws());
+
+        if (OFF_QR_ADJUSTMENT)
+            return qr;
 
         val attemptQuestions = exerciseAttempt.getQuestions();
         if (attemptQuestions == null || attemptQuestions.isEmpty()) {

@@ -102,6 +102,15 @@ public abstract class AbstractRdfStorage {
     Dataset dataset = null;
     static final boolean USE_RDF_STORAGE = false;
 
+    // For baseline experiments: TURN some features of question search OFF
+    public static final boolean BASELINE_RANDOM_SEARCH = false;
+    public static final boolean OFF_QR_ADJUSTMENT = false;
+    public static final boolean OFF_SORT_BY_Q_USED_COUNT = false;
+    static final boolean OFF_POST_FILTERING = false;
+
+//    public static final boolean OFF_ATTEMPT_HISTORY = false;
+//    public static final boolean OFF_SORT_BY_Q_ERROR_COUNT = false;
+
 
     @Getter
     private final RemoteFileService fileService;
@@ -196,21 +205,26 @@ public abstract class AbstractRdfStorage {
 //                List.of()/*templatesInUse*/, questionsInUse,
 //                queryLimit, 12);
 
-        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.1, queryLimit, 12);
+        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.1, queryLimit, BASELINE_RANDOM_SEARCH? 50 : 12);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
-        foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
-                complexity,
+        if (OFF_POST_FILTERING) {
+            foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, hardLimit));
+        } else {
+
+            foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
+                    complexity,
 //                solutionSteps,
-                targetConceptsBitmask,
-                unwantedConceptsBitmask,
-                unwantedLawsBitmask,
-                unwantedViolationsBitmask,
-                Math.min(limit, hardLimit)  // Note: queryLimit >= limit
+                    targetConceptsBitmask,
+                    unwantedConceptsBitmask,
+                    unwantedLawsBitmask,
+                    unwantedViolationsBitmask,
+                    Math.min(limit, hardLimit)  // Note: queryLimit >= limit
             );
 
-        ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
+            ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
+        }
 
         // set concepts from request (for future reference via questions' saved metadata)
         for (QuestionMetadataEntity m : foundQuestionMetas) {

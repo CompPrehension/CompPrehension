@@ -76,6 +76,28 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
         return new HashMap<>();
     }
 
+    /**
+     * for experiment purposes only: forbid all denied as usual; just pick ones with at least 1 target, and follow
+     * complexity bounds.
+     *
+     * @param qr
+     * @param complexityWindow
+     * @param limitNumber
+     * @param randomPoolLimitNumber
+     */
+    @Override
+    public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds_simpleRandom(QuestionRequest qr,
+                                                                                           double complexityWindow,
+                                                                                           int limitNumber,
+                                                                                           int randomPoolLimitNumber) {
+        return null;
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds_parametrized(QuestionRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
+        return null;
+    }
+
     @Override
     public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
         return List.of();
