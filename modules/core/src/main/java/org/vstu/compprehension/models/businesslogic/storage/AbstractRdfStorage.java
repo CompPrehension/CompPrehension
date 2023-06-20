@@ -100,7 +100,7 @@ public abstract class AbstractRdfStorage {
      */
     @Deprecated
     Dataset dataset = null;
-    static boolean USE_RDF_STORAGE = false;
+    static final boolean USE_RDF_STORAGE = false;
 
 
     @Getter
@@ -897,52 +897,6 @@ public abstract class AbstractRdfStorage {
 
             conn.querySelect(unsolvedTemplates,
                     querySolution -> names.add(querySolution.get("name").asLiteral().getString()));
-
-        } catch (JenaException exception) {
-            exception.printStackTrace();
-        }
-        return names;
-    }
-
-    /**
-     * Find questions or question templates within dataset.
-     *
-     * @param classUri full URI of class an instance should have under `rdf:type` relation
-     * @return list of names
-     */
-    public List<String> findAllQuestions(String classUri, int limit) {
-        if (!USE_RDF_STORAGE) {
-            return List.of();
-        }
-        // find question templates to solve
-        Node ng = NS_questions.baseAsUri();
-        String queryNames = new SelectBuilder()
-                .addVar("?name")
-                .addWhere(
-                        new WhereBuilder()
-                                .addGraph(ng,
-                                        "?node",
-                                        RDF.type,
-                                        NodeFactory.createURI(classUri)
-                                )
-                                .addGraph(ng,
-                                        "?node",
-                                        NS_questions.getUri("name"),
-                                        "?name"
-                                )
-                )
-                .toString();
-
-        if (limit > 0) {
-            queryNames += "\nLIMIT " + limit;
-        }
-
-        RDFConnection connection = RDFConnection.connect(dataset);  // TODO: replace deprecated ???
-        // RDFConnection connection = getConn();
-        List<String> names = new ArrayList<>();
-        try (RDFConnection conn = connection) {
-
-            conn.querySelect(queryNames, querySolution -> names.add(querySolution.get("name").asLiteral().getString()));
 
         } catch (JenaException exception) {
             exception.printStackTrace();
