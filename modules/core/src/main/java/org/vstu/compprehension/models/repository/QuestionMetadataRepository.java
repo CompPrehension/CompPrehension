@@ -61,7 +61,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "order by " +
 
             " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
-            " ASC, " +
+            " ASC " +
 //            " q.used_count ASC " +  // less often show "hot" questions
             " limit :randomPoolLim" +
             ") T1 ORDER BY RAND() limit :lim",
@@ -89,8 +89,8 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             " DESC, " +
             // // " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
             " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
-            " ASC, " +
-            (OFF_SORT_BY_Q_USED_COUNT? " q.used_count ASC " : "") +  // less often show "hot" questions
+            " ASC " +
+            (OFF_SORT_BY_Q_USED_COUNT? " , q.used_count ASC " : "") +  // less often show "hot" questions
             " limit :randomPoolLim" +
             ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) + (T1.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) + (T1.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0)) DESC, RAND() limit :lim",
             nativeQuery = true)
