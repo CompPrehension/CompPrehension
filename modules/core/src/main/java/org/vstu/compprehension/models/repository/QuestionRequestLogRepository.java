@@ -26,10 +26,16 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
      * @param qr запрос на поиск вопросов для проверки
      * @return true, если вопрос подходит
      */
-    public static boolean doesQuestionSuitQR(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qr) {
+    static boolean doesQuestionSuitQR(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qr) {
 
         // all checks required ti determine if the Q suits for the QR
         // see also: org.vstu.compprehension.models.repository.QuestionMetadataRepository#findSampleAroundComplexityWithoutQIds
+
+        // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
+        if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())
+        ) {
+            throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
+        }
 
         // проверка запрещаемых критериев
         if (meta.getSolutionSteps() < qr.getStepsMin()
