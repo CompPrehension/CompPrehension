@@ -79,6 +79,7 @@ public class TaskGenerationJob {
         }
 
         log.info("QR logs to process: {}", qrLogsToProcess.size());
+        log.info("QR log ids to be processed: {}.", qrLogsToProcess.stream().map(o -> "\t" + o.getId()).collect(Collectors.joining(",")));
 
         boolean _debugGenerator = false;
         boolean cleanupFolders = true; // !_debugGenerator;
@@ -364,7 +365,8 @@ public class TaskGenerationJob {
                         q.getQuestionData().getOptions().setMetadata(meta);
 
                         meta = storage.saveMetadataEntity(meta);
-                        log.info("+++ (2) Saved metadata for that question, id: [{}]", meta.getId());
+                        log.info("+++ (2) Saved metadata for that question, id: {};", meta.getId());
+                        log.info("        Affected QR log ids: [{}].", meta.getQrlogIds().stream().map(i -> "" + i).collect(Collectors.joining(", ")));
                         savedQuestions += 1;
                     } else {
                         skippedQuestions += 1;
