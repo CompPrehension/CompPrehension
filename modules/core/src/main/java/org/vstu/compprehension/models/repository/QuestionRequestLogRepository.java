@@ -64,6 +64,16 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
             return true;
         }
 
+
+        // проверка на отсутствие целевых
+        // В текущем варианте: вопрос подходит, если никакие целевые не заданы и по запрещающим критериям (выше) он проходит.
+        if (qr.getTraceConceptsTargetedBitmask() == 0
+            && qr.getConceptsTargetedBitmask() == 0
+            && qr.getLawsTargetedBitmask() == 0
+        ) {
+            return true;
+        }
+
         /*
         // по всем таргетам есть совпадение (??)
         if (qr.getTraceConceptsTargetedBitmask() != 0 && (meta.getTraceConceptBits() & qr.getTraceConceptsTargetedBitmask()) == 0
