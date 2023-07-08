@@ -22,7 +22,7 @@ public class FakeDomainRepository implements DomainRepository {
     public Optional<DomainEntity> findById(String s) {
         var e = new DomainEntity();
         e.setName("expression");
-        e.setShortName("expr");
+        e.setShortName("expression");
         e.setVersion("1.0.0");
         e.setOptions(DomainOptionsEntity.builder()
                         .QuestionsGraphPath("C:/Temp2/compp/expression.ttl")

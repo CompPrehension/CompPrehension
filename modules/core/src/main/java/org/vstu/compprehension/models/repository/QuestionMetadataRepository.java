@@ -75,10 +75,13 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.concept_bits & :#{#qr.conceptsDeniedBitmask} = 0 " +
             "AND q.violation_bits & :#{#qr.lawsDeniedBitmask} = 0 " +
 
-            // at least one targeted concept or one targeted law must present
-            "   AND (1 <= IF(:#{#qr.traceConceptsTargetedBitmask} =0,0,q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) " +
-            "     + IF(:#{#qr.conceptsTargetedBitmask} =0,0,q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
-            "     + IF(:#{#qr.lawsTargetedBitmask} =0,0,q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0)) " +
+            // at least one targeted concept or one targeted law must present (or allow anything if no targets set)
+            "   AND ((q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask} <> 0) " +
+            "     OR (q.concept_bits & :#{#qr.conceptsTargetedBitmask} <> 0) " +
+            "     OR (q.violation_bits & :#{#qr.lawsTargetedBitmask} <> 0) " +
+            "     OR IF(    :#{#qr.traceConceptsTargetedBitmask} =0 " +
+            "           AND :#{#qr.conceptsTargetedBitmask} =0 " +
+            "           AND :#{#qr.lawsTargetedBitmask} =0,  1,0)) " +
 
             "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds}" + // note: must be non-empty

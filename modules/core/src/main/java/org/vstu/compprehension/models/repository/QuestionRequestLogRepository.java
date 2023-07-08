@@ -26,10 +26,16 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
      * @param qr запрос на поиск вопросов для проверки
      * @return true, если вопрос подходит
      */
-    public static boolean doesQuestionSuitQR(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qr) {
+    static boolean doesQuestionSuitQR(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qr) {
 
         // all checks required ti determine if the Q suits for the QR
         // see also: org.vstu.compprehension.models.repository.QuestionMetadataRepository#findSampleAroundComplexityWithoutQIds
+
+        // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
+        if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())
+        ) {
+            throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
+        }
 
         // проверка запрещаемых критериев
         if (meta.getSolutionSteps() < qr.getStepsMin()
@@ -54,6 +60,16 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
         if ((meta.getTraceConceptBits() & qr.getTraceConceptsTargetedBitmask()) != 0
             || (meta.getConceptBits() & qr.getConceptsTargetedBitmask()) != 0
             || (meta.getLawBits() & qr.getLawsTargetedBitmask()) != 0
+        ) {
+            return true;
+        }
+
+
+        // проверка на отсутствие целевых
+        // В текущем варианте: вопрос подходит, если никакие целевые не заданы и по запрещающим критериям (выше) он проходит.
+        if (qr.getTraceConceptsTargetedBitmask() == 0
+            && qr.getConceptsTargetedBitmask() == 0
+            && qr.getLawsTargetedBitmask() == 0
         ) {
             return true;
         }
