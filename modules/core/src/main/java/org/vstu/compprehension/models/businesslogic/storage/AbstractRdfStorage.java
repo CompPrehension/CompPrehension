@@ -844,7 +844,7 @@ public abstract class AbstractRdfStorage {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }
-        return 100;
+        return 500;
     }
 
     public static int getQrEnoughQuestions(int qrLogId) {
