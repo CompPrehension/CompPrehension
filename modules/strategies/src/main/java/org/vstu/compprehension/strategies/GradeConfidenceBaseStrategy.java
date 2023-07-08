@@ -62,10 +62,6 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 //        qr.setAllowedConcepts(List.of());
 //        qr.setAllowedLaws(List.of());
 
-        List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
-
-//        qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
-
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
         HashMap<String, List<Boolean>> allLawsBeforeLastQuestion = getTargetLawsInteractions(exerciseAttempt, 1);
 
@@ -132,6 +128,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
             }
 
             allLaws = allLawsError;
+        }
+
+        // Remove explicitly denied laws from the set of considered laws.
+        for (var law : qr.getDeniedLaws()) {
+            allLaws.remove(law.getName()); // remove if exists
         }
 
         qr.setTargetLaws(countNextTargetLaws(allLaws, domain, countOfLaw));
