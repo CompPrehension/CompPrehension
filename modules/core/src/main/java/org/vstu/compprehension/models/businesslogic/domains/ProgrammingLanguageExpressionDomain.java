@@ -2908,7 +2908,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_>>=", 0x2000000000L);  	// (137438953472)
         name2bit.put("operator_(", 0x4000000000L);  	// (274877906944)
         name2bit.put("operator_->", 0x8000000000L);  	// (549755813888)
-        name2bit.put("operator_function_call", 0x10000000000L);  	// (1099511627776)
+        name2bit.put("function_call", 0x10000000000L);  	// (1099511627776)  -- not `operator_function_call` !
+        name2bit.put("operator_function_call", 0x10000000000L);  	// (1099511627776)  -- for probable back compatibility
         name2bit.put("operator_.", 0x20000000000L);  	// (2199023255552)
         name2bit.put("operator_subscript", 0x40000000000L);  	// (4398046511104)
         name2bit.put("operator_prefix_++", 0x80000000000L);  	// (8796093022208)
