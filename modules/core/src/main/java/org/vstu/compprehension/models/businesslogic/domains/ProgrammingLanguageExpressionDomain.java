@@ -2634,8 +2634,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public /*static*/ void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
 
 //        System.out.println(ttlTemplatePaths.size() + " parsed files to generate questions from");
-        int count = 0;
+        int count = 0;  // templates
         int qCount = 0;
+        int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
             try {
@@ -2738,6 +2739,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     // Save question data for domain in JSON
                     System.out.println("++  Saving question: " + questionName);
+                    savedCount++;
 
                     // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
 
@@ -2764,7 +2766,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-        System.out.println("total questions generated: " + qCount);
+        System.out.printf("Total questions generated: %d (%d saved).\n", qCount, savedCount);
     }
 
     @Override

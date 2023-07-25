@@ -88,6 +88,7 @@ public class TaskGenerationJob {
         boolean skipEverDownloadedRepositories = true;
         boolean parseSources = !_debugGenerator;
         boolean generateQuestions = true;
+        boolean saveGeneratedToDB = true; // !_debugGenerator;
         // boolean exportQuestionsToProduction = true;
 
         int repositoriesToDownload = 1;
@@ -337,11 +338,15 @@ public class TaskGenerationJob {
                                 qrLogsProcessed.add(qr);
 
                             } else {
-                                log.info("... Skipped existing question with name: {} ", meta.getName());
+                                System.out.println();
+                                log.info("... Skipped existing   question with name: {} ", meta.getName());
                                 break;
                             }
+                        } else {
+                            System.out.print("-");
                         }
                     }
+                    System.out.println();
 
                     if (shouldSave) {
 
@@ -364,12 +369,18 @@ public class TaskGenerationJob {
                         q.setMetadata(meta);
                         q.getQuestionData().getOptions().setMetadata(meta);
 
-                        meta = storage.saveMetadataEntity(meta);
+                        if (saveGeneratedToDB) {
+                            meta = storage.saveMetadataEntity(meta);
+                        } else {
+                            log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                        }
                         log.info("+++ (2) Saved metadata for that question, id: {};", meta.getId());
-                        log.info("        Affected QR log ids: [{}].", meta.getQrlogIds().stream().map(i -> "" + i).collect(Collectors.joining(", ")));
+                        log.info("        Affected QR log ids: [{}].",
+                                meta.getQrlogIds().stream().map(i -> "" + i).collect(Collectors.joining(", ")));
                         savedQuestions += 1;
                     } else {
                         skippedQuestions += 1;
+                        log.info("... Skipped unsuitable question with name: {} ", meta.getName());
                     }
                 }
 
@@ -391,7 +402,12 @@ public class TaskGenerationJob {
                         }
                         qr.setLastProcessedDate(new Date());
                     }
-                    qrLogRep.saveAll(qrLogsProcessed);
+                    if (saveGeneratedToDB) {
+                        qrLogRep.saveAll(qrLogsProcessed);
+                    } else {
+                        log.info("Saving updates actually SKIPPED due to DEBUG mode.", qrLogsProcessed.size());
+
+                    }
 
                     log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
                 }
