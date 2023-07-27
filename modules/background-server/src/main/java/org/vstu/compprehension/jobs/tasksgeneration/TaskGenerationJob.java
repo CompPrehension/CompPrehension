@@ -111,11 +111,16 @@ public class TaskGenerationJob {
                     // оставляем пустые папки как индикацию проделанной работы
                     try {
                         Files.list(downloadedPath)
+                                .filter(f -> f.toFile().isDirectory())
                                 .forEach(FileUtility::clearDirectory);
+                        Files.list(downloadedPath)
+                                .map(Path::toFile)
+                                .filter(File::isFile)
+                                .forEach(File::delete);
                     } catch (IllegalArgumentException exception) {
                         log.info("IllegalArgumentException while clearing downloaded folders: `{}`", exception.getMessage());
                         exception.printStackTrace();
-                    }
+                    } catch (IOException ignored) {}
                 }
             }
 
