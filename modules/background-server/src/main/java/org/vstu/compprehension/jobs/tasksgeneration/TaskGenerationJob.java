@@ -101,11 +101,21 @@ public class TaskGenerationJob {
             if (Files.exists(downloadedPath)) {
                 if (!skipEverDownloadedRepositories) {
                     // Можно удалить всё, что скачано
-                    FileUtils.deleteDirectory(downloadedPath.toFile());
+                    try {
+                        FileUtils.deleteDirectory(downloadedPath.toFile());
+                    } catch (IllegalArgumentException exception) {
+                        log.info("IllegalArgumentException while deleting all downloaded: `{}`", exception.getMessage());
+                        exception.printStackTrace();
+                    }
                 } else {
                     // оставляем пустые папки как индикацию проделанной работы
-                    Files.list(downloadedPath)
-                            .forEach(FileUtility::clearDirectory);
+                    try {
+                        Files.list(downloadedPath)
+                                .forEach(FileUtility::clearDirectory);
+                    } catch (IllegalArgumentException exception) {
+                        log.info("IllegalArgumentException while clearing downloaded folders: `{}`", exception.getMessage());
+                        exception.printStackTrace();
+                    }
                 }
             }
 
