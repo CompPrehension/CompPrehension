@@ -327,6 +327,7 @@ public abstract class AbstractRdfStorage {
             } else {
                 log.warn("File NOT found by storage: " + path);
             }
+            getFileService().closeConnections();
         } catch (IOException | NullPointerException | IllegalStateException e) {
             e.printStackTrace();
         }
@@ -401,6 +402,7 @@ public abstract class AbstractRdfStorage {
             if (stream == null)
                 return null;
             RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
+            getFileService().closeConnections();
         } catch (IOException /*| NullPointerException*/ e) {
             e.printStackTrace();
             return null;
@@ -422,6 +424,7 @@ public abstract class AbstractRdfStorage {
     boolean sendModel(String name, Model m) {
         try (OutputStream stream = fileService.saveFileStream(name)) {
             RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
+            getFileService().closeConnections();
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             return false;

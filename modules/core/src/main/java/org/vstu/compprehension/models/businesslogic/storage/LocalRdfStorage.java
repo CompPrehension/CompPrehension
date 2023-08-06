@@ -203,6 +203,7 @@ public class LocalRdfStorage extends AbstractRdfStorage {
 */
         try (OutputStream stream = getFileService().saveFileStream(filename)) {
             stream.write(data.getBytes(StandardCharsets.UTF_8));
+            getFileService().closeConnections();
             return filename;
         } catch (IOException e) {
             e.printStackTrace();

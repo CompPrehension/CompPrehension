@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import org.apache.commons.vfs2.*;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.util.Cryptor;
 import org.apache.commons.vfs2.util.CryptorFactory;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,7 @@ public class RemoteFileService {
     final static String[] PATH_ILLEGAL_NAMES = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",};  // in Windows
     final static int BUFFER_SIZE = 100 * 1024;
 
-    private final FileSystemManager mgr;
+    private FileSystemManager mgr;
     private final String baseUploadUri;
 
     public String getBaseUploadUri() {
@@ -97,13 +98,35 @@ public class RemoteFileService {
         return fsManager;
     }
 
+    /** return initiailized File System manager */
+    private FileSystemManager getMgr() {
+        if (mgr == null) {
+            mgr = getFSManager();
+        }
+        return mgr;
+    }
+
+    /** Close file system resources.
+     * @see <a href="https://cwiki.apache.org/confluence/display/commons/VfsFaq">How do I keep an SFTP connection from hanging?</a>
+     * */
+    public void closeConnections() {
+        if (mgr != null) {
+            if (mgr instanceof DefaultFileSystemManager)
+                ((DefaultFileSystemManager) mgr).close();
+            else
+                mgr.close();
+        }
+        mgr = null;
+    }
+
+
     /** Obtain InputStream of content of specified file.
      * @param localName resource name relative to baseUri
      * @return InputStream or null if file does not exist
      * @throws FileSystemException on communication error
      */
     InputStream getFileStream(String localName) throws FileSystemException {
-        final FileObject file = mgr.resolveFile(baseDownloadUri + localName);
+        final FileObject file = getMgr().resolveFile(baseDownloadUri + localName);
         if (file.getType() != FileType.FILE || !file.isReadable()) {  // `!file.exists()` can be true for a directory
             return null;
         }
@@ -112,7 +135,7 @@ public class RemoteFileService {
     }
 
     public boolean exists(String localName) throws FileSystemException {
-        final FileObject file = mgr.resolveFile(baseUploadUri + localName);
+        final FileObject file = getMgr().resolveFile(baseUploadUri + localName);
         return file.exists();
     }
 
@@ -122,7 +145,7 @@ public class RemoteFileService {
      * @throws FileSystemException on communication error
      */
     public OutputStream saveFileStream(String localName) throws FileSystemException {
-        final FileObject file = mgr.resolveFile(baseUploadUri + localName);
+        final FileObject file = getMgr().resolveFile(baseUploadUri + localName);
         if (file.getType() == FileType.FOLDER || !file.isWriteable()) {
             return null;
         }
@@ -135,7 +158,7 @@ public class RemoteFileService {
     }
 
     public void deleteFile(String localName) throws FileSystemException {
-        final FileObject file = mgr.resolveFile(baseUploadUri + localName);
+        final FileObject file = getMgr().resolveFile(baseUploadUri + localName);
 
         file.delete();
     }
@@ -342,7 +365,7 @@ public class RemoteFileService {
         }
 
 
-//        final FileObject file = mgr.resolveFile(baseUri + "compp/a/test.abc");
+//        final FileObject file = getMgr().resolveFile(baseUri + "compp/a/test.abc");
 //
 //        if (!file.exists()) {
 //            file.createFile();  // does `make dirs` automatically.
