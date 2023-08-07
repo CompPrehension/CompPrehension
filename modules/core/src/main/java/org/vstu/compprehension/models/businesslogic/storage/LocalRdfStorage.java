@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -203,10 +204,15 @@ public class LocalRdfStorage extends AbstractRdfStorage {
 */
         try (OutputStream stream = getFileService().saveFileStream(filename)) {
             stream.write(data.getBytes(StandardCharsets.UTF_8));
-            getFileService().closeConnections();
             return filename;
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                getFileService().closeConnections();
+            } catch (FileSystemException e) {
+                e.printStackTrace();
+            }
         }
         return null;
     }

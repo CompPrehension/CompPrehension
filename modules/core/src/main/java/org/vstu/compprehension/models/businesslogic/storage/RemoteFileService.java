@@ -109,12 +109,15 @@ public class RemoteFileService {
     /** Close file system resources.
      * @see <a href="https://cwiki.apache.org/confluence/display/commons/VfsFaq">How do I keep an SFTP connection from hanging?</a>
      * */
-    public void closeConnections() {
+    public void closeConnections() throws FileSystemException {
         if (mgr != null) {
-            if (mgr instanceof DefaultFileSystemManager)
-                ((DefaultFileSystemManager) mgr).close();
-            else
+            if (mgr instanceof DefaultFileSystemManager) {
+                DefaultFileSystemManager m = (DefaultFileSystemManager) mgr;
+                m.close();
+                m.init();
+            } else
                 mgr.close();
+                // Note: no `init()` available in `mgr` here.
         }
         mgr = null;
     }
