@@ -4,6 +4,8 @@ target/
 !**/src/main/**
 !**/src/test/**
 
+modules/expr-domain-question-generator/dependency-reduced-pom.xml
+
 ### STS ###
 .apt_generated
 .classpath

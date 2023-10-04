@@ -88,6 +88,7 @@ public class TaskGenerationJob {
         boolean skipEverDownloadedRepositories = true;
         boolean parseSources = !_debugGenerator;
         boolean generateQuestions = true;
+        boolean saveGeneratedToDB = true; // !_debugGenerator;
         // boolean exportQuestionsToProduction = true;
 
         int repositoriesToDownload = 1;
@@ -100,11 +101,26 @@ public class TaskGenerationJob {
             if (Files.exists(downloadedPath)) {
                 if (!skipEverDownloadedRepositories) {
                     // Можно удалить всё, что скачано
-                    FileUtils.deleteDirectory(downloadedPath.toFile());
+                    try {
+                        FileUtils.deleteDirectory(downloadedPath.toFile());
+                    } catch (IllegalArgumentException exception) {
+                        log.info("IllegalArgumentException while deleting all downloaded: `{}`", exception.getMessage());
+                        exception.printStackTrace();
+                    }
                 } else {
                     // оставляем пустые папки как индикацию проделанной работы
-                    Files.list(downloadedPath)
-                            .forEach(FileUtility::clearDirectory);
+                    try {
+                        Files.list(downloadedPath)
+                                .filter(f -> f.toFile().isDirectory())
+                                .forEach(FileUtility::clearDirectory);
+                        Files.list(downloadedPath)
+                                .map(Path::toFile)
+                                .filter(File::isFile)
+                                .forEach(File::delete);
+                    } catch (IllegalArgumentException exception) {
+                        log.info("IllegalArgumentException while clearing downloaded folders: `{}`", exception.getMessage());
+                        exception.printStackTrace();
+                    } catch (IOException ignored) {}
                 }
             }
 
@@ -337,11 +353,15 @@ public class TaskGenerationJob {
                                 qrLogsProcessed.add(qr);
 
                             } else {
-                                log.info("... Skipped existing question with name: {} ", meta.getName());
+                                System.out.println();
+                                log.info("... Skipped existing   question with name: {} ", meta.getName());
                                 break;
                             }
+                        } else {
+                            System.out.print("-");
                         }
                     }
+                    System.out.println();
 
                     if (shouldSave) {
 
@@ -364,12 +384,18 @@ public class TaskGenerationJob {
                         q.setMetadata(meta);
                         q.getQuestionData().getOptions().setMetadata(meta);
 
-                        meta = storage.saveMetadataEntity(meta);
+                        if (saveGeneratedToDB) {
+                            meta = storage.saveMetadataEntity(meta);
+                        } else {
+                            log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                        }
                         log.info("+++ (2) Saved metadata for that question, id: {};", meta.getId());
-                        log.info("        Affected QR log ids: [{}].", meta.getQrlogIds().stream().map(i -> "" + i).collect(Collectors.joining(", ")));
+                        log.info("        Affected QR log ids: [{}].",
+                                meta.getQrlogIds().stream().map(i -> "" + i).collect(Collectors.joining(", ")));
                         savedQuestions += 1;
                     } else {
                         skippedQuestions += 1;
+                        log.info("... Skipped unsuitable question with name: {} ", meta.getName());
                     }
                 }
 
@@ -391,7 +417,12 @@ public class TaskGenerationJob {
                         }
                         qr.setLastProcessedDate(new Date());
                     }
-                    qrLogRep.saveAll(qrLogsProcessed);
+                    if (saveGeneratedToDB) {
+                        qrLogRep.saveAll(qrLogsProcessed);
+                    } else {
+                        log.info("Saving updates actually SKIPPED due to DEBUG mode.", qrLogsProcessed.size());
+
+                    }
 
                     log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
                 }

@@ -329,6 +329,12 @@ public abstract class AbstractRdfStorage {
             }
         } catch (IOException | NullPointerException | IllegalStateException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                getFileService().closeConnections();
+            } catch (FileSystemException e) {
+                e.printStackTrace();
+            }
         }
         return q;
     }
@@ -401,6 +407,7 @@ public abstract class AbstractRdfStorage {
             if (stream == null)
                 return null;
             RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
+            getFileService().closeConnections();
         } catch (IOException /*| NullPointerException*/ e) {
             e.printStackTrace();
             return null;
@@ -422,6 +429,7 @@ public abstract class AbstractRdfStorage {
     boolean sendModel(String name, Model m) {
         try (OutputStream stream = fileService.saveFileStream(name)) {
             RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
+            getFileService().closeConnections();
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             return false;
@@ -844,7 +852,7 @@ public abstract class AbstractRdfStorage {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }
-        return 100;
+        return 500;
     }
 
     public static int getQrEnoughQuestions(int qrLogId) {

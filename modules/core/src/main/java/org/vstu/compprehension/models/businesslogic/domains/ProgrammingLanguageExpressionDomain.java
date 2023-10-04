@@ -208,6 +208,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess, pointers), "ptr->field", invisible);
 
         Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
+        Concept functionCallConcept_2 = addConcept("operator_function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
         Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", invisible);  // c ? a : b
 
         Concept operatorBinaryCommaConcept = addConcept("operator_,", List.of(singleTokenBinaryConcept), "Запятая между выражениями", flags);
@@ -2634,8 +2635,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public /*static*/ void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
 
 //        System.out.println(ttlTemplatePaths.size() + " parsed files to generate questions from");
-        int count = 0;
+        int count = 0;  // templates
         int qCount = 0;
+        int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
             try {
@@ -2738,6 +2740,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     // Save question data for domain in JSON
                     System.out.println("++  Saving question: " + questionName);
+                    savedCount++;
 
                     // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
 
@@ -2764,7 +2767,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-        System.out.println("total questions generated: " + qCount);
+        System.out.printf("Total questions generated: %d (%d saved).\n", qCount, savedCount);
     }
 
     @Override
@@ -2908,7 +2911,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_>>=", 0x2000000000L);  	// (137438953472)
         name2bit.put("operator_(", 0x4000000000L);  	// (274877906944)
         name2bit.put("operator_->", 0x8000000000L);  	// (549755813888)
-        name2bit.put("operator_function_call", 0x10000000000L);  	// (1099511627776)
+        name2bit.put("function_call", 0x10000000000L);  	// (1099511627776)  -- not `operator_function_call` !
+        name2bit.put("operator_function_call", 0x10000000000L);  	// (1099511627776)  -- for probable back compatibility
         name2bit.put("operator_.", 0x20000000000L);  	// (2199023255552)
         name2bit.put("operator_subscript", 0x40000000000L);  	// (4398046511104)
         name2bit.put("operator_prefix_++", 0x80000000000L);  	// (8796093022208)
