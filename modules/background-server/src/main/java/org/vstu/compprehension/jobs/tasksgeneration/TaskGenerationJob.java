@@ -10,6 +10,7 @@ import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.BackgroundServerMain;
+import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
@@ -127,14 +128,14 @@ public class TaskGenerationJob {
             val parsedPath = Path.of(config.getParser().getOutputFolderPath());
 
             if (Files.exists(parsedPath))
-                FileUtils.deleteDirectory(parsedPath.toFile());
+                FileHelper.deleteFolderContent(parsedPath.toFile());
 
             // don't delete output: it may be reused later
 
             if (cleanupGeneratedFolder) {
                 val generatedPath = Path.of(config.getParser().getOutputFolderPath());
                 if (Files.exists(generatedPath))
-                    FileUtils.deleteDirectory(generatedPath.toFile());
+                    FileHelper.deleteFolderContent(generatedPath.toFile());
             }
 
             log.info("folders cleaned up");
