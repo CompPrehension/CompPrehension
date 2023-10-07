@@ -4,11 +4,11 @@ import lombok.val;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.db.jdbc.ColumnConfig;
 import org.apache.logging.log4j.core.appender.db.jdbc.JdbcAppender;
 import org.apache.logging.log4j.core.filter.ThresholdFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
@@ -20,13 +20,13 @@ public class LogConfig
     @Autowired
     private Environment env;
 
+    @Value("${config.property.use-db-logging:false}")
+    private boolean useDbLogging;
+
     @PostConstruct
     public void onStartUp()
     {
-        val context = (LoggerContext) LogManager.getContext(false);
-        val configuration = context.getConfiguration();
-        val useDbAppender = configuration.getStrSubstitutor().getVariableResolver().lookup("useDbAppender");
-        if (!useDbAppender.equalsIgnoreCase("true")) {
+        if (!useDbLogging) {
             return;
         }
 
