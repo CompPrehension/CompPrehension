@@ -4,7 +4,8 @@ import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
 import java.io.Serializable;
 
 @Entity

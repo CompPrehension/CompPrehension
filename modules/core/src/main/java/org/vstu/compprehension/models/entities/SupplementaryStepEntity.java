@@ -8,10 +8,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.jena.rdf.model.Model;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.type.SqlTypes;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +33,6 @@ public class SupplementaryStepEntity {
     @Getter
     @Setter
     @NoArgsConstructor
-    @TypeDef(name = "json", typeClass = JsonStringType.class)
     public static class SupplementarySituation{
         private Map<String, String> reasoningVariables;
         private Map<String, String> discussedVariables;
@@ -67,8 +69,8 @@ public class SupplementaryStepEntity {
     @OneToOne
     @JoinColumn(name = "supplementary_question_id")
     private QuestionEntity supplementaryQuestion;
-    
-    @Type(type = "json")
+
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "situation_info", nullable = false)
     private SupplementarySituation situationInfo;
     

@@ -3,8 +3,8 @@ package org.vstu.compprehension.models.entities;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import java.util.List;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Data

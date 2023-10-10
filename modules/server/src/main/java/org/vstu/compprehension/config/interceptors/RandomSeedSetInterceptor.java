@@ -3,15 +3,15 @@ package org.vstu.compprehension.config.interceptors;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class RandomSeedSetInterceptor extends HandlerInterceptorAdapter {
+public class RandomSeedSetInterceptor implements HandlerInterceptor {
     private final RandomProvider randomProvider;
 
     @Autowired
@@ -28,6 +28,7 @@ public class RandomSeedSetInterceptor extends HandlerInterceptorAdapter {
             if (intSeedValue != null)
                 randomProvider.reset(intSeedValue);
         }
-        return super.preHandle(request, response, handler);
+        return true;
+        //return super.preHandle(request, response, handler);
     }
 }

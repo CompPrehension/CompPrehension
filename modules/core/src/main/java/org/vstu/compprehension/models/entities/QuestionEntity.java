@@ -1,22 +1,23 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Question")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class QuestionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +41,7 @@ public class QuestionEntity {
     @Column(name = "question_domain_type")
     private String questionDomainType;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
@@ -63,12 +64,12 @@ public class QuestionEntity {
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "statement_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactEntity> statementFacts = new ArrayList<>();
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "solution_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactEntity> solutionFacts = new ArrayList<>();

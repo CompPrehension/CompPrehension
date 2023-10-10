@@ -1,11 +1,12 @@
 package org.vstu.compprehension.Service;
 
+import com.github.jsonldjava.shaded.com.google.common.collect.Streams;
+import jakarta.persistence.EntityManager;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.ext.com.google.common.collect.Streams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,6 @@ import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

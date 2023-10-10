@@ -1,8 +1,10 @@
 package org.vstu.compprehension.models.entities.exercise;
 
 import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Tag;
@@ -12,7 +14,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +22,6 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class ExerciseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,11 +44,11 @@ public class ExerciseEntity {
     @Column(name = "tags", nullable = false)
     private String tags;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private ExerciseOptionsEntity options;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stages_json", columnDefinition = "json", nullable = false)
     private List<ExerciseStageEntity> stages;
 

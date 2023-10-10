@@ -62,6 +62,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
+    public void deleteAllById(Iterable<? extends Integer> integers) {
+
+    }
+
+    @Override
     public void deleteAll(Iterable<? extends QuestionMetadataEntity> iterable) {
 
     }

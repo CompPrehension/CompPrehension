@@ -1,9 +1,10 @@
 package org.vstu.compprehension.models.entities;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -117,7 +118,7 @@ public class QuestionMetadataEntity {
     private String origin = "";
 
     @Builder.Default
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "qrlog_ids", columnDefinition = "json")
     private List<Long> qrlogIds = null;
 

@@ -65,6 +65,11 @@ public class FakeDomainRepository implements DomainRepository {
     }
 
     @Override
+    public void deleteAllById(Iterable<? extends String> strings) {
+
+    }
+
+    @Override
     public void deleteAll(Iterable<? extends DomainEntity> iterable) {
 
     }

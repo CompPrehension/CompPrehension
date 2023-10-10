@@ -1,11 +1,8 @@
 package org.vstu.compprehension.models.repository;
 
-import org.hibernate.annotations.QueryHints;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityManager;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 
-import javax.persistence.EntityManager;
-import java.util.List;
 import java.util.Optional;
 
 public class CustomQuestionRepositoryImpl implements CustomQuestionRepository {
@@ -18,12 +15,11 @@ public class CustomQuestionRepositoryImpl implements CustomQuestionRepository {
     public Optional<QuestionEntity> findByIdEager(Long id) {
 
         var questions = entityManager.createQuery(
-                        "select distinct q from QuestionEntity q " +
+                        "select q from QuestionEntity q " +
                            "left join fetch q.interactions i " +
                            "left join fetch i.feedback f " +
                            "where q.id = :questionId", QuestionEntity.class)
                 .setParameter("questionId", id)
-                .setHint(QueryHints.PASS_DISTINCT_THROUGH, false)
                 .getResultList();
         /*
 

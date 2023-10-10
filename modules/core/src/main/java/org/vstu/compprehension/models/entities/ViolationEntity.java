@@ -4,17 +4,19 @@ import com.vladmihalcea.hibernate.type.json.JsonStringType;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.type.SqlTypes;
+
 import java.util.List;
 
 @Entity
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Violation")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class ViolationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +37,7 @@ public class ViolationEntity {
     @Column(name = "detailed_law_name")
     private String detailedLawName;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "violation_facts", nullable = false)
     private List<BackendFactEntity> violationFacts;
 }

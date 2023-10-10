@@ -3,9 +3,12 @@ package org.vstu.compprehension.models.entities;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Getter @Setter
@@ -25,11 +28,11 @@ public class SurveyQuestionEntity {
     @Column(name = "required", nullable = false)
     private boolean required;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "policy", columnDefinition = "json", nullable = false)
     private Object policy;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private Object options;
 
