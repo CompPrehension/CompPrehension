@@ -77,8 +77,8 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public Map<String, Object> getStatOnComplexityField(String domainShortName) {
-        return new HashMap<>();
+    public ComplexityStats getStatOnComplexityField(String domainShortName) {
+        return new ComplexityStats(0L, null, null, null);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public Integer countQuestions(QuestionRequest qr) {
+    public int countQuestions(QuestionRequest qr) {
         return 0;
     }
 
