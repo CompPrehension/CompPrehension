@@ -1,12 +1,10 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
-import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.Type;
+import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 
 import java.util.Date;
 import java.util.List;
@@ -28,28 +26,28 @@ public class QuestionRequestLogEntity {
 
     private String domainShortname;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> targetConceptNames;
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> targetConceptNamesInPlan;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> deniedConceptNames;
 
     /** Question Storage can treat this as "optional targets" or "preferred" */
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> allowedConceptNames;
 
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> targetLawNames;
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> targetLawNamesInPlan;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> deniedLawNames;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> allowedLawNames;
 
     // bit fields
@@ -60,12 +58,12 @@ public class QuestionRequestLogEntity {
     long lawsDeniedBitmask;
 
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<String> deniedQuestionNames;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<Integer> deniedQuestionTemplateIds = null;
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     private List<Integer> deniedQuestionMetaIds = null;  // same as deniedQuestionNames but using ids instead of names
 
     /**

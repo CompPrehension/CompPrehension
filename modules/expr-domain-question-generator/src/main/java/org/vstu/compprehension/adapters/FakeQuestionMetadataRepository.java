@@ -87,8 +87,8 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public Map<String, Object> countQuestions(QuestionRequest qr) {
-        return new HashMap<>();
+    public Integer countQuestions(QuestionRequest qr) {
+        return 0;
     }
 
     @NotNull

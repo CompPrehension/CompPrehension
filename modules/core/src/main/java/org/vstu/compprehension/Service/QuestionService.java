@@ -25,7 +25,6 @@ import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
-import java.math.BigInteger;
 import java.util.*;
 
 @Log4j2
@@ -79,8 +78,7 @@ public class QuestionService {
 
         val qrl = qr.getLogEntity();
 
-        Map<String, Object> res = questionMetadataRepository.countQuestions(qr);
-        int questionsFound = ((BigInteger)res.getOrDefault("number", -2)).intValue();
+        int questionsFound = questionMetadataRepository.countQuestions(qr);
         qrl.setFoundCount(questionsFound);
         qrl.setCreatedDate(new Date());
         questionRequestLogRepository.save(qrl);

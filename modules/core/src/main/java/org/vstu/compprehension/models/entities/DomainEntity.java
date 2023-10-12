@@ -1,11 +1,10 @@
 package org.vstu.compprehension.models.entities;
 
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-import org.hibernate.type.SqlTypes;
 
 @Entity
 @Data
@@ -22,7 +21,7 @@ public class DomainEntity {
     @Column(name = "version", nullable = false)
     private String version;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private DomainOptionsEntity options;
 }

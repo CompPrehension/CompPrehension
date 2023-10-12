@@ -1,15 +1,14 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import lombok.*;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
-
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.type.SqlTypes;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class ViolationEntity {
     @Column(name = "detailed_law_name")
     private String detailedLawName;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "violation_facts", nullable = false)
     private List<BackendFactEntity> violationFacts;
 }

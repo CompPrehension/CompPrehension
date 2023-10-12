@@ -86,7 +86,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds}" + // note: must be non-empty
             "", nativeQuery = true)
-    Map<String, Object> countQuestions(@Param("qr") QuestionRequest qr);
+    int countQuestions(@Param("qr") QuestionRequest qr);
 
 
     @NotNull

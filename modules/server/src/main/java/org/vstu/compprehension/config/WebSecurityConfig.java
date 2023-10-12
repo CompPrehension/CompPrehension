@@ -1,56 +1,60 @@
 package org.vstu.compprehension.config;
 
-import net.minidev.json.JSONArray;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.nimbusds.jose.shaded.json.JSONArray;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableWebSecurity
 public class WebSecurityConfig {
-    @Autowired
-    ClientRegistrationRepository clientRegistrationRepository;
+    private final KeycloakLogoutHandler keycloakLogoutHandler;
+
+    public WebSecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
+        this.keycloakLogoutHandler = keycloakLogoutHandler;
+    }
 
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/**", "/pages/**").authenticated()
+                        .requestMatchers(new AntPathRequestMatcher("/api/**"), new AntPathRequestMatcher("/pages/**")).authenticated()
                         .anyRequest().permitAll())
-                .oauth2Login(oauth2Login -> oauth2Login
-                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                .oauth2Login(oauth2Login ->
+                    oauth2Login.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                 .oidcUserService(this.oidcUserService())
                         )
                 )
-                .logout((logout) -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler())
+                .logout((logout) -> logout.addLogoutHandler(keycloakLogoutHandler)
+                          .logoutSuccessUrl("/pages/exercise-settings")
                           .invalidateHttpSession(true)
                           .clearAuthentication(true)
                           .deleteCookies("JSESSIONID"));
         return http.build();
     }
 
+    /*
     private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
         OidcClientInitiatedLogoutSuccessHandler successHandler = new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
         successHandler.setPostLogoutRedirectUri("{baseUrl}/pages/exercise-settings");
         return successHandler;
     }
+    */
 
     @Bean
     public OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {

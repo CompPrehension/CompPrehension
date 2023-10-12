@@ -1,12 +1,12 @@
 package org.vstu.compprehension.models.entities;
 
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -41,7 +41,7 @@ public class QuestionEntity {
     @Column(name = "question_domain_type")
     private String questionDomainType;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
@@ -64,12 +64,12 @@ public class QuestionEntity {
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "statement_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactEntity> statementFacts = new ArrayList<>();
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "solution_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactEntity> solutionFacts = new ArrayList<>();

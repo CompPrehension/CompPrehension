@@ -1,18 +1,19 @@
 package org.vstu.compprehension.models.entities.exercise;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Tag;
-import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
+import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,11 +45,11 @@ public class ExerciseEntity {
     @Column(name = "tags", nullable = false)
     private String tags;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private ExerciseOptionsEntity options;
 
-    @JdbcTypeCode(SqlTypes.JSON)
+    @Type(JsonType.class)
     @Column(name = "stages_json", columnDefinition = "json", nullable = false)
     private List<ExerciseStageEntity> stages;
 
