@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
@@ -64,7 +65,9 @@ public class WebSecurityConfig {
             OidcUser oidcUser = delegate.loadUser(userRequest);
 
             final Map<String, Object> claims = oidcUser.getClaims();
-            final JSONArray groups = (JSONArray) claims.get("groups");
+            final JSONArray groups = (JSONArray)claims.get("groups");
+            if (groups == null)
+                throw new OAuth2AuthenticationException("Claim 'groups' is required for access_token");
 
             final Set<GrantedAuthority> mappedAuthorities = groups.stream()
                     .map(role -> new SimpleGrantedAuthority(("ROLE_" + role)))
