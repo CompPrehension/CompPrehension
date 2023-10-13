@@ -11,12 +11,12 @@ import java.util.concurrent.*;
 public class ContextAwarePoolTaskExecutor extends ThreadPoolTaskExecutor {
 
     @Override
-    public @NotNull <T> Future<T> submit(Callable<T> task) {
+    public @NotNull <T> Future<T> submit(@NotNull Callable<T> task) {
         return super.submit(new ContextAwareCallable(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
     }
 
     @Override
-    public @NotNull <T> ListenableFuture<T> submitListenable(Callable<T> task) {
+    public @NotNull <T> ListenableFuture<T> submitListenable(@NotNull Callable<T> task) {
         return super.submitListenable(new ContextAwareCallable(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
     }
 }
