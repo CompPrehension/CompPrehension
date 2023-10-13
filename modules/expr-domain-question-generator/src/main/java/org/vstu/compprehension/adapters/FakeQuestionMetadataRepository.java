@@ -1,12 +1,15 @@
 package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public class FakeQuestionMetadataRepository implements QuestionMetadataRepository {
     @Override
