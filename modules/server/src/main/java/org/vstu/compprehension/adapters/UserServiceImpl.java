@@ -1,10 +1,12 @@
 package org.vstu.compprehension.adapters;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -24,18 +26,7 @@ public class UserServiceImpl implements UserService {
 
     public UserEntity getCurrentUser() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            throw new Exception("Trying to create user within Anonymous access");
-        }
-
-        var principal = authentication.getPrincipal();
-        if (!(principal instanceof OidcUser)) {
-            throw new Exception("Unexpected authorized user format");
-        }
-        var parsedIdToken = ((OidcUser)principal).getIdToken();
-        if (parsedIdToken == null) {
-            throw new Exception("No id_token found");
-        }
+        var parsedIdToken = getToken(authentication);
 
         var principalName = authentication.getName();
         var fullName = parsedIdToken.getFullName();
@@ -72,6 +63,23 @@ public class UserServiceImpl implements UserService {
         entity.setRoles(roles);
         entity.setExternalId(externalId);
         return userRepository.save(entity);
+    }
+
+    @NotNull
+    private static OidcIdToken getToken(Authentication authentication) throws Exception {
+        if (authentication instanceof AnonymousAuthenticationToken) {
+            throw new Exception("Trying to create user within Anonymous access");
+        }
+
+        var principal = authentication.getPrincipal();
+        if (!(principal instanceof OidcUser)) {
+            throw new Exception("Unexpected authorized user format");
+        }
+        var parsedIdToken = ((OidcUser)principal).getIdToken();
+        if (parsedIdToken == null) {
+            throw new Exception("No id_token found");
+        }
+        return parsedIdToken;
     }
 
     private HashSet<Role> fromLtiRoles(Collection<String> roles) {

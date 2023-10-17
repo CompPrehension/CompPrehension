@@ -20,7 +20,7 @@ public class RandomSeedSetInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) throws Exception {
+    public boolean preHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull Object handler) {
         var parameterMap = request.getParameterMap();
         var rawSeedValue = parameterMap.getOrDefault("compph_seed", null);
         if (rawSeedValue != null && rawSeedValue.length > 0) {

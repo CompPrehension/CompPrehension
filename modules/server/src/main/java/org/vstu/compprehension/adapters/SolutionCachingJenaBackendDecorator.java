@@ -1,9 +1,6 @@
 package org.vstu.compprehension.adapters;
 
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Statement;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
@@ -21,15 +18,16 @@ import java.util.List;
    `judge()`. The cache is limited in size (30 by default) and time after latest access (10 minutes by default).
  * `Statement` piece of input facts should contain a fact of form [meta:question dc:identifier `string`] where `string` is a unique identifier of question being solved (or a set of questions if all of them have the same solution). If no such fact found no caching would be done.
  */
+@SuppressWarnings("UnstableApiUsage")
 public class SolutionCachingJenaBackendDecorator implements Backend {
 
     private final @NotNull JenaBackend decoratee;
-    private Cache<String /*solutionKey*/, JenaFactList> solutionCache;
+    private final Cache<String /*solutionKey*/, JenaFactList> solutionCache;
 
     public SolutionCachingJenaBackendDecorator(@NotNull JenaBackend decoratee,
                                                @NotNull Cache<String, JenaFactList> jenaCache) {
-        this.decoratee = decoratee;
-        solutionCache = jenaCache;
+        this.decoratee     = decoratee;
+        this.solutionCache = jenaCache;
     }
 
     @NotNull
