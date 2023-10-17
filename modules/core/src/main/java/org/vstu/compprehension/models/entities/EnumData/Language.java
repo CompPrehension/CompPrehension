@@ -41,9 +41,9 @@ public enum Language {
             case ENGLISH:
                 return Locale.ENGLISH;
             case RUSSIAN:
-                return new Locale("ru", "RU");
+                return Locale.of("ru", "RU");
             case POLISH:
-                return new Locale("pl", "PL");
+                return Locale.of("pl", "PL");
             default:
                 log.warn("Couldn't map language '{}' to locale. Using default instead (ENGLISH)", language);
                 return Locale.ENGLISH;

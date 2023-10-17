@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.IOUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;

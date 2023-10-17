@@ -9,7 +9,6 @@ import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
-import java.math.BigInteger;
 import java.util.*;
 
 @Getter
@@ -45,12 +44,12 @@ public class QuestionMetadataManager {
         }
 
         Checkpointer ch = new Checkpointer();
-        Map<String, Object> data = questionRepository.getStatOnComplexityField(domain.getShortName());
+        var stats = questionRepository.getStatOnComplexityField(domain.getShortName());
         NumericStat complStat = new NumericStat();
-        complStat.setCount((Optional.ofNullable((BigInteger)data.get("count")).orElse(BigInteger.ZERO)).intValue());
-        complStat.setMin  ((Double) Optional.ofNullable(data.get("min") ).orElse(0.0));
-        complStat.setMean ((Double) Optional.ofNullable(data.get("mean")).orElse(0.5));
-        complStat.setMax  ((Double) Optional.ofNullable(data.get("max") ).orElse(1.0));
+        complStat.setCount((int)(long)stats.getCount());
+        complStat.setMin  (Optional.ofNullable(stats.getMin()).orElse(0.0));
+        complStat.setMean (Optional.ofNullable(stats.getMean()).orElse(0.5));
+        complStat.setMax  (Optional.ofNullable(stats.getMax()).orElse(1.0));
 
         wholeBankStat = new QuestionGroupStat();
         wholeBankStat.setComplexityStat(complStat);

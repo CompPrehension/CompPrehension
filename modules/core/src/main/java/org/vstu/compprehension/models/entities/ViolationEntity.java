@@ -1,20 +1,21 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
-import lombok.*;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.*;
 import java.util.List;
 
 @Entity
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Violation")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class ViolationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +36,7 @@ public class ViolationEntity {
     @Column(name = "detailed_law_name")
     private String detailedLawName;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     @Column(name = "violation_facts", nullable = false)
     private List<BackendFactEntity> violationFacts;
 }

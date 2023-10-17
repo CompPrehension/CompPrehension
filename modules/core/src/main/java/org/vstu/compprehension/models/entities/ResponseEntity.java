@@ -3,7 +3,8 @@ package org.vstu.compprehension.models.entities;
 import lombok.*;
 import org.vstu.compprehension.models.entities.EnumData.SpecValue;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Data

@@ -6,13 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 // Основной интерфейс для поиска вопросов по их метаданным
 @Primary
@@ -27,15 +27,15 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query("select q from #{#entityName} q where q.name = :questionName")
     List<QuestionMetadataEntity> findByName(@Param("questionName") String questionName);
 
-    @Query(value = "select " +
-            "count(*) as 'count', " +
-            "min(q.integral_complexity) as min, " +
-            "avg(q.integral_complexity) as mean, " +
-            "max(q.integral_complexity) as max " +
-            "from questions_meta q where q.domain_shortname = :DOMAIN_NAME AND q._stage = 3 " +
-            "AND q.is_draft = 0",
-            nativeQuery = true)
-    Map<String, Object> getStatOnComplexityField(
+
+    @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
+            "count(*), " +
+            "min(q.integralComplexity), " +
+            "avg(q.integralComplexity), " +
+            "max(q.integralComplexity)) " +
+            "from QuestionMetadataEntity q where q.domainShortname = :DOMAIN_NAME AND q.stage = 3 " +
+            "AND q.isDraft = false")
+    ComplexityStats getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
     );
 
@@ -86,7 +86,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds}" + // note: must be non-empty
             "", nativeQuery = true)
-    Map<String, Object> countQuestions(@Param("qr") QuestionRequest qr);
+    int countQuestions(@Param("qr") QuestionRequest qr);
 
 
     @NotNull

@@ -1,12 +1,15 @@
 package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public class FakeQuestionMetadataRepository implements QuestionMetadataRepository {
     @Override
@@ -62,6 +65,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
+    public void deleteAllById(Iterable<? extends Integer> integers) {
+
+    }
+
+    @Override
     public void deleteAll(Iterable<? extends QuestionMetadataEntity> iterable) {
 
     }
@@ -72,8 +80,8 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public Map<String, Object> getStatOnComplexityField(String domainShortName) {
-        return new HashMap<>();
+    public ComplexityStats getStatOnComplexityField(String domainShortName) {
+        return new ComplexityStats(0L, null, null, null);
     }
 
     @Override
@@ -82,8 +90,8 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public Map<String, Object> countQuestions(QuestionRequest qr) {
-        return new HashMap<>();
+    public int countQuestions(QuestionRequest qr) {
+        return 0;
     }
 
     @NotNull

@@ -1,12 +1,12 @@
 package org.vstu.compprehension.models.entities;
 
+import jakarta.persistence.*;
 import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
-import javax.persistence.*;
 import java.util.List;
 
 @Entity

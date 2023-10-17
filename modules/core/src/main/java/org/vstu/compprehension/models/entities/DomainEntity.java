@@ -1,18 +1,15 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-
-import javax.persistence.*;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "Domain", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "version"}))
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class DomainEntity {
     @Id
     @Column(name = "name")
@@ -24,7 +21,7 @@ public class DomainEntity {
     @Column(name = "version", nullable = false)
     private String version;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private DomainOptionsEntity options;
 }

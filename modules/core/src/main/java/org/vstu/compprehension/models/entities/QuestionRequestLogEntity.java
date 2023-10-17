@@ -1,14 +1,11 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.vstu.compprehension.models.businesslogic.Concept;
-import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 
-import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -19,7 +16,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "QuestionRequestLog")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class QuestionRequestLogEntity {
     
     @Id
@@ -30,28 +26,28 @@ public class QuestionRequestLogEntity {
 
     private String domainShortname;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> targetConceptNames;
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> targetConceptNamesInPlan;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> deniedConceptNames;
 
     /** Question Storage can treat this as "optional targets" or "preferred" */
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> allowedConceptNames;
 
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> targetLawNames;
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> targetLawNamesInPlan;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> deniedLawNames;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> allowedLawNames;
 
     // bit fields
@@ -62,12 +58,12 @@ public class QuestionRequestLogEntity {
     long lawsDeniedBitmask;
 
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<String> deniedQuestionNames;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<Integer> deniedQuestionTemplateIds = null;
-    @Type(type = "json")
+    @Type(JsonType.class)
     private List<Integer> deniedQuestionMetaIds = null;  // same as deniedQuestionNames but using ids instead of names
 
     /**

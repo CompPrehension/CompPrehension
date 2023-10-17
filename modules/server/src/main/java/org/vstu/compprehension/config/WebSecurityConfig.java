@@ -1,59 +1,61 @@
 package org.vstu.compprehension.config;
 
-import net.minidev.json.JSONArray;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.nimbusds.jose.shaded.json.JSONArray;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired
-    ClientRegistrationRepository clientRegistrationRepository;
+@EnableWebSecurity
+public class WebSecurityConfig {
+    private final KeycloakLogoutHandler keycloakLogoutHandler;
 
+    public WebSecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
+        this.keycloakLogoutHandler = keycloakLogoutHandler;
+    }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .antMatchers("/api/**", "/pages/**").authenticated()
+    @Bean
+    protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers(new AntPathRequestMatcher("/api/**"), new AntPathRequestMatcher("/pages/**")).authenticated()
                         .anyRequest().permitAll())
-                .oauth2Login(oauth2Login -> oauth2Login
-                        .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
+                .oauth2Login(oauth2Login ->
+                    oauth2Login.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                 .oidcUserService(this.oidcUserService())
                         )
                 )
-                .logout()
-                .logoutSuccessHandler(oidcLogoutSuccessHandler())
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies("JSESSIONID");
+                .logout((logout) -> logout.addLogoutHandler(keycloakLogoutHandler)
+                          .logoutSuccessUrl("/pages/exercise-settings")
+                          .invalidateHttpSession(true)
+                          .clearAuthentication(true)
+                          .deleteCookies("JSESSIONID"));
+        return http.build();
     }
 
+    /*
     private OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler() {
         OidcClientInitiatedLogoutSuccessHandler successHandler = new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
         successHandler.setPostLogoutRedirectUri("{baseUrl}/pages/exercise-settings");
         return successHandler;
     }
+    */
 
     @Bean
     public OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {
@@ -63,7 +65,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             OidcUser oidcUser = delegate.loadUser(userRequest);
 
             final Map<String, Object> claims = oidcUser.getClaims();
-            final JSONArray groups = (JSONArray) claims.get("groups");
+            final JSONArray groups = (JSONArray)claims.get("groups");
+            if (groups == null)
+                throw new OAuth2AuthenticationException("Claim 'groups' is required for access_token");
 
             final Set<GrantedAuthority> mappedAuthorities = groups.stream()
                     .map(role -> new SimpleGrantedAuthority(("ROLE_" + role)))

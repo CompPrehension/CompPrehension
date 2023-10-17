@@ -140,7 +140,7 @@ class PelletBackendTest {
                         new TypeToken<List<String>>() {}.getType()));
     }
 
-    public void checkObjectProperty(javax.json.JsonObject object, String objectProperty) {
+    public void checkObjectProperty(jakarta.json.JsonObject object, String objectProperty) {
         Expression expression = getExpressionFromJson(object.get("expression").toString());
         String jsonRelations = object.get("relations").toString();
 
@@ -161,26 +161,26 @@ class PelletBackendTest {
         checkObjectProperty(solution, jsonRelations, expression.size());
     }
 
-    public void checkObjectProperty(javax.json.JsonObject object) {
+    public void checkObjectProperty(jakarta.json.JsonObject object) {
         String objectProperty = object.getString("objectProperty");
         checkObjectProperty(object, objectProperty);
     }
 
     @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../before-test-data.json")
-    public void BeforeTest(javax.json.JsonObject object) {
+    public void BeforeTest(jakarta.json.JsonObject object) {
         checkObjectProperty(object, "before");
     }
 
     @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../has-operand-test-data.json")
-    public void HasOperandTest(javax.json.JsonObject object) {
+    public void HasOperandTest(jakarta.json.JsonObject object) {
         checkObjectProperty(object, "ast_edge");
     }
 
 //    @ParameterizedTest
     @JsonFileSource(resources = "../../../../../../simple-ontology-test-data.json")
-    public void SimpleOntologyTest(javax.json.JsonObject object) {
+    public void SimpleOntologyTest(jakarta.json.JsonObject object) {
         checkObjectProperty(object);
     }
 }

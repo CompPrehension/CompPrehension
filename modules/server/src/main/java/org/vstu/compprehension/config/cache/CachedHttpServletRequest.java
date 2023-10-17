@@ -1,11 +1,12 @@
 package org.vstu.compprehension.config.cache;
 
 
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 
 public class CachedHttpServletRequest extends ContentCachingRequestWrapper {
@@ -22,6 +23,7 @@ public class CachedHttpServletRequest extends ContentCachingRequestWrapper {
         return new CachedBodyServletInputStream(this.cachedBody);
     }
 
+    @NotNull
     @Override
     public BufferedReader getReader() throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(this.cachedBody);

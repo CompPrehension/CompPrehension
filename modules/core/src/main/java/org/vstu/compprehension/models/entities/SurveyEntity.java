@@ -1,12 +1,13 @@
 package org.vstu.compprehension.models.entities;
 
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 
-import javax.persistence.*;
 import java.util.List;
 
 @Entity
@@ -20,7 +21,7 @@ public class SurveyEntity {
     @Column(name = "name", nullable = false, length = 255)
     private @NotNull String name;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private SurveyOptionsEntity options;
 

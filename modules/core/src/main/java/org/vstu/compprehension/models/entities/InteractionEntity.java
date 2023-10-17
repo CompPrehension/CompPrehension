@@ -5,7 +5,8 @@ import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

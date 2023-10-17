@@ -9,7 +9,8 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import lombok.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;

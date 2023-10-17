@@ -1,10 +1,10 @@
 package org.vstu.compprehension.models.entities;
 
+import jakarta.persistence.*;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity
@@ -13,6 +13,7 @@ import java.io.Serializable;
 @Table(name = "survey_answers")
 public class SurveyAnswerEntity {
     @Getter @Setter
+    @EqualsAndHashCode
     @AllArgsConstructor @NoArgsConstructor
     public static class SurveyResultId implements Serializable {
         private Long surveyQuestion;

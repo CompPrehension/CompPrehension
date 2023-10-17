@@ -1,17 +1,16 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.jena.rdf.model.Model;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +29,6 @@ public class SupplementaryStepEntity {
     @Getter
     @Setter
     @NoArgsConstructor
-    @TypeDef(name = "json", typeClass = JsonStringType.class)
     public static class SupplementarySituation{
         private Map<String, String> reasoningVariables;
         private Map<String, String> discussedVariables;
@@ -67,8 +65,8 @@ public class SupplementaryStepEntity {
     @OneToOne
     @JoinColumn(name = "supplementary_question_id")
     private QuestionEntity supplementaryQuestion;
-    
-    @Type(type = "json")
+
+    @Type(JsonType.class)
     @Column(name = "situation_info", nullable = false)
     private SupplementarySituation situationInfo;
     

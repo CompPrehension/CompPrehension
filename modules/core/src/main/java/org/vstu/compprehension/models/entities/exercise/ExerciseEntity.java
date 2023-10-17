@@ -1,18 +1,20 @@
 package org.vstu.compprehension.models.entities.exercise;
 
-import com.vladmihalcea.hibernate.type.json.JsonStringType;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Tag;
-import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
+import org.vstu.compprehension.models.entities.UserEntity;
 
-import javax.persistence.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,7 +23,6 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 public class ExerciseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,11 +45,11 @@ public class ExerciseEntity {
     @Column(name = "tags", nullable = false)
     private String tags;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private ExerciseOptionsEntity options;
 
-    @Type(type = "json")
+    @Type(JsonType.class)
     @Column(name = "stages_json", columnDefinition = "json", nullable = false)
     private List<ExerciseStageEntity> stages;
 
