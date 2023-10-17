@@ -29,6 +29,5 @@ public class RandomSeedSetInterceptor implements HandlerInterceptor {
                 randomProvider.reset(intSeedValue);
         }
         return true;
-        //return super.preHandle(request, response, handler);
     }
 }
