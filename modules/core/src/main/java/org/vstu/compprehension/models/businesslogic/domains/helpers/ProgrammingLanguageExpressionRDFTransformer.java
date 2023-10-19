@@ -173,7 +173,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     }
     
     private static void saveModel(String filename, Model model){
-        log.info("saving " + filename);
+        log.info("saving {}", filename);
         OutputStream out = null;
         try {
             out = new FileOutputStream(filename);

@@ -169,7 +169,7 @@ public class LocalRdfStorage extends AbstractRdfStorage {
         }
 
         if (path == null) {
-            log.error("Cannot read questions data from file: " + qGraph_filepath);
+            log.error("Cannot read questions data from file: {}", qGraph_filepath);
             throw new RuntimeException("Cannot find questions data file: " + qGraph_filepath);
         }
 

@@ -7,9 +7,10 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.WhereBuilder;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
@@ -18,6 +19,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.PrintUtil;
 import org.apache.jena.vocabulary.RDF;
+import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
@@ -25,7 +27,6 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -222,7 +223,7 @@ public abstract class AbstractRdfStorage {
 
             /// debug check law bits
             if (targetLawsBitmask != 0 && (targetLawsBitmask & m.getViolationBits()) == 0) {
-                log.warn("No LAW bits matched: " +targetLawsBitmask+ " " + m.getName());
+                log.warn("No LAW bits matched: {} {}", targetLawsBitmask, m.getName());
             }
         }
 
@@ -325,7 +326,7 @@ public abstract class AbstractRdfStorage {
             if (stream != null) {
                 q = domain.parseQuestionTemplate(stream);
             } else {
-                log.warn("File NOT found by storage: " + path);
+                log.warn("File NOT found by storage: {}", path);
             }
         } catch (IOException | NullPointerException | IllegalStateException e) {
             e.printStackTrace();
@@ -375,7 +376,7 @@ public abstract class AbstractRdfStorage {
                     try {
                         rule = Rule.parseRule(lawFormulation.getFormulation());
                     } catch (Rule.ParserException e) {
-                        log.error("Following error in rule: " + lawFormulation.getFormulation(), e);
+                        log.error("Following error in rule: {}", lawFormulation.getFormulation(), e);
                         continue;
                     }
                     rules.add(rule);
@@ -548,7 +549,7 @@ public abstract class AbstractRdfStorage {
             if (gm != null)
                 m.add(gm);
             else {
-                log.info("Sub-graph not found!  q: " + questionName);
+                log.info("Sub-graph not found!  q: {}", questionName);
             }
 
             if (role == topRole)
@@ -831,7 +832,7 @@ public abstract class AbstractRdfStorage {
         if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
             int subjectCount = existingData.listSubjects().toList().size();
             if (subjectCount > tooLargeTemplateThreshold) {
-                System.out.println("Skip too large template of size " + subjectCount + ": " + questionName);
+                log.debug("Skip too large template of size {}: {}", subjectCount, questionName);
                 return false;
             }
         }
@@ -842,7 +843,7 @@ public abstract class AbstractRdfStorage {
                 true);
 
         if (inferred.isEmpty())
-            log.warn("Solved to empty for question: " + questionName);
+            log.warn("Solved to empty for question: {}", questionName);
 
         // set graph
         return setQuestionSubgraph(domain, questionName, desiredLevel, inferred) != null;
@@ -1010,8 +1011,7 @@ public abstract class AbstractRdfStorage {
 
         long estimatedTime = System.nanoTime() - startTime;
 //        log.info
-        log.info("Time Jena spent on reasoning: " + String.format("%.5f",
-                (float) estimatedTime / 1000 / 1000 / 1000) + " seconds.");
+        log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float)estimatedTime / 1000 / 1000 / 1000);
 
         Model result;
         if (retainNewFactsOnly) {
@@ -1032,9 +1032,9 @@ public abstract class AbstractRdfStorage {
             try {
                 out = new FileOutputStream(out_rdf_path);
                 RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                System.out.println("Debug written: " + out_rdf_path + ". N of of triples: " + model.size());
+                log.debug("Debug written: {}. N of of triples: {}", out_rdf_path, model.size());
             } catch (FileNotFoundException e) {
-                System.out.println("Cannot write to file: " + out_rdf_path + "  Error: " + e);
+                log.debug("Cannot write to file: {} Error: {}", out_rdf_path, e);
             }
         }
     }

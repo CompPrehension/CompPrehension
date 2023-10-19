@@ -119,7 +119,7 @@ public class FactsGraph {
         }
 
         /// debug print it
-        System.out.println(count2n.toString() + " = " + facts.size() + " total.");
+        // System.out.println(count2n.toString() + " = " + facts.size() + " total.");
         ///
 
         return count2n;

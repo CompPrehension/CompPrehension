@@ -368,38 +368,36 @@ public class Strategy implements AbstractStrategy {
         qr.setTargetConcepts(targetConcepts);
         qr.setDeniedConcepts(deniedConcepts);
 
-        String T = "\t";
-
         log.info("Желаемый вопрос:");
-        log.info(T + (nextNode != null ? nextNode.nodeName : ""));
+        log.info("\t{}", nextNode != null ? nextNode.nodeName : "");
         log.info("Желаемые законы:");
         ArrayList<String> printOutList = new ArrayList<>();
         if (nextNode != null)
             printOutList.addAll(nextNode.currentLows);
         printOutList.sort(null);
         for(String str : printOutList){
-            log.info(T + str);
+            log.info("\t{}", str);
         }
 
         log.info("Законы из домена в запросе:");
         ArrayList<Law> printOutLaws = new ArrayList<>(qr.getTargetLaws());
         printOutLaws.sort(Comparator.comparing(Law::getName));
         for(Law str : printOutLaws){
-            log.info(T + str.getName());
+            log.info("\t{}", str.getName());
         }
 
         log.info("Концепты из домена в запросе:");
         ArrayList<Concept> printOutConcepts = new ArrayList<>(qr.getTargetConcepts());
         printOutConcepts.sort(Comparator.comparing(Concept::getName));
         for(Concept str : printOutConcepts){
-            log.info(T + str.getName());
+            log.info("\t{}", str.getName());
         }
 
         log.info("Запрещённые концепты из домена в запросе:");
         printOutConcepts = new ArrayList<>(qr.getDeniedConcepts());
         printOutConcepts.sort(Comparator.comparing(Concept::getName));
         for(Concept str : printOutConcepts){
-            log.info(T + str.getName());
+            log.info("\t{}", str.getName());
         }
 
         return qr;

@@ -667,7 +667,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         if (res != null) {
-            log.info("Expression domain has prepared the question: " + res.getQuestionName());
+            log.info("Expression domain has prepared the question: {}", res.getQuestionName());
 
             return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
         }
@@ -2410,7 +2410,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             addedFacts = newAddedFacts;
         }
 
-        System.out.println("Generated: " + addedFacts.size() + " questions");
+        log.debug("Generated: {} questions", addedFacts.size());
         HashMap<String, Model> questions = new HashMap<>();
         for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
             questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
@@ -2536,13 +2536,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             val newConcepts = new HashSet<>(moreConcepts);
             newConcepts.removeAll(concepts);
             if (!newConcepts.isEmpty()) {
-                System.out.println("python sub-service: inferred "+newConcepts.size()+" more concepts: " + newConcepts);
+                log.debug("python sub-service: inferred {} more concepts: {}", newConcepts.size(), newConcepts);
                 concepts.addAll(newConcepts);
             }
             val newViolations = new HashSet<>(moreViolations);
             newViolations.removeAll(concepts);
             if (!newViolations.isEmpty()) {
-                System.out.println("python sub-service: inferred "+newViolations.size()+" more violations: " + newViolations);
+                log.debug("python sub-service: inferred {} more violations: {}", newViolations.size(), newViolations);
                 violations.addAll(newViolations);
             }
         }
@@ -2662,7 +2662,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 if (qCount > questionsLimit) break;
 
                 // Create a template
-                System.out.println(name + " \tUpload model number " + count);
+                log.debug("{} \tUpload model number {}", name, count);
                 /*rs.createQuestionTemplate(name);*/
                 Model templateModel = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(templateModel, file);
@@ -2683,7 +2683,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_TEMPLATE_SOLVED),
                         false);
 
-                System.out.println("Creating questions for template: " + name);
+                log.debug("Creating questions for template: {}", name);
 
                 Set<Set<String>> possibleViolations = new HashSet<>();
                 for (Map.Entry<String, Model> question : this.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
@@ -2705,7 +2705,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.get());
                     Set<String> violations = this.possibleViolations(facts, null);
                     if (possibleViolations.contains(violations)) {
-                        System.out.println("Skip question with same violations: " + question.getKey());
+                        log.debug("Skip question with same violations: {}", question.getKey());
                         continue;
                     }
                     possibleViolations.add(violations);
@@ -2724,11 +2724,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 //                    qMetaStorage.setQuestionSubgraph(this, questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
                     // Save question data for domain in JSON
-                    System.out.println("Generating question: " + questionName);
+                    log.debug("Generating question: {}", questionName);
                     Question domainQuestion = this.createQuestionFromModel(questionName, solvedQuestionModel, null /*don't use DB*/);
 
                     if (domainQuestion == null) {
-                        System.out.println("--  Cancelled inappropriate question: " + questionName);
+                        log.debug("--  Cancelled inappropriate question: {}", questionName);
                         // don't complete this question, generation aborted
 //                        qMetaStorage.deleteQuestion(questionName);
                         continue;
@@ -2739,7 +2739,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             .getMetadata().setOrigin(origin);
 
                     // Save question data for domain in JSON
-                    System.out.println("++  Saving question: " + questionName);
+                    log.debug("++  Saving question: {}", questionName);
                     savedCount++;
 
                     // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
@@ -2767,7 +2767,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
 
-        System.out.printf("Total questions generated: %d (%d saved).\n", qCount, savedCount);
+        log.debug("Total questions generated: {} ({} saved).\n", qCount, savedCount);
     }
 
     @Override
