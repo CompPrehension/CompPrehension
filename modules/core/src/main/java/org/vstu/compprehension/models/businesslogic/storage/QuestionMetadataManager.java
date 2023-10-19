@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -11,6 +12,7 @@ import org.vstu.compprehension.utils.Checkpointer;
 
 import java.util.*;
 
+@Log4j2
 @Getter
 public class QuestionMetadataManager {
 
@@ -43,7 +45,7 @@ public class QuestionMetadataManager {
             return;
         }
 
-        Checkpointer ch = new Checkpointer();
+        Checkpointer ch = new Checkpointer(log);
         var stats = questionRepository.getStatOnComplexityField(domain.getShortName());
         NumericStat complStat = new NumericStat();
         complStat.setCount((int)(long)stats.getCount());

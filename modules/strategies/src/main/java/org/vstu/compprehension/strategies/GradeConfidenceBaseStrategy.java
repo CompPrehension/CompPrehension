@@ -193,24 +193,20 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
     private void loggingRequest(QuestionRequest result) {
 
-        String T = "\t";
-
         log.info("Законы из домена в запросе:");
         ArrayList<Law> printOutLaws = new ArrayList<>(result.getTargetLaws());
         printOutLaws.sort(Comparator.comparing(Law::getName));
         for(Law str : printOutLaws){
-            log.info(T + str.getName());
+            log.info("\t{}", str.getName());
         }
     }
 
     private void loggingParams(int studentType, int studentsComplexity, SearchDirections lawsDirections) {
 
-        String T = "\t";
-
         log.info("Параметры при расчёте стратегии:");
-        log.info(T + "Тип студента: " + (studentType == -1 ? "начинающий" : studentType == 0 ? "средний" : "знаток"));
-        log.info(T + "Сложность прошлого вопроса: " + (studentsComplexity == -1 ? "слишком сложно" : studentType == 0 ? "норма" : "слишком легко"));
-        log.info(T + "Рекомендованное направление поиска для домена: " + (lawsDirections == SearchDirections.TO_SIMPLE ? "упрощение" : "усложнение"));
+        log.info("\tТип студента: {}", (studentType == -1 ? "начинающий" : studentType == 0 ? "средний" : "знаток"));
+        log.info("\tСложность прошлого вопроса: {}", (studentsComplexity == -1 ? "слишком сложно" : studentType == 0 ? "норма" : "слишком легко"));
+        log.info("\tРекомендованное направление поиска для домена: {}", (lawsDirections == SearchDirections.TO_SIMPLE ? "упрощение" : "усложнение"));
 
     }
 

@@ -5,11 +5,11 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.Level;
 import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.BackgroundServerMain;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -173,7 +173,7 @@ public class TaskGenerationJob {
                 for (var repo : repoSearchQuery) {
                     if (seenReposNames.contains(repo.getName())) {
                         skipped += 1;
-                        log.info("Skip processed GitHub repo [" + String.format("%3d", skipped) + "]: " + repo.getName());
+                        log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
                         Thread.sleep(700);
                         continue;
                     }
@@ -262,7 +262,7 @@ public class TaskGenerationJob {
             var rootDir = Path.of(config.getParser().getOutputFolderPath());
             var repos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
 
-            log.info("Start question generation from " + repos.size() + " repository(-ies) ...");
+            log.info("Start question generation from {} repository(-ies) ...", repos.size());
 
             for (var repoDir : repos) {
                 var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
@@ -288,7 +288,7 @@ public class TaskGenerationJob {
 
                 try {
                     log.info("Run generator on repo: [{}]", leafFolder);
-                    System.out.println("Shell command to run: [" + cmd.stream().reduce((a, b) -> a + " " + b).orElse("") + "]");
+                    log.debug("Shell command to run: [{}]", cmd.stream().reduce((a, b) -> a + " " + b).orElse(""));
                     Files.createDirectories(destination);
                     var parserProcess = new ProcessBuilder(cmd)
                             .redirectErrorStream(true)
@@ -329,7 +329,7 @@ public class TaskGenerationJob {
                     QuestionMetadataEntity meta = q.getMetadataAny();
                     if (meta == null) {
                         // в вопросе нет метаданных, невозможно проверить
-                        log.warn("[info] cannot save question which does not contain metadata. Source file: " + file);
+                        log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
                         continue;
                     }
 
@@ -354,15 +354,15 @@ public class TaskGenerationJob {
                                 qrLogsProcessed.add(qr);
 
                             } else {
-                                System.out.println();
+                                log.debug("");
                                 log.info("... Skipped existing   question with name: {} ", meta.getName());
                                 break;
                             }
                         } else {
-                            System.out.print("-");
+                            log.debug("-");
                         }
                     }
-                    System.out.println();
+                    log.debug("");
 
                     if (shouldSave) {
 

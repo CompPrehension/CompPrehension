@@ -733,11 +733,11 @@ public abstract class Domain {
             return null;
         } else {
             for (Question question : questions) {
-                log.info("Отобранный вопрос (из " + questions.size() + "): " + question.getQuestionName());
+                log.info("Отобранный вопрос (из {}): {}", questions.size(), question.getQuestionName());
             }
 
             Question question = questions.get(randomProvider.getRandom().nextInt(questions.size()));
-            log.info("В итоге, взят вопрос: " + question.getQuestionName());
+            log.info("В итоге, взят вопрос: {}", question.getQuestionName());
 
             ///
             /// add a mark to the question's name: this question is made by human.
