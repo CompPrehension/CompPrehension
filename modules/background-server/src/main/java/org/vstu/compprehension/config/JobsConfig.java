@@ -2,7 +2,6 @@ package org.vstu.compprehension.config;
 
 import jakarta.annotation.PostConstruct;
 import org.jobrunr.scheduling.JobScheduler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
@@ -15,10 +14,9 @@ public class JobsConfig {
     private final boolean runOnce;
     private final int intervalMinutes;
 
-    @Autowired
     public JobsConfig(JobScheduler jobScheduler, @Value("${task-generation.run_once}") boolean runOnce, @Value("${task-generation.interval_minutes}") int intervalMinutes) {
-        this.jobScheduler = jobScheduler;
-        this.runOnce = runOnce;
+        this.jobScheduler    = jobScheduler;
+        this.runOnce         = runOnce;
         this.intervalMinutes = intervalMinutes;
     }
 
