@@ -2527,25 +2527,29 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // use Python parser to infer possibly more concepts and violations
         // convert tokens to string omitting last one that is END_EVALUATION
         String exprString = textFacts.stream().map(BackendFactEntity::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
-        List<String> concepts_violations = ExpressionSituationPythonCaller.invoke(exprString);
-        if (concepts_violations.size() == 2) { // validate the structure
-            // show if something new was inferred
-            Set<String> moreConcepts = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
-            Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+        try (var pythonCaller = new ExpressionSituationPythonCaller()) {
+            var concepts_violations = pythonCaller.invoke(exprString);
+            log.debug("python returns concepts_violations: {}", concepts_violations);
+            if (concepts_violations != null && concepts_violations.size() == 2) { // validate the structure
+                // show if something new was inferred
+                Set<String> moreConcepts = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+                Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
 
-            val newConcepts = new HashSet<>(moreConcepts);
-            newConcepts.removeAll(concepts);
-            if (!newConcepts.isEmpty()) {
-                log.debug("python sub-service: inferred {} more concepts: {}", newConcepts.size(), newConcepts);
-                concepts.addAll(newConcepts);
-            }
-            val newViolations = new HashSet<>(moreViolations);
-            newViolations.removeAll(concepts);
-            if (!newViolations.isEmpty()) {
-                log.debug("python sub-service: inferred {} more violations: {}", newViolations.size(), newViolations);
-                violations.addAll(newViolations);
+                val newConcepts = new HashSet<>(moreConcepts);
+                newConcepts.removeAll(concepts);
+                if (!newConcepts.isEmpty()) {
+                    log.debug("python sub-service: inferred {} more concepts: {}", newConcepts.size(), newConcepts);
+                    concepts.addAll(newConcepts);
+                }
+                val newViolations = new HashSet<>(moreViolations);
+                newViolations.removeAll(concepts);
+                if (!newViolations.isEmpty()) {
+                    log.debug("python sub-service: inferred {} more violations: {}", newViolations.size(), newViolations);
+                    violations.addAll(newViolations);
+                }
             }
         }
+
         // finished with the results of external Python tool.
 
         List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
