@@ -49,405 +49,393 @@ public class TaskGenerationJob {
         this.config = config;
     }
 
-    @SneakyThrows
     @Job
     public void run() {
         log.info("Run generating questions for expression domain ...");
         try {
-            runQuestionGeneration();
+            runImpl();
         } catch (Exception e) {
-            log.warn("job exception", e);
+            log.error("job exception - {}", e.getMessage(), e);
         }
         if (config.isRunOnce()) {
             System.exit(0);
         }
     }
 
-    /**
-     * @return true if more processing needed
-     */
     @SneakyThrows
-    public boolean runQuestionGeneration() {
-
+    public void runImpl() {
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        int tooFewQuestions = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
-        var qrLogsToProcess = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
+        int tooFewQuestions      = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
+        var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
             log.info("Nothing to process, finished job.");
-            return false;
+            return;
         }
 
         log.info("QR logs to process: {}", qrLogsToProcess.size());
-        log.info("QR log ids to be processed: {}.", qrLogsToProcess.stream().map(o -> "\t" + o.getId()).collect(Collectors.joining(",")));
-
-        boolean _debugGenerator = false;
-        boolean cleanupFolders = true; // !_debugGenerator;
-        boolean cleanupGeneratedFolder = false;
-        boolean downloadRepositories = !_debugGenerator;
-        boolean skipEverDownloadedRepositories = true;
-        boolean parseSources = !_debugGenerator;
-        boolean generateQuestions = true;
-        boolean saveGeneratedToDB = true; // !_debugGenerator;
-        // boolean exportQuestionsToProduction = true;
-
-        int repositoriesToDownload = 1;
-
+        log.info("QR log ids to be processed: {}.", qrLogsToProcess.stream().map(QuestionRequestLogEntity::getId).collect(Collectors.toList()));
 
         // folders cleanup
-        if (cleanupFolders) {
-            val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
+        ensureFoldersCleaned();
 
-            if (Files.exists(downloadedPath)) {
-                if (!skipEverDownloadedRepositories) {
-                    // Можно удалить всё, что скачано
-                    try {
-                        FileUtils.deleteDirectory(downloadedPath.toFile());
-                    } catch (IllegalArgumentException exception) {
-                        log.info("IllegalArgumentException while deleting all downloaded: `{}`", exception.getMessage());
-                        exception.printStackTrace();
-                    }
-                } else {
-                    // оставляем пустые папки как индикацию проделанной работы
-                    try {
-                        Files.list(downloadedPath)
-                                .filter(f -> f.toFile().isDirectory())
-                                .forEach(FileUtility::clearDirectory);
-                        Files.list(downloadedPath)
-                                .map(Path::toFile)
-                                .filter(File::isFile)
-                                .forEach(File::delete);
-                    } catch (IllegalArgumentException exception) {
-                        log.info("IllegalArgumentException while clearing downloaded folders: `{}`", exception.getMessage());
-                        exception.printStackTrace();
-                    } catch (IOException ignored) {}
-                }
-            }
-
-            val parsedPath = Path.of(config.getParser().getOutputFolderPath());
-
-            if (Files.exists(parsedPath))
-                FileHelper.deleteFolderContent(parsedPath.toFile());
-
-            // don't delete output: it may be reused later
-
-            if (cleanupGeneratedFolder) {
-                val generatedPath = Path.of(config.getParser().getOutputFolderPath());
-                if (Files.exists(generatedPath))
-                    FileHelper.deleteFolderContent(generatedPath.toFile());
-            }
-
-            log.info("folders cleaned up");
-        }
-
-        List<Path> downloadedRepos;
-
-        // download repos (currently, one repository per run)
-        if (downloadRepositories) {
-            // TODO Добавить историю по использованным репозиториям
-            var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toList());
-
-            if (skipEverDownloadedRepositories) {
-                // add repo names (on disk) to seenReposNames
-                var repos = Files.list(Path.of(config.getSearcher().getOutputFolderPath())).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).collect(Collectors.toSet());
-                repos.addAll(seenReposNames);
-                seenReposNames = new ArrayList<>(repos);
-            }
-
-            GitHub github = new GitHubBuilder()
-                    .withOAuthToken(config.getSearcher().getGithubOAuthToken())
-                    .build();
-            var repoSearchQuery = github.searchRepositories()
-                    .language("c")
-                    .size("50..100000")
-                    .fork(GHFork.PARENT_ONLY)
-                    .sort(GHRepositorySearchBuilder.Sort.STARS)
-                    .order(GHDirection.DESC)
-                    .list()
-                    .withPageSize(30);
-            downloadedRepos = new ArrayList<Path>();
-            {
-                int idx = 0;
-                int skipped = 0;
-                for (var repo : repoSearchQuery) {
-                    if (seenReposNames.contains(repo.getName())) {
-                        skipped += 1;
-                        log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                        Thread.sleep(700);
-                        continue;
-                    }
-                    log.info("Downloading repo [{}] ...", repo.getFullName());
-
-                    repo.readZip(s -> {
-                        Path zipFile = Path.of(config.getSearcher().getOutputFolderPath(), repo.getName() + ".zip")
-                                .toAbsolutePath();
-                        Path targetFolderPath = Path.of(config.getSearcher().getOutputFolderPath(), repo.getName())
-                                .toAbsolutePath();
-                        Files.createDirectories(targetFolderPath);
-                        java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                        ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                        Files.delete(zipFile);
-                        downloadedRepos.add(targetFolderPath);
-                        log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                        return 0;
-                    }, null);
-
-                    // for now, limited number of repositories
-                    if (++idx >= repositoriesToDownload)
-                        break;
-                }
-            }
-            // end of download
-        } else {
-            // get all downloaded so far:
-            var rootDir = Path.of(config.getSearcher().getOutputFolderPath());
-            downloadedRepos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
-        }
+        // download repositories
+        var downloadedRepos = downloadRepositories();
 
         // do parsing
-        if (parseSources) {
-            for (var repo : downloadedRepos) {
-                log.info("Start parsing sources for repo [{}]", repo);
+        var folderWithParsedQuestions = parseRepositories(downloadedRepos);
 
-                String leafFolder = repo.getFileName().toString();
-                Path destination = Path.of(config.getParser().getOutputFolderPath(), leafFolder);
-
-                var files = FileUtility.findFiles(repo, new String[]{".c", ".m"});
-                files = files.subList(0, Math.min(50, files.size()));
-                log.info("Found {} *.c & *.m files", files.size());
-
-                // TODO: make parser cmd customizable?
-
-                List<String> parserProcessCommandBuilder = new ArrayList<>();
-                parserProcessCommandBuilder.add(config.getParser().getPathToExecutable());
-                parserProcessCommandBuilder.addAll(files);
-
-                // reduce number of arguments on command line if necessary
-                // TODO: loop over batches if required to split the task
-                parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
-
-                parserProcessCommandBuilder.add("--");
-                parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
-                parserProcessCommandBuilder.add(destination.toString());
-                log.debug("Parser executable command: {}", parserProcessCommandBuilder);
-
-                try {
-                    log.info("Run parser on repo: [{}]", leafFolder);
-                    try {
-                        Files.createDirectories(destination);
-                    } catch (java.nio.file.AccessDeniedException ignored) {}
-                    var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
-                            .redirectErrorStream(true)
-                            .start();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
-                    String line;
-                    while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
-                        log.debug(line);
-                    }
-                    parserProcess.waitFor(10, TimeUnit.MINUTES);
-                } catch (InterruptedException e) {
-                    log.warn("Parsing timeout exception", e);
-                } catch (Exception e) {
-                    log.warn("Parsing exception", e);
-                }
-
-                log.info("Repo [{}] parsed", repo);
-            }
-        }
-
-        // question generation step
-        if (generateQuestions) {
-            // find all sub-folders in root directory of parser output directory
-            var rootDir = Path.of(config.getParser().getOutputFolderPath());
-            var repos = Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
-
-            log.info("Start question generation from {} repository(-ies) ...", repos.size());
-
-            for (var repoDir : repos) {
-                var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
-                log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
-
-                String leafFolder = repoDir.getFileName().toString();
-                String questionOrigin = leafFolder;
-                Path destination = Path.of(config.getGenerator().getOutputFolderPath(), questionOrigin);
-                Files.createDirectories(destination);
-
-                List<String> cmd = new ArrayList<>();
-
-                cmd.add(config.getGenerator().getPathToExecutable());
-                cmd.add("--source");
-                cmd.add(String.valueOf(repoDir));
-                cmd.add("--output");
-                cmd.add(String.valueOf(destination));
-                cmd.add("--sourceId");
-                cmd.add(leafFolder);
-
-
-                // TODO: call specific generation tool
-
-                try {
-                    log.info("Run generator on repo: [{}]", leafFolder);
-                    log.debug("Shell command to run: [{}]", cmd.stream().reduce((a, b) -> a + " " + b).orElse(""));
-                    Files.createDirectories(destination);
-                    var parserProcess = new ProcessBuilder(cmd)
-                            .redirectErrorStream(true)
-                            .inheritIO()
-                            .start();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
-                    String line;
-                    while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
-                        log.debug(line);
-                    }
-                    parserProcess.waitFor(10, TimeUnit.MINUTES);
-                } catch (InterruptedException e) {
-                    log.warn("Question generation timeout exception", e);
-                } catch (Exception e) {
-                    log.warn("Question generation exception", e);
-                }
-
-                log.info("Repo [{}] used to make questions.", questionOrigin);
-
-
-                // загрузить из папки полученные вопросы
-
-                var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
-                log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
-
-                int savedQuestions = 0;
-                int skippedQuestions = 0; // loaded but not kept since not required by any QR
-
-                LocalRdfStorage storage = getQuestionStorage();
-                Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
-
-                for (val file : allJsonFiles) {
-                    val q = loadQuestion(file);
-                    if (q == null) {
-                        continue;
-                    }
-
-                    QuestionMetadataEntity meta = q.getMetadataAny();
-                    if (meta == null) {
-                        // в вопросе нет метаданных, невозможно проверить
-                        log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
-                        continue;
-                    }
-
-                    // init container: list of QR logs requiring this question
-                    meta.setQrlogIds(new ArrayList<>());
-
-                    // Проверить, подходит ли он нам
-                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
-                    boolean shouldSave = false;
-                    for (val qr : qrLogsToProcess) {
-                        if (QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
-
-                            // Если вопрос ещё не сохранен в базу
-                            if (storage.findQuestionByName(meta.getName()) == null) {
-
-                                // set flag to use this question
-                                shouldSave = true;
-                                // update question metrics
-                                meta.getQrlogIds().add(qr.getId());
-                                // update qr metrics
-                                qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
-                                qrLogsProcessed.add(qr);
-
-                            } else {
-                                log.debug("");
-                                log.info("... Skipped existing   question with name: {} ", meta.getName());
-                                break;
-                            }
-                        } else {
-                            log.debug("-");
-                        }
-                    }
-                    log.debug("");
-
-                    if (shouldSave) {
-
-                        // copy data file and save local sub-path to it
-                        String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
-                        meta.setQDataGraph(qDataPath);
-
-                        log.info("* * * ");
-                        log.info("+++ (1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
-
-                        // set more metadata
-                        meta.setDateCreated(new Date());
-                        meta.setUsedCount(0L);
-                        meta.setOrigin(questionOrigin);
-                        // meta.setDateLastUsed(null);
-                        meta.setDomainShortname(config.getDomainShortName());
-                        meta.setTemplateId(-1);
-
-                        // set metadata instance back to ensure the data is saved
-                        q.setMetadata(meta);
-                        q.getQuestionData().getOptions().setMetadata(meta);
-
-                        if (saveGeneratedToDB) {
-                            meta = storage.saveMetadataEntity(meta);
-                        } else {
-                            log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
-                        }
-                        log.info("+++ (2) Saved metadata for that question, id: {};", meta.getId());
-                        log.info("        Affected QR log ids: [{}].",
-                                meta.getQrlogIds().stream().map(i -> "" + i).collect(Collectors.joining(", ")));
-                        savedQuestions += 1;
-                    } else {
-                        skippedQuestions += 1;
-                        log.info("... Skipped unsuitable question with name: {} ", meta.getName());
-                    }
-                }
-
-                log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
-                log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
-
-                if (qrLogsProcessed.size() > 0) {
-
-                    // update QR-log: statistics and possibly status
-                    for (var qr : qrLogsProcessed) {
-
-                        // increment processed counter for each repository touched by this qr
-                        qr.setProcessedCount(qr.getProcessedCount() + 1);
-                        if (qr.getFoundCount() + qr.getAddedQuestions() >= enoughQuestionsAdded) {
-                            // don't more need to process it.
-                            qr.setOutdated(1);
-                            log.info("Question-request-log (id: {}) resolved with {} questions added.", qr.getId(),
-                                    qr.getAddedQuestions());
-                        }
-                        qr.setLastProcessedDate(new Date());
-                    }
-                    if (saveGeneratedToDB) {
-                        qrLogRep.saveAll(qrLogsProcessed);
-                    } else {
-                        log.info("Saving updates actually SKIPPED due to DEBUG mode.", qrLogsProcessed.size());
-
-                    }
-
-                    log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
-                }
-
-
-                // for Expression domain only:
-                //RdfStorage.generateQuestionsForExpressionsDomain(repoDir.toString(), config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageDummyDirsForNewFile(), leafFolder);
-            }
-        }
-
-        // export generated questions to production bank if necessary
-        /*
-        if (exportQuestionsToProduction) {
-            log.info("Start exporting questions to production bank ...");
-            AbstractRdfStorage.exportGeneratedQuestionsToProductionBank(
-                    qrLogsToProcess, enoughQuestionsAdded,
-                    metadataRep, qrLogRep,
-                    config.getGenerator().getOutputFolderPath(), config.getExporter().getStorageUploadFilesBaseUrl(), config.getExporter().getStorageDummyDirsForNewFile());
-        }
-        //*/
+        // do question generation
+        generateQuestions(folderWithParsedQuestions, qrLogsToProcess, enoughQuestionsAdded);
 
         log.info("completed");
+    }
 
-        return true;
+    @SneakyThrows
+    private void ensureFoldersCleaned() {
+        var cleanupModes = config.getCleanupMode();
+        if (cleanupModes.isEmpty()) {
+            log.info("no folders cleanup needed");
+            return;
+        }
+
+        val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
+        val downloadedPathExists = Files.exists(downloadedPath);
+        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
+            try {
+                Files.list(downloadedPath)
+                        .filter(f -> f.toFile().isDirectory())
+                        .forEach(FileUtility::clearDirectory);
+                Files.list(downloadedPath)
+                        .map(Path::toFile)
+                        .filter(File::isFile)
+                        .forEach(File::delete);
+            } catch (Exception exception) {
+                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+            }
+            log.info("successfully cleanup downloaded repos folder");
+        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloaded) && downloadedPathExists) {
+            try {
+                FileUtils.deleteDirectory(downloadedPath.toFile());
+            } catch (IllegalArgumentException exception) {
+                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+            }
+            log.info("successfully cleanup downloaded repos folder (shallow)");
+        }
+
+        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupParsed)) {
+            val parsedPath = Path.of(config.getParser().getOutputFolderPath());
+            if (Files.exists(parsedPath))
+                FileHelper.deleteFolderContent(parsedPath.toFile());
+            log.info("successfully cleanup parsed questions folder");
+        }
+
+        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupGenerated)) {
+            val generatedPath = Path.of(config.getParser().getOutputFolderPath());
+            if (Files.exists(generatedPath))
+                FileHelper.deleteFolderContent(generatedPath.toFile());
+            log.info("successfully cleanup generated questions folder");
+        }
+
+        log.info("cleanup finished");
+    }
+
+    @SneakyThrows
+    private List<Path> downloadRepositories() {
+        var downloaderConfig = config.getSearcher();
+
+        if (!downloaderConfig.isEnabled()) {
+            // get all downloaded previously:
+            var rootDir = Path.of(downloaderConfig.getOutputFolderPath());
+            return Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
+        }
+
+        // ensure out folder exists
+        var outputFolderPath = Path.of(downloaderConfig.getOutputFolderPath());
+        Files.createDirectories(outputFolderPath);
+
+        // TODO Добавить историю по использованным репозиториям
+        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        if (downloaderConfig.isSkipDownloadedRepositories()) {
+            // add repo names (on disk) to seenReposNames
+            var repos = Files.list(outputFolderPath).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
+            seenReposNames.addAll(repos);
+        }
+
+        GitHub github = new GitHubBuilder()
+                .withOAuthToken(downloaderConfig.getGithubOAuthToken())
+                .build();
+        var repoSearchQuery = github.searchRepositories()
+                .language("c")
+                .size("50..100000")
+                .fork(GHFork.PARENT_ONLY)
+                .sort(GHRepositorySearchBuilder.Sort.STARS)
+                .order(GHDirection.DESC)
+                .list()
+                .withPageSize(30);
+        var downloadedRepos = new ArrayList<Path>();
+
+        int idx = 0;
+        int skipped = 0;
+        for (var repo : repoSearchQuery) {
+            if (seenReposNames.contains(repo.getName())) {
+                skipped++;
+                log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                continue;
+            }
+            log.info("Downloading repo [{}] ...", repo.getFullName());
+
+            repo.readZip(s -> {
+                Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
+                        .toAbsolutePath();
+                Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
+                        .toAbsolutePath();
+                Files.createDirectories(targetFolderPath);
+                java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                Files.delete(zipFile);
+                downloadedRepos.add(targetFolderPath);
+                log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                return 0;
+            }, null);
+
+            // for now, limited number of repositories
+            if (++idx >= downloaderConfig.getRepositoriesToDownload())
+                break;
+        }
+
+        return downloadedRepos;
+    }
+
+    @SneakyThrows
+    private Path parseRepositories(List<Path> downloadedRepos) {
+        var parserConfig = config.getParser();
+        var outputFolderPath = Path.of(parserConfig.getOutputFolderPath());
+        if (!parserConfig.isEnabled()) {
+            log.info("parser is disabled by config");
+            return outputFolderPath;
+        }
+
+        // ensure output folder exists
+        Files.createDirectories(outputFolderPath);
+
+        for (var repo : downloadedRepos) {
+            log.info("Start parsing sources for repo [{}]", repo);
+
+            String leafFolder = repo.getFileName().toString();
+            Path destination = Path.of(parserConfig.getOutputFolderPath(), leafFolder);
+
+            var files = FileUtility.findFiles(repo, new String[]{".c", ".m"});
+            files = files.subList(0, Math.min(50, files.size()));
+            log.info("Found {} *.c & *.m files", files.size());
+
+            // TODO: make parser cmd customizable?
+
+            List<String> parserProcessCommandBuilder = new ArrayList<>();
+            parserProcessCommandBuilder.add(parserConfig.getPathToExecutable());
+            parserProcessCommandBuilder.addAll(files);
+
+            // reduce number of arguments on command line if necessary
+            // TODO: loop over batches if required to split the task
+            parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
+
+            parserProcessCommandBuilder.add("--");
+            parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
+            parserProcessCommandBuilder.add(destination.toString());
+            log.debug("Parser executable command: {}", parserProcessCommandBuilder);
+
+            try {
+                log.info("Run parser on repo: [{}]", leafFolder);
+                try {
+                    Files.createDirectories(destination);
+                } catch (java.nio.file.AccessDeniedException ignored) {}
+                var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
+                        .redirectErrorStream(true)
+                        .start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
+                    log.debug("parser's stdout: {}", line);
+                }
+                parserProcess.waitFor(10, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                log.warn("Parsing timeout exception", e);
+            } catch (Exception e) {
+                log.warn("Parsing exception", e);
+            }
+
+            log.info("Repo [{}] parsed", repo);
+        }
+
+        return outputFolderPath;
+    }
+
+    @SneakyThrows
+    private void generateQuestions(Path folderWithParsedQuestions, List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
+        var generatorConfig = config.getGenerator();
+        if (!generatorConfig.isEnabled()) {
+            log.info("generator is disabled by config");
+            return;
+        }
+
+        // find all sub-folders in root directory of parser output directory
+        var repos = Files.list(folderWithParsedQuestions).filter(Files::isDirectory).toList();
+        log.info("Start question generation from {} repository(-ies) ...", repos.size());
+
+        for (var repoDir : repos) {
+            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
+            log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
+
+            String leafFolder = repoDir.getFileName().toString();
+            Path destination = Path.of(generatorConfig.getOutputFolderPath(), leafFolder);
+            Files.createDirectories(destination);
+
+            List<String> cmd = new ArrayList<>();
+            cmd.add(generatorConfig.getPathToExecutable());
+            cmd.add("--source");
+            cmd.add(String.valueOf(repoDir));
+            cmd.add("--output");
+            cmd.add(String.valueOf(destination));
+            cmd.add("--sourceId");
+            cmd.add(leafFolder);
+
+            // TODO: call specific generation tool
+            try {
+                log.info("Run generator on repo: [{}]", leafFolder);
+                log.debug("Shell command to run: [{}]", cmd);
+                Files.createDirectories(destination);
+                var parserProcess = new ProcessBuilder(cmd)
+                        .redirectErrorStream(true)
+                        .start();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(parserProcess.getInputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) { // do not remove this cycle! waitFor wouldn't work without it
+                    log.debug("generator's stdout: {}", line);
+                }
+                parserProcess.waitFor(10, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                log.warn("Question generation timeout exception", e);
+            } catch (Exception e) {
+                log.warn("Question generation exception", e);
+            }
+
+            log.info("Repo [{}] used to make questions.", leafFolder);
+
+
+            // загрузить из папки полученные вопросы
+
+            var allJsonFiles = FileUtility.findFiles(destination, new String[]{".json"});
+            log.info("Found {} json files in: {}", allJsonFiles.size(), destination);
+
+            int savedQuestions = 0;
+            int skippedQuestions = 0; // loaded but not kept since not required by any QR
+
+            LocalRdfStorage storage = getQuestionStorage();
+            Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
+
+            for (val file : allJsonFiles) {
+                val q = loadQuestion(file);
+                if (q == null) {
+                    continue;
+                }
+
+                QuestionMetadataEntity meta = q.getMetadataAny();
+                if (meta == null) {
+                    // в вопросе нет метаданных, невозможно проверить
+                    log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
+                    continue;
+                }
+
+                // init container: list of QR logs requiring this question
+                meta.setQrlogIds(new ArrayList<>());
+
+                // Проверить, подходит ли он нам
+                // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
+                boolean shouldSave = false;
+                for (val qr : qrLogsToProcess) {
+                    if (QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
+
+                        // Если вопрос ещё не сохранен в базу
+                        if (storage.findQuestionByName(meta.getName()) == null) {
+
+                            // set flag to use this question
+                            shouldSave = true;
+                            // update question metrics
+                            meta.getQrlogIds().add(qr.getId());
+                            // update qr metrics
+                            qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
+                            qrLogsProcessed.add(qr);
+
+                        } else {
+                            log.info("... Skipped existing   question with name: {} ", meta.getName());
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSave) {
+
+                    // copy data file and save local sub-path to it
+                    String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                    meta.setQDataGraph(qDataPath);
+
+                    log.info("* * * ");
+                    log.info("+++ (1) Saved data file for question: [{}] ([{}])", q.getQuestionName(), qDataPath);
+
+                    // set more metadata
+                    meta.setDateCreated(new Date());
+                    meta.setUsedCount(0L);
+                    meta.setOrigin(leafFolder);
+                    // meta.setDateLastUsed(null);
+                    meta.setDomainShortname(config.getDomainShortName());
+                    meta.setTemplateId(-1);
+
+                    // set metadata instance back to ensure the data is saved
+                    q.setMetadata(meta);
+                    q.getQuestionData().getOptions().setMetadata(meta);
+
+                    if (generatorConfig.isSaveToDb()) {
+                        meta = storage.saveMetadataEntity(meta);
+                    } else {
+                        log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                    }
+                    log.info("+++ (2) Saved metadata for that question, id: {};", meta.getId());
+                    log.info("        Affected QR log ids: {}.", meta.getQrlogIds());
+                    savedQuestions += 1;
+                } else {
+                    skippedQuestions += 1;
+                    log.info("... Skipped unsuitable question with name: {} ", meta.getName());
+                }
+            }
+
+            log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
+            log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
+
+            if (qrLogsProcessed.size() > 0) {
+
+                // update QR-log: statistics and possibly status
+                for (var qr : qrLogsProcessed) {
+
+                    // increment processed counter for each repository touched by this qr
+                    qr.setProcessedCount(qr.getProcessedCount() + 1);
+                    if (qr.getFoundCount() + qr.getAddedQuestions() >= enoughQuestionsForEachQr) {
+                        // don't more need to process it.
+                        qr.setOutdated(1);
+                        log.info("Question-request-log (id: {}) resolved with {} questions added.", qr.getId(), qr.getAddedQuestions());
+                    }
+                    qr.setLastProcessedDate(new Date());
+                }
+                if (generatorConfig.isSaveToDb()) {
+                    qrLogRep.saveAll(qrLogsProcessed);
+                } else {
+                    log.info("Saving updates actually SKIPPED due to DEBUG mode.", qrLogsProcessed.size());
+
+                }
+
+                log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
+            }
+        }
     }
 
     /**
@@ -457,12 +445,9 @@ public class TaskGenerationJob {
      */
     private static Question parseQuestionJson(InputStream inputStream) {
         Gson gson = Domain.getQuestionGson();
-
-        Question question = gson.fromJson(
+        return gson.fromJson(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8),
                 Question.class);
-
-        return question;
     }
 
     /**
@@ -479,7 +464,6 @@ public class TaskGenerationJob {
         }
         return q;
     }
-
 
     private LocalRdfStorage getQuestionStorage() {
         return new LocalRdfStorage(
