@@ -1,13 +1,13 @@
 package org.vstu.compprehension;
 
 import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.configuration.JobRunrConfiguration;
-import org.jobrunr.scheduling.JobRequestScheduler;
+import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.JobScheduler;
+import org.jobrunr.server.JobActivator;
 import org.jobrunr.storage.InMemoryStorageProvider;
+import org.jobrunr.storage.StorageProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
@@ -17,22 +17,19 @@ public class BackgroundServerMain {
     }
 
     @Bean
-    public JobRunrConfiguration.JobRunrConfigurationResult initJobRunr(ApplicationContext applicationContext) {
+    public JobScheduler initJobRunr(JobActivator jobActivator, StorageProvider storageProvider) {
         return JobRunr.configure()
-                .useJobActivator(applicationContext::getBean)
-                .useStorageProvider(new InMemoryStorageProvider())
+                .useJobActivator(jobActivator)
+                .useStorageProvider(storageProvider)
                 .useBackgroundJobServer()
                 .useDashboard()
-                .initialize();
+                .initialize().getJobScheduler();
     }
 
     @Bean
-    public JobScheduler initJobScheduler(JobRunrConfiguration.JobRunrConfigurationResult jobRunrConfigurationResult) {
-        return jobRunrConfigurationResult.getJobScheduler();
-    }
-
-    @Bean
-    public JobRequestScheduler initJobRequestScheduler(JobRunrConfiguration.JobRunrConfigurationResult jobRunrConfigurationResult) {
-        return jobRunrConfigurationResult.getJobRequestScheduler();
+    public StorageProvider storageProvider(JobMapper jobMapper) {
+        InMemoryStorageProvider storageProvider = new InMemoryStorageProvider();
+        storageProvider.setJobMapper(jobMapper);
+        return storageProvider;
     }
 }

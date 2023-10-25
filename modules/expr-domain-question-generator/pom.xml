@@ -24,7 +24,6 @@
             <groupId>org.vstu.compprehension</groupId>
             <artifactId>core</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>

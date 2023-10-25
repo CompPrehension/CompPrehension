@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -357,8 +358,14 @@ public abstract class Domain {
         return 0.0834;  // = 1/12
     }
 
+    private static final Gson gson = new GsonBuilder()
+        .disableHtmlEscaping()
+        .setPrettyPrinting()
+        .create();
     public static String questionToJson(Question question, String questionType) {
-        return "{\"questionType\": \"" + questionType + "\", " + new Gson().toJson(question).substring(1);
+        var jsonObj = gson.toJsonTree(question).getAsJsonObject();
+        jsonObj.add("questionType", new JsonPrimitive(questionType));
+        return gson.toJson(jsonObj);
     }
 
     /**

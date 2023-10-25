@@ -1,106 +1,95 @@
 package org.vstu.compprehension.utils;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
-import org.springframework.core.io.Resource;
+import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.common.ResourcesHelper;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
 /**
    @see <a href="https://stackoverflow.com/a/4115082/12824563">Answer on: how to both read and write to & from process through pipe (stdin/stdout)</a>
 */
-public class ExpressionSituationPythonCaller {
-    public static BufferedReader inp = null;
-    public static BufferedWriter out = null;
-    public static Process process = null;
+@Log4j2
+public class ExpressionSituationPythonCaller implements AutoCloseable {
+    private BufferedReader inp = null;
+    private BufferedWriter out = null;
+    private Process process = null;
 
-    public static boolean initSubProcess() {
-
-        String pythonScript = "expr_operator_concepts.py";
-        String resourcesDir = "modules/background-server/target/classes/";
-        String ScriptFullPath;
-
-        // ApplicationContext context = new ClassPathXmlApplicationContext();
-        ApplicationContext context = new FileSystemXmlApplicationContext();
-        Resource resource = context.getResource(resourcesDir + pythonScript);
+    static {
         try {
-            // absolute path to path starting with additional '/': /C:/data/...
-            // System.out.println(ExpressionSituationPythonCaller.class.getClassLoader().getResource(pythonScript).getPath());
-            // System.out.println(resource.getURI().getPath());
+            getOrExtractPathToPyFolder(true);
+        } catch (Exception e) {
+            log.warn("Error locating Python3 script expr_operator_concepts.py: {}", e.getMessage(), e);
+        }
+    }
 
-            // modules\background-server\target\classes\expr_operator_concepts.py
-            // System.out.println(resource.getFile().getPath());
-            ScriptFullPath = resource.getFile().getPath();
-        } catch (IOException e) {
-            System.out.println("Error locating Python3 script: " + pythonScript);
-            System.out.println(e.getMessage());
-//            e.printStackTrace();
-            return false;
+    public ExpressionSituationPythonCaller() {
+        @Nullable String pathToPython;
+        try {
+            var extractedPath = getOrExtractPathToPyFolder(false);
+            pathToPython = Path.of(extractedPath, "expr_operator_concepts.py").toString();
+        } catch (Exception e) {
+            log.warn("Error locating Python3 script expr_operator_concepts.py: {}", e.getMessage(), e);
+            return;
         }
 
-        String cmd = "python \""+ScriptFullPath+"\" --interactive";
-
+        String[] cmd = new String[] { "python", pathToPython, "--interactive" };
         process = null;
         try {
             process = Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
-            close();
-            System.out.println("Error initializing Python3 sub-process. cmd:" + cmd);
-            System.out.println(e.getMessage());
-            // e.printStackTrace();
-            return false;
+            log.warn("Error initializing Python3 sub-process. cmd: {}, ex: {}", cmd, e.getMessage(), e);
+            return;
         }
 
-        inp = new BufferedReader( new InputStreamReader(process.getInputStream()) );
-        out = new BufferedWriter( new OutputStreamWriter(process.getOutputStream()) );
-
-        return true;
+        inp = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        out = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
     }
 
-    public static List<String> pipe(String msg, int expectedOutputLines) {
+    private static String getOrExtractPathToPyFolder(boolean override) {
+        var pathToResourcesFolder = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-model/generator";
+        return ResourcesHelper.ensureFolderExtracted(ExpressionSituationPythonCaller.class, pathToResourcesFolder, "generator_py", override);
+    }
 
+    private @Nullable List<String> pipe(String msg, int expectedOutputLines) {
         List<String> ret;
         try {
             if (process == null) {
-                initSubProcess();
+                return null;
             }
 
             ret = new ArrayList<>(expectedOutputLines);
 
-            out.write( msg + "\n" );
+            out.write(msg);
+            out.write("\n");
             out.flush();
             for (int i = 0; i < expectedOutputLines; i++) {
                 ret.add(inp.readLine());
             }
         }
         catch (IOException | NullPointerException ignored) {
-            System.out.println("WARN: cannot access/use python sub-process.");
-            return Collections.nCopies(expectedOutputLines, "");
+            log.warn("cannot access/use python sub-process.");
+            return null;
         }
 
         return ret;
     }
 
-    public static List<String> invoke(String exprString) {
-            return pipe(exprString, 2);
+    public @Nullable List<String> invoke(String exprString) {
+        return pipe(exprString, 2);
     }
 
-    public static void close() {
-
-        if (process == null) {
-            return;
-        }
-
+    public void close() {
         try {
-            // empty input means "exit"
-            pipe("", 0);
-            process = null;
-
+            if (process != null) {
+                // empty input means "exit"
+                pipe("", 0);
+                process = null;
+            }
             if (inp != null) {
                 inp.close();
                 inp = null;
@@ -111,7 +100,7 @@ public class ExpressionSituationPythonCaller {
             }
         }
         catch (IOException err) {
-            err.printStackTrace();
+            log.warn("error closing python caller: {}", err.getMessage(), err);
         }
     }
 }

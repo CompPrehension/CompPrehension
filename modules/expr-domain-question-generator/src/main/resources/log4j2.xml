@@ -2,15 +2,15 @@
 <Configuration>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d %-5level - %msg%n"/>
+            <PatternLayout pattern="%msg%n"/>
         </Console>
     </Appenders>
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="Console" level="ERROR"/>
         </Root>
-        <Logger name="org.vstu.compprehension" level="DEBUG">
-            <AppenderRef ref="Console" level="DEBUG"/>
+        <Logger name="org.vstu.compprehension" level="INFO">
+            <AppenderRef ref="Console" level="INFO"/>
         </Logger>
     </Loggers>
 </Configuration>
