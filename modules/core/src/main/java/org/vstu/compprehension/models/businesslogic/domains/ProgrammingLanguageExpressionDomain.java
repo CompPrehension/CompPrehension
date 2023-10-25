@@ -2533,7 +2533,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             if (concepts_violations != null && concepts_violations.size() == 2) { // validate the structure
                 // show if something new was inferred
                 Set<String> moreConcepts = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
-                Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
+                Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(1).split(" ")));
 
                 val newConcepts = new HashSet<>(moreConcepts);
                 newConcepts.removeAll(concepts);
