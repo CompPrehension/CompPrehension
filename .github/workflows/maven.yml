@@ -30,8 +30,8 @@ jobs:
         restore-keys: ${{ runner.os }}-m2
     - name: Install third-party depedencies
       run: |
-         chmod +x ./thirdparty/install.sh
-         ./thirdparty/install.sh
+         chmod +x ./thirdparty/depedencies/install.sh
+         ./thirdparty/depedencies/install.sh
       shell: bash
     - name: Run the Maven verify phase
       run: mvn -B verify --file pom.xml -DskipTests

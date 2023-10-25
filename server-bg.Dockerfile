@@ -3,6 +3,7 @@
 FROM eclipse-temurin:21-jre
 COPY ./modules/background-server/target/background-server-*.jar app.jar
 COPY ./modules/expr-domain-question-generator/target/expr-domain-question-generator-*.jar /generator/generator.jar
+COPY ./thirdparty/parser/clang-task-generator /parser/clang-task-generator
 
 # Generate the runner.sh script
 RUN echo '#!/bin/bash' > /generator/runner.sh && \
@@ -17,5 +18,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ENV TASK_GENERATION_GENERATOR_PATH_TO_EXECUTABLE=/generator/runner.sh
+ENV TASK_GENERATION_PARSER_PATH_TO_EXECUTABLE=/parser/clang-task-generator
 
 ENTRYPOINT ["java","-jar","/app.jar"]
