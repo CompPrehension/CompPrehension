@@ -42,7 +42,6 @@ public class ExpressionSituationPythonCaller implements AutoCloseable {
         try {
             process = Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
-            close();
             log.warn("Error initializing Python3 sub-process. cmd: {}, ex: {}", cmd, e.getMessage(), e);
             return;
         }
