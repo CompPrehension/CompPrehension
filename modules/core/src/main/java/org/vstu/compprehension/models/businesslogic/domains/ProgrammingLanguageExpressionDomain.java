@@ -42,7 +42,6 @@ import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -2637,47 +2636,30 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param origin
      */
     public /*static*/ void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
-
-//        System.out.println(ttlTemplatePaths.size() + " parsed files to generate questions from");
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
             try {
+                if (qCount > questionsLimit)
+                    break;
+
                 Path path = Path.of(file);
-
                 String name = path.getFileName().toString();
-
-                if (name.endsWith(".ttl")) {
-                    name = name.substring(0, name.length() - ".ttl".length());
-                    name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
-                } else {
-                    continue; //skip all other files
+                if (!name.endsWith(".ttl")) {
+                    log.info("Skipping non-ttl file: {}", path);
+                    continue;
                 }
 
-//                if (rs.getQuestionStatus(name) == GraphRole.QUESTION_TEMPLATE_SOLVED) {
-//                    System.out.println("Skip solved template: " + name);
-//                    continue;
-//                }
-//                // System.out.println(name + " ...\t");
-
+                name = name.substring(0, name.length() - ".ttl".length());
+                name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
                 count++;
-                if (qCount > questionsLimit) break;
 
                 // Create a template
                 log.debug("{} \tUpload model number {}", name, count);
-                /*rs.createQuestionTemplate(name);*/
                 Model templateModel = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(templateModel, file);
-
-//                val templateMeta = qMetaStorage.setQuestionSubgraph(this, name, GraphRole.QUESTION_TEMPLATE, m);
-//                // set more info to the metadata
-//                templateMeta.setOrigin(origin);
-//                qMetaStorage.saveMetadataDraftEntity(templateMeta);
-//
-//                // Create solved template and save it and metadata
-//                qMetaStorage.solveQuestion(this, name, GraphRole.QUESTION_TEMPLATE_SOLVED);
 
                 Model domainSchemaModel = qMetaStorage.getFullSchema(this);
 
@@ -2689,15 +2671,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                 log.debug("Creating questions for template: {}", name);
 
+                int templateQuestionsCount = 0;
                 Set<Set<String>> possibleViolations = new HashSet<>();
                 for (Map.Entry<String, Model> question : this.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
                     qCount++;
-                    if (qCount >= questionsLimit) break;
-                    // Create question model (with positive laws)
-//                    Model questionInitModel = qMetaStorage.getQuestionModel(name, GraphRole.getPrevious(GraphRole.QUESTION)).add(question.getValue());
-//                    Model questionModel = qMetaStorage.solveTemplate(this, questionInitModel, GraphRole.QUESTION, true);
-//                    questionModel.add(question.getValue());
-//                    Model solvedQuestionModel = qMetaStorage.solveTemplate(this, questionInitModel.add(questionModel), GraphRole.QUESTION_SOLVED, true);
+                    if (qCount >= questionsLimit)
+                        break;
 
                     // Find potential errors: solve the question
                     Model solvedQuestionModel = qMetaStorage.runReasoning(
@@ -2720,12 +2699,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         // guard for the case when the name was not changed
                         questionName += "_v";
                     }
-//                    // create metadata entry
-//                    qMetaStorage.createQuestion(this, questionName, name, false);
-//                    // set basic data of the question
-//                    qMetaStorage.setQuestionSubgraph(this, questionName, GraphRole.QUESTION, questionModel);
-//                    // set solved data of the question
-//                    qMetaStorage.setQuestionSubgraph(this, questionName, GraphRole.QUESTION_SOLVED, solvedQuestionModel);
 
                     // Save question data for domain in JSON
                     log.debug("Generating question: {}", questionName);
@@ -2733,8 +2706,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     if (domainQuestion == null) {
                         log.debug("--  Cancelled inappropriate question: {}", questionName);
-                        // don't complete this question, generation aborted
-//                        qMetaStorage.deleteQuestion(questionName);
                         continue;
                     }
 
@@ -2749,29 +2720,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
 
                     String jsonData = this.questionToJson(domainQuestion);
-
                     path = Path.of(outputDir, questionName + ".json");
-                    try {
-                        Files.writeString(path, jsonData);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-
-//                    String filename = qMetaStorage.saveMetadataEntity(questionName);
-//                    // save metadata row
-//                    var metaDraft = qMetaStorage.findQuestionByName(questionName);
-//                    metaDraft.setQDataGraphPath(filename);
-//                    qMetaStorage.saveMetadataDraftEntity(metaDraft);
-//                    // save data to question's metadata instance, too
-//                    val meta = domainQuestion.getQuestionData().getOptions().getMetadata();
-//                    meta.setQDataGraph(filename);
+                    Files.writeString(path, jsonData);
+                    ++templateQuestionsCount;
                 }
+
+                log.info("Successfully generated {} questions for template {}", templateQuestionsCount, file);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
             }
         }
 
-        log.debug("Total questions generated: {} ({} saved).\n", qCount, savedCount);
+        log.info("Total questions generated: {} ({} saved).\n", qCount, savedCount);
     }
 
     @Override

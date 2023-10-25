@@ -3,13 +3,12 @@ package org.vstu.compprehension;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.adapters.FakeDomainRepository;
 import org.vstu.compprehension.adapters.FakeLocalizationService;
 import org.vstu.compprehension.adapters.FakeQuestionMetadataRepository;
 import org.vstu.compprehension.adapters.FakeRandomProvider;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
 import java.io.IOException;
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Log4j2
 public class Main {
     public static void main(String[] args) {
         Main main = new Main();
@@ -76,7 +76,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        System.out.println(files.size() + " parsed files to generate questions from");
+        log.info("{} parsed files to generate questions from", files.size());
 
         int qCountLimit = 1000;
 

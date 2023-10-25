@@ -30,11 +30,11 @@ public class ResourcesHelper {
         var currentExecutableFolder = currentExecutable.isDirectory() ? currentExecutable.toString() : currentExecutable.getParentFile().toString();
 
         if (currentExecutable.isDirectory()) {
-            log.info("Found directory environment");
+            log.debug("Found directory environment");
             return FileHelper.combinePaths(currentExecutableFolder, resourceFolderName).toString();
         }
         if (currentExecutable.getName().endsWith(".jar")) {
-            log.info("Found jar environment: {}", currentExecutable.getName());
+            log.debug("Found jar environment: {}", currentExecutable.getName());
 
             var extractConfigurationPath = Paths.get(targetFolderName).toAbsolutePath();
             log.debug("out folder path: {}", extractConfigurationPath);
@@ -44,7 +44,7 @@ public class ResourcesHelper {
                 return extractConfigurationPath.toString();
             }
 
-            log.info("Found jar environment: {}", currentExecutable.getName());
+            log.debug("Found jar environment: {}", currentExecutable.getName());
             extractFolderFromJar(packageMarkerType, resourceFolderName, currentExecutable, extractConfigurationPath);
 
             return extractConfigurationPath.toString();
