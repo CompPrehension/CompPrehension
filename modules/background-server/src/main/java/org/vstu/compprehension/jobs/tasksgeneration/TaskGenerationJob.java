@@ -11,6 +11,7 @@ import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
+import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
@@ -299,7 +300,10 @@ public class TaskGenerationJob {
             result.add(destination);
 
             List<String> cmd = new ArrayList<>();
-            cmd.add(generatorConfig.getPathToExecutable());
+            if (generatorConfig.getPathToExecutable().endsWith(".bat") || generatorConfig.getPathToExecutable().endsWith(".sh"))
+                cmd.add(generatorConfig.getPathToExecutable());
+            else
+                cmd.addAll(Arrays.stream(generatorConfig.getPathToExecutable().split("\\s")).toList());
             cmd.add("--source");
             cmd.add(String.valueOf(repoDir));
             cmd.add("--output");
@@ -334,6 +338,7 @@ public class TaskGenerationJob {
     @SneakyThrows
     private void saveQuestions(List<Path> generatedRepos, List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
         var generatorConfig = config.getGenerator();
+        var exportConfig = config.getExporter();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
             return;
@@ -382,11 +387,11 @@ public class TaskGenerationJob {
 
                     // Если вопрос ещё не сохранен в базу
                     if (storage.findQuestionByName(meta.getName()) != null) {
-                        log.info("Question [{}] already exist", q.getQuestionName());
+                        log.debug("Question [{}] already exist", q.getQuestionName());
                         break;
                     }
 
-                    log.info("Question [{}] matches qr {}", q.getQuestionName(), qr.getId());
+                    log.debug("Question [{}] matches qr {}", q.getQuestionName(), qr.getId());
 
                     // set flag to use this question
                     shouldSave = true;
@@ -404,7 +409,9 @@ public class TaskGenerationJob {
                 }
 
                 // copy data file and save local sub-path to it
-                String qDataPath = storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
+                        ? storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"))
+                        : storage.saveQuestionData(exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
@@ -483,11 +490,12 @@ public class TaskGenerationJob {
         return q;
     }
 
+    @SneakyThrows
     private LocalRdfStorage getQuestionStorage() {
         return new LocalRdfStorage(
                 new RemoteFileService(
-                        config.getExporter().getStorageUploadFilesBaseUrl(),
-                        config.getExporter().getStorageUploadFilesBaseUrl(),
+                        config.getExporter().getStorageUploadFilesBaseUrl().toString(),
+                        config.getExporter().getStorageUploadFilesBaseUrl().toString(),
                         config.getExporter().getStorageDummyDirsForNewFile()),
                 metadataRep,
                 null);

@@ -428,7 +428,7 @@ public abstract class AbstractRdfStorage {
      * Send a model as file to remote FTP
      */
     boolean sendModel(String name, Model m) {
-        try (OutputStream stream = fileService.saveFileStream(name)) {
+        try (OutputStream stream = fileService.openForWrite(name)) {
             RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
             getFileService().closeConnections();
         } catch (IOException | NullPointerException e) {

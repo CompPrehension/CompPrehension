@@ -3,9 +3,11 @@ package org.vstu.compprehension.jobs.tasksgeneration;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.URI;
 import java.util.EnumSet;
 
 @Configuration
@@ -47,8 +49,9 @@ public class TaskGenerationJobConfig {
 
     @Getter @Setter @NoArgsConstructor
     public static class ExporterConfig {
-        private int StorageDummyDirsForNewFile;
-        private String StorageUploadFilesBaseUrl ;
+        private int storageDummyDirsForNewFile = 2;
+        private URI storageUploadFilesBaseUrl;
+        private @Nullable String storageUploadRelativePath = "q_data";
     }
 
     public static enum CleanupMode {

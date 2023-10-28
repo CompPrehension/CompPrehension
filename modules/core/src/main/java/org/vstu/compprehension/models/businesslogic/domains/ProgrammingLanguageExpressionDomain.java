@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -76,6 +77,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
 
+    @SneakyThrows
     public ProgrammingLanguageExpressionDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
