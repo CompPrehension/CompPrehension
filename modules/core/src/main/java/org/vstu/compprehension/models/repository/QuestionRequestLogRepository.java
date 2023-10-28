@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
@@ -39,9 +38,9 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
 
         // проверка запрещаемых критериев
         if (meta.getSolutionSteps() < qr.getStepsMin()
-            || meta.getSolutionSteps() > qr.getStepsMax()
-            || (meta.getConceptBits() & qr.getConceptsDeniedBitmask()) != 0
-            || (meta.getViolationBits() & qr.getLawsDeniedBitmask()) != 0
+            || qr.getStepsMax() != 0 && meta.getSolutionSteps() > qr.getStepsMax()
+            || qr.getConceptsDeniedBitmask() != 0 && (meta.getConceptBits() & qr.getConceptsDeniedBitmask()) != 0
+            || qr.getLawsDeniedBitmask() != 0 && (meta.getViolationBits() & qr.getLawsDeniedBitmask()) != 0
         ) {
             return false;
         }
