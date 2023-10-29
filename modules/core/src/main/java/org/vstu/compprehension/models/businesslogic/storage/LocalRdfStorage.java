@@ -14,8 +14,10 @@ import org.vstu.compprehension.utils.Checkpointer;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
@@ -31,7 +33,7 @@ public class LocalRdfStorage extends AbstractRdfStorage {
 
     public LocalRdfStorage(DomainEntity domain,
                            QuestionMetadataRepository questionMetadataRepository,
-                           QuestionMetadataManager questionMetadataManager) {
+                           QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
         this(new RemoteFileService(
                         domain.getOptions().getStorageUploadFilesBaseUrl(),
                         Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl())
@@ -190,31 +192,27 @@ public class LocalRdfStorage extends AbstractRdfStorage {
         return uploadGraph(NS_questions.base());
     }
 
-    /**
-     * @param name question name
-     * @param data JSON string
-     * @return local filepath of file saved under the storage root
-     */
-    public String saveQuestionData(String name, String data) {
-        String filename = getFileService().prepareNameForFile("q_data/" + name + ".json", false);
-        /*setQuestionMetadata(name, List.of(
-                Pair.of(NS_questions.getUri("has_graph_q_data"),
-                        NS_file.getUri(filename))
-        ));
-*/
-        try (OutputStream stream = getFileService().saveFileStream(filename)) {
+    public String saveQuestionData(String basePath, String questionName, String data) throws IOException {
+        var rawQuestionPath = Path.of(basePath, questionName + ".json");
+        return saveQuestionDataImpl(rawQuestionPath.toString(), data);
+    }
+
+    public String saveQuestionData(String questionName, String data) throws IOException {
+        return saveQuestionDataImpl(questionName + ".json", data);
+    }
+
+    private String saveQuestionDataImpl(String rawQuestionPath, String data) throws IOException {
+        var questionPath = getFileService().prepareNameForFile(rawQuestionPath, false);
+        try (OutputStream stream = getFileService().openForWrite(questionPath)) {
             stream.write(data.getBytes(StandardCharsets.UTF_8));
-            return filename;
-        } catch (IOException e) {
-            e.printStackTrace();
+            return questionPath;
         } finally {
             try {
                 getFileService().closeConnections();
             } catch (FileSystemException e) {
-                e.printStackTrace();
+                log.error("Error closing file service connection: {}", e.getMessage(), e);
             }
         }
-        return null;
     }
 
     // @Override

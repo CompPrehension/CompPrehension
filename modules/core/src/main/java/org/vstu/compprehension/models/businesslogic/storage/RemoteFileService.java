@@ -7,9 +7,10 @@ import org.apache.commons.vfs2.util.CryptorFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.zip.CRC32;
@@ -25,17 +26,9 @@ public class RemoteFileService {
     final static int BUFFER_SIZE = 100 * 1024;
 
     private FileSystemManager mgr;
-    private final String baseUploadUri;
+    private final URI baseUploadUri;
 
-    public String getBaseUploadUri() {
-        return baseUploadUri;
-    }
-
-    public String getBaseDownloadUri() {
-        return baseDownloadUri;
-    }
-
-    private final String baseDownloadUri;
+    private final URI baseDownloadUri;
     private int dummyDirsForNewFile = 1;
 
     /**
@@ -43,26 +36,15 @@ public class RemoteFileService {
      * @param baseUploadUri URL to base dir to store data via writable protocol
      * @param baseDownloadUri URL to base dir to read data via readable protocol
      */
-    RemoteFileService(String baseUploadUri, String baseDownloadUri) {
-        this.baseUploadUri   = ensureTrailingSlash(baseUploadUri);
-        this.baseDownloadUri = ensureTrailingSlash(baseDownloadUri);
+    RemoteFileService(String baseUploadUri, String baseDownloadUri) throws URISyntaxException {
+        this.baseUploadUri   = new URI(ensureTrailingSlash(baseUploadUri));
+        this.baseDownloadUri = new URI(ensureTrailingSlash(baseDownloadUri));
         mgr = getFSManager();
     }
 
-    public RemoteFileService(String baseUploadUri, String baseDownloadUri, int dummyDirsForNewFile) {
+    public RemoteFileService(String baseUploadUri, String baseDownloadUri, int dummyDirsForNewFile) throws URISyntaxException {
         this(baseUploadUri, baseDownloadUri);
         this.dummyDirsForNewFile = dummyDirsForNewFile;
-    }
-
-    /**
-     * Create file service with endpoint for both upload and download files.
-     * @param baseUri URL to base dir to store/read data via both writable and readable protocol
-     */
-    RemoteFileService(String baseUri) {
-        this.baseUploadUri = ensureTrailingSlash(baseUri);
-        // copy as not specified:
-        baseDownloadUri = this.baseUploadUri;
-        mgr = getFSManager();
     }
 
     @NotNull
@@ -142,13 +124,17 @@ public class RemoteFileService {
         return file.exists();
     }
 
-    /** Obtain OutputStream of specified file to write in.
-     * @param localName resource name relative to baseUri
-     * @return OutputStream or null if path is dir or is not writeable
-     * @throws FileSystemException on communication error
-     */
-    public OutputStream saveFileStream(String localName) throws FileSystemException {
-        final FileObject file = getMgr().resolveFile(baseUploadUri + localName);
+    private URI resolveRelativePath(String relativePath) {
+        return baseUploadUri.resolve(relativePath);
+    }
+
+    public @Nullable OutputStream openForWrite(String relativePath) throws FileSystemException  {
+        var fileUri = resolveRelativePath(relativePath);
+        return openForWrite(fileUri);
+    }
+
+    private @Nullable OutputStream openForWrite(URI path) throws FileSystemException  {
+        final FileObject file = getMgr().resolveFile(path);
         if (file.getType() == FileType.FOLDER || !file.isWriteable()) {
             return null;
         }
@@ -323,100 +309,5 @@ public class RemoteFileService {
     private static String encryptPassword(String p) throws Exception {
         Cryptor cryptor = CryptorFactory.getCryptor();
         return cryptor.encrypt(p);
-    }
-
-
-
-    public static void main(String[] args) throws IOException {
-
-        // Prepare connection string with optionally encrypted password: cut from output and save elsewhere
-        String s = ftpUriString("poas", "your-password-here", "vds84.server-1.biz/ftp_dir", true);
-        System.out.println(s);
-
-////        String connectionStr = "file:///c:/Temp2/data/";
-//        String connectionStr = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/tmp";
-//        String connectionDownloadStr = "http://vds84.server-1.biz/misc/ftp/compp/tmp/";
-//        RemoteFileService rfs = new RemoteFileService(connectionStr, connectionDownloadStr);
-//        rfs.test();
-    }
-
-    private void test() throws IOException {
-        assert mgr != null;
-
-//        setDummyDirsForNewFile(3);
-//        System.out.println(insertDummyDirs("file1.txt"));
-//        System.out.println(insertDummyDirs("mydir/file1.txt"));
-//        System.out.println(insertDummyDirs("my/dir/file1.txt"));
-
-        // test uploads / downloads
-        for (int i = 0 ; i < 3 ; i++) {
-            long startTime = System.nanoTime();
-
-//            try(OutputStream stream = saveFileStream("dump.bin")) {
-//                for (int k = 0 ; k < 1000 ; k++) {
-//                    stream.write(new byte[100]);
-//                }
-//            }  // 1,7 s
-
-            try(InputStream stream = getFileStream("dump.bin")) {
-                while (stream.read(new byte[100]) > 0) {}
-            }  // 0.98 s via FTP ;  ~ 0.45 s via HTTP (Nginx)
-               // 0.98 s via FTP ;  ~ 0.20 s via HTTP (fast 4G)
-
-            long estimatedTime = System.nanoTime() - startTime;
-            System.out.println("Take "+ i +": " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
-        }
-
-
-//        final FileObject file = getMgr().resolveFile(baseUri + "compp/a/test.abc");
-//
-//        if (!file.exists()) {
-//            file.createFile();  // does `make dirs` automatically.
-//            System.out.println("file created!");
-//        }
-//
-//        FileContent fc = file.getContent();
-//
-//        byte[] b = new byte[2];
-//        InputStream in = fc.getInputStream();
-//        int nread = in.read(b);
-//        System.out.println(nread);
-//        System.out.println(Arrays.toString(b));
-
-//        fc.getOutputStream().write(new byte[] {(byte) 0xca, (byte) 0xfe, (byte) 0xba, (byte) 0xbe});
-//        fc.close();
-
-
-//        System.out.println("URL: " + file.getURL());
-//        System.out.println("getName(): " + file.getName());
-//        System.out.println("BaseName: " + file.getName().getBaseName());
-//        System.out.println("Extension: " + file.getName().getExtension());
-//        System.out.println("Path: " + file.getName().getPath());
-//        System.out.println("Scheme: " + file.getName().getScheme());
-//        System.out.println("URI: " + file.getName().getURI());
-//        System.out.println("Root URI: " + file.getName().getRootURI());
-//        System.out.println("Parent: " + file.getName().getParent());
-//        System.out.println("Type: " + file.getType());
-//        System.out.println("Exists: " + file.exists());
-//        System.out.println("Readable: " + file.isReadable());
-//        System.out.println("Writeable: " + file.isWriteable());
-//        System.out.println("Root path: " + file.getFileSystem().getRoot().getName().getPath());
-
-        /*
-        URL: file:///c:/Temp2/data/a/b/file.tst
-        getName(): file:///c:/Temp2/data/a/b/file.tst
-        BaseName: file.tst
-        Extension: tst
-        Path: /Temp2/data/a/b/file.tst
-        Scheme: file
-        URI: file:///c:/Temp2/data/a/b/file.tst
-        Root URI: file:///c:/
-        Parent: file:///c:/Temp2/data/a/b
-        Type: imaginary
-        Exists: false
-        Readable: false
-        Writeable: true
-        Root path: /
-         */
     }
 }
