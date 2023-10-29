@@ -136,7 +136,7 @@ public class TaskGenerationJob {
         }
 
         if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupGenerated)) {
-            val generatedPath = Path.of(config.getParser().getOutputFolderPath());
+            val generatedPath = Path.of(config.getGenerator().getOutputFolderPath());
             if (Files.exists(generatedPath))
                 FileHelper.deleteFolderContent(generatedPath.toFile());
             log.info("successfully cleanup generated questions folder");
