@@ -3,7 +3,11 @@
 FROM eclipse-temurin:21-jre
 COPY ./modules/background-server/target/background-server-*.jar app.jar
 COPY ./modules/expr-domain-question-generator/target/expr-domain-question-generator-*.jar /generator/generator.jar
-COPY ./thirdparty/parser/clang-task-generator /parser/clang-task-generator
+
+# download parser
+RUN mkdir /parser && \
+    wget "https://github.com/CompPrehension/top-learning-generator/releases/download/Latest/clang-task-generator" -O /parser/clang-task-generator && \
+    chmod +x /parser/clang-task-generator
 
 # Generate the runner.sh script
 RUN echo '#!/bin/bash' > /generator/runner.sh && \
