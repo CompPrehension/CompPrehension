@@ -485,7 +485,7 @@ public class TaskGenerationJob {
         try (InputStream stream = new FileInputStream(path)) {
             q = parseQuestionJson(stream);
         } catch (IOException | NullPointerException | IllegalStateException e) {
-            e.printStackTrace();
+            log.error("Question parsing exception - {}", e.getMessage(), e);
         }
         return q;
     }

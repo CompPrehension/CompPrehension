@@ -329,12 +329,12 @@ public abstract class AbstractRdfStorage {
                 log.warn("File NOT found by storage: {}", path);
             }
         } catch (IOException | NullPointerException | IllegalStateException e) {
-            e.printStackTrace();
+            log.error("Error loading question with path [{}] - {}", path, e.getMessage(), e);
         } finally {
             try {
                 getFileService().closeConnections();
             } catch (FileSystemException e) {
-                e.printStackTrace();
+                log.error("Error closing connection - {}", e.getMessage(), e);
             }
         }
         return q;
@@ -410,7 +410,7 @@ public abstract class AbstractRdfStorage {
             RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
             getFileService().closeConnections();
         } catch (IOException /*| NullPointerException*/ e) {
-            e.printStackTrace();
+            log.error("Error reading model with path [{}] - {}", filepath, e.getMessage(), e);
             return null;
         }
         return m;
@@ -432,7 +432,7 @@ public abstract class AbstractRdfStorage {
             RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
             getFileService().closeConnections();
         } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
+            log.error("Error sending model with name [{}] - {}", name, e.getMessage(), e);
             return false;
         }
         return true;
@@ -757,7 +757,7 @@ public abstract class AbstractRdfStorage {
                 fileService.deleteFile(qgSubPath);
             }
         } catch (FileSystemException e) {
-            e.printStackTrace();
+            log.error("Error deleting question with name [{}] - {}", questionName, e.getMessage(), e);
         }
 
         // delete db entry
@@ -908,7 +908,7 @@ public abstract class AbstractRdfStorage {
                     querySolution -> names.add(querySolution.get("name").asLiteral().getString()));
 
         } catch (JenaException exception) {
-            exception.printStackTrace();
+            log.error("Error querying template - {}", exception.getMessage(), exception);
         }
         return names;
     }

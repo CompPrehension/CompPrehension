@@ -73,7 +73,7 @@ public class Main {
         try {
             files = listFullFilePathsInDir(sourcePath);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("listFullFilePathsInDir error - {}", e.getMessage(), e);
         }
 
         log.info("{} parsed files to generate questions from", files.size());
