@@ -62,7 +62,6 @@ public class ClassLocationHelper {
             return new URL(path);
         }
         catch (final MalformedURLException e) {
-            e.printStackTrace();
             return null;
         }
     }

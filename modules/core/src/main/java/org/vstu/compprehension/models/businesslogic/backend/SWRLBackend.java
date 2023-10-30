@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -15,6 +16,7 @@ import org.swrlapi.parser.SWRLParseException;
 
 import java.util.*;
 
+@Log4j2
 public abstract class SWRLBackend implements Backend {
 
     IRI OntologyIRI;
@@ -36,7 +38,7 @@ public abstract class SWRLBackend implements Backend {
         try {
             Ontology = Manager.createOntology(OntologyIRI);
         } catch (OWLOntologyCreationException e) {
-            e.printStackTrace();
+            log.error("Ontology creation exception - {}", e.getMessage(), e);
         }
 
         Factory = Manager.getOWLDataFactory();
@@ -124,7 +126,7 @@ public abstract class SWRLBackend implements Backend {
                 try {
                     ruleEngine.createSWRLRule(lawFormulation.getName(), lawFormulation.getFormulation());
                 } catch (SWRLParseException | SWRLBuiltInException e) {
-                    e.printStackTrace();
+                    log.error("Error creating swrl rule '{}' - {}", lawFormulation.getName(), e.getMessage(), e);
                 }
             } else if (lawFormulation.getBackend().equals("OWL")) {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());

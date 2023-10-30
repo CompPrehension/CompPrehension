@@ -47,7 +47,6 @@ public class FileUtility {
                     .map(Path::toFile)
                     .forEach(FileUtils::deleteQuietly);
         } catch (IOException e) {
-            e.printStackTrace();
         }
 
         return true;

@@ -623,9 +623,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
                     foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
                 }
-            } catch (RuntimeException ex) {
+            } catch (Exception e) {
                 // file storage was not configured properly...
-                ex.printStackTrace();
+                log.error("Error searching questions - {}", e.getMessage(), e);
                 foundQuestions = new ArrayList<>();
             }
         }

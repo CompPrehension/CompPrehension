@@ -234,7 +234,7 @@ public class LocalRdfStorage extends AbstractRdfStorage {
                 RDFDataMgr.write(out, getLocalGraphByUri(gUri), DEFAULT_RDF_SYNTAX);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error uploading graph with uri [{}] - {}", gUri, e.getMessage(), e);
         }
         return true;
     }

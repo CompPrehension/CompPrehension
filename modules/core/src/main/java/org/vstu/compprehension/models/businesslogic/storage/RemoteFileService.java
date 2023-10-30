@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.util.Cryptor;
@@ -18,7 +19,7 @@ import java.util.zip.Checksum;
 
 import static java.lang.Math.min;
 
-
+@Log4j2
 public class RemoteFileService {
     final static String PATH_SEPARATORS = "/\\#;:";
     final static String PATH_LEGAL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-";
@@ -72,7 +73,7 @@ public class RemoteFileService {
             fsManager = VFS.getManager();
             //// FileObject jarFile = fsManager.resolveFile(baseUri);
         } catch (FileSystemException e) {
-            e.printStackTrace();
+            log.error("Error creation FS manager - {}", e.getMessage(), e);
             fsManager = null;
             //// throw e;
         }
@@ -193,7 +194,7 @@ public class RemoteFileService {
             }
             return name;
         } catch (FileSystemException e) {
-            e.printStackTrace();
+            log.error("Error preparing name for file - {}", e.getMessage(), e);
             return null;
         }
     }
@@ -299,8 +300,7 @@ public class RemoteFileService {
             try {
                 pass = "{" + encryptPassword(pass) + "}";
             } catch (Exception e) {
-                System.err.println("Cannot create encrypt password: " + pass);
-                e.printStackTrace();
+                log.error("Error encrypting password - {}", e.getMessage(), e);
             }
         }
         return String.format("ftp://%s:%s@%s", user, pass, domain);
