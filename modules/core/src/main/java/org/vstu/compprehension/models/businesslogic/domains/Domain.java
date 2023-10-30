@@ -345,6 +345,7 @@ public abstract class Domain {
                         .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
                         .registerSubtype(Matching.class, "MATCHING");
         return new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
     }
 
@@ -361,6 +362,7 @@ public abstract class Domain {
     private static final Gson gson = new GsonBuilder()
         .disableHtmlEscaping()
         .setPrettyPrinting()
+        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
         .create();
     public static String questionToJson(Question question, String questionType) {
         var jsonObj = gson.toJsonTree(question).getAsJsonObject();

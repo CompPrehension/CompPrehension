@@ -156,6 +156,7 @@ public class ControlFlowStatementsDomain extends Domain {
                         .registerSubtype(PositiveLaw.class, "true")
                         .registerSubtype(NegativeLaw.class, "false");
         Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Law[] lawForms = gson.fromJson(

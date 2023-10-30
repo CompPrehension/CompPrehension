@@ -212,6 +212,7 @@ public abstract class AbstractRdfStorage {
             );
 
         ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
+        log.info("searchQuestionsAdvanced - candidates: {}", foundQuestionMetas.stream().map(QuestionMetadataEntity::getName).toList());
 
         // set concepts from request (for future reference via questions' saved metadata)
         for (QuestionMetadataEntity m : foundQuestionMetas) {
