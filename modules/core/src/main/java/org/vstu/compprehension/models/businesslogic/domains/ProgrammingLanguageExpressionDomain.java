@@ -310,6 +310,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         .registerSubtype(PositiveLaw.class, "true")
                         .registerSubtype(NegativeLaw.class, "false");
         Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Law[] lawForms = gson.fromJson(
@@ -364,6 +365,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
                         .registerSubtype(Matching.class, "MATCHING");
         Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Question question = gson.fromJson(
@@ -395,6 +397,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
                         .registerSubtype(Matching.class, "MATCHING");
         Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
                 .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
 
         Question[] questions = gson.fromJson(
