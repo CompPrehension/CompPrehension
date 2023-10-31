@@ -53,7 +53,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
             super.doDispatch(request, response);
         } catch (Exception e) {
             if (isLogNeeded)
-                log.error("error: ", e);
+                log.error("error: {}", e.getMessage(), e);
             response.sendError(500, e.getMessage() + ". For additional info see logs. CorrelationId: " + request.getSession().getId());
         } finally {
             if (isLogNeeded)
@@ -77,7 +77,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
     }
 
     private void logAfterRequest(HttpServletRequest requestToCache,  HttpServletResponse responseToCache, HandlerExecutionChain handler) {
-        log.info("Finish processing request: path: '{}'", requestToCache.getRequestURI());
+        log.info("Finish processing request: path: '{}', status: {}", requestToCache.getRequestURI(), responseToCache.getStatus());
         //log.info("Response body: {}", getResponsePayload(responseToCache));
 
         // clear all request context variables

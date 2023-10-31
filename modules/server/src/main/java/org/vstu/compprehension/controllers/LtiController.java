@@ -1,36 +1,50 @@
 package org.vstu.compprehension.controllers;
 
+import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jwt.JWTParser;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import net.minidev.json.JSONArray;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
 import javax.security.sasl.AuthenticationException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("lti")
 @Log4j2
 public class LtiController {
+    private final SecurityContextRepository securityContextRepository;
+    private final SecurityContextHolderStrategy securityContextHolderStrategy;
+
+    public LtiController(SecurityContextRepository securityContextRepository, SecurityContextHolderStrategy securityContextHolderStrategy) {
+        this.securityContextRepository     = securityContextRepository;
+        this.securityContextHolderStrategy = securityContextHolderStrategy;
+    }
+
     @Data @Builder
     public static class LtiOidcLoginRequest {
         private String ltiDeploymentId;
@@ -71,33 +85,30 @@ public class LtiController {
                 "form_post");
 
         log.info("LTI auth url created : {}", redirectUrl);
-        response.setHeader("Location", redirectUrl);
-        response.setStatus(302);
+        response.sendRedirect(redirectUrl);
     }
 
     @SneakyThrows
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"} )
     public void exercise(@RequestParam long id, HttpServletRequest request, HttpServletResponse response) {
-        authenticateFromLti13ResourceLinkRequest(request);
+        authenticateFromLti13ResourceLinkRequest(request, response);
 
         var redirectUrl = String.format("/pages/exercise?exerciseId=%d", id);
         log.info("Redirect to exercise, url:{}", redirectUrl);
-        response.setHeader("Location", redirectUrl);
-        response.setStatus(302);
+        response.sendRedirect(redirectUrl);
     }
 
     @SneakyThrows
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"} )
     public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
-        authenticateFromLti13ResourceLinkRequest(request);
+        authenticateFromLti13ResourceLinkRequest(request, response);
 
         var redirectUrl = "/pages/exercise-settings";
         log.info("Redirect to exercise-settings, url:{}", redirectUrl);
-        response.setHeader("Location", redirectUrl);
-        response.setStatus(302);
+        response.sendRedirect(redirectUrl);
     }
 
-    private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request) throws AuthenticationException, ParseException {
+    private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ParseException {
         var formDataParams = HttpRequestHelper.getAllRequestParams(request);
         var rawIdToken = formDataParams.get("id_token");
         var rawState = formDataParams.get("state");
@@ -119,8 +130,13 @@ public class LtiController {
                         .orElseThrow()))
                 .collect(Collectors.toSet());
         OAuth2User user = new DefaultOidcUser(mappedAuthorities, oidcToken);
-        var t = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
-        SecurityContextHolder.getContext().setAuthentication(t);
+        var authentication = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
+
+        SecurityContext context = securityContextHolderStrategy.createEmptyContext();
+        context.setAuthentication(authentication);
+        securityContextHolderStrategy.setContext(context);
+        securityContextRepository.saveContext(context, request, response);
+
         log.info("user '{}:{}' is successfully authenticated from LTI with authorities {}", oidcToken.getFullName(), user.getName(), mappedAuthorities);
     }
 }
