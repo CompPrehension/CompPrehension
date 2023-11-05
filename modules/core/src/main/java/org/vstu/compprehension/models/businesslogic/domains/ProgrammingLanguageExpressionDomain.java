@@ -2730,7 +2730,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     ++templateQuestionsCount;
                 }
 
-                log.info("Successfully generated {} questions for template {}", templateQuestionsCount, file);
+                if (templateQuestionsCount > 0) {
+                    log.info("Successfully generated {} question(s) for template {}", templateQuestionsCount, file);
+                }
             } catch (Exception e) {
                 log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
             }

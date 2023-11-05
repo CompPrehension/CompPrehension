@@ -1011,8 +1011,9 @@ public abstract class AbstractRdfStorage {
         inf.prepare();
 
         long estimatedTime = System.nanoTime() - startTime;
-//        log.info
-        log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float)estimatedTime / 1000 / 1000 / 1000);
+        if (estimatedTime > 100_000_000) {  // > 0.1 s
+            log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float) estimatedTime / 1000_000_000);
+        }
 
         Model result;
         if (retainNewFactsOnly) {
