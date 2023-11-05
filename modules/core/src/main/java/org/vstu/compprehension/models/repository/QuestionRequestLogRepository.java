@@ -58,7 +58,7 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
         // В текущем варианте: вопрос подходит, если хотя бы по одному параметру есть совпадение.
         if ((meta.getTraceConceptBits() & qr.getTraceConceptsTargetedBitmask()) != 0
             || (meta.getConceptBits() & qr.getConceptsTargetedBitmask()) != 0
-            || (meta.getLawBits() & qr.getLawsTargetedBitmask()) != 0
+            || (meta.getViolationBits() & qr.getLawsTargetedBitmask()) != 0
         ) {
             return true;
         }
