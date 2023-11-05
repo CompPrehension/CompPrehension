@@ -66,7 +66,6 @@ public class Main {
         cnf.setStorageDownloadFilesBaseUrl(outputPath);
         cnf.setStorageUploadFilesBaseUrl(outputPath);
         cnf.setStorageDummyDirsForNewFile(2);
-        // TODO: using LocalRdfStorage (while the code is) in RdfStorage. Move something?
 
         // Find files in local directory
         List<String> files = new ArrayList<>();

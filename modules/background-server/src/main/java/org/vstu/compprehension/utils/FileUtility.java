@@ -3,7 +3,6 @@ package org.vstu.compprehension.utils;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,21 +34,17 @@ public class FileUtility {
     /** Clears directory contents recursively, retaining the empty directory itself.
      * @param path dir to clear
      */
-    public static boolean clearDirectory(Path path) /*throws IOException*/ {
+    public static void clearDirectory(Path path) /*throws IOException*/ {
 
         if (!Files.isDirectory(path)) {
             throw new IllegalArgumentException("Path must be a directory!");
         }
-
         // just iterate and delete anything within the dir
         try {
             Files.list(path)
                     .map(Path::toFile)
                     .forEach(FileUtils::deleteQuietly);
-        } catch (IOException e) {
-        }
-
-        return true;
+        } catch (IOException ignored) {}
     }
 
 

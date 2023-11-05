@@ -20,15 +20,15 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
     );
 
 
-    /** Проверка на то, подходит ли вопрос под этот QR. Некоторые проверки опущены в предположении о том, что проверяемый вопрос является новым, то есть его ID ещё неизвестен.
+    /** Проверка на то, подходит ли вопрос под этот QR. Проверка на запрещённые вопросы по ID опущена с учётом того, что проверяемый вопрос является новым, то есть его ID ещё неизвестен.
      * @param meta метаданные Целевого вопроса
      * @param qr запрос на поиск вопросов для проверки
      * @return true, если вопрос подходит
      */
     static boolean doesQuestionSuitQR(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qr) {
 
-        // all checks required ti determine if the Q suits for the QR
-        // see also: org.vstu.compprehension.models.repository.QuestionMetadataRepository#findSampleAroundComplexityWithoutQIds
+        // all checks required to determine if the Q suits for the QR
+        // see also: org.vstu.compprehension.models.repository.QuestionMetadataRepository#findSampleAroundComplexityWithoutQIds , org.vstu.compprehension.models.repository.QuestionMetadataRepository#countQuestions
 
         // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
         if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())
@@ -54,7 +54,7 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
 
         // сложность не проверяем (пусть будет всякая)
 
-        // проверка на то, что присутствует хотя бы один целевой
+        // Проверка на то, что присутствует хотя бы один целевой концепт/закон.
         // В текущем варианте: вопрос подходит, если хотя бы по одному параметру есть совпадение.
         if ((meta.getTraceConceptBits() & qr.getTraceConceptsTargetedBitmask()) != 0
             || (meta.getConceptBits() & qr.getConceptsTargetedBitmask()) != 0
