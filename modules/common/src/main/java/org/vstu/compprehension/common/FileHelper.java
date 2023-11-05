@@ -37,6 +37,10 @@ public class FileHelper {
         folder.delete();
     }
 
+    /**
+     * @implNote TODO: merge with org.vstu.compprehension.utils.FileUtility#clearDirectory ??
+     * @param folder path to folder to clear
+     */
     public static void deleteFolderContent(File folder) {
         File[] files = folder.listFiles();
         if(files != null) { //some JVMs return null for empty dirs

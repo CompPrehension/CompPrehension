@@ -54,7 +54,7 @@ public class TaskGenerationJobConfig {
         private @Nullable String storageUploadRelativePath = "q_data";
     }
 
-    public static enum CleanupMode {
+    public enum CleanupMode {
         CleanupDownloaded,
         CleanupDownloadedShallow,
         CleanupParsed,

@@ -2542,13 +2542,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 val newConcepts = new HashSet<>(moreConcepts);
                 newConcepts.removeAll(concepts);
                 if (!newConcepts.isEmpty()) {
-                    log.debug("python sub-service: inferred {} more concepts: {}", newConcepts.size(), newConcepts);
+                    log.info("python sub-service inferred {} more concept(s): {}", newConcepts.size(), newConcepts);
                     concepts.addAll(newConcepts);
                 }
                 val newViolations = new HashSet<>(moreViolations);
                 newViolations.removeAll(concepts);
                 if (!newViolations.isEmpty()) {
-                    log.debug("python sub-service: inferred {} more violations: {}", newViolations.size(), newViolations);
+                    log.info("python sub-service inferred {} more violation(s): {}", newViolations.size(), newViolations);
                     violations.addAll(newViolations);
                 }
             }
@@ -2730,7 +2730,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     ++templateQuestionsCount;
                 }
 
-                log.info("Successfully generated {} questions for template {}", templateQuestionsCount, file);
+                if (templateQuestionsCount > 0) {
+                    log.info("Successfully generated {} question(s) for template {}", templateQuestionsCount, file);
+                }
             } catch (Exception e) {
                 log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
             }

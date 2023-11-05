@@ -330,10 +330,6 @@ public class JenaBackend implements Backend {
             InfModel inf = ModelFactory.createInfModel(reasoner, model);
             inf.prepare();
 
-            // long estimatedTime = System.nanoTime() - startStepTime;
-            // print time report. TODO: remove the print
-            // log.info("Time Jena spent on reasoning step: " + String.format("%.5f", (float)estimatedTime / 1000 / 1000 / 1000) + " seconds.");
-
             // use the inferred results (inf) ...
             model = ModelFactory.createOntologyModel(OWL_MEM);  // use empty to add to
             model.add( inf );
@@ -343,8 +339,10 @@ public class JenaBackend implements Backend {
             model.remove(srcModel);
         }
         long estimatedTime = System.nanoTime() - startTime;
-        // print time report. TODO: remove the print
-        log.printf(Level.INFO, "Time Jena spent on reasoning total: %.5f seconds.", (float)estimatedTime / 1000 / 1000 / 1000);
+        // print time report.
+        if (estimatedTime > 100_000_000) {  // > 0.1 s
+            log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float) estimatedTime / 1000_000_000);
+        }
     }
 
     private String convertDatatype(String jenaType) {

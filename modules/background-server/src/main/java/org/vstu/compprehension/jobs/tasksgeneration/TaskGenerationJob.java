@@ -118,14 +118,14 @@ public class TaskGenerationJob {
             } catch (Exception exception) {
                 log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
             }
-            log.info("successfully cleanup downloaded repos folder");
+            log.info("successfully cleanup downloaded repos folder (shallow mode)");
         } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloaded) && downloadedPathExists) {
             try {
                 FileUtils.deleteDirectory(downloadedPath.toFile());
             } catch (IllegalArgumentException exception) {
                 log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
             }
-            log.info("successfully cleanup downloaded repos folder (shallow)");
+            log.info("successfully cleanup downloaded repos folder");
         }
 
         if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupParsed)) {
@@ -159,7 +159,7 @@ public class TaskGenerationJob {
         var outputFolderPath = Path.of(downloaderConfig.getOutputFolderPath());
         Files.createDirectories(outputFolderPath);
 
-        // TODO Добавить историю по использованным репозиториям
+        // Учесть историю по использованным репозиториям
         var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toSet());
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
@@ -344,7 +344,7 @@ public class TaskGenerationJob {
             return;
         }
 
-        log.info("Start generated questions processing for {} repositories ...", generatedRepos.size());
+        log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
 
         for (var repoDir : generatedRepos) {
             String repoName = repoDir.getFileName().toString();
