@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
-import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
@@ -98,9 +97,7 @@ public class ExerciseService {
                         .collect(Collectors.toList()))
                 .complexity(exercise.getComplexity())
                 .options(exercise.getOptions())
-                .tags(exercise.getTags().stream()
-                        .map(Tag::getName)
-                        .collect(Collectors.toList()))
+                .tags(exercise.getTags())
                 .build();
     }
 }

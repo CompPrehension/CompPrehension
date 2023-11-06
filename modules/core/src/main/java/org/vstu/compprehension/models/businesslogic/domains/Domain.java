@@ -37,11 +37,6 @@ public abstract class Domain {
     /** name to Concept mapping */
     protected Map<String, Concept> concepts;
 
-    /** name to Tag mapping */
-    protected Map<String, Tag> tags;
-
-
-
     /**
      * domain name (used to get domain by name)
      */
@@ -86,6 +81,11 @@ public abstract class Domain {
     public DomainEntity getEntity() {
         return domainEntity;
     }
+
+    public @Nullable Tag getTag(@NotNull String name) {
+        return getTags().get(name);
+    }
+    public abstract @NotNull Map<String, Tag> getTags();
 
     public Collection<PositiveLaw> getPositiveLaws() {
         return positiveLaws.values();
@@ -143,10 +143,6 @@ public abstract class Domain {
 
     public Concept getConcept(String name) {
         return concepts.getOrDefault(name, null);
-    }
-
-    public Tag getTag(String name) {
-        return tags.getOrDefault(name, null);
     }
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy

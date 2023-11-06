@@ -121,7 +121,8 @@ public class FrontendService {
         // ch.hit("attempt found");
 
         // evaluate answer
-        val tags = attempt.getExercise().getTags();
+        val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
+        val tags = attempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
         val question = questionService.getSolvedQuestion(questionId);
         ch.hit("solved question obtained");
         val responses = questionService.responseQuestion(question, answers);
@@ -153,7 +154,6 @@ public class FrontendService {
         ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
 
         // calculate error message
-        val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .filter(Objects::nonNull);
@@ -260,7 +260,8 @@ public class FrontendService {
 
         // evaluate new answer
         val exerciseAttempt = question.getQuestionData().getExerciseAttempt();
-        val tags = exerciseAttempt.getExercise().getTags();
+        val domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+        val tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
         val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 

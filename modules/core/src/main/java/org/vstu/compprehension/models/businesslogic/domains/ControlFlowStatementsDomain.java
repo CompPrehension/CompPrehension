@@ -59,8 +59,13 @@ public class ControlFlowStatementsDomain extends Domain {
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
     static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-laws.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow-messages";
-
     static final String MESSAGE_PREFIX = "ctrlflow_";
+    private static final HashMap<String, Tag> tags = new HashMap<>() {{
+        put("C++", new Tag("C++", 2L));  	// (2 ^ 1)
+        put("trace", new Tag("trace", 4L));  	// (2 ^ 2)
+        put("ordering", new Tag("ordering", 8L));  	// (2 ^ 3)
+        put("supplementary", new Tag("supplementary", 16L));  	// (2 ^ 4)
+    }};
 
     // dictionary
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.rdf";
@@ -107,20 +112,15 @@ public class ControlFlowStatementsDomain extends Domain {
         return localizationService.getMessage("ctrlflow_text.description", language);
     }
 
+    @NotNull
+    @Override
+    public Map<String, Tag> getTags() {
+        return tags;
+    }
+
     public static void initVocab() {
         if (VOCAB == null) {
             VOCAB = new DomainVocabulary(VOCAB_SCHEMA_PATH);
-        }
-    }
-
-    private void fillTags() {
-        tags = new HashMap<>();
-        // assign mask bits to Tags
-        for (val nameBit : _getTagsName2bit().entrySet()) {
-            Tag tag = new Tag();
-            tag.setName(nameBit.getKey());
-            tag.setBitmask(nameBit.getValue());
-            tags.put(tag.getName(), tag);
         }
     }
 
@@ -2133,14 +2133,6 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
-    private HashMap<String, Long> _getTagsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(4);
-        name2bit.put("C++", 2L);  	// (2 ^ 1)
-        name2bit.put("trace", 4L);  	// (2 ^ 2)
-        name2bit.put("ordering", 8L);  	// (2 ^ 3)
-        name2bit.put("supplementary", 16L);  	// (2 ^ 4)
-        return name2bit;
-    }
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);
         name2bit.put("pointer", 0x1L);
