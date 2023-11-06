@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.strategies;
 
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
@@ -20,7 +21,8 @@ import java.util.stream.Stream;
 
 public interface AbstractStrategy {
     @NotNull String getStrategyId();
-
+    @NotNull String getDisplayName(Language language);
+    @Nullable String getDescription(Language language);
     @NotNull StrategyOptions getOptions();
 
     QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt);

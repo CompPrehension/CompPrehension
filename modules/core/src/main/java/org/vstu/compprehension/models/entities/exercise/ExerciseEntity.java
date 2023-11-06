@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -59,10 +58,9 @@ public class ExerciseEntity {
     @Column(name = "strategy_id", nullable = false, length = 100)
     private @NotNull String strategyId;
 
-    public List<Tag> getTags() {
+    public List<String> getTags() {
         return Arrays.stream(tags.split("\\s*,\\s*"))
                 .filter(t -> !StringHelper.isNullOrWhitespace(t))
-                .map(Tag::new)
                 .collect(Collectors.toList());
     }
 

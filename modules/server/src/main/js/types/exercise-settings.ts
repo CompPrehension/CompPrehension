@@ -79,7 +79,7 @@ export type ExerciseCardViewModel = {
     strategyId: string,
     backendId: string,
     complexity: number,
-    tags: string,
+    tags: string[],
     stages: NonEmptyArray<ExerciseStage>,
     options: ExerciseOptions,
 }
@@ -127,25 +127,33 @@ export const TDomainConcept : io.Type<DomainConcept> = io.recursion('DomainConce
 
 export type Domain = {
     id: string,
-    name: string,
+    displayName: string,
+    description: string | null,
     laws: DomainLaw[],
     concepts: DomainConcept[],
+    tags: string[],
 }
 export const TDomain : io.Type<Domain> = io.type({
     id: io.string,
-    name: io.string,
+    displayName: io.string,
+    description: io.union([io.string, io.null]),
     laws: io.array(TDomainLaw),
     concepts: io.array(TDomainConcept),
+    tags: io.array(io.string),
 })
 
 export type Strategy = {
     id: string,
+    displayName: string,
+    description: string | null,
     options: {
         multiStagesEnabled: boolean,
     },
 }
 export const TStrategy: io.Type<Strategy> = io.type({
     id: io.string,
+    displayName: io.string,
+    description: io.union([io.string, io.null]),
     options: io.type({
         multiStagesEnabled: io.boolean,
     }),

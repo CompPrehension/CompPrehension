@@ -62,7 +62,8 @@ public class QuestionService {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
-        Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), exerciseAttempt.getUser().getPreferred_language());
+        var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
+        Question question = domain.makeQuestion(qr, tags, exerciseAttempt.getUser().getPreferred_language());
         saveQuestionRequest(qr);  // use it after the domain has set step range to qr
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
@@ -197,7 +198,9 @@ public class QuestionService {
 
     public Question getSolvedQuestion(Long questionId) {
         val question = getQuestion(questionId);
-        return solveQuestion(question, question.getQuestionData().getExerciseAttempt().getExercise().getTags());
+        var tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags()
+                .stream().map(t -> question.getDomain().getTag(t)).filter(Objects::nonNull).toList();
+        return solveQuestion(question, tags);
     }
 
     public QuestionEntity getQuestionEntity(Long questionId) {

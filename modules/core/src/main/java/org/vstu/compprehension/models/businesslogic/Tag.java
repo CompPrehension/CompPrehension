@@ -1,19 +1,10 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-import java.util.List;
-
-@Data
-@NoArgsConstructor
+@Value
 public class Tag {
-    private String name;
-
+    String name;
     /** ID-like bit of the concept for a bitmask combining several Concepts */
     long bitmask;
-
-    public Tag(String name) {
-        this.name = name;
-    }
 }

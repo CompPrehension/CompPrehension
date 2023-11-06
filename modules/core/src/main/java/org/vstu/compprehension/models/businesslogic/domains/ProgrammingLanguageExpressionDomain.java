@@ -16,6 +16,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
@@ -76,6 +77,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
+    private static final HashMap<String, Tag> tags = new HashMap<>() {{
+        put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
+        put("basics", new Tag("basics", 2L));  	// (2 ^ 1)
+        put("errors", new Tag("errors", 4L));  	// (2 ^ 2)
+        put("evaluation", new Tag("evaluation", 8L));  	// (2 ^ 3)
+        put("operators", new Tag("operators", 16L));  	// (2 ^ 4)
+        put("order", new Tag("order", 32L));  	// (2 ^ 5)
+    }};
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDomain(
@@ -90,21 +99,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         this.qMetaStorage = new LocalRdfStorage(
                 domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
 
-        fillTags();
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
         readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-    }
-
-    private void fillTags() {
-        tags = new HashMap<>();
-        // assign mask bits to Tags
-        for (val nameBit : _getTagsName2bit().entrySet()) {
-            Tag tag = new Tag();
-            tag.setName(nameBit.getKey());
-            tag.setBitmask(nameBit.getValue());
-            tags.put(tag.getName(), tag);
-        }
     }
 
     private void fillConcepts() {
@@ -353,6 +350,24 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public void update() {
         // init questions storage
         getQMetaStorage();
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        return localizationService.getMessage("expr_domain.display_name", language);
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        return localizationService.getMessage("expr_domain.description", language);
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Tag> getTags() {
+        return tags;
     }
 
     @Override
@@ -2830,16 +2845,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return responses;
     }
 
-    private HashMap<String, Long> _getTagsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(8);
-        name2bit.put("C++", 1L);  	// (2 ^ 0)
-        name2bit.put("basics", 2L);  	// (2 ^ 1)
-        name2bit.put("errors", 4L);  	// (2 ^ 2)
-        name2bit.put("evaluation", 8L);  	// (2 ^ 3)
-        name2bit.put("operators", 16L);  	// (2 ^ 4)
-        name2bit.put("order", 32L);  	// (2 ^ 5)
-        return name2bit;
-    }
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);
         name2bit.put("operator", 0x1L);  	// (1)

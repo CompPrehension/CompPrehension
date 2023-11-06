@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -35,11 +36,6 @@ public abstract class Domain {
 
     /** name to Concept mapping */
     protected Map<String, Concept> concepts;
-
-    /** name to Tag mapping */
-    protected Map<String, Tag> tags;
-
-
 
     /**
      * domain name (used to get domain by name)
@@ -79,10 +75,17 @@ public abstract class Domain {
     public String getVersion() {
         return version;
     }
+    public abstract @NotNull String getDisplayName(Language language);
+    public abstract @Nullable String getDescription(Language language);
 
     public DomainEntity getEntity() {
         return domainEntity;
     }
+
+    public @Nullable Tag getTag(@NotNull String name) {
+        return getTags().get(name);
+    }
+    public abstract @NotNull Map<String, Tag> getTags();
 
     public Collection<PositiveLaw> getPositiveLaws() {
         return positiveLaws.values();
@@ -93,6 +96,13 @@ public abstract class Domain {
 
     public Collection<Concept> getConcepts() {
         return concepts.values();
+    }
+    public String getConceptDisplayName(String conceptName, Language language) {
+        return getMessage(conceptName, "concept.", language);
+    }
+
+    public String getLawDisplayName(String lawName, Language language) {
+        return getMessage(lawName, "law.", language);
     }
 
     public PositiveLaw getPositiveLaw(String name) {
@@ -140,10 +150,6 @@ public abstract class Domain {
 
     public Concept getConcept(String name) {
         return concepts.getOrDefault(name, null);
-    }
-
-    public Tag getTag(String name) {
-        return tags.getOrDefault(name, null);
     }
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy

@@ -1,9 +1,11 @@
 package org.vstu.compprehension.strategies;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -28,6 +30,24 @@ public class GradeConfidenceBaseStrategy_Manual50Autogen50 extends GradeConfiden
     @Override
     public String getStrategyId() {
         return this.getClass().getSimpleName();  // GradeConfidenceBaseStrategy_Manual50Autogen50
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Адаптивная стратегия, частично с авто-сгенерированными вопросами";
+        }
+        return "Adaptive strategy, partially with auto-generated questions";
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Адаптивная стратегия с 50% шансом выбора автоматически сгенерированного вопроса";
+        }
+        return "Adaptive strategy with 50% chance of selecting an automatically generated question";
     }
 
     @Override

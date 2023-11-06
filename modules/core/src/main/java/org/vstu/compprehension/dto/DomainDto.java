@@ -2,16 +2,17 @@ package org.vstu.compprehension.dto;
 
 import lombok.Builder;
 import lombok.Value;
-import org.vstu.compprehension.models.businesslogic.Concept;
-import org.vstu.compprehension.models.businesslogic.Law;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 @Value @Builder
 public class DomainDto {
-    String id;
-    String name;
-    List<LawDto> laws;
-    List<ConceptTreeItemDto> concepts;
+    @NotNull String id;
+    @NotNull String displayName;
+    @Nullable String description;
+    @NotNull List<LawDto> laws;
+    @NotNull List<ConceptTreeItemDto> concepts;
+    @NotNull List<String> tags;
 }

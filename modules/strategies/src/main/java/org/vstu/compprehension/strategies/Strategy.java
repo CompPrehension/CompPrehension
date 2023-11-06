@@ -18,6 +18,7 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -44,6 +45,21 @@ public class Strategy implements AbstractStrategy {
     @Override
     public String getStrategyId() {
         return "Strategy";
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Простая стратегия";
+        }
+        return "Simple strategy";
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        return null;
     }
 
     @NotNull

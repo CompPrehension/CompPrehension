@@ -225,6 +225,10 @@ body ul {
   width: 46px;
 }
 
+.exercise-settings-form small.text-muted {
+  margin-left: 3px;
+}
+
 .compph-exercise:not(.compph-exercise--debug) .compph-debug-info {
   display: none !important;
 }
