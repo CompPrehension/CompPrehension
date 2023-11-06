@@ -14,4 +14,5 @@ public class DomainDto {
     @Nullable String description;
     @NotNull List<LawDto> laws;
     @NotNull List<ConceptTreeItemDto> concepts;
+    @NotNull List<String> tags;
 }

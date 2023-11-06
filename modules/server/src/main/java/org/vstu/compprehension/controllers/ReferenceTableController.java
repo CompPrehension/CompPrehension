@@ -78,22 +78,23 @@ public class ReferenceTableController {
                         .id(d.getDomainId())
                         .displayName(d.getDisplayName(currentLanguage))
                         .description(d.getDescription(currentLanguage))
+                        .tags(d.getTags().keySet().stream().toList())
                         .concepts(d.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER)
                                 .entrySet()
                                 .stream()
                                 .map(kv -> new ConceptTreeItemDto(
                                         kv.getKey().getName(),
-                                        d.getMessage(kv.getKey().getName(), "concept.", currentLanguage),
+                                        d.getConceptDisplayName(kv.getKey().getName(), currentLanguage),
                                         kv.getKey().getBitflags(),
                                         kv.getValue().stream().map(z -> new ConceptTreeItemDto(
                                                 z.getName(),
-                                                d.getMessage(z.getName(), "concept.", currentLanguage),
+                                                d.getConceptDisplayName(z.getName(), currentLanguage),
                                                 z.getBitflags())
                                         ).toArray(ConceptTreeItemDto[]::new)))
                                 .collect(Collectors.toList()))
                         .laws(Stream.concat(d.getPositiveLaws().stream(), d.getNegativeLaws().stream())
                                 .filter(x -> x.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER))
-                                .map(x -> new LawDto(x.getName(), d.getMessage(x.getName(), "law.", currentLanguage), x.getBitflags()))
+                                .map(x -> new LawDto(x.getName(), d.getLawDisplayName(x.getName(), currentLanguage), x.getBitflags()))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());

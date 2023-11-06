@@ -233,7 +233,19 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 </div>
                 <div className="form-group">
                     <label htmlFor="exTagsValues" className="font-weight-bold">{t('exercisesettings_tags')}</label>
-                    <input id="exTagsValues" value={card.tags} className="form-control" onChange={v => store.setCardTags(v.target.value)} />
+                    {currentDomain?.tags.map(t => 
+                        <div className="form-check">
+                            <input 
+                                checked={card.tags.includes(t)} 
+                                onChange={x => x.target.checked
+                                    ? store.setCardTags([...new Set([...card.tags, x.target.value])])
+                                    : store.setCardTags([...card.tags.filter(z => z !== x.target.value)])} 
+                                type="checkbox" 
+                                value={t}
+                                className="form-check-input"
+                                id={`tag_checkbox_${t}`} />
+                            <label className="form-check-label" htmlFor={`tag_checkbox_${t}`}>{t}</label>
+                        </div>)}
                 </div>
                 {sharedDomainConcepts?.length
                     && <div className="form-group">

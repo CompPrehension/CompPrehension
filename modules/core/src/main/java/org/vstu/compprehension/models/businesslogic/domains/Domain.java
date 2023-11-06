@@ -97,6 +97,13 @@ public abstract class Domain {
     public Collection<Concept> getConcepts() {
         return concepts.values();
     }
+    public String getConceptDisplayName(String conceptName, Language language) {
+        return getMessage(conceptName, "concept.", language);
+    }
+
+    public String getLawDisplayName(String lawName, Language language) {
+        return getMessage(lawName, "law.", language);
+    }
 
     public PositiveLaw getPositiveLaw(String name) {
         return positiveLaws.getOrDefault(name, null);

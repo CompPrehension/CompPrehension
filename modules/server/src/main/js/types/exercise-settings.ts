@@ -79,7 +79,7 @@ export type ExerciseCardViewModel = {
     strategyId: string,
     backendId: string,
     complexity: number,
-    tags: string,
+    tags: string[],
     stages: NonEmptyArray<ExerciseStage>,
     options: ExerciseOptions,
 }
@@ -131,6 +131,7 @@ export type Domain = {
     description: string | null,
     laws: DomainLaw[],
     concepts: DomainConcept[],
+    tags: string[],
 }
 export const TDomain : io.Type<Domain> = io.type({
     id: io.string,
@@ -138,6 +139,7 @@ export const TDomain : io.Type<Domain> = io.type({
     description: io.union([io.string, io.null]),
     laws: io.array(TDomainLaw),
     concepts: io.array(TDomainConcept),
+    tags: io.array(io.string),
 })
 
 export type Strategy = {

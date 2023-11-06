@@ -36,7 +36,7 @@ export class ExerciseSettingsStore {
 
         return {
             ...card,
-            tags: card.tags.join(', '),
+            tags: card.tags.filter(t => cardDomain.tags.some(tt => tt === t)),
             stages: card.stages
                 .map(stage => ({
                     ...stage,
@@ -49,8 +49,6 @@ export class ExerciseSettingsStore {
     private fromCardViewModel(card: ExerciseCardViewModel): ExerciseCard {
         return {
             ...card,
-            tags: card.tags.split(',')
-                .map(t => t.trim()),
         }
     }
 
@@ -301,8 +299,9 @@ export class ExerciseSettingsStore {
         }
         this.currentCard.options.surveyOptions.surveyId = surveyId;
     }
+    
     @action
-    setCardTags(tags: string) {
+    setCardTags(tags: string[]) {
         if (!this.currentCard)
             return;
         this.currentCard.tags = tags;
