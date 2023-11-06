@@ -127,25 +127,31 @@ export const TDomainConcept : io.Type<DomainConcept> = io.recursion('DomainConce
 
 export type Domain = {
     id: string,
-    name: string,
+    displayName: string,
+    description: string | null,
     laws: DomainLaw[],
     concepts: DomainConcept[],
 }
 export const TDomain : io.Type<Domain> = io.type({
     id: io.string,
-    name: io.string,
+    displayName: io.string,
+    description: io.union([io.string, io.null]),
     laws: io.array(TDomainLaw),
     concepts: io.array(TDomainConcept),
 })
 
 export type Strategy = {
     id: string,
+    displayName: string,
+    description: string | null,
     options: {
         multiStagesEnabled: boolean,
     },
 }
 export const TStrategy: io.Type<Strategy> = io.type({
     id: io.string,
+    displayName: io.string,
+    description: io.union([io.string, io.null]),
     options: io.type({
         multiStagesEnabled: io.boolean,
     }),

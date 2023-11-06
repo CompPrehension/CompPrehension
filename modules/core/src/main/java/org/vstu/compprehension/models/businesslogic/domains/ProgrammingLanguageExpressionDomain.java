@@ -16,6 +16,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
@@ -353,6 +354,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public void update() {
         // init questions storage
         getQMetaStorage();
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        return localizationService.getMessage("expr_domain.display_name", language);
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        return localizationService.getMessage("expr_domain.description", language);
     }
 
     @Override

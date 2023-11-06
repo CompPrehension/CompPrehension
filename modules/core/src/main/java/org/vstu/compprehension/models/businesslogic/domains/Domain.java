@@ -11,6 +11,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -79,6 +80,8 @@ public abstract class Domain {
     public String getVersion() {
         return version;
     }
+    public abstract @NotNull String getDisplayName(Language language);
+    public abstract @Nullable String getDescription(Language language);
 
     public DomainEntity getEntity() {
         return domainEntity;

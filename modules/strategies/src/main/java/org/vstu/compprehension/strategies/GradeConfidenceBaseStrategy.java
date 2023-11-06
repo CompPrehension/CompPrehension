@@ -2,6 +2,7 @@ package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
 import org.vstu.compprehension.dto.ExerciseLawDto;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -41,6 +42,24 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     @Override
     public String getStrategyId() {
         return "GradeConfidenceBaseStrategy";
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Адаптивная стратегия";
+        }
+        return "Adaptive strategy";
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Адаптивная стратегия адаптирует сложность вопросов под уровень знаний студента";
+        }
+        return "Adaptive strategy adapts the difficulty of questions to the student's level of knowledge";
     }
 
     @NotNull

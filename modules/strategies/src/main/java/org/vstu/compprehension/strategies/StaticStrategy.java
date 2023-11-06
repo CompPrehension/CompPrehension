@@ -2,6 +2,7 @@ package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
@@ -12,6 +13,7 @@ import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -40,6 +42,24 @@ public class StaticStrategy implements AbstractStrategy {
     @Override
     public String getStrategyId() {
         return "StaticStrategy";
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Статическая стратегия";
+        }
+        return "Static strategy";
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        if (language == Language.RUSSIAN) {
+            return "Статическая стратегия состоит из нескольких этапов с фиксированным количеством вопросов в каждом";
+        }
+        return "Static strategy consists of several stages with a fixed number of questions in each stage";
     }
 
     @NotNull

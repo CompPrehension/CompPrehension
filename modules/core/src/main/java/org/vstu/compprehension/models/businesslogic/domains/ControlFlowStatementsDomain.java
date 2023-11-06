@@ -95,6 +95,18 @@ public class ControlFlowStatementsDomain extends Domain {
         // OFF: // update();
     }
 
+    @NotNull
+    @Override
+    public String getDisplayName(Language language) {
+        return localizationService.getMessage("ctrlflow_text.display_name", language);
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        return localizationService.getMessage("ctrlflow_text.description", language);
+    }
+
     public static void initVocab() {
         if (VOCAB == null) {
             VOCAB = new DomainVocabulary(VOCAB_SCHEMA_PATH);

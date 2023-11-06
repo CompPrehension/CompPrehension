@@ -128,15 +128,16 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
     }
 
-    const stageDomainLaws = domains.find(z => z.id === card.domainId)?.laws
+    const currentDomain = domains.find(z => z.id === card.domainId);
+    const stageDomainLaws = currentDomain?.laws
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
-    const stageDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
+    const stageDomainConcepts = currentDomain?.concepts
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
     const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
     const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);    
-    const sharedDomainLaws = domains.find(z => z.id === card.domainId)?.laws
+    const sharedDomainLaws = currentDomain?.laws
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
-    const sharedDomainConcepts = domains.find(z => z.id === card.domainId)?.concepts
+    const sharedDomainConcepts = currentDomain?.concepts
         .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
     const currentStrategy = strategies.find(s => s.id === card.strategyId);
 
@@ -149,15 +150,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 </div>
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_domain')}</label>
-                    <select className="form-control" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)}>
-                        {domains?.map(d => <option>{d.name}</option>)}
+                    <select id="domainId" className="form-control" aria-describedby="domainDescription" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)} title={currentDomain?.displayName}>
+                        {domains?.map(d => <option value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
                     </select>
+                    <small id="domainDescription" className="form-text text-muted">{currentDomain?.description ?? ""}</small>
                 </div>
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_strategy')}</label>
-                    <select className="form-control" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)}>
-                        {strategies?.map(d => <option value={d.id}>{d.id}</option>)}
+                    <select id="strategyId" className="form-control" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
+                        {strategies?.map(d => <option value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
                     </select>
+                    <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
                 </div>
                 <div className="row">
                     <div className="col-md-6">
