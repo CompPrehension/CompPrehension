@@ -1,7 +1,9 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.val;
-import org.vstu.compprehension.CompPrehensionApplication;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -10,13 +12,11 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -81,12 +81,10 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void testQuestionGeneration() throws Exception {
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
+        List<Tag> tags = Stream.of("basics", "operators", "order", "evaluation", "C++")
+                .map(t -> domain.getTag(t))
+                .filter(Objects::nonNull)
+                .toList();
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
@@ -164,12 +162,10 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void testQuestionSolve() throws Exception {
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
+        List<Tag> tags = Stream.of("basics", "operators", "order", "evaluation", "C++")
+                .map(t -> domain.getTag(t))
+                .filter(Objects::nonNull)
+                .toList();
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
@@ -209,12 +205,10 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void TestViolation() {
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
+        List<Tag> tags = Stream.of("basics", "operators", "order", "evaluation", "C++")
+                .map(t -> domain.getTag(t))
+                .filter(Objects::nonNull)
+                .toList();
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
@@ -288,12 +282,10 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     @Test
     public void TestUneval() {
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
+        List<Tag> tags = Stream.of("basics", "operators", "order", "evaluation", "C++")
+                .map(t -> domain.getTag(t))
+                .filter(Objects::nonNull)
+                .toList();
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
@@ -319,12 +311,10 @@ public class ProgrammingLanguageExpressionDomainTest {
 
     //@Test
     public void TestRandom() {
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "operators", "order", "evaluation", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
+        List<Tag> tags = Stream.of("basics", "operators", "order", "evaluation", "C++")
+                .map(t -> domain.getTag(t))
+                .filter(Objects::nonNull)
+                .toList();
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(

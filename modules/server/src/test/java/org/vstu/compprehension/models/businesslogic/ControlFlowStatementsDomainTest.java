@@ -8,14 +8,13 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-import static org.apache.jena.sparql.vocabulary.ResultSetGraphVocab.solution;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -37,12 +36,10 @@ public class ControlFlowStatementsDomainTest {
 
     @Test
     public void testQuestionSolve() throws Exception {
-        List<Tag> tags = new ArrayList<>();
-        for (String tagString : List.of("basics", "stmt", "expr", "helper", "C++")) {
-            Tag tag = new Tag();
-            tag.setName(tagString);
-            tags.add(tag);
-        }
+        List<Tag> tags = Stream.of("basics", "stmt", "expr", "helper", "C++")
+                .map(t -> domain.getTag(t))
+                .filter(Objects::nonNull)
+                .toList();
 
         QuestionRequest qr = new QuestionRequest();
         qr.setTargetConcepts(List.of(
