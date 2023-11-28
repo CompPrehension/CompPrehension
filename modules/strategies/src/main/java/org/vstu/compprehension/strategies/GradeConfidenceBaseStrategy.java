@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,10 +112,8 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         //Мера того, как справляется студент на текущем уровне сложности (-1 - сложность слишком велика, 0 - граничная сложность, 1 - слишком легко)
         int studentsComplexity = isFirstQuestion ? 0: countComplexityByDifference(difference);
 
-        ArrayList<QuestionEntity> questions = new ArrayList<>();
-        questions.addAll(exerciseAttempt.getQuestions());
-
-        Collections.sort(questions, new QuestionOrderComparator());
+        ArrayList<QuestionEntity> questions = new ArrayList<>(exerciseAttempt.getQuestions());
+        questions.sort(QuestionOrderComparator.getInstance());
 
         int lastLawCount = 0;
         int summarizedABSLawDeltaCount = 0;
@@ -177,14 +176,13 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
 
-        List<String> targetLaws = new ArrayList<>(basicLawsUsage(exerciseAttempt).keySet());
+        List<String> targetLaws = new ArrayList<>(basicLawsUsage(exerciseAttempt));
 
         float resultGrade = 0;
 
         for (String currentLaw : targetLaws) {
-            List<Boolean> laws = new ArrayList<>();
             //laws.addAll(allLaws.get(currentLaw.getLawName()));
-            laws.addAll(allLaws.get(currentLaw));
+            List<Boolean> laws = new ArrayList<>(allLaws.get(currentLaw));
             Collections.reverse(laws);
 
             resultGrade += countGradeByUsage(laws, CONFIDENCE_MULTIPLIER * countConfidence(laws));
@@ -368,7 +366,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
 
         meanOfUsage = meanOfUsage / allLaws.keySet().size();
 
-        allLawsGrade.sort(new LawGradeComparator());
+        allLawsGrade.sort(LawGradeComparator.getInstance());
         //////Проверить в каком порядке сортируется
 
         //Выбрать минимально изученные законы в количестве countOfLaws
@@ -405,7 +403,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         HashMap<String, List<Boolean>> allLawsUsage = getTargetLawsInteractions(exerciseAttempt, 0);
 
 
-        List<String> targetLaws = new ArrayList<>(basicLawsUsage(exerciseAttempt).keySet());
+        List<String> targetLaws = new ArrayList<>(basicLawsUsage(exerciseAttempt));
 
         Integer minimumLawUsageCount = null;
         for (String currentTargetLaw : targetLaws) {
@@ -422,87 +420,76 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     }
 
     protected HashMap<String, List<Boolean>> getTargetLawsInteractions(ExerciseAttemptEntity exerciseAttempt, int removeLastCount){
-        List<QuestionEntity> allQuestions = new ArrayList<>();
-        allQuestions.addAll(exerciseAttempt.getQuestions());
-        HashMap<String, List<Boolean>> allLawsUsage = basicLawsUsage(exerciseAttempt);
 
-        allQuestions.sort(new QuestionOrderComparator());
+        var allLawsUsage = basicLawsUsage(exerciseAttempt);
 
+        List<QuestionEntity> allQuestions = new ArrayList<>(exerciseAttempt.getQuestions());
+        allQuestions.sort(QuestionOrderComparator.getInstance());
         if (removeLastCount > 0 && allQuestions.size() >= removeLastCount) {
             allQuestions = allQuestions.subList(0, allQuestions.size() - removeLastCount);
         }
-        /*
-        for(int i = 0; i < removeLastCount; i++){
-            if(allQuestions.size() > 0) {
-                allQuestions.remove(allQuestions.size() - 1);
-            }
-        } */
 
         return getQuestionsLawConceptUsage(allQuestions, allLawsUsage);
     }
 
+    private HashSet<String> basicLawsUsage(ExerciseAttemptEntity exerciseAttempt) {
+        HashSet<String> allLawsUsage = new HashSet<>();
 
-
-
-
-    private HashMap<String, List<Boolean>> basicLawsUsage(ExerciseAttemptEntity exerciseAttempt){
-        HashMap<String, List<Boolean>> allLawsUsage = new HashMap<>();
-
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        ExerciseStageEntity stage = exercise.getStages().get(0);  // используем первый (скорее всего, единственный) этап упражнения
+        var exercise = exerciseAttempt.getExercise();
+        var exerciseStages = exercise.getStages();
+        if (exerciseStages.isEmpty())
+            throw new RuntimeException("Invalid exercise stages");
+        var stage = exerciseStages.getFirst();  // используем первый (скорее всего, единственный) этап упражнения
 
         if (!stage.getLaws().isEmpty()) {
             // получить целевые (target) законы из упражнения
             for (ExerciseLawDto currentLaw : stage.getLaws()) {
                 if (currentLaw.getKind() == RoleInExercise.TARGETED)
-                    allLawsUsage.put(currentLaw.getName(), new ArrayList<>());
+                    allLawsUsage.add(currentLaw.getName());
             }
         }
         if (allLawsUsage.isEmpty()) {
-
             // получить законы из домена (все подряд)
             Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 
             Collection<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {
-                allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
+                allLawsUsage.add(currentTargetLaw.getName());
             }
         }
-
 
         return allLawsUsage;
     }
 
-    private HashMap<String, List<Boolean>> getQuestionsLawConceptUsage(List<QuestionEntity> allQuestions, HashMap<String, List<Boolean>> allLawsUsage) {
-        for (QuestionEntity currentQuestion : allQuestions) {
-            List<InteractionEntity> allInteractions = currentQuestion.getInteractions();
-            allInteractions.sort(new InteractionOrderComparator());
-
-            for (InteractionEntity currentInteraction : allInteractions) {
-
-                List<ViolationEntity> allViolations = currentInteraction.getViolations();
-                for (ViolationEntity currentViolation : allViolations) {
-
-                    if(allLawsUsage.containsKey(currentViolation.getLawName())){
-                        allLawsUsage.get(currentViolation.getLawName()).add(Boolean.FALSE);
-                    }
-
-                }
-
-                List<CorrectLawEntity> allLaws = currentInteraction.getCorrectLaw();
-                for (CorrectLawEntity currentLaw : allLaws) {
-
-                    if (allLawsUsage.containsKey(currentLaw.getLawName())) {
-                        allLawsUsage.get(currentLaw.getLawName()).add(Boolean.TRUE);
-                    }
-
-                }
-
-            }
-
+    private HashMap<String, List<Boolean>> getQuestionsLawConceptUsage(List<QuestionEntity> allQuestions, Set<String> allLawsUsage) {
+        var result = new HashMap<String, List<Boolean>>(allLawsUsage.size());
+        for (var law : allLawsUsage) {
+            result.put(law, new ArrayList<>());
         }
 
-        return allLawsUsage;
+        for (var currentQuestion : allQuestions) {
+            var allInteractions = currentQuestion.getInteractions();
+            allInteractions.sort(InteractionOrderComparator.getInstance());
+
+            for (var currentInteraction : allInteractions) {
+
+                var allViolations = currentInteraction.getViolations();
+                for (var currentViolation : allViolations) {
+                    if(result.containsKey(currentViolation.getLawName())){
+                        result.get(currentViolation.getLawName()).add(Boolean.FALSE);
+                    }
+                }
+
+                var allLaws = currentInteraction.getCorrectLaw();
+                for (var currentLaw : allLaws) {
+                    if(result.containsKey(currentLaw.getLawName())){
+                        result.get(currentLaw.getLawName()).add(Boolean.TRUE);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private HashMap<String, List<Boolean>> countDifference(HashMap<String, List<Boolean>> first, HashMap<String, List<Boolean>>second){
@@ -595,9 +582,6 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         return Pair.of(maximumCountOfError, errorCount);
     }
 
-
-
-
     protected int countGradeWindow(){
         return WINDOW_TO_GRADE;
     }
@@ -689,6 +673,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     }
 
     static class QuestionOrderComparator implements Comparator<QuestionEntity> {
+        @Getter
+        private static final QuestionOrderComparator instance = new QuestionOrderComparator();
+
+        private QuestionOrderComparator() {}
+
         @Override
         public int compare(QuestionEntity a, QuestionEntity b) {
             return a.getId().compareTo(b.getId());
@@ -696,6 +685,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     }
 
     static class InteractionOrderComparator implements Comparator<InteractionEntity> {
+        @Getter
+        private static final InteractionOrderComparator instance = new InteractionOrderComparator();
+
+        private InteractionOrderComparator() {}
+
         @Override
         public int compare(InteractionEntity a, InteractionEntity b) {
             return Integer.compare(a.getOrderNumber(), b.getOrderNumber());
@@ -703,6 +697,11 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     }
 
     static class LawGradeComparator implements Comparator<Pair<String, Float>> {
+        @Getter
+        private static final LawGradeComparator instance = new LawGradeComparator();
+
+        private LawGradeComparator() {}
+
         @Override
         public int compare(Pair<String, Float> a, Pair<String, Float> b) {
             return a.getSecond().compareTo(b.getSecond());
