@@ -22,16 +22,11 @@
       },
       {
         "name": "autogen_4",
-        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
-        "backend": "Jena"
-      },
-      {
-        "name": "autogen_5",
         "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_6",
+        "name": "autogen_5",
         "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
         "backend": "Jena"
       }
@@ -44,32 +39,27 @@
     "tags": [],
     "formulations": [
       {
-        "name": "autogen_7",
+        "name": "autogen_6",
         "formulation": "(?x ?p ?y), (?p rdfs:domain ?c) -> (?x rdf:type ?c) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_8",
+        "name": "autogen_7",
         "formulation": "(?x ?p ?y), (?p rdfs:range ?c) -> (?y rdf:type ?c) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_9",
+        "name": "autogen_8",
         "formulation": "(?a ?p ?b), (?p rdfs:subPropertyOf ?q) -> (?a ?q ?b) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_10",
-        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
-        "backend": "Jena"
-      },
-      {
-        "name": "autogen_11",
+        "name": "autogen_9",
         "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_12",
+        "name": "autogen_10",
         "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
         "backend": "Jena"
       }
@@ -327,6 +317,91 @@
       {
         "name": "attach-principal_violation-to-possible_violation-at-reason_node",
         "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "decision-tree_action_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "action"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "func"
+      },
+      {
+        "name": "func_call"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "alt_branch"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "stmt"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "role-for-func_body",
+        "formulation": "(?action rdf:type my:sequence), (?parent rdf:type my:func), (?parent my:body ?action), -> (?action my:has_role my:func_body).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-func_call",
+        "formulation": "(?action rdf:type my:func_call), -> (?action my:has_role my:func_call).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_body",
+        "formulation": "(?action rdf:type my:sequence), (?parent rdf:type my:loop), (?parent my:body ?action), -> (?action my:has_role my:loop_body).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-sequence_element",
+        "formulation": "(?parent rdf:type my:sequence), (?parent my:body_item ?action), -> (?action my:has_role my:sequence_element).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-alt_branch",
+        "formulation": "(?action rdf:type my:alt_branch), -> (?action my:has_role my:alt_branch).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-alt_cond",
+        "formulation": "(?action rdf:type my:expr), (?parent rdf:type my:alt_branch), (?parent my:cond ?action), -> (?action my:has_role my:alt_cond).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_init",
+        "formulation": "(?action rdf:type my:stmt), (?parent rdf:type my:loop), (?parent my:init ?action), -> (?action my:has_role my:loop_init).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_cond",
+        "formulation": "(?action rdf:type my:expr), (?parent rdf:type my:loop), (?parent my:cond ?action), -> (?action my:has_role my:loop_cond).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_update",
+        "formulation": "(?action rdf:type my:stmt), (?parent rdf:type my:loop), (?parent my:update ?action), -> (?action my:has_role my:loop_update).",
         "backend": "Jena"
       }
     ]
@@ -705,6 +780,39 @@
     ]
   },
   {
+    "name": "decision-tree_act_helper",
+    "positive": false,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "act"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "act_kind-for-atom",
+        "formulation": "(?action_class my:atom_action \"true\"^^xsd:boolean), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:boundary_of ?action), -> (?a my:act_kind my:atom).",
+        "backend": "Jena"
+      },
+      {
+        "name": "act_kind-for-begin",
+        "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:begin_of ?action), (?a rdf:type ?act_begin), -> (?a my:act_kind my:begin).",
+        "backend": "Jena"
+      },
+      {
+        "name": "act_kind-for-end",
+        "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:end_of ?action), (?a rdf:type ?act_end), -> (?a my:act_kind my:end).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
     "name": "trace_mistake",
     "positive": false,
     "tags": [
@@ -952,22 +1060,22 @@
         "backend": "Jena"
       },
       {
-        "name": "autogen_13",
+        "name": "autogen_11",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_14",
+        "name": "autogen_12",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_corresponding_end ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_15",
+        "name": "autogen_13",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?par_e), -> (?par_e my:gathered_child_exec_till ?par_e), drop(0).",
         "backend": "Jena"
       },
       {
-        "name": "autogen_16",
+        "name": "autogen_14",
         "formulation": "(?child_act my:gathered_child_exec_till ?par_e), (?par_b my:gather_child_exec_till ?par_e), (?child_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), -> drop(0).",
         "backend": "Jena"
       },

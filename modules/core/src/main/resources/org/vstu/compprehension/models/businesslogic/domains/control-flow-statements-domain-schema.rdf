@@ -15,6 +15,12 @@
   <rdfs:domain rdf:resource="#algorithm"/>
 </owl:ObjectProperty>
 
+<owl:ObjectProperty rdf:about="#global_code">
+  <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:range rdf:resource="#action"/>
+  <rdfs:domain rdf:resource="#algorithm"/>
+</owl:ObjectProperty>
+
 <owl:ObjectProperty rdf:about="#boundary_of">
   <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
   <rdfs:range rdf:resource="#action"/>
@@ -87,6 +93,11 @@
 
 <owl:ObjectProperty rdf:about="#on_false_consequent">
   <rdfs:subPropertyOf rdf:resource="#normal_consequent"/>
+</owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#has_func_call">
+  <rdfs:domain rdf:resource="#action"/>
+  <rdfs:range rdf:resource="#func_call"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#body">
@@ -170,13 +181,13 @@
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#fetch_kind_of_loop">
-  <rdfs:domain rdf:resource="#act"/>
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdfs:range rdf:resource="#action"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#reason_kind">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-  <rdfs:domain rdf:resource="#boundary"/>
 </owl:ObjectProperty>
 
 <owl:ObjectProperty rdf:about="#to_reason">
@@ -223,6 +234,8 @@
 <owl:ObjectProperty rdf:about="#body_item">
   <rdfs:subPropertyOf rdf:resource="#parent_of"/>
 </owl:ObjectProperty>
+
+<owl:ObjectProperty rdf:about="#functions_item"/>
 
 <owl:ObjectProperty rdf:about="#possible_violation"/>
 
@@ -400,6 +413,22 @@
   <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
 </owl:DatatypeProperty>
 
+<owl:DatatypeProperty rdf:about="#merge_child_begin_act">
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+  <rdfs:domain rdf:resource="#action"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#merge_child_end_act">
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#boolean"/>
+  <rdfs:domain rdf:resource="#action"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#func_id">
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+  <rdfs:domain rdf:resource="#action"/>
+  <rdfs:domain rdf:resource="#func_call"/>
+</owl:DatatypeProperty>
+
 <owl:DatatypeProperty rdf:about="#executes_id">
   <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
   <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
@@ -413,6 +442,16 @@
 <owl:DatatypeProperty rdf:about="#stmt_name">
   <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#func_name">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+  <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+</owl:DatatypeProperty>
+
+<owl:DatatypeProperty rdf:about="#func_args">
+  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
   <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
 </owl:DatatypeProperty>
 
@@ -595,16 +634,21 @@
   <rdfs:subPropertyOf rdf:resource="#string_placeholder"/>
 </owl:DatatypeProperty>
 
-<owl:AnnotationProperty rdf:about="http://www.w3.org/2004/02/skos/core#broader">
-  <rdfs:domain rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-  <rdfs:range rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
-</owl:AnnotationProperty>
+<owl:AnnotationProperty rdf:about="http://www.w3.org/2004/02/skos/core#broader"/>
 
 <owl:AnnotationProperty rdf:about="#has_bitflags"/>
 
 <owl:AnnotationProperty rdf:about="#atom_action"/>
 
 <owl:AnnotationProperty rdf:about="#act_class"/>
+
+<owl:AnnotationProperty rdf:about="#act_kind"/>
+
+<owl:AnnotationProperty rdf:about="#action_kind"/>
+
+<owl:AnnotationProperty rdf:about="#has_role"/>
+
+<owl:AnnotationProperty rdf:about="#has_interrupt_kind"/>
 
 <owl:AnnotationProperty rdf:about="#involves_concept"/>
 
@@ -662,6 +706,7 @@
 
 <owl:Class rdf:about="#sequence">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <action_kind rdf:resource="#sequence"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">0</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">последовательность</rdfs:label>
 </owl:Class>
@@ -676,6 +721,7 @@
 
 <owl:Class rdf:about="#loop">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <action_kind rdf:resource="#loop"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Циклы</rdfs:label>
 </owl:Class>
@@ -696,25 +742,37 @@
   <rdfs:subClassOf rdf:resource="#unconditional_loop"/>
 </owl:Class>
 
-<owl:Class rdf:about="#start_with_cond">
+<owl:Class rdf:about="#loop_with_pre_condition">
   <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#loop_with_post_condition">
+  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+</owl:Class>
+
+<owl:Class rdf:about="#loop_with_initialization">
+  <rdfs:subClassOf rdf:resource="#loop_with_pre_condition"/>
+</owl:Class>
+
+<owl:Class rdf:about="#start_with_cond">
+  <rdfs:subClassOf rdf:resource="#loop_with_pre_condition"/>
 </owl:Class>
 
 <owl:Class rdf:about="#start_with_body">
-  <rdfs:subClassOf rdf:resource="#loop"/>
+  <rdfs:subClassOf rdf:resource="#loop_with_post_condition"/>
 </owl:Class>
 
 <owl:Class rdf:about="#start_with_init">
-  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+  <rdfs:subClassOf rdf:resource="#loop_with_pre_condition"/>
 </owl:Class>
 
 <owl:Class rdf:about="#pre_update_loop">
-  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+  <rdfs:subClassOf rdf:resource="#loop_with_initialization"/>
   <owl:disjointWith rdf:resource="#post_update_loop"/>
 </owl:Class>
 
 <owl:Class rdf:about="#post_update_loop">
-  <rdfs:subClassOf rdf:resource="#conditional_loop"/>
+  <rdfs:subClassOf rdf:resource="#loop_with_initialization"/>
 </owl:Class>
 
 <owl:Class rdf:about="#cond_then_body">
@@ -761,14 +819,33 @@
 
 <owl:Class rdf:about="#alt_branch">
   <rdfs:subClassOf rdf:resource="#sequence"/>
+  <action_kind rdf:resource="#sequence"/>
+  <has_role rdf:resource="#alt_branch"/>
 </owl:Class>
 
 <owl:Class rdf:about="#func">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <action_kind rdf:resource="#func"/>
+</owl:Class>
+
+<owl:Class rdf:about="#func_call">
+  <rdfs:subClassOf rdf:resource="#action"/>
+  <has_role rdf:resource="#func_call"/>
+  <action_kind rdf:resource="#call"/>
+</owl:Class>
+
+<owl:Class rdf:about="#call">
+  <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+</owl:Class>
+
+<owl:Class rdf:about="#stmt_with_calls">
+  <rdfs:subClassOf rdf:resource="#action"/>
+  <action_kind rdf:resource="#stmt_with_calls"/>
 </owl:Class>
 
 <owl:Class rdf:about="#alternative">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <action_kind rdf:resource="#alternative"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">if</rdfs:label>
 </owl:Class>
@@ -806,18 +883,23 @@
 
 <owl:Class rdf:about="#interrupt_action">
   <rdfs:subClassOf rdf:resource="#action"/>
+  <action_kind rdf:resource="#stmt"/>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#return">
+  <action_kind rdf:resource="#stmt"/>
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_interrupt_kind rdf:resource="#return"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">return</rdfs:label>
   <atom_action rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</atom_action>
 </owl:Class>
 
 <owl:Class rdf:about="#break">
+  <action_kind rdf:resource="#stmt"/>
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_interrupt_kind rdf:resource="#break"/>
   <core:broader rdf:resource="#loop_break_continue"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">break</rdfs:label>
@@ -825,7 +907,9 @@
 </owl:Class>
 
 <owl:Class rdf:about="#continue">
+  <action_kind rdf:resource="#stmt"/>
   <rdfs:subClassOf rdf:resource="#interrupt_action"/>
+  <has_interrupt_kind rdf:resource="#continue"/>
   <core:broader rdf:resource="#loop_break_continue"/>
   <has_bitflags rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">3</has_bitflags>
   <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">continue</rdfs:label>
@@ -1202,6 +1286,11 @@
 <owl:Class rdf:about="#IterationNotAfterForeachUpdate">
   <involves_concept rdf:resource="#foreach_loop"/>
   <rdfs:subClassOf rdf:resource="#Erroneous"/>
+</owl:Class>
+
+<owl:Class rdf:about="#BadBeginOfTrace">
+  <involves_concept rdf:resource="#trace"/>
+  <rdfs:subClassOf rdf:resource="#TooEarlyInSequence"/>
 </owl:Class>
 
 
