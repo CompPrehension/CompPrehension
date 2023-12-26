@@ -484,6 +484,32 @@ public abstract class Domain {
         return laws;
     }
 
+    /** Check if a law needed for a question with tags specified.
+     * Returns true in two cases:
+     * 1) the law has no tags attached, or
+     * 2) the two sets of tag names do intersect (i.e. contain at least one common tag).
+     * @param law Law to check tags for
+     * @param tags Tags to check against.
+     * @return true if any common tag exists.
+     */
+    public static boolean isLawNeededByQuestionTags(Law law, Collection<Tag> tags) {
+        boolean needLaw = true;
+        for (Tag tag : law.getTags()) {  // law having no tags is still needed.
+            boolean inQuestionTags = false;
+            for (Tag questionTag : tags) {
+                if (questionTag.getName().equals(tag.getName())) {
+                    inQuestionTags = true;
+                    break;
+                }
+            }
+            if (!inQuestionTags) {
+                needLaw = false;
+                break;
+            }
+        }
+        return needLaw;
+    }
+
     /** Get all needed (positive and negative) laws for this questionType using default tags */
     public abstract List<Law> getQuestionLaws(String questionDomainType);
 
