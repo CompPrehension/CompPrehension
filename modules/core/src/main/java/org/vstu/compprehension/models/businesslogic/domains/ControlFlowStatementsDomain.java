@@ -939,20 +939,7 @@ public class ControlFlowStatementsDomain extends Domain {
         if (false && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE) || domainQuestionType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
-                boolean needLaw = true;
-                for (Tag tag : law.getTags()) {  // also, include a law without tags
-                    boolean inQuestionTags = false;
-                    for (Tag questionTag : tags) {
-                        if (questionTag.getName().equals(tag.getName())) {
-                            inQuestionTags = true;
-                            break;
-                        }
-                    }
-                    if (!inQuestionTags) {
-                        needLaw = false;
-                        break;
-                    }
-                }
+                boolean needLaw = isLawNeededByQuestionTags(law, tags);
                 if (needLaw) {
                     positiveLaws.add(law);
                 }
@@ -968,21 +955,7 @@ public class ControlFlowStatementsDomain extends Domain {
         if (false && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
             for (NegativeLaw law : getNegativeLaws()) {
-                boolean needLaw = true;
-                //filter by tags after separation
-                for (Tag tag : law.getTags()) {  // also, include a law without tags
-                    boolean inQuestionTags = false;
-                    for (Tag questionTag : tags) {
-                        if (questionTag.getName().equals(tag.getName())) {
-                            inQuestionTags = true;
-                            break;
-                        }
-                    }
-                    if (!inQuestionTags) {
-                        needLaw = false;
-                        break;
-                    }
-                }
+                boolean needLaw = isLawNeededByQuestionTags(law, tags);
                 if (needLaw) {
                     negativeLaws.add(law);
                 }
