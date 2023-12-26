@@ -1034,7 +1034,12 @@ public class ControlFlowStatementsDomain extends Domain {
                     "reason_kind",
                     "to_reason",
                     "from_reason",
-                    "fetch_kind_of_loop"
+                    "fetch_kind_of_loop",
+                    // for decision tree:
+                    "act_kind",
+                    "action_kind",
+                    "has_role",
+                    "has_interrupt_kind"
             ));
             if (reasonPropertiesCache == null)
                 reasonPropertiesCache = VOCAB.propertyDescendants("consequent");

@@ -29,6 +29,7 @@ import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -491,9 +492,13 @@ public class JenaBackend implements Backend {
             try {
                 out = new FileOutputStream(out_rdf_path);
                 RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
+                out.close();
                 log.debug("Debug written: {}. N of of triples: {}", out_rdf_path, model.size());
             } catch (FileNotFoundException e) {
                 log.error("Cannot write to file: {}", out_rdf_path, e);
+            } catch (IOException e) {
+                log.error("Cannot close stream: {}", out_rdf_path, e);
+                ////  throw new RuntimeException(e);
             }
         }
     }
@@ -515,7 +520,7 @@ public class JenaBackend implements Backend {
 
         addBackendFacts(statement);
 
-        debug_dump_model("solve");
+//        debug_dump_model("solve");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         debug_dump_model("solved");
 
@@ -530,7 +535,7 @@ public class JenaBackend implements Backend {
         }
         addFacts(statement);
 
-        debug_dump_model("solve-f");
+//        debug_dump_model("solve-f");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         debug_dump_model("solved-f");
 
@@ -565,7 +570,7 @@ public class JenaBackend implements Backend {
         addBackendFacts(correctAnswer);
         ch.hit("judge: add facts");
 
-        debug_dump_model("judge");
+//        debug_dump_model("judge");
 
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         ch.hit("judge: callReasoner");
@@ -594,7 +599,7 @@ public class JenaBackend implements Backend {
         addFacts(correctAnswer);
         // ch.hit("judge-f: add facts");
 
-        debug_dump_model("judge-f");
+//        debug_dump_model("judge-f");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         // ch.hit("judge-f: callReasoner");
         debug_dump_model("judged-f");
