@@ -851,18 +851,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             || questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
-                boolean needLaw = true;
-                for (Tag tag : law.getTags()) {
-                    boolean inQuestionTags = false;
-                    for (Tag questionTag : tags) {
-                        if (questionTag.getName().equals(tag.getName())) {
-                            inQuestionTags = true;
-                        }
-                    }
-                    if (!inQuestionTags) {
-                        needLaw = false;
-                    }
-                }
+                boolean needLaw = isLawNeededByQuestionTags(law, tags);
                 if (needLaw) {
                     positiveLaws.add(law);
                 }
@@ -916,6 +905,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (Objects.equals(questionDomainType, EVALUATION_ORDER_QUESTION_TYPE)) {
             return Stream.of("basics", "operators", "order", "evaluation", "errors", "C++").map(this::getTag).filter(Objects::nonNull).collect(Collectors.toList());
         }
+        // empty list by default:
         return super.getDefaultQuestionTags(questionDomainType);
     }
 
