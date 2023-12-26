@@ -10,9 +10,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.*;
 
 
-/** Term to RDF node mapping and inverse mapping.
- * It also counts consequent uses of cached items
- * and deletes them when reached some defined limit.
+/** Term to RDF-node mapping and inverse mapping.
  *
  */
 @Log4j2
