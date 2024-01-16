@@ -763,6 +763,11 @@
         "backend": "Jena"
       },
       {
+        "name": "student_corresponding_end-to-corresponding_end",
+        "formulation": "(?a my:student_corresponding_end ?b), noValue(?_x my:student_next_latest ?b), -> (?a my:corresponding_end ?b).",
+        "backend": "Jena"
+      },
+      {
         "name": "Erroneous-class-to-wrong_next_act",
         "formulation": "(?b rdf:type my:Erroneous), (?a my:student_next ?b), -> (?a my:wrong_next_act ?b).",
         "backend": "Jena"
@@ -808,6 +813,11 @@
       {
         "name": "act_kind-for-end",
         "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:end_of ?action), (?a rdf:type ?act_end), -> (?a my:act_kind my:end).",
+        "backend": "Jena"
+      },
+      {
+        "name": "act_kind-for-halt",
+        "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:halt_of ?action), (?a rdf:type ?act_end), -> (?a my:act_kind my:end).",
         "backend": "Jena"
       }
     ]
