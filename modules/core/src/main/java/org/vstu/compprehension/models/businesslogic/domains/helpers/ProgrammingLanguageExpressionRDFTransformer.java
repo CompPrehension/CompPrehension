@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers;
 
-import its.reasoner.util.JenaUtil;
-import its.reasoner.util.RDFUtil;
+import its.model.definition.rdf.RDFUtils;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -30,14 +29,14 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     
         //saveModel("base.ttl", base);
         Model res = ModelFactory.createDefaultModel();
-        res.setNsPrefix("", JenaUtil.POAS_PREF);
+        res.setNsPrefix("", RDFUtils.POAS_PREF);
         Property indexProperty = base.getProperty("http://vstu.ru/poas/code#index");
-        Property typeProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.RDF_PREF, "type"));
-        Property leftOfProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "directlyLeftOf"));
-        Property stateProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "state"));
-        Property varProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "var..."));
-        Property ruProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "RU_localizedName"));
-        Property enProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "EN_localizedName"));
+        Property typeProperty = res.getProperty(RDFUtils.RDF_PREF + "type");
+        Property leftOfProperty = res.getProperty(RDFUtils.POAS_PREF + "directlyLeftOf");
+        Property stateProperty = res.getProperty(RDFUtils.POAS_PREF + "state");
+        Property varProperty = res.getProperty(RDFUtils.POAS_PREF + "var...");
+        Property ruProperty = res.getProperty(RDFUtils.POAS_PREF + "RU_localizedName");
+        Property enProperty = res.getProperty(RDFUtils.POAS_PREF + "EN_localizedName");
         List<Resource> baseTokens = base.listSubjectsWithProperty(indexProperty).toList().stream()
                 .sorted(Comparator.comparingInt((a) -> a.getProperty(indexProperty).getInt()))
                 .collect(Collectors.toList());
@@ -46,9 +45,9 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         for(Resource baseToken : baseTokens){
             if(baseTokensToTokens.containsKey(baseToken))
                 continue;
-            Resource resElement = RDFUtil.resource(res,"element_" + baseToken.getLocalName());
+            Resource resElement = getResource(res,"element_" + baseToken.getLocalName());
             resElement.addProperty(typeProperty, getClassResource(baseToken, res));
-            resElement.addProperty(stateProperty, RDFUtil.resource(res, className(baseToken).equals("operand")? "evaluated" : "unevaluated"));
+            resElement.addProperty(stateProperty, getResource(res, className(baseToken).equals("operand")? "evaluated" : "unevaluated"));
             Resource resToken = resTokenFromBase(baseToken, resElement);
     
             Pair<String, String> loc = getLocalizedName(baseToken, baseTokens.indexOf(baseToken)+1);
@@ -81,12 +80,12 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         
         for(Resource baseToken : selected.subList(0, selected.size()-1)){
             baseTokensToElements.get(baseToken).removeAll(stateProperty);
-            baseTokensToElements.get(baseToken).addProperty(stateProperty, RDFUtil.resource(res, "evaluated"));
+            baseTokensToElements.get(baseToken).addProperty(stateProperty, getResource(res, "evaluated"));
             baseToken.listProperties(base.getProperty("http://vstu.ru/poas/code#ast_edge")).toList()
                     .forEach((s) -> {
                         Resource el = baseTokensToElements.get(s.getObject().asResource());
                         el.removeAll(stateProperty);
-                        el.addProperty(stateProperty, RDFUtil.resource(res, "used"));
+                        el.addProperty(stateProperty, getResource(res, "used"));
                     });
         }
         baseTokensToElements.get(selected.get(selected.size() -1)).addProperty(varProperty, "X");
@@ -97,12 +96,12 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     
     private static Resource resTokenFromBase(Resource baseToken, Resource resElement){
         Model res = resElement.getModel();
-        Property typeProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.RDF_PREF, "type"));
-        Property belongsProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "belongsTo"));
-        Property hasProperty = res.getProperty(JenaUtil.INSTANCE.genLink(JenaUtil.POAS_PREF, "has"));
+        Property typeProperty = res.getProperty(RDFUtils.RDF_PREF + "type");
+        Property belongsProperty = res.getProperty(RDFUtils.POAS_PREF + "belongsTo");
+        Property hasProperty = res.getProperty(RDFUtils.POAS_PREF + "has");
         
-        Resource resToken = RDFUtil.resource(res, "token_" + baseToken.getLocalName());
-        resToken.addProperty(typeProperty, RDFUtil.resource(res,"token"));
+        Resource resToken = getResource(res, "token_" + baseToken.getLocalName());
+        resToken.addProperty(typeProperty, getResource(res,"token"));
         resToken.addProperty(belongsProperty, resElement);
         resElement.addProperty(hasProperty, resToken);
         return resToken;
@@ -169,7 +168,11 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     }
     
     private static Resource getClassResource(Resource baseToken, Model res){
-        return RDFUtil.resource(res, className(baseToken));
+        return getResource(res, className(baseToken));
+    }
+    
+    private static Resource getResource(Model model, String localName){
+        return model.getResource(RDFUtils.POAS_PREF + localName);
     }
     
     private static void saveModel(String filename, Model model){
