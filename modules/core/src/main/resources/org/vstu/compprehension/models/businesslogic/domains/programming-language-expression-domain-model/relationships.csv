@@ -1,8 +1,0 @@
-has||element;token|||OneToMany|0|<verb:>владеет <obj>|
-belongsTo||token;element|||OneToOne|0|<verb:>является токеном <obj>|
-isInside||element;element||||0|<verb:>находится внутри <obj>|
-surrounds||element;element||||0|<verb:>содержит <obj>|
-directlyLeftOf||token;token|Linear|directlyRightOf;leftOf;rightOf;isBetween;isCloserToThan;isFurtherFromThan||0|<verb:>находится слева от <obj>|<verb:>находится сразу справа от <obj>;<verb:>находится слева от <obj>;<verb:>находится справа от <obj>;<verb:>находится между <obj1> и <obj2>;<verb:>находится ближе к <obj>, чем <param>;<verb:>находится от <obj> дальше, чем <param>
-isOperandOf||operand;operator||||0|<verb:>является операндом <obj>|
-isInOperandOf||operand;operator||||0|<verb:>находится в операнде <obj>|
-isOperatorTo||operator;operand||||0|<verb:>принимает <obj> как операнд|

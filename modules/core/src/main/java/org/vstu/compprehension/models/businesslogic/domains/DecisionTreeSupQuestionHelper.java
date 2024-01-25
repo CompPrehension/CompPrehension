@@ -1,8 +1,9 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import its.model.DomainSolvingModel;
+import its.model.definition.rdf.DomainRDFFiller;
 import its.questions.gen.QuestioningSituation;
 import its.questions.gen.formulations.Localization;
-import its.questions.gen.formulations.LocalizedDomainModel;
 import its.questions.gen.states.Question;
 import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
@@ -30,13 +31,15 @@ import java.util.stream.Collectors;
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(Domain domain, URL domainModelDirectoryURL, Function<InteractionEntity, Model> mainQuestionToModelTransformer) {
         this.domain = domain;
-        this.domainModel = new LocalizedDomainModel(domainModelDirectoryURL);
-        this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(domainModel.decisionTree.getMain(), new EndQuestionState());
+        this.domainModel = new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI);
+        this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
+                domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
+        );
         this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
     }
 
     private final Domain domain;
-    final LocalizedDomainModel domainModel ;
+    final DomainSolvingModel domainModel ;
     private final QuestionAutomata supplementaryAutomata;
     private final Function<InteractionEntity, Model> mainQuestionToModelTransformer;
 
@@ -54,17 +57,23 @@ public class DecisionTreeSupQuestionHelper {
 
         //Создать соответствующую ситуации рдф-модель
         Model m = mainQuestionToModelTransformer.apply(lastInteraction);
-        m.add(domainModel.domainRDF);
+        its.model.definition.Domain situationModel = domainModel.getDomain().copy();
+        DomainRDFFiller.fillDomain(
+                situationModel,
+                m,
+                Collections.singleton(DomainRDFFiller.Option.NARY_RELATIONSHIPS_OLD_COMPAT),
+                null
+        );
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation;
-        String localizationCode = domainModel.getLocalizations().containsKey(userLang.toLocaleString()) ? userLang.toLocaleString() : domainModel.getLocalizations().keySet().stream().findFirst().orElseThrow();
+        String localizationCode = userLang.toLocaleString(); //FIXME должна быть какая-то проверка на то, какие языки поддерживает модель
         if(latestStep != null){
             latestStep.getSituationInfo().setLocalizationCode(localizationCode);
-            situation = latestStep.getSituationInfo().toQuestioningSituation(m);
+            situation = latestStep.getSituationInfo().toQuestioningSituation(situationModel);
         }
         else {
-            situation = new QuestioningSituation(m, localizationCode);
+            situation = new QuestioningSituation(situationModel, localizationCode);
         }
 
         //получить состояние автомата вопросов, к которому перешли на последнем шаге
@@ -99,7 +108,7 @@ public class DecisionTreeSupQuestionHelper {
         //преобразовать ответы
         List<Integer> answers = null;
         if(state instanceof AggregationQuestionState || state instanceof RedirectQuestionState && ((RedirectQuestionState) state).redirectsTo() instanceof AggregationQuestionState){
-            answers = new ArrayList(Collections.nCopies(aggregationPadding, 0));
+            answers = new ArrayList<>(Collections.nCopies(aggregationPadding, 0));
             for(ResponseEntity r : responses){
                 answers.set(r.getLeftAnswerObject().getAnswerId()-aggregationShift, r.getRightAnswerObject().getAnswerId());
             }
@@ -112,10 +121,16 @@ public class DecisionTreeSupQuestionHelper {
         //Создать соответствующую ситуации рдф-модель
         InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
         Model m = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
-        m.add(domainModel.domainRDF);
+        its.model.definition.Domain situationModel = domainModel.getDomain().copy();
+        DomainRDFFiller.fillDomain(
+                situationModel,
+                m,
+                Collections.singleton(DomainRDFFiller.Option.NARY_RELATIONSHIPS_OLD_COMPAT),
+                null
+        );
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
-        QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(m);
+        QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(situationModel);
 
         //получить фидбек ответа и изменение состояния
         QuestionStateChange change = state.proceedWithAnswer(situation, answers);
