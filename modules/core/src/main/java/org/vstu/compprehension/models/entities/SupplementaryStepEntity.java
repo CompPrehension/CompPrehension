@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
+import its.model.definition.ObjectRef;
 import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
 import jakarta.persistence.*;
@@ -30,7 +31,7 @@ public class SupplementaryStepEntity {
     @Setter
     @NoArgsConstructor
     public static class SupplementarySituation{
-        private Map<String, String> reasoningVariables;
+        private Map<String, ObjectRef> reasoningVariables;
         private Map<String, String> discussedVariables;
         private Map<Integer, Integer> givenAnswers;
         private Map<String, Boolean> assumedResults;
@@ -44,10 +45,10 @@ public class SupplementaryStepEntity {
             this.localizationCode = situation.getLocalizationCode();
         }
         
-        public QuestioningSituation toQuestioningSituation(Model m){
-            Map<String, String> vars = new HashMap<>(reasoningVariables);
-            vars.putAll(LearningSituation.collectDecisionTreeVariables(m));
-            return new QuestioningSituation(m, vars, discussedVariables, givenAnswers, assumedResults, localizationCode);
+        public QuestioningSituation toQuestioningSituation(its.model.definition.Domain situationModel){
+            Map<String, ObjectRef> vars = new HashMap<>(reasoningVariables);
+            vars.putAll(LearningSituation.collectDecisionTreeVariables(situationModel));
+            return new QuestioningSituation(situationModel, vars, discussedVariables, givenAnswers, assumedResults, localizationCode);
         }
     }
     
