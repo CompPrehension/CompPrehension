@@ -892,13 +892,15 @@ public class ControlFlowStatementsDomain extends Domain {
      * @param questionDomainType type of question
      * @return list of laws
      */
-    public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
+    /* LOOK
+    public List<Law> getQuestionLaws(String questionDomainType *//*, List<Tag> tags*//*) {
 
         List<Law> laws = new ArrayList<>();
         laws.addAll(positiveLaws.values());
         laws.addAll(negativeLaws.values());
         return laws;
     }
+    */
 
     // filter positive laws by question type and tags
     @Override

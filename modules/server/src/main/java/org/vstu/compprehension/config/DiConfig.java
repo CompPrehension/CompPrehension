@@ -39,14 +39,18 @@ public class DiConfig {
     List<Backend> getAllBackends(
             @Autowired @Lazy JenaBackend jenaBackend,
             @Autowired @Lazy PelletBackend pelletBackend,
+            @Autowired DecisionTreeReasonerBackend decisionTreeReasonerBackend,
             @Autowired BackendTaskQueue taskQueue,
-		    @Autowired Cache<String, JenaFactList> jenaCache) {
+            @Autowired Cache<String, JenaFactList> jenaCache)
+    {
         return List.of(
-              new RateLimitBackendDecorator(
-                      JenaBackend.BackendId,
-                      new SolutionCachingJenaBackendDecorator(jenaBackend, jenaCache),
-                      taskQueue),
-              new RateLimitBackendDecorator(PelletBackend.BackendId, pelletBackend, taskQueue)
+            new RateLimitBackendDecorator(
+                JenaBackend.BackendId,
+                new SolutionCachingJenaBackendDecorator(jenaBackend, jenaCache),
+                taskQueue
+            ),
+            decisionTreeReasonerBackend, //FIXME wrap with RateLimitBackendDecorator
+            new RateLimitBackendDecorator(PelletBackend.BackendId, pelletBackend, taskQueue)
         );
     }
 

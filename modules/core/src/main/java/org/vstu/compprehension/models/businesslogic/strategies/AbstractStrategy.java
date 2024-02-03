@@ -141,6 +141,8 @@ public interface AbstractStrategy {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttemptId(exerciseAttempt.getId());
         qr.setDomainShortname(domain.getShortName());
+        // qr.setExerciseAttempt(exerciseAttempt);  // <<< conflict merging, revision may be needed
+        // qr.setDomainShortname(domain.getDBShortName());
 
         // concepts
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();

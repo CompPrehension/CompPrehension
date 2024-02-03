@@ -353,6 +353,36 @@ public class AbstractRdfStorage {
     }
 
     /**
+     * Create empty metadata row for QuestionTemplate, but not overwrite existing data.
+     *
+     * @param questionTemplateName unique identifier-like name of question template
+     * @return fresh or existing QuestionMetadataDraftEntity instance
+     */
+    public QuestionMetadataEntity createQuestionTemplate(Domain domain, String questionTemplateName) {
+        // find template metadata
+        QuestionMetadataEntity templateMeta = findQuestionByName(questionTemplateName);
+
+        if (templateMeta != null) {
+            return templateMeta;
+        }
+
+        val builder = QuestionMetadataEntity.builder();
+
+        // проинициализировать метаданные вопроса, далее сохранить в БД
+        templateMeta = builder.name(questionTemplateName)
+                .domainShortname(Optional.ofNullable(domain).map(Domain::getDBShortName).orElse(""))
+                .templateId(-1)
+                .isDraft(true)
+                .stage(STAGE_TEMPLATE)
+                .version(GENERATOR_VERSION)
+                .build();
+        templateMeta = saveMetadataDraftEntity(templateMeta);
+
+        return templateMeta;
+
+    }
+
+    /**
      * Create metadata representing empty Question, but not overwrite existing data if recreate == false.
      *
      * @param questionName unique identifier-like name of question
@@ -383,7 +413,7 @@ public class AbstractRdfStorage {
             templateId = templateMeta.getId();
         } else {
             builder = QuestionMetadataEntity.builder()
-                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""));
+                    .domainShortname(Optional.ofNullable(domain).map(Domain::getDBShortName).orElse(""));
             templateId = -1;
         }
 
