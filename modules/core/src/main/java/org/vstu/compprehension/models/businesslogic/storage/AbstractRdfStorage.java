@@ -678,7 +678,7 @@ public abstract class AbstractRdfStorage {
 
         // проинициализировать метаданные вопроса, далее сохранить в БД
         templateMeta = builder.name(questionTemplateName)
-                .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
+                .domainShortname(Optional.ofNullable(domain).map(Domain::getDBShortName).orElse(""))
                 .templateId(-1)
                 .isDraft(true)
                 .stage(STAGE_TEMPLATE)
@@ -721,7 +721,7 @@ public abstract class AbstractRdfStorage {
             templateId = templateMeta.getId();
         } else {
             builder = QuestionMetadataEntity.builder()
-                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""));
+                    .domainShortname(Optional.ofNullable(domain).map(Domain::getDBShortName).orElse(""));
             templateId = -1;
         }
 

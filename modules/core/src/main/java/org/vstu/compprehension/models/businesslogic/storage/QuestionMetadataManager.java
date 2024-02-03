@@ -46,7 +46,7 @@ public class QuestionMetadataManager {
         }
 
         Checkpointer ch = new Checkpointer(log);
-        var stats = questionRepository.getStatOnComplexityField(domain.getShortName());
+        var stats = questionRepository.getStatOnComplexityField(domain.getDBShortName());
         NumericStat complStat = new NumericStat();
         complStat.setCount((int)(long)stats.getCount());
         complStat.setMin  (Optional.ofNullable(stats.getMin()).orElse(0.0));

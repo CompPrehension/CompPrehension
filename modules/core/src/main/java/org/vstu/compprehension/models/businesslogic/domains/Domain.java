@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
@@ -71,6 +72,15 @@ public abstract class Domain {
     }
     public String getShortName() {
         return domainEntity.getShortName();  // same as name by default
+    }
+    
+    /**
+     * A temporary method to reuse DB-stored questions between Domains
+     * Is the same as {@link #getShortName()} by default
+     * FIXME - replace back to getShortName()
+     */
+    public String getDBShortName(){
+        return getShortName();
     }
     public String getVersion() {
         return version;
@@ -323,6 +333,17 @@ public abstract class Domain {
         return getMessage(prefix + messageKey, preferredLanguage);
     }
 
+    public Collection<Fact> processQuestionFactsForBackendSolve(Collection<Fact> questionFacts){
+        return questionFacts;
+    }
+
+    public Collection<Fact> processQuestionFactsForBackendJudge(
+        Collection<Fact> questionFacts,
+        Collection<ResponseEntity> responses
+    ){
+        return questionFacts;
+    }
+
     public Model getSchemaForSolving(/* String questionType (?) */) {
         // the default
         return ModelFactory.createDefaultModel();
@@ -459,6 +480,14 @@ public abstract class Domain {
         }
         return lawBitmask;
     }
+    
+    /**
+     * Get domain-defined backend id, which determines the backend used to solve this domain's questions
+     * Returns {@link JenaBackend#BackendId} by default, as Jena was de-facto only Backend used
+     */
+    public String getBackendId(){
+        return JenaBackend.BackendId;
+    }
 
         /**
          * Generate explanation of violations
@@ -511,7 +540,7 @@ public abstract class Domain {
     }
 
     /** Get all needed (positive and negative) laws for this questionType using default tags */
-    public abstract List<Law> getQuestionLaws(String questionDomainType);
+    //LOOK public abstract List<Law> getQuestionLaws(String questionDomainType);
 
     /**
      * Get positive needed laws in this questionType
