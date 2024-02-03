@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="2024012301-1" author="Max-Person">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select exists(select 1 from domain where name = 'ProgrammingLanguageExpressionDTDomain')
+            </sqlCheck>
+        </preConditions>
+        <insert tableName="domain">
+            <column name="name" value="ProgrammingLanguageExpressionDTDomain" />
+            <column name="short_name" value="expression_dt" />
+            <column name="version" value="1" />
+            <column name="options_json" value='{"QuestionsGraphPath": "C:/Temp2/compp/expression.ttl", "StorageSPARQLEndpointUrl": null, "StorageUploadFilesBaseUrl": "file:///C:/Temp2/compp/expression/", "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/Temp2/compp/expression/"}' />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

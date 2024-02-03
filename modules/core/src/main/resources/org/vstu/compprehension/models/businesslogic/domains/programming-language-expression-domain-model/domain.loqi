@@ -111,7 +111,7 @@ class element {
 
 class token {
 
-	rel belongsTo(element) : {1 -> 1} ;
+	rel belongsTo(element) : opposite to element->has ;
 	rel directlyLeftOf(token) : linear ;
 	rel directlyRightOf(token) : opposite to directlyLeftOf ;
 	rel leftOf(token) : transitive to directlyLeftOf ;
@@ -346,7 +346,7 @@ class not : operator {
 	arity = arity:unary ;
 	place = place:prefix ;
 	precedence = 3 ;
-	associativity = associativity:left ;
+	associativity = associativity:right ;
 	needsLeftOperand = false ;
 	needsRightOperand = true ;
 	needsInnerOperand = false ;

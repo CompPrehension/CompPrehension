@@ -7,10 +7,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.domains.*;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -54,6 +51,18 @@ public class DomainFactoryImpl implements DomainFactory {
                     randomProvider,
                     questionMetadataRepository);
             domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
+        }
+        {
+            var dtDomainEntity = domains
+                    .stream().filter(x -> x.getShortName().equals("expression_dt"))
+                    .findFirst()
+                    .orElseThrow();
+            var dtDomain = new ProgrammingLanguageExpressionDTDomain(
+                    dtDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionMetadataRepository);
+            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
         }
 
     }

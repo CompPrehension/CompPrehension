@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
@@ -22,12 +23,17 @@ import java.util.stream.Collectors;
 public class ExerciseService {
     private final DomainRepository domainRepository;
     private final ExerciseRepository exerciseRepository;
+    private final DomainFactory domainFactory;
 
     @Autowired
-    public ExerciseService(DomainRepository domainRepository,
-                           ExerciseRepository exerciseRepository) {
+    public ExerciseService(
+            DomainRepository domainRepository,
+            ExerciseRepository exerciseRepository,
+            DomainFactory domainFactory
+    ) {
         this.domainRepository = domainRepository;
         this.exerciseRepository = exerciseRepository;
+        this.domainFactory = domainFactory;
     }
 
     public ExerciseEntity getExercise(long exerciseId) {
@@ -39,13 +45,14 @@ public class ExerciseService {
                                          @NotNull String domainId,
                                          @NotNull String strategyId
     ) {
-        var domain = domainRepository.findById(domainId)
+        var domainEntity = domainRepository.findById(domainId)
                 .orElseThrow();
-        var backendId = JenaBackend.BackendId;
+        var domain = domainFactory.getDomain(domainEntity.getName());
+        var backendId = domain.getBackendId();
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
-        exercise.setDomain(domain);
+        exercise.setDomain(domainEntity);
         exercise.setComplexity(0.5f);
         exercise.setBackendId(backendId);
         exercise.setStrategyId(strategyId);
@@ -65,13 +72,15 @@ public class ExerciseService {
     public void saveExerciseCard(ExerciseCardDto card) {
         var exercise = exerciseRepository.findById(card.getId()).orElseThrow(() ->
                 new NoSuchElementException("Exercise with id: " + card.getId() + " not found"));
-        var domain = domainRepository.findById(card.getDomainId())
+        var domainEntity = domainRepository.findById(card.getDomainId())
                 .orElseThrow();
+        var domain = domainFactory.getDomain(domainEntity.getName());
+        var backendId = domain.getBackendId();
 
         exercise.setName(card.getName());
-        exercise.setDomain(domain);
+        exercise.setDomain(domainEntity);
         exercise.setStrategyId(card.getStrategyId());
-        exercise.setBackendId(card.getBackendId());
+        exercise.setBackendId(backendId);
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
         exercise.setComplexity(card.getComplexity());
