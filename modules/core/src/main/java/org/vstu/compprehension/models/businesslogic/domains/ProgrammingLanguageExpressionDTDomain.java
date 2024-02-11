@@ -4,27 +4,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import its.model.DomainSolvingModel;
-import its.model.definition.rdf.DomainRDFFiller;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
 import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
-import org.vstu.compprehension.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -32,8 +21,6 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.DTDomainDescri
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.*;
@@ -44,30 +31,18 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
-import static java.lang.Math.random;
 import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
-
-/**
- * TODO Class Description
- *
- * @author Marat Gumerov
- * @since 20.01.2024
- */
-
 
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends Domain {
@@ -408,37 +383,6 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         return Collections.singletonList(new DTLaw(this.domainSolvingModel.getDecisionTree()));
-        /*if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            List<NegativeLaw> negativeLaws = new ArrayList<>();
-            for (NegativeLaw law : super.getNegativeLaws()) {
-                boolean needLaw = true;
-                //filter by tags after separation
-                if (needLaw) {
-                    negativeLaws.add(law);
-                }
-            }
-            return negativeLaws;
-        } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
-            List<NegativeLaw> negativeLaws = new ArrayList<>();
-            for (NegativeLaw law : super.getNegativeLaws()) {
-                boolean needLaw = true;
-                if (needLaw) {
-                    negativeLaws.add(law);
-                }
-            }
-            return negativeLaws;
-        }
-        else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
-            List<NegativeLaw> negativeLaws = new ArrayList<>();
-            for (NegativeLaw law : super.getNegativeLaws()) {
-                boolean needLaw = law.getName().equals("precedence_basics") || law.getName().equals("precedence_type");
-                if (needLaw) {
-                    negativeLaws.add(law);
-                }
-            }
-            return negativeLaws;
-        }
-        return new ArrayList<>(List.of());*/
     }
 
     //-----------ФАКТЫ---------------
@@ -469,7 +413,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     }
 
 
-    //-------------------------------
+    //----------ИНИЦИАЛИЗАЦИЯ--------------
     
     @Override
     public void update() {
@@ -498,11 +442,13 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     }
     
     @Override
+    @Deprecated
     public ExerciseForm getExerciseForm() {
         return null;
     }
     
     @Override
+    @Deprecated
     public ExerciseEntity processExerciseForm(ExerciseForm ef) {
         return null;
     }
@@ -540,6 +486,8 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         
         return res;
     }
+
+    //--------Генерация вопросов--------
     
     static List<Question> QUESTIONS;
     @Override
@@ -562,12 +510,16 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         return found;
     }
     
-    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
+    private Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
-                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
+                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions(
+                    "/",
+                    OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX,
+                    null
+                ))
                 .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
                 .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
                 .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
@@ -636,7 +588,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                 val baseQuestionText = getMessage("BASE_QUESTION_TEXT", userLang);
                 //TODO: remove this hack supporting old format
                 if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
-                    entity.setQuestionText(baseQuestionText + ExpressionToHtml(q.getStatementFacts()));
+                    entity.setQuestionText(baseQuestionText + expressionToHtml(q.getStatementFacts()));
                 } else {
                     text = reformatQuestionText(q);
                     if (true) {
@@ -792,38 +744,15 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         }
         
-        if (res != null) {
-            log.info("Expression domain has prepared the question: {}", res.getQuestionName());
-            
-            return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
+        if (res == null) {
+            throw new IllegalStateException("No valid questions found");
         }
-        
-        // make a SingleChoice question ...
-        QuestionEntity question = new QuestionEntity();
-        question.setExerciseAttempt(questionRequest.getExerciseAttempt());
-        question.setQuestionText("Choose associativity of operator binary +");
-        question.setQuestionType(QuestionType.SINGLE_CHOICE);
-        question.setQuestionDomainType("ChooseAssociativity");
-        question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                createAnswerObject(question, 0, "left", "left_associativity", "left", true),
-                createAnswerObject(question, 1, "right", "right_associativity", "right", true),
-                createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
-        )));
-        return new SingleChoice(question, this);
+
+        log.info("Expression domain has prepared the question: {}", res.getQuestionName());
+        return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
     }
     
-    private AnswerObjectEntity createAnswerObject(QuestionEntity question, int id, String text, String concept, String domainInfo, boolean isLeft) {
-        AnswerObjectEntity answerObject = new AnswerObjectEntity();
-        answerObject.setAnswerId(id);
-        answerObject.setHyperText(text);
-        answerObject.setRightCol(!isLeft);
-        answerObject.setDomainInfo(domainInfo);
-        answerObject.setConcept(concept);
-        answerObject.setQuestion(question);
-        return answerObject;
-    }
-    
-    public static String ExpressionToHtml(List<BackendFactEntity> expression) {
+    public static String expressionToHtml(List<BackendFactEntity> expression) {
         StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
@@ -962,75 +891,30 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     @Override
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         if (Objects.equals(questionDomainType, EVALUATION_ORDER_QUESTION_TYPE)) {
-            return Stream.of("basics", "operators", "order", "evaluation", "errors", "C++").map(this::getTag).filter(Objects::nonNull).collect(Collectors.toList());
+            return Stream.of("basics", "operators", "order", "evaluation", "errors", "C++")
+                .map(this::getTag)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         }
         return super.getDefaultQuestionTags(questionDomainType);
     }
+
+    //-----Суждение вопросов и подобное ------
     
     public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        return new HashSet<>();
+        return new HashSet<>(); //Не нужно для DT
     }
     
     public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
-            return new HashSet<>(Arrays.asList(
-                    "student_error_more_precedence",
-                    "student_error_left_assoc",
-                    "student_error_right_assoc",
-                    "student_error_in_complex",
-                    "student_error_strict_operands_order",
-                    "student_error_unevaluated_operand",
-                    "student_error_more_precedence_base",
-                    "student_error_left_assoc_base",
-                    "student_error_right_assoc_base",
-                    "student_error_in_complex_base",
-                    "student_error_strict_operands_order_base",
-                    "student_error_unevaluated_operand_base",
-                    "student_error_early_finish_base",
-                    "student_error_early_finish",
-                    "before_third_operator",
-                    "text",
-                    "index",
-                    "before_direct",
-                    "student_pos_number",
-                    "is_operand",
-                    "is_function_call",
-                    "has_value",
-                    "has_uneval_operand",
-                    "has_value_eval_restriction",
-                    "not_selectable",
-                    "law_name",
-                    "student_end_evaluation",
-                    "has_operand"
-            ));
-        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
-            return new HashSet<>(List.of(
-                    "wrong_type"
-            ));
-        } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
-            return new HashSet<>(Arrays.asList(
-                    "has_operand",
-                    "has_operand_part",
-                    "student_operand_type",
-                    "in_complex",
-                    "target_operator",
-                    "complex_beginning",
-                    "index"
-            ));
-        } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
-            return new HashSet<>(Arrays.asList(
-                    "high_precedence_diff_precedence",
-                    "text",
-                    "index",
-                    "target_operator",
-                    "student_precedence_type"
-            ));
-        }
-        return new HashSet<>();
+        return new HashSet<>(); //Не нужно для DT
     }
     
     @Override
-    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+    public Collection<Fact> responseToFacts(
+        String questionDomainType,
+        List<ResponseEntity> responses,
+        List<AnswerObjectEntity> answerObjects
+    ) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             int pos = 1;
@@ -1119,319 +1003,10 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         return new ArrayList<>();
     }
     
-    private static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
-        assert name.startsWith("op__");
-        String[] parts = name.split("__");
-        assert 3 == parts.length;
-        if (allowNotZeroStep || parts[1].equals("0")) {
-            return Optional.of(Integer.parseInt(parts[2]));
-        }
-        return Optional.empty();
-    }
-    
-    class CorrectAnswerImpl {
-        String domainID;
-        String lawName;
-    }
-    
-    private List<CorrectAnswerImpl> getCorrectAnswers(Collection<Fact> solution) {
-        Map<String, List<String>> before = new HashMap<>();
-        Map<String, String> studentPos = new HashMap<>();
-        Map<String, String> unevalOp = new HashMap<>();
-        Map<String, String> operatorLawName = new HashMap<>();
-        HashSet<String> isOperand = new HashSet<>();
-        HashSet<String> allTokens = new HashSet<>();
-        
-        List<CorrectAnswerImpl> result = new ArrayList<>();
-        for (Fact fact : solution) {
-            if (fact.getVerb().equals("before_direct")) {
-                if (!before.containsKey(fact.getObject())) {
-                    before.put(fact.getObject(), new ArrayList<>());
-                }
-                before.get(fact.getObject()).add(fact.getSubject());
-                allTokens.add(fact.getObject());
-                allTokens.add(fact.getSubject());
-            } else if (fact.getVerb().equals("student_pos_number")) {
-                studentPos.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("has_uneval_operand")) {
-                unevalOp.put(fact.getObject(), "true");
-            } else if (fact.getVerb().equals("not_selectable")) {
-                isOperand.add(fact.getSubject());
-            } else if (fact.getVerb().equals("law_name")) {
-                operatorLawName.put(fact.getSubject(), fact.getObject());
-            }
-        }
-        
-        for (String operator : allTokens) {
-            if (!operator.startsWith("op__0") || isOperand.contains(operator) || unevalOp.containsKey(operator)) {
-                continue;
-            }
-            boolean can = !studentPos.containsKey(operator);
-            if (before.containsKey(operator)) {
-                List<String> deps = before.get(operator);
-                for (String dep : deps) {
-                    if (!studentPos.containsKey(dep) && !(isOperand.contains(dep) || unevalOp.containsKey(dep))) {
-                        can = false;
-                        break;
-                    }
-                }
-            }
-            if (can) {
-                CorrectAnswerImpl answer = new CorrectAnswerImpl();
-                answer.domainID = operator;
-                answer.lawName = operatorLawName.get(operator);
-                result.add(answer);
-            }
-        }
-        
-        if (result.isEmpty()) {
-            CorrectAnswerImpl answer = new CorrectAnswerImpl();
-            answer.domainID = "end_token";
-            answer.lawName = "end_token";
-            result.add(answer);
-        }
-        
-        return result;
-    }
-    
     @Override
+    @Deprecated
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
-        Map<String, String> studentPos = new HashMap<>();
-        Map<String, String> unevalOp = new HashMap<>();
-        HashSet<String> isOperand = new HashSet<>();
-        HashSet<String> isNotCallableOperator = new HashSet<>();
-        HashSet<String> allTokens = new HashSet<>();
-        boolean hasEndToken = false;
-        for (Fact fact : solution) {
-            if (fact.getVerb().equals("before_direct")) {
-                allTokens.add(fact.getObject());
-                allTokens.add(fact.getSubject());
-            } else if (fact.getVerb().equals("student_pos_number")) {
-                studentPos.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("has_uneval_operand")) {
-                unevalOp.put(fact.getObject(), "true");
-            } else if (fact.getVerb().equals("is_operand")) {
-                isOperand.add(fact.getSubject());
-            } else if (fact.getVerb().equals("is_function_call") && fact.getObject().equals("false")) {
-                isNotCallableOperator.add(fact.getSubject());
-            } else if (fact.getSubject().equals("end_token")) {
-                hasEndToken = true;
-            }
-        }
-        
-        int IterationsLeft = 0;
-        for (String operator : allTokens) {
-            if (operator.startsWith("op__0") &&
-                    !isOperand.contains(operator) &&
-                    !isNotCallableOperator.contains(operator) &&
-                    !studentPos.containsKey(operator) &&
-                    !unevalOp.containsKey(operator)) {
-                IterationsLeft++;
-            }
-            if (operator.startsWith("op__0") &&
-                    studentPos.containsKey(operator) &&
-                    unevalOp.containsKey(operator)) {
-                IterationsLeft--; //ignore that mistake
-            }
-        }
-        if (hasEndToken && !studentPos.containsKey("end_token")) {
-            IterationsLeft++;
-        }
-        
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        result.CountCorrectOptions = getCorrectAnswers(solution).size();
-        result.IterationsLeft = IterationsLeft;
-        return result;
-    }
-    
-    HyperText getCorrectExplanation(Question q, AnswerObjectEntity answer) {
-        HashMap<String, String> indexes = new HashMap<>();
-        HashMap<String, String> texts = new HashMap<>();
-        HashMap<String, String> isStrict = new HashMap<>();
-        MultiValuedMap<String, String> before = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeIndirectReversed = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeHighPriority = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeLeftAssoc = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeRightAssoc = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeByThirdOperator = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeThirdOperator = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> beforeAsOperand = new HashSetValuedHashMap<>();
-        
-        for (BackendFactEntity fact : q.getSolutionFacts()) {
-            if (fact.getVerb().equals("before_direct")) {
-                before.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("before")) {
-                beforeIndirectReversed.put(fact.getObject(), fact.getSubject());
-            } else if (fact.getVerb().equals("before_by_third_operator")) {
-                beforeByThirdOperator.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("before_third_operator")) {
-                beforeThirdOperator.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_diff_precedence")) {
-                beforeHighPriority.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_left_assoc")) {
-                beforeLeftAssoc.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_right_assoc")) {
-                beforeRightAssoc.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("before_as_operand")) {
-                beforeAsOperand.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("index")) {
-                indexes.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("text")) {
-                texts.put(fact.getSubject(), fact.getObject());
-            }  else if (fact.getVerb().equals("is_operator_with_strict_operands_order")) {
-                isStrict.put(fact.getSubject(), fact.getObject());
-            }
-        }
-        
-        if (answer.getDomainInfo().equals("end_token")) {
-            //TODO: make explanation why expression is ended
-            return new HyperText("");
-        }
-        
-        AnswerObjectEntity last = null;
-        ArrayList<AnswerObjectEntity> explain = new ArrayList<>();
-        TreeMap<Integer, String> posToExplanation = new TreeMap<>();
-        
-        Language lang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
-        
-        int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
-        String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("AT_POS", lang), answerPos);
-        posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("OPERATOR", lang), answerTemplate, getMessage("EVALUATES", lang)));
-        
-        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
-            if (beforeByThirdOperator.containsKey(answerObjectEntity.getDomainInfo())) {
-                for (String leftPart : beforeIndirectReversed.get(answerObjectEntity.getDomainInfo())) {
-                    for (String rightPart : beforeByThirdOperator.get(answerObjectEntity.getDomainInfo())) {
-                        beforeByThirdOperator.put(leftPart, rightPart);
-                    }
-                    for (String rightPart : beforeThirdOperator.get(answerObjectEntity.getDomainInfo())) {
-                        beforeThirdOperator.put(leftPart, rightPart);
-                    }
-                }
-            }
-        }
-        
-        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
-            if (answer == answerObjectEntity && last != null) {
-                explain.add(last);
-            } else if (answer == last) {
-                explain.add(answerObjectEntity);
-            } else if (beforeByThirdOperator.containsMapping(answer.getDomainInfo(), answerObjectEntity.getDomainInfo())) {
-                for (String thirdOperator : beforeThirdOperator.get(answer.getDomainInfo())) {
-                    // explain highest in right half of strict
-                    if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
-                        int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
-                        String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
-                        
-                        int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
-                        String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
-                        
-                        if (isStrict.containsKey(thirdOperator)) {
-                            posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("BEFORE_OPERATOR", lang),
-                                    template,
-                                    ":",
-                                    getMessage("OPERATOR", lang),
-                                    answerTemplate,
-                                    getMessage("LEFT_SUBOPERATOR", lang),
-                                    thirdTemplate,
-                                    getMessage("WHILE_OPERATOR", lang),
-                                    template,
-                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
-                                    getMessage("AND_LEFT_OPERAND", lang),
-                                    thirdText,
-                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
-                        }
-                    }
-                }
-            } else if (beforeByThirdOperator.containsMapping(answerObjectEntity.getDomainInfo(), answer.getDomainInfo())) {
-                for (String thirdOperator : beforeThirdOperator.get(answerObjectEntity.getDomainInfo())) {
-                    // explain highest in left half of strict
-                    if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
-                        int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
-                        String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
-                        
-                        int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
-                        String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
-                        
-                        if (isStrict.containsKey(thirdOperator)) {
-                            posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("AFTER_OPERATOR", lang),
-                                    template,
-                                    ":",
-                                    getMessage("OPERATOR", lang),
-                                    answerTemplate,
-                                    getMessage("RIGHT_SUBOPERATOR", lang),
-                                    thirdTemplate,
-                                    getMessage("WHILE_OPERATOR", lang),
-                                    template,
-                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
-                                    getMessage("AND_LEFT_OPERAND", lang),
-                                    thirdText,
-                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
-                        } else if (thirdText.equals("(")) {
-                            posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("AFTER_OPERATOR", lang),
-                                    template,
-                                    ":",
-                                    getMessage("OPERATOR", lang),
-                                    template,
-                                    getMessage("ENCLOSED_PARENTHESIS", lang),
-                                    thirdPos,
-                                    getMessage("INSIDE_PARENTHESIS_FIRST", lang)));
-                        }
-                    }
-                }
-            }
-            last = answerObjectEntity;
-        }
-        
-        for (AnswerObjectEntity reason : explain) {
-            if (reason.getDomainInfo().equals("end_token")) {
-                continue;
-            }
-            int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
-            String text = texts.get(reason.getDomainInfo());
-            String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
-            
-            if (beforeHighPriority.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("HAS_HIGHER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
-            } else if (beforeHighPriority.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("HAS_LOWER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
-            } else if (beforeLeftAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
-            } else if (beforeLeftAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
-            } else if (beforeRightAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
-                posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
-            } else if (beforeRightAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
-                posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
-            }
-        }
-        
-        StringBuilder result = new StringBuilder();
-        for (Map.Entry<Integer, String> kv : posToExplanation.entrySet()) {
-            result.append(kv.getValue()).append("\n");
-        }
-        
-        return new HyperText(result.toString());
+        return null;
     }
     
     @Override
@@ -1440,96 +1015,26 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
                 .reduce((first, second) -> second);
-        /*val lastCorrectInteractionAnswers = lastCorrectInteraction
-                .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
-                .flatMap(Collection::stream)
-                .map(r -> new CorrectAnswer.Response(r.getLeftAnswerObject(), r.getRightAnswerObject(), r.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE))
-                .collect(Collectors.toList());*/
         
         val solution = Fact.entitiesToFacts(q.getSolutionFacts());
         assert solution != null;
-        solution.addAll(lastCorrectInteraction
-                .flatMap(i -> Optional.ofNullable(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects()))).stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
-        
-        List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(solution);
-        for (AnswerObjectEntity answer : q.getAnswerObjects()) {
-            for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
-                if (answerImpl.domainID.equals(answer.getDomainInfo())) {
-                    val answers = new ArrayList<CorrectAnswer.Response>();
-                    answers.add(new CorrectAnswer.Response(answer, answer));
-                    
-                    CorrectAnswer correctAnswer = new CorrectAnswer();
-                    correctAnswer.question = q.getQuestionData();
-                    correctAnswer.answers = answers;
-                    correctAnswer.lawName = answerImpl.lawName;
-                    correctAnswer.explanation = getCorrectExplanation(q, answer);
-                    return correctAnswer;
-                }
-            }
-        }
+        //TODO
         return null;
     }
     
     @Override
+    @Deprecated
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
-        return possibleViolations(q.getSolutionFacts(), completedSteps);
-    }
-    
-    public Set<String> possibleViolations(List<BackendFactEntity> solutionFacts, List<ResponseEntity> completedSteps) {
-        Set<String> result = new HashSet<>();
-        Set<String> madeSteps = new HashSet<>();
-        if (completedSteps != null) {
-            for (ResponseEntity r : completedSteps) {
-                madeSteps.add(r.getLeftAnswerObject().getDomainInfo());
-                madeSteps.add(r.getRightAnswerObject().getDomainInfo());
-            }
-        }
-        for (BackendFactEntity f : solutionFacts) {
-            if (f.getVerb().startsWith("student_error") && !madeSteps.contains(f.getSubject()) && !madeSteps.contains(f.getObject())
-                    && getIndexFromName(f.getSubject(), false).isPresent()
-                    && getIndexFromName(f.getObject(), false).isPresent()) {
-                if (f.getVerb().equals("student_error_more_precedence_base")) {
-                    if (getIndexFromName(f.getSubject(), false).orElse(0) > getIndexFromName(f.getObject(), false).orElse(0)) {
-                        result.add("error_base_higher_precedence_left");
-                    } else {
-                        result.add("error_base_higher_precedence_right");
-                    }
-                } else if (f.getVerb().equals("student_error_left_assoc_base")) {
-                    result.add("error_base_same_precedence_left_associativity_left");
-                } else if (f.getVerb().equals("student_error_right_assoc_base")) {
-                    result.add("error_base_same_precedence_right_associativity_right");
-                } else if (f.getVerb().equals("student_error_strict_operands_order_base")) {
-                    result.add("error_base_student_error_strict_operands_order");
-                } else if (f.getVerb().equals("student_error_unevaluated_operand_base")) {
-                    result.add("error_base_student_error_unevaluated_operand");
-                } else if (f.getVerb().equals("student_error_early_finish_base")) {
-                    result.add("error_base_student_error_early_finish");
-                } else if (f.getVerb().equals("student_error_in_complex_base")) {
-                    result.add("error_base_student_error_in_complex");
-                    
-                    // check subject's text
-                    boolean is_error_base_enclosing_operators = false;
-                    for (BackendFactEntity fa : solutionFacts) {
-                        if (fa.getVerb().equals("text") && fa.getSubject().equals(f.getSubject())) {
-                            is_error_base_enclosing_operators = List.of("(", "[", "?").contains(fa.getObject());
-                            break;
-                        }
-                    }
-                    if (is_error_base_enclosing_operators) {
-                        result.add("error_base_enclosing_operators");
-                    }
-                }
-            }
-        }
-        return result;
+        return null;
     }
     
     @Override
+    @Deprecated
     public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
-        return new HashSet<>();
+        return null;
     }
+
+    //----------Вспомогательные вопросы------------
     
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
@@ -1553,284 +1058,14 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
         return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
-        /* LOOK
-        if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
-            return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
-        }
-        else {
-            return new SupplementaryResponseGenerationResult(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
-        }
-        */
     }
     
     @Override
     public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
         return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
-        /* LOOK
-        if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
-            return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
-        }
-        else {
-            assert responses.size() == 1;
-            val judgeResult = judgeSupplementaryQuestionBasic(question, responses.get(0).getLeftAnswerObject());
-            val violation = judgeResult.violations.stream()
-                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v)).build())
-                    .findFirst()
-                    .orElse(null);
-            val locale = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language().toLocale();
-            val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
-            val feedback =  new SupplementaryFeedbackDto(
-                    message,
-                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
-            return new SupplementaryFeedbackGenerationResult(feedback, null);
-        }
-        */
     }
-    
-    /* LOOK
-    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {
-        Map<String, List<String>> before = new HashMap<>();
-        MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
-        Map<String, String> texts = new HashMap<>();
-        Map<String, String> indexes = new HashMap<>();
-        MultiValuedMap<String, String> highPrecedence = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> samePrecedenceLeftAssoc = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> samePrecedenceRightAssoc = new HashSetValuedHashMap<>();
-        HashSet<String> used = new HashSet<>();
-        
-        for (BackendFactEntity fact : originalQuestion.getSolutionFacts()) {
-            if (fact.getVerb().equals("before_direct")) {
-                if (!before.containsKey(fact.getObject())) {
-                    before.put(fact.getObject(), new ArrayList<>());
-                }
-                before.get(fact.getObject()).add(fact.getSubject());
-            } else if (fact.getVerb().equals("before")) {
-                beforeIndirect.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("text")) {
-                texts.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("index")) {
-                indexes.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_diff_precedence")) {
-                highPrecedence.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_left_assoc")) {
-                samePrecedenceLeftAssoc.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_right_assoc")) {
-                samePrecedenceRightAssoc.put(fact.getSubject(), fact.getObject());
-            }
-        }
-        
-        AnswerObjectEntity failedAnswer = null;
-        if (originalQuestion.getInteractions() == null || originalQuestion.getInteractions().size() == 0) {
-            return null;
-        }
-        InteractionEntity interaction = originalQuestion.getInteractions().get(originalQuestion.getInteractions().size() - 1);
-        for (ResponseEntity response : interaction.getResponses()) {
-            used.add(response.getLeftAnswerObject().getDomainInfo());
-            failedAnswer = response.getLeftAnswerObject();
-        }
-        
-        if (failedAnswer == null) {
-            return null;
-        }
-        
-        List<BackendFactEntity> possibleViolationFacts = new ArrayList<>();
-        {
-            BackendFactEntity factOriginalMistake = new BackendFactEntity("","","original_mistake", "", failedLaw);
-            possibleViolationFacts.add(factOriginalMistake);
-        }
-        
-        Integer failedIndex = Integer.parseInt(indexes.get(failedAnswer.getDomainInfo()));
-        
-        HashMap<String, String> templates = new HashMap<>();
-        for (AnswerObjectEntity origAnswer : originalQuestion.getAnswerObjects()) {
-            if (origAnswer.getDomainInfo().equals("end_token")) {
-                continue;
-            }
-            String text = texts.get(origAnswer.getDomainInfo());
-            Integer index = Integer.parseInt(indexes.get(origAnswer.getDomainInfo()));
-            String domainInfo = origAnswer.getDomainInfo();
-            
-            possibleViolationFacts.add(new BackendFactEntity(String.valueOf(origAnswer.getAnswerId()), "text", text));
-            possibleViolationFacts.add(new BackendFactEntity(String.valueOf(origAnswer.getAnswerId()), "index", String.valueOf(index)));
-            
-            if (origAnswer.getDomainInfo().equals(failedAnswer.getDomainInfo())) {
-                templates.put("operator", text);
-                templates.put("pos", index.toString());
-                templates.put("operator_domain_info", domainInfo);
-            }
-            
-            if (index < failedIndex && !used.contains(origAnswer.getDomainInfo())) {
-                templates.put("left_operator", text);
-                templates.put("left_operator_pos", index.toString());
-                templates.put("left_operator_domain_info", domainInfo);
-                
-                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("left_operator_priority", "low");
-                    templates.put("left_operator_correct", "wrong");
-                } else if (highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("left_operator_priority", "high");
-                    templates.put("left_operator_correct", "correct");
-                } else if (samePrecedenceLeftAssoc.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("left_operator_priority", "same");
-                    templates.put("left_operator_associativity", "L");
-                    templates.put("left_operator_correct", "correct");
-                } else {
-                    templates.put("left_operator_priority", "same");
-                    templates.put("left_operator_associativity", "R");
-                    templates.put("left_operator_correct", "wrong");
-                }
-            }
-            if (index > failedIndex && !used.contains(origAnswer.getDomainInfo()) && !templates.containsKey("right_operator")) {
-                templates.put("right_operator", text);
-                templates.put("right_operator_pos", index.toString());
-                templates.put("right_operator_domain_info", domainInfo);
-                
-                if (highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("right_operator_priority", "high");
-                    templates.put("right_operator_correct", "correct");
-                } else if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("right_operator_priority", "low");
-                    templates.put("right_operator_correct", "wrong");
-                } else if (samePrecedenceRightAssoc.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("right_operator_priority", "same");
-                    templates.put("right_operator_associativity", "R");
-                    templates.put("right_operator_correct", "correct");
-                } else {
-                    templates.put("right_operator_priority", "same");
-                    templates.put("right_operator_associativity", "L");
-                    templates.put("right_operator_correct", "wrong");
-                }
-            }
-            //TODO: check in parenthesis left/right
-            //TODO: check is failed complex beginning and have inner unused
-            //TODO: check operator with strict order
-        }
-        
-        StringSubstitutor stringSubstitutor = new StringSubstitutor(templates);
-        stringSubstitutor.setEnableUndefinedVariableException(true);
-        
-        try {
-            String text = stringSubstitutor.replace(supplementaryQuestion.getQuestionText());
-            text = text.replaceAll(getMessage("SAME_PRECEDENCE_TEMPLATE", lang), getMessage("OPERATOR_TEMPLATE", lang));
-            
-            supplementaryQuestion.getQuestionData().setQuestionText(text);
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-        
-        boolean sameAnswers = false;
-        HashSet<String> answerTexts = new HashSet<>();
-        List<AnswerObjectEntity> answers = new ArrayList<>();
-        for (AnswerObjectEntity answer : supplementaryQuestion.getAnswerObjects()) {
-            try {
-                String result = stringSubstitutor.replace(answer.getHyperText());
-                if (answerTexts.contains(result)) {
-                    sameAnswers = true;
-                }
-                
-                AnswerObjectEntity newAnswer = new AnswerObjectEntity();
-                answerTexts.add(result);
-                newAnswer.setHyperText(result);
-                newAnswer.setAnswerId(answer.getAnswerId());
-                
-                List<SupplementaryAnswerTransition> transitions = supplementaryConfig.get(failedLaw).get(answer.getDomainInfo());
-                
-                boolean isAnswerCorrect = false;
-                for (SupplementaryAnswerTransition transition : transitions) {
-                    String[] transitionCheckParts = transition.check.split(";");
-                    boolean transitionSuit = false;
-                    if (transition.check.equals("correct")) {
-                        transitionSuit = true;
-                    } else if (transitionCheckParts.length == 3) {
-                        String subject = templates.get(transitionCheckParts[0] + "_domain_info");
-                        String object = templates.get(transitionCheckParts[2] + "_domain_info");
-                        if (transitionCheckParts[1].equals("before")) {
-                            transitionSuit = beforeIndirect.containsMapping(subject, object);
-                        } else if (transitionCheckParts[1].equals("high_precedence")) {
-                            transitionSuit = highPrecedence.containsMapping(subject, object);
-                        } else if (transitionCheckParts[1].equals("same_precedence")) {
-                            transitionSuit = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object)
-                                    || samePrecedenceLeftAssoc.containsMapping(object, subject) || samePrecedenceRightAssoc.containsMapping(object, subject);
-                        } else if (transitionCheckParts[1].equals("same_precedence_left_assoc")) {
-                            transitionSuit = samePrecedenceLeftAssoc.containsMapping(subject, object);
-                        } else if (transitionCheckParts[1].equals("same_precedence_right_assoc")) {
-                            transitionSuit = samePrecedenceRightAssoc.containsMapping(subject, object);
-                        } else {
-                            throw new IllegalStateException("Supplementary answer correctness check verb is not supported");
-                        }
-                    }
-                    
-                    if (transitionSuit) {
-                        newAnswer.setDomainInfo(transition.question);
-                        isAnswerCorrect = transition.correct;
-                        if (!isAnswerCorrect) {
-                            BackendFactEntity mistake = new BackendFactEntity(String.valueOf(answer.getAnswerId()), "detailed_law", transition.detailed_law);
-                            possibleViolationFacts.add(mistake);
-                        }
-                        break;
-                    }
-                }
-                
-                if (newAnswer.getDomainInfo() == null) {
-                    throw new IllegalStateException("Supplementary answer correctness check failed");
-                }
-                
-                // skip question with same answers
-                if (sameAnswers && isAnswerCorrect) {
-                    ViolationEntity violationEntity = new ViolationEntity();
-                    violationEntity.setLawName(newAnswer.getDomainInfo());
-                    return makeSupplementaryQuestionBasic(originalQuestion, violationEntity, lang);
-                }
-                
-                answers.add(newAnswer);
-            } catch (IllegalArgumentException ex) {
-                // pass, this variant should not be used
-            }
-        }
-        supplementaryQuestion.setAnswerObjects(answers);
-        supplementaryQuestion.getQuestionData().setSolutionFacts(possibleViolationFacts);
-        return supplementaryQuestion;
-    }
-    
-    public InterpretSentenceResult judgeSupplementaryQuestionBasic(Question question, AnswerObjectEntity answer) {
-        InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
-        
-        interpretSentenceResult.violations = new ArrayList<>();
-        interpretSentenceResult.isAnswerCorrect = true;
-        
-        ViolationEntity violationEntity = new ViolationEntity();
-        if (answer.getDomainInfo() != null) {
-            violationEntity.setLawName(answer.getDomainInfo());
-        }
-        
-        List<BackendFactEntity> violationFacts = new ArrayList<>();
-        violationFacts.addAll(question.getSolutionFacts());
-        
-        for (BackendFactEntity fact : question.getSolutionFacts()) {
-            if (fact.getSubject().equals(String.valueOf(answer.getAnswerId()))) {
-                if (fact.getVerb().equals("detailed_law")) {
-                    violationEntity.setDetailedLawName(fact.getObject());
-                    interpretSentenceResult.isAnswerCorrect = false;
-                    if (violationEntity.getLawName() == null) {
-                        violationEntity.setLawName(fact.getObject());
-                    }
-                } else if (fact.getVerb().equals("text") || fact.getVerb().equals("index")) {
-                    violationFacts.add(fact);
-                }
-            }
-        }
-        
-        violationFacts.addAll(question.getSolutionFacts());
-        violationEntity.setViolationFacts(violationFacts);
-        if (violationEntity.getLawName() != null || violationEntity.getDetailedLawName() != null) {
-            interpretSentenceResult.violations.add(violationEntity);
-        }
-        
-        return interpretSentenceResult;
-    }
-    */
+
+    //-----------Объяснения---------------
     
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
@@ -1860,38 +1095,13 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<HyperText> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeExplanation(mistake, feedbackType, lang));
+            result.add(makeSingleExplanation(mistake, feedbackType, lang));
         }
         return result;
     }
     
-    private String getOperatorTextDescription(String errorText, Language lang) {
-        if (errorText.equals("(")) {
-            return getMessage("PARENTHESIS", lang);
-        } else if (errorText.equals("[")) {
-            return getMessage("BRACKETS", lang);
-        } else if (errorText.contains("(")) {
-            return getMessage("FUNC_CALL", lang);
-        }
-        return getMessage("OPERATOR", lang);
-    }
-    
-    private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
+    private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
         return new HyperText("WRONG");
-    }
-    
-    private List<BackendFactEntity> modelToFacts(Model factsModel, boolean onlySolvedFacts) {
-        JenaBackend jback = new JenaBackend();
-        jback.createOntology(NS_code.base());
-        
-        // fill model
-        OntModel model = jback.getModel();
-        model.add(factsModel);
-        
-        if (onlySolvedFacts) {
-            return jback.getFacts(getViolationVerbs(EVALUATION_ORDER_QUESTION_TYPE, null));
-        }
-        return jback.getFacts(null);
     }
     
     public static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
@@ -1904,401 +1114,9 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         
         return model;
     }
-    
-    @Override
-    public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
-        FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate, false));
-        
-        Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
-        
-        if (!fg.filterFacts(null, "text", "?:").isEmpty() || !fg.filterFacts(null, "text", "").isEmpty()) {
-            return new HashMap<>(); // Skip bad generation of ternary operator
-        }
-        addedFacts.put(templateName + "_v", new ArrayList<>());
-        
-        List<BackendFactEntity> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
-        switchPoints.sort(
-                Comparator.comparingInt((BackendFactEntity a) -> Integer.parseInt(a.getSubject().substring("op__0__".length()))));
-        for (BackendFactEntity branchOperands : switchPoints) {
-            List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
-            assert 1 == leftOp.size();
-            Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
-            
-            List<BackendFactEntity> left_op_is_switch = fg.filterFacts(leftOp.get(0).getObject(), "has_value_eval_restriction", null);
-            List<BackendFactEntity> left_op_is_ternary = fg.filterFacts(leftOp.get(0).getObject(), "has_inner_operand", null);
-            String left_op_left_op = null;
-            if (!left_op_is_switch.isEmpty() && left_op_is_ternary.isEmpty()) {
-                left_op_left_op = fg.filterFacts(leftOp.get(0).getObject(), "has_left_operand", null).get(0).getObject();
-            }
-            
-            for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
-                boolean canBeTrue = true;
-                boolean canBeFalse = true;
-                if (left_op_left_op != null) {
-                    for (BackendFactEntity prevFact : facts.getValue()) {
-                        if (left_op_left_op.equals(prevFact.getSubject())) {
-                            if (left_op_is_switch.get(0).getObject().equals("no_right_if_true") && prevFact.getObject().equals("true")) {
-                                canBeFalse = false;
-                            }
-                            if (left_op_is_switch.get(0).getObject().equals("no_right_if_false") && prevFact.getObject().equals("false")) {
-                                canBeTrue = false;
-                            }
-                        }
-                    }
-                }
-                
-                // Decrease number of variants in huge questions
-                if (canBeTrue && switchPoints.size() > 25 && random() < 0.05) {
-                    canBeTrue = false;
-                }
-                if (canBeFalse && switchPoints.size() > 25 && random() < 0.05) {
-                    canBeFalse = false;
-                }
-                
-                if (canBeTrue) {
-                    List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
-                    addedTrueFacts.addAll(facts.getValue());
-                    addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
-                    newAddedFacts.put(facts.getKey() + "t", addedTrueFacts);
-                }
-                
-                if (canBeFalse) {
-                    List<BackendFactEntity> addedFalseFacts = new ArrayList<>();
-                    addedFalseFacts.addAll(facts.getValue());
-                    addedFalseFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
-                    newAddedFacts.put(facts.getKey() + "f", addedFalseFacts);
-                }
-            }
-            addedFacts = newAddedFacts;
-        }
-        
-        log.debug("Generated: {} questions", addedFacts.size());
-        HashMap<String, Model> questions = new HashMap<>();
-        for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
-            questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
-            if (questions.size() > questionsLimit || addedFacts.size() > 10000 && questions.size() >= 5) {
-                break;
-            }
-        }
-        return questions;
-    }
-    
-    /**
-     * @param questionName name for the question
-     * @param model solved model
-     * @param rs instance of Storage
-     * @return fresh Ordering Question
-     */
-    public Question createQuestionFromModel(String questionName, Model model, AbstractRdfStorage rs) {
-        List<BackendFactEntity> facts = modelToFacts(model, false);
-        facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
-        FactsGraph fg = new FactsGraph(facts);
-        
-        QuestionEntity entity = new QuestionEntity();
-        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
-        int ans_id = 0;
-        int solution_length = 0;
-        Map<Integer, BackendFactEntity> texts = new TreeMap<>(); // expression tokens
-        Map<Integer, BackendFactEntity> orderAnswers = new TreeMap<>();
-        
-        for (BackendFactEntity token : fg.filterFacts(null, "index", null)) {
-            orderAnswers.put(Integer.parseInt(token.getObject()), token);
-        }
-        
-        for (BackendFactEntity token : orderAnswers.values()) {
-            String text = fg.filterFacts(token.getSubject(), "text", null).get(0).getObject();
-            BackendFactEntity initFacts = new BackendFactEntity(null,null, null,null,text);
-            
-            List<BackendFactEntity> hasValue = fg.filterFacts(token.getSubject(), "has_value", null);
-            if (!hasValue.isEmpty()) {
-                initFacts.setSubjectType(hasValue.get(0).getObject());
-            }
-            
-            if (!fg.filterFacts(token.getSubject(), "not_selectable", null).isEmpty()) {
-                texts.put(Integer.parseInt(token.getObject()), initFacts);
-                continue;
-            }
-            
-            if (fg.filterFacts(null, "has_uneval_operand", token.getSubject()).isEmpty()) {
-                solution_length++;
-            }
-            
-            initFacts.setSubject("operator");
-            texts.put(Integer.parseInt(token.getObject()), initFacts);
-            
-            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
-            newAnswerObjectEntity.setAnswerId(ans_id);
-            ans_id++;
-            newAnswerObjectEntity.setConcept("operator");
-            newAnswerObjectEntity.setDomainInfo("op__0__" + token.getObject());
-            newAnswerObjectEntity.setHyperText(text);
-            newAnswerObjectEntity.setQuestion(null);
-            newAnswerObjectEntity.setRightCol(false);
-            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
-            answerObjectEntities.add(newAnswerObjectEntity);
-        }
-        // Add answer for stop evaluation
-        AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
-        newAnswerObjectEntity.setAnswerId(ans_id);
-        newAnswerObjectEntity.setConcept(END_EVALUATION);
-        newAnswerObjectEntity.setDomainInfo("end_token");
-        newAnswerObjectEntity.setHyperText(END_EVALUATION);
-        newAnswerObjectEntity.setQuestion(null);
-        newAnswerObjectEntity.setRightCol(false);
-        newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-        newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
-        answerObjectEntities.add(newAnswerObjectEntity);
-        texts.put(1000000, new BackendFactEntity(null,END_EVALUATION,null,null,END_EVALUATION));
-        
-        entity.setAnswerObjects(answerObjectEntities);
-        entity.setExerciseAttempt(null);
-        entity.setQuestionDomainType("OrderOperators");
-        entity.setStatementFacts(facts);
-        entity.setSolutionFacts(facts);
-        entity.setQuestionType(QuestionType.ORDER);
-        entity.setQuestionName("");
-        
-        // check the size of question
-        if (ans_id < 3 || ans_id > 30)
-            // too small or too large question
-            return null;
-        
-        List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
-        entity.setQuestionText(ExpressionToHtml(textFacts));
-//        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
-        entity.setQuestionName(questionName);
-        
-        Question question = new Ordering(entity, null);
-        
-        Set<String> lawNames = new HashSet<>();
-        for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
-            lawNames.add(fact.getObject());
-        }
-        // question.getPositiveLaws().addAll(lawNames); // no PositiveLaws in question entity
-        
-        Set<String> concepts = new HashSet<>();
-        for (BackendFactEntity fact : fg.filterFacts(null, "concept", null)) {
-            concepts.add(fact.getObject());
-        }
-        concepts.add("operator");
-        
-        question.getConcepts().addAll(concepts);
-        Set<String> violations = possibleViolations(question, null);
-        
-        // use Python parser to infer possibly more concepts and violations
-        // convert tokens to string omitting last one that is END_EVALUATION
-        String exprString = textFacts.stream().map(BackendFactEntity::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
-        try (var pythonCaller = new ExpressionSituationPythonCaller()) {
-            var concepts_violations = pythonCaller.invoke(exprString);
-            log.debug("python returns concepts_violations: {}", concepts_violations);
-            if (concepts_violations != null && concepts_violations.size() == 2) { // validate the structure
-                // show if something new was inferred
-                Set<String> moreConcepts = new HashSet<>(List.of(concepts_violations.get(0).split(" ")));
-                Set<String> moreViolations = new HashSet<>(List.of(concepts_violations.get(1).split(" ")));
-                
-                val newConcepts = new HashSet<>(moreConcepts);
-                newConcepts.removeAll(concepts);
-                if (!newConcepts.isEmpty()) {
-                    log.info("python sub-service inferred {} more concept(s): {}", newConcepts.size(), newConcepts);
-                    concepts.addAll(newConcepts);
-                }
-                val newViolations = new HashSet<>(moreViolations);
-                newViolations.removeAll(concepts);
-                if (!newViolations.isEmpty()) {
-                    log.info("python sub-service inferred {} more violation(s): {}", newViolations.size(), newViolations);
-                    violations.addAll(newViolations);
-                }
-            }
-        }
-        
-        // finished with the results of external Python tool.
-        
-        List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
-        
-        question.getTags().addAll(tagNames);
-        
-        entity.setSolutionFacts(null);
-        
-        // make Options instance if absent
-        if (entity.getOptions() == null) {
-            entity.setOptions(new OrderQuestionOptionsEntity());
-        }
-        
-        QuestionMetadataEntity meta = null;
-        if (rs != null) {
-            meta = rs.findQuestionByName(questionName);
-            if (meta == null) {
-                meta = rs.createQuestion(this, questionName, questionName.split("_v")[0], false);
-            }
-        }
-        if (meta == null) {
-            meta = QuestionMetadataEntity.builder()
-                    .name(questionName)
-                    .build();
-        }
-        // QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
-        // // entity.getOptions().setMetadata(metadata); // see below
-        
-        meta.setDraft(true);  // ordinary metadata instance but this may be useful to indicate it's still "draft", i.e. not yet accepted for import to main table.
-        
-        // meta.setName(questionName);
-        meta.setDomainShortname(this.getShortName());
-        meta.setStage(AbstractRdfStorage.STAGE_READY);  // 3 = generated question
-        meta.setVersion(AbstractRdfStorage.GENERATOR_VERSION);  // v10 : generated by Domain
-        meta.setUsedCount(0L);
-        meta.setDateLastUsed(new Date()); // generated at this time
-        
-        question.setTags(new HashSet<>(tagNames));
-        meta.setTagBits(tagNames.stream().map(this::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a,b) -> a|b).orElse(0L));
-        
-        // positive only laws
-        meta.setLawBits(lawNames.stream().map(this::getPositiveLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L));
-        
-        question.setNegativeLaws(new ArrayList<>(violations));
-        meta.setViolationBits(violations.stream().map(this::getNegativeLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L));
-        
-        question.setConcepts(new ArrayList<>(concepts));
-        meta.setConceptBits(concepts.stream().map(this::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L));
-        meta.setTraceConceptBits(0L);  // trace concepts (encountered during solving the question) are not important for this domain.
-        
-        double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
-        double integralComplexity = 1/( 1 + Math.exp(-1*complexity));
-        
-        
-        // add metadata to question (later it may be stored in DB)
-        
-        meta.setIntegralComplexity(integralComplexity);
-        meta.setSolutionStructuralComplexity((double) ans_id);  // number of clickable operators
-        meta.setSolutionSteps(solution_length);
-        meta.setDistinctErrorsCount(violations.size());
-        
-        // save current state into DB
-        if (rs != null) {
-            meta = rs.saveMetadataDraftEntity(meta);
-        }
-        
-        // write info to question metadata
-        QuestionMetadataEntity metadata = meta.toMetadataEntity();
-        entity.getOptions().setMetadata(metadata);
-        question.setMetadata(metadata);
-        
-        return question;
-    }
-    
-    public String questionToJson(Question question) {
-        return questionToJson(question, "ORDERING");
-//        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
-    }
-    
-    /**
-     * Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
-     * @param ttlTemplatePaths
-     * @param outputDir
-     * @param questionsLimit
-     * @param origin
-     */
-    public /*static*/ void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
-        int count = 0;  // templates
-        int qCount = 0;
-        int savedCount = 0;
-        
-        for (String file : ttlTemplatePaths) {
-            try {
-                if (qCount > questionsLimit)
-                    break;
-                
-                Path path = Path.of(file);
-                String name = path.getFileName().toString();
-                if (!name.endsWith(".ttl")) {
-                    log.info("Skipping non-ttl file: {}", path);
-                    continue;
-                }
-                
-                name = name.substring(0, name.length() - ".ttl".length());
-                name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
-                count++;
-                
-                // Create a template
-                log.debug("{} \tUpload model number {}", name, count);
-                Model templateModel = ModelFactory.createDefaultModel();
-                RDFDataMgr.read(templateModel, file);
-                
-                Model domainSchemaModel = qMetaStorage.getFullSchema(this);
-                
-                // solve the template
-                Model solvedTemplateModel = qMetaStorage.runReasoning(domainSchemaModel
-                                .union(templateModel),
-                        qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_TEMPLATE_SOLVED),
-                        false);
-                
-                log.debug("Creating questions for template: {}", name);
-                
-                int templateQuestionsCount = 0;
-                Set<Set<String>> possibleViolations = new HashSet<>();
-                for (Map.Entry<String, Model> question : this.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
-                    qCount++;
-                    if (qCount >= questionsLimit)
-                        break;
-                    
-                    // Find potential errors: solve the question
-                    Model solvedQuestionModel = qMetaStorage.runReasoning(
-                            solvedTemplateModel.union(question.getValue()),
-                            qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_SOLVED),
-                            false);
-                    
-                    // Generate only questions with different error sets
-                    List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.get());
-                    Set<String> violations = this.possibleViolations(facts, null);
-                    if (possibleViolations.contains(violations)) {
-                        log.debug("Skip question with same violations: {}", question.getKey());
-                        continue;
-                    }
-                    possibleViolations.add(violations);
-                    
-                    // (note! names of template and question must differ)
-                    String questionName = question.getKey();
-                    if (questionName.equals(name)) {
-                        // guard for the case when the name was not changed
-                        questionName += "_v";
-                    }
-                    
-                    // Save question data for domain in JSON
-                    log.debug("Generating question: {}", questionName);
-                    Question domainQuestion = this.createQuestionFromModel(questionName, solvedQuestionModel, null /*don't use DB*/);
-                    
-                    if (domainQuestion == null) {
-                        log.debug("--  Cancelled inappropriate question: {}", questionName);
-                        continue;
-                    }
-                    
-                    domainQuestion.getMetadata().setOrigin(origin);
-                    domainQuestion.getQuestionData().getOptions()
-                            .getMetadata().setOrigin(origin);
-                    
-                    // Save question data for domain in JSON
-                    log.debug("++  Saving question: {}", questionName);
-                    savedCount++;
-                    
-                    // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
-                    
-                    String jsonData = this.questionToJson(domainQuestion);
-                    path = Path.of(outputDir, questionName + ".json");
-                    Files.writeString(path, jsonData);
-                    ++templateQuestionsCount;
-                }
-                
-                if (templateQuestionsCount > 0) {
-                    log.info("Successfully generated {} question(s) for template {}", templateQuestionsCount, file);
-                }
-            } catch (Exception e) {
-                log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
-            }
-        }
-        
-        log.info("Total questions generated: {} ({} saved).\n", qCount, savedCount);
-    }
-    
+
+    //--------Трассировка-----------
+
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         Language lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
@@ -2387,6 +1205,9 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         }
         return responses;
     }
+
+    //-------Битмаски-----
+    //Зачем?
     
     private HashMap<String, Long> _getConceptsName2bit() {
         HashMap<String, Long> name2bit = new HashMap<>(26);

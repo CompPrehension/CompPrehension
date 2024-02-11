@@ -641,6 +641,8 @@ public abstract class Domain {
 
     /**
      * Get statistics for initial step of question evaluation
+     * FIXME? Удалить? Используется только внутри {@link #interpretSentence}, нет смысла объявлять как часть интерфейса
+     *
      * @param solution solution backend facts
      */
     public abstract ProcessSolutionResult processSolution(Collection<Fact> solution);
@@ -681,6 +683,8 @@ public abstract class Domain {
     public abstract CorrectAnswer getAnyNextCorrectAnswer(Question q);
 
     /**
+     * FIXME? Удалить?
+     *
      * Get set of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
      * @param q question
      * @param completedSteps ignore mistakes possible in these steps
@@ -689,6 +693,8 @@ public abstract class Domain {
     public abstract Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps);
 
     /** Shortcut to `possibleViolations(question, completedSteps=null)`
+     * FIXME? Удалить?
+     *
      * @param q
      * @return
      */
@@ -697,6 +703,8 @@ public abstract class Domain {
     }
 
     /**
+     * FIXME? Удалить?
+     *
      * Get set of sets of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
      * @param q question
      * @param completedSteps ignore mistakes possible in these steps
@@ -705,6 +713,8 @@ public abstract class Domain {
     public abstract Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps);
 
     /** Shortcut to `possibleViolationsByStep(question, completedSteps=null)`
+     * FIXME? Удалить?
+     *
      * @param q
      * @return
      */
@@ -847,6 +857,8 @@ public abstract class Domain {
 
     /** Генерирует вопросы из шаблона, подбирая вопросы с разными наборам ошибок, минимальные по длине решения.
      * Generate questions from a template, selecting questions with different sets of errors, and minimal solutions in length.
+     * FIXME? Удалить? используется только в {@link ProgrammingLanguageExpressionDomain}
+     *
      *
      * @param templateName may be useful to make final question names
      * @param solvedTemplate all known data about question template
