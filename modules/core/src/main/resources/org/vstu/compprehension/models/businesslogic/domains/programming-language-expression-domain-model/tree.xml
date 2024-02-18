@@ -276,7 +276,7 @@
                                         _EN_nextStepQuestion="What can we conclude if there are unevaluated operators between ${val('X1', 'и')} and ${val('X2', 'и')}?"
                                         _EN_nextStepExplanation="That's incorrect. Any unevaluated operator between ${val('X1', 'и')} and ${val('X2', 'и')}, means that the inner operand of ${val('X','р')} is not fully evaluated. Therefore, it is preventing its further evaluation.."
                                     >
-                                        <BranchResultNode value='false' />
+                                        <BranchResultNode value="false" _errorNode='true' _explanation="central.isUnevaluated" />
                                     </Outcome>
                                     <Outcome value="false"
                                         _RU_explanation="Это неверно. Все операторы внутри  ${val('X','р')} вычислены."
@@ -892,7 +892,7 @@
                                         _EN_nextStepBranchResult="The operator ${branchResult ? 'outside' : 'inside'} the parenthesis is always evaluated first"
                                         _EN_nextStepExplanation="That's incorrect. Operators in parenthesis always take precedence over external operators. Therefore, as ${val('Y','и')} is inside of parenthesis, and ${val('X','и')} is ouside of them, then the ${val('Y','и')} should be evaluated first, blocking ${val('X','д')}."
                                     >
-                                        <BranchResultNode value="false" />
+                                        <BranchResultNode value="false" _errorNode='true' _explanation="left.parenthesis"/>
                                         <ThoughtBranch type="bool" _alias="left.predetermining.3"
                                             _RU_description="${result ? '${val('Y','и')} находится в скобках, а ${val('X','и')} - за их пределами' : 'не существует скобок, окружающих ${val('Y','и')}, но не окружающих ${val('X','в')}'}"
                                             _EN_description="${result ? '${val('Y','и')} is inside of parenthesis, and ${val('X','и')} is ouside of them' : 'there are no parenthesis that enclose ${val('Y','и')} but not ${val('X','в')}'}"
@@ -1031,7 +1031,7 @@
                                                 _EN_nextStepBranchResult="Operator with a ${branchResult ? 'lower' : 'higher'} precedence is always evaluated first"
                                                 _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${val('Y','и')} should be evaluated first, and we can conclude that the left operand of ${val('X','и')} does prevent its evaluation."
                                             >
-                                                <BranchResultNode value="false" />
+                                                <BranchResultNode value="false" _errorNode='true' _explanation="left.precedence" />
                                             </Outcome>
                                             <Outcome value="Comparison:equal"
                                                 _RU_text="Их приоритеты одинаковы."
@@ -1074,7 +1074,7 @@
                                                         _EN_nextStepBranchResult="The one on the ${branchResult ? 'right' : 'left'}"
                                                         _EN_nextStepExplanation="That's incorrect. Operators that have left associativity evaluate from left to right. Therefore, in this case, ${class('Y','и')} should be evaluated first, and we can conclude that the left operand of ${val('X','и')} does prevent its evaluation."
                                                     >
-                                                        <BranchResultNode value="false" />
+                                                        <BranchResultNode value="false" _errorNode='true'  _explanation="left.associativity" />
                                                     </Outcome>
                                                     <Outcome value="associativity:right"
                                                         _RU_text="правая"
@@ -1694,7 +1694,7 @@
                                         _EN_nextStepBranchResult="The operator ${branchResult ? 'outside' : 'inside'} the parenthesis is always evaluated first"
                                         _EN_nextStepExplanation="That's incorrect. Operators in parenthesis always take precedence over external operators. Therefore, as ${val('Z','и')} is inside of parenthesis, and ${val('X','и')} is ouside of them, then the ${val('Z','и')} should be evaluated first, blocking ${val('X','д')}."
                                     >
-                                        <BranchResultNode value="false" />
+                                        <BranchResultNode value="false" _errorNode='true' _explanation="right.parenthesis" />
                                         <ThoughtBranch type="bool" _alias="right.predetermining.3"
                                             _RU_description="${result ? '${val('Z','и')} находится в скобках, а ${val('X','и')} - за их пределами' : 'не существует скобок, окружающих ${val('Z','и')}, но не окружающих ${val('X','в')}'}"
                                             _EN_description="${result ? '${val('Z','и')} is inside of parenthesis, and ${val('X','и')} is ouside of them' : 'there are no parenthesis that enclose ${val('Z','и')} but not ${val('X','в')}'}"
@@ -1831,7 +1831,7 @@
                                                 _EN_nextStepBranchResult="Operator with a ${branchResult ? 'lower' : 'higher'} precedence is always evaluated first"
                                                 _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${val('Z','и')} should be evaluated first, and we can conclude that the left operand of ${val('X','и')} does prevent its evaluation."
                                             >
-                                                <BranchResultNode value="false" />
+                                                <BranchResultNode value="false" _errorNode='true'  _explanation="right.precedence" />
                                             </Outcome>
                                             <Outcome value="Comparison:equal"
                                                 _RU_text="Их приоритеты одинаковы."
@@ -1874,7 +1874,7 @@
                                                         _EN_nextStepBranchResult="The one on the ${branchResult ? 'left' : 'right'}"
                                                         _EN_nextStepExplanation="That's incorrect. Operators that have right associativity evaluate from right to left. Therefore, in this case, ${class('Z','и')} should be evaluated first, and we can conclude that the right operand of ${val('X','и')} does prevent its evaluation."
                                                     >
-                                                        <BranchResultNode value="false" />
+                                                        <BranchResultNode value="false" _errorNode='true'  _explanation="right.associativity"/>
                                                     </Outcome>
                                                     <Outcome value="associativity:left"
                                                         _RU_text="правая"
