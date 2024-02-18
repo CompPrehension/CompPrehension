@@ -135,7 +135,7 @@ public class FrontendService {
         val existingInteractions = question.getQuestionData().getInteractions();
         val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
-        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
+        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
         // ch.hit("add interaction ("+correctInteractionsCount+")");
 
         // add feedback
@@ -163,7 +163,7 @@ public class FrontendService {
         val errors = Streams.zip(violations, explanations, Pair::of)
                 .collect(Collectors.toList());
         val locale = attempt.getUser().getPreferred_language().toLocale();
-        val messages = errors.size() > 0 && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
+        val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
                 : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
                 : null;
