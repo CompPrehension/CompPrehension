@@ -66,7 +66,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }};
 
     // dictionary
-    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.rdf";
+    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.ttl";
     private static DomainVocabulary VOCAB = null;
     public static DomainVocabulary getVocabulary() {
         return VOCAB;
