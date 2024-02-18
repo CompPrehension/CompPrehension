@@ -152,6 +152,12 @@ public class QuestionService {
         return result;
     }
 
+    /**
+     * @param question current question being solved
+     * @param responses new responses from student (to add to solution if correct)
+     * @param tags Exercise tags
+     * @return interpretation of backend's judgement
+     */
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Collection<Fact> responseFacts = question.responseToFacts(responses);
