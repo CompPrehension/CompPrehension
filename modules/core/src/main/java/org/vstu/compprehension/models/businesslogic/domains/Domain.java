@@ -498,6 +498,10 @@ public abstract class Domain {
          */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
 
+    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang){
+        return null;
+    }
+
     /**
      * Get all needed (positive and negative) laws in this questionType
      * @param questionDomainType type of question
@@ -603,6 +607,8 @@ public abstract class Domain {
          * All violations
          */
         public List<ViolationEntity> violations;
+
+        public List<HyperText> explanations;
         /**
          * List of all negative laws that not occurred
          * (all answers where this answer would be the cause of the violation)

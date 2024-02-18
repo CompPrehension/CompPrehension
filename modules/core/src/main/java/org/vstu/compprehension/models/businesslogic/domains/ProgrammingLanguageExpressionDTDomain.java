@@ -17,7 +17,6 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.businesslogic.backend.facts.DTDomainDescriptionFact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
@@ -395,7 +394,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             Collections.emptyList()
         );
 
-        return Collections.singletonList(new DTDomainDescriptionFact(situationModel));
+        return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
     }
 
     @Override
@@ -409,7 +408,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             responses.stream().toList()
         );
 
-        return Collections.singletonList(new DTDomainDescriptionFact(situationModel));
+        return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
     }
 
 
@@ -1069,16 +1068,9 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        List<ViolationEntity> mistakes = new ArrayList<>();
-        violations.stream()
-            .filter(f -> f.getVerb().equals("isCorrect") && f.getObject().equals("false"))
-            .findFirst()
-            .ifPresent(f -> {
-                ViolationEntity err = new ViolationEntity();
-                err.setLawName("isIncorrect");
-                err.setViolationFacts(new ArrayList<>());
-                mistakes.add(err);
-            });
+        List<ViolationEntity> mistakes = DecisionTreeReasonerBackend.reasonerOutputFactsToViolations(
+            violations.stream().toList()
+        );
         
         InterpretSentenceResult result = new InterpretSentenceResult();
         result.violations = mistakes;
@@ -1087,10 +1079,15 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
 
 //        ProcessSolutionResult processResult = processSolution(violations);
         result.CountCorrectOptions = 10;
-        result.IterationsLeft = 10;
+        result.IterationsLeft = 10; //TODO
         return result;
     }
-    
+
+    @Override
+    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang) {
+        return DecisionTreeReasonerBackend.makeExplanations(reasonerOutputFacts, lang);
+    }
+
     @Override
     public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<HyperText> result = new ArrayList<>();
