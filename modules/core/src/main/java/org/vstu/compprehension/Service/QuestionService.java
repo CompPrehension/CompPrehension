@@ -166,7 +166,17 @@ public class QuestionService {
                         domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
                         question.getQuestionUniqueTemplateName())
         );
-        return domain.interpretSentence(violations);
+        Domain.InterpretSentenceResult result = domain.interpretSentence(violations);
+
+        Language lang;
+        try {
+            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+        } catch (NullPointerException e) {
+            lang = Language.ENGLISH;  // fallback if it cannot be figured out
+        }
+        result.explanations = domain.makeExplanations(violations.stream().toList(), lang);
+
+        return result;
     }
 
     public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
