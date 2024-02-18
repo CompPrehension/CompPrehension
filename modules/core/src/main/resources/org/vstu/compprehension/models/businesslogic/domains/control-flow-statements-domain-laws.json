@@ -2,8 +2,12 @@
   {
     "name": "rdfs_subset_positive",
     "positive": true,
+    "tags": [
+      {
+        "name": "decision-tree"
+      }
+    ],
     "concepts": [],
-    "tags": [],
     "formulations": [
       {
         "name": "autogen_1",
@@ -66,10 +70,13 @@
     ]
   },
   {
-    "name": "loop_alternative_helper",
+    "name": "decision-tree_loop_alternative_helper",
     "positive": true,
     "salience": 10,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "loop"
       },
@@ -144,10 +151,13 @@
     ]
   },
   {
-    "name": "loop_alternative_helper",
+    "name": "decision-tree_loop_alternative_helper",
     "positive": false,
     "salience": 10,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "loop"
       },
@@ -222,9 +232,12 @@
     ]
   },
   {
-    "name": "action-boundaries-polyfill",
+    "name": "decision-tree_action-boundaries-polyfill",
     "positive": true,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "action-boundaries-polyfill"
       }
@@ -291,9 +304,12 @@
     ]
   },
   {
-    "name": "helper",
+    "name": "decision-tree_helper",
     "positive": true,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "helper"
       }
@@ -313,7 +329,19 @@
         "name": "loop-cond-to-parent_of",
         "formulation": "(?Loop rdf:type my:loop), (?Loop my:cond ?c) -> (?Loop my:parent_of ?c).",
         "backend": "Jena"
-      },
+      }
+    ]
+  },
+  {
+    "name": "helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
       {
         "name": "attach-principal_violation-to-possible_violation-at-reason_node",
         "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
@@ -356,6 +384,12 @@
       },
       {
         "name": "stmt"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "last_item"
       }
     ],
     "formulations": [
@@ -402,6 +436,16 @@
       {
         "name": "role-for-loop_update",
         "formulation": "(?action rdf:type my:stmt), (?parent rdf:type my:loop), (?parent my:update ?action), -> (?action my:has_role my:loop_update).",
+        "backend": "Jena"
+      },
+      {
+        "name": "type-prop-first_item",
+        "formulation": "(?st rdf:type my:first_item), -> (?st my:list_item_role my:first_item),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "type-prop-last_item",
+        "formulation": "(?st rdf:type my:last_item), -> (?st my:list_item_role my:last_item),.",
         "backend": "Jena"
       }
     ]
@@ -484,12 +528,6 @@
     "concepts": [
       {
         "name": "sequence"
-      },
-      {
-        "name": "first_item"
-      },
-      {
-        "name": "last_item"
       }
     ],
     "formulations": [
@@ -500,7 +538,7 @@
       },
       {
         "name": "connect_SequenceBegin_rule_g2",
-        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
+        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st my:list_item_role my:first_item), (?b2 my:begin_of ?st), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
         "backend": "Jena"
       },
       {
@@ -510,7 +548,7 @@
       },
       {
         "name": "connect_SequenceEnd",
-        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
+        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st my:list_item_role my:last_item), (?e1 my:end_of ?st), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
         "backend": "Jena"
       }
     ]
@@ -528,9 +566,6 @@
         "name": "alternative"
       },
       {
-        "name": "first_item"
-      },
-      {
         "name": "expr"
       },
       {
@@ -538,15 +573,12 @@
       },
       {
         "name": "else"
-      },
-      {
-        "name": "last_item"
       }
     ],
     "formulations": [
       {
         "name": "connect_AltBegin",
-        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
+        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br my:list_item_role my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
@@ -571,7 +603,7 @@
       },
       {
         "name": "connect_AltEndAllFalse",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e), (?R my:reason_kind my:AltEndAllFalse), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br my:list_item_role my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e), (?R my:reason_kind my:AltEndAllFalse), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
         "backend": "Jena"
       },
       {
@@ -709,9 +741,12 @@
     ]
   },
   {
-    "name": "trace_helper",
+    "name": "decision-tree_trace_helper",
     "positive": false,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "trace"
       },
@@ -1133,9 +1168,6 @@
         "name": "WrongNext"
       },
       {
-        "name": "first_item"
-      },
-      {
         "name": "NoFirstCondition"
       },
       {
@@ -1193,9 +1225,6 @@
         "name": "NoNextCondition"
       },
       {
-        "name": "last_item"
-      },
-      {
         "name": "LastFalseNoEnd"
       },
       {
@@ -1208,7 +1237,7 @@
     "formulations": [
       {
         "name": "NoFirstCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition), (?b my:field_ALT ?a_name), (?b my:field_REQUIRED_COND ?c_name),.",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br my:list_item_role my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition), (?b my:field_ALT ?a_name), (?b my:field_REQUIRED_COND ?c_name),.",
         "backend": "Jena"
       },
       {
@@ -1293,7 +1322,7 @@
       },
       {
         "name": "LastFalseNoEnd-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br rdf:type my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:precursor ?a), (?b my:should_be ?alt), (?b rdf:type my:LastFalseNoEnd), (?b my:field_ALT ?a_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br my:list_item_role my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:precursor ?a), (?b my:should_be ?alt), (?b rdf:type my:LastFalseNoEnd), (?b my:field_ALT ?a_name),.",
         "backend": "Jena"
       },
       {
