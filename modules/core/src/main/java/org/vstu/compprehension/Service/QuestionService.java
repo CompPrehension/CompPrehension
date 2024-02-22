@@ -164,7 +164,7 @@ public class QuestionService {
         Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
         Collection<Fact> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses),
+                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses, responseFacts),
                 Fact.entitiesToFacts(question.getSolutionFacts()),
                 responseFacts,
                 new ReasoningOptions(

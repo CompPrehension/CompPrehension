@@ -1,11 +1,8 @@
 package org.vstu.compprehension.config;
 
 import lombok.val;
-import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
-import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
-import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +18,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.config.interceptors.RandomSeedSetInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
+import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
@@ -55,6 +53,7 @@ public class WebConfig implements WebMvcConfigurer {
         messageSource.addBasenames(ControlFlowStatementsDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(ControlFlowStatementsDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }

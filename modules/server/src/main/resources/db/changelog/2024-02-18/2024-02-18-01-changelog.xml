@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="2024021801-1" author="Mikhail Denisov">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                select exists(select 1 from domain where name = 'ControlFlowStatementsDTDomain')
+            </sqlCheck>
+        </preConditions>
+        <insert tableName="domain">
+            <column name="name" value="ControlFlowStatementsDTDomain" />
+            <column name="short_name" value="ctrl_flow_dt" />
+            <column name="version" value="1" />
+            <column name="options_json" value='{"StorageSPARQLEndpointUrl": null,
+                "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
+                "StorageUploadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
+                "QuestionsGraphPath": "C:/data/compp/control_flow.ttl"}' />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
