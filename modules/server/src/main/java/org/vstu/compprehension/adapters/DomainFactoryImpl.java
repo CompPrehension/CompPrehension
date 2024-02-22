@@ -64,6 +64,18 @@ public class DomainFactoryImpl implements DomainFactory {
                     questionMetadataRepository);
             domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
         }
+        {
+            var dtDomainEntity = domains
+                    .stream().filter(x -> x.getName/*!*/().equals("ControlFlowStatementsDTDomain"))
+                    .findFirst()
+                    .orElseThrow();
+            var dtDomain = new ControlFlowStatementsDTDomain(
+                    dtDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionMetadataRepository);
+            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
+        }
 
     }
 

@@ -25,7 +25,6 @@ import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataMana
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
@@ -399,9 +398,9 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
 
     @Override
     public Collection<Fact> processQuestionFactsForBackendJudge(
-        Collection<Fact> questionFacts,
-        Collection<ResponseEntity> responses
-    ) {
+            Collection<Fact> questionFacts,
+            Collection<ResponseEntity> responses,
+            Collection<Fact> responseFacts) {
         its.model.definition.Domain situationModel = ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
             domainSolvingModel.getDomain(),
             questionFacts.stream().map(Fact::asBackendFact).toList(),
