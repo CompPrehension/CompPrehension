@@ -17,7 +17,7 @@ VALUES (1, 'ProgrammingLanguageExpressionDTDomain', 'expression_dt',
             "QuestionsGraphPath": "C:/data/compp/expression.ttl"}' FORMAT JSON);
 
 INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`)
-VALUES (1, 'ControlFlowDecisionTreeBasedDomain', 'ctrl_flow',
+VALUES (1, 'ControlFlowStatementsDTDomain', 'ctrl_flow',
 	'{"StorageSPARQLEndpointUrl": null,
                 "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
                 "StorageUploadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
