@@ -457,20 +457,28 @@ public abstract class Domain {
     }
     
     /**
-     * Get domain-defined backend id, which determines the backend used to solve this domain's questions
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
      * Returns {@link JenaBackend#BackendId} by default, as Jena was de-facto only Backend used
      */
-    public String getBackendId(){
+    public String getSolvingBackendId(){
         return JenaBackend.BackendId;
     }
 
-        /**
-         * Generate explanation of violations
-         * @param violations list of student violations
-         * @param feedbackType TODO: use feedbackType or delete it
-         * @param lang user preferred language
-         * @return explanation for each violation in random order
-         */
+    /**
+     * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
+     * Returns {@link JenaBackend#BackendId} by default, as Jena was de-facto only Backend used
+     */
+    public String getJudgingBackendId(/* TODO: pass question type ??*/){
+        return this.getSolvingBackendId();
+    }
+
+    /**
+     * Generate explanation of violations
+     * @param violations list of student violations
+     * @param feedbackType TODO: use feedbackType or delete it
+     * @param lang user preferred language
+     * @return explanation for each violation in random order
+     */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
 
     public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang){

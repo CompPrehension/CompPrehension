@@ -75,7 +75,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     }
     
     @Override
-    public String getBackendId() {
+    public String getSolvingBackendId() {
         return DecisionTreeReasonerBackend.BACKEND_ID;
     }
     

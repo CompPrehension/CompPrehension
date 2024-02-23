@@ -161,7 +161,8 @@ public class QuestionService {
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Collection<Fact> responseFacts = question.responseToFacts(responses);
-        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Backend backend = backendFactory.getBackend(domain.getJudgingBackendId());
+//        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
         Collection<Fact> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses, responseFacts),

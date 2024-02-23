@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
@@ -48,7 +47,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(domainId)
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getBackendId();
+        var backendId = domain.getSolvingBackendId();
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
@@ -75,7 +74,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(card.getDomainId())
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getBackendId();
+        var backendId = domain.getSolvingBackendId();
 
         exercise.setName(card.getName());
         exercise.setDomain(domainEntity);
