@@ -1,0 +1,17 @@
+A  |act
+T  |trace
+G  |algorithm
+Al |act
+P  |action
+Y  |action
+B  |action
+E  |boundary
+L  |loop
+S  |sequence
+D  |alternative
+M  |action
+F  |func
+YC |expr 
+R  |action
+Ra |act
+IT |action

@@ -1,0 +1,6 @@
+comparisonResult|greater;less;equal;undetermined|FALSE|
+act_kind|begin;end;atom|FALSE|
+interrupt_kind|return;break;continue|FALSE|
+role_for_parent|func_body;func_call;loop_body;sequence_element;alt_branch;alt_cond;loop_init;loop_cond;loop_update|FALSE|
+evaluatesTo|True;False|FALSE|
+action_kind|alternative;sequence;loop;expr;stmt;stmt_with_calls;call;func|FALSE|
