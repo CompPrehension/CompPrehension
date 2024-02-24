@@ -400,7 +400,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     public Collection<Fact> processQuestionFactsForBackendJudge(
             Collection<Fact> questionFacts,
             Collection<ResponseEntity> responses,
-            Collection<Fact> responseFacts) {
+            Collection<Fact> responseFacts, Collection<Fact> solutionFacts) {
         its.model.definition.Domain situationModel = ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
             domainSolvingModel.getDomain(),
             questionFacts.stream().map(Fact::asBackendFact).toList(),

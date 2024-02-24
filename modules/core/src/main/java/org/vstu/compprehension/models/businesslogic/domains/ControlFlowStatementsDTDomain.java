@@ -165,18 +165,19 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
                 Law[].class);
 
         for (Law lawForm : lawForms) {
-
-            // additional filter for input laws >>
-            if (!lawForm.getTags().contains(tags.get("decision-tree"))) {
-                // Mute all laws not related to decision tree (but keep for UI and question filtering purposes).
-                lawForm.getFormulations().clear();
-                continue;
-            }
-            // << additional filter for input laws
-
             if (lawForm.isPositiveLaw()) {
+                // (do not filter positive laws)
                 positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
+
             } else {
+                // additional filter for negative laws >>
+//                if (!lawForm.getTags().contains(tags.get("decision-tree"))) {
+//                    // Mute all laws not related to decision tree (but keep for UI and question filtering purposes).
+//                    lawForm.getFormulations().clear();
+//                    //// continue;
+//                }
+                // << additional filter for input laws
+
                 negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
             }
         }
@@ -363,15 +364,16 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return super.getDefaultQuestionTags(questionDomainType);
     }
 
-    @Override
+    /*@Override
     public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
         return Collections.singletonList(new DTLaw(this.domainSolvingModel.getDecisionTree()));
-    }
+    }*/
 
     // filter positive laws by question type and tags
     @Override
     public Collection<PositiveLaw> getQuestionPositiveLaws(String domainQuestionType, List<Tag> tags) {
-        if (tags != null && !tags.isEmpty() && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE) || domainQuestionType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
+        /// debug OFF
+        if (false && tags != null && !tags.isEmpty() && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE) || domainQuestionType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
                 boolean needLaw = isLawNeededByQuestionTags(law, tags);
@@ -386,7 +388,8 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
     public Collection<NegativeLaw> getQuestionNegativeLaws(String domainQuestionType, List<Tag> tags) {
-        if (tags != null && !tags.isEmpty() && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
+        /// debug OFF
+        if (false && tags != null && !tags.isEmpty() && domainQuestionType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<NegativeLaw> negativeLaws = new ArrayList<>();
             for (NegativeLaw law : getNegativeLaws()) {
                 boolean needLaw = isLawNeededByQuestionTags(law, tags);
@@ -402,8 +405,8 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     //-----------ФАКТЫ---------------
 
-    @Override
-    public Collection<Fact> processQuestionFactsForBackendSolve(Collection<Fact> questionFacts) {
+//    @Override
+    public Collection<Fact> _OFF__processQuestionFactsForBackendSolve(Collection<Fact> questionFacts) {
 
         // USE Jena: prepare solved facts since DT reasoner does nothing for solve()
         Backend backend = new JenaBackend();
@@ -430,8 +433,10 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     public Collection<Fact> processQuestionFactsForBackendJudge(
             Collection<Fact> questionFacts,
             Collection<ResponseEntity> responses,
-            Collection<Fact> responseFacts) {
+            Collection<Fact> responseFacts,
+            Collection<Fact> solutionFacts) {
         assert responseFacts != null;
+        assert solutionFacts != null;
 
         // USE Jena: prepare facts for further judging with DT
 
@@ -446,7 +451,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         JenaFactList newFacts = backend.judge(
                 new ArrayList<>(this.getQuestionNegativeLaws(EXECUTION_ORDER_QUESTION_TYPE /*<Fixme: only one type of question is supported!*/, null)),
                 questionFacts,
-                List.of(),
+                solutionFacts,
                 responseFacts,
                 new ReasoningOptions(
                         false,
@@ -497,7 +502,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             situationModel,
                 model,
             Collections.singleton(DomainRDFFiller.Option.NARY_RELATIONSHIPS_OLD_COMPAT),
-            null
+            "http://vstu.ru/poas/code#" /*null*/
         );
         situationModel.validateAndThrowInvalid();
         return situationModel;
@@ -1519,31 +1524,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         if (isExpr)
             return stmt_name;
         return null;
-    }
-
-    /**
-     *
-     * @param question
-     * @param expressionName
-     * @param executionTime 1-based number
-     * @return
-     */
-    public int getValueForExpression(QuestionEntity question, String expressionName, int executionTime) {
-        for (BackendFactEntity fact : question.getStatementFacts()) {
-            if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
-                String values = fact.getObject();
-                String[] tokens = values.split(",");
-                if (0 < executionTime && executionTime <= tokens.length) {
-                    String token = tokens[executionTime - 1];
-                    return Integer.parseInt(token);
-                }
-                // else (out-of-range): go return the default
-                break;
-            }
-        }
-
-        // default is false
-        return 0;
     }
 
     @Override

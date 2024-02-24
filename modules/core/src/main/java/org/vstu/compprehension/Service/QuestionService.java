@@ -102,7 +102,8 @@ public class QuestionService {
 
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Backend backend = backendFactory.getBackend(domain.getSolvingBackendId());
+//        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
 
         // use reasoner to solve question
         Collection<Fact> solution = backend.solve(
@@ -163,10 +164,11 @@ public class QuestionService {
         Collection<Fact> responseFacts = question.responseToFacts(responses);
         Backend backend = backendFactory.getBackend(domain.getJudgingBackendId());
 //        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Collection<Fact> solutionFacts = Fact.entitiesToFacts(question.getSolutionFacts());
         Collection<Fact> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses, responseFacts),
-                Fact.entitiesToFacts(question.getSolutionFacts()),
+                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses, responseFacts, solutionFacts),
+                solutionFacts,
                 responseFacts,
                 new ReasoningOptions(
                         false,

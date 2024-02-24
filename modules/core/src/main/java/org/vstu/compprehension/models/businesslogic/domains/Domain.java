@@ -339,7 +339,8 @@ public abstract class Domain {
     public Collection<Fact> processQuestionFactsForBackendJudge(
             Collection<Fact> questionFacts,
             Collection<ResponseEntity> responses,
-            Collection<Fact> responseFacts){
+            Collection<Fact> responseFacts,
+            Collection<Fact> solutionFacts){
         return questionFacts;
     }
 

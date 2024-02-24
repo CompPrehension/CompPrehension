@@ -714,6 +714,30 @@
         "name": "prepare-trace-step"
       }
     ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "Redirect-normal-end-to-interrupted-end",
+        "formulation": "(?a my:student_next ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?st_b), (?bnd_a my:consequent ?bnd_halt), (?bnd_halt my:halt_of ?st_b), noValue(?bnd_a my:consequent ?bnd_b), -> drop(2), (?b my:executes ?bnd_halt),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "decision-tree_act_workaround",
+    "positive": false,
+    "salience": 10,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "act"
+      },
+      {
+        "name": "workaround"
+      }
+    ],
     "concepts": [
       {
         "name": "act_begin"
@@ -723,11 +747,6 @@
       }
     ],
     "formulations": [
-      {
-        "name": "Redirect-normal-end-to-interrupted-end",
-        "formulation": "(?a my:student_next ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?st_b), (?bnd_a my:consequent ?bnd_halt), (?bnd_halt my:halt_of ?st_b), noValue(?bnd_a my:consequent ?bnd_b), -> drop(2), (?b my:executes ?bnd_halt),.",
-        "backend": "Jena"
-      },
       {
         "name": "executes_id-to-executes-begin",
         "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_begin), (?bnd my:begin_of ?st), -> (?a my:executes ?bnd).",

@@ -26,10 +26,10 @@ public class ProgrammingLanguageExpressionRDFTransformer {
 
     private static final String DEBUG_DIR = "C:\\Uni\\CompPrehension_mainDir\\inputs\\input_examples\\";
     private static void debugDumpLoqi(its.model.definition.Domain model, String filename){
-        try {
+        try (var writer = new FileWriter(DEBUG_DIR + filename)) {
             DomainLoqiWriter.saveDomain(
                 model,
-                new FileWriter(DEBUG_DIR + filename),
+                writer,
                 new HashSet<>()
             );
         } catch (IOException e) {
