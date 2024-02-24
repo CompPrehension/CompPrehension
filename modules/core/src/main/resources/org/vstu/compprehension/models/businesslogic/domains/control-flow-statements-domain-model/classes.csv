@@ -15,7 +15,7 @@ func_call|statement|
 sequence|statement|
 alt_branch|sequence|
 if|alt_branch|
-else_if|alt_branch|
+else-if|alt_branch|
 else|alt_branch|
 loop|statement|
 func||
