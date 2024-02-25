@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -200,6 +201,32 @@ public class DomainVocabulary {
         ArrayList<OntClass> result = new ArrayList<>(classes);
         result.removeAll(set);
         return result;
+    }
+
+    /**
+     * Update model `m` so each individual in it has only one rdf:type assertion (the most specific class of all asserted before).
+     * @param m model to update
+     * @return model `m`
+     */
+    public static OntModel retainLeafTypesOnlyForIndividuals(OntModel m) {
+        // ...
+        for (Resource res : m.listSubjectsWithProperty(RDF.type).toSet()) {
+            List<OntClass> types = m.listObjectsOfProperty(res, RDF.type).toSet().stream()
+                    .map(n -> n.canAs(OntClass.class) ?
+                        n.as(OntClass.class) : null)
+                    .filter(Objects::nonNull)
+                    .toList();
+            if (types.size() <= 1)
+                continue;
+            List<OntClass> leaves = retainLeafOntClasses(types);
+            for (OntClass cls : types) {
+                if (leaves.contains(cls))
+                    continue;
+                // non-leaf class asserted: remove the triple.
+                m.remove(res, RDF.type, cls);
+            }
+        }
+        return m;
     }
 
     public static boolean testSubClassOfTransitive(OntClass a, OntClass b) {
