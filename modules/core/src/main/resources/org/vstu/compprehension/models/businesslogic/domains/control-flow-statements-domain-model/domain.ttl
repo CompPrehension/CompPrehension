@@ -38,7 +38,9 @@
 
 :begin_of a owl:ObjectProperty ;
     rdfs:subPropertyOf :boundary_of ;
-    :act_class :act_begin .
+    :act_class :act_begin ;
+    :EN.localizedName "the beginning of"^^xsd:string ;
+    :RU.localizedName "начало"^^xsd:string .
 
 :body a owl:ObjectProperty ;
     rdfs:subPropertyOf :parent_of .
@@ -81,7 +83,9 @@
 
 :end_of a owl:ObjectProperty ;
     rdfs:subPropertyOf :boundary_of ;
-    :act_class :act_end .
+    :act_class :act_end ;
+    :EN.localizedName "the ending of"^^xsd:string ;
+    :RU.localizedName "окочание"^^xsd:string .
 
 :entry_point a owl:FunctionalProperty,
         owl:ObjectProperty ;
@@ -313,9 +317,9 @@
 
 :continues_on_true_condition a owl:AnnotationProperty .
 
-:has_bitflags a owl:AnnotationProperty ;
-    rdfs:domain owl:Thing ;
-    rdfs:range owl:Thing .
+:EN.localizedName a owl:AnnotationProperty .
+
+:has_bitflags a owl:AnnotationProperty .
 
 :has_interrupt_kind a owl:AnnotationProperty .
 
@@ -324,6 +328,10 @@
 :involves_concept a owl:AnnotationProperty .
 
 :principal_violation a owl:AnnotationProperty .
+
+:RU.localizedName a owl:AnnotationProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
 
 ### Data Properties
 
@@ -503,27 +511,39 @@
 ### Classes
 
 :act a owl:Class ;
-    rdfs:subClassOf owl:Thing .
+    rdfs:subClassOf owl:Thing ;
+    :EN.localizedName "execution"^^xsd:string ;
+    :RU.localizedName "выполнение"^^xsd:string .
 
 :act_begin a owl:Class ;
-    rdfs:subClassOf :act .
+    rdfs:subClassOf :act ;
+    :EN.localizedName "the beginning of execution"^^xsd:string ;
+    :RU.localizedName "начало выполнения"^^xsd:string .
 
 :act_end a owl:Class ;
-    rdfs:subClassOf :act .
+    rdfs:subClassOf :act ;
+    :EN.localizedName "the ending of execution"^^xsd:string ;
+    :RU.localizedName "окочание выполнения"^^xsd:string .
 
 :action a owl:Class ;
-    rdfs:subClassOf owl:Thing .
+    rdfs:subClassOf owl:Thing ;
+    :EN.localizedName "action"^^xsd:string ;
+    :RU.localizedName "действие"^^xsd:string .
 
 :algorithm a owl:Class ;
     rdfs:subClassOf :boundary .
 
 :alt_branch a owl:Class ;
     rdfs:subClassOf :sequence ;
-    :action_kind :sequence .
+    :action_kind :sequence ;
+    :EN.localizedName "branch"^^xsd:string ;
+    :RU.localizedName "ветка"^^xsd:string .
 
 :alternative a owl:Class ;
     rdfs:subClassOf :action ;
-    :action_kind :alternative .
+    :action_kind :alternative ;
+    :EN.localizedName "selection statement"^^xsd:string ;
+    :RU.localizedName "развилка"^^xsd:string .
 
 :AlternativeEndAfterTrueCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse .
@@ -554,7 +574,9 @@
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :has_interrupt_kind :break .
+    :EN.localizedName "BREAK"^^xsd:string ;
+    :has_interrupt_kind :break ;
+    :RU.localizedName "BREAK"^^xsd:string .
 
 :call a owl:Class ;
     rdfs:subClassOf owl:Thing .
@@ -590,7 +612,9 @@
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :has_interrupt_kind :continue .
+    :EN.localizedName "CONTINUE"^^xsd:string ;
+    :has_interrupt_kind :continue ;
+    :RU.localizedName "CONTINUE"^^xsd:string .
 
 :correct_act a owl:Class ;
     rdfs:subClassOf :act .
@@ -602,7 +626,9 @@
     rdfs:label "DO-WHILE"^^xsd:string ;
     rdfs:subClassOf :body_then_cond,
         :cond_then_body,
-        :start_with_body .
+        :start_with_body ;
+    :EN.localizedName "DO-WHILE loop"^^xsd:string ;
+    :RU.localizedName "цикл DO-WHILE"^^xsd:string .
 
 :DuplicateOfAct a owl:Class ;
     rdfs:subClassOf :Erroneous .
@@ -612,10 +638,14 @@
         :CondtionNotNextToPrevCondition .
 
 :else a owl:Class ;
-    rdfs:subClassOf :alt_branch .
+    rdfs:subClassOf :alt_branch ;
+    :EN.localizedName "ELSE branch"^^xsd:string ;
+    :RU.localizedName "ветка ELSE"^^xsd:string .
 
 :else-if a owl:Class ;
-    rdfs:subClassOf :alt_branch .
+    rdfs:subClassOf :alt_branch ;
+    :EN.localizedName "ELSE-IF branch"^^xsd:string ;
+    :RU.localizedName "ветка ELSE-IF"^^xsd:string .
 
 :ElseBranchAfterTrueCondition a owl:Class ;
     rdfs:subClassOf :BranchWithoutCondition,
@@ -638,7 +668,9 @@
 :expr a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :expr ;
-    :atom_action true .
+    :atom_action true ;
+    :EN.localizedName "condition"^^xsd:string ;
+    :RU.localizedName "условие"^^xsd:string .
 
 :finish_trace_act a owl:Class ;
     rdfs:subClassOf :act .
@@ -650,7 +682,9 @@
     rdfs:label "FOR"^^xsd:string ;
     rdfs:subClassOf :cond_then_body,
         :post_update_loop,
-        :start_with_init .
+        :start_with_init ;
+    :EN.localizedName "FOR loop"^^xsd:string ;
+    :RU.localizedName "цикл FOR"^^xsd:string .
 
 :ForConditionAfterIteration a owl:Class ;
     rdfs:subClassOf :UpdateNotAfterIteration .
@@ -659,7 +693,9 @@
     rdfs:label "FOREACH"^^xsd:string ;
     rdfs:subClassOf :body_then_cond,
         :pre_update_loop,
-        :start_with_cond .
+        :start_with_cond ;
+    :EN.localizedName "FOREACH loop"^^xsd:string ;
+    :RU.localizedName "цикл FOREACH"^^xsd:string .
 
 :ForeachUpdateNotAfterSuccessfulCondition a owl:Class ;
     rdfs:subClassOf :Erroneous .
@@ -673,7 +709,9 @@
     :action_kind :call .
 
 :if a owl:Class ;
-    rdfs:subClassOf :alt_branch .
+    rdfs:subClassOf :alt_branch ;
+    :EN.localizedName "IF branch"^^xsd:string ;
+    :RU.localizedName "ветка IF"^^xsd:string .
 
 :IgnoreInterruptingFlow a owl:Class ;
     rdfs:subClassOf :UnexpectedWhenInterrupting .
@@ -715,7 +753,9 @@
 
 :loop a owl:Class ;
     rdfs:subClassOf :action ;
-    :action_kind :loop .
+    :action_kind :loop ;
+    :EN.localizedName "loop"^^xsd:string ;
+    :RU.localizedName "цикл"^^xsd:string .
 
 :loop_with_initialization a owl:Class ;
     rdfs:subClassOf :loop_with_pre_condition .
@@ -815,11 +855,15 @@
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :has_interrupt_kind :return .
+    :EN.localizedName "RETURN"^^xsd:string ;
+    :has_interrupt_kind :return ;
+    :RU.localizedName "RETURN"^^xsd:string .
 
 :sequence a owl:Class ;
     rdfs:subClassOf :action ;
-    :action_kind :sequence .
+    :action_kind :sequence ;
+    :EN.localizedName "sequence"^^xsd:string ;
+    :RU.localizedName "последовательность"^^xsd:string .
 
 :SequenceFinishedNotInOrder a owl:Class ;
     rdfs:subClassOf :Erroneous .
@@ -839,7 +883,9 @@
 :stmt a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :stmt ;
-    :atom_action true .
+    :atom_action true ;
+    :EN.localizedName "atom action"^^xsd:string ;
+    :RU.localizedName "простое действие"^^xsd:string .
 
 :stmt_with_calls a owl:Class ;
     rdfs:subClassOf :action ;
@@ -855,7 +901,9 @@
     rdfs:subClassOf :WrongNext .
 
 :trace a owl:Class ;
-    rdfs:subClassOf :act_begin .
+    rdfs:subClassOf :act_begin ;
+    :EN.localizedName "the beginning of the trace execution"^^xsd:string ;
+    :RU.localizedName "начало трассы выполнения"^^xsd:string .
 
 :unconditional_loop a owl:Class ;
     rdfs:subClassOf :loop .
@@ -873,7 +921,9 @@
     rdfs:label "WHILE"^^xsd:string ;
     rdfs:subClassOf :body_then_cond,
         :cond_then_body,
-        :start_with_cond .
+        :start_with_cond ;
+    :EN.localizedName "WHILE loop"^^xsd:string ;
+    :RU.localizedName "цикл WHILE"^^xsd:string .
 
 :WrongCondNeighbour a owl:Class ;
     rdfs:subClassOf :ConditionMisuse,

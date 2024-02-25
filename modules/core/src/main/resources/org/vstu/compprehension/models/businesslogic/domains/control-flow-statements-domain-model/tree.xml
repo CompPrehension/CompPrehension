@@ -4,7 +4,7 @@
     <DecisionTreeVarDecl name="G" type="algorithm" />
   </InputVariables>
   <ThoughtBranch type="bool">
-    <FindActionNode _alias="Найти акт студента в трассе - ${val('A','и')}">
+    <FindActionNode _alias="Найти акт студента в трассе - &lt;b&gt;A&lt;/b&gt;">
       <Expression>
         <GetByCondition varName="a">
           <LogicalAnd>
@@ -28,7 +28,7 @@
       </Expression>
       <DecisionTreeVarDecl name="A" type="act" />
       <Outcome value="Found">
-        <FindActionNode _alias="Найти последний корректный акт в трассе - ${val('Al','и')}">
+        <FindActionNode _alias="Найти последний корректный акт в трассе - &lt;b&gt;Al&lt;/b&gt;">
           <Expression>
             <GetByCondition varName="al">
               <LogicalAnd>
@@ -52,7 +52,7 @@
           </Expression>
           <DecisionTreeVarDecl name="Al" type="act" />
           <Outcome value="Not found">
-            <FindActionNode _alias="Найти точку входа в алгоритм ${val('G','и')} (глобальный код) ${val('-&amp;nbsp; E','и')}">
+            <FindActionNode _alias="Найти точку входа в алгоритм &lt;b&gt;G&lt;/b&gt; (глобальный код)&lt;b&gt; -&amp;nbsp; E&lt;/b&gt;">
               <Expression>
                 <GetByCondition varName="entry_bound">
                   <LogicalAnd>
@@ -78,7 +78,7 @@
               </Expression>
               <DecisionTreeVarDecl name="E" type="boundary" />
               <Outcome value="Found">
-                <QuestionNode _alias="совпадает ли ${val('А','и')} с ${val('Е','и')} ?" type="bool" isSwitch="false">
+                <QuestionNode _alias="совпадает ли &lt;b&gt;А&lt;/b&gt; с &lt;b&gt;Е&lt;/b&gt; ?" type="bool" isSwitch="false">
                   <Expression>
                     <Compare operator="EQUAL">
                       <GetByRelationship varName="">
@@ -89,7 +89,7 @@
                     </Compare>
                   </Expression>
                   <Outcome value="True">
-                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                   </Outcome>
                   <Outcome value="False">
                     <BranchResultNode _alias="Программа ещё не началась" value="false" _errorNode="true" _explanation="Программа ещё не началась">
@@ -103,7 +103,7 @@
             </FindActionNode>
           </Outcome>
           <Outcome value="Found">
-            <FindActionNode _alias="Найти действие, которое выполняет акт ${val('Al','и')} — ${val('P','и')}">
+            <FindActionNode _alias="Найти действие, которое выполняет акт &lt;b&gt;Al&lt;/b&gt; — &lt;b&gt;P&lt;/b&gt;">
               <Expression>
                 <GetByRelationship varName="">
                   <GetByRelationship varName="">
@@ -115,7 +115,7 @@
               </Expression>
               <DecisionTreeVarDecl name="P" type="action" />
               <Outcome value="Found">
-                <FindActionNode _alias="Найти текущее комплексное действие ${val('B','и')}, включающее ${val('Al','и')}">
+                <FindActionNode _alias="Найти текущее комплексное действие &lt;b&gt;B&lt;/b&gt;, включающее &lt;b&gt;Al&lt;/b&gt;">
                   <Expression>
                     <GetByCondition varName="BB">
                       <LogicalAnd>
@@ -174,7 +174,7 @@
                   </Expression>
                   <DecisionTreeVarDecl name="B" type="statement" />
                   <Outcome value="Found">
-                    <FindActionNode _alias="Найти действие, которое выполняет акт ${val('A','и')}  -  ${val('Y','и')}">
+                    <FindActionNode _alias="Найти действие, которое выполняет акт &lt;b&gt;A &lt;/b&gt; -  &lt;b&gt;Y&lt;/b&gt;">
                       <Expression>
                         <GetByRelationship varName="">
                           <GetByRelationship varName="">
@@ -191,7 +191,7 @@
                             <BranchResultNode _alias="[контекст неверен]" value="false" />
                           </Outcome>
                           <ThoughtBranch type="bool">
-                            <QuestionNode _alias="Является ли ${val('A','и')} актом окончания ?" type="bool" isSwitch="false">
+                            <QuestionNode _alias="Является ли &lt;b&gt;A&lt;/b&gt; актом окончания ?" type="bool" isSwitch="false">
                               <Expression>
                                 <Compare operator="EQUAL">
                                   <GetPropertyValue>
@@ -202,7 +202,7 @@
                                 </Compare>
                               </Expression>
                               <Outcome value="False">
-                                <FindActionNode _alias="Найти конструкцию-контекст ${val('CX','и')} , к которой принадлежит действие ${val('Y','и')}">
+                                <FindActionNode _alias="Найти конструкцию-контекст &lt;b&gt;CX&lt;/b&gt; , к которой принадлежит действие &lt;b&gt;Y&lt;/b&gt;">
                                   <Expression>
                                     <GetByCondition varName="L">
                                       <LogicalAnd>
@@ -220,7 +220,7 @@
                                   </Expression>
                                   <DecisionTreeVarDecl name="CX" type="statement" />
                                   <Outcome value="Found">
-                                    <QuestionNode _alias="Является ли текущее  выполняемое действие (${val('B','и')})  также контекстом ${val('CX','и')} ?" type="bool" isSwitch="false">
+                                    <QuestionNode _alias="Является ли текущее  выполняемое действие (&lt;b&gt;B&lt;/b&gt;)  также контекстом &lt;b&gt;CX&lt;/b&gt; ?" type="bool" isSwitch="false">
                                       <Expression>
                                         <Compare operator="EQUAL">
                                           <DecisionTreeVar name="CX" />
@@ -228,7 +228,7 @@
                                         </Compare>
                                       </Expression>
                                       <Outcome value="False">
-                                        <FindActionNode _alias="Найти последнее начало ${val('CX','и')} в трассе — LCXb">
+                                        <FindActionNode _alias="Найти последнее начало &lt;b&gt;CX&lt;/b&gt; в трассе — LCXb">
                                           <Expression>
                                             <GetByCondition varName="a">
                                               <LogicalAnd>
@@ -279,7 +279,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="LCXb" type="act" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Есть ли в трассе начавшееся, но не завершившееся выполнение ${val('CX','и')} ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Есть ли в трассе начавшееся, но не завершившееся выполнение &lt;b&gt;CX&lt;/b&gt; ?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <LogicalNot>
                                                   <ExistenceQuantifier varName="e">
@@ -296,32 +296,32 @@
                                                 </LogicalNot>
                                               </Expression>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="CtxInnerPending: Действие ${val('CX','и')} не может быть продолжено, пока не завершились его внутренние действия" value="false" _errorNode="CtxInnerPending" _explanation="Действие ${val('CX','и')} не может быть продолжено, пока не завершились его внутренние действия" />
+                                                <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может быть продолжено, пока его внутренние действия не завершились" value="false" _errorNode="CtxInnerPending" _explanation="Действие ${val('CX','и')} не может быть продолжено, пока его внутренние действия не завершились" />
                                               </Outcome>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="CtxEnded: Действие ${val('CX','и')} завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Действие ${val('CX','и')} завершилось и в настоящий момент не выполняется" />
+                                                <BranchResultNode _alias="CtxEnded: Действие &lt;b&gt;CX&lt;/b&gt; завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Действие ${val('CX','и')} завершилось и в настоящий момент не выполняется" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
                                           <Outcome value="Not found">
-                                            <BranchResultNode _alias="CtxNeverBegun: Действие ${val('CX','и')} не начинало выполняться" value="false" _errorNode="CtxNeverBegun" _explanation="Действие ${val('CX','и')} не начинало выполняться" />
+                                            <BranchResultNode _alias="CtxNeverBegun: Действие &lt;b&gt;Y&lt;/b&gt; не может выполняться, пока не началось &lt;b&gt;CX&lt;/b&gt;" value="false" _errorNode="CtxNeverBegun" _explanation="Действие ${val('Y','и')} не может выполняться, пока не началось ${val('CX','и')}" />
                                           </Outcome>
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="True">
-                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                       </Outcome>
                                     </QuestionNode>
                                   </Outcome>
                                 </FindActionNode>
                               </Outcome>
                               <Outcome value="True">
-                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                               </Outcome>
                             </QuestionNode>
                           </ThoughtBranch>
                           <ThoughtBranch type="bool">
-                            <QuestionNode _alias="Является ли ${val('A','и')} актом окончания ?" type="bool" isSwitch="false">
+                            <QuestionNode _alias="Является ли &lt;b&gt;A&lt;/b&gt; актом окончания ?" type="bool" isSwitch="false">
                               <Expression>
                                 <Compare operator="EQUAL">
                                   <GetPropertyValue>
@@ -332,7 +332,7 @@
                                 </Compare>
                               </Expression>
                               <Outcome value="True">
-                                <QuestionNode _alias="Совпадает ли ${val('Y','и')} с ${val('B','и')} &lt;br&gt;(нужное ли следование пытается завершиться) ?" type="bool" isSwitch="false">
+                                <QuestionNode _alias="Совпадает ли &lt;b&gt;Y&lt;/b&gt; с &lt;b&gt;B&lt;/b&gt; &lt;br&gt;(нужное ли следование пытается завершиться) ?" type="bool" isSwitch="false">
                                   <Expression>
                                     <Compare operator="EQUAL">
                                       <DecisionTreeVar name="B" />
@@ -340,7 +340,7 @@
                                     </Compare>
                                   </Expression>
                                   <Outcome value="False">
-                                    <FindActionNode _alias="Найти последнее начало ${val('Y','и')} в трассе — LYb">
+                                    <FindActionNode _alias="Найти последнее начало &lt;b&gt;Y&lt;/b&gt; в трассе — LYb">
                                       <Expression>
                                         <GetByCondition varName="a">
                                           <LogicalAnd>
@@ -391,7 +391,7 @@
                                       </Expression>
                                       <DecisionTreeVarDecl name="LYb" type="act" />
                                       <Outcome value="Found">
-                                        <QuestionNode _alias="Есть ли в трассе начавшееся, но не завершившееся выполнение ${val('Y','и')} ?" type="bool" isSwitch="false">
+                                        <QuestionNode _alias="Есть ли в трассе начавшееся, но не завершившееся выполнение &lt;b&gt;Y&lt;/b&gt; ?" type="bool" isSwitch="false">
                                           <Expression>
                                             <LogicalNot>
                                               <ExistenceQuantifier varName="e">
@@ -408,32 +408,32 @@
                                             </LogicalNot>
                                           </Expression>
                                           <Outcome value="True">
-                                            <BranchResultNode _alias="Действие ${val('Y','и')} не может быть завершено досрочно, пока не завершились его внутренние действия" value="false" _errorNode="true" _explanation="Действие ${val('Y','и')} не может быть завершено досрочно, пока не завершились его внутренние действия" />
+                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;Y&lt;/b&gt; не может быть завершено досрочно, пока его внутренние действия не завершились" value="false" _errorNode="CtxInnerPending" _explanation="Действие ${val('Y','и')} не может быть завершено досрочно, пока его внутренние действия не завершились" />
                                           </Outcome>
                                           <Outcome value="False">
-                                            <BranchResultNode _alias="Нельзя завершить действие ${val('Y','и')}, т.к. завершилось и в настоящий момент не выполняется" value="false" _errorNode="true" _explanation="Нельзя завершить действие ${val('Y','и')}, т.к. завершилось и в настоящий момент не выполняется" />
+                                            <BranchResultNode _alias="CtxEnded: Нельзя завершить действие &lt;b&gt;Y&lt;/b&gt;, т.к. завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Нельзя завершить действие ${val('Y','и')}, т.к. завершилось и в настоящий момент не выполняется" />
                                           </Outcome>
                                         </QuestionNode>
                                       </Outcome>
                                       <Outcome value="Not found">
-                                        <BranchResultNode _alias="CtxNeverBegun: Действие ${val('Y','и')} не начинало выполняться" value="false" _errorNode="CtxNeverBegun" _explanation="Действие ${val('Y','и')} не начинало выполняться" />
+                                        <BranchResultNode _alias="EndWhenNeverBegun: Действие &lt;b&gt;Y&lt;/b&gt; не может закончиться, не начавшись" value="false" _errorNode="EndWhenNeverBegun" _explanation="Действие ${val('Y','и')} не может закончиться, не начавшись" />
                                       </Outcome>
                                     </FindActionNode>
                                   </Outcome>
                                   <Outcome value="True">
-                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                   </Outcome>
                                 </QuestionNode>
                               </Outcome>
                               <Outcome value="False">
-                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                               </Outcome>
                             </QuestionNode>
                           </ThoughtBranch>
                           <Outcome value="True">
                             <LogicAggregationNode _alias="AND" operator="and">
                               <Outcome value="True">
-                                <QuestionNode _alias="Какому типу относится акт ${val('A','и')} ?" type="enum" isSwitch="false">
+                                <QuestionNode _alias="Какому типу относится акт &lt;b&gt;A&lt;/b&gt; ?" type="enum" isSwitch="false">
                                   <Expression>
                                     <GetPropertyValue>
                                       <DecisionTreeVar name="A" />
@@ -441,7 +441,7 @@
                                     </GetPropertyValue>
                                   </Expression>
                                   <Outcome value="act_kind:atom">
-                                    <QuestionNode _alias="Чем является ${val('Y','и')} ? [atom]" type="enum" isSwitch="false">
+                                    <QuestionNode _alias="Чем является &lt;b&gt;Y&lt;/b&gt; ? [atom]" type="enum" isSwitch="false">
                                       <Expression>
                                         <GetPropertyValue>
                                           <DecisionTreeVar name="Y" />
@@ -449,13 +449,13 @@
                                         </GetPropertyValue>
                                       </Expression>
                                       <Outcome value="role_for_parent:loop_cond">
-                                        <FindActionNode _alias="Найти цикл ${val('L','и')} , к которому ${val('','и')}принадлежит${val('&lt;br&gt;','и')}&lt;div&gt;условие ${val('Y','и')}&lt;/div&gt;">
+                                        <FindActionNode _alias="Найти цикл &lt;b&gt;L&lt;/b&gt; , к которому&lt;b&gt; &lt;/b&gt;принадлежит&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;div&gt;условие &lt;b&gt;Y&lt;/b&gt;&lt;/div&gt;">
                                           <Expression>
                                             <GetByCondition varName="L">
                                               <LogicalAnd>
                                                 <CheckClass>
                                                   <Variable name="L" />
-                                                  <Class name="loop" />
+                                                  <Class name="conditional_loop" />
                                                 </CheckClass>
                                                 <CheckRelationship>
                                                   <Relationship name="cond" />
@@ -465,9 +465,9 @@
                                               </LogicalAnd>
                                             </GetByCondition>
                                           </Expression>
-                                          <DecisionTreeVarDecl name="L" type="loop" />
+                                          <DecisionTreeVarDecl name="L" type="conditional_loop" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Является ли ${val('Al','и')} началом цикла ${val('L','и')} ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом цикла &lt;b&gt;L &lt;/b&gt;?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckRelationship>
                                                   <Relationship name="begin_of" />
@@ -479,7 +479,7 @@
                                                 </CheckRelationship>
                                               </Expression>
                                               <Outcome value="False">
-                                                <QuestionNode _alias="Чем является ${val('Al','и')} в цикле&amp;nbsp;${val('L','и')} ?" type="enum" isSwitch="false">
+                                                <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в цикле&amp;nbsp;&lt;b&gt;L &lt;/b&gt;?" type="enum" isSwitch="false">
                                                   <Expression>
                                                     <GetPropertyValue>
                                                       <DecisionTreeVar name="P" />
@@ -487,7 +487,7 @@
                                                     </GetPropertyValue>
                                                   </Expression>
                                                   <Outcome value="role_for_parent:loop_body">
-                                                    <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пост${val('-','и')}переходом ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="Является ли цикл &lt;b&gt;L &lt;/b&gt;циклом с пост&lt;b&gt;-&lt;/b&gt;переходом ?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <CheckClass>
                                                           <DecisionTreeVar name="L" />
@@ -495,10 +495,10 @@
                                                         </CheckClass>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <QuestionNode _alias="Присутствует ли (непустой) переход в цикле ${val('L','и')}?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Присутствует ли (непустой) переход в цикле &lt;b&gt;L&lt;/b&gt;?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <ExistenceQuantifier varName="n">
                                                               <CheckClass>
@@ -516,14 +516,14 @@
                                                             <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_update">
-                                                    <QuestionNode _alias=" Является ли цикл ${val('L','и')} циклом с пост${val('-','и')}переходом ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias=" Является ли цикл &lt;b&gt;L &lt;/b&gt;циклом с пост&lt;b&gt;-&lt;/b&gt;переходом ?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <CheckClass>
                                                           <DecisionTreeVar name="L" />
@@ -531,10 +531,10 @@
                                                         </CheckClass>
                                                       </Expression>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                       </Outcome>
                                                       <Outcome value="False">
-                                                        <QuestionNode _alias="Является ли тело цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Является ли тело цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <LogicalNot>
                                                               <ExistenceQuantifier varName="n">
@@ -554,14 +554,14 @@
                                                             <BranchResultNode _alias="LoopCondBeforeIter: Проверять условие цикла рано, т.к. итерация цикла ещё не была выполнена" value="false" _errorNode="LoopCondBeforeIter" _explanation="Проверять условие цикла рано, т.к. итерация цикла ещё не была выполнена" />
                                                           </Outcome>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_init">
-                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_cond">
                                                     <QuestionNode _alias="Позволяет ли значение условия цикла продолжить цикл?" type="bool" isSwitch="false">
@@ -581,7 +581,7 @@
                                                         <BranchResultNode _alias="LoopNoEndOnFalseCond: Цикл не может продолжиться, т.к. его условие [ложно]" value="false" _errorNode="LoopNoEndOnFalseCond" _explanation="Цикл не может продолжиться, т.к. его условие [ложно]" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пред-переходом ?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пред-переходом ?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <CheckClass>
                                                               <DecisionTreeVar name="L" />
@@ -589,7 +589,7 @@
                                                             </CheckClass>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <QuestionNode _alias="Является ли переход цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                            <QuestionNode _alias="Является ли переход цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                               <Expression>
                                                                 <LogicalNot>
                                                                   <ExistenceQuantifier varName="n">
@@ -606,7 +606,7 @@
                                                                 </LogicalNot>
                                                               </Expression>
                                                               <Outcome value="True">
-                                                                <QuestionNode _alias="Является ли тело цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                                <QuestionNode _alias="Является ли тело цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                                   <Expression>
                                                                     <LogicalNot>
                                                                       <ExistenceQuantifier varName="n">
@@ -626,7 +626,7 @@
                                                                     <BranchResultNode _alias="LoopCondBeforeIter: Проверять условие цикла рано, т.к. итерация цикла ещё не была выполнена" value="false" _errorNode="LoopCondBeforeIter" _explanation="Проверять условие цикла рано, т.к. итерация цикла ещё не была выполнена" />
                                                                   </Outcome>
                                                                   <Outcome value="True">
-                                                                    <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пост-переходом ?" type="bool" isSwitch="false">
+                                                                    <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пост-переходом ?" type="bool" isSwitch="false">
                                                                       <Expression>
                                                                         <CheckClass>
                                                                           <DecisionTreeVar name="L" />
@@ -634,10 +634,10 @@
                                                                         </CheckClass>
                                                                       </Expression>
                                                                       <Outcome value="False">
-                                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                       </Outcome>
                                                                       <Outcome value="True">
-                                                                        <QuestionNode _alias="Является ли переход цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                                        <QuestionNode _alias="Является ли переход цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                                           <Expression>
                                                                             <LogicalNot>
                                                                               <ExistenceQuantifier varName="n">
@@ -654,7 +654,7 @@
                                                                             </LogicalNot>
                                                                           </Expression>
                                                                           <Outcome value="True">
-                                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                           </Outcome>
                                                                           <Outcome value="False">
                                                                             <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
@@ -671,7 +671,7 @@
                                                             </QuestionNode>
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <QuestionNode _alias="Является ли тело цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                            <QuestionNode _alias="Является ли тело цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                               <Expression>
                                                                 <LogicalNot>
                                                                   <ExistenceQuantifier varName="n">
@@ -691,7 +691,7 @@
                                                                 <BranchResultNode _alias="LoopCondBeforeIter: Проверять условие цикла рано, т.к. итерация цикла ещё не была выполнена" value="false" _errorNode="LoopCondBeforeIter" _explanation="Проверять условие цикла рано, т.к. итерация цикла ещё не была выполнена" />
                                                               </Outcome>
                                                               <Outcome value="True">
-                                                                <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пост-переходом ?" type="bool" isSwitch="false">
+                                                                <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пост-переходом ?" type="bool" isSwitch="false">
                                                                   <Expression>
                                                                     <CheckClass>
                                                                       <DecisionTreeVar name="L" />
@@ -699,10 +699,10 @@
                                                                     </CheckClass>
                                                                   </Expression>
                                                                   <Outcome value="False">
-                                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                   </Outcome>
                                                                   <Outcome value="True">
-                                                                    <QuestionNode _alias="Является ли переход цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                                    <QuestionNode _alias="Является ли переход цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                                       <Expression>
                                                                         <LogicalNot>
                                                                           <ExistenceQuantifier varName="n">
@@ -719,7 +719,7 @@
                                                                         </LogicalNot>
                                                                       </Expression>
                                                                       <Outcome value="True">
-                                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                       </Outcome>
                                                                       <Outcome value="False">
                                                                         <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
@@ -739,10 +739,10 @@
                                               <Outcome value="True">
                                                 <LogicAggregationNode _alias="AND" operator="and">
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                   </Outcome>
                                                   <ThoughtBranch type="bool">
-                                                    <QuestionNode _alias="присутствует ли непустая инициализация в цикле&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;L','и')}?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="присутствует ли непустая инициализация в цикле&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;L&lt;/b&gt;?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <ExistenceQuantifier varName="n">
                                                           <CheckClass>
@@ -757,15 +757,15 @@
                                                         </ExistenceQuantifier>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="LoopCondBeforeInit: Проверять условие цикла рано, т.к. инициализация цикла ещё не выполнена" value="false" _errorNode="LoopCondBeforeInit" _explanation="Проверять условие цикла рано, т.к. инициализация цикла ещё не выполнена" />
+                                                        <BranchResultNode _alias="LoopCondBeforeInit: Проверять условие ${class('L','р')} рано, т.к. его инициализация ещё не выполнена" value="false" _errorNode="LoopCondBeforeInit" _explanation="Проверять условие ${class('L','р')} рано, т.к. его инициализация ещё не выполнена" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </ThoughtBranch>
                                                   <ThoughtBranch type="bool">
-                                                    <QuestionNode _alias="Является ли ${val('L','и')}&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;','и')}циклом с&amp;nbsp; предусловием?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="Является ли &lt;b&gt;L&lt;/b&gt;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;&lt;/b&gt;циклом с&amp;nbsp; предусловием?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <CheckClass>
                                                           <DecisionTreeVar name="L" />
@@ -773,10 +773,10 @@
                                                         </CheckClass>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="PostCondLoopCondBeforeIter: Условие цикла L не должно проверяться до итерации, т.к. это цикл с пост-условием" value="false" _errorNode="PostCondLoopCondBeforeIter" _explanation="Условие цикла L не должно проверяться до итерации, т.к. это цикл с пост-условием" />
+                                                        <BranchResultNode _alias="PostCondLoopCondBeforeIter: Условие цикла $L не должно проверяться до итерации, т.к. это цикл с пост-условием" value="false" _errorNode="PostCondLoopCondBeforeIter" _explanation="Условие цикла ${val('L','и')} не должно проверяться до итерации, т.к. это цикл с пост-условием" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </ThoughtBranch>
@@ -790,7 +790,7 @@
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="role_for_parent:loop_update">
-                                        <FindActionNode _alias="Найти цикл ${val('L','и')} , к которому ${val('','и')}принадлежит${val('&lt;br&gt;','и')}переход ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти цикл &lt;b&gt;L&lt;/b&gt; , к которому&lt;b&gt; &lt;/b&gt;принадлежит&lt;b&gt;&lt;br&gt;&lt;/b&gt;переход &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="L">
                                               <LogicalAnd>
@@ -808,7 +808,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="L" type="loop" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Является ли ${val('Al','и')} началом цикла ${val('L','и')} ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом цикла &lt;b&gt;L &lt;/b&gt;?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckRelationship>
                                                   <Relationship name="begin_of" />
@@ -823,7 +823,7 @@
                                                 <BranchResultNode _alias="LoopUpdateBeforeInit: Переход цикла не может выполняться раньше первой проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeInit" _explanation="Переход цикла не может выполняться раньше первой проверки условия цикла" />
                                               </Outcome>
                                               <Outcome value="False">
-                                                <QuestionNode _alias="Чем является ${val('Al','и')} в цикле ${val('L','и')} ?" type="enum" isSwitch="false">
+                                                <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в цикле &lt;b&gt;L &lt;/b&gt;?" type="enum" isSwitch="false">
                                                   <Expression>
                                                     <GetPropertyValue>
                                                       <DecisionTreeVar name="P" />
@@ -839,7 +839,18 @@
                                                             <Property name="expr_value" />
                                                           </GetPropertyValue>
                                                           <GetPropertyValue>
-                                                            <DecisionTreeVar name="L" />
+                                                            <GetByCondition varName="L">
+                                                              <LogicalAnd>
+                                                                <CheckClass>
+                                                                  <Variable name="L" />
+                                                                  <Class name="conditional_loop" />
+                                                                </CheckClass>
+                                                                <Compare operator="EQUAL">
+                                                                  <Variable name="L" />
+                                                                  <DecisionTreeVar name="L" />
+                                                                </Compare>
+                                                              </LogicalAnd>
+                                                            </GetByCondition>
                                                             <Property name="continues_on_true_condition" />
                                                           </GetPropertyValue>
                                                         </Compare>
@@ -848,7 +859,7 @@
                                                         <BranchResultNode _alias="LoopNoEndOnFalseCond: Цикл не может продолжиться, т.к. его условие [ложно]" value="false" _errorNode="LoopNoEndOnFalseCond" _explanation="Цикл не может продолжиться, т.к. его условие [ложно]" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пост${val('-','и')}переходом ?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Является ли цикл &lt;b&gt;L &lt;/b&gt;циклом с пост&lt;b&gt;-&lt;/b&gt;переходом ?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <CheckClass>
                                                               <DecisionTreeVar name="L" />
@@ -856,10 +867,10 @@
                                                             </CheckClass>
                                                           </Expression>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="True">
-                                                            <QuestionNode _alias="Является ли тело цикла ${val('L','и')} пустым?" type="bool" isSwitch="false">
+                                                            <QuestionNode _alias="Является ли тело цикла &lt;b&gt;L&lt;/b&gt; пустым?" type="bool" isSwitch="false">
                                                               <Expression>
                                                                 <LogicalNot>
                                                                   <ExistenceQuantifier varName="n">
@@ -879,7 +890,7 @@
                                                                 <BranchResultNode _alias="LoopUpdateBeforeIter: Выполнять переход цикла рано, т.к. итерация цикла ещё не выполнена" value="false" _errorNode="LoopUpdateBeforeIter" _explanation="Выполнять переход цикла рано, т.к. итерация цикла ещё не выполнена" />
                                                               </Outcome>
                                                               <Outcome value="True">
-                                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                               </Outcome>
                                                             </QuestionNode>
                                                           </Outcome>
@@ -894,7 +905,7 @@
                                                     <BranchResultNode _alias="LoopUpdateBeforeCond: Переход цикла не может выполняться до проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeCond" _explanation="Переход цикла не может выполняться до проверки условия цикла" />
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_body">
-                                                    <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пред-переходом ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пред-переходом ?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <CheckClass>
                                                           <DecisionTreeVar name="L" />
@@ -905,7 +916,7 @@
                                                         <BranchResultNode _alias="LoopUpdateBeforeCond: Переход цикла не может выполняться до проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeCond" _explanation="Переход цикла не может выполняться до проверки условия цикла" />
                                                       </Outcome>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
@@ -916,7 +927,7 @@
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="role_for_parent:alt_cond">
-                                        <FindActionNode _alias="Найти развилку ${val('D','и')} , к которой ${val('','и')}принадлежит${val('&lt;br&gt;','и')}условие ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти развилку &lt;b&gt;D&lt;/b&gt; , к которой&lt;b&gt; &lt;/b&gt;принадлежит&lt;b&gt;&lt;br&gt;&lt;/b&gt;условие &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="s">
                                               <LogicalAnd>
@@ -946,7 +957,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="D" type="alternative" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Является ли ${val('Al','и')} началом развилки ${val('D','и')} ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом развилки &lt;b&gt;D &lt;/b&gt;?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckRelationship>
                                                   <Relationship name="begin_of" />
@@ -958,7 +969,7 @@
                                                 </CheckRelationship>
                                               </Expression>
                                               <Outcome value="False">
-                                                <QuestionNode _alias="Чем является ${val('Al','и')} в развилке ${val('S','и')} ?" type="enum" isSwitch="false">
+                                                <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в развилке &lt;b&gt;S &lt;/b&gt;?" type="enum" isSwitch="false">
                                                   <Expression>
                                                     <GetPropertyValue>
                                                       <DecisionTreeVar name="P" />
@@ -966,7 +977,7 @@
                                                     </GetPropertyValue>
                                                   </Expression>
                                                   <Outcome value="role_for_parent:alt_cond">
-                                                    <QuestionNode _alias="Проверялось ли условие ${val('A','и')} между ${val('B','и')} и ${val('Al','и')} ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="Проверялось ли условие &lt;b&gt;A &lt;/b&gt;между &lt;b&gt;B&lt;/b&gt; и&lt;b&gt; Al &lt;/b&gt;?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <ExistenceQuantifier varName="ca">
                                                           <LogicalAnd>
@@ -1023,7 +1034,7 @@
                                                         <BranchResultNode _alias="AltCondDup: Условие Y не может выполняться дважды в рамках развилки B" value="false" _errorNode="AltCondDup" _explanation="Условие Y не может выполняться дважды в рамках развилки B" />
                                                       </Outcome>
                                                       <Outcome value="False">
-                                                        <QuestionNode _alias="Каково значение условия ${val('Al','и')} ? &lt;br&gt;[plain field]" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Каково значение условия &lt;b&gt;Al&lt;/b&gt; ? &lt;br&gt;[plain field]" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <GetPropertyValue>
                                                               <DecisionTreeVar name="Al" />
@@ -1034,7 +1045,7 @@
                                                             <BranchResultNode _alias="AltCondAfterTrue: Условие Y не может проверяться после обнаружения истинного условия развилки B" value="false" _errorNode="AltCondAfterTrue" _explanation="Условие Y не может проверяться после обнаружения истинного условия развилки B" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <FindActionNode _alias="Найти первое из пропущенных условий ${val('M','и')} между &lt;br&gt;${val('А','и')}${val('l','и')} и ${val('Y','и')} (после ${val('А','и')}${val('l','и')} и до ${val('Y','и')})${val('&lt;br&gt;','и')}">
+                                                            <FindActionNode _alias="Найти первое из пропущенных условий &lt;b&gt;M&lt;/b&gt; между &lt;br&gt;&lt;b&gt;А&lt;/b&gt;&lt;b&gt;l&lt;/b&gt; и &lt;b&gt;Y &lt;/b&gt;(после &lt;b&gt;А&lt;/b&gt;&lt;b&gt;l&lt;/b&gt; и до &lt;b&gt;Y&lt;/b&gt;)&lt;b&gt;&lt;br&gt;&lt;/b&gt;">
                                                               <Expression>
                                                                 <GetByCondition varName="M">
                                                                   <LogicalAnd>
@@ -1095,10 +1106,10 @@
                                                               </Expression>
                                                               <DecisionTreeVarDecl name="M" type="expr" />
                                                               <Outcome value="Found">
-                                                                <BranchResultNode _alias="AltCondSkip: Условие Y выполнять рано — пропущено условие ${val('M','и')} развилки B" value="false" _errorNode="AltCondSkip" _explanation="Условие Y выполнять рано — пропущено условие ${val('M','и')} развилки B" />
+                                                                <BranchResultNode _alias="AltCondSkip: Условие Y выполнять рано — пропущено условие &lt;b&gt;M&lt;/b&gt; развилки B" value="false" _errorNode="AltCondSkip" _explanation="Условие Y выполнять рано — пропущено условие ${val('M','и')} развилки B" />
                                                               </Outcome>
                                                               <Outcome value="Not found">
-                                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                               </Outcome>
                                                             </FindActionNode>
                                                           </Outcome>
@@ -1112,7 +1123,7 @@
                                                 </QuestionNode>
                                               </Outcome>
                                               <Outcome value="True">
-                                                <QuestionNode _alias="Относится ли ${val('A','и')} к ветке if (первое условие) ?" type="bool" isSwitch="false">
+                                                <QuestionNode _alias="Относится ли &lt;b&gt;A&lt;/b&gt; к ветке if (первое условие) ?" type="bool" isSwitch="false">
                                                   <Expression>
                                                     <CheckClass>
                                                       <GetByCondition varName="b">
@@ -1132,7 +1143,7 @@
                                                     </CheckClass>
                                                   </Expression>
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                   </Outcome>
                                                   <Outcome value="False">
                                                     <FindActionNode _alias="Найти первое условие M развилки B">
@@ -1173,7 +1184,7 @@
                                                       </Expression>
                                                       <DecisionTreeVarDecl name="M" type="expr" />
                                                       <Outcome value="Found">
-                                                        <BranchResultNode _alias="AltCondSkip: Условие Y выполнять рано — пропущено условие ${val('M','и')} развилки B" value="false" _errorNode="AltCondSkip" _explanation="Условие Y выполнять рано — пропущено условие ${val('M','и')} развилки B" />
+                                                        <BranchResultNode _alias="AltCondSkip: Условие Y выполнять рано — пропущено условие &lt;b&gt;M&lt;/b&gt; развилки B" value="false" _errorNode="AltCondSkip" _explanation="Условие Y выполнять рано — пропущено условие ${val('M','и')} развилки B" />
                                                       </Outcome>
                                                     </FindActionNode>
                                                   </Outcome>
@@ -1184,7 +1195,7 @@
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="role_for_parent:sequence_element">
-                                        <FindActionNode _alias="Найти следование ${val('S','и')} , к которому ${val('','и')}принадлежит действие ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти следование &lt;b&gt;S&lt;/b&gt; , к которому&lt;b&gt; &lt;/b&gt;принадлежит действие &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="S">
                                               <LogicalAnd>
@@ -1204,7 +1215,7 @@
                                           <Outcome value="Found">
                                             <LogicAggregationNode _alias="AND" operator="and">
                                               <ThoughtBranch type="bool">
-                                                <FindActionNode _alias="Найти первое из пропущенных действий ${val('M','и')} между действиями &lt;br&gt;${val('Аl','и')} и ${val('Y','и')} (после ${val('Аl','и')} и до ${val('Y','и')}) ...">
+                                                <FindActionNode _alias="Найти первое из пропущенных действий &lt;b&gt;M&lt;/b&gt; между действиями &lt;br&gt;&lt;b&gt;Аl&lt;/b&gt; и &lt;b&gt;Y &lt;/b&gt;(после &lt;b&gt;Аl&lt;/b&gt; и до &lt;b&gt;Y&lt;/b&gt;) ...">
                                                   <Expression>
                                                     <GetByCondition varName="M">
                                                       <LogicalAnd>
@@ -1263,21 +1274,21 @@
                                                   </Expression>
                                                   <DecisionTreeVarDecl name="M" type="action" />
                                                   <Outcome value="Not found">
-                                                    <BranchResultNode _alias="${val('A','и')} [skipped nothing]" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [skipped nothing]" value="true" />
                                                   </Outcome>
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="SeqElemSkip: Действие Y выполнять рано — пропущено действие ${val('M','и')} следования B" value="false" _errorNode="SeqElemSkip" _explanation="Действие Y выполнять рано — пропущено действие ${val('M','и')} следования B" />
+                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено действие ${val('M','и')} следования ${val('B','и')}" />
                                                   </Outcome>
                                                 </FindActionNode>
                                               </ThoughtBranch>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                               </Outcome>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="(Действие ${val('Y','и')} не может быть следующим)" value="false" />
+                                                <BranchResultNode _alias="(Действие &lt;b&gt;Y&lt;/b&gt; не может быть следующим)" value="false" />
                                               </Outcome>
                                               <ThoughtBranch type="bool">
-                                                <QuestionNode _alias="Является ли ${val('Al','и')} началом следования ${val('S','и')} ?" type="bool" isSwitch="false">
+                                                <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом следования &lt;b&gt;S&lt;/b&gt; ?" type="bool" isSwitch="false">
                                                   <Expression>
                                                     <CheckRelationship>
                                                       <Relationship name="begin_of" />
@@ -1289,7 +1300,7 @@
                                                     </CheckRelationship>
                                                   </Expression>
                                                   <Outcome value="False">
-                                                    <QuestionNode _alias="выполнялся ли (уже) акт ${val('А','и')} между началом&amp;nbsp;${val('B','и')} и ${val('Al','и')} &#10;(Позиция действия ${val('Y','и')} &lt;= позиции ${val('P','и')}) ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="выполнялся ли (уже) акт &lt;b&gt;А&lt;/b&gt; между началом&amp;nbsp;&lt;b&gt;B&lt;/b&gt; и &lt;b&gt;Al&lt;/b&gt; &#10;(Позиция действия &lt;b&gt;Y&lt;/b&gt; &lt;= позиции &lt;b&gt;P&lt;/b&gt;) ?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <Compare operator="LE">
                                                           <GetPropertyValue>
@@ -1303,15 +1314,15 @@
                                                         </Compare>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="${val('A','и')} [not a duplicate]" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [not a duplicate]" value="true" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="SeqElemDup: Действие Y не может выполняться дважды в рамках следования B" value="false" _errorNode="SeqElemDup" _explanation="Действие Y не может выполняться дважды в рамках следования B" />
+                                                        <BranchResultNode _alias="SeqElemDup: Действие $Y не может выполняться дважды в рамках следования $B" value="false" _errorNode="SeqElemDup" _explanation="Действие ${val('Y','и')} не может выполняться дважды в рамках следования ${val('B','и')}" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="${val('A','и')} [sequence's just begun]" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [sequence's just begun]" value="true" />
                                                   </Outcome>
                                                 </QuestionNode>
                                               </ThoughtBranch>
@@ -1320,7 +1331,7 @@
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="role_for_parent:loop_init">
-                                        <FindActionNode _alias="Найти цикл ${val('L','и')} , к которому ${val('','и')}принадлежит${val('&lt;br&gt;','и')}инициализация ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти цикл &lt;b&gt;L&lt;/b&gt; , к которому&lt;b&gt; &lt;/b&gt;принадлежит&lt;b&gt;&lt;br&gt;&lt;/b&gt;инициализация &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="L">
                                               <LogicalAnd>
@@ -1338,7 +1349,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="L" type="loop" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Является ли ${val('Al','и')} началом цикла ${val('L','и')}  ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом цикла &lt;b&gt;L &lt;/b&gt; ?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckRelationship>
                                                   <Relationship name="begin_of" />
@@ -1350,10 +1361,10 @@
                                                 </CheckRelationship>
                                               </Expression>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="LoopInitDup: Инициализация не может выполняться дважды в рамках цикла L" value="false" _errorNode="LoopInitDup" _explanation="Инициализация не может выполняться дважды в рамках цикла L" />
+                                                <BranchResultNode _alias="LoopInitDup: Инициализация не может выполняться дважды в рамках цикла $L" value="false" _errorNode="LoopInitDup" _explanation="Инициализация не может выполняться дважды в рамках цикла ${val('L','и')}" />
                                               </Outcome>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
@@ -1362,7 +1373,7 @@
                                     </QuestionNode>
                                   </Outcome>
                                   <Outcome value="act_kind:begin">
-                                    <QuestionNode _alias="Чем является ${val('Y','и')} ? [begin]" type="enum" isSwitch="false">
+                                    <QuestionNode _alias="Чем является &lt;b&gt;Y&lt;/b&gt; ? [begin]" type="enum" isSwitch="false">
                                       <Expression>
                                         <GetPropertyValue>
                                           <DecisionTreeVar name="Y" />
@@ -1370,7 +1381,7 @@
                                         </GetPropertyValue>
                                       </Expression>
                                       <Outcome value="role_for_parent:loop_body">
-                                        <FindActionNode _alias="Найти цикл ${val('L','и')} , к которому ${val('','и')}принадлежит${val('&lt;br&gt;','и')}тело ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти цикл &lt;b&gt;L&lt;/b&gt; , к которому&lt;b&gt; &lt;/b&gt;принадлежит&lt;b&gt;&lt;br&gt;&lt;/b&gt;тело &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="L">
                                               <LogicalAnd>
@@ -1388,7 +1399,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="L" type="conditional_loop" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пост${val('-','и')}условием ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли цикл &lt;b&gt;L &lt;/b&gt;циклом с пост&lt;b&gt;-&lt;/b&gt;условием ?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckClass>
                                                   <DecisionTreeVar name="L" />
@@ -1396,7 +1407,7 @@
                                                 </CheckClass>
                                               </Expression>
                                               <Outcome value="True">
-                                                <QuestionNode _alias="Является ли&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;Al','и')}&amp;nbsp; началом цикла&amp;nbsp;${val('L','и')} ?" type="bool" isSwitch="false">
+                                                <QuestionNode _alias="Является ли&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;Al&lt;/b&gt;&amp;nbsp; началом цикла&amp;nbsp;&lt;b&gt;L &lt;/b&gt;?" type="bool" isSwitch="false">
                                                   <Expression>
                                                     <CheckRelationship>
                                                       <Relationship name="begin_of" />
@@ -1408,7 +1419,7 @@
                                                     </CheckRelationship>
                                                   </Expression>
                                                   <Outcome value="False">
-                                                    <QuestionNode _alias="Является ли&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;Al','и')}&amp;nbsp; условием цикла&amp;nbsp;${val('L','и')} ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="Является ли&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;&amp;nbsp;Al&lt;/b&gt;&amp;nbsp; условием цикла&amp;nbsp;&lt;b&gt;L &lt;/b&gt;?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <Compare operator="EQUAL">
                                                           <DecisionTreeVar name="P" />
@@ -1419,7 +1430,7 @@
                                                         </Compare>
                                                       </Expression>
                                                       <Outcome value="True">
-                                                        <QuestionNode _alias="Условие  ${val('Al','и')}  позволяет продолжать цикл ${val('','и')}?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Условие  &lt;b&gt;Al&lt;/b&gt;  позволяет продолжать цикл&lt;b&gt; &lt;/b&gt;?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <Compare operator="EQUAL">
                                                               <GetPropertyValue>
@@ -1427,16 +1438,27 @@
                                                                 <Property name="expr_value" />
                                                               </GetPropertyValue>
                                                               <GetPropertyValue>
-                                                                <DecisionTreeVar name="L" />
+                                                                <GetByCondition varName="L">
+                                                                  <LogicalAnd>
+                                                                    <CheckClass>
+                                                                      <Variable name="L" />
+                                                                      <Class name="conditional_loop" />
+                                                                    </CheckClass>
+                                                                    <Compare operator="EQUAL">
+                                                                      <Variable name="L" />
+                                                                      <DecisionTreeVar name="L" />
+                                                                    </Compare>
+                                                                  </LogicalAnd>
+                                                                </GetByCondition>
                                                                 <Property name="continues_on_true_condition" />
                                                               </GetPropertyValue>
                                                             </Compare>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация цикла L не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация цикла L не может начаться при текущем значении условия цикла" />
+                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация цикла $L не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация цикла ${val('L','и')} не может начаться при текущем значении условия цикла" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
@@ -1456,22 +1478,22 @@
                                                             </ExistenceQuantifier>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="PostCondLoopNoCondBtwIters: Итерация цикла L не может начаться повторно без проверки условия цикла" value="false" _errorNode="PostCondLoopNoCondBtwIters" _explanation="Итерация цикла L не может начаться повторно без проверки условия цикла" />
+                                                            <BranchResultNode _alias="PostCondLoopNoCondBtwIters: Итерация цикла $L не может начаться повторно без проверки условия цикла" value="false" _errorNode="PostCondLoopNoCondBtwIters" _explanation="Итерация цикла ${val('L','и')} не может начаться повторно без проверки условия цикла" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                   </Outcome>
                                                 </QuestionNode>
                                               </Outcome>
                                               <Outcome value="False">
-                                                <QuestionNode _alias="Является ли ${val('Al','и')}  началом цикла ${val('L','и')} ?" type="bool" isSwitch="false">
+                                                <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt;  началом цикла &lt;b&gt;L&lt;/b&gt; ?" type="bool" isSwitch="false">
                                                   <Expression>
                                                     <CheckRelationship>
                                                       <Relationship name="begin_of" />
@@ -1483,7 +1505,7 @@
                                                     </CheckRelationship>
                                                   </Expression>
                                                   <Outcome value="False">
-                                                    <QuestionNode _alias="Чем является ${val('Al','и')} в цикле ${val('L','и')} ?" type="enum" isSwitch="false">
+                                                    <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в цикле &lt;b&gt;L &lt;/b&gt;?" type="enum" isSwitch="false">
                                                       <Expression>
                                                         <GetPropertyValue>
                                                           <DecisionTreeVar name="P" />
@@ -1491,7 +1513,7 @@
                                                         </GetPropertyValue>
                                                       </Expression>
                                                       <Outcome value="role_for_parent:loop_cond">
-                                                        <QuestionNode _alias="Условие  ${val('Al','и')}  позволяет продолжать цикл ${val('','и')}?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Условие  &lt;b&gt;Al&lt;/b&gt;  позволяет продолжать цикл&lt;b&gt; &lt;/b&gt;?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <Compare operator="EQUAL">
                                                               <GetPropertyValue>
@@ -1505,15 +1527,15 @@
                                                             </Compare>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация цикла L не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация цикла L не может начаться при текущем значении условия цикла" />
+                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация цикла $L не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация цикла ${val('L','и')} не может начаться при текущем значении условия цикла" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
                                                       <Outcome value="role_for_parent:loop_update">
-                                                        <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с пред${val('-','и')}переходом ?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пред&lt;b&gt;-&lt;/b&gt;переходом ?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <LogicalAnd>
                                                               <CheckClass>
@@ -1534,15 +1556,15 @@
                                                             </LogicalAnd>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла L не может начаться без проверки условия цикла" />
+                                                            <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла $L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла ${val('L','и')} не может начаться без проверки условия цикла" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
                                                       <Outcome value="role_for_parent:loop_init">
-                                                        <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла L не может начаться без проверки условия цикла" />
+                                                        <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла $L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла ${val('L','и')} не может начаться без проверки условия цикла" />
                                                       </Outcome>
                                                       <Outcome value="role_for_parent:loop_body">
                                                         <QuestionNode _alias="Содержит ли цикл L непустое условие ?" type="bool" isSwitch="false">
@@ -1560,10 +1582,10 @@
                                                             </ExistenceQuantifier>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла L не может начаться без проверки условия цикла" />
+                                                            <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла $L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла ${val('L','и')} не может начаться без проверки условия цикла" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <QuestionNode _alias="Является ли цикл ${val('L','и')} циклом с непустым переходом ?" type="bool" isSwitch="false">
+                                                            <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с непустым переходом ?" type="bool" isSwitch="false">
                                                               <Expression>
                                                                 <LogicalAnd>
                                                                   <CheckClass>
@@ -1584,10 +1606,10 @@
                                                                 </LogicalAnd>
                                                               </Expression>
                                                               <Outcome value="False">
-                                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                               </Outcome>
                                                               <Outcome value="True">
-                                                                <BranchResultNode _alias="PreUpdateLoopIterBeforeUpdate: Итерация цикла L не может начаться без выполнения перехода цикла" value="false" _errorNode="PreUpdateLoopIterBeforeUpdate" _explanation="Итерация цикла L не может начаться без выполнения перехода цикла" />
+                                                                <BranchResultNode _alias="PreUpdateLoopIterBeforeUpdate: Итерация цикла $L не может начаться без выполнения перехода цикла" value="false" _errorNode="PreUpdateLoopIterBeforeUpdate" _explanation="Итерация цикла ${val('L','и')} не может начаться без выполнения перехода цикла" />
                                                               </Outcome>
                                                             </QuestionNode>
                                                           </Outcome>
@@ -1596,7 +1618,7 @@
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла L не может начаться без проверки условия цикла" />
+                                                    <BranchResultNode _alias="LoopIterBeforeCond: Итерация цикла $L не может начаться без проверки условия цикла" value="false" _errorNode="LoopIterBeforeCond" _explanation="Итерация цикла ${val('L','и')} не может начаться без проверки условия цикла" />
                                                   </Outcome>
                                                 </QuestionNode>
                                               </Outcome>
@@ -1605,7 +1627,7 @@
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="role_for_parent:alt_branch">
-                                        <FindActionNode _alias="Найти развилку ${val('D','и')} , к которой ${val('','и')}принадлежит${val('&lt;br&gt;','и')}ветка ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти развилку &lt;b&gt;D&lt;/b&gt; , к которой&lt;b&gt; &lt;/b&gt;принадлежит&lt;b&gt;&lt;br&gt;&lt;/b&gt;ветка &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="S">
                                               <LogicalAnd>
@@ -1623,7 +1645,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="D" type="alternative" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Является ли ${val('Al','и')} началом развилки ${val('D','и')} ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом развилки &lt;b&gt;D &lt;/b&gt;?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckRelationship>
                                                   <Relationship name="begin_of" />
@@ -1635,7 +1657,7 @@
                                                 </CheckRelationship>
                                               </Expression>
                                               <Outcome value="False">
-                                                <QuestionNode _alias="Чем является ${val('Al','и')} в развилке ${val('S','и')} ?" type="enum" isSwitch="false">
+                                                <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в развилке &lt;b&gt;S &lt;/b&gt;?" type="enum" isSwitch="false">
                                                   <Expression>
                                                     <GetPropertyValue>
                                                       <DecisionTreeVar name="P" />
@@ -1643,7 +1665,7 @@
                                                     </GetPropertyValue>
                                                   </Expression>
                                                   <Outcome value="role_for_parent:alt_cond">
-                                                    <QuestionNode _alias="Является ли ${val('Y','и')} веткой ${val('else','и')} ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="Является ли &lt;b&gt;Y&lt;/b&gt; веткой &lt;b&gt;else&lt;/b&gt; ?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <CheckClass>
                                                           <DecisionTreeVar name="Y" />
@@ -1651,7 +1673,7 @@
                                                         </CheckClass>
                                                       </Expression>
                                                       <Outcome value="True">
-                                                        <QuestionNode _alias="Условие&amp;nbsp;&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;A&lt;sub style=&quot;border-color: var(--border-color);&quot;&gt;l','и')}&amp;nbsp; ложно?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Условие&amp;nbsp;&amp;nbsp;&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;A&lt;sub style=&quot;border-color: var(--border-color);&quot;&gt;l&lt;/b&gt;&amp;nbsp; ложно?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <LogicalNot>
                                                               <GetPropertyValue>
@@ -1686,10 +1708,10 @@
                                                               </Expression>
                                                               <DecisionTreeVarDecl name="M" type="expr" />
                                                               <Outcome value="Not found">
-                                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                               </Outcome>
                                                               <Outcome value="Found">
-                                                                <BranchResultNode _alias="AltEarlyElse: Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки B" value="false" _errorNode="AltEarlyElse" _explanation="Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки B" />
+                                                                <BranchResultNode _alias="AltEarlyElse: Ветку else начинать рано, т.к. не проверено условие &lt;b&gt;M&lt;/b&gt; развилки B" value="false" _errorNode="AltEarlyElse" _explanation="Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки B" />
                                                               </Outcome>
                                                             </FindActionNode>
                                                           </Outcome>
@@ -1699,7 +1721,7 @@
                                                         </QuestionNode>
                                                       </Outcome>
                                                       <Outcome value="False">
-                                                        <FindActionNode _alias="Найти ${val('YC','и')} — условие ветки ${val('Y','и')}">
+                                                        <FindActionNode _alias="Найти &lt;b&gt;YC&lt;/b&gt; — условие ветки &lt;b&gt;Y&lt;/b&gt;">
                                                           <Expression>
                                                             <GetByRelationship varName="">
                                                               <DecisionTreeVar name="Y" />
@@ -1708,7 +1730,7 @@
                                                           </Expression>
                                                           <DecisionTreeVarDecl name="YC" type="expr" />
                                                           <Outcome value="Found">
-                                                            <FindActionNode _alias="Найти ${val('YCa','и')} — акт выполнения условия ветки ${val('Y','и')}">
+                                                            <FindActionNode _alias="Найти &lt;b&gt;YCa&lt;/b&gt; — акт выполнения условия ветки &lt;b&gt;Y&lt;/b&gt;">
                                                               <Expression>
                                                                 <GetByCondition varName="t">
                                                                   <LogicalAnd>
@@ -1753,7 +1775,7 @@
                                                               </Expression>
                                                               <DecisionTreeVarDecl name="YCa" type="act_end" />
                                                               <Outcome value="Found">
-                                                                <QuestionNode _alias="Условие  ${val('YCa','и')}  истинно ?" type="bool" isSwitch="false">
+                                                                <QuestionNode _alias="Условие  &lt;b&gt;YCa&lt;/b&gt;  истинно ?" type="bool" isSwitch="false">
                                                                   <Expression>
                                                                     <GetPropertyValue>
                                                                       <DecisionTreeVar name="YCa" />
@@ -1761,7 +1783,7 @@
                                                                     </GetPropertyValue>
                                                                   </Expression>
                                                                   <Outcome value="True">
-                                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                   </Outcome>
                                                                   <Outcome value="False">
                                                                     <BranchResultNode _alias="AltBranchOnFalse: Ветка развилки не может начаться, т.к. её условие ложно" value="false" _errorNode="AltBranchOnFalse" _explanation="Ветка развилки не может начаться, т.к. её условие ложно" />
@@ -1769,7 +1791,7 @@
                                                                 </QuestionNode>
                                                               </Outcome>
                                                               <Outcome value="Not found">
-                                                                <BranchResultNode _alias="AltEarlyBranch: Ветку развилки начинать рано, т.к. её условие ${val('YC','и')} ещё было не проверено" value="false" _errorNode="AltEarlyBranch" _explanation="Ветку развилки начинать рано, т.к. её условие ${val('YC','и')} ещё было не проверено" />
+                                                                <BranchResultNode _alias="AltEarlyBranch: Ветку развилки начинать рано, т.к. её условие &lt;b&gt;YC&lt;/b&gt; ещё было не проверено" value="false" _errorNode="AltEarlyBranch" _explanation="Ветку развилки начинать рано, т.к. её условие ${val('YC','и')} ещё было не проверено" />
                                                               </Outcome>
                                                             </FindActionNode>
                                                           </Outcome>
@@ -1786,7 +1808,7 @@
                                                         </Compare>
                                                       </Expression>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="AltBranchDup: Ветка развилки не может начаться повторно в рамках развилки B" value="false" _errorNode="AltBranchDup" _explanation="Ветка развилки не может начаться повторно в рамках развилки B" />
+                                                        <BranchResultNode _alias="AltBranchDup: Ветка развилки не может начаться повторно в рамках развилки $B" value="false" _errorNode="AltBranchDup" _explanation="Ветка развилки не может начаться повторно в рамках развилки ${val('B','и')}" />
                                                       </Outcome>
                                                       <Outcome value="False">
                                                         <BranchResultNode _alias="AltAnotherBranch: Ветка развилки не может начаться после выполнения другой ветки этой развилки" value="false" _errorNode="AltAnotherBranch" _explanation="Ветка развилки не может начаться после выполнения другой ветки этой развилки" />
@@ -1796,7 +1818,7 @@
                                                 </QuestionNode>
                                               </Outcome>
                                               <Outcome value="True">
-                                                <FindActionNode _alias="Найти ${val('YC','и')} — условие ветки ${val('Y','и')}">
+                                                <FindActionNode _alias="Найти &lt;b&gt;YC&lt;/b&gt; — условие ветки &lt;b&gt;Y&lt;/b&gt;">
                                                   <Expression>
                                                     <GetByRelationship varName="">
                                                       <DecisionTreeVar name="Y" />
@@ -1805,7 +1827,7 @@
                                                   </Expression>
                                                   <DecisionTreeVarDecl name="YC" type="expr" />
                                                   <Outcome value="Found">
-                                                    <FindActionNode _alias="Найти ${val('YCa','и')} — акт выполнения условия ветки ${val('Y','и')}">
+                                                    <FindActionNode _alias="Найти &lt;b&gt;YCa&lt;/b&gt; — акт выполнения условия ветки &lt;b&gt;Y&lt;/b&gt;">
                                                       <Expression>
                                                         <GetByCondition varName="t">
                                                           <LogicalAnd>
@@ -1850,7 +1872,7 @@
                                                       </Expression>
                                                       <DecisionTreeVarDecl name="YCa" type="act_end" />
                                                       <Outcome value="Found">
-                                                        <QuestionNode _alias="Условие  ${val('YCa','и')}  истинно ?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Условие  &lt;b&gt;YCa&lt;/b&gt;  истинно ?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <GetPropertyValue>
                                                               <DecisionTreeVar name="YCa" />
@@ -1858,7 +1880,7 @@
                                                             </GetPropertyValue>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="False">
                                                             <BranchResultNode _alias="AltBranchOnFalse: Ветка развилки не может начаться, т.к. её условие ложно" value="false" _errorNode="AltBranchOnFalse" _explanation="Ветка развилки не может начаться, т.к. её условие ложно" />
@@ -1866,7 +1888,7 @@
                                                         </QuestionNode>
                                                       </Outcome>
                                                       <Outcome value="Not found">
-                                                        <BranchResultNode _alias="AltEarlyBranch: Ветку развилки начинать рано, т.к. её условие ${val('YC','и')} ещё было не проверено" value="false" _errorNode="AltEarlyBranch" _explanation="Ветку развилки начинать рано, т.к. её условие ${val('YC','и')} ещё было не проверено" />
+                                                        <BranchResultNode _alias="AltEarlyBranch: Ветку развилки начинать рано, т.к. её условие &lt;b&gt;YC&lt;/b&gt; ещё было не проверено" value="false" _errorNode="AltEarlyBranch" _explanation="Ветку развилки начинать рано, т.к. её условие ${val('YC','и')} ещё было не проверено" />
                                                       </Outcome>
                                                     </FindActionNode>
                                                   </Outcome>
@@ -1877,7 +1899,7 @@
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="role_for_parent:sequence_element">
-                                        <FindActionNode _alias="Найти следование ${val('S','и')} , к которому ${val('','и')}принадлежит действие ${val('Y','и')}">
+                                        <FindActionNode _alias="Найти следование &lt;b&gt;S&lt;/b&gt; , к которому&lt;b&gt; &lt;/b&gt;принадлежит действие &lt;b&gt;Y&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="S">
                                               <LogicalAnd>
@@ -1897,7 +1919,7 @@
                                           <Outcome value="Found">
                                             <LogicAggregationNode _alias="AND" operator="and">
                                               <ThoughtBranch type="bool">
-                                                <FindActionNode _alias="Найти первое из пропущенных действий ${val('M','и')} между действиями &lt;br&gt;${val('Аl','и')} и ${val('Y','и')} (после ${val('Аl','и')} и до ${val('Y','и')}) ...">
+                                                <FindActionNode _alias="Найти первое из пропущенных действий &lt;b&gt;M&lt;/b&gt; между действиями &lt;br&gt;&lt;b&gt;Аl&lt;/b&gt; и &lt;b&gt;Y &lt;/b&gt;(после &lt;b&gt;Аl&lt;/b&gt; и до &lt;b&gt;Y&lt;/b&gt;) ...">
                                                   <Expression>
                                                     <GetByCondition varName="M">
                                                       <LogicalAnd>
@@ -1956,21 +1978,21 @@
                                                   </Expression>
                                                   <DecisionTreeVarDecl name="M" type="action" />
                                                   <Outcome value="Not found">
-                                                    <BranchResultNode _alias="${val('A','и')} [skipped nothing]" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [skipped nothing]" value="true" />
                                                   </Outcome>
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="SeqElemSkip: Действие Y выполнять рано — пропущено действие ${val('M','и')} следования B" value="false" _errorNode="SeqElemSkip" _explanation="Действие Y выполнять рано — пропущено действие ${val('M','и')} следования B" />
+                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено действие ${val('M','и')} следования ${val('B','и')}" />
                                                   </Outcome>
                                                 </FindActionNode>
                                               </ThoughtBranch>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                               </Outcome>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="(Действие ${val('Y','и')} не может быть следующим)" value="false" />
+                                                <BranchResultNode _alias="(Действие &lt;b&gt;Y&lt;/b&gt; не может быть следующим)" value="false" />
                                               </Outcome>
                                               <ThoughtBranch type="bool">
-                                                <QuestionNode _alias="Является ли ${val('Al','и')} началом следования ${val('S','и')} ?" type="bool" isSwitch="false">
+                                                <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом следования &lt;b&gt;S&lt;/b&gt; ?" type="bool" isSwitch="false">
                                                   <Expression>
                                                     <CheckRelationship>
                                                       <Relationship name="begin_of" />
@@ -1982,7 +2004,7 @@
                                                     </CheckRelationship>
                                                   </Expression>
                                                   <Outcome value="False">
-                                                    <QuestionNode _alias="выполнялся ли (уже) акт ${val('А','и')} между началом&amp;nbsp;${val('B','и')} и ${val('Al','и')} &#10;(Позиция действия ${val('Y','и')} &lt;= позиции ${val('P','и')}) ?" type="bool" isSwitch="false">
+                                                    <QuestionNode _alias="выполнялся ли (уже) акт &lt;b&gt;А&lt;/b&gt; между началом&amp;nbsp;&lt;b&gt;B&lt;/b&gt; и &lt;b&gt;Al&lt;/b&gt; &#10;(Позиция действия &lt;b&gt;Y&lt;/b&gt; &lt;= позиции &lt;b&gt;P&lt;/b&gt;) ?" type="bool" isSwitch="false">
                                                       <Expression>
                                                         <Compare operator="LE">
                                                           <GetPropertyValue>
@@ -1996,15 +2018,15 @@
                                                         </Compare>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="${val('A','и')} [not a duplicate]" value="true" />
+                                                        <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [not a duplicate]" value="true" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="SeqElemDup: Действие Y не может выполняться дважды в рамках следования B" value="false" _errorNode="SeqElemDup" _explanation="Действие Y не может выполняться дважды в рамках следования B" />
+                                                        <BranchResultNode _alias="SeqElemDup: Действие $Y не может выполняться дважды в рамках следования $B" value="false" _errorNode="SeqElemDup" _explanation="Действие ${val('Y','и')} не может выполняться дважды в рамках следования ${val('B','и')}" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="${val('A','и')} [sequence's just begun]" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [sequence's just begun]" value="true" />
                                                   </Outcome>
                                                 </QuestionNode>
                                               </ThoughtBranch>
@@ -2015,7 +2037,7 @@
                                     </QuestionNode>
                                   </Outcome>
                                   <Outcome value="act_kind:end">
-                                    <QuestionNode _alias="К какому типу относится ${val('Y','и')} ?" type="enum" isSwitch="false">
+                                    <QuestionNode _alias="К какому типу относится &lt;b&gt;Y &lt;/b&gt;?" type="enum" isSwitch="false">
                                       <Expression>
                                         <GetPropertyValue>
                                           <DecisionTreeVar name="Y" />
@@ -2023,7 +2045,7 @@
                                         </GetPropertyValue>
                                       </Expression>
                                       <Outcome value="action_kind:alternative">
-                                        <QuestionNode _alias="Является ли ${val('Al','и')} началом развилки ${val('Y','и')} ?" type="bool" isSwitch="false">
+                                        <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом развилки &lt;b&gt;Y &lt;/b&gt;?" type="bool" isSwitch="false">
                                           <Expression>
                                             <CheckRelationship>
                                               <Relationship name="begin_of" />
@@ -2078,7 +2100,7 @@
                                             </FindActionNode>
                                           </Outcome>
                                           <Outcome value="False">
-                                            <QuestionNode _alias="Чем является ${val('Al','и')} в развилке ${val('Y','и')} ?" type="enum" isSwitch="false">
+                                            <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в развилке &lt;b&gt;Y &lt;/b&gt;?" type="enum" isSwitch="false">
                                               <Expression>
                                                 <GetPropertyValue>
                                                   <DecisionTreeVar name="P" />
@@ -2086,7 +2108,7 @@
                                                 </GetPropertyValue>
                                               </Expression>
                                               <Outcome value="role_for_parent:alt_cond">
-                                                <QuestionNode _alias="Каково значение условия ${val('Al','и')} ?" type="bool" isSwitch="false">
+                                                <QuestionNode _alias="Каково значение условия &lt;b&gt;Al&lt;/b&gt; ?" type="bool" isSwitch="false">
                                                   <Expression>
                                                     <GetPropertyValue>
                                                       <DecisionTreeVar name="Al" />
@@ -2122,7 +2144,7 @@
                                                         <BranchResultNode _alias="AltEarlyEndNoCond: Развилка не может завершиться, не проверив условие M" value="false" _errorNode="AltEarlyEndNoCond" _explanation="Развилка не может завершиться, не проверив условие M" />
                                                       </Outcome>
                                                       <Outcome value="Not found">
-                                                        <QuestionNode _alias="Присутствует ли в развилке ${val('Y','и')} ветка else?" type="bool" isSwitch="false">
+                                                        <QuestionNode _alias="Присутствует ли в развилке &lt;b&gt;Y&lt;/b&gt; ветка else?" type="bool" isSwitch="false">
                                                           <Expression>
                                                             <ExistenceQuantifier varName="else_branch">
                                                               <CheckClass>
@@ -2137,7 +2159,7 @@
                                                             </ExistenceQuantifier>
                                                           </Expression>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="True">
                                                             <BranchResultNode _alias="AltEarlyEndNoElse: Развилка не может закончиться без выполнения ветки else" value="false" _errorNode="AltEarlyEndNoElse" _explanation="Развилка не может закончиться без выполнения ветки else" />
@@ -2152,14 +2174,14 @@
                                                 </QuestionNode>
                                               </Outcome>
                                               <Outcome value="role_for_parent:alt_branch">
-                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
                                         </QuestionNode>
                                       </Outcome>
                                       <Outcome value="action_kind:sequence">
-                                        <FindActionNode _alias="Найти первое из невыполненных действий ${val('M','и')} после &lt;br&gt;${val('А','и')}${val('l','и')} (до конца ${val('B','и')})${val('&lt;br&gt;','и')}">
+                                        <FindActionNode _alias="Найти первое из невыполненных действий &lt;b&gt;M&lt;/b&gt; после &lt;br&gt;&lt;b&gt;А&lt;/b&gt;&lt;b&gt;l&lt;/b&gt; (до конца &lt;b&gt;B&lt;/b&gt;)&lt;b&gt;&lt;br&gt;&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="M">
                                               <LogicalAnd>
@@ -2206,15 +2228,15 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="M" type="action" />
                                           <Outcome value="Found">
-                                            <BranchResultNode _alias="SeqEarlyEnd: Следование не может завершиться, не выполнив действие ${val('M','и')}" value="false" _errorNode="SeqEarlyEnd" _explanation="Следование не может завершиться, не выполнив действие ${val('M','и')}" />
+                                            <BranchResultNode _alias="SeqEarlyEnd: Следование не может завершиться, не выполнив действие &lt;b&gt;M&lt;/b&gt;" value="false" _errorNode="SeqEarlyEnd" _explanation="Следование не может завершиться, не выполнив действие ${val('M','и')}" />
                                           </Outcome>
                                           <Outcome value="Not found">
-                                            <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                            <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                           </Outcome>
                                         </FindActionNode>
                                       </Outcome>
                                       <Outcome value="action_kind:loop">
-                                        <QuestionNode _alias="Является ли ${val('Al','и')} началом цикла ${val('Y','и')} ?" type="bool" isSwitch="false">
+                                        <QuestionNode _alias="Является ли &lt;b&gt;Al&lt;/b&gt; началом цикла &lt;b&gt;Y &lt;/b&gt;?" type="bool" isSwitch="false">
                                           <Expression>
                                             <CheckRelationship>
                                               <Relationship name="begin_of" />
@@ -2226,7 +2248,7 @@
                                             </CheckRelationship>
                                           </Expression>
                                           <Outcome value="False">
-                                            <QuestionNode _alias="Чем является ${val('Al','и')} в цикле ${val('Y','и')} ?" type="enum" isSwitch="false">
+                                            <QuestionNode _alias="Чем является &lt;b&gt;Al&lt;/b&gt; в цикле &lt;b&gt;Y&lt;/b&gt; ?" type="enum" isSwitch="false">
                                               <Expression>
                                                 <GetPropertyValue>
                                                   <DecisionTreeVar name="P" />
@@ -2234,7 +2256,42 @@
                                                 </GetPropertyValue>
                                               </Expression>
                                               <Outcome value="role_for_parent:loop_body">
-                                                <BranchResultNode _alias="LoopEarlyEndNormIterEnd: Цикл не должен завершаться после итерации, т.к. не был прерван" value="false" _errorNode="LoopEarlyEndNormIterEnd" _explanation="Цикл не должен завершаться после итерации, т.к. не был прерван" />
+                                                <QuestionNode _alias="Было ли тело цикла цикла завершено по continue ?" type="bool" isSwitch="false">
+                                                  <Expression>
+                                                    <ExistenceQuantifier varName="h">
+                                                      <CheckClass>
+                                                        <Variable name="h" />
+                                                        <Class name="action" />
+                                                      </CheckClass>
+                                                      <CheckRelationship>
+                                                        <Relationship name="halt_of" />
+                                                        <GetByRelationship varName="">
+                                                          <GetByCondition varName="t">
+                                                            <LogicalAnd>
+                                                              <CheckClass>
+                                                                <Variable name="t" />
+                                                                <Class name="act" />
+                                                              </CheckClass>
+                                                              <CheckRelationship>
+                                                                <Relationship name="student_next" />
+                                                                <Variable name="t" />
+                                                                <DecisionTreeVar name="Al" />
+                                                              </CheckRelationship>
+                                                            </LogicalAnd>
+                                                          </GetByCondition>
+                                                          <Relationship name="executes" />
+                                                        </GetByRelationship>
+                                                        <Variable name="h" />
+                                                      </CheckRelationship>
+                                                    </ExistenceQuantifier>
+                                                  </Expression>
+                                                  <Outcome value="False">
+                                                    <BranchResultNode _alias="LoopEarlyEndNormIterEnd: Цикл не должен завершаться после итерации, т.к. не был прерван" value="false" _errorNode="LoopEarlyEndNormIterEnd" _explanation="Цикл не должен завершаться после итерации, т.к. не был прерван" />
+                                                  </Outcome>
+                                                  <Outcome value="True">
+                                                    <BranchResultNode _alias="LoopEarlyEndOnIterEndByContinue: Цикл не может завершиться после прерывания его итерации по CONTINUE" value="false" _errorNode="LoopEarlyEndOnIterEndByContinue" _explanation="Цикл не может завершиться после прерывания его итерации по CONTINUE" />
+                                                  </Outcome>
+                                                </QuestionNode>
                                               </Outcome>
                                               <Outcome value="role_for_parent:loop_cond">
                                                 <QuestionNode _alias="Позволяет ли значение условия цикла закончить цикл?" type="bool" isSwitch="false">
@@ -2265,20 +2322,20 @@
                                                     <BranchResultNode _alias="LoopEarlyEndCondStillTrue: Цикл не может завершиться, пока его условие [истинно]" value="false" _errorNode="LoopEarlyEndCondStillTrue" _explanation="Цикл не может завершиться, пока его условие [истинно]" />
                                                   </Outcome>
                                                   <Outcome value="True">
-                                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                   </Outcome>
                                                 </QuestionNode>
                                               </Outcome>
                                               <Outcome value="role_for_parent:loop_update">
-                                                <BranchResultNode _alias="PreCondLoopEarlyEndNoCond: Цикл [c предусловием] не может завершиться без проверки своего условия" value="false" _errorNode="PreCondLoopEarlyEndNoCond" _explanation="Цикл [c предусловием] не может завершиться без проверки своего условия" />
+                                                <BranchResultNode _alias="PreCondLoopEarlyEndNoCond: ${class('Y','и')} не может завершиться без проверки своего условия" value="false" _errorNode="PreCondLoopEarlyEndNoCond" _explanation="${class('Y','и')} не может завершиться без проверки своего условия" />
                                               </Outcome>
                                               <Outcome value="role_for_parent:loop_init">
-                                                <BranchResultNode _alias="PreCondLoopEarlyEndNoCond: Цикл [c предусловием] не может завершиться без проверки своего условия" value="false" _errorNode="PreCondLoopEarlyEndNoCond" _explanation="Цикл [c предусловием] не может завершиться без проверки своего условия" />
+                                                <BranchResultNode _alias="PreCondLoopEarlyEndNoCond: ${class('Y','и')} не может завершиться без проверки своего условия" value="false" _errorNode="PreCondLoopEarlyEndNoCond" _explanation="${class('Y','и')} не может завершиться без проверки своего условия" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
                                           <Outcome value="True">
-                                            <QuestionNode _alias="Является ли цикл ${val('Y','и')} циклом с предусловием?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Является ли цикл &lt;b&gt;Y&lt;/b&gt; циклом с предусловием?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <CheckClass>
                                                   <DecisionTreeVar name="Y" />
@@ -2286,10 +2343,10 @@
                                                 </CheckClass>
                                               </Expression>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="PreCondLoopEarlyEndNoCond: Цикл [c предусловием] не может завершиться без проверки своего условия" value="false" _errorNode="PreCondLoopEarlyEndNoCond" _explanation="Цикл [c предусловием] не может завершиться без проверки своего условия" />
+                                                <BranchResultNode _alias="PreCondLoopEarlyEndNoCond: ${class('Y','и')} не может завершиться без проверки своего условия" value="false" _errorNode="PreCondLoopEarlyEndNoCond" _explanation="${class('Y','и')} не может завершиться без проверки своего условия" />
                                               </Outcome>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="PostCondLoopEarlyEndNoIter: Нельзя выйти из цикла, не выполнив его итерацию хотя бы раз" value="false" _errorNode="PostCondLoopEarlyEndNoIter" _explanation="Нельзя выйти из цикла, не выполнив его итерацию хотя бы раз" />
+                                                <BranchResultNode _alias="PostCondLoopEarlyEndNoIter: ${class('Y','и')} не может завершиться, не выполнив итерацию хотя бы раз" value="false" _errorNode="PostCondLoopEarlyEndNoIter" _explanation="${class('Y','и')} не может завершиться, не выполнив итерацию хотя бы раз" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
@@ -2299,30 +2356,11 @@
                                   </Outcome>
                                 </QuestionNode>
                               </Outcome>
-                              <Outcome value="False">
-                                <QuestionNode _alias="Какому типу относится акт ${val('A','и')} ?" type="enum" isSwitch="false">
-                                  <Expression>
-                                    <GetPropertyValue>
-                                      <DecisionTreeVar name="A" />
-                                      <Property name="act_kind" />
-                                    </GetPropertyValue>
-                                  </Expression>
-                                  <Outcome value="act_kind:begin">
-                                    <BranchResultNode _alias="В настоящий момент выполняется прерывание, не нужно ничего начинать" value="false" _errorNode="true" _explanation="В настоящий момент выполняется прерывание, не нужно ничего начинать" />
-                                  </Outcome>
-                                  <Outcome value="act_kind:atom">
-                                    <BranchResultNode _alias="В настоящий момент выполняется прерывание, не нужно ничего выполнять" value="false" _errorNode="true" _explanation="В настоящий момент выполняется прерывание, не нужно ничего выполнять" />
-                                  </Outcome>
-                                  <Outcome value="act_kind:end">
-                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
-                                  </Outcome>
-                                </QuestionNode>
-                              </Outcome>
                               <ThoughtBranch type="bool">
                                 <BranchResultNode _alias="[заглушка]" value="true" />
                               </ThoughtBranch>
                               <ThoughtBranch type="bool">
-                                <FindActionNode _alias="Найти последний Return / Break / Continue &lt;br&gt;в трассе -&amp;gt;&lt;br&gt;${val('Ra','и')}">
+                                <FindActionNode _alias="Найти последний Return / Break / Continue &lt;br&gt;в трассе -&amp;gt;&lt;br&gt;&lt;b&gt;Ra&lt;/b&gt;">
                                   <Expression>
                                     <GetExtreme extremeVarName="Ra_ex" varName="Ra">
                                       <LogicalNot>
@@ -2387,7 +2425,7 @@
                                   </Expression>
                                   <DecisionTreeVarDecl name="Ra" type="act" />
                                   <Outcome value="Found">
-                                    <FindActionNode _alias="Найти действие алгоритма &lt;br&gt;для акта ${val('Ra','и')} -&amp;gt;&lt;br&gt;&lt;div&gt;${val('R','и')}&lt;/div&gt;">
+                                    <FindActionNode _alias="Найти действие алгоритма &lt;br&gt;для акта &lt;b&gt;Ra&lt;/b&gt; -&amp;gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;R&lt;/b&gt;&lt;/div&gt;">
                                       <Expression>
                                         <GetByCondition varName="r">
                                           <LogicalAnd>
@@ -2410,7 +2448,7 @@
                                       </Expression>
                                       <DecisionTreeVarDecl name="R" type="interrupt_action" />
                                       <Outcome value="Found">
-                                        <FindActionNode _alias="Найти прерываемое действие — ${val('IT','и')}">
+                                        <FindActionNode _alias="Найти прерываемое действие — &lt;b&gt;IT&lt;/b&gt;">
                                           <Expression>
                                             <GetByCondition varName="it">
                                               <LogicalAnd>
@@ -2535,7 +2573,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="IT" type="action" />
                                           <Outcome value="Found">
-                                            <QuestionNode _alias="Присутствует ли завершение прерываемого действия в трассе после ${val('R','и')}  ?" type="bool" isSwitch="false">
+                                            <QuestionNode _alias="Присутствует ли завершение прерываемого действия в трассе после &lt;b&gt;R &lt;/b&gt; ?" type="bool" isSwitch="false">
                                               <Expression>
                                                 <ExistenceQuantifier varName="a">
                                                   <LogicalAnd>
@@ -2577,7 +2615,7 @@
                                                 </ExistenceQuantifier>
                                               </Expression>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                                <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                               </Outcome>
                                               <Outcome value="False">
                                                 <BranchResultNode _alias="[выполняется прерывание]" value="false" />
@@ -2589,10 +2627,55 @@
                                     </FindActionNode>
                                   </Outcome>
                                   <Outcome value="Not found">
-                                    <BranchResultNode _alias="${val('A','и')}" value="true" />
+                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                   </Outcome>
                                 </FindActionNode>
                               </ThoughtBranch>
+                              <Outcome value="False">
+                                <QuestionNode _alias="Является ли акт &lt;b&gt;A&lt;/b&gt; окончанием ?" type="bool" isSwitch="false">
+                                  <Expression>
+                                    <Compare operator="EQUAL">
+                                      <GetPropertyValue>
+                                        <DecisionTreeVar name="A" />
+                                        <Property name="act_kind" />
+                                      </GetPropertyValue>
+                                      <Enum owner="act_kind" value="end" />
+                                    </Compare>
+                                  </Expression>
+                                  <Outcome value="True">
+                                    <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
+                                  </Outcome>
+                                  <Outcome value="False">
+                                    <QuestionNode _alias="Является ли текущий контекст &lt;b&gt;B&lt;/b&gt; циклом ?" type="bool" isSwitch="false">
+                                      <Expression>
+                                        <CheckClass>
+                                          <DecisionTreeVar name="B" />
+                                          <Class name="loop" />
+                                        </CheckClass>
+                                      </Expression>
+                                      <Outcome value="False">
+                                        <QuestionNode _alias="Какому типу относится акт &lt;b&gt;A&lt;/b&gt; ?" type="enum" isSwitch="false">
+                                          <Expression>
+                                            <GetPropertyValue>
+                                              <DecisionTreeVar name="A" />
+                                              <Property name="act_kind" />
+                                            </GetPropertyValue>
+                                          </Expression>
+                                          <Outcome value="act_kind:begin">
+                                            <BranchResultNode _alias="BeginWhenInterrupting: Никакое действие не может начаться, пока выполняется прерывание" value="false" _errorNode="BeginWhenInterrupting" _explanation="Никакое действие не может начаться, пока выполняется прерывание" />
+                                          </Outcome>
+                                          <Outcome value="act_kind:atom">
+                                            <BranchResultNode _alias="BeginWhenInterrupting: Никакое действие не может начать выполняться, пока выполняется прерывание" value="false" _errorNode="BeginWhenInterrupting" _explanation="Никакое действие не может начать выполняться, пока выполняется прерывание" />
+                                          </Outcome>
+                                        </QuestionNode>
+                                      </Outcome>
+                                      <Outcome value="True">
+                                        <BranchResultNode _alias="LoopTreatBreak﻿AsContinue: Цикл не может продолжить выполняться после прерывания итерации, т.к. текущее прерывание — не по CONTINUE." value="false" _errorNode="LoopTreatBreak﻿AsContinue" _explanation="Цикл не может продолжить выполняться после прерывания итерации, т.к. текущее прерывание — не по CONTINUE." />
+                                      </Outcome>
+                                    </QuestionNode>
+                                  </Outcome>
+                                </QuestionNode>
+                              </Outcome>
                             </LogicAggregationNode>
                           </Outcome>
                         </LogicAggregationNode>

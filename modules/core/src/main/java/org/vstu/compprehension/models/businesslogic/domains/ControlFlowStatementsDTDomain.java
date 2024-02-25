@@ -9,7 +9,6 @@ import its.model.definition.rdf.DomainRDFFiller;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.*;
 import org.apache.jena.rdf.model.*;
@@ -79,7 +78,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json"; // fixme!
     static List<Question> QUESTIONS;
 
-    private static List<String> reasonPropertiesCache = null;
+//    private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
 
 
@@ -461,10 +460,36 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
         assert newFacts != null;
 
+
+
         // update model so it is ready for reasoning with DT
         OntModel m = ModelFactory.createOntologyModel(OWL_MEM);
         m.add(newFacts.getModel());
         m = backend.filterModelForCtrlFlowDecisionTree(m);
+        newFacts.setModel(m);
+
+
+        // polyfill object descriptions (label -> **.localizedName)
+        m = (OntModel) newFacts.getModel();
+        for (Statement t : /*Stream.concat*/(
+                m.listStatements(null, m.getOntProperty(m.expandPrefix(":stmt_name")), (RDFNode) null).toList().stream()/*,
+                m.listStatements(null, m.getOntProperty(m.expandPrefix(":name")), (RDFNode) null).toList().stream()*/
+            ).toList()
+        ) {
+            if (!t.getObject().isLiteral())
+                continue;
+            String stmt_name = t.getObject().asLiteral().getString();
+            stmt_name = replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
+            stmt_name = String.format("«%s»", stmt_name);  // Format name in HTML.
+//            stmt_name = String.format("<code>%s</code>", stmt_name);  // Format name in HTML.
+            var nameLiteral = m.createLiteral(stmt_name);
+            for (String propName : List.of(":RU.localizedName", ":EN.localizedName")) {
+                // add a copy of fact with new prop
+                m.add(t.getSubject(),
+                        m.createOntProperty(m.expandPrefix(propName)),
+                        nameLiteral);
+            }
+        }
         newFacts.setModel(m);
 
 
@@ -508,108 +533,10 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return situationModel;
     }
 
-    @Override
-    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        // proxy to static method
-        return null /*getSolutionVerbsStatic(questionDomainType, statementFacts)*/;
-    }
-
-    public static Set<String> getSolutionVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
-            Set<String> verbs = new HashSet<>(Arrays.asList(
-//            return new ArrayList<>(Arrays.asList(
-                    "rdf:type",
-                    "rdfs:subClassOf",
-                    "rdfs:subPropertyOf",
-                    "rdfs:label",
-                    "id",
-                    "atom_action",
-                    "boundary_of",
-                    "begin_of",
-                    "end_of",
-                    "halt_of",
-                    "interrupt_origin",
-                    "consequent",
-                    "has_upcoming",
-                    "normal_consequent",
-                    "always_consequent",
-                    "on_true_consequent",
-                    "on_false_consequent",
-                    "entry_point",
-                    "stmt_name",
-                    "parent_of",
-                    "branches_item",
-                    "next",
-                    "cond",
-                    "body",
-                    "body_item",
-                    "index",
-                    "executes_id",
-                    "executes",
-                    "reason_kind",
-                    "to_reason",
-                    "from_reason",
-                    "fetch_kind_of_loop",
-                    // for decision tree:
-                    "act_kind",
-                    "action_kind",
-                    "has_role",
-                    "has_interrupt_kind"
-            ));
-            if (reasonPropertiesCache == null)
-                reasonPropertiesCache = getVocabulary().propertyDescendants("consequent");
-            verbs.addAll(reasonPropertiesCache);
-            verbs.addAll(getFieldProperties());
-            return verbs;
-        }
-        return new HashSet<>();
-    }
-
     private static List<String> getFieldProperties() {
         if (fieldPropertiesCache == null)
             fieldPropertiesCache = getVocabulary().propertyDescendants("string_placeholder");
         return fieldPropertiesCache;
-    }
-
-    @Override
-    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        return null /*getViolationVerbsStatic(questionDomainType, statementFacts)*/;
-    }
-
-    public static Set<String> getViolationVerbsStatic(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
-            Set<String> verbs = new HashSet<>(Arrays.asList(
-                    // - "*whole_model*" //,
-                    "rdf:type",
-                    "rdfs:subClassOf",
-                    "rdfs:subPropertyOf",
-                    "rdfs:label",
-                     "id",
-                    // "name",
-                    "next_act",
-                    "student_next",
-                    "student_next_latest",
-                    "wrong_next_act",
-                    "corresponding_end",
-                    "student_corresponding_end",
-                    "parent_of",
-                    "student_parent_of",
-                    "executes_id",
-                    "executes",
-                    "precursor",
-                    "cause",
-                    "has_causing_condition",
-                    "should_be",
-                    "should_be_before",
-                    "should_be_after",
-                    "context_should_be",
-                    "reason"
-            ));
-            // add solution verbs too!
-            verbs.addAll(getSolutionVerbsStatic(questionDomainType, statementFacts));
-            return verbs;
-        }
-        return new HashSet<>();
     }
 
     // ############
@@ -920,8 +847,8 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         result.isAnswerCorrect = mistakes.isEmpty();
 
 //        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = 11;
-        result.IterationsLeft = 12; // TODO
+        result.CountCorrectOptions = 111;
+        result.IterationsLeft = 122; // TODO
         return result;
     }
 
@@ -943,133 +870,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return new HyperText("WRONG");
     }
 
-
-    Set<String> possibleMistakesByLaw(String correctLaw) {
-        return notHappenedMistakes(List.of(correctLaw), null);
-    }
-
-    Set<String> notHappenedMistakes(List<String> correctLaws) {
-        return notHappenedMistakes(correctLaws, null);
-    }
-
-    Set<String> notHappenedMistakes(List<String> correctLaws, Collection<Fact> questionFacts) {
-        HashSet<String> mistakeNames = new HashSet<>();
-
-        // may omit context mistakes in the mode when no question info provided
-        if (questionFacts != null) {
-            // find out if context mistakes are applicable here
-            for (Fact f : questionFacts) {
-                if (f.getVerb().equals("rdf:type") && (f.getObject().equals("alternative") || f.getObject().endsWith("loop"))) {
-                    mistakeNames.add("CorrespondingEndMismatched");
-                    mistakeNames.add("EndedDeeper");
-                    mistakeNames.add("EndedShallower");
-                    mistakeNames.add("WrongContext");
-                    mistakeNames.add("OneLevelShallower");
-                    break;
-                }
-            }
-        }
-        // use heuristics to get possible mistakes
-        for (String corrLaw : correctLaws) {
-            switch (corrLaw) {
-                // TODO: fix typo in all places: Condtion
-                case("SequenceBegin"):
-                    mistakeNames.add("TooEarlyInSequence");
-                    mistakeNames.add("SequenceFinishedTooEarly");
-                    break;
-                case("SequenceNext"):
-                    mistakeNames.add("TooEarlyInSequence");
-                    mistakeNames.add("TooLateInSequence");
-                    mistakeNames.add("SequenceFinishedTooEarly");
-                    mistakeNames.add("DuplicateOfAct");
-                    break;
-                case("SequenceEnd"):
-                    mistakeNames.add("TooEarlyInSequence");
-                    mistakeNames.add("SequenceFinishedNotInOrder");
-                    break;
-                case("AltBegin"):
-                    mistakeNames.add("NoFirstCondition");
-                    mistakeNames.add("BranchNotNextToCondition");
-                    mistakeNames.add("BranchWithoutCondition");
-                    break;
-                case("AltBranchBegin"):
-                    mistakeNames.add("BranchNotNextToCondition");
-                    mistakeNames.add("ElseBranchNotNextToLastCondition");
-                    mistakeNames.add("ElseBranchAfterTrueCondition");
-                    mistakeNames.add("CondtionNotNextToPrevCondition");
-                    mistakeNames.add("ConditionTooEarly");
-                    mistakeNames.add("ConditionTooLate");
-                    mistakeNames.add("DuplicateOfCondition");
-                    mistakeNames.add("NoBranchWhenConditionIsTrue");
-                    mistakeNames.add("AlternativeEndAfterTrueCondition");
-                    break;
-                case("NextAltCondition"):
-                    mistakeNames.add("BranchNotNextToCondition");
-                    mistakeNames.add("ElseBranchNotNextToLastCondition");
-                    mistakeNames.add("CondtionNotNextToPrevCondition");
-                    mistakeNames.add("ConditionTooEarly");
-                    mistakeNames.add("ConditionTooLate");
-                    mistakeNames.add("DuplicateOfCondition");
-                    mistakeNames.add("NoNextCondition");
-                    mistakeNames.add("BranchOfFalseCondition");
-                    mistakeNames.add("BranchWithoutCondition");
-                    break;
-                case("AltEndAfterBranch"):
-                    mistakeNames.add("ConditionAfterBranch");
-                    mistakeNames.add("AnotherExtraBranch");
-                    mistakeNames.add("NoAlternativeEndAfterBranch");
-                    break;
-                case("AltEndAllFalse"):
-                    mistakeNames.add("BranchOfFalseCondition");
-                    mistakeNames.add("LastFalseNoEnd");
-                    break;
-                case("AltElseBranchBegin"):
-                    mistakeNames.add("BranchOfFalseCondition");
-                    mistakeNames.add("LastConditionIsFalseButNoElse");
-                    break;
-                case("IterationBeginOnTrueCond"):
-                    mistakeNames.add("NoIterationAfterSuccessfulCondition");
-                    mistakeNames.add("LoopEndAfterSuccessfulCondition");
-                    break;
-                case("LoopEndOnFalseCond"):
-                    mistakeNames.add("NoLoopEndAfterFailedCondition");
-                    mistakeNames.add("LoopContinuedAfterFailedCondition");
-                    mistakeNames.add("IterationAfterFailedCondition");
-                    mistakeNames.add("NoConditionAfterIteration");
-                    mistakeNames.add("NoConditionBetweenIterations");
-                    break;
-                case("PreCondLoopBegin"):
-                    mistakeNames.add("LoopEndsWithoutCondition");
-                    mistakeNames.add("LoopStartIsNotCondition");
-                    break;
-                case("PostCondLoopBegin"):
-                    mistakeNames.add("LoopEndsWithoutCondition");
-                    mistakeNames.add("LoopStartIsNotIteration");
-                    break;
-                case("LoopCondBeginAfterIteration"):
-                    mistakeNames.add("LoopEndsWithoutCondition");
-                    mistakeNames.add("NoConditionAfterIteration");
-                    mistakeNames.add("NoConditionBetweenIterations");
-                    break;
-            }
-        }
-        return mistakeNames;
-    }
-
-    @Override
-    public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        return false;
-    }
-
-    @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
-        throw new NotImplementedException();
-    }
 
     private static OntModel modelToOntModel(Model model) {
         OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);        ontModel.add(model);
@@ -1480,17 +1280,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
         Collections.addAll(res, questions);
         return res;
-    }
-
-    @Override
-    public Question parseQuestionTemplate(InputStream inputStream) {
-        Gson gson = getQuestionGson();
-
-        Question question = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question.class);
-
-        return question;
     }
 
     @Override

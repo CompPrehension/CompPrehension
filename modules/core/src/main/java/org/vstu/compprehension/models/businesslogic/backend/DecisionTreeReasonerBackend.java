@@ -62,6 +62,11 @@ public class DecisionTreeReasonerBackend implements Backend {
         Collection<Fact> statement,
         ReasoningOptions reasoningOptions
     ) {
+        if (1==1) {
+            // early exit (no-op).
+            return statement;
+        }
+
         DecisionTree decisionTree = laws.stream()
             .filter(l -> l instanceof DTLaw)
             .findFirst()
@@ -131,6 +136,8 @@ public class DecisionTreeReasonerBackend implements Backend {
             for(var result: judgeResults){
                 reasonerOutput.addAll(reasonerOutputToFacts(result, ++i));
             }
+        } else {
+            log.warn("Required Decision Tree variables are NOT SET !");
         }
 
         reasonerOutput.add(new DomainFact(situation.getDomain()));
@@ -159,7 +166,7 @@ public class DecisionTreeReasonerBackend implements Backend {
 
         List<ViolationEntity> violations = new ArrayList<>();
         groupedByResults.forEach((i, facts) -> {
-            if(i.isEmpty()){
+            if (i.isEmpty()) {  // ignore facts having empty subject.
                 return;
             }
             ViolationEntity violation = new ViolationEntity();

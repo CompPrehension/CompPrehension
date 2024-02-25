@@ -487,7 +487,7 @@ public class JenaBackend implements Backend {
     }
 
     public OntModel filterModelForCtrlFlowDecisionTree(OntModel m) {
-        // delete all fact about Erroneous and its child classes
+        // delete all facts about Erroneous and its child classes
         Set<Resource> undesiredClasses = new HashSet<>();
         undesiredClasses.add(m.createClass(model.expandPrefix(":Erroneous")));
         undesiredClasses.add(m.createClass(model.expandPrefix(":linked_list")));
