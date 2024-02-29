@@ -230,52 +230,50 @@
                                       <Outcome value="False">
                                         <FindActionNode _alias="Найти последнее начало &lt;b&gt;CX&lt;/b&gt; в трассе — LCXb">
                                           <Expression>
-                                            <GetByCondition varName="a">
-                                              <LogicalAnd>
-                                                <LogicalAnd>
-                                                  <CheckClass>
-                                                    <Variable name="a" />
-                                                    <Class name="act_begin" />
-                                                  </CheckClass>
-                                                  <CheckRelationship>
-                                                    <Relationship name="begin_of" />
-                                                    <GetByRelationship varName="">
+                                            <GetExtreme extremeVarName="a" varName="a">
+                                              <LogicalNot>
+                                                <ExistenceQuantifier varName="e">
+                                                  <LogicalAnd>
+                                                    <CheckClass>
+                                                      <Variable name="e" />
+                                                      <Class name="act_begin" />
+                                                    </CheckClass>
+                                                    <CheckRelationship>
+                                                      <Relationship name="begin_of" />
+                                                      <GetByRelationship varName="">
+                                                        <Variable name="e" />
+                                                        <Relationship name="executes" />
+                                                      </GetByRelationship>
+                                                      <DecisionTreeVar name="CX" />
+                                                    </CheckRelationship>
+                                                  </LogicalAnd>
+                                                  <Compare operator="GREATER">
+                                                    <GetPropertyValue>
                                                       <Variable name="a" />
-                                                      <Relationship name="executes" />
-                                                    </GetByRelationship>
-                                                    <DecisionTreeVar name="CX" />
-                                                  </CheckRelationship>
-                                                </LogicalAnd>
-                                                <LogicalNot>
-                                                  <ExistenceQuantifier varName="e">
-                                                    <LogicalAnd>
-                                                      <CheckClass>
-                                                        <Variable name="e" />
-                                                        <Class name="act_begin" />
-                                                      </CheckClass>
-                                                      <CheckRelationship>
-                                                        <Relationship name="begin_of" />
-                                                        <GetByRelationship varName="">
-                                                          <Variable name="e" />
-                                                          <Relationship name="executes" />
-                                                        </GetByRelationship>
-                                                        <DecisionTreeVar name="CX" />
-                                                      </CheckRelationship>
-                                                    </LogicalAnd>
-                                                    <Compare operator="GREATER">
-                                                      <GetPropertyValue>
-                                                        <Variable name="a" />
-                                                        <Property name="student_index" />
-                                                      </GetPropertyValue>
-                                                      <GetPropertyValue>
-                                                        <Variable name="e" />
-                                                        <Property name="student_index" />
-                                                      </GetPropertyValue>
-                                                    </Compare>
-                                                  </ExistenceQuantifier>
-                                                </LogicalNot>
+                                                      <Property name="student_index" />
+                                                    </GetPropertyValue>
+                                                    <GetPropertyValue>
+                                                      <Variable name="e" />
+                                                      <Property name="student_index" />
+                                                    </GetPropertyValue>
+                                                  </Compare>
+                                                </ExistenceQuantifier>
+                                              </LogicalNot>
+                                              <LogicalAnd>
+                                                <CheckClass>
+                                                  <Variable name="a" />
+                                                  <Class name="act_begin" />
+                                                </CheckClass>
+                                                <CheckRelationship>
+                                                  <Relationship name="begin_of" />
+                                                  <GetByRelationship varName="">
+                                                    <Variable name="a" />
+                                                    <Relationship name="executes" />
+                                                  </GetByRelationship>
+                                                  <DecisionTreeVar name="CX" />
+                                                </CheckRelationship>
                                               </LogicalAnd>
-                                            </GetByCondition>
+                                            </GetExtreme>
                                           </Expression>
                                           <DecisionTreeVarDecl name="LCXb" type="act" />
                                           <Outcome value="Found">
@@ -296,15 +294,15 @@
                                                 </LogicalNot>
                                               </Expression>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может быть продолжено, пока его внутренние действия не завершились" value="false" _errorNode="CtxInnerPending" _explanation="Действие ${val('CX','и')} не может быть продолжено, пока его внутренние действия не завершились" />
+                                                <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может продолжиться, пока его внутренние действия ещё выполняются" value="false" _errorNode="CtxInnerPending" _explanation="${class('CX','и')} ${val('CX','и')} не может продолжиться, пока его внутренние действия ещё выполняются" />
                                               </Outcome>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="CtxEnded: Действие &lt;b&gt;CX&lt;/b&gt; завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Действие ${val('CX','и')} завершилось и в настоящий момент не выполняется" />
+                                                <BranchResultNode _alias="CtxEnded: Действие &lt;b&gt;CX&lt;/b&gt; завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="${class('CX','и')} ${val('CX','и')} завершилось и в настоящий момент не выполняется" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
                                           <Outcome value="Not found">
-                                            <BranchResultNode _alias="CtxNeverBegun: Действие &lt;b&gt;Y&lt;/b&gt; не может выполняться, пока не началось &lt;b&gt;CX&lt;/b&gt;" value="false" _errorNode="CtxNeverBegun" _explanation="Действие ${val('Y','и')} не может выполняться, пока не началось ${val('CX','и')}" />
+                                            <BranchResultNode _alias="CtxNeverBegun: Действие &lt;b&gt;Y&lt;/b&gt; не может выполняться прежде, чем начнется действие &lt;b&gt;CX&lt;/b&gt;" value="false" _errorNode="CtxNeverBegun" _explanation="${class('Y','и')} ${val('Y','и')} не может выполняться прежде, чем начнется ${class('CX','и')} ${val('CX','и')}" />
                                           </Outcome>
                                         </FindActionNode>
                                       </Outcome>
@@ -408,15 +406,15 @@
                                             </LogicalNot>
                                           </Expression>
                                           <Outcome value="True">
-                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;Y&lt;/b&gt; не может быть завершено досрочно, пока его внутренние действия не завершились" value="false" _errorNode="CtxInnerPending" _explanation="Действие ${val('Y','и')} не может быть завершено досрочно, пока его внутренние действия не завершились" />
+                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;Y&lt;/b&gt; не может быть завершено досрочно, пока его внутренние действия ещё выполняются" value="false" _errorNode="CtxInnerPending" _explanation="${class('Y','и')} ${val('Y','и')} не может быть завершено досрочно, пока его внутренние действия ещё выполняются" />
                                           </Outcome>
                                           <Outcome value="False">
-                                            <BranchResultNode _alias="CtxEnded: Нельзя завершить действие &lt;b&gt;Y&lt;/b&gt;, т.к. завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Нельзя завершить действие ${val('Y','и')}, т.к. завершилось и в настоящий момент не выполняется" />
+                                            <BranchResultNode _alias="CtxEnded: Нельзя завершить действие &lt;b&gt;Y&lt;/b&gt;, т.к. завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Нельзя завершить ${class('Y','и')} ${val('Y','и')}, т.к. завершилось и в настоящий момент не выполняется" />
                                           </Outcome>
                                         </QuestionNode>
                                       </Outcome>
                                       <Outcome value="Not found">
-                                        <BranchResultNode _alias="EndWhenNeverBegun: Действие &lt;b&gt;Y&lt;/b&gt; не может закончиться, не начавшись" value="false" _errorNode="EndWhenNeverBegun" _explanation="Действие ${val('Y','и')} не может закончиться, не начавшись" />
+                                        <BranchResultNode _alias="EndWhenNeverBegun: Действие &lt;b&gt;Y&lt;/b&gt; не может закончиться, не начавшись" value="false" _errorNode="EndWhenNeverBegun" _explanation="${class('Y','и')} ${val('Y','и')} не может закончиться, не начавшись" />
                                       </Outcome>
                                     </FindActionNode>
                                   </Outcome>
@@ -1277,7 +1275,7 @@
                                                     <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [skipped nothing]" value="true" />
                                                   </Outcome>
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено действие ${val('M','и')} следования ${val('B','и')}" />
+                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено ${class('M','и')} ${val('M','и')} следования ${val('B','и')}" />
                                                   </Outcome>
                                                 </FindActionNode>
                                               </ThoughtBranch>
@@ -1981,7 +1979,7 @@
                                                     <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [skipped nothing]" value="true" />
                                                   </Outcome>
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено действие ${val('M','и')} следования ${val('B','и')}" />
+                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено ${class('M','и')} ${val('M','и')} следования ${val('B','и')}" />
                                                   </Outcome>
                                                 </FindActionNode>
                                               </ThoughtBranch>
@@ -2228,7 +2226,7 @@
                                           </Expression>
                                           <DecisionTreeVarDecl name="M" type="action" />
                                           <Outcome value="Found">
-                                            <BranchResultNode _alias="SeqEarlyEnd: Следование не может завершиться, не выполнив действие &lt;b&gt;M&lt;/b&gt;" value="false" _errorNode="SeqEarlyEnd" _explanation="Следование не может завершиться, не выполнив действие ${val('M','и')}" />
+                                            <BranchResultNode _alias="SeqEarlyEnd: Следование не может завершиться, не выполнив действие &lt;b&gt;M&lt;/b&gt;" value="false" _errorNode="SeqEarlyEnd" _explanation="Следование не может завершиться, не выполнив ${class('M','и')} ${val('M','и')}" />
                                           </Outcome>
                                           <Outcome value="Not found">
                                             <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />

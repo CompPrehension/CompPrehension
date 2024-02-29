@@ -45,7 +45,9 @@
 
 :begin_of a owl:ObjectProperty ;
     rdfs:subPropertyOf :boundary_of ;
-    :act_class :act_begin .
+    :act_class :act_begin ;
+    :EN.localizedName "the beginning of"^^xsd:string ;
+    :RU.localizedName "начало"^^xsd:string .
 
 :body a owl:ObjectProperty ;
     rdfs:subPropertyOf :parent_of .
@@ -88,7 +90,9 @@
 
 :end_of a owl:ObjectProperty ;
     rdfs:subPropertyOf :boundary_of ;
-    :act_class :act_end .
+    :act_class :act_end ;
+    :EN.localizedName "the ending of"^^xsd:string ;
+    :RU.localizedName "окочание"^^xsd:string .
 
 :entry_point a owl:FunctionalProperty,
         owl:ObjectProperty ;
@@ -334,6 +338,8 @@
 
 :continues_on_true_condition a owl:AnnotationProperty .
 
+:EN.localizedName a owl:AnnotationProperty .
+
 :has_bitflags a owl:AnnotationProperty .
 
 :has_interrupt_kind a owl:AnnotationProperty .
@@ -343,6 +349,8 @@
 :involves_concept a owl:AnnotationProperty .
 
 :principal_violation a owl:AnnotationProperty .
+
+:RU.localizedName a owl:AnnotationProperty .
 
 skos:broader a owl:AnnotationProperty .
 
@@ -533,29 +541,41 @@ skos:broader a owl:AnnotationProperty .
 ### Classes
 
 :act a owl:Class ;
-    rdfs:subClassOf owl:Thing .
+    rdfs:subClassOf owl:Thing ;
+    :EN.localizedName "execution"^^xsd:string ;
+    :RU.localizedName "выполнение"^^xsd:string .
 
 :act_begin a owl:Class ;
-    rdfs:subClassOf :act .
+    rdfs:subClassOf :act ;
+    :EN.localizedName "the beginning of execution"^^xsd:string ;
+    :RU.localizedName "начало выполнения"^^xsd:string .
 
 :act_end a owl:Class ;
-    rdfs:subClassOf :act .
+    rdfs:subClassOf :act ;
+    :EN.localizedName "the ending of execution"^^xsd:string ;
+    :RU.localizedName "окочание выполнения"^^xsd:string .
 
 :action a owl:Class ;
-    rdfs:subClassOf owl:Thing .
+    rdfs:subClassOf owl:Thing ;
+    :EN.localizedName "action"^^xsd:string ;
+    :RU.localizedName "действие"^^xsd:string .
 
 :algorithm a owl:Class ;
     rdfs:subClassOf :boundary .
 
 :alt_branch a owl:Class ;
     rdfs:subClassOf :sequence ;
-    :action_kind :sequence .
+    :action_kind :sequence ;
+    :EN.localizedName "branch"^^xsd:string ;
+    :RU.localizedName "ветка"^^xsd:string .
 
 :alternative a owl:Class ;
     rdfs:label "if"^^xsd:string ;
     rdfs:subClassOf :action ;
     :action_kind :alternative ;
-    :has_bitflags 3 .
+    :EN.localizedName "selection statement"^^xsd:string ;
+    :has_bitflags 3 ;
+    :RU.localizedName "развилка"^^xsd:string .
 
 :AlternativeEndAfterTrueCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse ;
@@ -601,8 +621,10 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
+    :EN.localizedName "BREAK"^^xsd:string ;
     :has_bitflags 3 ;
     :has_interrupt_kind :break ;
+    :RU.localizedName "BREAK"^^xsd:string ;
     skos:broader :loop_break_continue .
 
 :call a owl:Class ;
@@ -650,8 +672,10 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
+    :EN.localizedName "CONTINUE"^^xsd:string ;
     :has_bitflags 3 ;
     :has_interrupt_kind :continue ;
+    :RU.localizedName "CONTINUE"^^xsd:string ;
     skos:broader :loop_break_continue .
 
 :correct_act a owl:Class ;
@@ -666,7 +690,9 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :body_then_cond,
         :cond_then_body,
         :start_with_body ;
+    :EN.localizedName "DO-WHILE loop"^^xsd:string ;
     :has_bitflags 3 ;
+    :RU.localizedName "цикл DO-WHILE"^^xsd:string ;
     skos:broader :loop .
 
 :DuplicateOfAct a owl:Class ;
@@ -684,13 +710,17 @@ skos:broader a owl:AnnotationProperty .
 :else a owl:Class ;
     rdfs:label "else"^^xsd:string ;
     rdfs:subClassOf :alt_branch ;
+    :EN.localizedName "ELSE branch"^^xsd:string ;
     :has_bitflags 3 ;
+    :RU.localizedName "ветка ELSE"^^xsd:string ;
     skos:broader :alternative .
 
 :else-if a owl:Class ;
     rdfs:label "else-if"^^xsd:string ;
     rdfs:subClassOf :alt_branch ;
+    :EN.localizedName "ELSE-IF branch"^^xsd:string ;
     :has_bitflags 3 ;
+    :RU.localizedName "ветка ELSE-IF"^^xsd:string ;
     skos:broader :alternative .
 
 :ElseBranchAfterTrueCondition a owl:Class ;
@@ -724,7 +754,9 @@ skos:broader a owl:AnnotationProperty .
 :expr a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :expr ;
-    :atom_action true .
+    :atom_action true ;
+    :EN.localizedName "condition"^^xsd:string ;
+    :RU.localizedName "условие"^^xsd:string .
 
 :finish_trace_act a owl:Class ;
     rdfs:subClassOf :act .
@@ -737,7 +769,9 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :cond_then_body,
         :post_update_loop,
         :start_with_init ;
+    :EN.localizedName "FOR loop"^^xsd:string ;
     :has_bitflags 3 ;
+    :RU.localizedName "цикл FOR"^^xsd:string ;
     skos:broader :loop .
 
 :ForConditionAfterIteration a owl:Class ;
@@ -749,7 +783,9 @@ skos:broader a owl:AnnotationProperty .
     rdfs:label "FOREACH"^^xsd:string ;
     rdfs:subClassOf :body_then_cond,
         :pre_update_loop,
-        :start_with_cond .
+        :start_with_cond ;
+    :EN.localizedName "FOREACH loop"^^xsd:string ;
+    :RU.localizedName "цикл FOREACH"^^xsd:string .
 
 :ForeachUpdateNotAfterSuccessfulCondition a owl:Class ;
     rdfs:subClassOf :Erroneous ;
@@ -766,7 +802,9 @@ skos:broader a owl:AnnotationProperty .
 :if a owl:Class ;
     rdfs:label "if"^^xsd:string ;
     rdfs:subClassOf :alt_branch ;
+    :EN.localizedName "IF branch"^^xsd:string ;
     :has_bitflags 2 ;
+    :RU.localizedName "ветка IF"^^xsd:string ;
     skos:broader :alternative .
 
 :IgnoreInterruptingFlow a owl:Class ;
@@ -823,7 +861,15 @@ skos:broader a owl:AnnotationProperty .
     rdfs:label "Циклы"^^xsd:string ;
     rdfs:subClassOf :action ;
     :action_kind :loop ;
-    :has_bitflags 3 .
+    :EN.localizedName "loop"^^xsd:string ;
+    :has_bitflags 3 ;
+    :RU.localizedName "цикл"^^xsd:string .
+
+:loop_body a owl:Class ;
+    rdfs:subClassOf :sequence ;
+    :action_kind :sequence ;
+    :EN.localizedName "iteration"^^xsd:string ;
+    :RU.localizedName "итерация"^^xsd:string .
 
 :loop_break_continue a owl:Class ;
     rdfs:label "Прерывание цикла"^^xsd:string ;
@@ -972,14 +1018,18 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
+    :EN.localizedName "RETURN"^^xsd:string ;
     :has_bitflags 3 ;
-    :has_interrupt_kind :return .
+    :has_interrupt_kind :return ;
+    :RU.localizedName "RETURN"^^xsd:string .
 
 :sequence a owl:Class ;
     rdfs:label "последовательность"^^xsd:string ;
     rdfs:subClassOf :action ;
     :action_kind :sequence ;
-    :has_bitflags 0 .
+    :EN.localizedName "sequence"^^xsd:string ;
+    :has_bitflags 0 ;
+    :RU.localizedName "последовательность"^^xsd:string .
 
 :SequenceFinishedNotInOrder a owl:Class ;
     rdfs:subClassOf :Erroneous ;
@@ -1001,7 +1051,9 @@ skos:broader a owl:AnnotationProperty .
 :stmt a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :stmt ;
-    :atom_action true .
+    :atom_action true ;
+    :EN.localizedName "atom action"^^xsd:string ;
+    :RU.localizedName "простое действие"^^xsd:string .
 
 :stmt_with_calls a owl:Class ;
     rdfs:subClassOf :action ;
@@ -1022,7 +1074,9 @@ skos:broader a owl:AnnotationProperty .
 :trace a owl:Class ;
     rdfs:label "трасса выполнения"^^xsd:string ;
     rdfs:subClassOf :act_begin ;
-    :has_bitflags 2 .
+    :EN.localizedName "the beginning of the trace execution"^^xsd:string ;
+    :has_bitflags 2 ;
+    :RU.localizedName "начало трассы выполнения"^^xsd:string .
 
 :unconditional_loop a owl:Class ;
     rdfs:subClassOf :loop .
@@ -1044,7 +1098,9 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :body_then_cond,
         :cond_then_body,
         :start_with_cond ;
+    :EN.localizedName "WHILE loop"^^xsd:string ;
     :has_bitflags 3 ;
+    :RU.localizedName "цикл WHILE"^^xsd:string ;
     skos:broader :loop .
 
 :WrongCondNeighbour a owl:Class ;

@@ -757,6 +757,12 @@
     :EN.localizedName "loop"^^xsd:string ;
     :RU.localizedName "цикл"^^xsd:string .
 
+:loop_body a owl:Class ;
+    rdfs:subClassOf :sequence ;
+    :action_kind :sequence ;
+    :EN.localizedName "iteration"^^xsd:string ;
+    :RU.localizedName "итерация"^^xsd:string .
+
 :loop_with_initialization a owl:Class ;
     rdfs:subClassOf :loop_with_pre_condition .
 
