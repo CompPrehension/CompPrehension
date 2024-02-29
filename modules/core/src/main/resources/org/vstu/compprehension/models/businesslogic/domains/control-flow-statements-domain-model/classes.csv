@@ -14,6 +14,7 @@ return|interrupt_action|
 func_call|statement|
 sequence|statement|
 alt_branch|sequence|
+loop_body|sequence|
 if|alt_branch|
 else-if|alt_branch|
 else|alt_branch|
@@ -28,7 +29,7 @@ do_while_loop|loop_with_post_condition|
 for_loop|post_update_loop|
 foreach_loop|pre_update_loop|
 correct_act|act|
-trace|correct_act|
+trace|act_begin|
 algorithm|boundary|
 loop_with_pre_condition|conditional_loop|
 loop_with_post_condition|conditional_loop|

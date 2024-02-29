@@ -107,22 +107,27 @@
     "formulations": [
       {
         "name": "name-branch-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name--body-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-global-code-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:entry_point ?b), strConcat( \"«!{locale:text.global_scope}»\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       }
     ]
@@ -188,22 +193,27 @@
     "formulations": [
       {
         "name": "name-branch-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name--body-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-global-code-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:entry_point ?b), strConcat( \"«!{locale:text.global_scope}»\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       }
     ]
@@ -317,6 +327,12 @@
     "concepts": [
       {
         "name": "loop"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop_body"
       }
     ],
     "formulations": [
@@ -328,6 +344,11 @@
       {
         "name": "loop-cond-to-parent_of",
         "formulation": "(?Loop rdf:type my:loop), (?Loop my:cond ?c) -> (?Loop my:parent_of ?c).",
+        "backend": "Jena"
+      },
+      {
+        "name": "seq-of-loop-to-loop_body",
+        "formulation": "(?Loop rdf:type my:loop), (?block rdf:type my:sequence), (?Loop my:body ?block) -> (?block rdf:type my:loop_body).",
         "backend": "Jena"
       }
     ]
@@ -788,6 +809,15 @@
       },
       {
         "name": "finish_trace_act"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop_body"
       }
     ],
     "formulations": [
@@ -834,6 +864,11 @@
       {
         "name": "Mark-last-act-in-trace-as-finish_trace_act",
         "formulation": "(?Trace my:executes ?alg), (?alg my:entry_point ?gc), (?bnd_e my:boundary_of ?gc), (?a my:in_trace ?Trace), (?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:always_consequent ?bnd_e), (?b my:student_next ?a), -> (?a rdf:type my:finish_trace_act).",
+        "backend": "Jena"
+      },
+      {
+        "name": "seq-of-loop-to-loop_body-2",
+        "formulation": "(?Loop rdf:type my:loop), (?block rdf:type my:sequence), (?Loop my:body ?block) -> (?block rdf:type my:loop_body).",
         "backend": "Jena"
       }
     ]

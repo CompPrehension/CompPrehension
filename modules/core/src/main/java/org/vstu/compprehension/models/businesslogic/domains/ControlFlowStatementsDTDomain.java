@@ -479,9 +479,12 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             if (!t.getObject().isLiteral())
                 continue;
             String stmt_name = t.getObject().asLiteral().getString();
-            stmt_name = replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
-            stmt_name = String.format("«%s»", stmt_name);  // Format name in HTML.
-//            stmt_name = String.format("<code>%s</code>", stmt_name);  // Format name in HTML.
+            if (stmt_name.contains(LOCALE_KEY_MARK)) {
+                stmt_name = replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
+            } else {
+                stmt_name = String.format("«%s»", stmt_name);  // Format name in HTML.
+            }
+            // stmt_name = String.format("<code>%s</code>", stmt_name);  // Format name in HTML.
             var nameLiteral = m.createLiteral(stmt_name);
             for (String propName : List.of(":RU.localizedName", ":EN.localizedName")) {
                 // add a copy of fact with new prop
