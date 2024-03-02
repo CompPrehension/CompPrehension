@@ -574,9 +574,9 @@
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :EN.localizedName "BREAK"^^xsd:string ;
+    :EN.localizedName "operator"^^xsd:string ;
     :has_interrupt_kind :break ;
-    :RU.localizedName "BREAK"^^xsd:string .
+    :RU.localizedName "оператор"^^xsd:string .
 
 :call a owl:Class ;
     rdfs:subClassOf owl:Thing .
@@ -612,9 +612,9 @@
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :EN.localizedName "CONTINUE"^^xsd:string ;
+    :EN.localizedName "operator"^^xsd:string ;
     :has_interrupt_kind :continue ;
-    :RU.localizedName "CONTINUE"^^xsd:string .
+    :RU.localizedName "оператор"^^xsd:string .
 
 :correct_act a owl:Class ;
     rdfs:subClassOf :act .
@@ -861,9 +861,9 @@
     rdfs:subClassOf :interrupt_action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :EN.localizedName "RETURN"^^xsd:string ;
+    :EN.localizedName "operator"^^xsd:string ;
     :has_interrupt_kind :return ;
-    :RU.localizedName "RETURN"^^xsd:string .
+    :RU.localizedName "оператор"^^xsd:string .
 
 :sequence a owl:Class ;
     rdfs:subClassOf :action ;
@@ -890,8 +890,8 @@
     rdfs:subClassOf :action ;
     :action_kind :stmt ;
     :atom_action true ;
-    :EN.localizedName "atom action"^^xsd:string ;
-    :RU.localizedName "простое действие"^^xsd:string .
+    :EN.localizedName "statement"^^xsd:string ;
+    :RU.localizedName "действие"^^xsd:string .
 
 :stmt_with_calls a owl:Class ;
     rdfs:subClassOf :action ;

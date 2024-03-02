@@ -1367,7 +1367,8 @@ public class ControlFlowStatementsDomain extends Domain {
                         }
 
                         // add to placeholders ...
-                        value = "«" + value + "»";
+                        if (!value.contains("«"))
+                            value = "«" + value + "»";
                         if (placeholders.containsKey(fieldName)) {
                             String prevData = placeholders.get(fieldName);
                             // if not in previous data
@@ -1584,7 +1585,8 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     private static OntModel modelToOntModel(Model model) {
-        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);        ontModel.add(model);
+        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
+        ontModel.add(model);
         return ontModel;
     }
 
@@ -1606,7 +1608,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     /** receive solution as model */
-    private ProcessSolutionResult processSolution(OntModel model) {
+    protected ProcessSolutionResult processSolution(OntModel model) {
         InterpretSentenceResult result = new InterpretSentenceResult();
         // there is always one correct answer
         result.CountCorrectOptions = 1;
@@ -1617,6 +1619,17 @@ public class ControlFlowStatementsDomain extends Domain {
             // 1) find last act of partial trace (the one having no student_next prop) ...
 //            OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
             OntProperty student_next_latest = model.getOntProperty(model.expandPrefix(":student_next_latest"));
+            OntProperty wrong_next_act = model.getOntProperty(model.expandPrefix(":wrong_next_act"));
+
+            // retrieve entry point of algorithm
+            ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
+            Individual entrySt;
+            {
+                List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
+                assert !(entryAsList.isEmpty());
+                entrySt = entryAsList.getFirst().as(Individual.class);
+            }
+
 
             List<Statement> tripleLastInTraceAsList =
                     model.listStatements(null, student_next_latest, (RDFNode) null).toList();
@@ -1627,9 +1640,11 @@ public class ControlFlowStatementsDomain extends Domain {
             Individual lastAct = tripleLastInTrace.getObject().as(Individual.class);
 
             // if last act is wrong, roll back to previous (the correct one)
-            OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-            if (lastAct.hasOntClass(Erroneous)) {
-                lastAct = tripleLastInTrace.getSubject().as(Individual.class);
+//            OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
+//            if (lastAct.hasOntClass(Erroneous)) {}
+            Individual prevAct = tripleLastInTrace.getSubject().as(Individual.class);
+            if (prevAct.hasProperty(wrong_next_act, lastAct)) {
+                lastAct = prevAct;
             }
 
             Individual actionInd = null;
@@ -1644,13 +1659,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 }
             }
             if (lastAct == null || actionInd == null) {
-                // retrieve entry point of algorithm
-                ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
-                List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
-
-                assert !(entryAsList.isEmpty());
-
-                actionInd = entryAsList.get(0).as(Individual.class);
+                // use the entry point of algorithm
+                actionInd = entrySt;
             }
 
             /// assert actionInd != null;  // did not get last act correctly ?
@@ -1664,7 +1674,6 @@ public class ControlFlowStatementsDomain extends Domain {
             OntProperty halt_of = model.getOntProperty(model.expandPrefix(":halt_of"));
             OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
             OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
-            OntProperty SequenceEnd = model.getOntProperty(model.expandPrefix(":SequenceEnd"));
             // get boundary of the initial action
             Individual nextBound;
             if (boundRes == null) {
@@ -1694,15 +1703,12 @@ public class ControlFlowStatementsDomain extends Domain {
                         // ignore this link as simple statements show as a whole
                         --pathLen;
                     }
-//                } else {
-//                    // Workaround ???????????
-//                    ++pathLen;
                 }
             }
             // the last transition (to PROGRAM ENDED) exists in the graph but not shown in GUI - skip it
             if (bound != null) {
-                boolean lastReasonEofSeq = model.listStatements(null, null, bound).mapWith(Statement::getPredicate).toSet().contains(SequenceEnd);
-                if (lastReasonEofSeq) {
+                boolean endsEntryPoint = bound.hasProperty(boundary_of, entrySt);
+                if (endsEntryPoint) {
                     // global code ended.
                     --pathLen;
                 }
@@ -1712,7 +1718,7 @@ public class ControlFlowStatementsDomain extends Domain {
             log.debug("WARN: processSolution(): cannot find entry_point, fallback to: pathLen = {}", pathLen);
         }
 
-        result.IterationsLeft = pathLen;
+        result.IterationsLeft = Math.max(0, pathLen);  // guard for negative pathLen: end of question (same as 0)
         return result;
     }
 
@@ -1744,12 +1750,12 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
         return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
     }
 
     @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
 
 
         // get shortcuts to properties
@@ -1890,7 +1896,8 @@ public class ControlFlowStatementsDomain extends Domain {
                     String fieldName = verb.replaceAll("field_", "");
                     String value = statement.getString();
                     value = replaceLocaleMarks(userLang, value);
-                    value = "«" + value + "»";
+                    if (!value.contains("«"))
+                        value = "«" + value + "»";
                     if (placeholders.containsKey(fieldName)) {
                         // append to previous data
                         value = placeholders.get(fieldName) + ", " + value;

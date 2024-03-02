@@ -6,6 +6,7 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import its.model.DomainSolvingModel;
 import its.model.definition.VariableDef;
 import its.model.definition.rdf.DomainRDFFiller;
+import its.model.definition.rdf.DomainRDFWriter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -16,7 +17,6 @@ import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.opentest4j.AssertionFailedError;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
@@ -441,10 +441,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
         JenaBackend backend = new JenaBackend();
 
-//        JenaFactList fl = JenaFactList.fromFacts(questionFacts);
-//        fl.addFromModel(this.getSchemaForSolving());
-//        Collection<Fact> responseFacts = responseFacts.responseToFacts(responses.stream().toList());
-
 //        ch.hit("responseToFacts: schema obtained");
 
         JenaFactList newFacts = backend.judge(
@@ -849,9 +845,9 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         result.correctlyAppliedLaws = new ArrayList<>();
         result.isAnswerCorrect = mistakes.isEmpty();
 
-//        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = 111;
-        result.IterationsLeft = 122; // TODO
+        ProcessSolutionResult processResult = processSolution(violations);
+        result.CountCorrectOptions = processResult.CountCorrectOptions;
+        result.IterationsLeft = processResult.IterationsLeft;
         return result;
     }
 
@@ -891,109 +887,24 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
-        OntModel model = factsAndSchemaToOntModel(solution);
+        its.model.definition.Domain domain = solution.stream()
+                .filter(it -> it instanceof DecisionTreeReasonerBackend.DomainFact)
+                .findFirst()
+                .map((Fact t) -> ((DecisionTreeReasonerBackend.DomainFact)t).getDomain())
+                .orElse(null);
 
-        return processSolution(model);
-    }
+        assert domain != null;
+        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
+        Model schema = getVocabulary().getModel();
+        ontModel.add(schema);
+        Model model = DomainRDFWriter.saveDomain(domain,
+            "http://vstu.ru/poas/code#",
+            Collections.singleton(DomainRDFWriter.Option.NARY_RELATIONSHIPS_OLD_COMPAT)
+        );
+        ontModel.add(model);
 
-    /** receive solution as model */
-    private ProcessSolutionResult processSolution(OntModel model) {
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        // there is always one correct answer
-        result.CountCorrectOptions = 1;
 
-        // retrieving full solution path ...
-        int pathLen = 0;
-        try {
-            // 1) find last act of partial trace (the one having no student_next prop) ...
-//            OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
-            OntProperty student_next_latest = model.getOntProperty(model.expandPrefix(":student_next_latest"));
-
-            List<Statement> tripleLastInTraceAsList =
-                    model.listStatements(null, student_next_latest, (RDFNode) null).toList();
-
-            assert !(tripleLastInTraceAsList.isEmpty());
-            Statement tripleLastInTrace = tripleLastInTraceAsList.get(0);
-
-            Individual lastAct = tripleLastInTrace.getObject().as(Individual.class);
-
-            // if last act is wrong, roll back to previous (the correct one)
-            OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-            if (lastAct.hasOntClass(Erroneous)) {
-                lastAct = tripleLastInTrace.getSubject().as(Individual.class);
-            }
-
-            Individual actionInd = null;
-            Resource boundRes = null;
-            if (lastAct != null) {
-                OntProperty executes = model.createOntProperty(model.expandPrefix(":executes"));
-                OntProperty boundary_of = model.createOntProperty(model.expandPrefix(":boundary_of"));
-                // get action of last act
-                boundRes = lastAct.getPropertyResourceValue(executes);
-                if (boundRes != null) {
-                    actionInd = boundRes.getPropertyResourceValue(boundary_of).as(Individual.class);
-                }
-            }
-            if (lastAct == null || actionInd == null) {
-                // retrieve entry point of algorithm
-                ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
-                List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
-
-                assert !(entryAsList.isEmpty());
-
-                actionInd = entryAsList.get(0).as(Individual.class);
-            }
-
-            /// assert actionInd != null;  // did not get last act correctly ?
-            assert actionInd != null;
-
-            // 2) find length of the shortest path over algorithm to the end ...
-            // get shortcuts to properties
-            OntProperty boundary_of = model.getOntProperty(model.expandPrefix(":boundary_of"));
-            OntProperty begin_of = model.getOntProperty(model.expandPrefix(":begin_of"));
-            OntProperty end_of = model.getOntProperty(model.expandPrefix(":end_of"));
-            OntProperty halt_of = model.getOntProperty(model.expandPrefix(":halt_of"));
-            OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
-            OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
-            // get boundary of the initial action
-            Individual bound;
-            if (boundRes == null) {
-                List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd
-                // .getPropertyResourceValue(boundary_of);
-                assert !bounds.isEmpty();
-                boundRes = bounds.get(0);
-            }
-            bound = boundRes.as(Individual.class);
-
-            // boolean endOfPath = false;
-            while (bound != null) {
-                Individual nextBound = null;
-                // move along on_false_consequent, or along "consequent" if absent
-                if (bound.hasProperty(on_false_consequent)) {
-                    ++pathLen;
-                    // move to next bound
-                    nextBound = bound.getPropertyResourceValue(on_false_consequent).as(Individual.class);
-                } else if (bound.hasProperty(consequent)) {
-                    ++pathLen;
-                    // move to next bound
-                    nextBound = bound.getPropertyResourceValue(consequent).as(Individual.class);
-                    // check if simple action (stmt or expr)
-                    if (bound.hasProperty(begin_of) && (nextBound.hasProperty(end_of) || nextBound.hasProperty(halt_of))) {
-                        // ignore this link as simple statements show as a whole
-                        --pathLen;
-                    }
-                }
-                bound = nextBound;
-            }
-            // the last transition (to PROGRAM ENDED) exists in the graph but not shown in GUI - skip it
-            --pathLen;
-        } catch (AssertionFailedError error) {
-            pathLen = 99;
-            log.debug("WARN: processSolution(): cannot find entry_point, fallback to: pathLen = {}", pathLen);
-        }
-
-        result.IterationsLeft = pathLen;
-        return result;
+        return processSolution(ontModel);
     }
 
     @Override
@@ -1024,203 +935,8 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
     @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
         return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
-    }
-
-    @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
-
-
-        // get shortcuts to properties
-        Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
-        Property begin_of = model.getProperty(model.expandPrefix(":begin_of"));
-        Property end_of = model.getProperty(model.expandPrefix(":end_of"));
-        Property id = model.getProperty(model.expandPrefix(":id"));
-        Property entry_point = model.getProperty(model.expandPrefix(":entry_point"));
-
-        String phase;
-        String exId;
-        if (correctTraceAnswersObjects == null || correctTraceAnswersObjects.isEmpty()) {
-            // get first act of potential trace
-
-            // Note: first in answerObject list may differ from the first action of the algorithm!
-
-            // rely on entry_point relation here.
-            Individual entryStmt = model.listObjectsOfProperty(entry_point).nextNode().as(Individual.class);
-
-            phase = "started";
-            exId = model.listObjectsOfProperty(entryStmt, id).nextNode().asLiteral().getLexicalForm();
-
-        } else {
-            //// = correctTraceAnswers.get(correctTraceAnswers.size() - 1).answers.get(0).getLeft();
-            AnswerObjectEntity lastAnswer = correctTraceAnswersObjects
-                    .stream()
-                    .reduce((first, second) -> second)
-                    .orElse(null);
-            String domainInfo = lastAnswer.getDomainInfo();
-            AnswerDomainInfo answerDomainInfo = new AnswerDomainInfo(domainInfo).invoke();
-            phase = answerDomainInfo.getPhase();
-            exId = answerDomainInfo.getExId();
-        }
-
-        // find any consequent of last correct act ...
-        Individual actionFrom = model.listResourcesWithProperty(id, Integer.parseInt(exId)).nextResource().as(Individual.class);
-
-        String consequentPropName = "always_consequent"; // "consequent";
-
-        String qaInfoPrefix;
-        // check if actionFrom is an expr; if so, find its current value and update `consequentPropName` accordingly
-        if (actionFrom.hasOntClass(model.createOntResource(model.expandPrefix(":expr")))) {
-            qaInfoPrefix = phase + ":" + exId + ":";  // 3rd partition (hypertext) should always present.
-            int count = 0;
-
-            // count current exec_time using given steps
-            if (correctTraceAnswersObjects != null) {
-                for (AnswerObjectEntity answerObj : correctTraceAnswersObjects) {
-                    String domainInfo = answerObj.getDomainInfo();
-                    if (domainInfo.startsWith(qaInfoPrefix)) {
-                        ++count;
-                    }
-                }
-            }
-/*          old variant, using student's progress on the question
-            for (ResponseEntity response : responsesForTrace(q.getQuestionData(), false)) {
-                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
-                String domainInfo = answerObj.getDomainInfo();
-                if (domainInfo.startsWith(qaInfoPrefix)) {
-                    ++ count;
-                }
-            }
-*/
-            String exprName = getActionNameById(q.getQuestionData(), Integer.parseInt(exId), "expr");
-            int exprVal = getValueForExpression(q.getQuestionData(), exprName, count);
-
-            // use appropriate property name
-            if (exprVal == 1)
-                consequentPropName = "on_true_consequent";
-            else  // == 0
-                consequentPropName = "on_false_consequent";
-        }
-
-        OntProperty consequent = model.getOntProperty(model.expandPrefix(":" + consequentPropName));
-
-        Individual boundFrom = model.listResourcesWithProperty(
-                phase.equalsIgnoreCase("started") ? begin_of : end_of,
-                actionFrom).nextResource().as(Individual.class);
-
-        // true / false ways do matter in case of expr
-        Resource bndTO = boundFrom.getPropertyResourceValue(consequent);
-        if (bndTO == null) {
-            log.debug("Error walking flow graph...");
-            return null;
-        }
-        Individual boundTo = bndTO.as(Individual.class);
-
-        // check if we encountered the end of the program
-        Property any_consequent = model.getProperty(model.expandPrefix(":consequent"));
-        if (null == boundTo.getPropertyResourceValue(any_consequent)) {
-            // the last act of global_code has no outgoing properties, so hide it from outer code by reporting the end now
-            return null;
-        }
-
-        Individual actionTo = boundTo.getPropertyResourceValue(boundary_of).as(Individual.class);
-
-        String idTo = actionTo.getPropertyValue(id).asLiteral().getLexicalForm();
-        String phaseTo = boundTo.hasProperty(begin_of) ? "started" : "finished";
-        // check if actionTo is stmt/expr
-        if (/*phaseTo.equals("started") &&*/ (
-                actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":stmt"))) || actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":expr"))) || actionTo.hasOntClass(model.getOntClass(model.expandPrefix(":interrupt_action")))
-        )) {
-            phaseTo = "performed";
-        }
-
-        // next correct answer found: question answer domain info
-        qaInfoPrefix = phaseTo + ":" + idTo + ":";
-
-        // find reason for correct action (a deeper subproperty of consequent assigned in parallel)
-        String reasonName = null;
-        for (StmtIterator it = model.listStatements(boundFrom, null, boundTo); it.hasNext(); ) {
-            Property prop = it.nextStatement().getPredicate();
-            if (consequent.hasSubProperty(prop, false)) {
-                reasonName = prop.getLocalName();
-                break;
-            }
-        }
-
-        // get placeholder values for this bound-bound transition
-        RDFNode reason_node = null;
-        List<RDFNode> reason_nodes = model.listStatements(boundFrom, model.getProperty(model.expandPrefix(":to_reason")),
-                (RDFNode) null).toList().stream().map(Statement::getObject).collect(Collectors.toList());
-        reason_nodes.retainAll(model.listStatements(null, model.getProperty(model.expandPrefix(":from_reason")),
-                boundTo).toList().stream().map(Statement::getSubject).collect(Collectors.toList()));
-
-        if (reason_nodes.isEmpty()) {
-            log.debug("reason_node was not found for reason: {}", reasonName);
-        } else {
-            reason_node = reason_nodes.get(0);
-        }
-        Language userLang = getUserLanguage(q);
-        HashMap<String, String> placeholders = new HashMap<>();
-        if (reason_node != null) {
-            for (StmtIterator it = model.listStatements((Resource) reason_node, null, (String) null); it.hasNext(); ) {
-                Statement statement = it.next();
-                String verb = statement.getPredicate().getLocalName();
-                if (getFieldProperties().contains(verb)) {
-                    String fieldName = verb.replaceAll("field_", "");
-                    String value = statement.getString();
-                    value = replaceLocaleMarks(userLang, value);
-                    value = "«" + value + "»";
-                    if (placeholders.containsKey(fieldName)) {
-                        // append to previous data
-                        value = placeholders.get(fieldName) + ", " + value;
-                    }
-                    placeholders.put(fieldName, value);
-                }
-            }
-        }
-
-
-        //// System.out.println("next correct answer found: " + qaInfoPrefix);
-
-        // find question answer
-        ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
-        for (AnswerObjectEntity answer : q.getAnswerObjects()) {
-            if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
-                answers.add(new CorrectAnswer.Response(answer, answer));
-                 break; // (?)
-            }
-        }
-
-        // make result
-        CorrectAnswer correctAnswer = new CorrectAnswer();
-        correctAnswer.question = q.getQuestionData();
-        correctAnswer.answers = answers;
-        correctAnswer.lawName = reasonName; // "No correct law yet, using flow graph";  // answerImpl.lawName;
-
-        HyperText explanation;
-        if (localMessageExists(reasonName)) {
-            String message = getMessage(reasonName, userLang);
-            // Replace in message
-            message = replaceInString(message, placeholders);
-            message = postProcessFormattedMessage(message);
-            explanation = new HyperText(message);
-        }
-        else {
-            explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
-        }
-        correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
-        return correctAnswer;
-    }
-
-    private Language getUserLanguage(Question q) {
-        Language userLang;  // natural language to format explanation
-        try {
-            userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-        return userLang;
     }
 
     @Override
@@ -1293,44 +1009,10 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return QUESTIONS;
     }
 
-    /** return stmt_name or `null` if not an `expr` */
-    private String getActionNameById(QuestionEntity question, int actionId, String actionRdfType) {
-        String instance = null;
-        for (BackendFactEntity fact : question.getStatementFacts()) {
-            if (fact.getVerb().equals("id") && Integer.parseInt(fact.getObject()) == actionId) {
-                instance = fact.getSubject();
-            }
-        }
-        String stmt_name = null;
-        boolean isExpr = false;
-        for (BackendFactEntity fact : question.getStatementFacts()) {
-            if (fact.getSubject().equals(instance)) {
-                if (fact.getVerb().equals("rdf:type") && fact.getObject().equals(actionRdfType)) {
-                    isExpr = true;
-                }
-                if (fact.getVerb().equals("stmt_name")) {
-                    stmt_name = fact.getObject();
-                }
-            }
-        }
-        if (isExpr)
-            return stmt_name;
-        return null;
-    }
-
     @Override
     public String getMessage(String message_text, Language preferred_language) {
 
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
-    }
-
-    /**
-     * Check if a message is in a default (ENGLISH) locale
-     * @param message_text message key
-     * @return true if message exists in ENGLISH locale
-     */
-    private boolean localMessageExists(String message_text) {
-        return !(getMessage(message_text, Language.ENGLISH).equals(MESSAGE_PREFIX + message_text));
     }
 
     /** format pattern using MessageFormat class

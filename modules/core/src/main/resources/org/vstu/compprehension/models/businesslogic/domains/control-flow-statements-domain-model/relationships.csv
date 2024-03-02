@@ -7,6 +7,7 @@ body_item|parent_of|action;action||FALSE||0
 boundary_of||boundary;action||FALSE|ManyToOne|0
 begin_of|boundary_of|boundary;action||FALSE|OneToOne|0
 end_of|boundary_of|boundary;action||FALSE|OneToOne|0
+halt_of|end_of|boundary;action||FALSE|OneToOne|0
 executes||act;boundary||FALSE|ManyToOne|0
 next||action;action||FALSE|OneToOne|0
 in_trace||act;trace||FALSE|ManyToOne|0
@@ -24,3 +25,9 @@ corresponding_end||act;act||FALSE|OneToOne|0
 interrupt_target||action;action||FALSE|ManyToOne|0
 has_func_def||func_call;func||FALSE|ManyToOne|0
 evaluated_before|next|func_call;func_call||FALSE|OneToOne|0
+has_func_call|parent_of|action;func_call||FALSE|ManyToOne|0
+consequent||boundary;boundary||FALSE|ManyToMany|0
+always_consequent|consequent|boundary;boundary||FALSE|ManyToMany|0
+on_false_consequent|consequent|boundary;boundary||FALSE|ManyToMany|0
+on_true_consequent|consequent|boundary;boundary||FALSE|ManyToMany|0
+SequenceEnd|always_consequent|boundary;boundary||FALSE|ManyToMany|0
