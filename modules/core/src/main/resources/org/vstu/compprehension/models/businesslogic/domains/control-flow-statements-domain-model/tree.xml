@@ -294,10 +294,30 @@
                                                 </LogicalNot>
                                               </Expression>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может продолжиться, пока его внутренние действия ещё выполняются" value="false" _errorNode="CtxInnerPending" _explanation="${class('CX','и')} ${val('CX','и')} не может продолжиться, пока его внутренние действия ещё выполняются" />
+                                                <QuestionNode _alias="Является ли текущее выполняемое действие (&lt;b&gt;B&lt;/b&gt;)  частью контекста &lt;b&gt;CX&lt;/b&gt; (или им самим) ?" type="bool" isSwitch="false">
+                                                  <Expression>
+                                                    <LogicalOr>
+                                                      <Compare operator="EQUAL">
+                                                        <DecisionTreeVar name="Y" />
+                                                        <DecisionTreeVar name="B" />
+                                                      </Compare>
+                                                      <CheckRelationship>
+                                                        <Relationship name="hasPartTransitive" />
+                                                        <DecisionTreeVar name="Y" />
+                                                        <DecisionTreeVar name="B" />
+                                                      </CheckRelationship>
+                                                    </LogicalOr>
+                                                  </Expression>
+                                                  <Outcome value="False">
+                                                    <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может продолжиться, пока вложенные действия ещё выполняются" value="false" _errorNode="CtxInnerPending" _explanation="${class('CX','и')} ${val('CX','и')} не может продолжиться, пока вложенные действия ещё выполняются" />
+                                                  </Outcome>
+                                                  <Outcome value="True">
+                                                    <BranchResultNode _alias="CtxStartAgain: Действие &lt;b&gt;Y&lt;/b&gt; не может начаться лишний раз, т.к. уже выполняется" value="false" _errorNode="CtxStartAgain" _explanation="${class('Y','и')} ${val('Y','и')} не может начаться лишний раз, т.к. уже выполняется" />
+                                                  </Outcome>
+                                                </QuestionNode>
                                               </Outcome>
                                               <Outcome value="False">
-                                                <BranchResultNode _alias="CtxEnded: Действие &lt;b&gt;CX&lt;/b&gt; завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="${class('CX','и')} ${val('CX','и')} завершилось и в настоящий момент не выполняется" />
+                                                <BranchResultNode _alias="CtxEnded: Нельзя вернуться к %(CX,д) после завершения" value="false" _errorNode="CtxEnded" _explanation="Нельзя вернуться к ${class('CX','д')} ${val('CX','и')} после завершения" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
@@ -406,10 +426,10 @@
                                             </LogicalNot>
                                           </Expression>
                                           <Outcome value="True">
-                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;Y&lt;/b&gt; не может быть завершено досрочно, пока его внутренние действия ещё выполняются" value="false" _errorNode="CtxInnerPending" _explanation="${class('Y','и')} ${val('Y','и')} не может быть завершено досрочно, пока его внутренние действия ещё выполняются" />
+                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;Y&lt;/b&gt; не может завершиться досрочно, пока вложенные действия ещё выполняются" value="false" _errorNode="CtxInnerPending" _explanation="${class('Y','и')} ${val('Y','и')} не может завершиться досрочно, пока вложенные действия ещё выполняются" />
                                           </Outcome>
                                           <Outcome value="False">
-                                            <BranchResultNode _alias="CtxEnded: Нельзя завершить действие &lt;b&gt;Y&lt;/b&gt;, т.к. завершилось и в настоящий момент не выполняется" value="false" _errorNode="CtxEnded" _explanation="Нельзя завершить ${class('Y','и')} ${val('Y','и')}, т.к. завершилось и в настоящий момент не выполняется" />
+                                            <BranchResultNode _alias="CtxEnded: Нельзя завершить %(Y,в) ещё раз, после завершения" value="false" _errorNode="CtxEnded" _explanation="Нельзя завершить ${class('Y','в')} ${val('Y','и')} ещё раз, после завершения" />
                                           </Outcome>
                                         </QuestionNode>
                                       </Outcome>
@@ -511,7 +531,7 @@
                                                             </ExistenceQuantifier>
                                                           </Expression>
                                                           <Outcome value="True">
-                                                            <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
+                                                            <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" />
                                                           </Outcome>
                                                           <Outcome value="False">
                                                             <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
@@ -576,7 +596,7 @@
                                                         </Compare>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="LoopNoEndOnFalseCond: Цикл не может продолжиться, т.к. его условие [ложно]" value="false" _errorNode="LoopNoEndOnFalseCond" _explanation="Цикл не может продолжиться, т.к. его условие [ложно]" />
+                                                        <BranchResultNode _alias="LoopNoEndOnFalseCond: Цикл не может продолжиться, т.к. его условие ложно" value="false" _errorNode="LoopNoEndOnFalseCond" _explanation="Цикл не может продолжиться, т.к. его условие ложно" />
                                                       </Outcome>
                                                       <Outcome value="True">
                                                         <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пред-переходом ?" type="bool" isSwitch="false">
@@ -655,7 +675,7 @@
                                                                             <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                           </Outcome>
                                                                           <Outcome value="False">
-                                                                            <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
+                                                                            <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" />
                                                                           </Outcome>
                                                                         </QuestionNode>
                                                                       </Outcome>
@@ -664,7 +684,7 @@
                                                                 </QuestionNode>
                                                               </Outcome>
                                                               <Outcome value="False">
-                                                                <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
+                                                                <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" />
                                                               </Outcome>
                                                             </QuestionNode>
                                                           </Outcome>
@@ -720,7 +740,7 @@
                                                                         <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                                       </Outcome>
                                                                       <Outcome value="False">
-                                                                        <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие цикла рано, т.к. переход цикла ещё не выполнен" />
+                                                                        <BranchResultNode _alias="LoopCondBeforeUpdate: Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" value="false" _errorNode="LoopCondBeforeUpdate" _explanation="Проверять условие ${class('L','р')} рано, т.к. переход цикла ещё не выполнен" />
                                                                       </Outcome>
                                                                     </QuestionNode>
                                                                   </Outcome>
@@ -771,7 +791,7 @@
                                                         </CheckClass>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="PostCondLoopCondBeforeIter: Условие цикла $L не должно проверяться до итерации, т.к. это цикл с пост-условием" value="false" _errorNode="PostCondLoopCondBeforeIter" _explanation="Условие цикла ${val('L','и')} не должно проверяться до итерации, т.к. это цикл с пост-условием" />
+                                                        <BranchResultNode _alias="PostCondLoopCondBeforeIter: Условие ${class('L','р')} не должно проверяться до итерации, т.к. это цикл с пост-условием" value="false" _errorNode="PostCondLoopCondBeforeIter" _explanation="Условие ${class('L','р')} не должно проверяться до итерации, т.к. это цикл с пост-условием" />
                                                       </Outcome>
                                                       <Outcome value="True">
                                                         <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
@@ -818,7 +838,7 @@
                                                 </CheckRelationship>
                                               </Expression>
                                               <Outcome value="True">
-                                                <BranchResultNode _alias="LoopUpdateBeforeInit: Переход цикла не может выполняться раньше первой проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeInit" _explanation="Переход цикла не может выполняться раньше первой проверки условия цикла" />
+                                                <BranchResultNode _alias="LoopUpdateBeforeInit: Переход ${class('L','р')} не может выполняться раньше первой проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeInit" _explanation="Переход ${class('L','р')} не может выполняться раньше первой проверки условия цикла" />
                                               </Outcome>
                                               <Outcome value="False">
                                                 <QuestionNode _alias="Чем является &lt;b&gt;Al &lt;/b&gt;в цикле &lt;b&gt;L &lt;/b&gt;?" type="enum" isSwitch="false">
@@ -854,7 +874,7 @@
                                                         </Compare>
                                                       </Expression>
                                                       <Outcome value="False">
-                                                        <BranchResultNode _alias="LoopNoEndOnFalseCond: Цикл не может продолжиться, т.к. его условие [ложно]" value="false" _errorNode="LoopNoEndOnFalseCond" _explanation="Цикл не может продолжиться, т.к. его условие [ложно]" />
+                                                        <BranchResultNode _alias="LoopNoEndOnFalseCond: Цикл не может продолжиться, т.к. его условие ложно" value="false" _errorNode="LoopNoEndOnFalseCond" _explanation="Цикл не может продолжиться, т.к. его условие ложно" />
                                                       </Outcome>
                                                       <Outcome value="True">
                                                         <QuestionNode _alias="Является ли цикл &lt;b&gt;L &lt;/b&gt;циклом с пост&lt;b&gt;-&lt;/b&gt;переходом ?" type="bool" isSwitch="false">
@@ -885,7 +905,7 @@
                                                                 </LogicalNot>
                                                               </Expression>
                                                               <Outcome value="False">
-                                                                <BranchResultNode _alias="LoopUpdateBeforeIter: Выполнять переход цикла рано, т.к. итерация цикла ещё не выполнена" value="false" _errorNode="LoopUpdateBeforeIter" _explanation="Выполнять переход цикла рано, т.к. итерация цикла ещё не выполнена" />
+                                                                <BranchResultNode _alias="LoopUpdateBeforeIter: Выполнять переход ${class('L','р')} рано, т.к. итерация цикла ещё не выполнена" value="false" _errorNode="LoopUpdateBeforeIter" _explanation="Выполнять переход ${class('L','р')} рано, т.к. итерация цикла ещё не выполнена" />
                                                               </Outcome>
                                                               <Outcome value="True">
                                                                 <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
@@ -897,10 +917,10 @@
                                                     </QuestionNode>
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_update">
-                                                    <BranchResultNode _alias="LoopUpdateTwice: Переход цикла не может выполняться два раза подряд без проверки условия цикла" value="false" _errorNode="LoopUpdateTwice" _explanation="Переход цикла не может выполняться два раза подряд без проверки условия цикла" />
+                                                    <BranchResultNode _alias="LoopUpdateTwice: Переход ${class('L','р')} не может выполняться два раза подряд без проверки условия цикла" value="false" _errorNode="LoopUpdateTwice" _explanation="Переход ${class('L','р')} не может выполняться два раза подряд без проверки условия цикла" />
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_init">
-                                                    <BranchResultNode _alias="LoopUpdateBeforeCond: Переход цикла не может выполняться до проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeCond" _explanation="Переход цикла не может выполняться до проверки условия цикла" />
+                                                    <BranchResultNode _alias="LoopUpdateBeforeCond: Переход ${class('L','р')} не может выполняться до проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeCond" _explanation="Переход ${class('L','р')} не может выполняться до проверки условия цикла" />
                                                   </Outcome>
                                                   <Outcome value="role_for_parent:loop_body">
                                                     <QuestionNode _alias="Является ли цикл &lt;b&gt;L&lt;/b&gt; циклом с пред-переходом ?" type="bool" isSwitch="false">
@@ -911,7 +931,7 @@
                                                         </CheckClass>
                                                       </Expression>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="LoopUpdateBeforeCond: Переход цикла не может выполняться до проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeCond" _explanation="Переход цикла не может выполняться до проверки условия цикла" />
+                                                        <BranchResultNode _alias="LoopUpdateBeforeCond: Переход ${class('L','р')} не может выполняться до проверки условия цикла" value="false" _errorNode="LoopUpdateBeforeCond" _explanation="Переход ${class('L','р')} не может выполняться до проверки условия цикла" />
                                                       </Outcome>
                                                       <Outcome value="False">
                                                         <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
@@ -1275,7 +1295,7 @@
                                                     <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [skipped nothing]" value="true" />
                                                   </Outcome>
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено ${class('M','и')} ${val('M','и')} следования ${val('B','и')}" />
+                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y не может выполняться раньше, чем действие &lt;b&gt;M&lt;/b&gt; %(B,р)" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} не может выполняться раньше, чем ${class('M','и')} ${val('M','и')} ${class('B','р')} ${val('B','и')}" />
                                                   </Outcome>
                                                 </FindActionNode>
                                               </ThoughtBranch>
@@ -1315,7 +1335,7 @@
                                                         <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [not a duplicate]" value="true" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="SeqElemDup: Действие $Y не может выполняться дважды в рамках следования $B" value="false" _errorNode="SeqElemDup" _explanation="Действие ${val('Y','и')} не может выполняться дважды в рамках следования ${val('B','и')}" />
+                                                        <BranchResultNode _alias="SeqElemDup: %Y не может выполняться дважды в рамках %(B,р)" value="false" _errorNode="SeqElemDup" _explanation="${class('Y','и')} ${val('Y','и')} не может выполняться дважды в рамках ${class('B','р')} ${val('B','и')}" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
@@ -1456,7 +1476,7 @@
                                                             <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация цикла $L не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация цикла ${val('L','и')} не может начаться при текущем значении условия цикла" />
+                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация %(L,р) не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация ${class('L','р')} ${val('L','и')} не может начаться при текущем значении условия цикла" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
@@ -1528,7 +1548,7 @@
                                                             <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация цикла $L не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация цикла ${val('L','и')} не может начаться при текущем значении условия цикла" />
+                                                            <BranchResultNode _alias="LoopIterOnFailedCond: Итерация %(L,р) не может начаться при текущем значении условия цикла" value="false" _errorNode="LoopIterOnFailedCond" _explanation="Итерация ${class('L','р')} ${val('L','и')} не может начаться при текущем значении условия цикла" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
@@ -1607,7 +1627,7 @@
                                                                 <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                               </Outcome>
                                                               <Outcome value="True">
-                                                                <BranchResultNode _alias="PreUpdateLoopIterBeforeUpdate: Итерация цикла $L не может начаться без выполнения перехода цикла" value="false" _errorNode="PreUpdateLoopIterBeforeUpdate" _explanation="Итерация цикла ${val('L','и')} не может начаться без выполнения перехода цикла" />
+                                                                <BranchResultNode _alias="PreUpdateLoopIterBeforeUpdate: Итерация %(L,р) не может начаться без выполнения перехода цикла" value="false" _errorNode="PreUpdateLoopIterBeforeUpdate" _explanation="Итерация ${class('L','р')} ${val('L','и')} не может начаться без выполнения перехода цикла" />
                                                               </Outcome>
                                                             </QuestionNode>
                                                           </Outcome>
@@ -1709,12 +1729,12 @@
                                                                 <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
                                                               </Outcome>
                                                               <Outcome value="Found">
-                                                                <BranchResultNode _alias="AltEarlyElse: Ветку else начинать рано, т.к. не проверено условие &lt;b&gt;M&lt;/b&gt; развилки B" value="false" _errorNode="AltEarlyElse" _explanation="Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки B" />
+                                                                <BranchResultNode _alias="AltEarlyElse: Ветку else начинать рано, т.к. не проверено условие &lt;b&gt;M&lt;/b&gt; развилки $B" value="false" _errorNode="AltEarlyElse" _explanation="Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки ${val('B','и')}" />
                                                               </Outcome>
                                                             </FindActionNode>
                                                           </Outcome>
                                                           <Outcome value="False">
-                                                            <BranchResultNode _alias="AltElseOnTrue: Ветка else не может начаться после обнаружения истинного условия развилки B" value="false" _errorNode="AltElseOnTrue" _explanation="Ветка else не может начаться после обнаружения истинного условия развилки B" />
+                                                            <BranchResultNode _alias="AltElseOnTrue: Ветка else не может начаться после обнаружения истинного условия развилки $B" value="false" _errorNode="AltElseOnTrue" _explanation="Ветка else не может начаться после обнаружения истинного условия развилки ${val('B','и')}" />
                                                           </Outcome>
                                                         </QuestionNode>
                                                       </Outcome>
@@ -1979,7 +1999,7 @@
                                                     <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [skipped nothing]" value="true" />
                                                   </Outcome>
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y выполнять рано — пропущено действие &lt;b&gt;M&lt;/b&gt; следования $B" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} выполнять рано — пропущено ${class('M','и')} ${val('M','и')} следования ${val('B','и')}" />
+                                                    <BranchResultNode _alias="SeqElemSkip: Действие $Y не может выполняться раньше, чем действие &lt;b&gt;M&lt;/b&gt; %(B,р)" value="false" _errorNode="SeqElemSkip" _explanation="Действие ${val('Y','и')} не может выполняться раньше, чем ${class('M','и')} ${val('M','и')} ${class('B','р')} ${val('B','и')}" />
                                                   </Outcome>
                                                 </FindActionNode>
                                               </ThoughtBranch>
@@ -2019,7 +2039,7 @@
                                                         <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt; [not a duplicate]" value="true" />
                                                       </Outcome>
                                                       <Outcome value="True">
-                                                        <BranchResultNode _alias="SeqElemDup: Действие $Y не может выполняться дважды в рамках следования $B" value="false" _errorNode="SeqElemDup" _explanation="Действие ${val('Y','и')} не может выполняться дважды в рамках следования ${val('B','и')}" />
+                                                        <BranchResultNode _alias="SeqElemDup: %Y не может выполняться дважды в рамках %(B,р)" value="false" _errorNode="SeqElemDup" _explanation="${class('Y','и')} ${val('Y','и')} не может выполняться дважды в рамках ${class('B','р')} ${val('B','и')}" />
                                                       </Outcome>
                                                     </QuestionNode>
                                                   </Outcome>
@@ -2317,7 +2337,7 @@
                                                     </Compare>
                                                   </Expression>
                                                   <Outcome value="False">
-                                                    <BranchResultNode _alias="LoopEarlyEndCondStillTrue: Цикл не может завершиться, пока его условие [истинно]" value="false" _errorNode="LoopEarlyEndCondStillTrue" _explanation="Цикл не может завершиться, пока его условие [истинно]" />
+                                                    <BranchResultNode _alias="LoopEarlyEndCondStillTrue: ${class('Y','и')} не может завершиться, пока его условие истинно" value="false" _errorNode="LoopEarlyEndCondStillTrue" _explanation="${class('Y','и')} не может завершиться, пока его условие истинно" />
                                                   </Outcome>
                                                   <Outcome value="True">
                                                     <BranchResultNode _alias="&lt;b&gt;A&lt;/b&gt;" value="true" />
@@ -2457,68 +2477,125 @@
                                                 <LogicalOr>
                                                   <LogicalOr>
                                                     <LogicalOr>
-                                                      <LogicalAnd>
-                                                        <ExistenceQuantifier varName="any">
-                                                          <LogicalAnd>
-                                                            <CheckClass>
+                                                      <LogicalOr>
+                                                        <LogicalAnd>
+                                                          <ExistenceQuantifier varName="any">
+                                                            <LogicalAnd>
+                                                              <CheckClass>
+                                                                <Variable name="any" />
+                                                                <Class name="action" />
+                                                              </CheckClass>
+                                                              <CheckRelationship>
+                                                                <Relationship name="interrupt_target" />
+                                                                <DecisionTreeVar name="R" />
+                                                                <Variable name="any" />
+                                                              </CheckRelationship>
+                                                            </LogicalAnd>
+                                                            <Compare operator="EQUAL">
                                                               <Variable name="any" />
-                                                              <Class name="action" />
-                                                            </CheckClass>
-                                                            <CheckRelationship>
-                                                              <Relationship name="interrupt_target" />
-                                                              <DecisionTreeVar name="R" />
-                                                              <Variable name="any" />
-                                                            </CheckRelationship>
-                                                          </LogicalAnd>
+                                                              <Variable name="it" />
+                                                            </Compare>
+                                                          </ExistenceQuantifier>
                                                           <Compare operator="EQUAL">
-                                                            <Variable name="any" />
                                                             <Variable name="it" />
+                                                            <GetByRelationship varName="">
+                                                              <DecisionTreeVar name="R" />
+                                                              <Relationship name="interrupt_target" />
+                                                            </GetByRelationship>
                                                           </Compare>
-                                                        </ExistenceQuantifier>
-                                                        <Compare operator="EQUAL">
-                                                          <Variable name="it" />
-                                                          <GetByRelationship varName="">
-                                                            <DecisionTreeVar name="R" />
-                                                            <Relationship name="interrupt_target" />
-                                                          </GetByRelationship>
-                                                        </Compare>
-                                                      </LogicalAnd>
+                                                        </LogicalAnd>
+                                                        <LogicalAnd>
+                                                          <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                              <DecisionTreeVar name="R" />
+                                                              <Property name="has_interrupt_kind" />
+                                                            </GetPropertyValue>
+                                                            <Enum owner="interrupt_kind" value="break" />
+                                                          </Compare>
+                                                          <Compare operator="EQUAL">
+                                                            <Variable name="it" />
+                                                            <GetExtreme extremeVarName="L_ex" varName="L">
+                                                              <LogicalNot>
+                                                                <ExistenceQuantifier varName="z">
+                                                                  <LogicalAnd>
+                                                                    <CheckClass>
+                                                                      <Variable name="z" />
+                                                                      <Class name="loop" />
+                                                                    </CheckClass>
+                                                                    <CheckRelationship>
+                                                                      <Relationship name="hasPartTransitive" />
+                                                                      <Variable name="z" />
+                                                                      <DecisionTreeVar name="R" />
+                                                                    </CheckRelationship>
+                                                                  </LogicalAnd>
+                                                                  <CheckRelationship>
+                                                                    <Relationship name="hasPartTransitive" />
+                                                                    <Variable name="L_ex" />
+                                                                    <Variable name="z" />
+                                                                  </CheckRelationship>
+                                                                </ExistenceQuantifier>
+                                                              </LogicalNot>
+                                                              <LogicalAnd>
+                                                                <CheckClass>
+                                                                  <Variable name="L" />
+                                                                  <Class name="loop" />
+                                                                </CheckClass>
+                                                                <CheckRelationship>
+                                                                  <Relationship name="hasPartTransitive" />
+                                                                  <Variable name="L" />
+                                                                  <DecisionTreeVar name="R" />
+                                                                </CheckRelationship>
+                                                              </LogicalAnd>
+                                                            </GetExtreme>
+                                                          </Compare>
+                                                        </LogicalAnd>
+                                                      </LogicalOr>
                                                       <LogicalAnd>
                                                         <Compare operator="EQUAL">
                                                           <GetPropertyValue>
                                                             <DecisionTreeVar name="R" />
                                                             <Property name="has_interrupt_kind" />
                                                           </GetPropertyValue>
-                                                          <Enum owner="interrupt_kind" value="break" />
+                                                          <Enum owner="interrupt_kind" value="continue" />
                                                         </Compare>
                                                         <Compare operator="EQUAL">
-                                                          <Variable name="it" />
-                                                          <GetExtreme extremeVarName="L_ex" varName="L">
-                                                            <LogicalNot>
-                                                              <ExistenceQuantifier varName="z">
+                                                          <GetByRelationship varName="">
+                                                            <GetExtreme extremeVarName="L_ex" varName="L">
+                                                              <LogicalNot>
+                                                                <ExistenceQuantifier varName="z">
+                                                                  <LogicalAnd>
+                                                                    <CheckClass>
+                                                                      <Variable name="z" />
+                                                                      <Class name="loop" />
+                                                                    </CheckClass>
+                                                                    <CheckRelationship>
+                                                                      <Relationship name="hasPartTransitive" />
+                                                                      <Variable name="z" />
+                                                                      <DecisionTreeVar name="R" />
+                                                                    </CheckRelationship>
+                                                                  </LogicalAnd>
+                                                                  <CheckRelationship>
+                                                                    <Relationship name="hasPartTransitive" />
+                                                                    <Variable name="L_ex" />
+                                                                    <Variable name="z" />
+                                                                  </CheckRelationship>
+                                                                </ExistenceQuantifier>
+                                                              </LogicalNot>
+                                                              <LogicalAnd>
                                                                 <CheckClass>
-                                                                  <Variable name="z" />
+                                                                  <Variable name="L" />
                                                                   <Class name="loop" />
                                                                 </CheckClass>
                                                                 <CheckRelationship>
                                                                   <Relationship name="hasPartTransitive" />
-                                                                  <Variable name="L_ex" />
-                                                                  <Variable name="z" />
+                                                                  <Variable name="L" />
+                                                                  <DecisionTreeVar name="R" />
                                                                 </CheckRelationship>
-                                                              </ExistenceQuantifier>
-                                                            </LogicalNot>
-                                                            <LogicalAnd>
-                                                              <CheckClass>
-                                                                <Variable name="L" />
-                                                                <Class name="loop" />
-                                                              </CheckClass>
-                                                              <CheckRelationship>
-                                                                <Relationship name="hasPartTransitive" />
-                                                                <Variable name="L" />
-                                                                <DecisionTreeVar name="R" />
-                                                              </CheckRelationship>
-                                                            </LogicalAnd>
-                                                          </GetExtreme>
+                                                              </LogicalAnd>
+                                                            </GetExtreme>
+                                                            <Relationship name="body" />
+                                                          </GetByRelationship>
+                                                          <Variable name="it" />
                                                         </Compare>
                                                       </LogicalAnd>
                                                     </LogicalOr>
@@ -2528,38 +2605,35 @@
                                                           <DecisionTreeVar name="R" />
                                                           <Property name="has_interrupt_kind" />
                                                         </GetPropertyValue>
-                                                        <Enum owner="interrupt_kind" value="continue" />
+                                                        <Enum owner="interrupt_kind" value="return" />
                                                       </Compare>
                                                       <Compare operator="EQUAL">
-                                                        <GetByRelationship varName="">
-                                                          <GetExtreme extremeVarName="L_ex" varName="L">
-                                                            <LogicalNot>
-                                                              <ExistenceQuantifier varName="z">
-                                                                <CheckClass>
-                                                                  <Variable name="z" />
-                                                                  <Class name="loop" />
-                                                                </CheckClass>
-                                                                <CheckRelationship>
-                                                                  <Relationship name="hasPartTransitive" />
-                                                                  <Variable name="L_ex" />
-                                                                  <Variable name="z" />
-                                                                </CheckRelationship>
-                                                              </ExistenceQuantifier>
-                                                            </LogicalNot>
+                                                        <GetByCondition varName="gc">
+                                                          <LogicalAnd>
                                                             <LogicalAnd>
                                                               <CheckClass>
-                                                                <Variable name="L" />
-                                                                <Class name="loop" />
+                                                                <Variable name="gc" />
+                                                                <Class name="sequence" />
                                                               </CheckClass>
-                                                              <CheckRelationship>
-                                                                <Relationship name="hasPartTransitive" />
-                                                                <Variable name="L" />
-                                                                <DecisionTreeVar name="R" />
-                                                              </CheckRelationship>
+                                                              <ExistenceQuantifier varName="alg">
+                                                                <CheckClass>
+                                                                  <Variable name="alg" />
+                                                                  <Class name="algorithm" />
+                                                                </CheckClass>
+                                                                <CheckRelationship>
+                                                                  <Relationship name="entry_point" />
+                                                                  <Variable name="alg" />
+                                                                  <Variable name="gc" />
+                                                                </CheckRelationship>
+                                                              </ExistenceQuantifier>
                                                             </LogicalAnd>
-                                                          </GetExtreme>
-                                                          <Relationship name="body" />
-                                                        </GetByRelationship>
+                                                            <CheckRelationship>
+                                                              <Relationship name="hasPartTransitive" />
+                                                              <Variable name="gc" />
+                                                              <DecisionTreeVar name="R" />
+                                                            </CheckRelationship>
+                                                          </LogicalAnd>
+                                                        </GetByCondition>
                                                         <Variable name="it" />
                                                       </Compare>
                                                     </LogicalAnd>
