@@ -70,9 +70,12 @@ public class TaskGenerationJob {
             try {
                 runImpl();
             } catch (Exception e) {
-                log.error("job exception - {}", e.getMessage(), e);
+                log.error("job exception - {} | {}", e.getMessage(), e);
             }
         }
+
+        this.config = null;  // unset profile to prevent accidental access
+
         if (tasks.isRunOnce()) {
             System.exit(0);
         }
