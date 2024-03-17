@@ -1,0 +1,70 @@
+
+
+spring:
+  datasource:
+    url: '${COMPPH_DB_JDBC_URL}'
+    username: '${COMPPH_DB_USERNAME}'
+    password: '${COMPPH_DB_PASSWORD}'
+
+
+hibernate:
+  show_sql: true
+  #hibernate.hbm2ddl.auto: update
+  generate_statistics: true
+
+task-generation:
+  run_once :  true
+  interval_minutes :  1
+
+  tasks:
+    # section 1 — first domain:
+    -
+      domain_short_name: expression
+
+      enabled :  true  # `false` disables generation for this domain completely.
+      
+      searcher:
+        github_oauth_token: '${COMPPH_GITHIB_SEARCH_TOKEN}'
+        output_folder_path: 'C:/data/compp-gen/expr/downloaded_repos/'
+        repositories_to_download: 1
+
+      parser:
+        path_to_executable: 'c:/data/compp-gen/compph-task-generator-multidomain-04.04.23.exe'
+        output_folder_path: 'C:/data/compp-gen/expr/parsed_repos/'
+
+      generator:
+        path_to_executable: 'C:/data/compp-gen/gen-q-expr-jar.bat'
+        output_folder_path: 'C:/data/compp-gen/expr/generated_questions/'
+        # set false for debugging:
+        save_to_db: true
+
+      exporter:
+        storage_dummy_dirs_for_new_file: 2
+        storage_upload_files_base_url: c:/data/compp-gen/expr
+
+
+
+    # section 2 — different domain:
+    -
+      domain_short_name: ctrl_flow
+
+      enabled :  true
+
+      searcher:
+        github_oauth_token: '${COMPPH_GITHIB_SEARCH_TOKEN}'
+        output_folder_path: 'C:/data/compp-gen/control_flow/downloaded_repos/'
+        repositories_to_download: 1
+
+      parser:
+        path_to_executable: 'c:/data/compp-gen/compph-task-generator-multidomain-04.04.23.exe'
+        output_folder_path: 'C:/data/compp-gen/control_flow/parsed_repos/'
+
+      generator:
+        path_to_executable: 'C:/data/compp-gen/gen-q-expr-jar.bat'
+        output_folder_path: 'C:/data/compp-gen/control_flow/generated_questions/'
+
+      exporter:
+        storage_dummy_dirs_for_new_file: 2
+        storage_upload_files_base_url: c:/data/compp-gen/control_flow
+
+

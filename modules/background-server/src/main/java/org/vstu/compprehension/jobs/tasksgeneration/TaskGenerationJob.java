@@ -42,26 +42,38 @@ import java.util.stream.Collectors;
 public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
-    private final TaskGenerationJobConfig config;
+    private final TaskGenerationJobConfig tasks;
+    private TaskGenerationJobConfig.TaskConfig config;
     private final AbstractRdfStorage storage;
 
     @Autowired
     public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, AbstractRdfStorage storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
-        this.config = config;
+        this.tasks = tasks;
+        this.config = null;
         this.storage = storage;
     }
 
     @Job
     public void run() {
-        log.info("Run generating questions for expression domain ...");
-        try {
-            runImpl();
-        } catch (Exception e) {
-            log.error("job exception - {}", e.getMessage(), e);
+
+        for (val config : tasks.getTasks())
+        {
+            if (!config.isEnabled())
+                continue;
+
+            // set active profile
+            this.config = config;
+
+            log.info("Run generating questions for {} domain ...", config.getDomainShortName());
+            try {
+                runImpl();
+            } catch (Exception e) {
+                log.error("job exception - {}", e.getMessage(), e);
+            }
         }
-        if (config.isRunOnce()) {
+        if (tasks.isRunOnce()) {
             System.exit(0);
         }
     }
