@@ -1,6 +1,9 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.*;
 
@@ -101,5 +104,18 @@ public class Concept implements TreeNodeWithBitmask {
             set.addAll(childConcept.getDescendants());
         }
         return set;
+    }
+
+    public static long combineToBitmask(Iterable<Concept> concepts) {
+        long conceptBitmask = 0; //
+        for (Concept t : concepts) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            conceptBitmask |= newBit;
+        }
+        return conceptBitmask;
     }
 }

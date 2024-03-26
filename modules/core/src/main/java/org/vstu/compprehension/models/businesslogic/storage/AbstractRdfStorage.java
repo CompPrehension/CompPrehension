@@ -26,6 +26,7 @@ import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
@@ -122,8 +123,8 @@ public abstract class AbstractRdfStorage {
         return new NamespaceUtil(NS_questions.get("has_graph_" + role.ns().base()));
     }
 
-    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionRequest qr, int n) {
-        List<QuestionEntity> list = qr.getExerciseAttempt().getQuestions();
+    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionRequest qr, ExerciseAttemptEntity exerciseAttempt, int n) {
+        List<QuestionEntity> list = exerciseAttempt.getQuestions();
         List<QuestionMetadataEntity> result = new ArrayList<>();
         long toSkip = Math.max(0, list.size() - n);
         for (QuestionEntity questionEntity : list) {
@@ -144,7 +145,7 @@ public abstract class AbstractRdfStorage {
      * @param limit maximum questions to return (must be > 0)
      * @return questions found or empty list if the requirements cannot be satisfied
      */
-    public List<Question> searchQuestions(Domain domain, QuestionRequest qr, int limit) {
+    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
 
@@ -159,7 +160,7 @@ public abstract class AbstractRdfStorage {
         long targetConceptsBitmask = qr.getConceptsTargetedBitmask();
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
         long deniedConceptsBitmask = qr.getConceptsDeniedBitmask();
-        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 4).stream()
+        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
@@ -170,7 +171,7 @@ public abstract class AbstractRdfStorage {
         long targetLawsBitmask = qr.getLawsTargetedBitmask();
         /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
         long deniedLawsBitmask = qr.getLawsDeniedBitmask();
-        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
+        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
@@ -179,7 +180,7 @@ public abstract class AbstractRdfStorage {
 
 
         // use violations from all questions is exercise attempt
-        long unwantedViolationsBitmask = qr.getExerciseAttempt().getQuestions().stream()
+        long unwantedViolationsBitmask = attempt.getQuestions().stream()
                 .map(qd -> qd.getOptions().getMetadata())
                 .filter(Objects::nonNull)
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
@@ -235,7 +236,7 @@ public abstract class AbstractRdfStorage {
             // increment the question's usage counter
             val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
             meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
-            meta.setLastAttemptId(qr.getExerciseAttempt().getId());
+            meta.setLastAttemptId(attempt.getId());
             meta.setDateLastUsed(new Date());
             metaMgr.getQuestionRepository().save(meta);
 

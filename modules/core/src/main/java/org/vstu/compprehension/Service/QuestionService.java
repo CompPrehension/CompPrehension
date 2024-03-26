@@ -63,7 +63,7 @@ public class QuestionService {
         AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
-        Question question = domain.makeQuestion(qr, tags, exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(exerciseAttempt, qr, tags, exerciseAttempt.getUser().getPreferred_language());
         saveQuestionRequest(qr);  // use it after the domain has set step range to qr
         question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());

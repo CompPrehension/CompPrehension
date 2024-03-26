@@ -72,17 +72,6 @@ export type ExerciseCard = {
     options: ExerciseOptions,
 }
 
-export type ExerciseCardViewModel = {
-    id: number,
-    name: string,
-    domainId: string,
-    strategyId: string,
-    backendId: string,
-    complexity: number,
-    tags: string[],
-    stages: NonEmptyArray<ExerciseStage>,
-    options: ExerciseOptions,
-}
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     id: io.number,
     name: io.string,

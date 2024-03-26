@@ -84,4 +84,17 @@ public abstract class Law implements TreeNodeWithBitmask {
         return subTreeBitmaskCache = result;
     }
 
+    public static long combineToBitmask(Iterable<Law> laws) {
+        long lawBitmask = 0;
+        // Note: violations are not positive laws.
+        for (Law t : laws) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            lawBitmask |= newBit;
+        }
+        return lawBitmask;
+    }
 }

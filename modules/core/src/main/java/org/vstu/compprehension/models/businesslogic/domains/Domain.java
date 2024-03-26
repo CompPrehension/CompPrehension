@@ -105,12 +105,19 @@ public abstract class Domain {
         return getMessage(lawName, "law.", language);
     }
 
-    public PositiveLaw getPositiveLaw(String name) {
+    public @Nullable PositiveLaw getPositiveLaw(String name) {
         return positiveLaws.getOrDefault(name, null);
     }
 
-    public NegativeLaw getNegativeLaw(String name) {
+    public @Nullable NegativeLaw getNegativeLaw(String name) {
         return negativeLaws.getOrDefault(name, null);
+    }
+
+    public @Nullable Law getLaw(String name) {
+        var negative = getNegativeLaw(name);
+        if (negative != null)
+            return negative;
+        return getPositiveLaw(name);
     }
 
     public List<PositiveLaw> getPositiveLawWithImplied(String name) {
@@ -416,48 +423,21 @@ public abstract class Domain {
      * @param userLanguage question wording language
      * @return generated question
      */
-    public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
+    public abstract Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
     /** Convert lists of concepts and laws to bitmasks */
     public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
-        qr.setConceptsTargetedBitmask(conceptsToBitmask(qr.getTargetConcepts()));
+        qr.setConceptsTargetedBitmask(Concept.combineToBitmask(qr.getTargetConcepts()));
 //        qr.setConceptsAllowedBitmask(conceptsToBitmask(qr.getAllowedConcepts()));  // unused ?
-        qr.setConceptsDeniedBitmask(conceptsToBitmask(qr.getDeniedConcepts()));
-        qr.setConceptsTargetedInPlanBitmask(conceptsToBitmask(qr.getTargetConceptsInPlan()));
+        qr.setConceptsDeniedBitmask(Concept.combineToBitmask(qr.getDeniedConcepts()));
+        qr.setConceptsTargetedInPlanBitmask(Concept.combineToBitmask(qr.getTargetConceptsInPlan()));
 
-        qr.setLawsTargetedBitmask(lawsToBitmask(qr.getTargetLaws()));
+        qr.setLawsTargetedBitmask(Law.combineToBitmask(qr.getTargetLaws()));
 //        qr.setAllowedLawsBitmask(awsToBitmask(qr.getAllowedLaws()));  // unused ?
-        qr.setLawsDeniedBitmask(lawsToBitmask(qr.getDeniedLaws()));
-        qr.setLawsTargetedInPlanBitmask(lawsToBitmask(qr.getTargetLawsInPlan()));
+        qr.setLawsDeniedBitmask(Law.combineToBitmask(qr.getDeniedLaws()));
+        qr.setLawsTargetedInPlanBitmask(Law.combineToBitmask(qr.getTargetLawsInPlan()));
 
         return qr;
-    }
-
-    protected static long conceptsToBitmask(List<Concept> concepts) {
-        long conceptBitmask = 0; //
-        for (Concept t : concepts) {
-            long newBit = t.getBitmask();
-            if (newBit == 0) {
-                // make use of children
-                newBit = t.getSubTreeBitmask();
-            }
-            conceptBitmask |= newBit;
-        }
-        return conceptBitmask;
-    }
-
-    protected static long lawsToBitmask(List<Law> laws) {
-        long lawBitmask = 0;
-        // Note: violations are not positive laws.
-        for (Law t : laws) {
-            long newBit = t.getBitmask();
-            if (newBit == 0) {
-                // make use of children
-                newBit = t.getSubTreeBitmask();
-            }
-            lawBitmask |= newBit;
-        }
-        return lawBitmask;
     }
 
         /**

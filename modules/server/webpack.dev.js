@@ -53,7 +53,14 @@ module.exports = merge(common, {
       writeToDisk: true,
     },
     
-    */
+    */    
+    allowedHosts: 'all',
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'https://localhost:8433'
+      },
+    ],
     compress: true,
     port: 4200,
     hot: true,

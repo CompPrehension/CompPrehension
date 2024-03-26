@@ -7,10 +7,9 @@ import {
     ExerciseCardConcept,
     ExerciseCardConceptKind,
     ExerciseCardLaw,
-    ExerciseCardViewModel,
     Strategy
 } from "../types/exercise-settings";
-import {ExerciseSettingsStore} from "../stores/exercise-settings-store";
+import {ExerciseCardViewModel, ExerciseSettingsStore} from "../stores/exercise-settings-store";
 import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
 import {Link} from "react-router-dom";
@@ -419,6 +418,16 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                             </div>
                                             || null
                                         }
+                                        <div className="form-group">
+                                            <label className="font-weight-bold">Вопросов в банке задач</label>
+                                            <div className="form-control" style={{ position: 'relative' }}>
+                                                <div>{stage.bankLoadingState === 'IN_PROGRESS' ? '' : stage.bankQuestionsCount}</div>
+                                                <div style={{ position: 'absolute', right: '0.7rem', top: 'calc(50% - 1rem)' }}>
+                                                    {stage.bankLoadingState === 'IN_PROGRESS' && 
+                                                        <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />}
+                                                </div> 
+                                            </div>                                                  
+                                        </div>
                                     </div>
                                 </div>
                             </>)}
