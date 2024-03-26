@@ -46,7 +46,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.violation_bits & :#{#qr.deniedLawsBitmask()} = 0 " +
             "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
-            "order by bit_count(q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask()})" +
+            "order by bit_count(q.trace_concept_bits & :#{#qr.targetConceptsBitmask()})" +
             " + bit_count(q.concept_bits & :#{#qr.targetConceptsBitmask()})" +
             " + bit_count(q.violation_bits & :#{#qr.targetLawsBitmask()})" +
             " DESC, " +
@@ -64,24 +64,22 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             @Param("randomPoolLim") int randomPoolLimitNumber
     );
 
-    @Query(value = "select count(*) as number from questions_meta q where " +
+    @Query(value =
+            "select count(*) as number from questions_meta q where " +
             "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
             "AND q.solution_steps >= :#{#qr.stepsMin} " +
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.deniedConceptsBitmask()} = 0 " +
             "AND q.violation_bits & :#{#qr.deniedLawsBitmask()} = 0 " +
+            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
+            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
 
             // at least one targeted concept or one targeted law must present (or allow anything if no targets set)
-            "   AND ((q.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask()} <> 0) " +
+            "   AND ((q.trace_concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) " +
             "     OR (q.concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) " +
             "     OR (q.violation_bits & :#{#qr.targetLawsBitmask()} <> 0) " +
-            "     OR IF(    :#{#qr.traceConceptsTargetedBitmask()} =0 " +
-            "           AND :#{#qr.targetConceptsBitmask()} =0 " +
-            "           AND :#{#qr.targetLawsBitmask()} =0,1,0)) " +
-
-            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
-            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds}" + // note: must be non-empty
-            "", nativeQuery = true)
+            "     OR IF(:#{#qr.targetConceptsBitmask()} =0 AND :#{#qr.targetLawsBitmask()} = 0, 1, 0)) ",
+            nativeQuery = true)
     int countQuestions(@Param("qr") QuestionBankSearchRequest qr);
 
 
