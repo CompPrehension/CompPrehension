@@ -4,27 +4,21 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.jena.arq.querybuilder.SelectBuilder;
-import org.apache.jena.arq.querybuilder.WhereBuilder;
-import org.apache.jena.graph.Node;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.PrintUtil;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -34,7 +28,8 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -102,8 +97,6 @@ public abstract class AbstractRdfStorage {
      */
     @Deprecated
     Dataset dataset = null;
-    static final boolean USE_RDF_STORAGE = false;
-
 
     @Getter
     private final RemoteFileService fileService;
@@ -119,11 +112,7 @@ public abstract class AbstractRdfStorage {
         this.questionMetadataManager = questionMetadataManager;
     }
 
-    public static NamespaceUtil questionSubgraphPropertyFor(GraphRole role) {
-        return new NamespaceUtil(NS_questions.get("has_graph_" + role.ns().base()));
-    }
-
-    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionRequest qr, ExerciseAttemptEntity exerciseAttempt, int n) {
+    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionBankSearchRequest qr, ExerciseAttemptEntity exerciseAttempt, int n) {
         List<QuestionEntity> list = exerciseAttempt.getQuestions();
         List<QuestionMetadataEntity> result = new ArrayList<>();
         long toSkip = Math.max(0, list.size() - n);
@@ -145,7 +134,7 @@ public abstract class AbstractRdfStorage {
      * @param limit maximum questions to return (must be > 0)
      * @return questions found or empty list if the requirements cannot be satisfied
      */
-    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
+    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionBankSearchRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
 
@@ -157,26 +146,26 @@ public abstract class AbstractRdfStorage {
         double complexity = qr.getComplexity();
         complexity = metaMgr.getWholeBankStat().complexityStat.rescaleExternalValue(complexity, 0, 1);
 
-        long targetConceptsBitmask = qr.getConceptsTargetedBitmask();
+        long targetConceptsBitmask = qr.targetConceptsBitmask();
         /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
-        long deniedConceptsBitmask = qr.getConceptsDeniedBitmask();
+        long deniedConceptsBitmask = qr.deniedConceptsBitmask();
         long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInPlan = qr.getConceptsTargetedInPlanBitmask();
+        long targetConceptsBitmaskInPlan = qr.targetConceptsBitmask();
 
         // use laws, for e.g. Expr domain
-        long targetLawsBitmask = qr.getLawsTargetedBitmask();
+        long targetLawsBitmask = qr.targetLawsBitmask();
         /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
-        long deniedLawsBitmask = qr.getLawsDeniedBitmask();
+        long deniedLawsBitmask = qr.deniedLawsBitmask();
         long unwantedLawsBitmask = findLastNQuestionsMeta(qr, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInPlan = qr.getLawsTargetedInPlanBitmask();
+        long targetViolationsBitmaskInPlan = qr.targetLawsBitmask();
 
 
         // use violations from all questions is exercise attempt
@@ -389,17 +378,6 @@ public abstract class AbstractRdfStorage {
         return rules;
     }
 
-//    public abstract RDFConnection getConn();
-
-//    /** Download, cache and return a graph */
-//    @Nullable
-//    Model getGraph(String name) {
-//        if (fetchGraph(name)) {
-//            return getLocalGraphByUri(name);
-//        }
-//        return null;
-//    }
-
     /**
      * Download a file content from remote FTP, parse and return as Model
      */
@@ -417,72 +395,6 @@ public abstract class AbstractRdfStorage {
         }
         return m;
     }
-
-//    /** Cache and send a graph to remote DB */
-//    boolean sendGraph(String gUri, Model m) {
-//        if (setLocalGraph(gUri, m)) {
-//            return uploadGraph(gUri);
-//        }
-//        return false;
-//    }
-
-    /**
-     * Send a model as file to remote FTP
-     */
-    boolean sendModel(String name, Model m) {
-        try (OutputStream stream = fileService.openForWrite(name)) {
-            RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
-            getFileService().closeConnections();
-        } catch (IOException | NullPointerException e) {
-            log.error("Error sending model with name [{}] - {}", name, e.getMessage(), e);
-            return false;
-        }
-        return true;
-    }
-
-    /* **
-     * Download and cache a graph if not cached yet
-     */
-//    boolean fetchGraph(String gUri) {
-//        return fetchGraph(gUri, false);
-//    }
-
-////    abstract boolean fetchGraph(String gUri, boolean fetchAlways);
-
-//    abstract boolean uploadGraph(String gUri);
-
-//    boolean runQueriesWithConnection(RDFConnection connection, Collection<UpdateRequest> requests, boolean merge) {
-//        try (RDFConnection conn = connection) {
-//            conn.begin(TxnType.WRITE);
-//
-//            if (merge && requests.size() > 1) {
-//                // join all
-//                StringBuilder bigRequest = new StringBuilder();
-//                for (UpdateRequest r : requests) {
-//                    if (bigRequest.length() > 0)
-//                        bigRequest.append("\n;\n");  // ";" is SPARQL separator
-//                    bigRequest.append(r.toString());
-//                }
-//                String finalRequest = bigRequest.toString();
-//                // run query once
-//                conn.update(finalRequest);
-//            } else {
-//                for (UpdateRequest r : requests) {
-//                    conn.update(r);
-//                }
-//            }
-//            conn.commit();
-//            return true;
-//        } catch (JenaException exception) {
-//            exception.printStackTrace();
-//            // System.out.println();
-//            return false;
-//        }
-//    }
-
-//    abstract boolean runQueries(Collection<UpdateRequest> requests);
-
-//    abstract boolean runQueries(Collection<UpdateRequest> requests, boolean merge);
 
     public String nameForQuestionGraph(String questionName, GraphRole role) {
         // look for <Question>.<subgraph> property in metadata first
@@ -534,32 +446,6 @@ public abstract class AbstractRdfStorage {
         return fetchModel(nameForQuestionGraph(questionName, role));
     }
 
-    /**
-     * Get union of all models available for question or question template
-     */
-    public Model getQuestionModel(String questionName) {
-        return getQuestionModel(questionName, GraphRole.QUESTION_SOLVED);
-    }
-
-    /**
-     * Get union of all models under `topRole` (inclusive) available for question or question template
-     */
-    public Model getQuestionModel(String questionName, GraphRole topRole) {
-        Model m = ModelFactory.createDefaultModel();
-        for (GraphRole role : questionStages()) {
-            Model gm = getQuestionSubgraph(questionName, role);
-            if (gm != null)
-                m.add(gm);
-            else {
-                log.info("Sub-graph not found!  q: {}", questionName);
-            }
-
-            if (role == topRole)
-                break;
-        }
-        return m;
-    }
-
     List<GraphRole> questionStages() {
         return List.of(
                 GraphRole.QUESTION_TEMPLATE,
@@ -567,84 +453,6 @@ public abstract class AbstractRdfStorage {
                 GraphRole.QUESTION,
                 GraphRole.QUESTION_SOLVED
         );
-    }
-
-    /**
-     * Find what stage a question is in. Returned constant means which stage is reached by now.
-     * @param questionName question/questionTemplate unqualified name
-     * @return one of questionStages(), or null if the question/questionTemplate does not exist.
-     */
-    public GraphRole getQuestionStatus(String questionName) {
-        val meta = findQuestionByName(questionName);
-        if (meta == null) {
-            return null;
-        }
-
-        GraphRole reachedRole = GraphRole.QUESTION_TEMPLATE;
-        for  (GraphRole role : questionStages()) {
-            String graphPath = null;
-            switch (role) {
-                case QUESTION_TEMPLATE:
-                    graphPath = meta.getQtGraphPath();
-                    break;
-                case QUESTION_TEMPLATE_SOLVED:
-                    graphPath = meta.getQtSolvedGraphPath();
-                    break;
-                case QUESTION:
-                    graphPath = meta.getQGraphPath();
-                    break;
-                case QUESTION_SOLVED:
-                    graphPath = meta.getQSolvedGraphPath();
-                    break;
-            }
-            if (graphPath != null)
-                reachedRole = role;
-            else
-                break;
-        }
-        return reachedRole;
-    }
-
-    /**
-     * создание/обновление и отправка во внешнюю БД одного из 4-х видов подграфа вопроса (например, создание нового
-     * вопроса или добавление solved-данных для него)
-     *
-     * @param questionName unqualified name of Question or QuestionTemplate
-     * @param role question subgraph role
-     * @param model data to store
-     * @return saved metadata instance if saved successful, else null
-     */
-    public QuestionMetadataEntity setQuestionSubgraph(Domain domain, String questionName, GraphRole role, Model model) {
-        String qgSubPath = nameForQuestionGraph(questionName, role);
-        boolean success = sendModel(qgSubPath, model);
-
-        if (!success)
-            return null;
-
-        // update questions metadata
-        QuestionMetadataEntity meta = findQuestionByName(questionName);
-        if (meta == null) {
-            // проинициализировать метаданные шаблона вопроса, далее сохранить в БД
-            if (role == GraphRole.QUESTION_TEMPLATE || role == GraphRole.QUESTION_TEMPLATE_SOLVED)
-                meta = createQuestionTemplate(domain, questionName);
-            else {
-                throw new IllegalStateException("setQuestionSubgraph(): Question metadata row must be initialized in advance!");
-            }
-        }
-
-        switch (role) {
-            case QUESTION_TEMPLATE:
-                meta.setQtGraphPath(qgSubPath); break;
-            case QUESTION_TEMPLATE_SOLVED:
-                meta.setQtSolvedGraphPath(qgSubPath); break;
-            case QUESTION:
-                meta.setQGraphPath(qgSubPath); break;
-            case QUESTION_SOLVED:
-                meta.setQSolvedGraphPath(qgSubPath); break;
-        }
-        meta = saveMetadataDraftEntity(meta);
-
-        return meta;
     }
 
     @NotNull
@@ -659,36 +467,6 @@ public abstract class AbstractRdfStorage {
         if (meta.isDraft())
             meta.setDraft(false);
         return questionMetadataRepository.save(meta);
-    }
-
-    /**
-     * Create empty metadata row for QuestionTemplate, but not overwrite existing data.
-     *
-     * @param questionTemplateName unique identifier-like name of question template
-     * @return fresh or existing QuestionMetadataDraftEntity instance
-     */
-    public QuestionMetadataEntity createQuestionTemplate(Domain domain, String questionTemplateName) {
-        // find template metadata
-        QuestionMetadataEntity templateMeta = findQuestionByName(questionTemplateName);
-
-        if (templateMeta != null) {
-            return templateMeta;
-        }
-
-        val builder = QuestionMetadataEntity.builder();
-
-        // проинициализировать метаданные вопроса, далее сохранить в БД
-        templateMeta = builder.name(questionTemplateName)
-                .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
-                .templateId(-1)
-                .isDraft(true)
-                .stage(STAGE_TEMPLATE)
-                .version(GENERATOR_VERSION)
-                .build();
-        templateMeta = saveMetadataDraftEntity(templateMeta);
-
-        return templateMeta;
-
     }
 
     /**
@@ -738,119 +516,6 @@ public abstract class AbstractRdfStorage {
         return meta;
     }
 
-    /** delete files and db entry for question (not for the template)
-     * @param questionName name of question to delete
-     */
-    public void deleteQuestion(String questionName /*, boolean keepTemplate*/) {
-        val meta = findQuestionByName(questionName);
-
-        // delete files for this question (not for the template)
-        try {
-            String qgSubPath = meta.getQGraphPath();
-            if (qgSubPath != null) {
-                fileService.deleteFile(qgSubPath);
-            }
-            qgSubPath = meta.getQSolvedGraphPath();
-            if (qgSubPath != null) {
-                fileService.deleteFile(qgSubPath);
-            }
-            qgSubPath = meta.getQDataGraph();
-            if (qgSubPath != null) {
-                fileService.deleteFile(qgSubPath);
-            }
-        } catch (FileSystemException e) {
-            log.error("Error deleting question with name [{}] - {}", questionName, e.getMessage(), e);
-        }
-
-        // delete db entry
-        questionMetadataRepository.delete(meta);
-    }
-
-    /* *
-     * Add metadata triples to a Question node. Only scalar values (Literals) are allowed as an object in a triple.
-     * Tip: use {@link NodeFactory} to create property URIs and literals. Property URI is typically obtained via
-     * NS_questions.getUri("...").
-     * (QuestionTemplate is not supported here since NS_classQuestion namespace is hardcoded in this method).
-     *
-     * @param questionName local name of a Question node
-     * @param propValPairs property-literal pairs for triples to be created
-     * @return true on success
-     */
-    /*public boolean setQuestionMetadata(String questionName, Collection<Pair<Node, Node>> propValPairs) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
-
-        if (qG != null) {
-            Node ngNode = NS_questions.baseAsUri();
-            Node qNode = NS_classQuestion.getUri(questionName);
-            List<Triple> triples = new ArrayList<>();
-
-            // make triples with question node as subject
-            for (Pair<Node, Node> pair : propValPairs) {
-                triples.add(new Triple(
-                        qNode,  // Subject
-                        pair.getLeft(),  // Property
-                        pair.getRight()  // Value (Object)
-                ));
-            }
-
-            // insert new triples
-            UpdateBuilder ub2 = new UpdateBuilder();
-            ub2.addPrefix("qs", NS_questions.get());
-            ub2.addInsert(ngNode, triples);
-            UpdateRequest insertQuery = ub2.buildRequest();
-
-            return runQueries(List.of(insertQuery));
-        }
-        return false;
-    }*/
-
-    /**
-     * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
-     *
-     * @param questionName              name of question or question template
-     * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
-     * @return true on success
-     */
-    public boolean solveQuestion(Domain domain, String questionName, GraphRole desiredLevel) {
-        return solveQuestion(domain, questionName, desiredLevel, -1);
-    }
-
-    /**
-     * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
-     *
-     * @param questionName              name of question or question template
-     * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
-     * @param tooLargeTemplateThreshold if > 0, do not process question templates having the number of RDF subjects
-     *                                  exceeding this number (maybe for reducing reasoner load).
-     * @return true on success
-     */
-    public boolean solveQuestion(Domain domain, String questionName, GraphRole desiredLevel, int tooLargeTemplateThreshold) {
-//        Model qG = getGraph(NS_questions.base());
-//        assert qG != null;
-
-        Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
-
-        // avoid processing too large templates
-        if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
-            int subjectCount = existingData.listSubjects().toList().size();
-            if (subjectCount > tooLargeTemplateThreshold) {
-                log.debug("Skip too large template of size {}: {}", subjectCount, questionName);
-                return false;
-            }
-        }
-
-        Model inferred = runReasoning(
-                getFullSchema(domain).union(existingData),
-                getDomainRulesForSolvingAtLevel(domain, desiredLevel),
-                true);
-
-        if (inferred.isEmpty())
-            log.warn("Solved to empty for question: {}", questionName);
-
-        // set graph
-        return setQuestionSubgraph(domain, questionName, desiredLevel, inferred) != null;
-    }
-
     public static int getTooFewQuestionsForQR(int qrLogId) {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
@@ -865,71 +530,11 @@ public abstract class AbstractRdfStorage {
         return 500;
     }
 
-
-
-    /**
-     * Find questions and/or question templates which have `unsolvedSubgraph` set to rdf:nil.
-     *
-     * @param unsolvedSubgraph QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
-     * @return list of names
-     */
-    public List<String> unsolvedQuestions(/*String classUri,*/ GraphRole unsolvedSubgraph) {
-        if (!USE_RDF_STORAGE) {
-            return List.of();
-        }
-        // find question templates to solve
-        Node ng = NS_questions.baseAsUri();
-        String unsolvedTemplates = new SelectBuilder()
-                .addVar("?name")
-                .addWhere(
-                        new WhereBuilder()
-                                /*.addGraph(ng,
-                                        "?node",
-                                        RDF.type,
-                                        NodeFactory.createURI(classUri)
-                                )*/
-                                .addGraph(ng,
-                                        "?node",
-                                        NS_questions.getUri("name"),
-                                        "?name"
-                                )
-                                .addGraph(ng,
-                                        "?node",
-                                        AbstractRdfStorage.questionSubgraphPropertyFor(unsolvedSubgraph).baseAsUri(),
-                                        RDF.nil
-                                )
-                )
-                .toString();
-
-        RDFConnection connection = RDFConnection.connect(dataset);
-        // RDFConnection connection = getConn();
-        List<String> names = new ArrayList<>();
-        try (RDFConnection conn = connection) {
-
-            conn.querySelect(unsolvedTemplates,
-                    querySolution -> names.add(querySolution.get("name").asLiteral().getString()));
-
-        } catch (JenaException exception) {
-            log.error("Error querying template - {}", exception.getMessage(), exception);
-        }
-        return names;
-    }
-
     public boolean localGraphExists(String gUri) {
-        if (!USE_RDF_STORAGE) {
-            return false;
-        }
-        return dataset.containsNamedModel(gUri);
+        return false;
     }
 
     public Model getLocalGraphByUri(String gUri) {
-        if (USE_RDF_STORAGE && dataset != null) {
-            if (localGraphExists(gUri)) {
-                return dataset.getNamedModel(gUri);
-            } else log.warn(String.format("Graph not found - name: '%s'", gUri));
-        } else {
-            log.warn("Dataset was not initialized");
-        }
         return null;
     }
 
@@ -958,14 +563,7 @@ public abstract class AbstractRdfStorage {
      * @return model of triples
      */
     public Model getSchema(Domain domain) {
-        if (!USE_RDF_STORAGE) {
-            return getDomainSchemaForSolving(domain);
-        }
-        String uri = NS_graphs.get(GraphRole.SCHEMA.ns().base());
-//        if (!dataset.containsNamedModel(uri)) {
-//            setLocalGraph(uri, getDomainSchemaForSolving());
-//        }
-        return getLocalGraphByUri(uri);
+        return getDomainSchemaForSolving(domain);
     }
 
     /**
@@ -995,13 +593,6 @@ public abstract class AbstractRdfStorage {
         return m;
     }
 
-    public Model solveTemplate(Domain domain, Model srcModel, GraphRole desiredLevel, boolean retainNewFactsOnly) {
-        return runReasoning(
-                getFullSchema(domain).union(srcModel),
-                getDomainRulesForSolvingAtLevel(domain, desiredLevel),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
-                retainNewFactsOnly);
-    }
-
     public Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
         GenericRuleReasoner reasoner = new GenericRuleReasoner(rules);
 
@@ -1027,19 +618,4 @@ public abstract class AbstractRdfStorage {
         }
         return result;
     }
-
-    private void debug_dump(Model model, String name) {
-        if (true) {
-            String out_rdf_path = "c:/temp/" + name + ".n3";
-            FileOutputStream out = null;
-            try {
-                out = new FileOutputStream(out_rdf_path);
-                RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                log.debug("Debug written: {}. N of of triples: {}", out_rdf_path, model.size());
-            } catch (FileNotFoundException e) {
-                log.debug("Cannot write to file: {} Error: {}", out_rdf_path, e);
-            }
-        }
-    }
-
 }

@@ -16,30 +16,15 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Data
 public class QuestionRequest {
-    
     private List<Concept> deniedConcepts;
-
     private List<Concept> targetConcepts;
     private List<Concept> targetConceptsInPlan;
-
     /** Question Storage can treat this as "optional targets" or "preferred" */
     private List<Concept> allowedConcepts;
-
     private List<Law> targetLaws;
     private List<Law> targetLawsInPlan;
-
     private List<Law> deniedLaws;
-
     private List<Law> allowedLaws;
-
-    long conceptsTargetedBitmask;  // set to 0 if traceConceptsTargetedBitmask set
-    long conceptsTargetedInPlanBitmask;
-    @Builder.Default
-    long traceConceptsTargetedBitmask = 0;  // set if required for search
-    long conceptsDeniedBitmask;
-    long lawsTargetedInPlanBitmask;
-    long lawsTargetedBitmask;
-    long lawsDeniedBitmask;
 
     private List<String> deniedQuestionNames;
 
@@ -86,8 +71,6 @@ public class QuestionRequest {
 
     private String domainShortname;
 
-    @Builder.Default
-    private boolean isDraft = false;
     private @Nullable Long exerciseAttemptId;
 
     public QuestionRequestLogEntity getLogEntity() {
@@ -103,14 +86,13 @@ public class QuestionRequest {
                 .targetLawNamesInPlan(targetLawsInPlan.stream().map(Law::getName).collect(Collectors.toList()))
                 .deniedLawNames(deniedLaws.stream().map(Law::getName).collect(Collectors.toList()))
                 .allowedLawNames(allowedLaws.stream().map(Law::getName).collect(Collectors.toList()))
-                .conceptsTargetedBitmask(conceptsTargetedBitmask)
-                .traceConceptsTargetedBitmask(traceConceptsTargetedBitmask)
-                .conceptsDeniedBitmask(conceptsDeniedBitmask)
-                .lawsTargetedBitmask(lawsTargetedBitmask)
-                .lawsDeniedBitmask(lawsDeniedBitmask)
+                .conceptsTargetedBitmask(Concept.combineToBitmask(targetConcepts))
+                .conceptsDeniedBitmask(Concept.combineToBitmask(deniedConcepts))
+                .lawsTargetedBitmask(Law.combineToBitmask(targetLaws))
+                .lawsDeniedBitmask(Law.combineToBitmask(deniedLaws))
                 .deniedQuestionNames(deniedQuestionNames)
-                .deniedQuestionTemplateIds(deniedQuestionTemplateIds.isEmpty()? List.of(0) : deniedQuestionTemplateIds)
-                .deniedQuestionMetaIds(deniedQuestionMetaIds.isEmpty()? List.of(0) : deniedQuestionMetaIds)
+                .deniedQuestionTemplateIds(deniedQuestionTemplateIds.isEmpty() ? List.of(0) : deniedQuestionTemplateIds)
+                .deniedQuestionMetaIds(deniedQuestionMetaIds.isEmpty() ? List.of(0) : deniedQuestionMetaIds)
                 .solvingDuration(solvingDuration)
                 .complexity(complexity)
                 .stepsMin(stepsMin)
@@ -123,35 +105,21 @@ public class QuestionRequest {
         .build();
     }
 
-    public static QuestionRequest fromLogEntity(QuestionRequestLogEntity other) {
-        return QuestionRequest.builder()
-                // .id(0L)
-                // .exerciseAttempt(getAttempt(other.getExerciseAttemptId()))
-                .domainShortname(other.getDomainShortname())
-                // .targetConcepts(other.getTargetConceptNames().stream().map(Domain::getConcept).collect(Collectors.toList()))
-                // .targetConceptNamesInPlan(other.targetConceptsInPlan.stream().map(Domain::getConcept).collect(Collectors.toList()))
-                // .deniedConceptNames(other.getDeniedConceptNames().stream().map(Domain::getConcept.collect(Collectors.toList()))
-                // .allowedConcepts(other.getAllowedConceptNames().stream().map(Domain::getConcept).collect(Collectors.toList()))
-                // .targetLaws(other.getTargetLawNames().stream().map(Domain::getLaw).collect(Collectors.toList()))
-                // .targetLawNamesInPlan(other.targetLawsInPlan.stream().map(Domain::getLaw).collect(Collectors.toList()))
-                // .deniedLawNames(other.deniedLaws.stream().map(Domain::getLaw).collect(Collectors.toList()))
-                // .allowedLawNames(other.allowedLaws.stream().map(Domain::getLaw).collect(Collectors.toList()))
-                .conceptsTargetedBitmask(other.getConceptsTargetedBitmask())
-                .traceConceptsTargetedBitmask(other.getTraceConceptsTargetedBitmask())
-                .conceptsDeniedBitmask(other.getConceptsDeniedBitmask())
-                .lawsTargetedBitmask(other.getLawsTargetedBitmask())
-                .lawsDeniedBitmask(other.getLawsDeniedBitmask())
-                .deniedQuestionNames(other.getDeniedQuestionNames())
-                .deniedQuestionTemplateIds(other.getDeniedQuestionTemplateIds().isEmpty()? List.of(0) : other.getDeniedQuestionTemplateIds())
-                .deniedQuestionMetaIds(other.getDeniedQuestionMetaIds().isEmpty()? List.of(0) : other.getDeniedQuestionMetaIds())
-                .solvingDuration(other.getSolvingDuration())
-                .complexity(other.getComplexity())
-                .stepsMin(other.getStepsMin())
-                .stepsMax(other.getStepsMax())
-                .complexitySearchDirection(other.getComplexitySearchDirection())
-                .lawsSearchDirection(other.getLawsSearchDirection())
-                .chanceToPickAutogeneratedQuestion(other.getChanceToPickAutogeneratedQuestion())
-        .build();
+    public QuestionBankSearchRequest toBankSearchRequest() {
+        return QuestionBankSearchRequest.builder()
+                .deniedConcepts(deniedConcepts)
+                .targetConcepts(targetConcepts)
+                .targetLaws(targetLaws)
+                .deniedLaws(deniedLaws)
+                .deniedQuestionNames(deniedQuestionNames)
+                .deniedQuestionTemplateIds(deniedQuestionTemplateIds)
+                .deniedQuestionMetaIds(deniedQuestionMetaIds)
+                .domainShortname(domainShortname)
+                .complexity(complexity)
+                .stepsMin(stepsMin)
+                .stepsMax(stepsMax)
+                .lawsSearchDirection(lawsSearchDirection)
+                .build();
     }
 }
 

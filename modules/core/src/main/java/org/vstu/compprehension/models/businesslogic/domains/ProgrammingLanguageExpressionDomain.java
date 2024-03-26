@@ -566,17 +566,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
     }
 
-    @Override
-    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
-        qr = super.fillBitmasksInQuestionRequest(qr);
-
-        // hard limits on solution length (questions outside this boundaries will never appear)
-        qr.setStepsMin(2);
-        qr.setStepsMax(23);
-
-        return qr;
-    }
-
     @NotNull
     private static String reformatQuestionText(Question q) {
         // avoid changing generated files: re-generate html
@@ -632,14 +621,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
-                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, questionRequest, 1);
+                var searchRequest = questionRequest.toBankSearchRequest();
+                searchRequest.setStepsMin(2);
+                searchRequest.setStepsMax(23);
+                foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, searchRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, questionRequest, 1);
+                    searchRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                    foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, searchRequest, 1);
                 }
             } catch (Exception e) {
                 // file storage was not configured properly...
@@ -2617,7 +2608,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         question.setConcepts(new ArrayList<>(concepts));
         meta.setConceptBits(concepts.stream().map(this::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L));
-        meta.setTraceConceptBits(0L);  // trace concepts (encountered during solving the question) are not important for this domain.
+        meta.setTraceConceptBits(meta.getConceptBits());
 
         double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
         double integralComplexity = 1/( 1 + Math.exp(-1*complexity));

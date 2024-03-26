@@ -107,7 +107,10 @@ public class Concept implements TreeNodeWithBitmask {
     }
 
     public static long combineToBitmask(Iterable<Concept> concepts) {
-        long conceptBitmask = 0; //
+        if (concepts == null)
+            return 0;
+
+        long conceptBitmask = 0;
         for (Concept t : concepts) {
             long newBit = t.getBitmask();
             if (newBit == 0) {

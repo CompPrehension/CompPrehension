@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -84,7 +85,10 @@ public abstract class Law implements TreeNodeWithBitmask {
         return subTreeBitmaskCache = result;
     }
 
-    public static long combineToBitmask(Iterable<Law> laws) {
+    public static long combineToBitmask(@Nullable Iterable<Law> laws) {
+        if (laws == null)
+            return 0;
+
         long lawBitmask = 0;
         // Note: violations are not positive laws.
         for (Law t : laws) {

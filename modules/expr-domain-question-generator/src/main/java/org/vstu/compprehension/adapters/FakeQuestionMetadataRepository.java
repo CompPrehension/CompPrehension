@@ -2,6 +2,7 @@ package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.dto.ComplexityStats;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -83,12 +84,12 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
+    public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionBankSearchRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
         return List.of();
     }
 
     @Override
-    public int countQuestions(QuestionRequest qr) {
+    public int countQuestions(QuestionBankSearchRequest qr) {
         return 0;
     }
 

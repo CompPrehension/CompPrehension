@@ -54,6 +54,6 @@ public class QuestionBankController {
 
 
         var qr = new QuestionRequest();
-        return metadataRepository.countQuestions(qr);
+        return metadataRepository.countQuestions(qr.toBankSearchRequest());
     }
 }

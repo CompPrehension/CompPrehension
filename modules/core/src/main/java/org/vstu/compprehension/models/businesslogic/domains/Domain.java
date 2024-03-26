@@ -425,21 +425,6 @@ public abstract class Domain {
      */
     public abstract Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
-    /** Convert lists of concepts and laws to bitmasks */
-    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
-        qr.setConceptsTargetedBitmask(Concept.combineToBitmask(qr.getTargetConcepts()));
-//        qr.setConceptsAllowedBitmask(conceptsToBitmask(qr.getAllowedConcepts()));  // unused ?
-        qr.setConceptsDeniedBitmask(Concept.combineToBitmask(qr.getDeniedConcepts()));
-        qr.setConceptsTargetedInPlanBitmask(Concept.combineToBitmask(qr.getTargetConceptsInPlan()));
-
-        qr.setLawsTargetedBitmask(Law.combineToBitmask(qr.getTargetLaws()));
-//        qr.setAllowedLawsBitmask(awsToBitmask(qr.getAllowedLaws()));  // unused ?
-        qr.setLawsDeniedBitmask(Law.combineToBitmask(qr.getDeniedLaws()));
-        qr.setLawsTargetedInPlanBitmask(Law.combineToBitmask(qr.getTargetLawsInPlan()));
-
-        return qr;
-    }
-
         /**
          * Generate explanation of violations
          * @param violations list of student violations

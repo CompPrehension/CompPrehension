@@ -79,7 +79,7 @@ public class QuestionService {
 
         val qrl = qr.getLogEntity();
 
-        int questionsFound = questionMetadataRepository.countQuestions(qr);
+        int questionsFound = questionMetadataRepository.countQuestions(qr.toBankSearchRequest());
         qrl.setFoundCount(questionsFound);
         qrl.setCreatedDate(new Date());
         questionRequestLogRepository.save(qrl);
