@@ -2,8 +2,7 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -15,16 +14,11 @@ import java.util.*;
 @Log4j2
 @Getter
 public class QuestionMetadataManager {
-
     private final Domain domain;
     private final QuestionMetadataRepository questionRepository;
     private QuestionGroupStat wholeBankStat;
-    //private final HashMap<String, Long> conceptName2bit;
-    //private final HashMap<String, Long> lawName2bit;
-    //private final HashMap<String, Long> violationName2bit;
 
-    public QuestionMetadataManager(Domain domain, QuestionMetadataRepository questionMetadataRepository
-    ) {
+    public QuestionMetadataManager(Domain domain, QuestionMetadataRepository questionMetadataRepository) {
         this.domain = domain;
         this.questionRepository = questionMetadataRepository;
     }
@@ -61,22 +55,13 @@ public class QuestionMetadataManager {
     }
 
     List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutQIds(
-            QuestionRequest qr,
+            QuestionBankSearchRequest qr,
             double complexityMaxDifference,
             int limit,
             int randomPoolLimit
     ) {
         ensureBankStatLoaded();
 
-        // lists cannot be empty in SQL: workaround
-        val templatesIds = qr.getDeniedQuestionTemplateIds();
-        if (templatesIds == null || templatesIds.isEmpty()) {
-            qr.setDeniedQuestionTemplateIds(List.of(0));
-        }
-        val questionsIds = qr.getDeniedQuestionMetaIds();
-        if (questionsIds == null || questionsIds.isEmpty()) {
-            qr.setDeniedQuestionMetaIds(List.of(0));
-        }
         if (randomPoolLimit < limit)
             randomPoolLimit = limit;
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,

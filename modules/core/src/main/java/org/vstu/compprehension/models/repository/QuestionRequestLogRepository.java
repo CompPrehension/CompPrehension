@@ -56,7 +56,7 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
 
         // Проверка на то, что присутствует хотя бы один целевой концепт/закон.
         // В текущем варианте: вопрос подходит, если хотя бы по одному параметру есть совпадение.
-        if ((meta.getTraceConceptBits() & qr.getTraceConceptsTargetedBitmask()) != 0
+        if ((meta.getTraceConceptBits() & qr.getConceptsTargetedBitmask()) != 0
             || (meta.getConceptBits() & qr.getConceptsTargetedBitmask()) != 0
             || (meta.getViolationBits() & qr.getLawsTargetedBitmask()) != 0
         ) {
@@ -66,8 +66,7 @@ public interface QuestionRequestLogRepository extends CrudRepository<QuestionReq
 
         // проверка на отсутствие целевых
         // В текущем варианте: вопрос подходит, если никакие целевые не заданы и по запрещающим критериям (выше) он проходит.
-        if (qr.getTraceConceptsTargetedBitmask() == 0
-            && qr.getConceptsTargetedBitmask() == 0
+        if (qr.getConceptsTargetedBitmask() == 0
             && qr.getLawsTargetedBitmask() == 0
         ) {
             return true;

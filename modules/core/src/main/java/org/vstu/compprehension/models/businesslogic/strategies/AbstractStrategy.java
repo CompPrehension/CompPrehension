@@ -139,7 +139,7 @@ public interface AbstractStrategy {
     /** Fill target and denied concepts and laws, complexity and denied questions from the attempt */
     default QuestionRequest initQuestionRequest(ExerciseAttemptEntity exerciseAttempt, ExerciseStageEntity exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
-        qr.setExerciseAttempt(exerciseAttempt);
+        qr.setExerciseAttemptId(exerciseAttempt.getId());
         qr.setDomainShortname(domain.getShortName());
 
         // concepts

@@ -67,6 +67,7 @@ body ul {
   background-color: white;
   padding: 10px 5px;
   border-radius: 4px;
+  line-height: 50px;
 }
 
 .comp-ph-expr .comp-ph-expr-const, .comp-ph-expr .comp-ph-expr-op-btn {
@@ -86,16 +87,17 @@ body ul {
   text-align: center;
   cursor: pointer;
   transition-duration: 0.2s;
-  
-  
   border-radius: 4px;
-  background-color: #e7e7e7; 
-  
-  border: 2px solid #b5b5b5;  
+  border: 2px solid transparent;
+  border-bottom: 2px solid #b5b5b5;
 }
 
-.comp-ph-expr .comp-ph-expr-op-btn:hover, .comp-ph-expr .comp-ph-expr-op-btn.disabled {
-  background-color: #b5b5b5;
+.comp-ph-expr .comp-ph-expr-op-btn:hover {
+  border: 2px solid #b5b5b5;
+}
+
+.comp-ph-expr .comp-ph-expr-op-btn.disabled {
+  border-bottom: 2px solid #79d68e;
 }
 
 .comp-ph-expr .btn.comp-ph-complete-btn {
@@ -134,6 +136,20 @@ body ul {
   right: 0;
   text-align: center;
   font-size: 9px;
+}
+
+.comp-ph-expr .comp-ph-expr-lr-hint {
+  /*
+  font-size: 50%;
+  opacity: 0.6;
+  
+  font-size: 50%;
+  opacity: 0.5;
+  font-weight: bold;
+  */
+  color: white;
+  font-size: 40%;
+  font-weight: bold;
 }
 
 .comp-ph-feedback-wrapper {

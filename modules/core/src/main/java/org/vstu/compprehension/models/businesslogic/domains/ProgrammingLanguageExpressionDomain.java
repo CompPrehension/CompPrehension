@@ -501,6 +501,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         entity.setAnswerObjects(answerObjectEntities);
         entity.setExerciseAttempt(exerciseAttemptEntity);
+        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
 
         //TODO: remove this hack supporting old format
@@ -566,17 +567,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
     }
 
-    @Override
-    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
-        qr = super.fillBitmasksInQuestionRequest(qr);
-
-        // hard limits on solution length (questions outside this boundaries will never appear)
-        qr.setStepsMin(2);
-        qr.setStepsMax(23);
-
-        return qr;
-    }
-
     @NotNull
     private static String reformatQuestionText(Question q) {
         // avoid changing generated files: re-generate html
@@ -621,7 +611,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
+    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
 
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -632,14 +622,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
-                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
+                questionRequest = ensureQuestionRequestValid(questionRequest);
+                var searchRequest = questionRequest.toBankSearchRequest();
+                foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, searchRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
+                    searchRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                    foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, searchRequest, 1);
                 }
             } catch (Exception e) {
                 // file storage was not configured properly...
@@ -675,10 +666,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
 
             HashSet<String> deniedQuestions = new HashSet<>();
-            if (questionRequest.getExerciseAttempt() != null &&
-                    questionRequest.getExerciseAttempt().getQuestions() != null &&
-                    questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
-                deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
+            if (exerciseAttempt != null &&
+                    exerciseAttempt.getQuestions() != null &&
+                    exerciseAttempt.getQuestions().size() > 0) {
+                deniedQuestions.add(exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1).getQuestionName());
             }
             questionRequest.setDeniedQuestionNames(List.of());
 
@@ -688,12 +679,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (res != null) {
             log.info("Expression domain has prepared the question: {}", res.getQuestionName());
 
-            return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
+            return makeQuestionCopy(res, exerciseAttempt, userLanguage);
         }
 
         // make a SingleChoice question ...
         QuestionEntity question = new QuestionEntity();
-        question.setExerciseAttempt(questionRequest.getExerciseAttempt());
+        question.setExerciseAttempt(exerciseAttempt);
         question.setQuestionText("Choose associativity of operator binary +");
         question.setQuestionType(QuestionType.SINGLE_CHOICE);
         question.setQuestionDomainType("ChooseAssociativity");
@@ -703,6 +694,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
         )));
         return new SingleChoice(question, this);
+    }
+
+    @Override
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest.toBuilder()
+                .stepsMin(2)
+                .stepsMax(23)
+                .build();
     }
 
     private AnswerObjectEntity createAnswerObject(QuestionEntity question, int id, String text, String concept, String domainInfo, boolean isLeft) {
@@ -2617,7 +2616,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         question.setConcepts(new ArrayList<>(concepts));
         meta.setConceptBits(concepts.stream().map(this::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L));
-        meta.setTraceConceptBits(0L);  // trace concepts (encountered during solving the question) are not important for this domain.
+        meta.setTraceConceptBits(meta.getConceptBits());
 
         double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
         double integralComplexity = 1/( 1 + Math.exp(-1*complexity));

@@ -27,3 +27,9 @@ export function notNulAndUndefinded<T>(value: T | null | undefined): value is T 
 export function isNullOrUndefinded<T>(value: T | null | undefined): value is null | undefined {
     return value === null || value === undefined;
 }
+
+export function getRandomInt(min: number, max: number) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
