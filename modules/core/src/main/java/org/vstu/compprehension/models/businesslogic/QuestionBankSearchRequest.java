@@ -32,18 +32,30 @@ public class QuestionBankSearchRequest {
     public long deniedLawsBitmask() {
         return Law.combineToBitmask(deniedLaws);
     }
-    private List<String> deniedQuestionNames;
-    private List<Integer> deniedQuestionTemplateIds = List.of(0);
-    private List<Integer> deniedQuestionMetaIds = List.of(0);
+
+    @Builder.Default
+    private List<String> deniedQuestionNames = List.of("");
+
+    @Builder.Default
+    private List<Integer> deniedQuestionTemplateIds = List.of(-1);
+
+    @Builder.Default
+    private List<Integer> deniedQuestionMetaIds = List.of(-1);
+
+
     private String domainShortname;
+
     /**
      * Сложность задания [0..1]
      */
     private float complexity;
+
     /** минимум шагов в решении */
     private int stepsMin;
+
     /** максимум шагов в решении */
     private int stepsMax;
+
     /**
      * Направление поиска по сложности
      */

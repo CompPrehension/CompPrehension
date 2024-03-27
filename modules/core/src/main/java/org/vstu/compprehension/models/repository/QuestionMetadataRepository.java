@@ -44,6 +44,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.deniedConceptsBitmask()} = 0 " +
             "AND q.violation_bits & :#{#qr.deniedLawsBitmask()} = 0 " +
+            "AND q.name NOT IN :#{#qr.deniedQuestionNames} " +  // note: must be non-empty
             "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
             "order by bit_count(q.trace_concept_bits & :#{#qr.targetConceptsBitmask()})" +
@@ -71,6 +72,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.solution_steps <= :#{#qr.stepsMax} " +
             "AND q.concept_bits & :#{#qr.deniedConceptsBitmask()} = 0 " +
             "AND q.violation_bits & :#{#qr.deniedLawsBitmask()} = 0 " +
+            "AND q.name NOT IN :#{#qr.deniedQuestionNames} " +  // note: must be non-empty
             "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
 

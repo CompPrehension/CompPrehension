@@ -9,12 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("api/question-bank")
@@ -37,23 +35,34 @@ public class QuestionBankController {
         var targetConcepts = searchRequest.getConcepts().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
                 .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
-                .collect(Collectors.toSet());
+                .distinct()
+                .toList();
         var deniedConcepts = searchRequest.getConcepts().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
                 .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
-                .collect(Collectors.toSet());
+                .distinct()
+                .toList();
         var targetLaws = searchRequest.getLaws().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
                 .map(c -> domain.getLaw(c.getName()))
-                .collect(Collectors.toSet());
+                .distinct()
+                .toList();
         var deniedLaws = searchRequest.getLaws().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
                 .map(c -> domain.getLaw(c.getName()))
-                .collect(Collectors.toSet());
+                .distinct()
+                .toList();
 
-
-
-        var qr = new QuestionRequest();
-        return metadataRepository.countQuestions(qr.toBankSearchRequest());
+        var qr = QuestionBankSearchRequest.builder()
+                .targetConcepts(targetConcepts)
+                .deniedConcepts(deniedConcepts)
+                .targetLaws(targetLaws)
+                .deniedLaws(deniedLaws)
+                .complexity(searchRequest.getComplexity())
+                .stepsMin(2)
+                .stepsMax(50)
+                .domainShortname(domain.getShortName())
+                .build();
+        return metadataRepository.countQuestions(qr);
     }
 }
