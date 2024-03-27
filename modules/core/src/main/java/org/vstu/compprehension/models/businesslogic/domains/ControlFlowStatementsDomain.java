@@ -592,7 +592,7 @@ public class ControlFlowStatementsDomain extends Domain {
             ///
 
         }
-        Question questionCopy = makeQuestionCopy(res, res.getQuestionData().getExerciseAttempt(), userLanguage);
+        Question questionCopy = makeQuestionCopy(res, exerciseAttempt, userLanguage);
 
         //// patch question text for survey: hide comments
         // questionCopy.getQuestionData().setQuestionText(
@@ -661,6 +661,7 @@ public class ControlFlowStatementsDomain extends Domain {
         }
         entity.setAnswerObjects(answerObjectEntities);
         entity.setExerciseAttempt(exerciseAttemptEntity);
+        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
 

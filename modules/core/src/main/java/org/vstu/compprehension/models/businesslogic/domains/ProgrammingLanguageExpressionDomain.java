@@ -501,6 +501,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
         entity.setAnswerObjects(answerObjectEntities);
         entity.setExerciseAttempt(exerciseAttemptEntity);
+        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
 
         //TODO: remove this hack supporting old format

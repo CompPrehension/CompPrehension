@@ -2,7 +2,6 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
@@ -63,15 +62,6 @@ public class QuestionMetadataManager {
     ) {
         ensureBankStatLoaded();
 
-        // lists cannot be empty in SQL: workaround
-        val templatesIds = qr.getDeniedQuestionTemplateIds();
-        if (templatesIds == null || templatesIds.isEmpty()) {
-            qr.setDeniedQuestionTemplateIds(List.of(0));
-        }
-        val questionsIds = qr.getDeniedQuestionMetaIds();
-        if (questionsIds == null || questionsIds.isEmpty()) {
-            qr.setDeniedQuestionMetaIds(List.of(0));
-        }
         if (randomPoolLimit < limit)
             randomPoolLimit = limit;
         Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,

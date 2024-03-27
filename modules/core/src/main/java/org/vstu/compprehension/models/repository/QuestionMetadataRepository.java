@@ -56,7 +56,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             " ASC, " +
             " q.used_count ASC " +  // less often show "hot" questions
             " limit :randomPoolLim" +
-            ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.traceConceptsTargetedBitmask()} <> 0) + (T1.concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) + (T1.violation_bits & :#{#qr.targetLawsBitmask()} <> 0)) DESC, RAND() limit :lim",
+            ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) + (T1.concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) + (T1.violation_bits & :#{#qr.targetLawsBitmask()} <> 0)) DESC, RAND() limit :lim",
             nativeQuery = true)
     List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(
             @Param("qr") QuestionBankSearchRequest qr,
@@ -77,7 +77,8 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
 
             "AND IF(:#{#qr.targetConceptsBitmask()} <> 0, (q.trace_concept_bits & :#{#qr.targetConceptsBitmask()}) <> 0, 1) " +
-            "AND IF(:#{#qr.targetLawsBitmask()} <> 0, (q.violation_bits & :#{#qr.targetLawsBitmask()}) <> 0, 1) "
+            "AND IF(:#{#qr.targetLawsBitmask()} <> 0, (q.violation_bits & :#{#qr.targetLawsBitmask()}) <> 0, 1) " +
+            "AND IF(:#{#qr.complexity} <> 0, q.integral_complexity <= :#{#qr.complexity}, 1) "
             , nativeQuery = true)
     int countQuestions(@Param("qr") QuestionBankSearchRequest qr);
 

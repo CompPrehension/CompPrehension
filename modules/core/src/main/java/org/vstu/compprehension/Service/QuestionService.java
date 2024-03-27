@@ -65,7 +65,6 @@ public class QuestionService {
         var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
         Question question = domain.makeQuestion(exerciseAttempt, qr, tags, exerciseAttempt.getUser().getPreferred_language());
         saveQuestionRequest(qr);  // use it after the domain has set step range to qr
-        question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
         return question;
     }
