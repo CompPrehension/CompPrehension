@@ -506,10 +506,8 @@ public class ControlFlowStatementsDomain extends Domain {
             final int randomPoolSize = 1;  // 16;
             try {
                 // new version - invoke rdfStorage search
+                questionRequest = ensureQuestionRequestValid(questionRequest);
                 var searchRequest = questionRequest.toBankSearchRequest();
-                searchRequest.setStepsMin(3);
-                searchRequest.setStepsMax(30);
-
                 foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, searchRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"
@@ -609,23 +607,13 @@ public class ControlFlowStatementsDomain extends Domain {
         return questionCopy;
     }
 
-    /*static List<BackendFactEntity> schemaFactsCache = null;
-
-    static List<BackendFactEntity> getSchemaFacts() {
-        if (schemaFactsCache == null) {
-            schemaFactsCache = modelToFacts(VOCAB.getModel());
-        }
-        return schemaFactsCache;
+    @Override
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest.toBuilder()
+                .stepsMin(3)
+                .stepsMax(30)
+                .build();
     }
-
-    static List<BackendFactEntity> getSchemaFacts(boolean deepCopy) {
-        List<BackendFactEntity> schemaFacts = getSchemaFacts();
-        if (deepCopy) {
-            return factsListDeepCopy(schemaFacts);
-        }
-
-        return schemaFacts;
-    }*/
 
     protected Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLanguage) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()

@@ -621,9 +621,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
+                questionRequest = ensureQuestionRequestValid(questionRequest);
                 var searchRequest = questionRequest.toBankSearchRequest();
-                searchRequest.setStepsMin(2);
-                searchRequest.setStepsMax(23);
                 foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, searchRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
@@ -694,6 +693,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
         )));
         return new SingleChoice(question, this);
+    }
+
+    @Override
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest.toBuilder()
+                .stepsMin(2)
+                .stepsMax(23)
+                .build();
     }
 
     private AnswerObjectEntity createAnswerObject(QuestionEntity question, int id, String text, String concept, String domainInfo, boolean isLeft) {

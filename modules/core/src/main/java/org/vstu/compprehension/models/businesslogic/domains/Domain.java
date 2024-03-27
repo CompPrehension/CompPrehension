@@ -425,6 +425,11 @@ public abstract class Domain {
      */
     public abstract Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest;
+    }
+
+
         /**
          * Generate explanation of violations
          * @param violations list of student violations

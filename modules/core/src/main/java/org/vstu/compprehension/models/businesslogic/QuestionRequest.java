@@ -11,7 +11,7 @@ import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

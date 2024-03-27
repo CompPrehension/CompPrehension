@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -53,7 +53,7 @@ public class QuestionBankController {
                 .distinct()
                 .toList();
 
-        var qr = QuestionBankSearchRequest.builder()
+        var qr = QuestionRequest.builder()
                 .targetConcepts(targetConcepts)
                 .deniedConcepts(deniedConcepts)
                 .targetLaws(targetLaws)
@@ -63,6 +63,8 @@ public class QuestionBankController {
                 .stepsMax(50)
                 .domainShortname(domain.getShortName())
                 .build();
-        return metadataRepository.countQuestions(qr);
+        qr = domain.ensureQuestionRequestValid(qr);
+
+        return metadataRepository.countQuestions(qr.toBankSearchRequest());
     }
 }
