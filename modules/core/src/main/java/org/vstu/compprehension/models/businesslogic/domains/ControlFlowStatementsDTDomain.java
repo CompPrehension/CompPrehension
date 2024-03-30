@@ -139,70 +139,52 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
      * @param inputStream file stream to read from
      */
     @Override
-    protected void readLaws(InputStream inputStream) { // fixme!
-        Objects.requireNonNull(inputStream);
-        positiveLaws = new HashMap<>();
-        negativeLaws = new HashMap<>();
+    protected void readLaws(InputStream inputStream) {
+
+        super.readLaws(inputStream);
 
         // add a new law made from DecisionTree
         loadDTModel();
         var dtLaw = new DTLaw(domainSolvingModel.getDecisionTree());
         negativeLaws.put(dtLaw.getName(), dtLaw);
+        // <<
+    }
 
+    /**
+     * Make negative laws that name each possible error & set bitflags for each law as defined within the vocabulary.
+     */
+    @Override
+    protected void loadNegativeLawsFromVocabulary() {
+        // add negative laws that name each possible error
+        // Note: get flags and write to law object.
 
-        RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Law.class, "positive")
-                        .registerSubtype(PositiveLaw.class, "true")
-                        .registerSubtype(NegativeLaw.class, "false");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+        val voc = getVocabulary();
+        val model = voc.getModel();
+        val prop_has_bitflags = model.getProperty("has_bitflags");
+        String ns = model.getNsPrefixURI("");
 
-        Law[] lawForms = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Law[].class);
+        for (String errClass : voc.classDescendants("Erroneous")) {
+            val classNode = model.getOntClass(ns + errClass);
+            val law = new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
 
-        for (Law lawForm : lawForms) {
-            if (lawForm.isPositiveLaw()) {
-                // (do not filter positive laws)
-                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
-
-            } else {
-                // additional filter for negative laws >>
-//                if (!lawForm.getTags().contains(tags.get("decision-tree"))) {
-//                    // Mute all laws not related to decision tree (but keep for UI and question filtering purposes).
-//                    lawForm.getFormulations().clear();
-//                    //// continue;
-//                }
-                // << additional filter for input laws
-
-                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
+            // fill data: bitFlags
+            val bitFlagStmt = classNode.getProperty(prop_has_bitflags);
+            if (bitFlagStmt != null) {
+                law.setBitflags(bitFlagStmt.getInt());
             }
-        }
-
-        // add empty laws that name each possible error
-        for (String errClass : getVocabulary().classDescendants("Erroneous")) {
-            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
-        }
-
-
-        fillLawsTree();
-
-        // assign mask bits to Laws
-//        for (Law t : positiveLaws.values()) {
-//            val name = t.getName();
-//            if (name2bit.containsKey(name)) {
-//                t.setBitmask(name2bit.get(name));
-//            }
-//        }
-        val name2bit = _getViolationsName2bit();
-        for (Law t : negativeLaws.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
+            // fill data: impliesLaws
+            law.setImpliesLaws(new ArrayList<>());
+            for (val superClass : classNode.listSuperClasses(true).toSet()) {
+                String name = superClass.getLocalName();
+                if (name.equals(errClass)) {
+                    continue;
+                }
+                law.getImpliesLaws().add(name);
             }
+
+            negativeLaws.put(errClass, law);
         }
+        // law.setBitmask() will be called afterwards outside this method.
     }
 
     @Override
@@ -870,8 +852,9 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
 
-    private static OntModel modelToOntModel(Model model) {
-        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);        ontModel.add(model);
+    protected static OntModel modelToOntModel(Model model) {
+        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
+        ontModel.add(model);
         return ontModel;
     }
 

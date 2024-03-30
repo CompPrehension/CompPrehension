@@ -539,11 +539,59 @@
     :EN.localizedName "branch"^^xsd:string ;
     :RU.localizedName "ветка"^^xsd:string .
 
+:AltAnotherBranch a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:AltBranchDup a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:AltBranchOnFalse a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
+:AltCondAfterBranch a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:AltCondAfterTrue a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
+:AltEarlyEndNoBranch a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:AltEarlyEndNoCond a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:AltEarlyEndNoElse a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
+:AltElseOnTrue a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
 :alternative a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :alternative ;
     :EN.localizedName "selection statement"^^xsd:string ;
     :RU.localizedName "развилка"^^xsd:string .
+
+:alternative_multi_with_else a owl:Class ;
+    rdfs:subClassOf :alternative .
+
+:alternative_multi_without_else a owl:Class ;
+    rdfs:subClassOf :alternative .
+
+:alternative_simple a owl:Class ;
+    rdfs:subClassOf :alternative .
+
+:alternative_single_with_else a owl:Class ;
+    rdfs:subClassOf :alternative .
 
 :AlternativeEndAfterTrueCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse .
@@ -593,7 +641,8 @@
     :continues_on_true_condition true .
 
 :ConditionMisuse a owl:Class ;
-    rdfs:subClassOf :WrongNext .
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
 
 :ConditionTooEarly a owl:Class ;
     rdfs:subClassOf :CondtionNotNextToPrevCondition,
@@ -772,9 +821,25 @@
 :loop_with_pre_condition a owl:Class ;
     rdfs:subClassOf :conditional_loop .
 
+:LoopCondBeforeInit a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:LoopCondBeforeIter a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:LoopCondBeforeUpdate a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
 :LoopContinuedAfterFailedCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse,
         :NoLoopEndAfterFailedCondition .
+
+:LoopEarlyEndCondStillTrue a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
 
 :LoopEndAfterSuccessfulCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse,
@@ -782,6 +847,18 @@
 
 :LoopEndsWithoutCondition a owl:Class ;
     rdfs:subClassOf :Erroneous .
+
+:LoopInitDup a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:LoopIterBeforeCond a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
+:LoopNoEndOnFalseCond a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
 
 :LoopStartIsNotCondition a owl:Class ;
     rdfs:subClassOf :Erroneous .
@@ -791,6 +868,14 @@
 
 :LoopStartsNotWithInit a owl:Class ;
     rdfs:subClassOf :Erroneous .
+
+:LoopUpdateBeforeIter a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:LoopUpdateTwice a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
 
 :MisplacedDeeper a owl:Class ;
     rdfs:subClassOf :WrongContext .
@@ -853,8 +938,28 @@
     rdfs:subClassOf :loop_with_initialization ;
     owl:disjointWith :pre_update_loop .
 
+:PostCondLoopCondBeforeIter a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
+:PostCondLoopEarlyEndNoIter a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
+:PostCondLoopNoCondBtwIters a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
+
 :pre_update_loop a owl:Class ;
     rdfs:subClassOf :loop_with_initialization .
+
+:PreCondLoopEarlyEndNoCond a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse ;
+    :has_bitflags 3 .
+
+:PreUpdateLoopIterBeforeUpdate a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :has_bitflags 3 .
 
 :return a owl:Class ;
     rdfs:label "return"^^xsd:string ;

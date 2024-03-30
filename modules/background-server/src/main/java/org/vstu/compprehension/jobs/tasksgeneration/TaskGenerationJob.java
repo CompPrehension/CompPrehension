@@ -43,6 +43,7 @@ public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
     private final TaskGenerationJobConfig tasks;
+    /** Current active task config, `null` while no task is active. This is not thread-safe! */
     private TaskGenerationJobConfig.TaskConfig config;
     private final AbstractRdfStorage storage;
 

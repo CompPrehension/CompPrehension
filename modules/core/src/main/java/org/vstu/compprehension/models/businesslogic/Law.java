@@ -23,7 +23,7 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     @Getter
     String name;
-    @Getter
+    @Getter @Setter
     int bitflags;
     @Getter @Setter
     long bitmask = 0;
@@ -37,10 +37,10 @@ public abstract class Law implements TreeNodeWithBitmask {
     /**
      * Names of laws that should be enabled automatically when this law is added/enabled.
      */
-    @Getter
+    @Getter @Setter
     List<String> impliesLaws;
 
-    /** Cached references to Law instances */
+    /** Cached references to Law instances — semantically the same as `impliesLaws` */
     @Getter @Setter
     Collection<Law> lawsImplied;
 
@@ -64,6 +64,10 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     public abstract boolean isPositiveLaw();
 
+    /**
+     * @param flagCode flag bitmask (see Law.FLAG_* constants)
+     * @return true iff all given bits exist in the law's bitflags
+     */
     public boolean hasFlag(int flagCode) {
     	return (bitflags & flagCode) != 0;
     }

@@ -156,6 +156,10 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
+    /**
+     * Read laws for reasoning with jena
+     * @param inputStream file stream to read from
+     */
     protected void readLaws(InputStream inputStream) {
         Objects.requireNonNull(inputStream);
         positiveLaws = new HashMap<>();
@@ -182,10 +186,7 @@ public class ControlFlowStatementsDomain extends Domain {
             }
         }
 
-        // add empty laws that name each possible error
-        for (String errClass : getVocabulary().classDescendants("Erroneous")) {
-            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
-        }
+        loadNegativeLawsFromVocabulary();
 
 
         fillLawsTree();
@@ -203,6 +204,19 @@ public class ControlFlowStatementsDomain extends Domain {
             if (name2bit.containsKey(name)) {
                 t.setBitmask(name2bit.get(name));
             }
+        }
+    }
+
+    /**
+     Make negative laws that name each possible error (iterating over subclasses of "Erroneous" in the vocabulary)
+     and add them to `negativeLaws`.
+     * Called from {@link ControlFlowStatementsDomain}.readLaws() (and descendant classes by default)
+     */
+    protected void loadNegativeLawsFromVocabulary() {
+        // add empty laws that name each possible error
+        // Note: no bits read and written.
+        for (String errClass : getVocabulary().classDescendants("Erroneous")) {
+            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
         }
     }
 
@@ -1584,7 +1598,7 @@ public class ControlFlowStatementsDomain extends Domain {
         throw new NotImplementedException();
     }
 
-    private static OntModel modelToOntModel(Model model) {
+    protected static OntModel modelToOntModel(Model model) {
         OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
         ontModel.add(model);
         return ontModel;
@@ -2126,51 +2140,81 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     private HashMap<String, Long> _getConceptsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(26);
-        name2bit.put("pointer", 0x1L);
-        name2bit.put("C++", 0x2L);
-        name2bit.put("loops", 0x4L);
-        name2bit.put("if/else", 0x8L);
-        name2bit.put("expr:array", 0x10L);
-        name2bit.put("expr:pointer", 0x20L);
-        name2bit.put("expr:func_call", 0x40L);
-        name2bit.put("expr:explicit_cast", 0x80L);
-        name2bit.put("expr:class_member_access", 0x100L);
-        name2bit.put("alternative", 0x200L);
-        name2bit.put("else", 0x400L);
-        name2bit.put("expr", 0x800L);
-        name2bit.put("if", 0x1000L);
-        name2bit.put("sequence", 0x2000L);
-        name2bit.put("return", 0x4000L);
-        name2bit.put("loop", 0x8000L);
-        name2bit.put("while_loop", 0x10000L);
-        name2bit.put("for_loop", 0x20000L);
-        name2bit.put("else-if", 0x40000L);
-        name2bit.put("nested_loop", 0x80000L);
-        name2bit.put("do_while_loop", 0x100000L);
-        name2bit.put("break", 0x200000L);
-        name2bit.put("continue", 0x400000L);
-                 //   stmt       0x800000L
-        name2bit.put("seq_longer_than1", 0x1000000L);
+        HashMap<String, Long> name2bit = new HashMap<>(30);
+        name2bit.put("pointer", 0x1L);  		// (1)
+        name2bit.put("C++", 0x2L);  			// (2)
+        name2bit.put("loops", 0x4L);  			// (4)
+        name2bit.put("if/else", 0x8L);  		// (8)
+        name2bit.put("expr:array", 0x10L);  	// (16)
+        name2bit.put("expr:pointer", 0x20L);    // (32)
+        name2bit.put("expr:func_call", 0x40L);  // (64)
+        name2bit.put("expr:explicit_cast", 0x80L);  // (128)
+        name2bit.put("expr:class_member_access", 0x100L);  // (256)
+        name2bit.put("alternative", 0x200L);    // (512)
+        name2bit.put("else", 0x400L);  			// (1024)
+        name2bit.put("expr", 0x800L);  			// (2048)
+        name2bit.put("if", 0x1000L);  			// (4096)
+        name2bit.put("sequence", 0x2000L);  	// (8192)
+        name2bit.put("return", 0x4000L);  		// (16384)
+        name2bit.put("loop", 0x8000L);  		// (32768)
+        name2bit.put("while_loop", 0x10000L);   // (65536)
+        name2bit.put("for_loop", 0x20000L);     // (131072)
+        name2bit.put("else-if", 0x40000L);  	// (262144)
+        name2bit.put("nested_loop", 0x80000L);  // (524288)
+        name2bit.put("do_while_loop", 0x100000L);  // (1048576)
+        name2bit.put("break", 0x200000L);  		// (2097152)
+        name2bit.put("continue", 0x400000L);    // (4194304)
+        // name2bit.put("stmt", 0x800000L);  	// (8388608)
+        name2bit.put("seq_longer_than1", 0x1000000L);  // (16777216)
+        name2bit.put("alternative_simple", 0x2000000L);  // (33554432)
+        name2bit.put("alternative_multi_without_else", 0x4000000L);  // (67108864)
+        name2bit.put("alternative_single_with_else", 0x8000000L);  // (134217728)
+        name2bit.put("alternative_multi_with_else", 0x10000000L);  // (268435456)
+        name2bit.put("foreach_loop", 0x20000000L);  // (536870912)
         return name2bit;
     }
     private HashMap<String, Long> _getViolationsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(16);
-        name2bit.put("DuplicateOfAct", 0x1L);
-        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
-        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
-        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);
-        name2bit.put("NoFirstCondition", 0x10L);
-        name2bit.put("SequenceFinishedTooEarly", 0x20L);
-        name2bit.put("TooEarlyInSequence", 0x40L);
-        name2bit.put("BranchOfFalseCondition", 0x80L);
-        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);
-        name2bit.put("LastFalseNoEnd", 0x200L);
-        name2bit.put("LoopStartIsNotCondition", 0x400L);
-        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);
-        name2bit.put("NoConditionAfterIteration", 0x1000L);
-        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
-        name2bit.put("LoopStartIsNotIteration", 0x4000L);
+        HashMap<String, Long> name2bit = new HashMap<>(40);
+        name2bit.put("DuplicateOfAct", 0x1L);  						// (1)
+        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);  		// (2)
+        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);  		// (4)
+        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);  		// (8)
+        name2bit.put("NoFirstCondition", 0x10L);  					// (16)
+        name2bit.put("SequenceFinishedTooEarly", 0x20L);  			// (32)
+        name2bit.put("TooEarlyInSequence", 0x40L);  				// (64)
+        name2bit.put("BranchOfFalseCondition", 0x80L);  			// (128)
+        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);  	// (256)
+        name2bit.put("LastFalseNoEnd", 0x200L);  					// (512)
+        name2bit.put("LoopStartIsNotCondition", 0x400L);  			// (1024)
+        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);  	// (2048)
+        name2bit.put("NoConditionAfterIteration", 0x1000L);  		// (4096)
+        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);  // (8192)
+        name2bit.put("LoopStartIsNotIteration", 0x4000L);  			// (16384)
+        name2bit.put("AltAnotherBranch", 0x8000L);  				// (32768)
+        name2bit.put("AltBranchDup", 0x10000L);  					// (65536)
+        name2bit.put("AltCondAfterBranch", 0x20000L);  				// (131072)
+        name2bit.put("AltCondAfterTrue", 0x40000L);  				// (262144)
+        name2bit.put("AltEarlyEndNoBranch", 0x80000L);  			// (524288)
+        name2bit.put("AltEarlyEndNoCond", 0x100000L);  				// (1048576)
+        name2bit.put("AltElseOnTrue", 0x200000L);  					// (2097152)
+        name2bit.put("AltBranchOnFalse", 0x400000L);  				// (4194304)
+        name2bit.put("LoopInitDup", 0x800000L);  					// (8388608)
+        name2bit.put("LoopIterBeforeCond", 0x1000000L);  			// (16777216)
+        name2bit.put("LoopIterOnFailedCond", 0x2000000L);  			// (33554432)
+        name2bit.put("LoopNoEndOnFalseCond", 0x4000000L);  			// (67108864)
+        name2bit.put("PreCondLoopEarlyEndNoCond", 0x8000000L);  	// (134217728)
+        name2bit.put("PreUpdateLoopIterBeforeUpdate", 0x10000000L); // (268435456)
+        name2bit.put("LoopEarlyEndCondStillTrue", 0x20000000L);     // (536870912)
+        name2bit.put("LoopUpdateBeforeIter", 0x40000000L);  		// (1073741824)
+        name2bit.put("AltEarlyEndNoElse", 0x80000000L);  			// (2147483648)
+        name2bit.put("LoopUpdateBeforeCond", 0x100000000L);  		// (4294967296)
+        name2bit.put("PostCondLoopNoCondBtwIters", 0x200000000L);   // (8589934592)
+        name2bit.put("LoopCondBeforeInit", 0x400000000L);  			// (17179869184)
+        name2bit.put("LoopCondBeforeIter", 0x800000000L);  			// (34359738368)
+        name2bit.put("LoopCondBeforeUpdate", 0x1000000000L);  		// (68719476736)
+        name2bit.put("LoopUpdateTwice", 0x2000000000L);  			// (137438953472)
+        name2bit.put("PostCondLoopCondBeforeIter", 0x4000000000L);  // (274877906944)
+        name2bit.put("PostCondLoopEarlyEndNoIter", 0x8000000000L);  // (549755813888)
         return name2bit;
     }
 
