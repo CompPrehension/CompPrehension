@@ -42,9 +42,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "AND q.concept_bits & :deniedConceptBits = 0 " +
                     "AND q.violation_bits & :deniedLawBits = 0 " +
 
-                    "AND (COALESCE(:deniedQuestionNames, '') = '' OR q.name NOT IN (:deniedQuestionNames)) " +
-                    "AND (COALESCE(:deniedQuestionTemplateIds, '') = '' OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
-                    "AND (COALESCE(:deniedQuestionMetaIds, '') = '' OR q.id NOT IN (:deniedQuestionMetaIds)) " +
+                    "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
+                    "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
+                    "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
 
                     "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                     "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
@@ -92,9 +92,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
             "AND q.concept_bits & :deniedConceptBits = 0 " +
             "AND q.violation_bits & :deniedLawBits = 0 " +
 
-            "AND (:deniedQuestionNames IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
-            "AND (:deniedQuestionTemplateIds IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
-            "AND (:deniedQuestionMetaIds IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
+            "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
+            "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
+            "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
 
             "order by bit_count(q.trace_concept_bits & :targetConceptsBitmask)" +
             " + bit_count(q.concept_bits & :targetConceptsBitmask)" +
