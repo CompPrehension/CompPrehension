@@ -26,13 +26,9 @@ public class QuestionRequest {
     private List<Law> deniedLaws;
     private List<Law> allowedLaws;
 
-    private List<String> deniedQuestionNames;
-
-    // see also: QuestionEntity.options.metadata
-    @Builder.Default
-    private List<Integer> deniedQuestionTemplateIds = List.of(0);
-    @Builder.Default
-    private List<Integer> deniedQuestionMetaIds = List.of(0);  // same as deniedQuestionNames but using ids instead of names
+    private @Nullable List<String> deniedQuestionNames;
+    private @Nullable List<Integer> deniedQuestionTemplateIds;
+    private @Nullable List<Integer> deniedQuestionMetaIds; // same as deniedQuestionNames but using ids instead of names
 
     /**
      * Условная единица, показывающая долго или быстро решается вопрос

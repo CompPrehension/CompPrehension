@@ -7,7 +7,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.ComplexityStats;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.util.List;
@@ -15,7 +14,7 @@ import java.util.List;
 // Основной интерфейс для поиска вопросов по их метаданным
 @Primary
 @Repository
-public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer> {
+public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer>, QuestionMetadataComplexQueriesRepository {
 
     @NotNull
     @Override
@@ -36,52 +35,6 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     ComplexityStats getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
     );
-
-    @Query(value = "SELECT * FROM (" +
-            "select * from questions_meta q where " +
-            "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
-            "AND q.solution_steps >= :#{#qr.stepsMin} " +
-            "AND q.solution_steps <= :#{#qr.stepsMax} " +
-            "AND q.concept_bits & :#{#qr.deniedConceptsBitmask()} = 0 " +
-            "AND q.violation_bits & :#{#qr.deniedLawsBitmask()} = 0 " +
-            "AND q.name NOT IN :#{#qr.deniedQuestionNames} " +  // note: must be non-empty
-            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
-            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
-            "order by bit_count(q.trace_concept_bits & :#{#qr.targetConceptsBitmask()})" +
-            " + bit_count(q.concept_bits & :#{#qr.targetConceptsBitmask()})" +
-            " + bit_count(q.violation_bits & :#{#qr.targetLawsBitmask()})" +
-            " DESC, " +
-            // // " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
-            " abs(q.integral_complexity - :#{#qr.complexity}) DIV :complWindow " +
-            " ASC, " +
-            " q.used_count ASC " +  // less often show "hot" questions
-            " limit :randomPoolLim" +
-            ") T1 ORDER BY ((T1.trace_concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) + (T1.concept_bits & :#{#qr.targetConceptsBitmask()} <> 0) + (T1.violation_bits & :#{#qr.targetLawsBitmask()} <> 0)) DESC, RAND() limit :lim",
-            nativeQuery = true)
-    List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(
-            @Param("qr") QuestionBankSearchRequest qr,
-            @Param("complWindow") double complexityWindow,
-            @Param("lim") int limitNumber,
-            @Param("randomPoolLim") int randomPoolLimitNumber
-    );
-
-    @Query(value =
-            "select count(*) as number from questions_meta q where " +
-            "q.domain_shortname = :#{#qr.domainShortname} AND q._stage = 3 " +
-            "AND q.solution_steps >= :#{#qr.stepsMin} " +
-            "AND q.solution_steps <= :#{#qr.stepsMax} " +
-            "AND q.concept_bits & :#{#qr.deniedConceptsBitmask()} = 0 " +
-            "AND q.violation_bits & :#{#qr.deniedLawsBitmask()} = 0 " +
-            //"AND q.name NOT IN :#{#qr.deniedQuestionNames} " +  // note: must be non-empty
-            "AND q.template_id NOT IN :#{#qr.deniedQuestionTemplateIds} " +  // note: must be non-empty
-            "AND q.id NOT IN :#{#qr.deniedQuestionMetaIds} " + // note: must be non-empty
-
-            "AND IF(:#{#qr.targetConceptsBitmask()} <> 0, (q.trace_concept_bits & :#{#qr.targetConceptsBitmask()}) <> 0, 1) " +
-            "AND IF(:#{#qr.targetLawsBitmask()} <> 0, (q.violation_bits & :#{#qr.targetLawsBitmask()}) <> 0, 1) " +
-            "AND IF(:#{#qr.complexity} <> 0, q.integral_complexity <= :#{#qr.complexity}, 1) "
-            , nativeQuery = true)
-    int countQuestions(@Param("qr") QuestionBankSearchRequest qr);
-
 
     @NotNull
     @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // ( AND q.stage = :stage ) ?

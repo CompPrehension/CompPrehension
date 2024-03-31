@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 
 import java.util.List;
@@ -33,14 +34,9 @@ public class QuestionBankSearchRequest {
         return Law.combineToBitmask(deniedLaws);
     }
 
-    @Builder.Default
-    private List<String> deniedQuestionNames = List.of("");
-
-    @Builder.Default
-    private List<Integer> deniedQuestionTemplateIds = List.of(-1);
-
-    @Builder.Default
-    private List<Integer> deniedQuestionMetaIds = List.of(-1);
+    private @Nullable List<String> deniedQuestionNames;
+    private @Nullable List<Integer> deniedQuestionTemplateIds;
+    private @Nullable List<Integer> deniedQuestionMetaIds;
 
 
     private String domainShortname;
