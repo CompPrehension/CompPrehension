@@ -50,11 +50,6 @@ export class ExerciseStageStore {
     }
     
     *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], complexity: number) {
-        if (this.bankLoadingState === 'IN_PROGRESS')
-            return;
-
-        console.log(`update bank stats`);
-
         const { card } = this;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
         const newData: E.Either<RequestError, number> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, complexity);
@@ -266,7 +261,6 @@ export class ExerciseSettingsStore {
     setCardStageConceptValue(stageIdx: number, conceptName: string, conceptValue: ExerciseCardConceptKind) {
         if (!this.currentCard || !this.currentCard.stages[stageIdx])
             return;
-        console.log('trying to update concept', stageIdx, conceptName, conceptValue);
 
         const stage = this.currentCard.stages[stageIdx];
         const targetConceptIdx = stage.concepts.findIndex(x => x.name == conceptName);

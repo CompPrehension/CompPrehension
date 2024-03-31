@@ -79,10 +79,8 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
 }
 
 async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: io.Type<T, T, unknown>): PromiseEither<RequestError, T> {
-    console.log(`ajax: ${url}`, params);
     const result = await fetch(url, params)
         .then(async (data) => {
-            console.log(data);
             if (data.ok) {                
                 return { status: 'ok', payload: validator && validator.decode(await data.json()) || io.success<T>(await data.json()) } as const;
             }
