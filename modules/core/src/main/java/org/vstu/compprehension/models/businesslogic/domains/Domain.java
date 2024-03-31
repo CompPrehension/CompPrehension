@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -48,20 +47,12 @@ public abstract class Domain {
     @Getter
     protected final RandomProvider randomProvider;
     @Getter
-    protected AbstractRdfStorage qMetaStorage = null;
-    @Getter
     private final DomainEntity domainEntity;
 
     public Domain(DomainEntity domainEntity, RandomProvider randomProvider) {
         this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
     }
-
-    /**
-     * Function for update all internal domain db info
-     */
-    public abstract void update();
-
 
     public @NotNull String getDomainId() {
         return domainEntity.getName();
@@ -77,6 +68,7 @@ public abstract class Domain {
     }
     public abstract @NotNull String getDisplayName(Language language);
     public abstract @Nullable String getDescription(Language language);
+    public DomainOptionsEntity getOptions() { return domainEntity.getOptions(); }
 
     public DomainEntity getEntity() {
         return domainEntity;

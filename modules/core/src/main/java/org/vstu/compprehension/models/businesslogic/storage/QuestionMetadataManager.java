@@ -10,10 +10,11 @@ import java.util.Optional;
 @Log4j2
 public class QuestionMetadataManager {
     private final QuestionMetadataRepository questionRepository;
-    private HashMap<String, NumericStat> complexityStats;
+    private final HashMap<String, NumericStat> complexityStats;
 
     public QuestionMetadataManager(QuestionMetadataRepository questionMetadataRepository) {
         this.questionRepository = questionMetadataRepository;
+        this.complexityStats    = new HashMap<>();
     }
 
     public NumericStat getComplexityStats(String domainShortname) {
@@ -22,7 +23,7 @@ public class QuestionMetadataManager {
     }
 
     private void ensureBankStatLoaded(String domainShortname) {
-        if (complexityStats != null) {
+        if (complexityStats.containsKey(domainShortname)) {
             return;
         }
 

@@ -9,6 +9,8 @@ import org.vstu.compprehension.adapters.FakeLocalizationService;
 import org.vstu.compprehension.adapters.FakeQuestionMetadataRepository;
 import org.vstu.compprehension.adapters.FakeRandomProvider;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
 import java.io.IOException;
@@ -54,7 +56,12 @@ public class Main {
                 domainEntity,
                 new FakeLocalizationService(),
                 new FakeRandomProvider(),
-                new FakeQuestionMetadataRepository()
+                new AbstractRdfStorage(
+                        "ProgrammingLanguageExpressionDomain",
+                        null,
+                        new FakeQuestionMetadataRepository(),
+                        new QuestionMetadataManager( new FakeQuestionMetadataRepository())
+                )
         );
 
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";

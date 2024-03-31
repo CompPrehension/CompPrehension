@@ -11,10 +11,15 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
+import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
+import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.util.PrintUtil;
+import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
@@ -30,8 +35,7 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
+import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -39,7 +43,6 @@ import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -55,7 +58,6 @@ import java.util.stream.Stream;
 
 import static java.lang.Math.max;
 import static java.lang.Math.random;
-import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDomain extends Domain {
@@ -73,10 +75,16 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
+    private final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
+    private final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
+    private final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
+
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
+    private final AbstractRdfStorage qMetaStorage;
+
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
         put("basics", new Tag("basics", 2L));  	// (2 ^ 1)
@@ -90,14 +98,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public ProgrammingLanguageExpressionDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
-            RandomProvider randomProvider,
-            QuestionMetadataRepository questionMetadataRepository) {
+            RandomProvider randomProvider, AbstractRdfStorage qMetaStorage) {
 
         super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
-        this.qMetaStorage = new LocalRdfStorage(
-                domainEntity, questionMetadataRepository, new QuestionMetadataManager(questionMetadataRepository));
+        this.qMetaStorage = qMetaStorage;
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
@@ -344,12 +350,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     @Override
     public List<Concept> getLawConcepts(Law law) {
         return law.getConcepts();
-    }
-
-    @Override
-    public void update() {
-        // init questions storage
-        getQMetaStorage();
     }
 
     @NotNull
@@ -623,13 +623,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             try {
                 // new version - invoke rdfStorage search
                 questionRequest = ensureQuestionRequestValid(questionRequest);
-                foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, questionRequest, 1);
+                foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getQMetaStorage().searchQuestions(this, exerciseAttempt, questionRequest, 1);
+                    foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
                 }
             } catch (Exception e) {
                 // file storage was not configured properly...
@@ -2679,12 +2679,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 Model templateModel = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(templateModel, file);
 
-                Model domainSchemaModel = qMetaStorage.getFullSchema(this);
+                Model domainSchemaModel = getFullSchema();
 
                 // solve the template
-                Model solvedTemplateModel = qMetaStorage.runReasoning(domainSchemaModel
+                Model solvedTemplateModel = runReasoning(domainSchemaModel
                         .union(templateModel),
-                        qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_TEMPLATE_SOLVED),
+                        getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_TEMPLATE_SOLVED),
                         false);
 
                 log.debug("Creating questions for template: {}", name);
@@ -2697,9 +2697,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         break;
 
                     // Find potential errors: solve the question
-                    Model solvedQuestionModel = qMetaStorage.runReasoning(
+                    Model solvedQuestionModel = runReasoning(
                             solvedTemplateModel.union(question.getValue()),
-                            qMetaStorage.getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_SOLVED),
+                            getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_SOLVED),
                             false);
 
                     // Generate only questions with different error sets
@@ -2752,6 +2752,82 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
 
         log.info("Total questions generated: {} ({} saved).\n", qCount, savedCount);
+    }
+
+    /**
+     * Get solved domain schema (for reasoning purposes)
+     * @return model both schema and solved schema (the most of what exists - may be empty)
+     */
+    public Model getFullSchema() {
+        Model m = ModelFactory.createDefaultModel();
+        Model m2 = this.getSchemaForSolving();
+        if (m2 != null)
+            m.add(m2);
+        return m;
+    }
+
+    public Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
+        GenericRuleReasoner reasoner = new GenericRuleReasoner(rules);
+
+        long startTime = System.nanoTime();
+
+        // Note: changes done to inf are also applied to srcModel.
+        InfModel inf = ModelFactory.createInfModel(reasoner, srcModel);
+        inf.prepare();
+
+        long estimatedTime = System.nanoTime() - startTime;
+        if (estimatedTime > 100_000_000) {  // > 0.1 s
+            log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float) estimatedTime / 1000_000_000);
+        }
+
+        Model result;
+        if (retainNewFactsOnly) {
+            // make a true copy
+            result = ModelFactory.createDefaultModel().add(inf);
+            // cleanup the inferred results (inf) ...
+            result.remove(srcModel);
+        } else {
+            result = inf;
+        }
+        return result;
+    }
+
+    public List<Rule> getDomainRulesForSolvingAtLevel(Domain domain, GraphRole level) {
+        assert domain != null;
+
+        // get rules
+        List<Rule> rules = new ArrayList<>();
+
+        List<Law> laws = new ArrayList<>();
+
+        // choose whose rules to return
+        if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
+            laws.addAll(domain.getPositiveLaws());
+        } else if (level.ordinal() <= GraphRole.QUESTION.ordinal()) {
+            laws.addAll(domain.getQuestionPositiveLaws(domain.getDefaultQuestionType(), domain.getDefaultQuestionTags(domain.getDefaultQuestionType())));
+        } else {
+            laws.addAll(domain.getQuestionNegativeLaws(domain.getDefaultQuestionType(), new ArrayList<>()));
+        }
+
+        PrintUtil.registerPrefix("my", NS_code.get()); // as `my:` is used in rules
+
+
+        for (Law law : laws) {
+            for (LawFormulation lawFormulation : law.getFormulations()) {
+                Rule rule;
+                if (lawFormulation.getBackend().equals("Jena")) {
+                    try {
+                        rule = Rule.parseRule(lawFormulation.getFormulation());
+                    } catch (Rule.ParserException e) {
+                        log.error("Following error in rule: {}", lawFormulation.getFormulation(), e);
+                        continue;
+                    }
+                    rules.add(rule);
+                }
+            }
+        }
+
+        return rules;
     }
 
     @Override

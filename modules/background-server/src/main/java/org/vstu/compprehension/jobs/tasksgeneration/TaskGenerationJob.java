@@ -15,7 +15,7 @@ import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
@@ -357,7 +357,8 @@ public class TaskGenerationJob {
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
-            LocalRdfStorage storage = getQuestionStorage();
+            var domainId = "ProgrammingLanguageExpressionDomain";
+            var storage = getQuestionStorage(domainId);
             Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
             for (val file : allJsonFiles) {
@@ -410,8 +411,8 @@ public class TaskGenerationJob {
 
                 // copy data file and save local sub-path to it
                 String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
-                        ? storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"))
-                        : storage.saveQuestionData(exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                        ? storage.saveQuestionData(domainId, q.getQuestionName(), Domain.questionToJson(q, "ORDERING"))
+                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
@@ -491,13 +492,14 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private LocalRdfStorage getQuestionStorage() {
-        return new LocalRdfStorage(
+    private AbstractRdfStorage getQuestionStorage(String domainId) {
+        return new AbstractRdfStorage(
+                domainId,
                 new RemoteFileService(
                         config.getExporter().getStorageUploadFilesBaseUrl().toString(),
                         config.getExporter().getStorageUploadFilesBaseUrl().toString(),
                         config.getExporter().getStorageDummyDirsForNewFile()),
                 metadataRep,
-                null);
+                new QuestionMetadataManager(metadataRep));
     }
 }

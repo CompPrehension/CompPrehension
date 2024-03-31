@@ -1,20 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.rdf.model.InfModel;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
-import org.apache.jena.reasoner.rulesys.Rule;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.util.PrintUtil;
-import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -25,84 +17,59 @@ import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Long.bitCount;
 
 @Log4j2
-public abstract class AbstractRdfStorage {
-    /**
-     * Default prefixes
-     */
-    final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
-    public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
-    //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
-//    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
-    final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
-    //    graphs:
-    //    class NamedGraph
-    //		modifiedAt: datetime   (1..1)
-    //      dependsOn: NamedGraph  (0..*)
-    public final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
-    final static NamespaceUtil NS_classQuestionTemplate = new NamespaceUtil(NS_questions.get("QuestionTemplate#"));
-    final static NamespaceUtil NS_classQuestion = new NamespaceUtil(NS_questions.get("Question#"));
-    /* questions:
-     * class QuestionTemplate:
-     *   name: str   (1..1)
-     *   has_graph_qt    \ NamedGraph or rdf:nil
-     *   has_graph_qt_s  / (1..1)
-     *   ...
-     * class Question:
-     *   name: str    (1..1)
-     *   has_template (1..1)
-     *   has_graph_qt   \
-     *   has_graph_qt_s  | NamedGraph or rdf:nil
-     *   has_graph_q     | (1..1)
-     *   has_graph_q_s  /
-     *
-     *   solution_structural_complexity : int
-     *   solution_steps : int
-     *   distinct_errors_count : int
-     *   integral_complexity: float (0 <= value <= 1)  <- универсальная оценка вопроса для использования в стратегии
-     *	has_tag: domain:Tag   [1..*]
-     *	has_law: domain:Law [1..*]
-     *	has_violation: domain:Violation   [1..*]
-     *   ...
-     * */
-    /*final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));*/
-    // hardcoded FTP location:
-//    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
-//    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
-    // TODO: use as defaults only, open in constructor.
-    public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
-    public static String FTP_DOWNLOAD_BASE = FTP_BASE;
-    static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
-
-    // todo: reassign constants and merge prod & draft tables for questions_meta
+public class AbstractRdfStorage {
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
     public static int STAGE_EXPORTED = 4;
     public static int GENERATOR_VERSION = 10;
 
-    /**
-     * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
-     * TODO: remove, since no rdf storage is in use any more
-     */
-    @Deprecated
-    Dataset dataset = null;
-
-    @Getter
-    private final RemoteFileService fileService;
+    private final HashMap<String, RemoteFileService> fileServices;
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
-    protected AbstractRdfStorage(
+    public AbstractRdfStorage(
+            Collection<Domain> domains,
+            QuestionMetadataRepository questionMetadataRepository,
+            QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
+        this.fileServices = new HashMap<>();
+        for (var domain : domains) {
+            var fs = new RemoteFileService(domain.getOptions().getStorageUploadFilesBaseUrl(),
+                    Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl()).orElse(domain.getOptions().getStorageUploadFilesBaseUrl()));
+
+            this.fileServices.put(domain.getShortName(), fs);
+            this.fileServices.put(domain.getDomainId(), fs);
+        }
+
+        this.questionMetadataRepository = questionMetadataRepository;
+        this.questionMetadataManager = questionMetadataManager;
+    }
+
+    public AbstractRdfStorage(
+            Domain domain,
+            QuestionMetadataRepository questionMetadataRepository,
+            QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
+        this(List.of(domain), questionMetadataRepository, questionMetadataManager);
+    }
+
+    public AbstractRdfStorage(
+            String domainId,
             RemoteFileService fileService,
             QuestionMetadataRepository questionMetadataRepository,
             QuestionMetadataManager questionMetadataManager) {
-        this.fileService = fileService;
+        this.fileServices = new HashMap<>();
+        this.fileServices.put(domainId, fileService);
+
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionMetadataManager = questionMetadataManager;
     }
@@ -298,6 +265,7 @@ public abstract class AbstractRdfStorage {
 
     private Question loadQuestion(Domain domain, String path) {
         Question q = null;
+        var fileService = fileServices.get(domain.getDomainId());
         try (InputStream stream = fileService.getFileStream(path)) {
             if (stream != null) {
                 q = domain.parseQuestionTemplate(stream);
@@ -308,59 +276,12 @@ public abstract class AbstractRdfStorage {
             log.error("Error loading question with path [{}] - {}", path, e.getMessage(), e);
         } finally {
             try {
-                getFileService().closeConnections();
+                fileService.closeConnections();
             } catch (FileSystemException e) {
                 log.error("Error closing connection - {}", e.getMessage(), e);
             }
         }
         return q;
-    }
-
-    Model getDomainSchemaForSolving(Domain domain) {
-        if (domain != null) {
-            return domain.getSchemaForSolving();
-        }
-
-        // the default
-        return ModelFactory.createDefaultModel();
-    }
-
-    public List<Rule> getDomainRulesForSolvingAtLevel(Domain domain, GraphRole level) {
-        assert domain != null;
-
-        // get rules
-        List<Rule> rules = new ArrayList<>();
-
-        List<Law> laws = new ArrayList<>();
-
-        // choose whose rules to return
-        if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
-            laws.addAll(domain.getPositiveLaws());
-        } else if (level.ordinal() <= GraphRole.QUESTION.ordinal()) {
-            laws.addAll(domain.getQuestionPositiveLaws(domain.getDefaultQuestionType(), domain.getDefaultQuestionTags(domain.getDefaultQuestionType())));
-        } else {
-            laws.addAll(domain.getQuestionNegativeLaws(domain.getDefaultQuestionType(), new ArrayList<>()));
-        }
-
-        PrintUtil.registerPrefix("my", NS_code.get()); // as `my:` is used in rules
-
-
-        for (Law law : laws) {
-            for (LawFormulation lawFormulation : law.getFormulations()) {
-                Rule rule;
-                if (lawFormulation.getBackend().equals("Jena")) {
-                    try {
-                        rule = Rule.parseRule(lawFormulation.getFormulation());
-                    } catch (Rule.ParserException e) {
-                        log.error("Following error in rule: {}", lawFormulation.getFormulation(), e);
-                        continue;
-                    }
-                    rules.add(rule);
-                }
-            }
-        }
-
-        return rules;
     }
 
     /**
@@ -439,6 +360,31 @@ public abstract class AbstractRdfStorage {
         return meta;
     }
 
+    public String saveQuestionData(String domainId, String basePath, String questionName, String data) throws IOException {
+        var rawQuestionPath = Path.of(basePath, questionName + ".json");
+        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), data);
+    }
+
+    public String saveQuestionData(String domainId,  String questionName, String data) throws IOException {
+        return saveQuestionDataImpl(domainId, questionName + ".json", data);
+    }
+
+    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, String data) throws IOException {
+        var fileService = fileServices.get(domainId);
+        var questionPath = fileService.prepareNameForFile(rawQuestionPath, false);
+        try (OutputStream stream = fileService.openForWrite(questionPath)) {
+            assert stream != null;
+            stream.write(data.getBytes(StandardCharsets.UTF_8));
+            return questionPath;
+        } finally {
+            try {
+                fileService.closeConnections();
+            } catch (FileSystemException e) {
+                log.error("Error closing file service connection: {}", e.getMessage(), e);
+            }
+        }
+    }
+
     public static int getTooFewQuestionsForQR(int qrLogId) {
         if (qrLogId != 0) {
             // TODO: get the exercise the QR made from and fetch its expected number of students
@@ -451,86 +397,5 @@ public abstract class AbstractRdfStorage {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }
         return 500;
-    }
-
-    /**
-     * запись/обновление подграфа триплетов в кэше
-     * @param gUri graph URI
-     * @param model model to set
-     * @return true on success
-     */
-    public boolean setLocalGraph(String gUri, Model model) {
-        if (/*USE_RDF_STORAGE &&*/ dataset != null) {
-            if (dataset.containsNamedModel(gUri))
-                dataset.replaceNamedModel(gUri, model);
-            else
-                dataset.addNamedModel(gUri, model);
-
-        } else {
-            log.error("Dataset was not initialized");
-            throw new RuntimeException("Dataset was not initialized");
-        }
-        return true;
-    }
-
-    /**
-     * получение подграфа триплетов, хранящего базовую схему домена (необходимую для работы ризонера)
-     * @return model of triples
-     */
-    public Model getSchema(Domain domain) {
-        return getDomainSchemaForSolving(domain);
-    }
-
-    /**
-     * Get solved domain schema (for reasoning purposes)
-     * @return model both schema and solved schema (the most of what exists - may be empty)
-     */
-    public Model getFullSchema(Domain domain) {
-        Model m = ModelFactory.createDefaultModel();
-        Model m2 = getSchema(domain);
-        if (m2 != null)
-            m.add(m2);
-
-        String uri = NS_graphs.get(GraphRole.SCHEMA_SOLVED.ns().base());
-        if (dataset != null && !dataset.containsNamedModel(uri) && !m.isEmpty()) {
-            Model inferred = runReasoning(m, getDomainRulesForSolvingAtLevel(domain, GraphRole.SCHEMA), true);
-            if (inferred.isEmpty()) {
-                // add anything to avoid re-calculation
-                inferred.add(m.listStatements().nextStatement());
-            }
-            setLocalGraph(uri, inferred);
-            m2 = inferred;
-        }
-        /*m2 = getLocalGraphByUri(uri);*/
-        if (m2 != null)
-            m.add(m2);
-
-        return m;
-    }
-
-    public Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
-        GenericRuleReasoner reasoner = new GenericRuleReasoner(rules);
-
-        long startTime = System.nanoTime();
-
-        // Note: changes done to inf are also applied to srcModel.
-        InfModel inf = ModelFactory.createInfModel(reasoner, srcModel);
-        inf.prepare();
-
-        long estimatedTime = System.nanoTime() - startTime;
-        if (estimatedTime > 100_000_000) {  // > 0.1 s
-            log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float) estimatedTime / 1000_000_000);
-        }
-
-        Model result;
-        if (retainNewFactsOnly) {
-            // make a true copy
-            result = ModelFactory.createDefaultModel().add(inf);
-            // cleanup the inferred results (inf) ...
-            result.remove(srcModel);
-        } else {
-            result = inf;
-        }
-        return result;
     }
 }
