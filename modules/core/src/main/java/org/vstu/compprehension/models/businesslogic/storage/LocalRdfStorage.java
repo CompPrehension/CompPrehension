@@ -3,7 +3,6 @@ package org.vstu.compprehension.models.businesslogic.storage;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.vfs2.FileSystemException;
 import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.io.IOException;
@@ -15,10 +14,6 @@ import java.util.Optional;
 
 @Log4j2
 public class LocalRdfStorage extends AbstractRdfStorage {
-    /**
-     * Absolute path (ex. under FTP_BASE) to file containing domain-specific template/question metadata as RDF
-     */
-    String qGraph_filepath = null;
 
     public LocalRdfStorage(DomainEntity domain,
                            QuestionMetadataRepository questionMetadataRepository,
@@ -29,11 +24,6 @@ public class LocalRdfStorage extends AbstractRdfStorage {
                                 .orElse(domain.getOptions().getStorageUploadFilesBaseUrl())),
                 questionMetadataRepository,
                 questionMetadataManager);
-
-        // use options from Domain
-        DomainOptionsEntity cnf = domain.getOptions();
-        this.qGraph_filepath = Optional.ofNullable(cnf.getQuestionsGraphPath())
-                .orElse(cnf.getStorageSPARQLEndpointUrl());
     }
 
     public LocalRdfStorage(RemoteFileService remoteFileService,

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
@@ -20,11 +21,13 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 public class QuestionBankController {
     private final QuestionMetadataRepository metadataRepository;
     private final DomainFactory domainFactory;
+    private final AbstractRdfStorage questionStorage;
 
     @Autowired
-    public QuestionBankController(QuestionMetadataRepository metadataRepository, DomainFactory domainFactory) {
+    public QuestionBankController(QuestionMetadataRepository metadataRepository, DomainFactory domainFactory, AbstractRdfStorage questionStorage) {
         this.metadataRepository = metadataRepository;
         this.domainFactory      = domainFactory;
+        this.questionStorage = questionStorage;
     }
 
     @RequestMapping(value = {"count"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
@@ -64,7 +67,6 @@ public class QuestionBankController {
                 .domainShortname(domain.getShortName())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);
-
-        return metadataRepository.countQuestions(qr.toBankSearchRequest());
+        return questionStorage.countQuestions(qr);
     }
 }

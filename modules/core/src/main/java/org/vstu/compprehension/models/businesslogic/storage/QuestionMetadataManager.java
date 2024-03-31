@@ -1,73 +1,38 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.stats.NumericStat;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.utils.Checkpointer;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Optional;
 
 @Log4j2
-@Getter
 public class QuestionMetadataManager {
-    private final Domain domain;
     private final QuestionMetadataRepository questionRepository;
-    private QuestionGroupStat wholeBankStat;
+    private HashMap<String, NumericStat> complexityStats;
 
-    public QuestionMetadataManager(Domain domain, QuestionMetadataRepository questionMetadataRepository) {
-        this.domain = domain;
+    public QuestionMetadataManager(QuestionMetadataRepository questionMetadataRepository) {
         this.questionRepository = questionMetadataRepository;
     }
 
-    public static long namesToBitmask(Collection<String> names, Map<String, Long> name2bitMapping) {
-        return names.stream()
-                .map(s -> name2bitMapping.getOrDefault(s, 0L))
-                .reduce((a,b) -> a | b).orElse(0L);
+    public NumericStat getComplexityStats(String domainShortname) {
+        ensureBankStatLoaded(domainShortname);
+        return complexityStats.get(domainShortname);
     }
 
-    public QuestionGroupStat getWholeBankStat() {
-        ensureBankStatLoaded();
-        return wholeBankStat;
-    }
-
-    private void ensureBankStatLoaded() {
-        if (wholeBankStat != null) {
+    private void ensureBankStatLoaded(String domainShortname) {
+        if (complexityStats != null) {
             return;
         }
 
-        Checkpointer ch = new Checkpointer(log);
-        var stats = questionRepository.getStatOnComplexityField(domain.getShortName());
-        NumericStat complStat = new NumericStat();
-        complStat.setCount((int)(long)stats.getCount());
-        complStat.setMin  (Optional.ofNullable(stats.getMin()).orElse(0.0));
-        complStat.setMean (Optional.ofNullable(stats.getMean()).orElse(0.5));
-        complStat.setMax  (Optional.ofNullable(stats.getMax()).orElse(1.0));
-
-        wholeBankStat = new QuestionGroupStat();
-        wholeBankStat.setComplexityStat(complStat);
-
-//        ch.hit("initBankStat - stats prepared");
-        ch.since_start("initBankStat - completed");
-    }
-
-    List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutQIds(
-            QuestionBankSearchRequest qr,
-            double complexityMaxDifference,
-            int limit,
-            int randomPoolLimit
-    ) {
-        ensureBankStatLoaded();
-
-        if (randomPoolLimit < limit)
-            randomPoolLimit = limit;
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,
-                limit, randomPoolLimit);
-        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
-        iter.forEach(foundQuestions::add);
-        return foundQuestions;
+        var stats = questionRepository.getStatOnComplexityField(domainShortname);
+        var complexityStats = new NumericStat(
+                (int)(long)stats.getCount(),
+                Optional.ofNullable(stats.getMin()).orElse(0.0),
+                Optional.ofNullable(stats.getMean()).orElse(0.5),
+                Optional.ofNullable(stats.getMax()).orElse(1.0)
+        );
+        this.complexityStats.put(domainShortname, complexityStats);
     }
 }

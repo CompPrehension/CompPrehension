@@ -11,14 +11,10 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.PrintUtil;
 import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.LawFormulation;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -27,7 +23,6 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -128,45 +123,53 @@ public abstract class AbstractRdfStorage {
         return result;
     }
 
+    public int countQuestions(QuestionRequest qr) {
+        var minComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMin();
+        var maxComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMax();
+
+        var bankSearchRequest = qr.toBankSearchRequest(minComplexity, maxComplexity);
+        return questionMetadataRepository.countQuestions(bankSearchRequest);
+    }
+
     /**
      * Find question templates in the questions bank. If no questions satisfy the requirements exactly, finds ones of similar complexity. Denied concepts and laws (laws map to violations on DB) cannot present in result questions anyway.
      * @param qr QuestionRequest
      * @param limit maximum questions to return (must be > 0)
      * @return questions found or empty list if the requirements cannot be satisfied
      */
-    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionBankSearchRequest qr, int limit) {
+    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
 
+        var minComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMin();
+        var maxComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMax();
+        var bankSearchRequest = qr.toBankSearchRequest(minComplexity, maxComplexity);
+
         QuestionMetadataManager metaMgr = this.questionMetadataManager;
-        int nQuestionsInAttempt = Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0);
+        int nQuestionsInAttempt = Optional.ofNullable(bankSearchRequest.getDeniedQuestionNames()).map(List::size).orElse(0);
         int queryLimit = limit + nQuestionsInAttempt;
         int hardLimit = 25;
 
-        double complexity = qr.getComplexity();
-        complexity = metaMgr.getWholeBankStat().complexityStat.rescaleExternalValue(complexity, 0, 1);
+        double complexity = bankSearchRequest.getComplexity();
 
-        long targetConceptsBitmask = qr.targetConceptsBitmask();
-        /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
-        long deniedConceptsBitmask = qr.deniedConceptsBitmask();
-        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, attempt, 4).stream()
+        long targetConceptsBitmask = bankSearchRequest.targetConceptsBitmask();
+        long deniedConceptsBitmask = bankSearchRequest.deniedConceptsBitmask();
+        long unwantedConceptsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInPlan = qr.targetConceptsBitmask();
+        long targetConceptsBitmaskInPlan = bankSearchRequest.targetConceptsBitmask();
 
         // use laws, for e.g. Expr domain
-        long targetLawsBitmask = qr.targetLawsBitmask();
-        /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
-        long deniedLawsBitmask = qr.deniedLawsBitmask();
-        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, attempt, 4).stream()
+        long targetLawsBitmask = bankSearchRequest.targetLawsBitmask();
+        long deniedLawsBitmask = bankSearchRequest.deniedLawsBitmask();
+        long unwantedLawsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInPlan = qr.targetLawsBitmask();
-
+        long targetViolationsBitmaskInPlan = bankSearchRequest.targetLawsBitmask();
 
         // use violations from all questions is exercise attempt
         long unwantedViolationsBitmask = attempt.getQuestions().stream()
@@ -177,23 +180,12 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        // (previous version with explicit parameters)
-//        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
-//                complexity,
-//                0.15,
-//                qr.getStepsMin(), qr.getStepsMax(),
-//                targetConceptsBitmask, deniedConceptsBitmask,
-//                targetLawsBitmask, deniedLawsBitmask,
-//                List.of()/*templatesInUse*/, questionsInUse,
-//                queryLimit, 12);
-
-        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.1, queryLimit, 12);
+        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findSampleAroundComplexityWithoutQIds(bankSearchRequest, 0.1, queryLimit, 12);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 complexity,
-//                solutionSteps,
                 targetConceptsBitmask,
                 unwantedConceptsBitmask,
                 unwantedLawsBitmask,
@@ -227,9 +219,7 @@ public abstract class AbstractRdfStorage {
             meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
             meta.setLastAttemptId(attempt.getId());
             meta.setDateLastUsed(new Date());
-            metaMgr.getQuestionRepository().save(meta);
-
-//            ch.hit("searchQuestionsAdvanced - Question usage +1");
+            questionMetadataRepository.save(meta);
         }
 
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
@@ -240,7 +230,6 @@ public abstract class AbstractRdfStorage {
     private List<QuestionMetadataEntity> filterQuestionMetas(
             List<QuestionMetadataEntity> given,
             double scaledComplexity,
-            /*double scaledSolutionLength,*/
             long targetConceptsBitmask,
             long unwantedConceptsBitmask,
             long unwantedLawsBitmask,
@@ -251,11 +240,7 @@ public abstract class AbstractRdfStorage {
 
         List<QuestionMetadataEntity> ranking1 = given.stream()
                 .sorted(Comparator.comparingDouble(q -> q.complexityAbsDiff(scaledComplexity)))
-                .collect(Collectors.toList());
-
-        /*List<QuestionMetadataEntity> ranking2 = given.stream()
-                .sorted(Comparator.comparingDouble(q -> q.getSolutionStepsAbsDiff(scaledSolutionLength)))
-                .collect(Collectors.toList());*/
+                .toList();
 
         List<QuestionMetadataEntity> ranking3 = given.stream()
                 .sorted(Comparator.comparingInt(
@@ -264,7 +249,7 @@ public abstract class AbstractRdfStorage {
                         + bitCount(q.getViolationBits() & unwantedViolationsBitmask)
                         - bitCount(q.getConceptBits() & targetConceptsBitmask) * 3
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
 
         // want more diversity in question ?? count control values -> take more with '1' not with '0'
@@ -379,52 +364,6 @@ public abstract class AbstractRdfStorage {
     }
 
     /**
-     * Download a file content from remote FTP, parse and return as Model
-     */
-    @Nullable
-    Model fetchModel(String filepath) {
-        Model m = ModelFactory.createDefaultModel();
-        try (InputStream stream = fileService.getFileStream(filepath)) {
-            if (stream == null)
-                return null;
-            RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
-            getFileService().closeConnections();
-        } catch (IOException /*| NullPointerException*/ e) {
-            log.error("Error reading model with path [{}] - {}", filepath, e.getMessage(), e);
-            return null;
-        }
-        return m;
-    }
-
-    public String nameForQuestionGraph(String questionName, GraphRole role) {
-        // look for <Question>.<subgraph> property in metadata first
-        QuestionMetadataEntity meta = findQuestionByName(questionName);
-        String targetPath = null;
-        if (meta != null)
-            switch (role) {
-                case QUESTION_TEMPLATE:
-                    targetPath = meta.getQtGraphPath(); break;
-                case QUESTION_TEMPLATE_SOLVED:
-                    targetPath = meta.getQtSolvedGraphPath(); break;
-                case QUESTION:
-                    targetPath = meta.getQGraphPath(); break;
-                case QUESTION_SOLVED:
-                    targetPath = meta.getQSolvedGraphPath(); break;
-                case QUESTION_DATA:
-                    targetPath = meta.getQDataGraph(); break;
-            }
-
-        if (targetPath != null) {
-            return targetPath;
-        }
-
-        // no known relation - get default for a new one
-        String ext = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
-        return fileService.prepareNameForFile(role.ns().get(questionName + ext), false);
-        //// return role.ns(NS_namedGraph.get()).get(questionName);
-    }
-
-    /**
      * Find and return row of question or question template with given name from 'question_meta_draft' table
      */
     public QuestionMetadataEntity findQuestionByName(String questionName) {
@@ -437,22 +376,6 @@ public abstract class AbstractRdfStorage {
             return null;
 
         return found.get(0);
-    }
-
-    /**
-     * Get Model with specified `role` for question or question template, if one exists, else `null` is returned.
-     */
-    public Model getQuestionSubgraph(String questionName, GraphRole role) {
-        return fetchModel(nameForQuestionGraph(questionName, role));
-    }
-
-    List<GraphRole> questionStages() {
-        return List.of(
-                GraphRole.QUESTION_TEMPLATE,
-                GraphRole.QUESTION_TEMPLATE_SOLVED,
-                GraphRole.QUESTION,
-                GraphRole.QUESTION_SOLVED
-        );
     }
 
     @NotNull
@@ -528,14 +451,6 @@ public abstract class AbstractRdfStorage {
             // TODO: get the exercise the QR made from and fetch its expected number of students
         }
         return 500;
-    }
-
-    public boolean localGraphExists(String gUri) {
-        return false;
-    }
-
-    public Model getLocalGraphByUri(String gUri) {
-        return null;
     }
 
     /**
