@@ -460,7 +460,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .requireContext(true)
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
-                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX, null))
+                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
                 .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
                 .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
                 .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question

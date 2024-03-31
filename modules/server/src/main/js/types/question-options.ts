@@ -16,7 +16,7 @@ export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
     requireAllAnswers: boolean,
     orderNumberOptions?: {
         delimiter: string,
-        position: 'PREFIX' | 'SUFFIX' | 'NONE',
+        position: 'PREFIX' | 'SUFFIX' | 'BOTTOM' | 'NONE',
         replacers?: string[] | null,
     }
 }>;
@@ -34,6 +34,7 @@ export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersec
                 position: io.keyof({
                     'PREFIX': null,
                     'SUFFIX': null,
+                    'BOTTOM': null,
                     'NONE': null,
                 }),                    
             }),

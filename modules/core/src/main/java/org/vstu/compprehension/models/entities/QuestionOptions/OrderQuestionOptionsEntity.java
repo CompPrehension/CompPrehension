@@ -45,6 +45,8 @@ public class OrderQuestionOptionsEntity extends QuestionOptionsEntity {
         PREFIX,
         @JsonProperty("SUFFIX")
         SUFFIX,
+        @JsonProperty("BOTTOM")
+        BOTTOM,
         @JsonProperty("NONE")
         NONE,
     }

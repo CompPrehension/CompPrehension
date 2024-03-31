@@ -42,9 +42,6 @@ body ul {
 }
 
 [id^="question_"][id*="_answer_"].comp-ph-question-answer--last-selected-by-system {
-  /*
-  transition: all 1s linear;
-  */
   border: 2px solid green;
 }
 
@@ -78,6 +75,10 @@ body ul {
   margin: 10px 2px;
 }
 
+.comp-ph-expr [id^="question_"][id*="_answer_"].comp-ph-question-answer--last-selected-by-system {  
+  border: 2px solid rgb(121, 214, 142);;
+}
+
 .comp-ph-expr .comp-ph-expr-op-btn {
   
   font-size: 20px;
@@ -93,7 +94,7 @@ body ul {
 }
 
 .comp-ph-expr .comp-ph-expr-op-btn:hover {
-  border: 2px solid #b5b5b5;
+  border: 2px solid #79d68e;
 }
 
 .comp-ph-expr .comp-ph-expr-op-btn.disabled {
@@ -102,12 +103,17 @@ body ul {
 
 .comp-ph-expr .btn.comp-ph-complete-btn {
   color: black;
+  /*
   background-color: #e7e7e7;
+  */
   border: 2px solid #b5b5b5;
 }
 
 .comp-ph-expr .btn.comp-ph-complete-btn:hover, .comp-ph-expr .btn.comp-ph-complete-btn.disabled {
+  /*
   background-color: #b5b5b5;
+  */
+  border-color: #79d68e;
   opacity: 1;
 }
 .comp-ph-expr .btn.comp-ph-complete-btn:focus {
