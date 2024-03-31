@@ -8,6 +8,7 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -39,7 +40,7 @@ public class AbstractRdfStorage {
     private final QuestionMetadataManager questionMetadataManager;
 
     public AbstractRdfStorage(
-            Collection<Domain> domains,
+            Collection<DomainEntity> domains,
             QuestionMetadataRepository questionMetadataRepository,
             QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
         this.fileServices = new HashMap<>();
@@ -48,18 +49,11 @@ public class AbstractRdfStorage {
                     Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl()).orElse(domain.getOptions().getStorageUploadFilesBaseUrl()));
 
             this.fileServices.put(domain.getShortName(), fs);
-            this.fileServices.put(domain.getDomainId(), fs);
+            this.fileServices.put(domain.getName(), fs);
         }
 
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionMetadataManager = questionMetadataManager;
-    }
-
-    public AbstractRdfStorage(
-            Domain domain,
-            QuestionMetadataRepository questionMetadataRepository,
-            QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
-        this(List.of(domain), questionMetadataRepository, questionMetadataManager);
     }
 
     public AbstractRdfStorage(

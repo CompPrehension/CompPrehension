@@ -98,7 +98,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public ProgrammingLanguageExpressionDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
-            RandomProvider randomProvider, AbstractRdfStorage qMetaStorage) {
+            RandomProvider randomProvider,
+            AbstractRdfStorage qMetaStorage) {
 
         super(domainEntity, randomProvider);
 
