@@ -93,7 +93,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                     const delim = orderNumberOptions.delimiter;
                     const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
                     const answerHtml = orderNumberOptions.position === 'PREFIX' ? `${orderNumber}${delim}${answr.innerHTML}` :
-                                    orderNumberOptions.position === 'SUFFIX' ? `${answr.innerHTML}${delim}${orderNumber}</span>` : 
+                                    orderNumberOptions.position === 'SUFFIX' ? `${answr.innerHTML}${delim}${orderNumber}` : 
                                     orderNumberOptions.position === 'BOTTOM' ? `<span class="comp-ph-expr-bottom-hint">${delim}${orderNumber}</span>${answr.innerHTML}` :
                                     answr.innerHTML;
                    answr.innerHTML = answerHtml;
