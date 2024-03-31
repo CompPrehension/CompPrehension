@@ -92,9 +92,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
             "AND q.concept_bits & :deniedConceptBits = 0 " +
             "AND q.violation_bits & :deniedLawBits = 0 " +
 
-            "AND (COALESCE(:deniedQuestionNames, NULL) = '' OR q.name NOT IN (:deniedQuestionNames)) " +
-            "AND (COALESCE(:deniedQuestionTemplateIds, NULL) = '' OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
-            "AND (COALESCE(:deniedQuestionMetaIds, NULL) = '' OR q.id NOT IN (:deniedQuestionMetaIds)) " +
+            "AND (:deniedQuestionNames IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
+            "AND (:deniedQuestionTemplateIds IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
+            "AND (:deniedQuestionMetaIds IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
 
             "order by bit_count(q.trace_concept_bits & :targetConceptsBitmask)" +
             " + bit_count(q.concept_bits & :targetConceptsBitmask)" +
@@ -118,6 +118,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("targetConceptsBitmask", targetConceptsBitmask)
                 .setParameter("targetLawsBitmask", targetLawsBitmask)
                 .setParameter("complexity", complexity)
+                .setParameter("complWindow", complexityWindow)
+                .setParameter("randomPoolLim", randomPoolLimitNumber)
+                .setParameter("lim", limitNumber)
                 .getResultList();
         //noinspection unchecked
         return (List<QuestionMetadataEntity>)result;
