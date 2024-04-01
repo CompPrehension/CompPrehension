@@ -348,6 +348,8 @@
 
 :involves_concept a owl:AnnotationProperty .
 
+:law_bitflags a owl:AnnotationProperty .
+
 :principal_violation a owl:AnnotationProperty .
 
 :RU.localizedName a owl:AnnotationProperty .
@@ -569,57 +571,6 @@ skos:broader a owl:AnnotationProperty .
     :EN.localizedName "branch"^^xsd:string ;
     :RU.localizedName "ветка"^^xsd:string .
 
-:AltAnotherBranch a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative .
-
-:AltBranchDup a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative .
-
-:AltBranchOnFalse a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative,
-        :alternative_multi_without_else,
-        :alternative_simple .
-
-:AltCondAfterBranch a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative .
-
-:AltCondAfterTrue a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative,
-        :alternative_multi_with_else,
-        :alternative_multi_without_else .
-
-:AltEarlyEndNoBranch a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative .
-
-:AltEarlyEndNoCond a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative .
-
-:AltEarlyEndNoElse a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative_multi_with_else,
-        :alternative_single_with_else .
-
-:AltElseOnTrue a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :alternative_multi_with_else,
-        :alternative_single_with_else .
-
 :alternative a owl:Class ;
     rdfs:label "if"^^xsd:string ;
     rdfs:subClassOf :action ;
@@ -709,8 +660,8 @@ skos:broader a owl:AnnotationProperty .
 
 :ConditionMisuse a owl:Class ;
     rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :expr .
+    :involves_concept :expr ;
+    :law_bitflags 3 .
 
 :ConditionTooEarly a owl:Class ;
     rdfs:subClassOf :CondtionNotNextToPrevCondition,
@@ -949,35 +900,11 @@ skos:broader a owl:AnnotationProperty .
 :loop_with_pre_condition a owl:Class ;
     rdfs:subClassOf :conditional_loop .
 
-:LoopCondBeforeInit a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :for_loop,
-        :foreach_loop .
-
-:LoopCondBeforeIter a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :foreach_loop .
-
-:LoopCondBeforeUpdate a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :for_loop .
-
 :LoopContinuedAfterFailedCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse,
         :NoLoopEndAfterFailedCondition ;
     :involves_concept :expr,
         :loop .
-
-:LoopEarlyEndCondStillTrue a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :do_while_loop,
-        :for_loop,
-        :foreach_loop,
-        :while_loop .
 
 :LoopEndAfterSuccessfulCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse,
@@ -992,26 +919,6 @@ skos:broader a owl:AnnotationProperty .
     :involves_concept :expr,
         :loop .
 
-:LoopInitDup a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :for_loop .
-
-:LoopIterBeforeCond a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :for_loop,
-        :foreach_loop,
-        :while_loop .
-
-:LoopNoEndOnFalseCond a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :do_while_loop,
-        :for_loop,
-        :foreach_loop,
-        :while_loop .
-
 :LoopStartIsNotCondition a owl:Class ;
     rdfs:subClassOf :Erroneous ;
     :involves_concept :expr,
@@ -1024,17 +931,6 @@ skos:broader a owl:AnnotationProperty .
 :LoopStartsNotWithInit a owl:Class ;
     rdfs:subClassOf :Erroneous ;
     :involves_concept :for_loop .
-
-:LoopUpdateBeforeIter a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :for_loop .
-
-:LoopUpdateTwice a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :for_loop,
-        :foreach_loop .
 
 :MisplacedDeeper a owl:Class ;
     rdfs:subClassOf :WrongContext ;
@@ -1129,33 +1025,8 @@ skos:broader a owl:AnnotationProperty .
     rdfs:subClassOf :loop_with_initialization ;
     owl:disjointWith :pre_update_loop .
 
-:PostCondLoopCondBeforeIter a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :do_while_loop .
-
-:PostCondLoopEarlyEndNoIter a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :do_while_loop .
-
-:PostCondLoopNoCondBtwIters a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :do_while_loop .
-
 :pre_update_loop a owl:Class ;
     rdfs:subClassOf :loop_with_initialization .
-
-:PreCondLoopEarlyEndNoCond a owl:Class ;
-    rdfs:subClassOf :ConditionMisuse ;
-    :has_bitflags 3 ;
-    :involves_concept :while_loop .
-
-:PreUpdateLoopIterBeforeUpdate a owl:Class ;
-    rdfs:subClassOf :WrongNext ;
-    :has_bitflags 3 ;
-    :involves_concept :foreach_loop .
 
 :return a owl:Class ;
     rdfs:label "return"^^xsd:string ;

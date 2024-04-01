@@ -129,9 +129,9 @@ public class ControlFlowStatementsDomain extends Domain {
         addConcepts(getVocabulary().readConcepts());
 
         // add concepts about expressions present in algorithms
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
+        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;  // only allowed or denied.
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        Concept nested_loop = new Concept("nested_loop", List.of(), flagsAll);
+        Concept nested_loop = new Concept("nested_loop", List.of(getConcept("loop")), flagsAll);
         Concept exprC = new Concept("exprs_in_use", List.of(), flags);
         List<Concept> bases = List.of(exprC);
         addConcepts(List.of(

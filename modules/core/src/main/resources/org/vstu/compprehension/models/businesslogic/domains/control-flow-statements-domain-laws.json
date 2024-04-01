@@ -1623,5 +1623,409 @@
         "backend": "Jena"
       }
     ]
+  },
+  {
+    "name": "AltAnotherBranch",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltBranchOnFalse",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_multi_without_else"
+      },
+      {
+        "name": "alternative_simple"
+      },
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltCondAfterTrue",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_multi_without_else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      },
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltEarlyEndNoCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltEarlyEndNoBranch",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltBranchDup",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltCondAfterBranch",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltElseOnTrue",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltConditionMisuse",
+      "AltElseBranchMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_single_with_else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      }
+    ]
+  },
+  {
+    "name": "AltEarlyEndNoElse",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltElseBranchMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_single_with_else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      }
+    ]
+  },
+  {
+    "name": "PostCondLoopCondBeforeIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      }
+    ]
+  },
+  {
+    "name": "PostCondLoopEarlyEndNoIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      }
+    ]
+  },
+  {
+    "name": "PostCondLoopNoCondBtwIters",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopEarlyEndCondStillTrue",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      },
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopNoEndOnFalseCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse",
+      "LoopEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      },
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopIterBeforeCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "PreCondLoopEarlyEndNoCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopEndingErrors",
+      "LoopConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "while_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopInitDup",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopInitMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopUpdateBeforeIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopUpdateMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopCondBeforeUpdate",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse",
+      "LoopUpdateMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopCondBeforeInit",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse",
+      "LoopInitMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopUpdateTwice",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopUpdateMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "PreUpdateLoopIterBeforeUpdate",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopUpdateMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopCondBeforeIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopConditionMisuse"
+    ],
+    "concepts": [
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "AltConditionMisuse",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
+  },
+  {
+    "name": "AltElseBranchMisuse",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
+  },
+  {
+    "name": "AltEndingErrors",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
+  },
+  {
+    "name": "LoopConditionMisuse",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
+  },
+  {
+    "name": "LoopInitMisuse",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
+  },
+  {
+    "name": "LoopUpdateMisuse",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
+  },
+  {
+    "name": "LoopEndingErrors",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "concepts": []
   }
 ]
