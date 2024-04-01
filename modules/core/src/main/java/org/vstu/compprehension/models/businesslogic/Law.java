@@ -34,6 +34,9 @@ public abstract class Law implements TreeNodeWithBitmask {
     @Getter
     List<Tag> tags;
 
+    @Getter @Setter
+    int sortOrder = 999;
+
     /**
      * Names of laws that should be enabled automatically when this law is added/enabled.
      */

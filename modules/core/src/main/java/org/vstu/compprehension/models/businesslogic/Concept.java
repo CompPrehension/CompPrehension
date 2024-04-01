@@ -34,6 +34,9 @@ public class Concept implements TreeNodeWithBitmask {
     /** ID-like bit of the concept for a bitmask combining several Concepts */
     long bitmask;
 
+    @Getter @Setter
+    int sortOrder = 999;
+
     public Concept(String name) {
         this.name = name;
         this.bitflags = DEFAULT_FLAGS;
