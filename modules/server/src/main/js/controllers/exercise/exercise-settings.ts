@@ -52,9 +52,10 @@ export class ExerciseSettingsController {
         return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
 
-    async getBankStats(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], complexity: number): PromiseEither<RequestError, number> {
+    getBankStats(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number): PromiseEither<RequestError, number> {
         const body = {
             domainId,
+            tags,
             concepts,
             laws,
             complexity,

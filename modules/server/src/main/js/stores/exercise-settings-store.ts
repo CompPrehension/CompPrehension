@@ -45,14 +45,14 @@ export class ExerciseStageStore {
             const complexity = this.card.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
-            await this.updateBankStats(concepts, laws, complexity);
+            await this.updateBankStats(concepts, laws, card.tags, complexity);
         }, { delay: 1000 });
     }
     
-    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], complexity: number) {
+    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number) {
         const { card } = this;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
-        const newData: E.Either<RequestError, number> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, complexity);
+        const newData: E.Either<RequestError, number> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, tags, complexity);
         if (E.isRight(newData)) {
             runInAction(() => {
                 this.bankQuestionsCount = newData.right;

@@ -15,6 +15,7 @@ import java.util.List;
 public class QuestionBankSearchRequestDto {
     private @NotNull String domainId;
     private @NotNull Float complexity;
+    private @NotNull List<String> tags;
     private @NotNull List<ExerciseLawDto> laws;
     private @NotNull List<ExerciseConceptDto> concepts;
 }

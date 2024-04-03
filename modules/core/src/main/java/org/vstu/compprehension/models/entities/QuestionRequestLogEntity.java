@@ -49,6 +49,9 @@ public class QuestionRequestLogEntity {
     @Type(JsonType.class)
     private List<String> allowedLawNames;
 
+    @Type(JsonType.class)
+    private List<String> targetTags;
+
     // bit fields
     long conceptsTargetedBitmask;  // set to 0 if traceConceptsTargetedBitmask set
     long conceptsDeniedBitmask;

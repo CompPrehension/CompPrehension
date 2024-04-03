@@ -55,6 +55,10 @@ public class QuestionBankController {
                 .map(c -> domain.getLaw(c.getName()))
                 .distinct()
                 .toList();
+        var targetTags = searchRequest.getTags().stream()
+                .map(domain::getTag)
+                .distinct()
+                .toList();
 
         var qr = QuestionRequest.builder()
                 .targetConcepts(targetConcepts)
@@ -62,8 +66,7 @@ public class QuestionBankController {
                 .targetLaws(targetLaws)
                 .deniedLaws(deniedLaws)
                 .complexity(searchRequest.getComplexity())
-                .stepsMin(2)
-                .stepsMax(50)
+                .targetTags(targetTags)
                 .domainShortname(domain.getShortName())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);

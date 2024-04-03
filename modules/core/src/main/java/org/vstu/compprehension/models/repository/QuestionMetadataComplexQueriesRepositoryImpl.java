@@ -32,6 +32,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 : qr.getDeniedQuestionMetaIds();
         var targetConceptsBitmask = qr.targetConceptsBitmask();
         var targetLawsBitmask = qr.targetLawsBitmask();
+        var targetTagsBitmask = qr.targetTagsBitmask();
         var complexity = qr.getComplexity();
 
         var query = entityManager.createNativeQuery(
@@ -46,6 +47,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
                     "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
 
+                    "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
                     "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                     "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                     "AND IF(:complexity <> 0, q.integral_complexity <= :complexity, 1) ", Integer.class)
@@ -57,6 +59,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("deniedQuestionNames", deniedQuestionNames)
                 .setParameter("deniedQuestionTemplateIds", deniedQuestionTemplateIds)
                 .setParameter("deniedQuestionMetaIds", deniedQuestionMetaIds)
+                .setParameter("targetTagsBitmask", targetTagsBitmask)
                 .setParameter("targetConceptsBitmask", targetConceptsBitmask)
                 .setParameter("targetLawsBitmask", targetLawsBitmask)
                 .setParameter("complexity", complexity);
@@ -81,6 +84,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 : qr.getDeniedQuestionMetaIds();
         var targetConceptsBitmask = qr.targetConceptsBitmask();
         var targetLawsBitmask = qr.targetLawsBitmask();
+        var targetTagsBitmask = qr.targetTagsBitmask();
         var complexity = qr.getComplexity();
 
         var result = entityManager.createNativeQuery(
@@ -95,6 +99,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
             "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
             "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
             "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
+
+            "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
 
             "order by bit_count(q.trace_concept_bits & :targetConceptsBitmask)" +
             " + bit_count(q.concept_bits & :targetConceptsBitmask)" +
@@ -117,6 +123,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("deniedQuestionMetaIds", deniedQuestionMetaIds)
                 .setParameter("targetConceptsBitmask", targetConceptsBitmask)
                 .setParameter("targetLawsBitmask", targetLawsBitmask)
+                .setParameter("targetTagsBitmask", targetTagsBitmask)
                 .setParameter("complexity", complexity)
                 .setParameter("complWindow", complexityWindow)
                 .setParameter("randomPoolLim", randomPoolLimitNumber)

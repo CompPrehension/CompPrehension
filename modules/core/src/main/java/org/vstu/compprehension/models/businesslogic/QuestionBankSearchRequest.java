@@ -14,24 +14,29 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class QuestionBankSearchRequest {
-    private List<Concept> deniedConcepts;
+    private @Nullable List<Concept> deniedConcepts;
     public long deniedConceptsBitmask() {
         return Concept.combineToBitmask(deniedConcepts);
     }
 
-    private List<Concept> targetConcepts;
+    private @Nullable List<Concept> targetConcepts;
     public long targetConceptsBitmask() {
         return Concept.combineToBitmask(targetConcepts);
     }
 
-    private List<Law> targetLaws;
+    private @Nullable List<Law> targetLaws;
     public long targetLawsBitmask() {
         return Law.combineToBitmask(targetLaws);
     }
 
-    private List<Law> deniedLaws;
+    private @Nullable List<Law> deniedLaws;
     public long deniedLawsBitmask() {
         return Law.combineToBitmask(deniedLaws);
+    }
+
+    private @Nullable List<Tag> targetTags;
+    public long targetTagsBitmask() {
+        return Tag.combineToBitmask(targetTags);
     }
 
     private @Nullable List<String> deniedQuestionNames;

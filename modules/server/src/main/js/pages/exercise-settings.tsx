@@ -419,7 +419,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                             || null
                                         }
                                         <div className="form-group">
-                                            <label className="font-weight-bold">Вопросов в банке задач</label>
+                                            <label className="font-weight-bold">{t('exercisesettings_questionsInBank')}</label>
                                             <div className="form-control" style={{ position: 'relative' }}>
                                                 <div>{stage.bankLoadingState === 'IN_PROGRESS' ? '' : stage.bankQuestionsCount}</div>
                                                 <div style={{ position: 'absolute', right: '0.7rem', top: 'calc(50% - 1rem)' }}>
