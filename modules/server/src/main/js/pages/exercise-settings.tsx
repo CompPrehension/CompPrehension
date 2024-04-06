@@ -338,7 +338,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                         || null
                                     }                                    
                                     <div className="card-body">
-                                        <div className="form-group">{t('exercisesettings_stageN', { stageNumber: stageIdx + 1})}</div>
+                                        <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <div>{t('exercisesettings_stageN', { stageNumber: stageIdx + 1})}</div>                                            
+                                            <div>
+                                                <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
+                                                {
+                                                    stage.bankLoadingState === 'IN_PROGRESS' 
+                                                        ? <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
+                                                        : stage.bankQuestionsCount
+                                                }
+                                            </div>
+                                        </div>
                                         {currentStrategy?.options.multiStagesEnabled
                                             && <div className="form-group">
                                                     <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
@@ -418,16 +428,6 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                             </div>
                                             || null
                                         }
-                                        <div className="form-group">
-                                            <label className="font-weight-bold">{t('exercisesettings_questionsInBank')}</label>
-                                            <div className="form-control" style={{ position: 'relative' }}>
-                                                <div>{stage.bankLoadingState === 'IN_PROGRESS' ? '' : stage.bankQuestionsCount}</div>
-                                                <div style={{ position: 'absolute', right: '0.7rem', top: 'calc(50% - 1rem)' }}>
-                                                    {stage.bankLoadingState === 'IN_PROGRESS' && 
-                                                        <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />}
-                                                </div> 
-                                            </div>                                                  
-                                        </div>
                                     </div>
                                 </div>
                             </>)}

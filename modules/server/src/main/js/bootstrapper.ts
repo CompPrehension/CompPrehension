@@ -77,7 +77,7 @@ const resources = {
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
-            exercisesettings_questionsInBank: "Qustions in bank",
+            exercisesettings_questionsInBank: "Questions in bank",
 
             survey_sendresults: "Send survey results",
         },
@@ -197,7 +197,7 @@ const resources = {
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
-            exercisesettings_questionsInBank: "Qustions in bank",
+            exercisesettings_questionsInBank: "Questions in bank",
 
             survey_sendresults: "Send survey results",
         },
