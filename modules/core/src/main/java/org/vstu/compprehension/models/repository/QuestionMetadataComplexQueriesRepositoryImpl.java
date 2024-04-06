@@ -19,8 +19,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var domainShortname = qr.getDomainShortname();
         var stepsMin = qr.getStepsMin();
         var stepsMax = qr.getStepsMax();
-        var deniedConceptBits = qr.deniedConceptsBitmask();
-        var deniedLawBits = qr.deniedLawsBitmask();
+        var deniedConceptBits = qr.getDeniedConceptsBitmask();
+        var deniedLawBits = qr.getDeniedLawsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
@@ -30,9 +30,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var deniedQuestionMetaIds = qr.getDeniedQuestionMetaIds() == null || qr.getDeniedQuestionMetaIds().isEmpty()
                 ? null
                 : qr.getDeniedQuestionMetaIds();
-        var targetConceptsBitmask = qr.targetConceptsBitmask();
-        var targetLawsBitmask = qr.targetLawsBitmask();
-        var targetTagsBitmask = qr.targetTagsBitmask();
+        var targetConceptsBitmask = qr.getTargetConceptsBitmask();
+        var targetLawsBitmask = qr.getTargetLawsBitmask();
+        var targetTagsBitmask = qr.getTargetTagsBitmask();
         var complexity = qr.getComplexity();
 
         var query = entityManager.createNativeQuery(
@@ -71,8 +71,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var domainShortname = qr.getDomainShortname();
         var stepsMin = qr.getStepsMin();
         var stepsMax = qr.getStepsMax();
-        var deniedConceptBits = qr.deniedConceptsBitmask();
-        var deniedLawBits = qr.deniedLawsBitmask();
+        var deniedConceptBits = qr.getDeniedConceptsBitmask();
+        var deniedLawBits = qr.getDeniedLawsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
@@ -82,9 +82,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var deniedQuestionMetaIds = qr.getDeniedQuestionMetaIds() == null || qr.getDeniedQuestionMetaIds().isEmpty()
                 ? null
                 : qr.getDeniedQuestionMetaIds();
-        var targetConceptsBitmask = qr.targetConceptsBitmask();
-        var targetLawsBitmask = qr.targetLawsBitmask();
-        var targetTagsBitmask = qr.targetTagsBitmask();
+        var targetConceptsBitmask = qr.getTargetConceptsBitmask();
+        var targetLawsBitmask = qr.getTargetLawsBitmask();
+        var targetTagsBitmask = qr.getTargetTagsBitmask();
         var complexity = qr.getComplexity();
 
         var result = entityManager.createNativeQuery(

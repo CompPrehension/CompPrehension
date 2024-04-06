@@ -57,6 +57,7 @@ public class QuestionRequestLogEntity {
     long conceptsDeniedBitmask;
     long lawsTargetedBitmask;
     long lawsDeniedBitmask;
+    long targetTagsBitmask;
 
     @Type(JsonType.class)
     private List<String> deniedQuestionNames;

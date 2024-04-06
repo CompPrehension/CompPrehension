@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
@@ -381,7 +382,8 @@ public class TaskGenerationJob {
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
                 boolean shouldSave = false;
                 for (val qr : qrLogsToProcess) {
-                    if (!QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
+                    
+                    if (!storage.isMatch(meta, qr)) {
                         log.debug("Question [{}] does not match qr {}", q.getQuestionName(), qr.getId());
                         continue;
                     }

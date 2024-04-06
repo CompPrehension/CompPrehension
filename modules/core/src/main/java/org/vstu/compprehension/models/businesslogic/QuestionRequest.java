@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
@@ -90,6 +89,7 @@ public class QuestionRequest {
                 .conceptsDeniedBitmask(Concept.combineToBitmask(deniedConcepts))
                 .lawsTargetedBitmask(Law.combineToBitmask(targetLaws))
                 .lawsDeniedBitmask(Law.combineToBitmask(deniedLaws))
+                .targetTagsBitmask(Tag.combineToBitmask(targetTags))
                 .deniedQuestionNames(deniedQuestionNames)
                 .deniedQuestionTemplateIds(deniedQuestionTemplateIds)
                 .deniedQuestionMetaIds(deniedQuestionMetaIds)
@@ -103,31 +103,6 @@ public class QuestionRequest {
                 .createdDate(new Date())
                 .foundCount(questionsFound)
         .build();
-    }
-
-    public QuestionBankSearchRequest toBankSearchRequest(double bankMinComplexity, double bankMaxComplexity) {
-        var normalizedComplexity = MathHelper.linearInterpolateToNewRange(
-                complexity,
-                0,
-                1,
-                (float)bankMinComplexity,
-                (float)bankMaxComplexity);
-
-        return QuestionBankSearchRequest.builder()
-                .deniedConcepts(deniedConcepts)
-                .targetConcepts(targetConcepts)
-                .targetLaws(targetLaws)
-                .deniedLaws(deniedLaws)
-                .targetTags(targetTags)
-                .deniedQuestionNames(deniedQuestionNames)
-                .deniedQuestionTemplateIds(deniedQuestionTemplateIds)
-                .deniedQuestionMetaIds(deniedQuestionMetaIds)
-                .domainShortname(domainShortname)
-                .complexity(normalizedComplexity)
-                .stepsMin(stepsMin)
-                .stepsMax(stepsMax)
-                .lawsSearchDirection(lawsSearchDirection)
-                .build();
     }
 }
 

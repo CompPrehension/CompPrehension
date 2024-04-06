@@ -1,48 +1,24 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
+import org.vstu.compprehension.common.MathHelper;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
 import java.util.List;
 
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
+@Getter
 public class QuestionBankSearchRequest {
-    private @Nullable List<Concept> deniedConcepts;
-    public long deniedConceptsBitmask() {
-        return Concept.combineToBitmask(deniedConcepts);
-    }
-
-    private @Nullable List<Concept> targetConcepts;
-    public long targetConceptsBitmask() {
-        return Concept.combineToBitmask(targetConcepts);
-    }
-
-    private @Nullable List<Law> targetLaws;
-    public long targetLawsBitmask() {
-        return Law.combineToBitmask(targetLaws);
-    }
-
-    private @Nullable List<Law> deniedLaws;
-    public long deniedLawsBitmask() {
-        return Law.combineToBitmask(deniedLaws);
-    }
-
-    private @Nullable List<Tag> targetTags;
-    public long targetTagsBitmask() {
-        return Tag.combineToBitmask(targetTags);
-    }
+    private long deniedConceptsBitmask;
+    private long targetConceptsBitmask;
+    private long targetLawsBitmask;
+    private long deniedLawsBitmask;
+    private long targetTagsBitmask;
 
     private @Nullable List<String> deniedQuestionNames;
     private @Nullable List<Integer> deniedQuestionTemplateIds;
     private @Nullable List<Integer> deniedQuestionMetaIds;
-
 
     private String domainShortname;
 
@@ -57,8 +33,51 @@ public class QuestionBankSearchRequest {
     /** максимум шагов в решении */
     private int stepsMax;
 
-    /**
-     * Направление поиска по сложности
-     */
-    private SearchDirections lawsSearchDirection;
+    public static QuestionBankSearchRequest fromQuestionRequest(QuestionRequest qr, double bankMinComplexity, double bankMaxComplexity) {
+        var normalizedComplexity = MathHelper.linearInterpolateToNewRange(
+                qr.getComplexity(),
+                0,
+                1,
+                (float)bankMinComplexity,
+                (float)bankMaxComplexity);
+
+        return QuestionBankSearchRequest.builder()
+                .deniedConceptsBitmask(Concept.combineToBitmask(qr.getDeniedConcepts()))
+                .targetConceptsBitmask(Concept.combineToBitmask(qr.getTargetConcepts()))
+                .targetLawsBitmask(Law.combineToBitmask(qr.getTargetLaws()))
+                .deniedLawsBitmask(Law.combineToBitmask(qr.getDeniedLaws()))
+                .targetTagsBitmask(Tag.combineToBitmask(qr.getTargetTags()))
+                .deniedQuestionNames(qr.getDeniedQuestionNames())
+                .deniedQuestionTemplateIds(qr.getDeniedQuestionTemplateIds())
+                .deniedQuestionMetaIds(qr.getDeniedQuestionMetaIds())
+                .domainShortname(qr.getDomainShortname())
+                .complexity(normalizedComplexity)
+                .stepsMin(qr.getStepsMin())
+                .stepsMax(qr.getStepsMax())
+                .build();
+    }
+
+    public static QuestionBankSearchRequest fromQuestionRequestLog(QuestionRequestLogEntity qr, double bankMinComplexity, double bankMaxComplexity) {
+        var normalizedComplexity = MathHelper.linearInterpolateToNewRange(
+                qr.getComplexity(),
+                0,
+                1,
+                (float)bankMinComplexity,
+                (float)bankMaxComplexity);
+
+        return QuestionBankSearchRequest.builder()
+                .deniedConceptsBitmask(qr.getConceptsDeniedBitmask())
+                .targetConceptsBitmask(qr.getConceptsTargetedBitmask())
+                .targetLawsBitmask(qr.getLawsTargetedBitmask())
+                .deniedLawsBitmask(qr.getLawsDeniedBitmask())
+                .targetTagsBitmask(qr.getTargetTagsBitmask())
+                .deniedQuestionNames(qr.getDeniedQuestionNames())
+                .deniedQuestionTemplateIds(qr.getDeniedQuestionTemplateIds())
+                .deniedQuestionMetaIds(qr.getDeniedQuestionMetaIds())
+                .domainShortname(qr.getDomainShortname())
+                .complexity(normalizedComplexity)
+                .stepsMin(qr.getStepsMin())
+                .stepsMax(qr.getStepsMax())
+                .build();
+    }
 }

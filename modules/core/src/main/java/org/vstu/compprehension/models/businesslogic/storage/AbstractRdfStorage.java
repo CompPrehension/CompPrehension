@@ -8,10 +8,7 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
@@ -84,11 +81,60 @@ public class AbstractRdfStorage {
         return result;
     }
 
-    public int countQuestions(QuestionRequest qr) {
+    private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
         var minComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMin();
         var maxComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMax();
 
-        var bankSearchRequest = qr.toBankSearchRequest(minComplexity, maxComplexity);
+        return QuestionBankSearchRequest.fromQuestionRequest(qr, minComplexity, maxComplexity);
+    }
+
+    public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qrLog) {
+        var minComplexity = questionMetadataManager.getComplexityStats(qrLog.getDomainShortname()).getMin();
+        var maxComplexity = questionMetadataManager.getComplexityStats(qrLog.getDomainShortname()).getMax();
+
+        var bankSearchRequest = QuestionBankSearchRequest.fromQuestionRequestLog(qrLog, minComplexity, maxComplexity);
+        return isMatch(meta, bankSearchRequest);
+    }
+
+    private boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
+        // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
+        if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())) {
+            throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
+        }
+
+        // проверка запрещаемых критериев
+        if (meta.getSolutionSteps() < qr.getStepsMin()
+                || qr.getStepsMax() != 0 && meta.getSolutionSteps() > qr.getStepsMax()
+                || qr.getDeniedConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getDeniedConceptsBitmask()) != 0
+                || qr.getDeniedLawsBitmask() != 0 && (meta.getViolationBits() & qr.getDeniedLawsBitmask()) != 0
+                || qr.getTargetTagsBitmask() != 0 && (meta.getTagBits() & qr.getTargetTagsBitmask()) != meta.getTagBits() // требуем наличия всех тэгов
+        ) {
+            return false;
+        }
+
+        // Если есть запрет по ID шаблона или имени вопроса
+        if (qr.getDeniedQuestionTemplateIds() != null && !qr.getDeniedQuestionTemplateIds().isEmpty() && qr.getDeniedQuestionTemplateIds().contains(meta.getTemplateId())
+                || qr.getDeniedQuestionNames() != null && !qr.getDeniedQuestionNames().isEmpty() && qr.getDeniedQuestionNames().contains(meta.getName())) {
+            return false;
+        }
+
+        // сложность должна быть <= от запрашиваемой
+        if (qr.getComplexity() != 0 && meta.getIntegralComplexity() > qr.getComplexity()) {
+            return false;
+        }
+
+        // Присутствует хотя бы один целевой концепт и закон (если они заданы)
+        if (qr.getTargetConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0
+                || qr.getTargetLawsBitmask() != 0 && (meta.getLawBits() & qr.getTargetLawsBitmask()) == 0
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public int countQuestions(QuestionRequest qr) {
+        var bankSearchRequest = createBankSearchRequest(qr);
         return questionMetadataRepository.countQuestions(bankSearchRequest);
     }
 
@@ -102,9 +148,7 @@ public class AbstractRdfStorage {
 
         Checkpointer ch = new Checkpointer(log);
 
-        var minComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMin();
-        var maxComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMax();
-        var bankSearchRequest = qr.toBankSearchRequest(minComplexity, maxComplexity);
+        var bankSearchRequest = createBankSearchRequest(qr);
 
         QuestionMetadataManager metaMgr = this.questionMetadataManager;
         int nQuestionsInAttempt = Optional.ofNullable(bankSearchRequest.getDeniedQuestionNames()).map(List::size).orElse(0);
@@ -113,24 +157,24 @@ public class AbstractRdfStorage {
 
         double complexity = bankSearchRequest.getComplexity();
 
-        long targetConceptsBitmask = bankSearchRequest.targetConceptsBitmask();
-        long deniedConceptsBitmask = bankSearchRequest.deniedConceptsBitmask();
+        long targetConceptsBitmask = bankSearchRequest.getTargetConceptsBitmask();
+        long deniedConceptsBitmask = bankSearchRequest.getDeniedConceptsBitmask();
         long unwantedConceptsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInPlan = bankSearchRequest.targetConceptsBitmask();
+        long targetConceptsBitmaskInPlan = bankSearchRequest.getTargetConceptsBitmask();
 
         // use laws, for e.g. Expr domain
-        long targetLawsBitmask = bankSearchRequest.targetLawsBitmask();
-        long deniedLawsBitmask = bankSearchRequest.deniedLawsBitmask();
+        long targetLawsBitmask = bankSearchRequest.getTargetLawsBitmask();
+        long deniedLawsBitmask = bankSearchRequest.getDeniedLawsBitmask();
         long unwantedLawsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInPlan = bankSearchRequest.targetLawsBitmask();
+        long targetViolationsBitmaskInPlan = bankSearchRequest.getTargetLawsBitmask();
 
         // use violations from all questions is exercise attempt
         long unwantedViolationsBitmask = attempt.getQuestions().stream()

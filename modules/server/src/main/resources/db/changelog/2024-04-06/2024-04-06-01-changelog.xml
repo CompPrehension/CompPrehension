@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1712429072124-49"
+               author="Artem Prokudin">
+        <addColumn tableName="question_request_log">
+            <column name="target_tags"
+                    type="json"/>
+            <column name="target_tags_bitmask"
+                    type="BIGINT"/>
+        </addColumn>
+
+        <!-- fill `target_tags` and `target_tags_bitmask` with default values -->
+        <sql>
+            UPDATE `question_request_log`
+            SET `target_tags`         = cast('[]' as json),
+                `target_tags_bitmask` = 0
+            WHERE `target_tags_bitmask` IS NULL
+        </sql>
+
+        <addNotNullConstraint columnDataType="BIGINT"
+                              columnName="target_tags_bitmask"
+                              tableName="question_request_log"/>
+    </changeSet>
+</databaseChangeLog>
