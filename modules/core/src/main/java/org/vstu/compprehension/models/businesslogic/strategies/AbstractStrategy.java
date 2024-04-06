@@ -181,10 +181,6 @@ public interface AbstractStrategy {
     /** Balance targets (concepts and laws) so to show as many of questions with them as possible within the attempt */
     default QuestionRequest adjustQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity exerciseAttempt) {
 
-        // copy targets to "inPlan" fields, actual targets may change
-        qr.setTargetConceptsInPlan(qr.getTargetConcepts());
-        qr.setTargetLawsInPlan(qr.getTargetLaws());
-
         val attemptQuestions = exerciseAttempt.getQuestions();
         if (attemptQuestions == null || attemptQuestions.isEmpty()) {
             // don't change targets since nothing shown yet

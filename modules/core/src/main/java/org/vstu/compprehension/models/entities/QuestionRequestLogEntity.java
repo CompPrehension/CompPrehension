@@ -28,8 +28,6 @@ public class QuestionRequestLogEntity {
 
     @Type(JsonType.class)
     private List<String> targetConceptNames;
-    @Type(JsonType.class)
-    private List<String> targetConceptNamesInPlan;
 
     @Type(JsonType.class)
     private List<String> deniedConceptNames;
@@ -40,8 +38,6 @@ public class QuestionRequestLogEntity {
 
     @Type(JsonType.class)
     private List<String> targetLawNames;
-    @Type(JsonType.class)
-    private List<String> targetLawNamesInPlan;
 
     @Type(JsonType.class)
     private List<String> deniedLawNames;

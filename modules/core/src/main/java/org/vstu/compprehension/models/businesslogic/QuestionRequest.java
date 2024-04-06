@@ -19,11 +19,9 @@ import java.util.stream.Collectors;
 public class QuestionRequest {
     private List<Concept> deniedConcepts;
     private List<Concept> targetConcepts;
-    private List<Concept> targetConceptsInPlan;
     /** Question Storage can treat this as "optional targets" or "preferred" */
     private List<Concept> allowedConcepts;
     private List<Law> targetLaws;
-    private List<Law> targetLawsInPlan;
     private List<Law> deniedLaws;
     private List<Law> allowedLaws;
     private List<Tag> targetTags;
@@ -77,11 +75,9 @@ public class QuestionRequest {
                 .exerciseAttemptId(exerciseAttemptId)
                 .domainShortname(domainShortname)
                 .targetConceptNames(targetConcepts.stream().map(Concept::getName).collect(Collectors.toList()))
-                .targetConceptNamesInPlan(targetConceptsInPlan.stream().map(Concept::getName).collect(Collectors.toList()))
                 .deniedConceptNames(deniedConcepts.stream().map(Concept::getName).collect(Collectors.toList()))
                 .allowedConceptNames(allowedConcepts.stream().map(Concept::getName).collect(Collectors.toList()))
                 .targetLawNames(targetLaws.stream().map(Law::getName).collect(Collectors.toList()))
-                .targetLawNamesInPlan(targetLawsInPlan.stream().map(Law::getName).collect(Collectors.toList()))
                 .deniedLawNames(deniedLaws.stream().map(Law::getName).collect(Collectors.toList()))
                 .allowedLawNames(allowedLaws.stream().map(Law::getName).collect(Collectors.toList()))
                 .targetTags(targetTags.stream().map(Tag::getName).collect(Collectors.toList()))
