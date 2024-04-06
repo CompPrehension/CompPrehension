@@ -43,12 +43,14 @@ public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
     private final TaskGenerationJobConfig config;
+    private final AbstractRdfStorage storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, AbstractRdfStorage storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
         this.config = config;
+        this.storage = storage;
     }
 
     @Job
@@ -359,7 +361,6 @@ public class TaskGenerationJob {
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
             var domainId = "ProgrammingLanguageExpressionDomain";
-            var storage = getQuestionStorage(domainId);
             Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
             for (val file : allJsonFiles) {
@@ -491,17 +492,5 @@ public class TaskGenerationJob {
             log.error("Question parsing exception - {}", e.getMessage(), e);
         }
         return q;
-    }
-
-    @SneakyThrows
-    private AbstractRdfStorage getQuestionStorage(String domainId) {
-        return new AbstractRdfStorage(
-                domainId,
-                new RemoteFileService(
-                        config.getExporter().getStorageUploadFilesBaseUrl().toString(),
-                        config.getExporter().getStorageUploadFilesBaseUrl().toString(),
-                        config.getExporter().getStorageDummyDirsForNewFile()),
-                metadataRep,
-                new QuestionMetadataManager(metadataRep));
     }
 }
