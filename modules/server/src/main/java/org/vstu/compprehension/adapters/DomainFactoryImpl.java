@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.domains.*;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -25,7 +26,9 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionMetadataRepository questionMetadataRepository) {
+                             AbstractRdfStorage qMetaStorage
+//                             QuestionMetadataRepository questionMetadataRepository
+    ) {
 
         var domains = Lists.newArrayList(domainRepository.findAll());
         {
@@ -37,7 +40,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     progExprDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    qMetaStorage);
             domainToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
         }
         {
@@ -49,7 +52,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     controlFlowDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    qMetaStorage);
             domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
         }
         {
@@ -61,7 +64,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     dtDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    qMetaStorage);
             domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
         }
         {
@@ -73,7 +76,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     dtDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    qMetaStorage);
             domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
         }
 

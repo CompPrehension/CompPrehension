@@ -76,7 +76,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
     private final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
-    private final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
+    public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
     private final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
 
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";

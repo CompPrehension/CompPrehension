@@ -36,6 +36,7 @@ public class AbstractRdfStorage {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
+    // TODO: rename to QuestionBank
     public AbstractRdfStorage(
             Collection<DomainEntity> domains,
             QuestionMetadataRepository questionMetadataRepository,

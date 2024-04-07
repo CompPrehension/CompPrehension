@@ -44,7 +44,7 @@ public class QuestionMetadataManager {
         return newStats;
     }
 
-    List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutQIds(
+    /* List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutQIds(
             QuestionRequest qr,
             double complexityMaxDifference,
             int limit,
@@ -68,5 +68,5 @@ public class QuestionMetadataManager {
         ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
         iter.forEach(foundQuestions::add);
         return foundQuestions;
-    }
+    } */
 }

@@ -13,6 +13,7 @@ import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;

@@ -32,6 +32,7 @@ public class Concept implements TreeNodeWithBitmask {
 
 
     /** ID-like bit of the concept for a bitmask combining several Concepts */
+    @Getter @Setter
     long bitmask;
 
     @Getter @Setter

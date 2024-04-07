@@ -20,7 +20,7 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Math.max;
-import static org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage.NS_code;
+import static org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain.NS_code;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends Domain {
@@ -60,6 +60,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
+    protected final AbstractRdfStorage qMetaStorage;
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
         put("basics", new Tag("basics", 2L));  	// (2 ^ 1)
@@ -84,13 +85,12 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataRepository questionMetadataRepository) {
+            AbstractRdfStorage qMetaStorage) {
         
         super(domainEntity, randomProvider);
         
         this.localizationService = localizationService;
-        this.qMetaStorage = new LocalRdfStorage(
-                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
+        this.qMetaStorage = qMetaStorage;
         
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
@@ -413,11 +413,11 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
 
     //----------ИНИЦИАЛИЗАЦИЯ--------------
     
-    @Override
-    public void update() {
-        // init questions storage
-        getQMetaStorage();
-    }
+//    @Override
+//    public void update() {
+//        // init questions storage
+//        getQMetaStorage();
+//    }
     
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
@@ -624,8 +624,8 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     }
     
     @Override
-    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
-        qr = super.fillBitmasksInQuestionRequest(qr);
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest qr) {
+        qr = super.ensureQuestionRequestValid(qr);
         
         // hard limits on solution length (questions outside this boundaries will never appear)
         qr.setStepsMin(2);
@@ -678,7 +678,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     }
     
     @Override
-    public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
+    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
         
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -689,14 +689,14 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
                 // new version - invoke rdfStorage search
-                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
+                questionRequest = ensureQuestionRequestValid(questionRequest);
+                foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
                 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, 1);
+                    foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
                 }
             } catch (Exception e) {
                 // file storage was not configured properly...
@@ -732,10 +732,10 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             }
             
             HashSet<String> deniedQuestions = new HashSet<>();
-            if (questionRequest.getExerciseAttempt() != null &&
-                    questionRequest.getExerciseAttempt().getQuestions() != null &&
-                    questionRequest.getExerciseAttempt().getQuestions().size() > 0) {
-                deniedQuestions.add(questionRequest.getExerciseAttempt().getQuestions().get(questionRequest.getExerciseAttempt().getQuestions().size() - 1).getQuestionName());
+            if (exerciseAttempt != null &&
+                    exerciseAttempt.getQuestions() != null &&
+                    !exerciseAttempt.getQuestions().isEmpty()) {
+                deniedQuestions.add(exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1).getQuestionName());
             }
             questionRequest.setDeniedQuestionNames(List.of());
             
@@ -747,7 +747,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
         }
 
         log.info("Expression domain has prepared the question: {}", res.getQuestionName());
-        return makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
+        return makeQuestionCopy(res, exerciseAttempt, userLanguage);
     }
     
     public static String expressionToHtml(List<BackendFactEntity> expression) {

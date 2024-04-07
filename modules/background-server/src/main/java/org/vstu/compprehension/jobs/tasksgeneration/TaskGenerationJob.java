@@ -48,7 +48,7 @@ public class TaskGenerationJob {
     private final AbstractRdfStorage storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, AbstractRdfStorage storage) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig tasks, AbstractRdfStorage storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
         this.tasks = tasks;

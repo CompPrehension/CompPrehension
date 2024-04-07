@@ -80,7 +80,7 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     protected final LocalizationService localizationService;
-    private final AbstractRdfStorage qMetaStorage;
+    protected final AbstractRdfStorage qMetaStorage;
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
