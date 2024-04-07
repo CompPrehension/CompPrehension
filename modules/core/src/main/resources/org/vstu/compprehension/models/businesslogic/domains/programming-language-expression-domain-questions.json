@@ -1289,7 +1289,7 @@
           "hyperText": "( between f and b",
           "domainInfo": "op__0__4",
           "isRightCol": false,
-          "concept": "function_call",
+          "concept": "operator_function_call",
           "responsesLeft": [],
           "responsesRight": []
         },
@@ -1357,7 +1357,7 @@
     },
     "concepts": [
       "precedence",
-      "function_call",
+      "operator_function_call",
       "operator_binary_||"
     ],
     "negativeLaws": [
@@ -2952,7 +2952,7 @@
           "hyperText": "( between f and b",
           "domainInfo": "op__0__4",
           "isRightCol": false,
-          "concept": "function_call",
+          "concept": "operator_function_call",
           "responsesLeft": [],
           "responsesRight": []
         },
@@ -3020,7 +3020,7 @@
     },
     "concepts": [
       "precedence",
-      "function_call",
+      "operator_function_call",
       "operator_binary_or"
     ],
     "negativeLaws": [
@@ -6440,7 +6440,7 @@
           "hyperText": "( between f and b",
           "domainInfo": "op__0__4",
           "isRightCol": false,
-          "concept": "function_call",
+          "concept": "operator_function_call",
           "responsesLeft": [],
           "responsesRight": []
         },
@@ -6508,7 +6508,7 @@
     },
     "concepts": [
       "precedence",
-      "function_call",
+      "operator_function_call",
       "operator_binary_||"
     ],
     "negativeLaws": [
