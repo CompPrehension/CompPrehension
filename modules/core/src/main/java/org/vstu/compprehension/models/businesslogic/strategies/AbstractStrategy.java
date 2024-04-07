@@ -157,7 +157,7 @@ public interface AbstractStrategy {
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
         qr.setTargetLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.TARGETED));
         qr.setAllowedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.PERMITTED));
-        qr.setTargetTags(exerciseAttempt.getExercise().getTags().stream().map(t -> domain.getTags().get(t)).toList());
+        qr.setTargetTags(exerciseAttempt.getExercise().getTags().stream().map(t -> domain.getTags().get(t)).filter(Objects::nonNull).toList());
         qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
 
         // questions
