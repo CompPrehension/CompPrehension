@@ -151,19 +151,22 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
     /**
+     * Off. Don't use.
      * Make negative laws that name each possible error & set bitflags for each law as defined within the vocabulary.
      */
-    @Override
-    protected void loadNegativeLawsFromVocabulary() {
+//    @Override
+    protected void ___loadNegativeLawsFromVocabulary() {
         // add negative laws that name each possible error
         // Note: get flags and write to law object.
 
         val voc = getVocabulary();
         val model = voc.getModel();
-        val prop_has_bitflags = model.getProperty("has_bitflags");
+        val prop_has_bitflags = model.getProperty("law_bitflags");
         String ns = model.getNsPrefixURI("");
 
         for (String errClass : voc.classDescendants("Erroneous")) {
+//            val classNode = model.getResource(ns + errClass).as(OntClass.class);
+//            val classNode = model.createClass(ns + errClass);
             val classNode = model.getOntClass(ns + errClass);
             val law = new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
 
@@ -174,7 +177,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             }
             // fill data: impliesLaws
             law.setImpliesLaws(new ArrayList<>());
-            for (val superClass : classNode.listSuperClasses(true).toSet()) {
+            for (val superClass : classNode.listSuperClasses(/*direct:*/true).toSet()) {
                 String name = superClass.getLocalName();
                 if (name.equals(errClass)) {
                     continue;

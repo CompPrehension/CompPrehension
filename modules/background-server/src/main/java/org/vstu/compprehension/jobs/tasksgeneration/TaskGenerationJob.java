@@ -231,6 +231,13 @@ public class TaskGenerationJob {
         return downloadedRepos;
     }
 
+    private String fixDomainShortName(String name) {
+        if (name.equals("ctrl_flow"))
+            name = "control_flow";
+
+        return name;
+    }
+
     @SneakyThrows
     private List<Path> parseRepositories(List<Path> downloadedRepos) {
         var parserConfig = config.getParser();
@@ -267,7 +274,7 @@ public class TaskGenerationJob {
             parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
 
             parserProcessCommandBuilder.add("--");
-            parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
+            parserProcessCommandBuilder.add(fixDomainShortName(config.getDomainShortName()));  // e.g. "expression"
             parserProcessCommandBuilder.add(destination.toString());
             log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 

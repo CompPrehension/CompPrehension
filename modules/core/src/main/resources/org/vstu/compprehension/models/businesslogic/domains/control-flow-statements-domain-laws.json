@@ -314,6 +314,66 @@
     ]
   },
   {
+    "name": "decision-tree_alternative_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      },
+      {
+        "name": "alternative_multi_without_else"
+      },
+      {
+        "name": "if"
+      },
+      {
+        "name": "alternative_single_with_else"
+      },
+      {
+        "name": "alternative_simple"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "alternative-to-alternative_multi_with_else",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:else-if), (?a my:branches_item ?b2), (?b2 rdf:type my:else), -> (?a rdf:type my:alternative_multi_with_else),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "alternative-to-alternative_multi_without_else",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:else-if), noValue(?b, my:next), -> (?a rdf:type my:alternative_multi_without_else),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "alternative-to-alternative_single_with_else",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:if), (?b my:next ?b2), (?b2 rdf:type my:else), -> (?a rdf:type my:alternative_single_with_else),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "alternative-to-alternative_simple",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:if), noValue(?b, my:next), -> (?a rdf:type my:alternative_simple),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
     "name": "decision-tree_helper",
     "positive": true,
     "tags": [
