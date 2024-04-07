@@ -1,4 +1,4 @@
-import { action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
+import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, Strategy } from "../types/exercise-settings";
@@ -25,13 +25,14 @@ export type ExerciseCardViewModel = {
     options: ExerciseOptions,
 }
 
-export class ExerciseStageStore {
+export class ExerciseStageStore implements Disposable {
     card: ExerciseCardViewModel
     concepts: ExerciseCardConcept[]
     laws: ExerciseCardLaw[]
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
     bankQuestionsCount: number = 0
+    autorunner?: IReactionDisposer
 
     constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
@@ -41,7 +42,7 @@ export class ExerciseStageStore {
 
         makeAutoObservable(this);
 
-        autorun(async () => {
+        this.autorunner = autorun(async () => {
             const complexity = this.card.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
@@ -59,6 +60,11 @@ export class ExerciseStageStore {
             });
         }
         runInAction(() => this.bankLoadingState = 'COMPLETED');
+    }
+    
+    [Symbol.dispose](): void {
+        if (this.autorunner)
+            this.autorunner();
     }
 }
 
@@ -419,6 +425,9 @@ export class ExerciseSettingsStore {
         const length = this.currentCard.stages.length;
         if (stageIdx < 0 || stageIdx >= length)
             return;
+
+        const stageToRemove = this.currentCard.stages[stageIdx];
+        stageToRemove[Symbol.dispose]();
 
         this.currentCard.stages.splice(stageIdx, 1);
     }
