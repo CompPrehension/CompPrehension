@@ -15,6 +15,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -40,10 +41,10 @@ public class QuestionService {
     private final SupplementaryStepRepository supplementaryStepRepository;
     private final DomainFactory domainFactory;
     private final QuestionRequestLogRepository questionRequestLogRepository;
-    private final QuestionMetadataRepository questionMetadataRepository;
+    private final AbstractRdfStorage questionStorage;
 
     @Autowired
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionMetadataRepository questionMetadataRepository) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, AbstractRdfStorage questionStorage) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
@@ -54,7 +55,7 @@ public class QuestionService {
         this.supplementaryStepRepository = supplementaryStepRepository;
         this.domainFactory = domainFactory;
         this.questionRequestLogRepository = questionRequestLogRepository;
-        this.questionMetadataRepository = questionMetadataRepository;
+        this.questionStorage = questionStorage;
     }
 
 
@@ -63,28 +64,17 @@ public class QuestionService {
         AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
-        Question question = domain.makeQuestion(qr, tags, exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(exerciseAttempt, qr, tags, exerciseAttempt.getUser().getPreferred_language());
         saveQuestionRequest(qr);  // use it after the domain has set step range to qr
-        question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
         saveQuestion(question.getQuestionData());
         return question;
     }
 
     private void saveQuestionRequest(QuestionRequest qr) {
-        // fill empty lists
-        if (qr.getDeniedQuestionMetaIds().isEmpty())
-            qr.getDeniedQuestionMetaIds().add(0);
-        if (qr.getDeniedQuestionTemplateIds().isEmpty())
-            qr.getDeniedQuestionTemplateIds().add(0);
-
-        val qrl = qr.getLogEntity();
-
-        int questionsFound = questionMetadataRepository.countQuestions(qr);
-        qrl.setFoundCount(questionsFound);
-        qrl.setCreatedDate(new Date());
+        int questionsFound = questionStorage.countQuestions(qr);
+        var qrl = qr.getLogEntity(questionsFound);
         questionRequestLogRepository.save(qrl);
     }
-
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());

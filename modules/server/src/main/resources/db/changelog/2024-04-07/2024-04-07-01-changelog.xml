@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1712490778584-1" author="Artem Prokudin">
+        <!-- USE "operator_function_call" concept instead of "function_call" -->
+        <sql>
+            UPDATE question_request_log
+            SET `target_concept_names` = json_set(`target_concept_names`, json_unquote(json_search(`target_concept_names`, 'one', 'function_call')), 'operator_function_call')
+            WHERE id > 0 AND domain_shortname = 'expression' AND JSON_OVERLAPS(`target_concept_names`, '["function_call"]');
+
+            UPDATE question_request_log
+            SET `denied_concept_names` = json_set(`denied_concept_names`, json_unquote(json_search(`denied_concept_names`, 'one', 'function_call')), 'operator_function_call')
+            WHERE id > 0 AND domain_shortname = 'expression' AND JSON_OVERLAPS(`denied_concept_names`, '["function_call"]');
+
+            UPDATE question_request_log
+            SET `allowed_concept_names` = json_set(`allowed_concept_names`, json_unquote(json_search(`allowed_concept_names`, 'one', 'function_call')), 'operator_function_call')
+            WHERE id > 0 AND domain_shortname = 'expression' AND JSON_OVERLAPS(`allowed_concept_names`, '["function_call"]');
+
+            UPDATE exercise
+            SET `stages_json` = REGEXP_REPLACE(`stages_json`, '"function_call"', '"operator_function_call"')
+            WHERE id > 0 AND domain_id = 'ProgrammingLanguageExpressionDomain';
+
+            UPDATE answer_object ao
+            INNER JOIN question q on ao.question_id = q.id
+            SET ao.`concept` = 'operator_function_call'
+            WHERE ao.id > 0 AND ao.`concept` = 'function_call' AND q.domain_name = 'ProgrammingLanguageExpressionDomain'
+        </sql>
+    </changeSet>
+</databaseChangeLog>

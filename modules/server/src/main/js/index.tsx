@@ -3,7 +3,7 @@ import React from 'react';
 import "./bootstrapper";
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes, redirect } from 'react-router-dom';
 import { Exercise } from './pages/exercise';
 import { Statistics } from './pages/statistics';
 import { ExercisesList } from './pages/exercises-list';
@@ -21,6 +21,7 @@ const Home = () => (
                 <Route path="/pages/strategy-settings" element={<StrategySettings />} />
                 <Route path="/pages/survey" element={<SurveyPage />} />
                 <Route path="/pages/exercises-list" element={<ExercisesList />} />
+                <Route path="/" element={<Navigate to="/pages/exercise-settings" replace />} />
             </Routes>
         </Router>
     </div>

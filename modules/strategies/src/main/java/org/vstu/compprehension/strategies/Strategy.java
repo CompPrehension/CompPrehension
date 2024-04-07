@@ -345,7 +345,7 @@ public class Strategy implements AbstractStrategy {
     @NotNull
     private QuestionRequest getQuestionRequest(@NotNull ExerciseAttemptEntity exerciseAttempt, @Nullable LawNode nextNode) {
         QuestionRequest qr = new QuestionRequest();
-        qr.setExerciseAttempt(exerciseAttempt);
+        qr.setExerciseAttemptId(exerciseAttempt.getId());
         ExerciseEntity exercise = exerciseAttempt.getExercise();
         Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
 

@@ -1,13 +1,18 @@
-import { Fetcher } from "fetcher-ts";
 import { Either, left, right } from "fp-ts/lib/Either";
-import * as O from "fp-ts/lib/Option";
 import * as E from "fp-ts/lib/Either";
 import * as io from "io-ts";
-import { pipe } from "fp-ts/lib/function";
 import { RequestError } from "../types/request-error";
-import { string } from "fp-ts";
+import { API_URL } from "../appconfig";
 
 export type PromiseEither<E, A> = Promise<Either<E, A>>
+
+const commonParams: RequestInit = {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    //redirect: 'manual',
+}
 
 /**
  * Do GET request
@@ -16,16 +21,14 @@ export type PromiseEither<E, A> = Promise<Either<E, A>>
  * @returns Pair of either RequestError or ResposeBody
  */
 export async function ajaxGet<T = unknown>(url: string, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
-    console.log(`ajax get: ${url}`);
-    return await ajax(url, undefined, validator);    
+    return await ajax(url, commonParams, validator);    
 }
 
 export async function ajaxGetWithParams<T = unknown>(url: string, params: Record<string, string>, validator?: io.Type<T>) : PromiseEither<RequestError, T> {
     const preparedUrl = new URL(url);
     preparedUrl.search = new URLSearchParams(params).toString();
 
-    console.log(`ajax get: ${preparedUrl}`);
-    return await ajax(preparedUrl.toString(), undefined, validator);    
+    return await ajax(preparedUrl.toString(), commonParams, validator);    
 }
 
 /**
@@ -37,13 +40,10 @@ export async function ajaxGetWithParams<T = unknown>(url: string, params: Record
  */
 export async function ajaxPost<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
     const params: RequestInit = {
+        ...commonParams,
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
     };
-    console.log(`ajax post: ${url}`, body);
     return await ajax(url, params, validator);
 }
 
@@ -56,13 +56,10 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
  */
  export async function ajaxPut<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
     const params: RequestInit = {
+        ...commonParams,
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
         body: JSON.stringify(body),
     };
-    console.log(`ajax put: ${url}`, body);
     return await ajax(url, params, validator);
 }
 
@@ -75,33 +72,47 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
  */
  export async function ajaxDelete<T = unknown>(url: string, validator?: io.Type<T, T, unknown>) : PromiseEither<RequestError, T> {
     const params: RequestInit = {
+        ...commonParams,
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
     };
-    console.log(`ajax delete: ${url}`);
     return await ajax(url, params, validator);
 }
 
 async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: io.Type<T, T, unknown>): PromiseEither<RequestError, T> {
-    type FetcherResults = 
-        | { code: 200, payload: T } 
-        | { code: 500, payload: RequestError };
-    const fetcher = new Fetcher<FetcherResults, Either<RequestError, T>>(url, params)
-        .handle(200, data => right(data), validator)
-        .handle(500, error => left(error))
-        .discardRest(() => left({ message: "Unexpected server error" }));
-    
-    const [data, validationErrors] = await fetcher.run()
-        .catch(async () => [left<RequestError, T>({ message: "Connection error"}), O.none as O.Option<io.Errors>] as const);
-    E.fold(err => console.error(err), val => console.log(val))(data);
-        
-    if (O.isSome(validationErrors)) {    
-        const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(validationErrors.value).join(', ')}` };
-        return (console.error(error), left(error));      
-    }    
-    return data;
+    const result = await fetch(url, params)
+        .then(async (data) => {
+            if (data.ok) {                
+                return { status: 'ok', payload: validator && validator.decode(await data.json()) || io.success<T>(await data.json()) } as const;
+            }
+
+            if (data.status === 401) {
+                return { status: 'unauthorized' } as const;
+            }
+
+            if (data.status === 500) {
+                return { status: 'server_error', payload: await data.json() as RequestError } as const;
+            }
+
+            return { status: 'unexpected', payload: { message: "Unexpected error" } as RequestError } as const
+        })
+        .catch((err: unknown) => ({ status: 'unexpected', payload: { message:"Unexpected error " + err } as RequestError } as const));
+
+
+    if (result.status === 'ok') {
+        if (E.isLeft(result.payload)) {    
+            const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(result.payload.left).join(', ')}` };
+            return (console.error(error), left(error));
+        }
+        return E.right(result.payload.right);
+    }
+
+    if (result.status === 'unauthorized') {
+        const authUrl = `${API_URL}/oauth2/authorization/keycloak?redirect_uri=${window.location.href}`; // TODO найти другой способ без хардкода адреса
+        console.log(`redirect to ${authUrl}`);
+        window.location.replace(authUrl);
+    }
+
+    return left(result.payload ?? { message: "Unexpected error " });
 }
 
 const getPaths = (errors: io.Errors): Array<string> => {

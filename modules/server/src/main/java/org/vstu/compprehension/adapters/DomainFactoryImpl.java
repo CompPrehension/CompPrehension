@@ -11,8 +11,8 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
@@ -28,7 +28,7 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionMetadataRepository questionMetadataRepository) {
+                             AbstractRdfStorage questionStorage) {
 
         var domains = Lists.newArrayList(domainRepository.findAll());
         {
@@ -40,7 +40,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     progExprDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    questionStorage);
             domainToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
         }
         {
@@ -52,7 +52,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     controlFlowDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    questionStorage);
             domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
         }
 

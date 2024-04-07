@@ -13,9 +13,10 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
@@ -42,12 +43,14 @@ public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
     private final TaskGenerationJobConfig config;
+    private final AbstractRdfStorage storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, AbstractRdfStorage storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
         this.config = config;
+        this.storage = storage;
     }
 
     @Job
@@ -357,7 +360,7 @@ public class TaskGenerationJob {
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
-            LocalRdfStorage storage = getQuestionStorage();
+            var domainId = "ProgrammingLanguageExpressionDomain";
             Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
             for (val file : allJsonFiles) {
@@ -380,7 +383,8 @@ public class TaskGenerationJob {
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
                 boolean shouldSave = false;
                 for (val qr : qrLogsToProcess) {
-                    if (!QuestionRequestLogRepository.doesQuestionSuitQR(meta, qr)) {
+                    
+                    if (!storage.isMatch(meta, qr)) {
                         log.debug("Question [{}] does not match qr {}", q.getQuestionName(), qr.getId());
                         continue;
                     }
@@ -410,8 +414,8 @@ public class TaskGenerationJob {
 
                 // copy data file and save local sub-path to it
                 String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
-                        ? storage.saveQuestionData(q.getQuestionName(), Domain.questionToJson(q, "ORDERING"))
-                        : storage.saveQuestionData(exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                        ? storage.saveQuestionData(domainId, q.getQuestionName(), Domain.questionToJson(q, "ORDERING"))
+                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
@@ -488,16 +492,5 @@ public class TaskGenerationJob {
             log.error("Question parsing exception - {}", e.getMessage(), e);
         }
         return q;
-    }
-
-    @SneakyThrows
-    private LocalRdfStorage getQuestionStorage() {
-        return new LocalRdfStorage(
-                new RemoteFileService(
-                        config.getExporter().getStorageUploadFilesBaseUrl().toString(),
-                        config.getExporter().getStorageUploadFilesBaseUrl().toString(),
-                        config.getExporter().getStorageDummyDirsForNewFile()),
-                metadataRep,
-                null);
     }
 }

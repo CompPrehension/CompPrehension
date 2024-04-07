@@ -90,10 +90,13 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
     
                 // add pos hint        
                 if (orderNumberOptions.position !== 'NONE') {
+                    const delim = orderNumberOptions.delimiter;
                     const orderNumber = orderNumberOptions.replacers?.[idx] ?? (idx + 1);
-                    const answerHtml = orderNumberOptions.position === 'PREFIX' ? [orderNumber, answr.innerHTML] :
-                                    orderNumberOptions.position === 'SUFFIX' ? [answr.innerHTML, orderNumber] : [answr.innerHTML];            
-                    answr.innerHTML = answerHtml.join(orderNumberOptions.delimiter);
+                    const answerHtml = orderNumberOptions.position === 'PREFIX' ? `${orderNumber}${delim}${answr.innerHTML}` :
+                                    orderNumberOptions.position === 'SUFFIX' ? `${answr.innerHTML}${delim}${orderNumber}` : 
+                                    orderNumberOptions.position === 'BOTTOM' ? `<span class="comp-ph-expr-bottom-hint">${delim}${orderNumber}</span>${answr.innerHTML}` :
+                                    answr.innerHTML;
+                   answr.innerHTML = answerHtml;
                 }  
                 // disable if needed
                 if (!options.multipleSelectionEnabled) {            

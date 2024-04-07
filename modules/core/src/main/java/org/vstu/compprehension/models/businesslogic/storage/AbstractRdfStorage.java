@@ -1,129 +1,73 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.jena.arq.querybuilder.SelectBuilder;
-import org.apache.jena.arq.querybuilder.WhereBuilder;
-import org.apache.jena.graph.Node;
-import org.apache.jena.query.Dataset;
-import org.apache.jena.rdf.model.InfModel;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
-import org.apache.jena.reasoner.rulesys.Rule;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.JenaException;
-import org.apache.jena.util.PrintUtil;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
-import javax.annotation.Nullable;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Long.bitCount;
 
 @Log4j2
-public abstract class AbstractRdfStorage {
-    /**
-     * Default prefixes
-     */
-    final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
-    public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
-    //// final static NamespaceUtil NS_namedGraph = new NamespaceUtil("http://named.graph/");
-//    final static NamespaceUtil NS_file = new NamespaceUtil("ftp://plain.file/");
-    final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
-    //    graphs:
-    //    class NamedGraph
-    //		modifiedAt: datetime   (1..1)
-    //      dependsOn: NamedGraph  (0..*)
-    public final static NamespaceUtil NS_questions = new NamespaceUtil(NS_root.get("questions/"));
-    final static NamespaceUtil NS_classQuestionTemplate = new NamespaceUtil(NS_questions.get("QuestionTemplate#"));
-    final static NamespaceUtil NS_classQuestion = new NamespaceUtil(NS_questions.get("Question#"));
-    /* questions:
-     * class QuestionTemplate:
-     *   name: str   (1..1)
-     *   has_graph_qt    \ NamedGraph or rdf:nil
-     *   has_graph_qt_s  / (1..1)
-     *   ...
-     * class Question:
-     *   name: str    (1..1)
-     *   has_template (1..1)
-     *   has_graph_qt   \
-     *   has_graph_qt_s  | NamedGraph or rdf:nil
-     *   has_graph_q     | (1..1)
-     *   has_graph_q_s  /
-     *
-     *   solution_structural_complexity : int
-     *   solution_steps : int
-     *   distinct_errors_count : int
-     *   integral_complexity: float (0 <= value <= 1)  <- универсальная оценка вопроса для использования в стратегии
-     *	has_tag: domain:Tag   [1..*]
-     *	has_law: domain:Law [1..*]
-     *	has_violation: domain:Violation   [1..*]
-     *   ...
-     * */
-    /*final static NamespaceUtil NS_oop = new NamespaceUtil(NS_root.get("oop/"));*/
-    // hardcoded FTP location:
-//    static String FTP_BASE = "ftp://poas:{6689596D2347FA1287A4FD6AB36AA9C8}@vds84.server-1.biz/ftp_dir/compp/";
-//    static String FTP_DOWNLOAD_BASE = "http://vds84.server-1.biz/misc/ftp/compp/";
-    // TODO: use as defaults only, open in constructor.
-    public static String FTP_BASE = "file:///c:/data/compp/";  // local dir is supported too (for debugging)
-    public static String FTP_DOWNLOAD_BASE = FTP_BASE;
-    static Lang DEFAULT_RDF_SYNTAX = Lang.TURTLE;
-
-    // todo: reassign constants and merge prod & draft tables for questions_meta
+public class AbstractRdfStorage {
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
     public static int STAGE_EXPORTED = 4;
     public static int GENERATOR_VERSION = 10;
 
-    /**
-     * Temporary storage (cache) for RDF graphs from remote RDF DB (ex. Fuseki)
-     * TODO: remove, since no rdf storage is in use any more
-     */
-    @Deprecated
-    Dataset dataset = null;
-    static final boolean USE_RDF_STORAGE = false;
-
-
-    @Getter
-    private final RemoteFileService fileService;
+    private final HashMap<String, RemoteFileService> fileServices;
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
-    protected AbstractRdfStorage(
-            RemoteFileService fileService,
+    public AbstractRdfStorage(
+            Collection<DomainEntity> domains,
             QuestionMetadataRepository questionMetadataRepository,
-            QuestionMetadataManager questionMetadataManager) {
-        this.fileService = fileService;
+            QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
+        this.fileServices = new HashMap<>();
+        for (var domain : domains) {
+            var fs = new RemoteFileService(domain.getOptions().getStorageUploadFilesBaseUrl(),
+                    Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl()).orElse(domain.getOptions().getStorageUploadFilesBaseUrl()),
+                    Optional.ofNullable(domain.getOptions().getStorageDummyDirsForNewFile()).orElse(1));
+
+            this.fileServices.put(domain.getShortName(), fs);
+            this.fileServices.put(domain.getName(), fs);
+        }
+
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionMetadataManager = questionMetadataManager;
     }
 
-    public static NamespaceUtil questionSubgraphPropertyFor(GraphRole role) {
-        return new NamespaceUtil(NS_questions.get("has_graph_" + role.ns().base()));
+    public AbstractRdfStorage(
+            String domainId,
+            RemoteFileService fileService,
+            QuestionMetadataRepository questionMetadataRepository,
+            QuestionMetadataManager questionMetadataManager) {
+        this.fileServices = new HashMap<>();
+        this.fileServices.put(domainId, fileService);
+
+        this.questionMetadataRepository = questionMetadataRepository;
+        this.questionMetadataManager = questionMetadataManager;
     }
 
-    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionRequest qr, int n) {
-        List<QuestionEntity> list = qr.getExerciseAttempt().getQuestions();
+    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionBankSearchRequest qr, ExerciseAttemptEntity exerciseAttempt, int n) {
+        List<QuestionEntity> list = exerciseAttempt.getQuestions();
         List<QuestionMetadataEntity> result = new ArrayList<>();
         long toSkip = Math.max(0, list.size() - n);
         for (QuestionEntity questionEntity : list) {
@@ -138,48 +82,103 @@ public abstract class AbstractRdfStorage {
         return result;
     }
 
+    private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
+        var minComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMin();
+        var maxComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMax();
+
+        return QuestionBankSearchRequest.fromQuestionRequest(qr, minComplexity, maxComplexity);
+    }
+
+    public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qrLog) {
+        var minComplexity = questionMetadataManager.getComplexityStats(qrLog.getDomainShortname()).getMin();
+        var maxComplexity = questionMetadataManager.getComplexityStats(qrLog.getDomainShortname()).getMax();
+
+        var bankSearchRequest = QuestionBankSearchRequest.fromQuestionRequestLog(qrLog, minComplexity, maxComplexity);
+        return isMatch(meta, bankSearchRequest);
+    }
+
+    private boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
+        // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
+        if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())) {
+            throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
+        }
+
+        // проверка запрещаемых критериев
+        if (meta.getSolutionSteps() < qr.getStepsMin()
+                || qr.getStepsMax() != 0 && meta.getSolutionSteps() > qr.getStepsMax()
+                || qr.getDeniedConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getDeniedConceptsBitmask()) != 0
+                || qr.getDeniedLawsBitmask() != 0 && (meta.getViolationBits() & qr.getDeniedLawsBitmask()) != 0
+                || qr.getTargetTagsBitmask() != 0 && (meta.getTagBits() & qr.getTargetTagsBitmask()) != meta.getTagBits() // требуем наличия всех тэгов
+        ) {
+            return false;
+        }
+
+        // Если есть запрет по ID шаблона или имени вопроса
+        if (qr.getDeniedQuestionTemplateIds() != null && !qr.getDeniedQuestionTemplateIds().isEmpty() && qr.getDeniedQuestionTemplateIds().contains(meta.getTemplateId())
+                || qr.getDeniedQuestionNames() != null && !qr.getDeniedQuestionNames().isEmpty() && qr.getDeniedQuestionNames().contains(meta.getName())) {
+            return false;
+        }
+
+        // сложность должна быть <= от запрашиваемой
+        if (qr.getComplexity() != 0 && meta.getIntegralComplexity() > qr.getComplexity()) {
+            return false;
+        }
+
+        // Присутствует хотя бы один целевой концепт и закон (если они заданы)
+        if (qr.getTargetConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0
+                || qr.getTargetLawsBitmask() != 0 && (meta.getLawBits() & qr.getTargetLawsBitmask()) == 0
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public int countQuestions(QuestionRequest qr) {
+        var bankSearchRequest = createBankSearchRequest(qr);
+        return questionMetadataRepository.countQuestions(bankSearchRequest);
+    }
+
     /**
      * Find question templates in the questions bank. If no questions satisfy the requirements exactly, finds ones of similar complexity. Denied concepts and laws (laws map to violations on DB) cannot present in result questions anyway.
      * @param qr QuestionRequest
      * @param limit maximum questions to return (must be > 0)
      * @return questions found or empty list if the requirements cannot be satisfied
      */
-    public List<Question> searchQuestions(Domain domain, QuestionRequest qr, int limit) {
+    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
 
         Checkpointer ch = new Checkpointer(log);
 
+        var bankSearchRequest = createBankSearchRequest(qr);
+
         QuestionMetadataManager metaMgr = this.questionMetadataManager;
-        int nQuestionsInAttempt = Optional.ofNullable(qr.getDeniedQuestionNames()).map(List::size).orElse(0);
+        int nQuestionsInAttempt = Optional.ofNullable(bankSearchRequest.getDeniedQuestionNames()).map(List::size).orElse(0);
         int queryLimit = limit + nQuestionsInAttempt;
         int hardLimit = 25;
 
-        double complexity = qr.getComplexity();
-        complexity = metaMgr.getWholeBankStat().complexityStat.rescaleExternalValue(complexity, 0, 1);
+        double complexity = bankSearchRequest.getComplexity();
 
-        long targetConceptsBitmask = qr.getConceptsTargetedBitmask();
-        /*long allowedConceptsBitmask = conceptsToBitmask(qr.getAllowedConcepts(), metaMgr);  // unused */
-        long deniedConceptsBitmask = qr.getConceptsDeniedBitmask();
-        long unwantedConceptsBitmask = findLastNQuestionsMeta(qr, 4).stream()
+        long targetConceptsBitmask = bankSearchRequest.getTargetConceptsBitmask();
+        long deniedConceptsBitmask = bankSearchRequest.getDeniedConceptsBitmask();
+        long unwantedConceptsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInPlan = qr.getConceptsTargetedInPlanBitmask();
+        long targetConceptsBitmaskInPlan = bankSearchRequest.getTargetConceptsBitmask();
 
         // use laws, for e.g. Expr domain
-        long targetLawsBitmask = qr.getLawsTargetedBitmask();
-        /*long allowedLawsBitmask= lawsToBitmask(qr.getAllowedLaws(), metaMgr);  // unused */
-        long deniedLawsBitmask = qr.getLawsDeniedBitmask();
-        long unwantedLawsBitmask = findLastNQuestionsMeta(qr, 4).stream()
+        long targetLawsBitmask = bankSearchRequest.getTargetLawsBitmask();
+        long deniedLawsBitmask = bankSearchRequest.getDeniedLawsBitmask();
+        long unwantedLawsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInPlan = qr.getLawsTargetedInPlanBitmask();
-
+        long targetViolationsBitmaskInPlan = bankSearchRequest.getTargetLawsBitmask();
 
         // use violations from all questions is exercise attempt
-        long unwantedViolationsBitmask = qr.getExerciseAttempt().getQuestions().stream()
+        long unwantedViolationsBitmask = attempt.getQuestions().stream()
                 .map(qd -> qd.getOptions().getMetadata())
                 .filter(Objects::nonNull)
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
@@ -187,23 +186,12 @@ public abstract class AbstractRdfStorage {
 
         ch.hit("searchQuestionsAdvanced - bitmasks prepared");
 
-        // (previous version with explicit parameters)
-//        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutTemplates(
-//                complexity,
-//                0.15,
-//                qr.getStepsMin(), qr.getStepsMax(),
-//                targetConceptsBitmask, deniedConceptsBitmask,
-//                targetLawsBitmask, deniedLawsBitmask,
-//                List.of()/*templatesInUse*/, questionsInUse,
-//                queryLimit, 12);
-
-        List<QuestionMetadataEntity> foundQuestionMetas = metaMgr.findQuestionsAroundComplexityWithoutQIds(qr, 0.1, queryLimit, 12);
+        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findSampleAroundComplexityWithoutQIds(bankSearchRequest, 0.1, queryLimit, 12);
 
         ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
 
         foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
                 complexity,
-//                solutionSteps,
                 targetConceptsBitmask,
                 unwantedConceptsBitmask,
                 unwantedLawsBitmask,
@@ -235,11 +223,9 @@ public abstract class AbstractRdfStorage {
             // increment the question's usage counter
             val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
             meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
-            meta.setLastAttemptId(qr.getExerciseAttempt().getId());
+            meta.setLastAttemptId(attempt.getId());
             meta.setDateLastUsed(new Date());
-            metaMgr.getQuestionRepository().save(meta);
-
-//            ch.hit("searchQuestionsAdvanced - Question usage +1");
+            questionMetadataRepository.save(meta);
         }
 
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
@@ -250,7 +236,6 @@ public abstract class AbstractRdfStorage {
     private List<QuestionMetadataEntity> filterQuestionMetas(
             List<QuestionMetadataEntity> given,
             double scaledComplexity,
-            /*double scaledSolutionLength,*/
             long targetConceptsBitmask,
             long unwantedConceptsBitmask,
             long unwantedLawsBitmask,
@@ -261,11 +246,7 @@ public abstract class AbstractRdfStorage {
 
         List<QuestionMetadataEntity> ranking1 = given.stream()
                 .sorted(Comparator.comparingDouble(q -> q.complexityAbsDiff(scaledComplexity)))
-                .collect(Collectors.toList());
-
-        /*List<QuestionMetadataEntity> ranking2 = given.stream()
-                .sorted(Comparator.comparingDouble(q -> q.getSolutionStepsAbsDiff(scaledSolutionLength)))
-                .collect(Collectors.toList());*/
+                .toList();
 
         List<QuestionMetadataEntity> ranking3 = given.stream()
                 .sorted(Comparator.comparingInt(
@@ -274,7 +255,7 @@ public abstract class AbstractRdfStorage {
                         + bitCount(q.getViolationBits() & unwantedViolationsBitmask)
                         - bitCount(q.getConceptBits() & targetConceptsBitmask) * 3
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
 
         // want more diversity in question ?? count control values -> take more with '1' not with '0'
@@ -323,6 +304,7 @@ public abstract class AbstractRdfStorage {
 
     private Question loadQuestion(Domain domain, String path) {
         Question q = null;
+        var fileService = fileServices.get(domain.getDomainId());
         try (InputStream stream = fileService.getFileStream(path)) {
             if (stream != null) {
                 q = domain.parseQuestionTemplate(stream);
@@ -333,182 +315,12 @@ public abstract class AbstractRdfStorage {
             log.error("Error loading question with path [{}] - {}", path, e.getMessage(), e);
         } finally {
             try {
-                getFileService().closeConnections();
+                fileService.closeConnections();
             } catch (FileSystemException e) {
                 log.error("Error closing connection - {}", e.getMessage(), e);
             }
         }
         return q;
-    }
-
-    Model getDomainSchemaForSolving(Domain domain) {
-        if (domain != null) {
-            return domain.getSchemaForSolving();
-        }
-
-        // the default
-        return ModelFactory.createDefaultModel();
-    }
-
-    public List<Rule> getDomainRulesForSolvingAtLevel(Domain domain, GraphRole level) {
-        assert domain != null;
-
-        // get rules
-        List<Rule> rules = new ArrayList<>();
-
-        List<Law> laws = new ArrayList<>();
-
-        // choose whose rules to return
-        if (level.ordinal() < GraphRole.QUESTION_TEMPLATE.ordinal()) {
-            laws.addAll(domain.getPositiveLaws());
-        } else if (level.ordinal() <= GraphRole.QUESTION.ordinal()) {
-            laws.addAll(domain.getQuestionPositiveLaws(domain.getDefaultQuestionType(), domain.getDefaultQuestionTags(domain.getDefaultQuestionType())));
-        } else {
-            laws.addAll(domain.getQuestionNegativeLaws(domain.getDefaultQuestionType(), new ArrayList<>()));
-        }
-
-        PrintUtil.registerPrefix("my", NS_code.get()); // as `my:` is used in rules
-
-
-        for (Law law : laws) {
-            for (LawFormulation lawFormulation : law.getFormulations()) {
-                Rule rule;
-                if (lawFormulation.getBackend().equals("Jena")) {
-                    try {
-                        rule = Rule.parseRule(lawFormulation.getFormulation());
-                    } catch (Rule.ParserException e) {
-                        log.error("Following error in rule: {}", lawFormulation.getFormulation(), e);
-                        continue;
-                    }
-                    rules.add(rule);
-                }
-            }
-        }
-
-        return rules;
-    }
-
-//    public abstract RDFConnection getConn();
-
-//    /** Download, cache and return a graph */
-//    @Nullable
-//    Model getGraph(String name) {
-//        if (fetchGraph(name)) {
-//            return getLocalGraphByUri(name);
-//        }
-//        return null;
-//    }
-
-    /**
-     * Download a file content from remote FTP, parse and return as Model
-     */
-    @Nullable
-    Model fetchModel(String filepath) {
-        Model m = ModelFactory.createDefaultModel();
-        try (InputStream stream = fileService.getFileStream(filepath)) {
-            if (stream == null)
-                return null;
-            RDFDataMgr.read(m, stream, DEFAULT_RDF_SYNTAX);
-            getFileService().closeConnections();
-        } catch (IOException /*| NullPointerException*/ e) {
-            log.error("Error reading model with path [{}] - {}", filepath, e.getMessage(), e);
-            return null;
-        }
-        return m;
-    }
-
-//    /** Cache and send a graph to remote DB */
-//    boolean sendGraph(String gUri, Model m) {
-//        if (setLocalGraph(gUri, m)) {
-//            return uploadGraph(gUri);
-//        }
-//        return false;
-//    }
-
-    /**
-     * Send a model as file to remote FTP
-     */
-    boolean sendModel(String name, Model m) {
-        try (OutputStream stream = fileService.openForWrite(name)) {
-            RDFDataMgr.write(stream, m, DEFAULT_RDF_SYNTAX);
-            getFileService().closeConnections();
-        } catch (IOException | NullPointerException e) {
-            log.error("Error sending model with name [{}] - {}", name, e.getMessage(), e);
-            return false;
-        }
-        return true;
-    }
-
-    /* **
-     * Download and cache a graph if not cached yet
-     */
-//    boolean fetchGraph(String gUri) {
-//        return fetchGraph(gUri, false);
-//    }
-
-////    abstract boolean fetchGraph(String gUri, boolean fetchAlways);
-
-//    abstract boolean uploadGraph(String gUri);
-
-//    boolean runQueriesWithConnection(RDFConnection connection, Collection<UpdateRequest> requests, boolean merge) {
-//        try (RDFConnection conn = connection) {
-//            conn.begin(TxnType.WRITE);
-//
-//            if (merge && requests.size() > 1) {
-//                // join all
-//                StringBuilder bigRequest = new StringBuilder();
-//                for (UpdateRequest r : requests) {
-//                    if (bigRequest.length() > 0)
-//                        bigRequest.append("\n;\n");  // ";" is SPARQL separator
-//                    bigRequest.append(r.toString());
-//                }
-//                String finalRequest = bigRequest.toString();
-//                // run query once
-//                conn.update(finalRequest);
-//            } else {
-//                for (UpdateRequest r : requests) {
-//                    conn.update(r);
-//                }
-//            }
-//            conn.commit();
-//            return true;
-//        } catch (JenaException exception) {
-//            exception.printStackTrace();
-//            // System.out.println();
-//            return false;
-//        }
-//    }
-
-//    abstract boolean runQueries(Collection<UpdateRequest> requests);
-
-//    abstract boolean runQueries(Collection<UpdateRequest> requests, boolean merge);
-
-    public String nameForQuestionGraph(String questionName, GraphRole role) {
-        // look for <Question>.<subgraph> property in metadata first
-        QuestionMetadataEntity meta = findQuestionByName(questionName);
-        String targetPath = null;
-        if (meta != null)
-            switch (role) {
-                case QUESTION_TEMPLATE:
-                    targetPath = meta.getQtGraphPath(); break;
-                case QUESTION_TEMPLATE_SOLVED:
-                    targetPath = meta.getQtSolvedGraphPath(); break;
-                case QUESTION:
-                    targetPath = meta.getQGraphPath(); break;
-                case QUESTION_SOLVED:
-                    targetPath = meta.getQSolvedGraphPath(); break;
-                case QUESTION_DATA:
-                    targetPath = meta.getQDataGraph(); break;
-            }
-
-        if (targetPath != null) {
-            return targetPath;
-        }
-
-        // no known relation - get default for a new one
-        String ext = "." + DEFAULT_RDF_SYNTAX.getFileExtensions().get(0);
-        return fileService.prepareNameForFile(role.ns().get(questionName + ext), false);
-        //// return role.ns(NS_namedGraph.get()).get(questionName);
     }
 
     /**
@@ -526,126 +338,6 @@ public abstract class AbstractRdfStorage {
         return found.get(0);
     }
 
-    /**
-     * Get Model with specified `role` for question or question template, if one exists, else `null` is returned.
-     */
-    public Model getQuestionSubgraph(String questionName, GraphRole role) {
-        return fetchModel(nameForQuestionGraph(questionName, role));
-    }
-
-    /**
-     * Get union of all models available for question or question template
-     */
-    public Model getQuestionModel(String questionName) {
-        return getQuestionModel(questionName, GraphRole.QUESTION_SOLVED);
-    }
-
-    /**
-     * Get union of all models under `topRole` (inclusive) available for question or question template
-     */
-    public Model getQuestionModel(String questionName, GraphRole topRole) {
-        Model m = ModelFactory.createDefaultModel();
-        for (GraphRole role : questionStages()) {
-            Model gm = getQuestionSubgraph(questionName, role);
-            if (gm != null)
-                m.add(gm);
-            else {
-                log.info("Sub-graph not found!  q: {}", questionName);
-            }
-
-            if (role == topRole)
-                break;
-        }
-        return m;
-    }
-
-    List<GraphRole> questionStages() {
-        return List.of(
-                GraphRole.QUESTION_TEMPLATE,
-                GraphRole.QUESTION_TEMPLATE_SOLVED,
-                GraphRole.QUESTION,
-                GraphRole.QUESTION_SOLVED
-        );
-    }
-
-    /**
-     * Find what stage a question is in. Returned constant means which stage is reached by now.
-     * @param questionName question/questionTemplate unqualified name
-     * @return one of questionStages(), or null if the question/questionTemplate does not exist.
-     */
-    public GraphRole getQuestionStatus(String questionName) {
-        val meta = findQuestionByName(questionName);
-        if (meta == null) {
-            return null;
-        }
-
-        GraphRole reachedRole = GraphRole.QUESTION_TEMPLATE;
-        for  (GraphRole role : questionStages()) {
-            String graphPath = null;
-            switch (role) {
-                case QUESTION_TEMPLATE:
-                    graphPath = meta.getQtGraphPath();
-                    break;
-                case QUESTION_TEMPLATE_SOLVED:
-                    graphPath = meta.getQtSolvedGraphPath();
-                    break;
-                case QUESTION:
-                    graphPath = meta.getQGraphPath();
-                    break;
-                case QUESTION_SOLVED:
-                    graphPath = meta.getQSolvedGraphPath();
-                    break;
-            }
-            if (graphPath != null)
-                reachedRole = role;
-            else
-                break;
-        }
-        return reachedRole;
-    }
-
-    /**
-     * создание/обновление и отправка во внешнюю БД одного из 4-х видов подграфа вопроса (например, создание нового
-     * вопроса или добавление solved-данных для него)
-     *
-     * @param questionName unqualified name of Question or QuestionTemplate
-     * @param role question subgraph role
-     * @param model data to store
-     * @return saved metadata instance if saved successful, else null
-     */
-    public QuestionMetadataEntity setQuestionSubgraph(Domain domain, String questionName, GraphRole role, Model model) {
-        String qgSubPath = nameForQuestionGraph(questionName, role);
-        boolean success = sendModel(qgSubPath, model);
-
-        if (!success)
-            return null;
-
-        // update questions metadata
-        QuestionMetadataEntity meta = findQuestionByName(questionName);
-        if (meta == null) {
-            // проинициализировать метаданные шаблона вопроса, далее сохранить в БД
-            if (role == GraphRole.QUESTION_TEMPLATE || role == GraphRole.QUESTION_TEMPLATE_SOLVED)
-                meta = createQuestionTemplate(domain, questionName);
-            else {
-                throw new IllegalStateException("setQuestionSubgraph(): Question metadata row must be initialized in advance!");
-            }
-        }
-
-        switch (role) {
-            case QUESTION_TEMPLATE:
-                meta.setQtGraphPath(qgSubPath); break;
-            case QUESTION_TEMPLATE_SOLVED:
-                meta.setQtSolvedGraphPath(qgSubPath); break;
-            case QUESTION:
-                meta.setQGraphPath(qgSubPath); break;
-            case QUESTION_SOLVED:
-                meta.setQSolvedGraphPath(qgSubPath); break;
-        }
-        meta = saveMetadataDraftEntity(meta);
-
-        return meta;
-    }
-
     @NotNull
     public QuestionMetadataEntity saveMetadataDraftEntity(QuestionMetadataEntity meta) {
         if (!meta.isDraft())
@@ -658,36 +350,6 @@ public abstract class AbstractRdfStorage {
         if (meta.isDraft())
             meta.setDraft(false);
         return questionMetadataRepository.save(meta);
-    }
-
-    /**
-     * Create empty metadata row for QuestionTemplate, but not overwrite existing data.
-     *
-     * @param questionTemplateName unique identifier-like name of question template
-     * @return fresh or existing QuestionMetadataDraftEntity instance
-     */
-    public QuestionMetadataEntity createQuestionTemplate(Domain domain, String questionTemplateName) {
-        // find template metadata
-        QuestionMetadataEntity templateMeta = findQuestionByName(questionTemplateName);
-
-        if (templateMeta != null) {
-            return templateMeta;
-        }
-
-        val builder = QuestionMetadataEntity.builder();
-
-        // проинициализировать метаданные вопроса, далее сохранить в БД
-        templateMeta = builder.name(questionTemplateName)
-                .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""))
-                .templateId(-1)
-                .isDraft(true)
-                .stage(STAGE_TEMPLATE)
-                .version(GENERATOR_VERSION)
-                .build();
-        templateMeta = saveMetadataDraftEntity(templateMeta);
-
-        return templateMeta;
-
     }
 
     /**
@@ -737,117 +399,29 @@ public abstract class AbstractRdfStorage {
         return meta;
     }
 
-    /** delete files and db entry for question (not for the template)
-     * @param questionName name of question to delete
-     */
-    public void deleteQuestion(String questionName /*, boolean keepTemplate*/) {
-        val meta = findQuestionByName(questionName);
-
-        // delete files for this question (not for the template)
-        try {
-            String qgSubPath = meta.getQGraphPath();
-            if (qgSubPath != null) {
-                fileService.deleteFile(qgSubPath);
-            }
-            qgSubPath = meta.getQSolvedGraphPath();
-            if (qgSubPath != null) {
-                fileService.deleteFile(qgSubPath);
-            }
-            qgSubPath = meta.getQDataGraph();
-            if (qgSubPath != null) {
-                fileService.deleteFile(qgSubPath);
-            }
-        } catch (FileSystemException e) {
-            log.error("Error deleting question with name [{}] - {}", questionName, e.getMessage(), e);
-        }
-
-        // delete db entry
-        questionMetadataRepository.delete(meta);
+    public String saveQuestionData(String domainId, String basePath, String questionName, String data) throws IOException {
+        var rawQuestionPath = Path.of(basePath, questionName + ".json");
+        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), data);
     }
 
-    /* *
-     * Add metadata triples to a Question node. Only scalar values (Literals) are allowed as an object in a triple.
-     * Tip: use {@link NodeFactory} to create property URIs and literals. Property URI is typically obtained via
-     * NS_questions.getUri("...").
-     * (QuestionTemplate is not supported here since NS_classQuestion namespace is hardcoded in this method).
-     *
-     * @param questionName local name of a Question node
-     * @param propValPairs property-literal pairs for triples to be created
-     * @return true on success
-     */
-    /*public boolean setQuestionMetadata(String questionName, Collection<Pair<Node, Node>> propValPairs) {
-        Model qG = getGraph(NS_questions.base());  // questions Graph containing questions metadata
-
-        if (qG != null) {
-            Node ngNode = NS_questions.baseAsUri();
-            Node qNode = NS_classQuestion.getUri(questionName);
-            List<Triple> triples = new ArrayList<>();
-
-            // make triples with question node as subject
-            for (Pair<Node, Node> pair : propValPairs) {
-                triples.add(new Triple(
-                        qNode,  // Subject
-                        pair.getLeft(),  // Property
-                        pair.getRight()  // Value (Object)
-                ));
-            }
-
-            // insert new triples
-            UpdateBuilder ub2 = new UpdateBuilder();
-            ub2.addPrefix("qs", NS_questions.get());
-            ub2.addInsert(ngNode, triples);
-            UpdateRequest insertQuery = ub2.buildRequest();
-
-            return runQueries(List.of(insertQuery));
-        }
-        return false;
-    }*/
-
-    /**
-     * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
-     *
-     * @param questionName              name of question or question template
-     * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
-     * @return true on success
-     */
-    public boolean solveQuestion(Domain domain, String questionName, GraphRole desiredLevel) {
-        return solveQuestion(domain, questionName, desiredLevel, -1);
+    public String saveQuestionData(String domainId,  String questionName, String data) throws IOException {
+        return saveQuestionDataImpl(domainId, questionName + ".json", data);
     }
 
-    /**
-     * Solve a question or question template: create new subgraph & send it to remote, update questions metadata.
-     *
-     * @param questionName              name of question or question template
-     * @param desiredLevel              QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
-     * @param tooLargeTemplateThreshold if > 0, do not process question templates having the number of RDF subjects
-     *                                  exceeding this number (maybe for reducing reasoner load).
-     * @return true on success
-     */
-    public boolean solveQuestion(Domain domain, String questionName, GraphRole desiredLevel, int tooLargeTemplateThreshold) {
-//        Model qG = getGraph(NS_questions.base());
-//        assert qG != null;
-
-        Model existingData = getQuestionModel(questionName, GraphRole.getPrevious(desiredLevel));
-
-        // avoid processing too large templates
-        if (tooLargeTemplateThreshold > 0 && desiredLevel == GraphRole.QUESTION_TEMPLATE_SOLVED) {
-            int subjectCount = existingData.listSubjects().toList().size();
-            if (subjectCount > tooLargeTemplateThreshold) {
-                log.debug("Skip too large template of size {}: {}", subjectCount, questionName);
-                return false;
+    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, String data) throws IOException {
+        var fileService = fileServices.get(domainId);
+        var questionPath = fileService.prepareNameForFile(rawQuestionPath, false);
+        try (OutputStream stream = fileService.openForWrite(questionPath)) {
+            assert stream != null;
+            stream.write(data.getBytes(StandardCharsets.UTF_8));
+            return questionPath;
+        } finally {
+            try {
+                fileService.closeConnections();
+            } catch (FileSystemException e) {
+                log.error("Error closing file service connection: {}", e.getMessage(), e);
             }
         }
-
-        Model inferred = runReasoning(
-                getFullSchema(domain).union(existingData),
-                getDomainRulesForSolvingAtLevel(domain, desiredLevel),
-                true);
-
-        if (inferred.isEmpty())
-            log.warn("Solved to empty for question: {}", questionName);
-
-        // set graph
-        return setQuestionSubgraph(domain, questionName, desiredLevel, inferred) != null;
     }
 
     public static int getTooFewQuestionsForQR(int qrLogId) {
@@ -863,182 +437,4 @@ public abstract class AbstractRdfStorage {
         }
         return 500;
     }
-
-
-
-    /**
-     * Find questions and/or question templates which have `unsolvedSubgraph` set to rdf:nil.
-     *
-     * @param unsolvedSubgraph QUESTION_TEMPLATE_SOLVED or QUESTION_SOLVED
-     * @return list of names
-     */
-    public List<String> unsolvedQuestions(/*String classUri,*/ GraphRole unsolvedSubgraph) {
-        if (!USE_RDF_STORAGE) {
-            return List.of();
-        }
-        // find question templates to solve
-        Node ng = NS_questions.baseAsUri();
-        String unsolvedTemplates = new SelectBuilder()
-                .addVar("?name")
-                .addWhere(
-                        new WhereBuilder()
-                                /*.addGraph(ng,
-                                        "?node",
-                                        RDF.type,
-                                        NodeFactory.createURI(classUri)
-                                )*/
-                                .addGraph(ng,
-                                        "?node",
-                                        NS_questions.getUri("name"),
-                                        "?name"
-                                )
-                                .addGraph(ng,
-                                        "?node",
-                                        AbstractRdfStorage.questionSubgraphPropertyFor(unsolvedSubgraph).baseAsUri(),
-                                        RDF.nil
-                                )
-                )
-                .toString();
-
-        RDFConnection connection = RDFConnection.connect(dataset);
-        // RDFConnection connection = getConn();
-        List<String> names = new ArrayList<>();
-        try (RDFConnection conn = connection) {
-
-            conn.querySelect(unsolvedTemplates,
-                    querySolution -> names.add(querySolution.get("name").asLiteral().getString()));
-
-        } catch (JenaException exception) {
-            log.error("Error querying template - {}", exception.getMessage(), exception);
-        }
-        return names;
-    }
-
-    public boolean localGraphExists(String gUri) {
-        if (!USE_RDF_STORAGE) {
-            return false;
-        }
-        return dataset.containsNamedModel(gUri);
-    }
-
-    public Model getLocalGraphByUri(String gUri) {
-        if (USE_RDF_STORAGE && dataset != null) {
-            if (localGraphExists(gUri)) {
-                return dataset.getNamedModel(gUri);
-            } else log.warn(String.format("Graph not found - name: '%s'", gUri));
-        } else {
-            log.warn("Dataset was not initialized");
-        }
-        return null;
-    }
-
-    /**
-     * запись/обновление подграфа триплетов в кэше
-     * @param gUri graph URI
-     * @param model model to set
-     * @return true on success
-     */
-    public boolean setLocalGraph(String gUri, Model model) {
-        if (/*USE_RDF_STORAGE &&*/ dataset != null) {
-            if (dataset.containsNamedModel(gUri))
-                dataset.replaceNamedModel(gUri, model);
-            else
-                dataset.addNamedModel(gUri, model);
-
-        } else {
-            log.error("Dataset was not initialized");
-            throw new RuntimeException("Dataset was not initialized");
-        }
-        return true;
-    }
-
-    /**
-     * получение подграфа триплетов, хранящего базовую схему домена (необходимую для работы ризонера)
-     * @return model of triples
-     */
-    public Model getSchema(Domain domain) {
-        if (!USE_RDF_STORAGE) {
-            return getDomainSchemaForSolving(domain);
-        }
-        String uri = NS_graphs.get(GraphRole.SCHEMA.ns().base());
-//        if (!dataset.containsNamedModel(uri)) {
-//            setLocalGraph(uri, getDomainSchemaForSolving());
-//        }
-        return getLocalGraphByUri(uri);
-    }
-
-    /**
-     * Get solved domain schema (for reasoning purposes)
-     * @return model both schema and solved schema (the most of what exists - may be empty)
-     */
-    public Model getFullSchema(Domain domain) {
-        Model m = ModelFactory.createDefaultModel();
-        Model m2 = getSchema(domain);
-        if (m2 != null)
-            m.add(m2);
-
-        String uri = NS_graphs.get(GraphRole.SCHEMA_SOLVED.ns().base());
-        if (dataset != null && !dataset.containsNamedModel(uri) && !m.isEmpty()) {
-            Model inferred = runReasoning(m, getDomainRulesForSolvingAtLevel(domain, GraphRole.SCHEMA), true);
-            if (inferred.isEmpty()) {
-                // add anything to avoid re-calculation
-                inferred.add(m.listStatements().nextStatement());
-            }
-            setLocalGraph(uri, inferred);
-            m2 = inferred;
-        }
-        /*m2 = getLocalGraphByUri(uri);*/
-        if (m2 != null)
-            m.add(m2);
-
-        return m;
-    }
-
-    public Model solveTemplate(Domain domain, Model srcModel, GraphRole desiredLevel, boolean retainNewFactsOnly) {
-        return runReasoning(
-                getFullSchema(domain).union(srcModel),
-                getDomainRulesForSolvingAtLevel(domain, desiredLevel),  // SCHEMA role suits ProgrammingLanguageExpressionDomain here
-                retainNewFactsOnly);
-    }
-
-    public Model runReasoning(Model srcModel, List<Rule> rules, boolean retainNewFactsOnly) {
-        GenericRuleReasoner reasoner = new GenericRuleReasoner(rules);
-
-        long startTime = System.nanoTime();
-
-        // Note: changes done to inf are also applied to srcModel.
-        InfModel inf = ModelFactory.createInfModel(reasoner, srcModel);
-        inf.prepare();
-
-        long estimatedTime = System.nanoTime() - startTime;
-        if (estimatedTime > 100_000_000) {  // > 0.1 s
-            log.printf(Level.INFO, "Time Jena spent on reasoning: %.5f seconds.", (float) estimatedTime / 1000_000_000);
-        }
-
-        Model result;
-        if (retainNewFactsOnly) {
-            // make a true copy
-            result = ModelFactory.createDefaultModel().add(inf);
-            // cleanup the inferred results (inf) ...
-            result.remove(srcModel);
-        } else {
-            result = inf;
-        }
-        return result;
-    }
-
-    private void debug_dump(Model model, String name) {
-        if (true) {
-            String out_rdf_path = "c:/temp/" + name + ".n3";
-            FileOutputStream out = null;
-            try {
-                out = new FileOutputStream(out_rdf_path);
-                RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                log.debug("Debug written: {}. N of of triples: {}", out_rdf_path, model.size());
-            } catch (FileNotFoundException e) {
-                log.debug("Cannot write to file: {} Error: {}", out_rdf_path, e);
-            }
-        }
-    }
-
 }

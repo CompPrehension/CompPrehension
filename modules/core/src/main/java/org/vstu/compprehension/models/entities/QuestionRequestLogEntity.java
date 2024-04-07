@@ -28,8 +28,6 @@ public class QuestionRequestLogEntity {
 
     @Type(JsonType.class)
     private List<String> targetConceptNames;
-    @Type(JsonType.class)
-    private List<String> targetConceptNamesInPlan;
 
     @Type(JsonType.class)
     private List<String> deniedConceptNames;
@@ -38,11 +36,8 @@ public class QuestionRequestLogEntity {
     @Type(JsonType.class)
     private List<String> allowedConceptNames;
 
-
     @Type(JsonType.class)
     private List<String> targetLawNames;
-    @Type(JsonType.class)
-    private List<String> targetLawNamesInPlan;
 
     @Type(JsonType.class)
     private List<String> deniedLawNames;
@@ -50,13 +45,15 @@ public class QuestionRequestLogEntity {
     @Type(JsonType.class)
     private List<String> allowedLawNames;
 
+    @Type(JsonType.class)
+    private List<String> targetTags;
+
     // bit fields
     long conceptsTargetedBitmask;  // set to 0 if traceConceptsTargetedBitmask set
-    long traceConceptsTargetedBitmask = 0;  // set if required for search
     long conceptsDeniedBitmask;
     long lawsTargetedBitmask;
     long lawsDeniedBitmask;
-
+    long targetTagsBitmask;
 
     @Type(JsonType.class)
     private List<String> deniedQuestionNames;

@@ -7,10 +7,9 @@ import {
     ExerciseCardConcept,
     ExerciseCardConceptKind,
     ExerciseCardLaw,
-    ExerciseCardViewModel,
     Strategy
 } from "../types/exercise-settings";
-import {ExerciseSettingsStore} from "../stores/exercise-settings-store";
+import {ExerciseCardViewModel, ExerciseSettingsStore} from "../stores/exercise-settings-store";
 import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
 import {Link} from "react-router-dom";
@@ -328,18 +327,18 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         {card.stages.map((stage, stageIdx, stages) =>
                             <>
                                 <div className="card mb-3">
-                                    {stages.length > 1 &&
-                                        <button type="button" 
-                                                className="close" 
-                                                aria-label="Close" 
-                                                style={{'position': 'absolute', 'top': '10px', 'right': '10px'}}
-                                                onClick={() => store.removeStage(stageIdx)}>
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        || null
-                                    }                                    
                                     <div className="card-body">
-                                        <div className="form-group">{t('exercisesettings_stageN', { stageNumber: stageIdx + 1})}</div>
+                                        <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                            <div>{t('exercisesettings_stageN', { stageNumber: stageIdx + 1})}</div>                                            
+                                            <div>
+                                                <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
+                                                {
+                                                    stage.bankLoadingState === 'IN_PROGRESS' 
+                                                        ? <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
+                                                        : stage.bankQuestionsCount
+                                                }
+                                            </div>
+                                        </div>
                                         {currentStrategy?.options.multiStagesEnabled
                                             && <div className="form-group">
                                                     <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
@@ -350,7 +349,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                                         onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
                                                </div>
                                             || null
-                                        }                                        
+                                        }
                                         {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
                                             <div className="form-group">
                                                 <label className="font-weight-bold">{t('exercisesettings_stageN_concepts')}</label>
@@ -416,6 +415,12 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                                         </div>
                                                     </div>))}
                                                 </div>
+                                            </div>
+                                            || null
+                                        }
+                                        {stages.length > 1 &&
+                                            <div className="d-flex justify-content-end">
+                                                <button type="button" className="btn btn-danger" onClick={() => store.removeStage(stageIdx)}>{t('exercisesettings_removeStage')}</button>
                                             </div>
                                             || null
                                         }

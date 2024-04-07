@@ -12,10 +12,15 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.*;
-import org.vstu.compprehension.models.businesslogic.backend.*;
+import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
+import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy_Manual50Autogen50;
@@ -71,6 +76,15 @@ public class DiConfig {
     @SessionScope
     UserService getUserService(@Autowired UserRepository userRepository) {
         return new CachedUserService(new UserServiceImpl(userRepository));
+    }
+
+    @Bean
+    @Singleton
+    AbstractRdfStorage getQuestionBank(
+            @Autowired DomainRepository domainRepository,
+            @Autowired QuestionMetadataRepository metadataRepository) throws Exception {
+        var allDomains = domainRepository.findAll();
+        return new AbstractRdfStorage(allDomains, metadataRepository, new QuestionMetadataManager(metadataRepository));
     }
 
     @Bean

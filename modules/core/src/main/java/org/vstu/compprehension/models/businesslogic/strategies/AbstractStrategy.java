@@ -139,7 +139,7 @@ public interface AbstractStrategy {
     /** Fill target and denied concepts and laws, complexity and denied questions from the attempt */
     default QuestionRequest initQuestionRequest(ExerciseAttemptEntity exerciseAttempt, ExerciseStageEntity exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
-        qr.setExerciseAttempt(exerciseAttempt);
+        qr.setExerciseAttemptId(exerciseAttempt.getId());
         qr.setDomainShortname(domain.getShortName());
 
         // concepts
@@ -157,6 +157,7 @@ public interface AbstractStrategy {
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
         qr.setTargetLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.TARGETED));
         qr.setAllowedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.PERMITTED));
+        qr.setTargetTags(exerciseAttempt.getExercise().getTags().stream().map(t -> domain.getTags().get(t)).filter(Objects::nonNull).toList());
         qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
 
         // questions
@@ -179,10 +180,6 @@ public interface AbstractStrategy {
 
     /** Balance targets (concepts and laws) so to show as many of questions with them as possible within the attempt */
     default QuestionRequest adjustQuestionRequest(QuestionRequest qr, ExerciseAttemptEntity exerciseAttempt) {
-
-        // copy targets to "inPlan" fields, actual targets may change
-        qr.setTargetConceptsInPlan(qr.getTargetConcepts());
-        qr.setTargetLawsInPlan(qr.getTargetLaws());
 
         val attemptQuestions = exerciseAttempt.getQuestions();
         if (attemptQuestions == null || attemptQuestions.isEmpty()) {
