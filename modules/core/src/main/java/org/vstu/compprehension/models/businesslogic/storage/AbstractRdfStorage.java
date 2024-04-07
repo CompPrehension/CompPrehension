@@ -43,7 +43,8 @@ public class AbstractRdfStorage {
         this.fileServices = new HashMap<>();
         for (var domain : domains) {
             var fs = new RemoteFileService(domain.getOptions().getStorageUploadFilesBaseUrl(),
-                    Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl()).orElse(domain.getOptions().getStorageUploadFilesBaseUrl()));
+                    Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl()).orElse(domain.getOptions().getStorageUploadFilesBaseUrl()),
+                    Optional.ofNullable(domain.getOptions().getStorageDummyDirsForNewFile()).orElse(1));
 
             this.fileServices.put(domain.getShortName(), fs);
             this.fileServices.put(domain.getName(), fs);
