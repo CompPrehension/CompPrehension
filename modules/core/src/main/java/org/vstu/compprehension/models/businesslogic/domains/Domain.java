@@ -12,8 +12,11 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
@@ -26,6 +29,7 @@ import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -333,17 +337,6 @@ public abstract class Domain {
         return getMessage(prefix + messageKey, preferredLanguage);
     }
 
-    public Collection<Fact> processQuestionFactsForBackendSolve(Collection<Fact> questionFacts){
-        return questionFacts;
-    }
-
-    public Collection<Fact> processQuestionFactsForBackendJudge(
-        Collection<Fact> questionFacts,
-        Collection<ResponseEntity> responses
-    ){
-        return questionFacts;
-    }
-
     public Model getSchemaForSolving(/* String questionType (?) */) {
         // the default
         return ModelFactory.createDefaultModel();
@@ -497,10 +490,6 @@ public abstract class Domain {
          * @return explanation for each violation in random order
          */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
-
-    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang){
-        return null;
-    }
 
     /**
      * Get all needed (positive and negative) laws in this questionType
@@ -876,4 +865,33 @@ public abstract class Domain {
         return null;
     }
 
+    //-----
+
+    /**
+     * Define all the {@link DomainToBackendInterface} this domain supports
+     */
+    protected Set<DomainToBackendInterface<?, ?, ?>> createBackendInterfaces(){
+        return Set.of(
+            new FactBackend.Interface<>(JenaBackend.class, this)
+        );
+    }
+
+    private final Map<Class<?>, DomainToBackendInterface<?, ?, ?>> backendClassToInterfaceMap =
+        createBackendInterfaces().stream()
+            .collect(Collectors.toMap(
+                DomainToBackendInterface::getBackendClass,
+                Function.identity()
+            ));
+
+    /**
+     * Get an interface instance which this Domain uses to interact with a given backend <br>
+     * Returns null if no such interface exists
+     * - however, this situation should not be possible if the system is working correctly
+     */
+    public final DomainToBackendInterface<?, ?, ?> getBackendInterface(Backend<?, ?> backend){
+        return backendClassToInterfaceMap.get(
+            //Unwrapping Spring proxies and decorator backends
+            AopProxyUtils.ultimateTargetClass(backend.getActualBackend())
+        );
+    }
 }

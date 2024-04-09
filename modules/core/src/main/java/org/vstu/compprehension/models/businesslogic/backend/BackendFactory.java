@@ -14,10 +14,10 @@ import java.util.Set;
 
 @Component @RequestScope
 public class BackendFactory {
-    private HashMap<String, Backend> backends = new HashMap<>();
+    private final HashMap<String, Backend<?, ?>> backends = new HashMap<>();
 
     @Autowired
-    public BackendFactory(@Qualifier("allBackends") List<Backend> backends) {
+    public BackendFactory(@Qualifier("allBackends") List<Backend<?, ?>> backends) {
         for (val b : backends) {
             this.backends.put(b.getBackendId(), b);
         }
@@ -27,7 +27,7 @@ public class BackendFactory {
         return backends.keySet();
     }
 
-    public @NotNull Backend getBackend(@NotNull String backendId) {
+    public @NotNull Backend<?, ?> getBackend(@NotNull String backendId) {
         var result = backends.get(backendId);
         if (result == null)
             throw new NoSuchBeanDefinitionException(String.format("Can't find backend with id %s", backendId));

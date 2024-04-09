@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
@@ -189,7 +190,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), question.getQuestionText().getText());
 
-        Backend backend = backendFactory.getBackend("Jena");
+        JenaBackend backend = (JenaBackend) backendFactory.getBackend("Jena");
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
                 question.getStatementFacts(),
@@ -228,7 +229,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_same_precedence_left_associativity_left")
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
-        Backend backend = backendFactory.getBackend("Jena");
+        JenaBackend backend = (JenaBackend) backendFactory.getBackend("Jena");
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),
@@ -297,7 +298,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_student_error_unevaluated_operand")
         ));
         Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
-        Backend backend = backendFactory.getBackend("Jena");
+        JenaBackend backend = (JenaBackend) backendFactory.getBackend("Jena");
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
                 q.getStatementFacts(),

@@ -157,9 +157,7 @@ public class FrontendService {
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .filter(Objects::nonNull);
-        val explanations = judgeResult.explanations != null
-            ? judgeResult.explanations.stream().map(HyperText::getText)
-            : questionService.explainViolations(question, judgeResult.violations).stream().map(HyperText::getText);
+        val explanations = judgeResult.explanations.stream().map(HyperText::getText);
         val errors = Streams.zip(violations, explanations, Pair::of)
                 .collect(Collectors.toList());
         val locale = attempt.getUser().getPreferred_language().toLocale();

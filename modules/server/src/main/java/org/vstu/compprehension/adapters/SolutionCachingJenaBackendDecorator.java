@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
@@ -19,7 +20,7 @@ import java.util.List;
  * `Statement` piece of input facts should contain a fact of form [meta:question dc:identifier `string`] where `string` is a unique identifier of question being solved (or a set of questions if all of them have the same solution). If no such fact found no caching would be done.
  */
 @SuppressWarnings("UnstableApiUsage")
-public class SolutionCachingJenaBackendDecorator implements Backend {
+public class SolutionCachingJenaBackendDecorator extends FactBackend {
 
     private final @NotNull JenaBackend decoratee;
     private final Cache<String /*solutionKey*/, JenaFactList> solutionCache;
@@ -34,6 +35,11 @@ public class SolutionCachingJenaBackendDecorator implements Backend {
     @Override
     public String getBackendId() {
         return decoratee.getBackendId();
+    }
+
+    @Override
+    public Backend<Input, Collection<Fact>> getActualBackend() {
+        return decoratee.getActualBackend();
     }
 
     @Override

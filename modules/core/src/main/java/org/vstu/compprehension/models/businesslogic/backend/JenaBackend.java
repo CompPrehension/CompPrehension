@@ -39,7 +39,7 @@ import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 @Primary
 @Component @RequestScope
 @Log4j2
-public class JenaBackend implements Backend {
+public class JenaBackend extends FactBackend {
 
     static {
         registerBuiltins();

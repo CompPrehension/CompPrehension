@@ -11,8 +11,6 @@ import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
@@ -110,30 +108,18 @@ public class QuestionService {
         return feedbackGen.getFeedback();
     }
 
+    @SuppressWarnings("unchecked")
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Backend backend = backendFactory.getBackend(
+            question.getQuestionData().getExerciseAttempt().getExercise().getBackendId()
+        );
+        DomainToBackendInterface usedInterface = domain.getBackendInterface(backend);
 
-        // use reasoner to solve question
-        Collection<Fact> solution = backend.solve(
-                /*new ArrayList<>*/(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
-                domain.processQuestionFactsForBackendSolve(question.getStatementFactsWithSchema()),
-                new ReasoningOptions(
-                        false,
-                        domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
-                        question.getQuestionUniqueTemplateName()
-                ));
-
-        List<BackendFactEntity> storedSolution = question.getQuestionData().getSolutionFacts();
-        if (storedSolution != null && !storedSolution.isEmpty()) {
-            // add anything set as solution before
-            solution.addAll(Fact.entitiesToFacts(storedSolution));
-        }
-        // save facts to question
-        question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
-
-        // don't save solution into DB
-        // // saveQuestion(question.getQuestionData());
+        usedInterface.updateQuestionAfterSolve(
+            question,
+            backend.solve(usedInterface.prepareBackendInfoForSolve(question, tags))
+        );
 
         return question;
     }
@@ -162,42 +148,16 @@ public class QuestionService {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Collection<Fact> responseFacts = question.responseToFacts(responses);
-        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
-        Collection<Fact> violations = backend.judge(
-                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses),
-                Fact.entitiesToFacts(question.getSolutionFacts()),
-                responseFacts,
-                new ReasoningOptions(
-                        false,
-                        domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
-                        question.getQuestionUniqueTemplateName())
+        Backend backend = backendFactory.getBackend(
+            question.getQuestionData().getExerciseAttempt().getExercise().getBackendId()
         );
-        Domain.InterpretSentenceResult result = domain.interpretSentence(violations);
+        DomainToBackendInterface usedInterface = domain.getBackendInterface(backend);
 
-        Language lang;
-        try {
-            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            lang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-        result.explanations = domain.makeExplanations(violations.stream().toList(), lang);
-
-        return result;
-    }
-
-    public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
-        Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Language lang;
-        try {
-            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            lang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-        return domain.makeExplanation(violations, FeedbackType.EXPLANATION, lang);
+        Object output = backend.judge(usedInterface.prepareBackendInfoForJudge(question, responses, tags));
+        return usedInterface.interpretJudgeOutput(question, output);
     }
 
     public Question getQuestion(Long questionId) {

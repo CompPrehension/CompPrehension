@@ -64,9 +64,9 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         );
         situationModel.validateAndThrowInvalid();
 
-        val dumpModel = situationModel.copy();
-        dumpModel.subtract(commonDomainModel);
-        debugDumpLoqi(dumpModel, "out.loqi");
+//        val dumpModel = situationModel.copy();
+//        dumpModel.subtract(commonDomainModel);
+//        debugDumpLoqi(dumpModel, "out.loqi");
         return situationModel;
     }
 
@@ -233,6 +233,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     }
     
     private static void saveModel(String filename, Model model){
+        if(true) return;
         log.info("saving {}", filename);
         OutputStream out = null;
         try {

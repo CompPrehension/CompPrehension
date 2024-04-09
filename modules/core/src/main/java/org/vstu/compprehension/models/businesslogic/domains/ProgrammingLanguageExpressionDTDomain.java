@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import its.model.DomainSolvingModel;
+import its.model.definition.EnumValueRef;
+import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -383,34 +385,6 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         return Collections.singletonList(new DTLaw(this.domainSolvingModel.getDecisionTree()));
     }
-
-    //-----------ФАКТЫ---------------
-
-    @Override
-    public Collection<Fact> processQuestionFactsForBackendSolve(Collection<Fact> questionFacts) {
-        its.model.definition.Domain situationModel = ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            domainSolvingModel.getDomain(),
-            questionFacts.stream().map(Fact::asBackendFact).toList(),
-            Collections.emptyList()
-        );
-
-        return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
-    }
-
-    @Override
-    public Collection<Fact> processQuestionFactsForBackendJudge(
-        Collection<Fact> questionFacts,
-        Collection<ResponseEntity> responses
-    ) {
-        its.model.definition.Domain situationModel = ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            domainSolvingModel.getDomain(),
-            questionFacts.stream().map(Fact::asBackendFact).toList(),
-            responses.stream().toList()
-        );
-
-        return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
-    }
-
 
     //----------ИНИЦИАЛИЗАЦИЯ--------------
     
@@ -907,7 +881,73 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         return new HashSet<>(); //Не нужно для DT
     }
-    
+
+    @Override
+    public Set<DomainToBackendInterface<?, ?, ?>> createBackendInterfaces() {
+        return Set.of(
+            new DecisionTreeReasonerBackend.Interface() {
+
+                @Override
+                public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
+                    Question question,
+                    List<ResponseEntity> responses,
+                    List<Tag> tags
+                ) {
+                    return new DecisionTreeReasonerBackend.Input(
+                        ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
+                            domainSolvingModel.getDomain(),
+                            question.getStatementFactsWithSchema().stream().map(Fact::asBackendFact).toList(),
+                            responses.stream().toList()
+                        ),
+                        domainSolvingModel.getDecisionTree()
+                    );
+                }
+
+                @Override
+                protected InterpretSentenceResult interpretCouldNotRun(
+                    Question judgedQuestion,
+                    LearningSituation preparedSituation
+                ) {
+                    ViolationEntity violation = new ViolationEntity();
+                    violation.setLawName("stillUnevaluatedLeft");
+                    violation.setViolationFacts(new ArrayList<>());
+                    InterpretSentenceResult result = new InterpretSentenceResult();
+                    result.violations = List.of(violation);
+                    result.explanations = List.of(new HyperText("There are still unevaluated elements in the expression"));
+                    updateInterpretationResult(result, preparedSituation);
+                    return result;
+                }
+
+                @Override
+                protected void updateInterpretationResult(
+                    InterpretSentenceResult result,
+                    DecisionTreeReasonerBackend.Output backendOutput
+                ) {
+                    updateInterpretationResult(result, backendOutput.situation());
+                }
+
+                private void updateInterpretationResult(
+                    InterpretSentenceResult result,
+                    LearningSituation situation
+                ){
+                    result.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
+                    result.IterationsLeft = situation.getDomain().getObjects()
+                        .stream().filter(objectDef ->
+                            objectDef.isInstanceOf("element")
+                                && objectDef.getPropertyValue("state")
+                                .equals(new EnumValueRef("state", "unevaluated"))
+                        )
+                        .toList().size();
+                }
+
+                @Override
+                public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
+                    return null; //Solve not used in DecisionTreeReasonerBackend
+                }
+            }
+        );
+    }
+
     @Override
     public Collection<Fact> responseToFacts(
         String questionDomainType,
@@ -1068,24 +1108,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        List<ViolationEntity> mistakes = DecisionTreeReasonerBackend.reasonerOutputFactsToViolations(
-            violations.stream().toList()
-        );
-        
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        result.violations = mistakes;
-        result.correctlyAppliedLaws = new ArrayList<>();
-        result.isAnswerCorrect = mistakes.isEmpty();
-
-//        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = 10;
-        result.IterationsLeft = 10; //TODO
-        return result;
-    }
-
-    @Override
-    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang) {
-        return DecisionTreeReasonerBackend.makeExplanations(reasonerOutputFacts, lang);
+        return null; //FIXME удалить?
     }
 
     @Override
