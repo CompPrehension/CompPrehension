@@ -89,12 +89,14 @@ export type DomainLaw = {
     name: string,
     displayName: string,
     bitflags: number,
+    childs: DomainLaw[],
 }
-export const TDomainLaw : io.Type<DomainLaw> = io.type({
+export const TDomainLaw : io.Type<DomainLaw> = io.recursion('DomainLaw', () => io.type({
     name: io.string,
     displayName: io.string,
     bitflags: io.number,
-})
+    childs: io.array(TDomainLaw),
+}))
 
 export enum DomainConceptFlag {
     VisibleToTeacher = 1,

@@ -12,7 +12,7 @@ public class DomainDto {
     @NotNull String id;
     @NotNull String displayName;
     @Nullable String description;
-    @NotNull List<LawDto> laws;
+    @NotNull List<LawTreeItemDto> laws;
     @NotNull List<ConceptTreeItemDto> concepts;
     @NotNull List<String> tags;
 }

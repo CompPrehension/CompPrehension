@@ -9,7 +9,7 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.StrategyFactory;
 import org.vstu.compprehension.dto.ConceptTreeItemDto;
 import org.vstu.compprehension.dto.DomainDto;
-import org.vstu.compprehension.dto.LawDto;
+import org.vstu.compprehension.dto.LawTreeItemDto;
 import org.vstu.compprehension.dto.StrategyDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -94,7 +94,7 @@ public class ReferenceTableController {
                                 .collect(Collectors.toList()))
                         .laws(Stream.concat(d.getPositiveLaws().stream(), d.getNegativeLaws().stream())
                                 .filter(x -> x.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER))
-                                .map(x -> new LawDto(x.getName(), d.getLawDisplayName(x.getName(), currentLanguage), x.getBitflags()))
+                                .map(x -> new LawTreeItemDto(x.getName(), d.getLawDisplayName(x.getName(), currentLanguage), x.getBitflags()))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());
