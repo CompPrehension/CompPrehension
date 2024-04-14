@@ -188,7 +188,11 @@ public class JenaBackend implements Backend {
     void addLaw(Law law) {
         assert law != null;
 
-        for (LawFormulation lawFormulation : law.getFormulations()) {
+        var formulations = law.getFormulations();
+        if (formulations == null)
+            return;
+
+        for (LawFormulation lawFormulation : formulations) {
 //        /// debug
 //            System.out.println("addLaw() : " + lawFormulation.getName());
 
@@ -202,9 +206,9 @@ public class JenaBackend implements Backend {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
             } else if (lawFormulation.getBackend().equals(BackendId)) {
                 appendRuleSet(lawFormulation, ruleSet);
-            } else if ("can_covert" == null) {
+            } /*else if ("can_covert" == null) {
                 // TODO: convert rules if possible ?
-            }
+            }*/
         }
     }
 

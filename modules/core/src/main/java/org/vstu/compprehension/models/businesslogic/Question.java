@@ -23,8 +23,24 @@ public abstract class Question {
      * @return either question's metadata or data options' metadata, whichever is set, or null
      */
     public QuestionMetadataEntity getMetadataAny() {
-        if (metadata != null)
+        if (metadata != null) {
+
+            // check if exists but empty (ex. name is null)...
+            if (metadata.getName() == null) {
+
+                if (questionData != null && questionData.getOptions() != null) {
+                    // check if db-data's metadata is not empty...
+                    var optionsMetadata = questionData.getOptions().getMetadata();
+                    if (optionsMetadata.getName() != null) {
+                        // replace metadata instance
+                        metadata = optionsMetadata;
+                    }
+                }
+            }
+
             return metadata;
+        }
+
         if (questionData != null && questionData.getOptions() != null) {
             // metadata can still be null
             return questionData.getOptions().getMetadata();

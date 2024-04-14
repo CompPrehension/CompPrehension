@@ -17,6 +17,8 @@ import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
+import java.util.Objects;
+
 @Controller
 @RequestMapping("api/question-bank")
 @Log4j2
@@ -45,25 +47,30 @@ public class QuestionBankController {
         var targetConcepts = searchRequest.getConcepts().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
                 .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
         var deniedConcepts = searchRequest.getConcepts().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
                 .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
         var targetLaws = searchRequest.getLaws().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
                 .map(c -> domain.getLaw(c.getName()))
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
         var deniedLaws = searchRequest.getLaws().stream()
                 .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
                 .map(c -> domain.getLaw(c.getName()))
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
         var targetTags = searchRequest.getTags().stream()
                 .map(domain::getTag)
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
@@ -74,7 +81,7 @@ public class QuestionBankController {
                 .deniedLaws(deniedLaws)
                 .complexity(searchRequest.getComplexity())
                 .targetTags(targetTags)
-                .domainShortname(domain.getShortName())
+                .domainShortname(domain.getDBShortName())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);
         return questionStorage.countQuestions(qr);
