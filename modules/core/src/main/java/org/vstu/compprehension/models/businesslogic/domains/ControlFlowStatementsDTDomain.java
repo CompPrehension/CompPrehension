@@ -502,6 +502,16 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         objName = org.apache.jena.util.SplitIRI.localname(iri);
         varContainer.addMerge(new VariableDef("T", objName));
 
+        iri = m.listStatements(
+                null,
+                        m.getOntProperty(m.expandPrefix(":student_next_latest")),
+                        (RDFNode)null
+                )
+                .nextOptional().map(Statement::getObject).map((t) -> t.asResource().getURI())
+                .orElseThrow();
+        objName = org.apache.jena.util.SplitIRI.localname(iri);
+        varContainer.addMerge(new VariableDef("A", objName));
+
 
         return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
     }

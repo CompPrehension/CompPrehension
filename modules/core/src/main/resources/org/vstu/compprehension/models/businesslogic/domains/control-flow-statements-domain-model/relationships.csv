@@ -7,7 +7,7 @@ body_item|parent_of|action;action||FALSE||0
 boundary_of||boundary;action||FALSE|ManyToOne|0
 begin_of|boundary_of|boundary;action||FALSE|OneToOne|0
 end_of|boundary_of|boundary;action||FALSE|OneToOne|0
-halt_of|end_of|boundary;action||FALSE|OneToOne|0
+halt_of|end_of|boundary;action||FALSE|ManyToOne|0
 executes||act;boundary||FALSE|ManyToOne|0
 next||action;action||FALSE|OneToOne|0
 in_trace||act;trace||FALSE|ManyToOne|0

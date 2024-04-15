@@ -6,6 +6,10 @@ action||
 expr|action|
 statement|action|
 alternative|statement|
+alternative_multi_without_else|alternative|
+alternative_multi_with_else|alternative|
+alternative_single_with_else|alternative|
+alternative_simple|alternative|
 stmt|statement|
 interrupt_action|statement|
 break|interrupt_action|
@@ -15,6 +19,7 @@ func_call|statement|
 sequence|statement|
 alt_branch|sequence|
 loop_body|sequence|
+func_body|sequence|
 if|alt_branch|
 else-if|alt_branch|
 else|alt_branch|
