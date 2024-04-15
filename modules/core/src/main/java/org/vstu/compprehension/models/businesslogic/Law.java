@@ -38,14 +38,19 @@ public abstract class Law implements TreeNodeWithBitmask {
     int sortOrder = 999;
 
     /**
-     * Names of laws that should be enabled automatically when this law is added/enabled.
+     * Names of "base" laws that should be enabled automatically when this law is added/enabled.
      */
     @Getter @Setter
     List<String> impliesLaws;
 
-    /** Cached references to Law instances — semantically the same as `impliesLaws` */
+    /** Cached references to "base" Law instances — semantically the same as `impliesLaws` */
     @Getter @Setter
     Collection<Law> lawsImplied;
+
+    /** Cached references to Law instances */
+    @Getter
+    @Setter
+    Collection<Law> childLaws = null;
 
     /**
      * Priority of the law. Higher value means higher priority,

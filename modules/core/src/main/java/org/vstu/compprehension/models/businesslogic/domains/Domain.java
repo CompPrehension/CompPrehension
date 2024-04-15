@@ -26,6 +26,7 @@ import org.vstu.compprehension.utils.RandomProvider;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 @RequestScope
@@ -120,6 +121,30 @@ public abstract class Domain {
         if (negative != null)
             return negative;
         return getPositiveLaw(name);
+    }
+
+    public Collection<? extends Law> getLawWithChildren(String name_) {
+        return getLawsWithChildren(List.of(name_));
+    }
+
+    public Collection<? extends Law> getLawsWithChildren(Collection<String> names) {
+        Set<String> res = new HashSet<>();
+        Set<String> pool = new HashSet<>(names);
+        while (!pool.isEmpty()) {
+            // copy concepts from pool to res
+            res.addAll(pool);
+
+            for (String name : new HashSet<>(pool)) {
+                pool.remove(name);
+                Law currLaw = getLaw(name);
+                if (currLaw != null && currLaw.getChildLaws() != null) {
+                    // try to add all children of current concept
+                    pool.addAll(currLaw.getChildLaws().stream().map(Law::getName).collect(Collectors.toSet()));
+                    pool.removeAll(res);  // guard: don't allow infinite recursion.
+                }
+            }
+        }
+        return res.stream().map(this::getLaw).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     public List<PositiveLaw> getPositiveLawWithImplied(String name) {
@@ -228,6 +253,74 @@ public abstract class Domain {
         return res;
     }
 
+    /** Get laws with given flags (e.g. visible) organized into two-level hierarchy
+     * @param requiredFlags e.g. Law.FLAG_VISIBLE_TO_TEACHER
+     * @return map representing groups of laws (base law -> laws in the group)
+     */
+    public Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags) {
+        Map<Law, List<Law>> res = new HashMap<>();
+        Set<Law> wanted = Stream.concat(this.getPositiveLaws().stream(), this.getNegativeLaws().stream())
+                .filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Law> added = new HashSet<>();
+        for (Law ct : new ArrayList<>(wanted)) {
+            // ensure we are dealing with bottom-level law
+            Collection<Law> children = (Collection<Law>) this.getLawWithChildren(ct.getName());
+            children.remove(ct);
+            boolean hasChildren =
+                    children.stream().anyMatch(wanted::contains);
+            if (hasChildren) {
+                continue;  // skip non-bottom laws
+            }
+
+            Law nearestWantedBase = null;
+            List<Law> bases = new ArrayList<>(ct.getLawsImplied());
+            while (!bases.isEmpty()) {
+                for (Law base : new ArrayList<>(bases)) {
+                    if (wanted.contains(base)) {
+                        nearestWantedBase = base;
+                        bases.clear();
+                        break;
+                    }
+                    bases.remove(base);
+                    bases.addAll(base.getLawsImplied());
+                }
+            }
+            Law key;
+            List<Law> value;
+
+            if (nearestWantedBase != null) {
+                // law is within a group
+                key = nearestWantedBase;
+                value = new ArrayList<>(List.of(ct));
+                added.add(ct);
+
+            } else {
+                // law does not belong to any group (has no bases we want)
+                key = ct;
+                value = new ArrayList<>();
+            }
+            // put into a group or as top-level
+            if (res.containsKey(key)) {
+                List<Law> arr = res.get(key);
+                for (Law oneValue : value)
+                    if (!arr.contains(oneValue)) {
+                        arr.add(oneValue);
+                        added.add(oneValue);
+                    }
+            } else {
+                res.put(key, value);
+                added.add(key);
+            }
+        }
+        // add all top-level bases we skipped
+        wanted.removeAll(added);
+        for (Law t : wanted) {
+            res.put(t, new ArrayList<>());
+        }
+
+        return res;
+    }
+
     public Collection<Concept> getChildrenOfConcept(String name_) {
         return getConceptsWithChildren(List.of(name_)).stream()
                 .filter(t -> !name_.equals(t.getName()))
@@ -295,7 +388,7 @@ public abstract class Domain {
 
     /** Set direct children to both positive and negative Laws. This is needed since names of laws are stored only */
     protected void fillLawsTree() {
-        // set direct child Laws to Laws
+        // set direct implied (base) Laws to each Law
         for (Law t : positiveLaws.values()) {
             if (t.getImpliesLaws() == null) {
                 t.setLawsImplied(List.of());
@@ -310,6 +403,20 @@ public abstract class Domain {
                 t.setLawsImplied(t.getImpliesLaws().stream().map(this::getNegativeLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
             }
         }
+
+        // set direct child Laws to Laws
+        var allLaws = Stream.concat(getPositiveLaws().stream(), getNegativeLaws().stream()).collect(Collectors.toSet());
+        for (Law law : allLaws) {
+            if (law.getLawsImplied() == null)
+                continue;
+            for (Law base : law.getLawsImplied()) {
+                if (base.getChildLaws() == null) {
+                    base.setChildLaws(new HashSet<>());
+                }
+                base.getChildLaws().add(law);
+            }
+        }
+
     }
 
 

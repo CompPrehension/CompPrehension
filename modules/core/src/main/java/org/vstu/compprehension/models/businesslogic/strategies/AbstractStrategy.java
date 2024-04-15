@@ -140,8 +140,7 @@ public interface AbstractStrategy {
     default QuestionRequest initQuestionRequest(ExerciseAttemptEntity exerciseAttempt, ExerciseStageEntity exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttemptId(exerciseAttempt.getId());
-        // qr.setExerciseAttempt(exerciseAttempt);  // <<< conflict merging, revision may be needed
-        // qr.setDomainShortname(domain.getShortName());
+        // // qr.setDomainShortname(domain.getShortName());
         qr.setDomainShortname(domain.getDBShortName());
 
         // concepts
