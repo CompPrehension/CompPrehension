@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.builder.ToStringExclude;
 
 import java.util.*;
 
@@ -23,9 +24,11 @@ public class Concept implements TreeNodeWithBitmask {
     @EqualsAndHashCode.Include
     String name;
 
+    @ToStringExclude
     List<Concept> baseConcepts;
 
     /** Cached references to Concept instances */
+    @ToStringExclude
     @Getter
     @Setter
     Collection<Concept> childConcepts = null;
