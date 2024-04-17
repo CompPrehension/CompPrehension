@@ -250,6 +250,11 @@ public abstract class Domain {
             res.put(t, new ArrayList<>());
         }
 
+        // sort list items
+        for (var list : res.values()) {
+            list.sort(Comparator.comparing(Concept::getName));
+        }
+
         return res;
     }
 
@@ -316,6 +321,11 @@ public abstract class Domain {
         wanted.removeAll(added);
         for (Law t : wanted) {
             res.put(t, new ArrayList<>());
+        }
+
+        // sort list items
+        for (var list : res.values()) {
+            list.sort(Comparator.comparing(Law::getName));
         }
 
         return res;
