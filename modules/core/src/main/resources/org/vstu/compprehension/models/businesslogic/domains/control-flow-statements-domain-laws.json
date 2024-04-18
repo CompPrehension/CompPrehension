@@ -2087,6 +2087,7 @@
     "bitflags": 3,
     "positive": false,
     "impliesLaws": [],
+    "sortOrder": 1,
     "concepts": []
   },
   {
@@ -2103,6 +2104,7 @@
     "bitflags": 3,
     "positive": false,
     "impliesLaws": [],
+    "sortOrder": 2,
     "concepts": []
   },
   {
@@ -2112,6 +2114,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
+    "sortOrder": 1,
     "concepts": []
   },
   {
@@ -2121,6 +2124,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
+    "sortOrder": 2,
     "concepts": []
   },
   {
@@ -2130,6 +2134,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
+    "sortOrder": 3,
     "concepts": []
   },
   {
@@ -2139,6 +2144,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
+    "sortOrder": 4,
     "concepts": []
   },
   {
@@ -2146,6 +2152,7 @@
     "bitflags": 3,
     "positive": false,
     "impliesLaws": [],
+    "sortOrder": 3,
     "concepts": []
   },
   {

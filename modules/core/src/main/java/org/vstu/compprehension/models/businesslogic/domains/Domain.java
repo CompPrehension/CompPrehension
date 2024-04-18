@@ -191,7 +191,7 @@ public abstract class Domain {
      * @return map representing groups of concepts (base concept -> concepts in the group)
      */
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
-        Map<Concept, List<Concept>> res = new HashMap<>();
+        Map<Concept, List<Concept>> res = new TreeMap<>();
         Set<Concept> wanted = this.concepts.values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
@@ -252,7 +252,7 @@ public abstract class Domain {
 
         // sort list items
         for (var list : res.values()) {
-            list.sort(Comparator.comparing(Concept::getName));
+            list.sort(TreeNodeWithBitmask::compareTo);
         }
 
         return res;
@@ -263,7 +263,7 @@ public abstract class Domain {
      * @return map representing groups of laws (base law -> laws in the group)
      */
     public Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags) {
-        Map<Law, List<Law>> res = new HashMap<>();
+        Map<Law, List<Law>> res = new TreeMap<>();
         Set<Law> wanted = Stream.concat(this.getPositiveLaws().stream(), this.getNegativeLaws().stream())
                 .filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         Set<Law> added = new HashSet<>();
@@ -325,7 +325,7 @@ public abstract class Domain {
 
         // sort list items
         for (var list : res.values()) {
-            list.sort(Comparator.comparing(Law::getName));
+            list.sort(TreeNodeWithBitmask::compareTo);
         }
 
         return res;

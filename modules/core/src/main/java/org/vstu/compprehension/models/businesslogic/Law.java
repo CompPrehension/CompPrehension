@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.ToStringExclude;
@@ -37,6 +38,7 @@ public abstract class Law implements TreeNodeWithBitmask {
     @Getter
     List<Tag> tags;
 
+    @Builder.Default
     @Getter @Setter
     int sortOrder = 999;
 
