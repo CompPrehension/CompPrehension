@@ -2114,7 +2114,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
-    "sortOrder": 1,
+    "sortOrder": 21,
     "concepts": []
   },
   {
@@ -2124,7 +2124,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
-    "sortOrder": 2,
+    "sortOrder": 22,
     "concepts": []
   },
   {
@@ -2134,7 +2134,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
-    "sortOrder": 3,
+    "sortOrder": 23,
     "concepts": []
   },
   {
@@ -2144,7 +2144,7 @@
     "impliesLaws": [
       "Alternative_error_base"
     ],
-    "sortOrder": 4,
+    "sortOrder": 24,
     "concepts": []
   },
   {
@@ -2162,6 +2162,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 31,
     "concepts": []
   },
   {
@@ -2171,6 +2172,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 32,
     "concepts": []
   },
   {
@@ -2180,6 +2182,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 33,
     "concepts": []
   },
   {
@@ -2189,6 +2192,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 34,
     "concepts": []
   },
   {
@@ -2198,6 +2202,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 35,
     "concepts": []
   },
   {
@@ -2207,6 +2212,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 36,
     "concepts": []
   },
   {
@@ -2216,6 +2222,7 @@
     "impliesLaws": [
       "Loop_error_base"
     ],
+    "sortOrder": 37,
     "concepts": []
   }
 ]
