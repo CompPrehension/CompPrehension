@@ -1,4 +1,4 @@
-import { Either, left, right } from "fp-ts/lib/Either";
+import type { Either } from "fp-ts/lib/Either";
 import * as E from "fp-ts/lib/Either";
 import * as io from "io-ts";
 import { RequestError } from "../types/request-error";
@@ -101,18 +101,19 @@ async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: 
     if (result.status === 'ok') {
         if (E.isLeft(result.payload)) {    
             const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(result.payload.left).join(', ')}` };
-            return (console.error(error), left(error));
+            return (console.error(error), E.left(error));
         }
         return E.right(result.payload.right);
     }
 
     if (result.status === 'unauthorized') {
-        const authUrl = `${API_URL}/oauth2/authorization/keycloak?redirect_uri=${window.location.href}`; // TODO найти другой способ без хардкода адреса
-        console.log(`redirect to ${authUrl}`);
-        window.location.replace(authUrl);
+        // const authUrl = `${API_URL}/oauth2/authorization/keycloak?redirect_uri=${window.location.href}`; // TODO найти другой способ без хардкода адреса
+        // console.log(`redirect to ${authUrl}`);
+        // window.location.replace(authUrl);
+        return E.left({ message: "Unauthorized" });
     }
 
-    return left(result.payload ?? { message: "Unexpected error " });
+    return E.left(result.payload ?? { message: "Unexpected error " });
 }
 
 const getPaths = (errors: io.Errors): Array<string> => {

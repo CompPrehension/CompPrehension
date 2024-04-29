@@ -48,8 +48,8 @@ public class WebSecurityConfig {
         http.cors(c -> c.configurationSource(corsConfigurationSource()));
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(new AntPathRequestMatcher("/api/**"), new AntPathRequestMatcher("/pages/**")).authenticated()
-                        .anyRequest().permitAll())
+                        .requestMatchers(new AntPathRequestMatcher("/lti/**")).permitAll()
+                        .anyRequest().authenticated())
                 .oauth2Login(oauth2Login ->
                     oauth2Login.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                 .oidcUserService(this.oidcUserService())
