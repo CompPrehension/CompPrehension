@@ -373,16 +373,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+                .create();
 
         Question question = gson.fromJson(
                 new InputStreamReader(stream, StandardCharsets.UTF_8),
@@ -404,17 +397,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
+                .create();
 
         Question[] questions = gson.fromJson(
                 new InputStreamReader(inputStream, StandardCharsets.UTF_8),
@@ -544,7 +529,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             .replace("student_end_evaluation", getMessage("STUDENT_END_EVALUATION", userLang)));
                 }
                 entity.setOptions(orderQuestionOptions);
-                Question question = new Ordering(entity, this);
+                Question question = new Question(entity, this);
                 // patch the newly created question with the concepts from the "template"
                 question.getConcepts().addAll(q.getConcepts());
                 // ^ shouldn't this be done in a more straightforward way..?
@@ -552,15 +537,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity, this);
+                return new Question(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity, this);
+                return new Question(entity, this);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
-                return new SingleChoice(entity, this);
+                return new Question(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -691,7 +676,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 createAnswerObject(question, 1, "right", "right_associativity", "right", true),
                 createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
         )));
-        return new SingleChoice(question, this);
+        return new Question(question, this);
     }
 
     @Override
@@ -2523,7 +2508,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 //        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
         entity.setQuestionName(questionName);
 
-        Question question = new Ordering(entity, null);
+        Question question = new Question(entity, null);
 
         Set<String> lawNames = new HashSet<>();
         for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {

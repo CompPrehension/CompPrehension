@@ -674,15 +674,15 @@ public class ControlFlowStatementsDomain extends Domain {
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);
-                return new Ordering(entity, this);
+                return new Question(entity, this);
             case MATCHING:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity, this);
+                return new Question(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity, this);
+                return new Question(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
         }

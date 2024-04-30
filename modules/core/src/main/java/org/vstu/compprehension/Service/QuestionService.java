@@ -239,19 +239,9 @@ public class QuestionService {
     }
     */
 
-    public Question generateBusinessLogicQuestion(
-            QuestionEntity question) {
-
+    public Question generateBusinessLogicQuestion(QuestionEntity question) {
         Domain domain = domainFactory.getDomain(question.getExerciseAttempt().getExercise().getDomain().getName());
-        if (question.getQuestionType() == QuestionType.MATCHING) {
-            return new Matching(question, domain);
-        } else if (question.getQuestionType() == QuestionType.ORDER) {
-            return new Ordering(question, domain);
-        } else if (question.getQuestionType() == QuestionType.MULTI_CHOICE) {
-            return new MultiChoice(question, domain);
-        } else {
-            return new SingleChoice(question, domain);
-        }
+        return new Question(question, domain);
     }
 
     private ResponseEntity makeResponse(AnswerObjectEntity answer) {

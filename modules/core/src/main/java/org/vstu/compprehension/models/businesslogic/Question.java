@@ -13,7 +13,7 @@ import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
 
-public abstract class Question {
+public class Question {
     @Getter
     @NotNull
     protected QuestionEntity questionData;
@@ -112,7 +112,9 @@ public abstract class Question {
      *
      * @return - факты в универсальной форме
      */
-    public abstract Collection<Fact> responseToFacts(List<ResponseEntity> responses);
+    public Collection<Fact> responseToFacts(List<ResponseEntity> responses) {
+        return domain.responseToFacts(questionData.getQuestionDomainType(), responses, questionData.getAnswerObjects());
+    }
 
     public List<BackendFactEntity> getStatementFacts() {
         return questionData.getStatementFacts();
