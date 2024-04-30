@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
@@ -34,6 +35,12 @@ public class QuestionEntity {
 
     @Column(name = "question_name", length = 255)
     private String questionName;
+
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "metadata_id", nullable = true)
+    @Nullable
+    private QuestionMetadataEntity metadata;
 
     /**
      * Kind of question within Domain

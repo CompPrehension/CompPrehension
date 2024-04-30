@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import static java.lang.Long.bitCount;
 
 @Log4j2
-public class AbstractRdfStorage {
+public class QuestionBank {
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
@@ -36,7 +36,7 @@ public class AbstractRdfStorage {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
-    public AbstractRdfStorage(
+    public QuestionBank(
             Collection<DomainEntity> domains,
             QuestionMetadataRepository questionMetadataRepository,
             QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
@@ -54,7 +54,7 @@ public class AbstractRdfStorage {
         this.questionMetadataManager = questionMetadataManager;
     }
 
-    public AbstractRdfStorage(
+    public QuestionBank(
             String domainId,
             RemoteFileService fileService,
             QuestionMetadataRepository questionMetadataRepository,
@@ -75,7 +75,7 @@ public class AbstractRdfStorage {
                 toSkip--;
                 continue;
             }
-            QuestionMetadataEntity meta = questionEntity.getOptions().getMetadata();
+            QuestionMetadataEntity meta = questionEntity.getMetadata();
             if (meta != null)
                 result.add(meta);
         }
@@ -179,7 +179,7 @@ public class AbstractRdfStorage {
 
         // use violations from all questions is exercise attempt
         long unwantedViolationsBitmask = attempt.getQuestions().stream()
-                .map(qd -> qd.getOptions().getMetadata())
+                .map(QuestionEntity::getMetadata)
                 .filter(Objects::nonNull)
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
@@ -221,7 +221,11 @@ public class AbstractRdfStorage {
 
         if (loadedQuestions.size() == 1) {
             // increment the question's usage counter
-            val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
+            val meta = loadedQuestions.get(0).getQuestionData().getMetadata();
+            if (meta == null) {
+                throw new RuntimeException("No metadata for question " + loadedQuestions.get(0).getQuestionData().getId());
+            }
+            
             meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
             meta.setLastAttemptId(attempt.getId());
             meta.setDateLastUsed(new Date());
@@ -293,10 +297,7 @@ public class AbstractRdfStorage {
             if (q.getQuestionData().getOptions() == null) {
                 q.getQuestionData().setOptions(new QuestionOptionsEntity());
             }
-            q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());
-            q.getQuestionData().getOptions().setQuestionMetaId(qMeta.getId());
-            q.getQuestionData().getOptions().setMetadata(qMeta);
-            q.setMetadata(qMeta);
+            q.getQuestionData().setMetadata(qMeta);
             // future todo: reflect any set data in Domain.makeQuestionCopy() as well
         }
         return q;

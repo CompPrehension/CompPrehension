@@ -13,11 +13,8 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
-import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -43,10 +40,10 @@ public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
     private final TaskGenerationJobConfig config;
-    private final AbstractRdfStorage storage;
+    private final QuestionBank storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, AbstractRdfStorage storage) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, QuestionBank storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
         this.config = config;
@@ -69,8 +66,8 @@ public class TaskGenerationJob {
     @SneakyThrows
     public void runImpl() {
         // TODO проверка на то, что нужны новые вопросы
-        int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        int tooFewQuestions      = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
+        int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
+        int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
         var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
@@ -369,7 +366,7 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-                QuestionMetadataEntity meta = q.getMetadataAny();
+                QuestionMetadataEntity meta = q.getMetadata();
                 if (meta == null) {
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
@@ -425,8 +422,7 @@ public class TaskGenerationJob {
                 meta.setTemplateId(-1);
 
                 // set metadata instance back to ensure the data is saved
-                q.setMetadata(meta);
-                q.getQuestionData().getOptions().setMetadata(meta);
+                q.getQuestionData().setMetadata(meta);
 
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);
@@ -482,7 +478,7 @@ public class TaskGenerationJob {
     /**
      * @param path absolute path to file location
      * @return loaded question
-     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
+     * @see QuestionBank ::loadQuestion
      */
     private static Question loadQuestion(String path) {
         Question q = null;

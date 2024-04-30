@@ -21,7 +21,7 @@ import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -79,14 +79,14 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final AbstractRdfStorage qMetaStorage;
+    private final QuestionBank qMetaStorage;
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            AbstractRdfStorage qMetaStorage) {
+            QuestionBank qMetaStorage) {
         super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
@@ -614,9 +614,6 @@ public class ControlFlowStatementsDomain extends Domain {
                 .multipleSelectionEnabled(true)
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
-                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
-                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
-                .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
@@ -655,6 +652,7 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
+        entity.setMetadata(q.getMetadata());
 
         // DON'T: add schema facts
         List<BackendFactEntity> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
