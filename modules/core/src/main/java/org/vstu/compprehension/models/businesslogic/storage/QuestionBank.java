@@ -4,12 +4,12 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.vfs2.FileSystemException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -290,25 +289,13 @@ public class QuestionBank {
         return list;
     }
 
-
-    private Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
-        Question q = loadQuestion(domain, qMeta.getQDataGraph());
-        if (q != null) {
-            if (q.getQuestionData().getOptions() == null) {
-                q.getQuestionData().setOptions(new QuestionOptionsEntity());
-            }
-            q.getQuestionData().setMetadata(qMeta);
-            // future todo: reflect any set data in Domain.makeQuestionCopy() as well
-        }
-        return q;
-    }
-
-    private Question loadQuestion(Domain domain, String path) {
-        Question q = null;
+    private @Nullable Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
+        var path = qMeta.getQDataGraph();
         var fileService = fileServices.get(domain.getDomainId());
         try (InputStream stream = fileService.getFileStream(path)) {
             if (stream != null) {
-                q = domain.parseQuestionTemplate(stream);
+                var deserialized = SerializableQuestion.deserialize(stream);
+                return createQuestion(domain, qMeta, deserialized);
             } else {
                 log.warn("File NOT found by storage: {}", path);
             }
@@ -321,7 +308,53 @@ public class QuestionBank {
                 log.error("Error closing connection - {}", e.getMessage(), e);
             }
         }
-        return q;
+        return null;
+    }
+    
+    private Question createQuestion(Domain domain,  @NotNull QuestionMetadataEntity qMeta, SerializableQuestion question) {
+        if (question == null) {
+            return null;
+        }
+        if (!qMeta.getDomainShortname().equals(domain.getShortName())) {
+            throw new RuntimeException("Domain mismatch: " + qMeta.getDomainShortname() + " vs " + domain.getShortName());
+        }
+
+        var questionData = question.getQuestionData();
+        var questionEntity = new QuestionEntity();
+        questionEntity.setQuestionType(questionData.getQuestionType());
+        questionEntity.setQuestionText(questionData.getQuestionText());
+        questionEntity.setQuestionName(questionData.getQuestionName());
+        questionEntity.setQuestionDomainType(questionData.getQuestionDomainType());
+        questionEntity.setMetadata(qMeta);
+        questionEntity.setOptions(questionData.getOptions());
+        questionEntity.setAnswerObjects(questionData.getAnswerObjects()
+                .stream()
+                .map(a -> AnswerObjectEntity.builder()
+                        .answerId(a.getAnswerId())
+                        .hyperText(a.getHyperText())
+                        .domainInfo(a.getDomainInfo())
+                        .isRightCol(a.isRightCol())
+                        .concept(a.getConcept())
+                        .build())
+                .toList());
+        questionEntity.setInteractions(new ArrayList<>());
+        questionEntity.setDomainEntity(domain.getDomainEntity());
+        questionEntity.setStatementFacts(questionData.getStatementFacts()
+                .stream()
+                .map(s -> new BackendFactEntity(
+                        s.getSubjectType(),
+                        s.getSubject(), 
+                        s.getVerb(), 
+                        s.getObjectType(), 
+                        s.getObject()))
+                .toList());
+        questionEntity.setSolutionFacts(new ArrayList<>());
+
+        var result = new Question(questionEntity, domain);
+        result.setConcepts(new ArrayList<>(question.getConcepts()));
+        result.setTags(new HashSet<>(question.getTags()));
+        result.setNegativeLaws(new ArrayList<>(question.getNegativeLaws()));        
+        return result;
     }
 
     /**
@@ -400,21 +433,21 @@ public class QuestionBank {
         return meta;
     }
 
-    public String saveQuestionData(String domainId, String basePath, String questionName, String data) throws IOException {
+    public String saveQuestionData(String domainId, String basePath, String questionName, SerializableQuestion question) throws IOException {
         var rawQuestionPath = Path.of(basePath, questionName + ".json");
-        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), data);
+        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), question);
     }
 
-    public String saveQuestionData(String domainId,  String questionName, String data) throws IOException {
-        return saveQuestionDataImpl(domainId, questionName + ".json", data);
+    public String saveQuestionData(String domainId, String questionName, SerializableQuestion question) throws IOException {
+        return saveQuestionDataImpl(domainId, questionName + ".json", question);
     }
 
-    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, String data) throws IOException {
+    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, SerializableQuestion question) throws IOException {
         var fileService = fileServices.get(domainId);
         var questionPath = fileService.prepareNameForFile(rawQuestionPath, false);
         try (OutputStream stream = fileService.openForWrite(questionPath)) {
             assert stream != null;
-            stream.write(data.getBytes(StandardCharsets.UTF_8));
+            question.serializeToStream(stream);
             return questionPath;
         } finally {
             try {

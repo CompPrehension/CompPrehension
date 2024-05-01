@@ -33,9 +33,10 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -50,7 +51,6 @@ import org.vstu.compprehension.utils.RandomProvider;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -2624,11 +2624,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return question;
     }
 
-    public String questionToJson(Question question) {
-        return questionToJson(question, "ORDERING");
-//        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
-    }
-
     /**
      * Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
      * @param ttlTemplatePaths
@@ -2709,9 +2704,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         log.debug("--  Cancelled inappropriate question: {}", questionName);
                         continue;
                     }
+                    if (domainQuestion.getMetadata() == null) {
+                        log.debug("--  Cancelled question without metadata: {}", questionName);
+                        continue;
+                    }
 
                     domainQuestion.getMetadata().setOrigin(origin);
-                    domainQuestion.getQuestionData() .getMetadata().setOrigin(origin);
 
                     // Save question data for domain in JSON
                     log.debug("++  Saving question: {}", questionName);
@@ -2719,9 +2717,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
 
-                    String jsonData = this.questionToJson(domainQuestion);
-                    path = Path.of(outputDir, questionName + ".json");
-                    Files.writeString(path, jsonData);
+                    var serializableQuestion = SerializableQuestion.fromQuestion(domainQuestion);
+                    serializableQuestion.serializeToFile(Path.of(outputDir, questionName + ".json"));
                     ++templateQuestionsCount;
                 }
 

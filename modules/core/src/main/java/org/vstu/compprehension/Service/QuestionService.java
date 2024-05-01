@@ -21,7 +21,6 @@ import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyF
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
