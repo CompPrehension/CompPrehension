@@ -2497,6 +2497,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setSolutionFacts(facts);
         entity.setQuestionType(QuestionType.ORDER);
         entity.setQuestionName("");
+        entity.setDomainEntity(getDomainEntity());
 
         // check the size of question
         if (ans_id < 3 || ans_id > 30)
@@ -2508,7 +2509,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 //        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
         entity.setQuestionName(questionName);
 
-        Question question = new Question(entity, null);
+        Question question = new Question(entity, this);
 
         Set<String> lawNames = new HashSet<>();
         for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
@@ -2561,7 +2562,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         // make Options instance if absent
         if (entity.getOptions() == null) {
-            entity.setOptions(new OrderQuestionOptionsEntity());
+            var options = OrderQuestionOptionsEntity.builder()
+                    .requireContext(true)
+                    .showTrace(true)
+                    .multipleSelectionEnabled(false)
+                    .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
+                    .build();
+            entity.setOptions(options);
         }
 
         QuestionMetadataEntity meta = null;
