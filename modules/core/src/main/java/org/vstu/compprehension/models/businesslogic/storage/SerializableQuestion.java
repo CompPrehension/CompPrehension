@@ -12,6 +12,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
@@ -150,14 +151,19 @@ public class SerializableQuestion {
                 SerializableQuestion.class);
     }
     public void serializeToFile(String path) throws IOException {
-        gson.toJson(this, new FileWriter(path));
+        try (var writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
+            gson.toJson(this, writer);
+        }
     }
     public void serializeToFile(Path path) throws IOException {
-        gson.toJson(this, new FileWriter(path.toString()));
+        try (var writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.UTF_8))) {
+            gson.toJson(this, writer);
+        }
     }
     public void serializeToStream(OutputStream stream) throws IOException {
-        var writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8));
-        gson.toJson(this, writer);
+        try (var writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
+            gson.toJson(this, writer);
+        }
     }
     
     private static class QuestionDataDeserializer implements JsonDeserializer<QuestionData> {
