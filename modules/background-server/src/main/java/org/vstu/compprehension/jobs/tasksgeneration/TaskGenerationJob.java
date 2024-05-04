@@ -1,6 +1,5 @@
 package org.vstu.compprehension.jobs.tasksgeneration;
 
-import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -12,12 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
-import org.vstu.compprehension.models.businesslogic.storage.RemoteFileService;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -25,8 +20,9 @@ import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -45,10 +41,10 @@ public class TaskGenerationJob {
     private final TaskGenerationJobConfig tasks;
     /** Current active task config, `null` while no task is active. This is not thread-safe! */
     private TaskGenerationJobConfig.TaskConfig config;
-    private final AbstractRdfStorage storage;
+    private final QuestionBank storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig tasks, AbstractRdfStorage storage) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
         this.tasks = tasks;
@@ -85,8 +81,8 @@ public class TaskGenerationJob {
     @SneakyThrows
     public void runImpl() {
         // TODO проверка на то, что нужны новые вопросы
-        int enoughQuestionsAdded = AbstractRdfStorage.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        int tooFewQuestions      = AbstractRdfStorage.getTooFewQuestionsForQR(0); // (e.g. 50)
+        int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
+        int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
         var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
@@ -387,12 +383,12 @@ public class TaskGenerationJob {
             Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
             for (val file : allJsonFiles) {
-                val q = loadQuestion(file);
+                val q = SerializableQuestion.deserialize(file);
                 if (q == null) {
                     continue;
                 }
 
-                QuestionMetadataEntity meta = q.getMetadataAny();
+                QuestionMetadataEntity meta = q.toMetadataEntity();
                 if (meta == null) {
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
@@ -408,17 +404,17 @@ public class TaskGenerationJob {
                 for (val qr : qrLogsToProcess) {
                     
                     if (!storage.isMatch(meta, qr)) {
-                        log.debug("Question [{}] does not match qr {}", q.getQuestionName(), qr.getId());
+                        log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
                         continue;
                     }
 
                     // Если вопрос ещё не сохранен в базу
                     if (storage.findQuestionByName(meta.getName()) != null) {
-                        log.debug("Question [{}] already exist", q.getQuestionName());
+                        log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
                         break;
                     }
 
-                    log.debug("Question [{}] matches qr {}", q.getQuestionName(), qr.getId());
+                    log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
 
                     // set flag to use this question
                     shouldSave = true;
@@ -437,8 +433,8 @@ public class TaskGenerationJob {
 
                 // copy data file and save local sub-path to it
                 String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
-                        ? storage.saveQuestionData(domainId, q.getQuestionName(), Domain.questionToJson(q, "ORDERING"))
-                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), Domain.questionToJson(q, "ORDERING"));
+                        ? storage.saveQuestionData(domainId, q.getQuestionData().getQuestionName(), q)
+                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionData().getQuestionName(), q);
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
@@ -447,17 +443,13 @@ public class TaskGenerationJob {
                 meta.setDomainShortname(config.getDomainShortName());
                 meta.setTemplateId(-1);
 
-                // set metadata instance back to ensure the data is saved
-                q.setMetadata(meta);
-                q.getQuestionData().getOptions().setMetadata(meta);
-
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with path [{}]. Metadata id: {}, Affected qrs: {}", q.getQuestionName(), qDataPath, meta.getId(), meta.getQrlogIds());
+                log.info("Question [{}] saved with path [{}]. Metadata id: {}, Affected qrs: {}", q.getQuestionData().getQuestionName(), qDataPath, meta.getId(), meta.getQrlogIds());
                 savedQuestions += 1;
             }
 
@@ -487,33 +479,5 @@ public class TaskGenerationJob {
                 log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
             }
         }
-    }
-
-
-    /**
-     * @param inputStream file contents
-     * @return loaded question
-     * @see Domain::parseQuestionTemplate
-     */
-    private static Question parseQuestionJson(InputStream inputStream) {
-        Gson gson = Domain.getQuestionGson();
-        return gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question.class);
-    }
-
-    /**
-     * @param path absolute path to file location
-     * @return loaded question
-     * @see org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage::loadQuestion
-     */
-    private static Question loadQuestion(String path) {
-        Question q = null;
-        try (InputStream stream = new FileInputStream(path)) {
-            q = parseQuestionJson(stream);
-        } catch (IOException | NullPointerException | IllegalStateException e) {
-            log.error("Question parsing exception - {}", e.getMessage(), e);
-        }
-        return q;
     }
 }

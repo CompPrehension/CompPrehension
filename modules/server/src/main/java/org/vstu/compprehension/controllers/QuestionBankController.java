@@ -13,7 +13,7 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
@@ -24,11 +24,11 @@ import java.util.Objects;
 @Log4j2
 public class QuestionBankController {
     private final DomainFactory domainFactory;
-    private final AbstractRdfStorage questionStorage;
+    private final QuestionBank questionStorage;
     private final UserService userService;
 
     @Autowired
-    public QuestionBankController(DomainFactory domainFactory, AbstractRdfStorage questionStorage, UserService userService) {
+    public QuestionBankController(DomainFactory domainFactory, QuestionBank questionStorage, UserService userService) {
         this.domainFactory   = domainFactory;
         this.questionStorage = questionStorage;
         this.userService     = userService;

@@ -20,15 +20,14 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -39,7 +38,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.Math.max;
 import static org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain.NS_code;
 
 @Log4j2
@@ -60,7 +58,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    protected final AbstractRdfStorage qMetaStorage;
+    protected final QuestionBank qMetaStorage;
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
         put("basics", new Tag("basics", 2L));  	// (2 ^ 1)
@@ -85,7 +83,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            AbstractRdfStorage qMetaStorage) {
+            QuestionBank qMetaStorage) {
         
         super(domainEntity, randomProvider);
         
@@ -409,34 +407,10 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
 
         return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
     }
-
-
-    //----------ИНИЦИАЛИЗАЦИЯ--------------
-    
-//    @Override
-//    public void update() {
-//        // init questions storage
-//        getQMetaStorage();
-//    }
     
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-        
-        Question question = gson.fromJson(
-                new InputStreamReader(stream, StandardCharsets.UTF_8),
-                Question.class);
-        
-        return question;
+        return SerializableQuestion.deserialize(stream).toQuestion(this);
     }
     
     @Override
@@ -454,24 +428,11 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
     
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-        
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-        
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-        
+        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+                .map(q -> q.toQuestion(this))
+                .toArray(Question[]::new);
         Collections.addAll(res, questions);
-        
+
         // write questionName to each template
         //TODO: make normal check, other question types also can be longer than questionName restriction
         for (Question q : res) {
@@ -481,7 +442,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                 q.getQuestionData().setQuestionName(qName);
             }
         }
-        
+
         return res;
     }
 
@@ -518,9 +479,6 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                     OrderQuestionOptionsEntity.OrderNumberPosition.SUFFIX,
                     null
                 ))
-                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
-                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
-                .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
         
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
@@ -601,7 +559,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                             .replace("student_end_evaluation", getMessage("STUDENT_END_EVALUATION", userLang)));
                 }
                 entity.setOptions(orderQuestionOptions);
-                Question question = new Ordering(entity, this);
+                Question question = new Question(entity, this);
                 // patch the newly created question with the concepts from the "template"
                 question.getConcepts().addAll(q.getConcepts());
                 // ^ shouldn't this be done in a more straightforward way..?
@@ -609,15 +567,15 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity, this);
+                return new Question(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity, this);
+                return new Question(entity, this);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
-                return new SingleChoice(entity, this);
+                return new Question(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDTDomain::makeQuestion: " + q.getQuestionType());
         }

@@ -169,7 +169,10 @@ public interface AbstractStrategy {
         /*qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));*/
 
         // deny individual questions only
-        qr.setDeniedQuestionMetaIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getQuestionMetaId()).filter(id -> id > 0).collect(Collectors.toList()));
+        qr.setDeniedQuestionMetaIds(listQuestionsOfAttempt(exerciseAttempt).stream()
+                .filter(q -> q.getMetadata() != null)
+                .map(q -> q.getMetadata().getId())
+                .collect(Collectors.toList()));
 
         qr.setComplexitySearchDirection(SearchDirections.TO_SIMPLE);
         qr.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
@@ -242,7 +245,7 @@ public interface AbstractStrategy {
         var unreachable = new HashSet<Concept>();  // concepts shouldn't be tried since are blocked by "denied"s in current context
 
         for (val q : attemptQuestions) {
-            val m = q.getOptions().getMetadata();
+            val m = q.getMetadata();
             if (m == null)
                 continue;
             long bits = m.traceConceptsSatisfiedFromPlan() & currentTargetConceptBits;
@@ -281,7 +284,7 @@ public interface AbstractStrategy {
         var unreachable = new HashSet<Law>();  // laws shouldn't be tried since are blocked by "denied"s in current context
 
         for (val q : attemptQuestions) {
-            val m = q.getOptions().getMetadata();
+            val m = q.getMetadata();
             if (m == null)
                 continue;
             long bits = m.violationsSatisfiedFromPlan() & currentTargetLawBits;

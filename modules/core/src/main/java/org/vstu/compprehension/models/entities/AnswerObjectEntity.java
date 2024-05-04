@@ -1,15 +1,14 @@
 package org.vstu.compprehension.models.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
-@Data
+@Getter @Setter
 @NoArgsConstructor
+@Builder
 @Table(
     name = "AnswerObject",
     uniqueConstraints = {
@@ -19,6 +18,7 @@ import java.util.List;
         )
     }
 )
+@AllArgsConstructor
 public class AnswerObjectEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +39,6 @@ public class AnswerObjectEntity {
     @Column(name = "concept")
     private String concept;
 
-
     @ToString.Exclude
     @OneToMany(mappedBy = "leftAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesLeft;
@@ -48,10 +47,8 @@ public class AnswerObjectEntity {
     @OneToMany(mappedBy = "rightAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesRight;
 
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "question_id")
-    private QuestionEntity question;
-    
+    private QuestionEntity question; 
     
 }

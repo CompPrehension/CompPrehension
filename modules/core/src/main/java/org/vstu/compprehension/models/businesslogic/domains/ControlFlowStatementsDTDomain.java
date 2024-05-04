@@ -1,8 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import its.model.DomainSolvingModel;
 import its.model.definition.VariableDef;
 import its.model.definition.rdf.DomainRDFFiller;
@@ -11,7 +8,10 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.text.StringSubstitutor;
-import org.apache.jena.ontology.*;
+import org.apache.jena.ontology.AnnotationProperty;
+import org.apache.jena.ontology.Individual;
+import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
@@ -25,19 +25,16 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,7 +95,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            AbstractRdfStorage qMetaStorage
+            QuestionBank qMetaStorage
 //            QuestionMetadataRepository questionMetadataRepository
     ) {
         super(domainEntity, localizationService, randomProvider, qMetaStorage);
@@ -980,24 +977,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         }
 
         return new HashSet<>(map.values());
-    }
-
-//    public CorrectAnswer getRemainingCorrectAnswers(Question q) {
-//
-//        return null;
-//    }
-
-    public static List<Question> readQuestions(InputStream inputStream) {
-        List<Question> res = new ArrayList<>();
-
-        Gson gson = getQuestionGson();
-
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-
-        Collections.addAll(res, questions);
-        return res;
     }
 
     @Override

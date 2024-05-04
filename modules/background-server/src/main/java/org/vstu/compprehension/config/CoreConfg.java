@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJobConfig;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -19,7 +19,7 @@ import java.util.Objects;
 public class CoreConfg {
 
     @Bean
-    AbstractRdfStorage getQuestionBank(
+    QuestionBank getQuestionBank(
             @Autowired DomainRepository domainRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired TaskGenerationJobConfig tasks) throws Exception {
@@ -36,6 +36,6 @@ public class CoreConfg {
             }
         }
         
-        return new AbstractRdfStorage(allDomains, metadataRepository, new QuestionMetadataManager(metadataRepository));
+        return new QuestionBank(allDomains, metadataRepository, new QuestionMetadataManager(metadataRepository));
     }
 }

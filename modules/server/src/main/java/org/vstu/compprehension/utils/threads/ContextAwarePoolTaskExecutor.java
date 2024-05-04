@@ -12,11 +12,17 @@ public class ContextAwarePoolTaskExecutor extends ThreadPoolTaskExecutor {
 
     @Override
     public @NotNull <T> Future<T> submit(@NotNull Callable<T> task) {
-        return super.submit(new ContextAwareCallable(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
+        return super.submit(new ContextAwareCallable<T>(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
+    }
+
+    @Deprecated
+    @Override
+    public @NotNull <T> ListenableFuture<T> submitListenable(@NotNull Callable<T> task) {
+        return super.submitListenable(new ContextAwareCallable<T>(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
     }
 
     @Override
-    public @NotNull <T> ListenableFuture<T> submitListenable(@NotNull Callable<T> task) {
-        return super.submitListenable(new ContextAwareCallable(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
+    public @NotNull <T> CompletableFuture<T> submitCompletable(@NotNull Callable<T> task) {
+        return super.submitCompletable(new ContextAwareCallable<T>(task, RequestContextHolder.currentRequestAttributes(), ThreadContext.getContext()));
     }
 }

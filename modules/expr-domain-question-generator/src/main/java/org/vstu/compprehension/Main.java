@@ -9,7 +9,7 @@ import org.vstu.compprehension.adapters.FakeLocalizationService;
 import org.vstu.compprehension.adapters.FakeQuestionMetadataRepository;
 import org.vstu.compprehension.adapters.FakeRandomProvider;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
@@ -56,7 +56,7 @@ public class Main {
                 domainEntity,
                 new FakeLocalizationService(),
                 new FakeRandomProvider(),
-                new AbstractRdfStorage(
+                new QuestionBank(
                         "ProgrammingLanguageExpressionDomain",
                         null,
                         new FakeQuestionMetadataRepository(),
