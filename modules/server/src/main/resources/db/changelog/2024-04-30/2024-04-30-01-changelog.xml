@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1714475593414-45" author="Administrator (generated)">
+        <addColumn tableName="question">
+            <column name="metadata_id" type="INT"/>
+        </addColumn>
+        
+        <addForeignKeyConstraint baseColumnNames="metadata_id" baseTableName="question"
+                                 constraintName="FK_QUESTION_ON_METADATA" referencedColumnNames="id"
+                                 referencedTableName="questions_meta"/>
+
+        <sql>
+            UPDATE question q
+            INNER JOIN
+            (
+                SELECT
+                    q.id as question_id,
+                    q.question_name,
+                    JSON_EXTRACT(options_json, "$.questionMetaId") AS metadata_id
+                FROM question AS q
+                INNER JOIN questions_meta m ON JSON_EXTRACT(q.options_json, "$.questionMetaId") = m.id
+            ) AS upd on q.id = upd.question_id
+            SET q.metadata_id = upd.metadata_id
+            WHERE q.id > 0;
+
+            UPDATE question q
+            SET q.options_json = JSON_REMOVE(q.options_json, '$.questionMetaId', '$.metadata', '$.templateId')
+            WHERE q.id > 0;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

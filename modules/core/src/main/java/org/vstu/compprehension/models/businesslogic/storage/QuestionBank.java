@@ -4,12 +4,12 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.vfs2.FileSystemException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,7 +24,7 @@ import java.util.stream.Collectors;
 import static java.lang.Long.bitCount;
 
 @Log4j2
-public class AbstractRdfStorage {
+public class QuestionBank {
     public static int STAGE_TEMPLATE = 1;
     public static int STAGE_QUESTION = 2;
     public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
@@ -36,7 +35,7 @@ public class AbstractRdfStorage {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
-    public AbstractRdfStorage(
+    public QuestionBank(
             Collection<DomainEntity> domains,
             QuestionMetadataRepository questionMetadataRepository,
             QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
@@ -54,7 +53,7 @@ public class AbstractRdfStorage {
         this.questionMetadataManager = questionMetadataManager;
     }
 
-    public AbstractRdfStorage(
+    public QuestionBank(
             String domainId,
             RemoteFileService fileService,
             QuestionMetadataRepository questionMetadataRepository,
@@ -75,7 +74,7 @@ public class AbstractRdfStorage {
                 toSkip--;
                 continue;
             }
-            QuestionMetadataEntity meta = questionEntity.getOptions().getMetadata();
+            QuestionMetadataEntity meta = questionEntity.getMetadata();
             if (meta != null)
                 result.add(meta);
         }
@@ -179,7 +178,7 @@ public class AbstractRdfStorage {
 
         // use violations from all questions is exercise attempt
         long unwantedViolationsBitmask = attempt.getQuestions().stream()
-                .map(qd -> qd.getOptions().getMetadata())
+                .map(QuestionEntity::getMetadata)
                 .filter(Objects::nonNull)
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
@@ -221,7 +220,11 @@ public class AbstractRdfStorage {
 
         if (loadedQuestions.size() == 1) {
             // increment the question's usage counter
-            val meta = loadedQuestions.get(0).getQuestionData().getOptions().getMetadata();
+            val meta = loadedQuestions.get(0).getQuestionData().getMetadata();
+            if (meta == null) {
+                throw new RuntimeException("No metadata for question " + loadedQuestions.get(0).getQuestionData().getId());
+            }
+            
             meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
             meta.setLastAttemptId(attempt.getId());
             meta.setDateLastUsed(new Date());
@@ -286,28 +289,13 @@ public class AbstractRdfStorage {
         return list;
     }
 
-
-    private Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
-        Question q = loadQuestion(domain, qMeta.getQDataGraph());
-        if (q != null) {
-            if (q.getQuestionData().getOptions() == null) {
-                q.getQuestionData().setOptions(new QuestionOptionsEntity());
-            }
-            q.getQuestionData().getOptions().setTemplateId(qMeta.getTemplateId());
-            q.getQuestionData().getOptions().setQuestionMetaId(qMeta.getId());
-            q.getQuestionData().getOptions().setMetadata(qMeta);
-            q.setMetadata(qMeta);
-            // future todo: reflect any set data in Domain.makeQuestionCopy() as well
-        }
-        return q;
-    }
-
-    private Question loadQuestion(Domain domain, String path) {
-        Question q = null;
+    private @Nullable Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
+        var path = qMeta.getQDataGraph();
         var fileService = fileServices.get(domain.getDomainId());
         try (InputStream stream = fileService.getFileStream(path)) {
             if (stream != null) {
-                q = domain.parseQuestionTemplate(stream);
+                var deserialized = SerializableQuestion.deserialize(stream);
+                return deserialized.toQuestion(domain, qMeta);
             } else {
                 log.warn("File NOT found by storage: {}", path);
             }
@@ -320,7 +308,7 @@ public class AbstractRdfStorage {
                 log.error("Error closing connection - {}", e.getMessage(), e);
             }
         }
-        return q;
+        return null;
     }
 
     /**
@@ -399,21 +387,21 @@ public class AbstractRdfStorage {
         return meta;
     }
 
-    public String saveQuestionData(String domainId, String basePath, String questionName, String data) throws IOException {
+    public String saveQuestionData(String domainId, String basePath, String questionName, SerializableQuestion question) throws IOException {
         var rawQuestionPath = Path.of(basePath, questionName + ".json");
-        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), data);
+        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), question);
     }
 
-    public String saveQuestionData(String domainId,  String questionName, String data) throws IOException {
-        return saveQuestionDataImpl(domainId, questionName + ".json", data);
+    public String saveQuestionData(String domainId, String questionName, SerializableQuestion question) throws IOException {
+        return saveQuestionDataImpl(domainId, questionName + ".json", question);
     }
 
-    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, String data) throws IOException {
+    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, SerializableQuestion question) throws IOException {
         var fileService = fileServices.get(domainId);
         var questionPath = fileService.prepareNameForFile(rawQuestionPath, false);
         try (OutputStream stream = fileService.openForWrite(questionPath)) {
             assert stream != null;
-            stream.write(data.getBytes(StandardCharsets.UTF_8));
+            question.serializeToStream(stream);
             return questionPath;
         } finally {
             try {

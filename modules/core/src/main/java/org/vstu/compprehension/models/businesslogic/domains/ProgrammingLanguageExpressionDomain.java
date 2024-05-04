@@ -33,9 +33,10 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -50,7 +51,6 @@ import org.vstu.compprehension.utils.RandomProvider;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -83,7 +83,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     private final LocalizationService localizationService;
-    private final AbstractRdfStorage qMetaStorage;
+    private final QuestionBank qMetaStorage;
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
@@ -99,7 +99,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            AbstractRdfStorage qMetaStorage) {
+            QuestionBank qMetaStorage) {
 
         super(domainEntity, randomProvider);
 
@@ -373,22 +373,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-
-        Question question = gson.fromJson(
-                new InputStreamReader(stream, StandardCharsets.UTF_8),
-                Question.class);
-
-        return question;
+        return SerializableQuestion.deserialize(stream).toQuestion(this);
     }
 
     @Override
@@ -404,22 +389,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-
+        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+                .map(q -> q.toQuestion(this))
+                .toArray(Question[]::new);
         Collections.addAll(res, questions);
 
         // write questionName to each template
@@ -462,9 +434,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
-                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
-                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
-                .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
@@ -504,6 +473,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setExerciseAttempt(exerciseAttemptEntity);
         entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
+        entity.setMetadata(q.getMetadata());
 
         //TODO: remove this hack supporting old format
         if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
@@ -546,7 +516,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             .replace("student_end_evaluation", getMessage("STUDENT_END_EVALUATION", userLang)));
                 }
                 entity.setOptions(orderQuestionOptions);
-                Question question = new Ordering(entity, this);
+                Question question = new Question(entity, this);
                 // patch the newly created question with the concepts from the "template"
                 question.getConcepts().addAll(q.getConcepts());
                 // ^ shouldn't this be done in a more straightforward way..?
@@ -554,15 +524,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity, this);
+                return new Question(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity, this);
+                return new Question(entity, this);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
-                return new SingleChoice(entity, this);
+                return new Question(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -693,7 +663,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 createAnswerObject(question, 1, "right", "right_associativity", "right", true),
                 createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
         )));
-        return new SingleChoice(question, this);
+        return new Question(question, this);
     }
 
     @Override
@@ -2445,7 +2415,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param rs instance of Storage
      * @return fresh Ordering Question
      */
-    public Question createQuestionFromModel(String questionName, Model model, AbstractRdfStorage rs) {
+    public Question createQuestionFromModel(String questionName, Model model, QuestionBank rs) {
         List<BackendFactEntity> facts = modelToFacts(model, false);
         facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
         FactsGraph fg = new FactsGraph(facts);
@@ -2514,6 +2484,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setSolutionFacts(facts);
         entity.setQuestionType(QuestionType.ORDER);
         entity.setQuestionName("");
+        entity.setDomainEntity(getDomainEntity());
 
         // check the size of question
         if (ans_id < 3 || ans_id > 30)
@@ -2525,7 +2496,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 //        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
         entity.setQuestionName(questionName);
 
-        Question question = new Ordering(entity, null);
+        Question question = new Question(entity, this);
 
         Set<String> lawNames = new HashSet<>();
         for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
@@ -2578,7 +2549,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         // make Options instance if absent
         if (entity.getOptions() == null) {
-            entity.setOptions(new OrderQuestionOptionsEntity());
+            var options = OrderQuestionOptionsEntity.builder()
+                    .requireContext(true)
+                    .showTrace(true)
+                    .multipleSelectionEnabled(false)
+                    .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
+                    .build();
+            entity.setOptions(options);
         }
 
         QuestionMetadataEntity meta = null;
@@ -2600,8 +2577,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         // meta.setName(questionName);
         meta.setDomainShortname(this.getShortName());
-        meta.setStage(AbstractRdfStorage.STAGE_READY);  // 3 = generated question
-        meta.setVersion(AbstractRdfStorage.GENERATOR_VERSION);  // v10 : generated by Domain
+        meta.setStage(QuestionBank.STAGE_READY);  // 3 = generated question
+        meta.setVersion(QuestionBank.GENERATOR_VERSION);  // v10 : generated by Domain
         meta.setUsedCount(0L);
         meta.setDateLastUsed(new Date()); // generated at this time
 
@@ -2636,15 +2613,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         // write info to question metadata
         QuestionMetadataEntity metadata = meta.toMetadataEntity();
-        entity.getOptions().setMetadata(metadata);
-        question.setMetadata(metadata);
+        entity.setMetadata(metadata);
 
         return question;
-    }
-
-    public String questionToJson(Question question) {
-        return questionToJson(question, "ORDERING");
-//        return "{\"questionType\": \"ORDERING\", " + new Gson().toJson(question).substring(1);
     }
 
     /**
@@ -2727,10 +2698,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         log.debug("--  Cancelled inappropriate question: {}", questionName);
                         continue;
                     }
+                    if (domainQuestion.getMetadata() == null) {
+                        log.debug("--  Cancelled question without metadata: {}", questionName);
+                        continue;
+                    }
 
                     domainQuestion.getMetadata().setOrigin(origin);
-                    domainQuestion.getQuestionData().getOptions()
-                            .getMetadata().setOrigin(origin);
 
                     // Save question data for domain in JSON
                     log.debug("++  Saving question: {}", questionName);
@@ -2738,9 +2711,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     // Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
 
-                    String jsonData = this.questionToJson(domainQuestion);
-                    path = Path.of(outputDir, questionName + ".json");
-                    Files.writeString(path, jsonData);
+                    var serializableQuestion = SerializableQuestion.fromQuestion(domainQuestion);
+                    serializableQuestion.serializeToFile(Path.of(outputDir, questionName + ".json"));
                     ++templateQuestionsCount;
                 }
 

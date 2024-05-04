@@ -11,7 +11,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatement
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -28,7 +28,7 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             AbstractRdfStorage questionStorage) {
+                             QuestionBank questionStorage) {
 
         var domains = Lists.newArrayList(domainRepository.findAll());
         {

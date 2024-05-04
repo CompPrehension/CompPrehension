@@ -2,6 +2,8 @@ package org.vstu.compprehension.models.businesslogic;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -11,43 +13,32 @@ import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
 
-public abstract class Question {
-    
+public class Question {
+    @Getter
+    @NotNull
     protected QuestionEntity questionData;
-    @Setter
+    
+    @Getter @Setter
     protected List<String> concepts;
     @Setter
     protected List<String> negativeLaws;
 
-    /**
-     * @return either question's metadata or data options' metadata, whichever is set, or null
-     */
-    public QuestionMetadataEntity getMetadataAny() {
-        if (metadata != null)
-            return metadata;
-        if (questionData != null && questionData.getOptions() != null) {
-            // metadata can still be null
-            return questionData.getOptions().getMetadata();
-        }
-        return null;
+    public @Nullable QuestionMetadataEntity getMetadata() {
+        return questionData.getMetadata();
     }
-
-    @Getter @Setter
-    protected QuestionMetadataEntity metadata = null;
+    @Getter
     @Setter
     protected Set<String> tags;
-    transient protected Domain domain;  // "transient" makes json reader ignore this field
+    @Getter
+    @NotNull 
+    final protected Domain domain;
     
-    public Question(QuestionEntity questionData, Domain domain) {
+    public Question(@NotNull QuestionEntity questionData, @NotNull Domain domain) {
         this.questionData = questionData;
         this.domain = domain;
         concepts = new ArrayList<>();
         negativeLaws = new ArrayList<>();
         tags = new HashSet<>();
-    }
-
-    public Domain getDomain() {
-        return this.domain;
     }
 
     public int answerObjectsCount() {
@@ -104,23 +95,7 @@ public abstract class Question {
         
         return questionData.getQuestionType();
     }
-    
-    public QuestionEntity getQuestionData() {
-        
-        return questionData;
-    }
 
-    /**
-     * Don't use it for normal questions, only for templates
-     * @return
-     */
-    public List<String> getConcepts() {
-        return concepts;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
     /**
      * Don't use it for normal questions, only for templates
      * @return
@@ -138,7 +113,9 @@ public abstract class Question {
      *
      * @return - факты в универсальной форме
      */
-    public abstract Collection<Fact> responseToFacts(List<ResponseEntity> responses);
+    public Collection<Fact> responseToFacts(List<ResponseEntity> responses) {
+        return domain.responseToFacts(questionData.getQuestionDomainType(), responses, questionData.getAnswerObjects());
+    }
 
     public List<BackendFactEntity> getStatementFacts() {
         return questionData.getStatementFacts();
@@ -160,6 +137,6 @@ public abstract class Question {
     }
 
     public boolean isSupplementary() {
-        return this.questionData != null && this.questionData.getQuestionDomainType().contains("Supplementary");
+        return this.questionData.getQuestionDomainType().contains("Supplementary");
     }
 }

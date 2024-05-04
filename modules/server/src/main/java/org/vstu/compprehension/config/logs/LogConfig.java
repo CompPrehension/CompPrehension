@@ -59,7 +59,7 @@ public class LogConfig
         // - the name of the table
         // - the config of the columns.
         val dbAppender = JdbcAppender.newBuilder().setBufferSize(1).setColumnConfigs(columnConfigs).setColumnMappings()
-                .setConnectionSource(connectionSource).setTableName("logs").withName("DbAppender").withIgnoreExceptions(true).withFilter(filter).build();
+                .setConnectionSource(connectionSource).setTableName("logs").setName("DbAppender").setIgnoreExceptions(true).setFilter(filter).build();
 
         // start the appender, and this is it...
         dbAppender.start();

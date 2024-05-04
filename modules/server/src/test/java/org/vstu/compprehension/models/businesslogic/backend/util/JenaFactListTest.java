@@ -23,7 +23,8 @@ public class JenaFactListTest {
     public static void setUpFirst() {
 //        fl = new FactList();
         ControlFlowStatementsDomain.initVocab();
-        QUESTIONS = ControlFlowStatementsDomain.readQuestions(JenaFactListTest.class.getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
+        var domain = new ControlFlowStatementsDomain(null, null, null, null);
+        QUESTIONS = domain.readQuestions(JenaFactListTest.class.getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
     }
 
     @BeforeEach

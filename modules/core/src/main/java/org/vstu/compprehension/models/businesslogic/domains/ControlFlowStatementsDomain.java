@@ -21,7 +21,8 @@ import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -79,14 +80,14 @@ public class ControlFlowStatementsDomain extends Domain {
     private static List<String> fieldPropertiesCache = null;
 
     private final LocalizationService localizationService;
-    private final AbstractRdfStorage qMetaStorage;
+    private final QuestionBank qMetaStorage;
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            AbstractRdfStorage qMetaStorage) {
+            QuestionBank qMetaStorage) {
         super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
@@ -614,9 +615,6 @@ public class ControlFlowStatementsDomain extends Domain {
                 .multipleSelectionEnabled(true)
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
-                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
-                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
-                .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
@@ -655,6 +653,7 @@ public class ControlFlowStatementsDomain extends Domain {
         entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
+        entity.setMetadata(q.getMetadata());
 
         // DON'T: add schema facts
         List<BackendFactEntity> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
@@ -676,15 +675,15 @@ public class ControlFlowStatementsDomain extends Domain {
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);
-                return new Ordering(entity, this);
+                return new Question(entity, this);
             case MATCHING:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity, this);
+                return new Question(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity, this);
+                return new Question(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -1975,28 +1974,18 @@ public class ControlFlowStatementsDomain extends Domain {
 //        return null;
 //    }
 
-    public static List<Question> readQuestions(InputStream inputStream) {
+    public List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-
-        Gson gson = getQuestionGson();
-
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-
+        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+                .map(q -> q.toQuestion(this))
+                .toArray(Question[]::new);
         Collections.addAll(res, questions);
         return res;
     }
 
     @Override
-    public Question parseQuestionTemplate(InputStream inputStream) {
-        Gson gson = getQuestionGson();
-
-        Question question = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question.class);
-
-        return question;
+    public Question parseQuestionTemplate(InputStream inputStream) {        
+        return SerializableQuestion.deserialize(inputStream).toQuestion(this);
     }
 
     @Override

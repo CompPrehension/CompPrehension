@@ -159,7 +159,7 @@ public class DecisionTreeSupQuestionHelper {
             opt.setShowSupplementaryQuestions(true);
             opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
             generated.setOptions(opt);
-            return new Matching(generated, domain);
+            return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
         }
         else {
             generated.setQuestionType(QuestionType.SINGLE_CHOICE);
@@ -167,7 +167,7 @@ public class DecisionTreeSupQuestionHelper {
             opt.setShowSupplementaryQuestions(true);
             opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
             generated.setOptions(opt);
-            return new SingleChoice(generated, domain);
+            return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
         }
     }
     private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){

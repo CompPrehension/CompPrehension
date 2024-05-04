@@ -1,9 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -340,20 +336,6 @@ public abstract class Domain {
         return new ArrayList<>();
     }
 
-    @NotNull
-    public static Gson getQuestionGson() {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        return new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-    }
-
     abstract public Question parseQuestionTemplate(InputStream stream);
 
     /**
@@ -362,17 +344,6 @@ public abstract class Domain {
      */
     public double getAcceptableRateOfIgnoredMistakes() {
         return 0.0834;  // = 1/12
-    }
-
-    private static final Gson gson = new GsonBuilder()
-        .disableHtmlEscaping()
-        .setPrettyPrinting()
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        .create();
-    public static String questionToJson(Question question, String questionType) {
-        var jsonObj = gson.toJsonTree(question).getAsJsonObject();
-        jsonObj.add("questionType", new JsonPrimitive(questionType));
-        return gson.toJson(jsonObj);
     }
 
     /**

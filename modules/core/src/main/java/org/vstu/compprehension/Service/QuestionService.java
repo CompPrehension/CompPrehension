@@ -15,13 +15,12 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
@@ -41,10 +40,10 @@ public class QuestionService {
     private final SupplementaryStepRepository supplementaryStepRepository;
     private final DomainFactory domainFactory;
     private final QuestionRequestLogRepository questionRequestLogRepository;
-    private final AbstractRdfStorage questionStorage;
+    private final QuestionBank questionStorage;
 
     @Autowired
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, AbstractRdfStorage questionStorage) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
@@ -239,19 +238,9 @@ public class QuestionService {
     }
     */
 
-    public Question generateBusinessLogicQuestion(
-            QuestionEntity question) {
-
+    public Question generateBusinessLogicQuestion(QuestionEntity question) {
         Domain domain = domainFactory.getDomain(question.getExerciseAttempt().getExercise().getDomain().getName());
-        if (question.getQuestionType() == QuestionType.MATCHING) {
-            return new Matching(question, domain);
-        } else if (question.getQuestionType() == QuestionType.ORDER) {
-            return new Ordering(question, domain);
-        } else if (question.getQuestionType() == QuestionType.MULTI_CHOICE) {
-            return new MultiChoice(question, domain);
-        } else {
-            return new SingleChoice(question, domain);
-        }
+        return new Question(question, domain);
     }
 
     private ResponseEntity makeResponse(AnswerObjectEntity answer) {
