@@ -311,7 +311,7 @@ public class QuestionBank {
         return null;
     }
     
-    private Question createQuestion(Domain domain,  @NotNull QuestionMetadataEntity qMeta, SerializableQuestion question) {
+    private Question createQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta, SerializableQuestion question) {
         if (question == null) {
             return null;
         }

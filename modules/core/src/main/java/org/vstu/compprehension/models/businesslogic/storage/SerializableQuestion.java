@@ -5,8 +5,10 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 
 import java.io.*;
@@ -138,6 +140,28 @@ public class SerializableQuestion {
 
         return builder.build();
     }
+    
+    public QuestionMetadataEntity toMetadataEntity() {
+        return QuestionMetadataEntity.builder()
+                .name(metadata.getName())
+                .domainShortname(metadata.getDomainShortname())
+                .tagBits(metadata.getTagBits())
+                .conceptBits(metadata.getConceptBits())
+                .lawBits(metadata.getLawBits())
+                .violationBits(metadata.getViolationBits())
+                .traceConceptBits(metadata.getTraceConceptBits())
+                .solutionStructuralComplexity(metadata.getSolutionStructuralComplexity())
+                .integralComplexity(metadata.getIntegralComplexity())
+                .solutionSteps(metadata.getSolutionSteps())
+                .distinctErrorsCount(metadata.getDistinctErrorsCount())
+                .stage(metadata.getStage())
+                .version(metadata.getVersion())
+                .structureHash(metadata.getStructureHash())
+                .isDraft(metadata.isDraft())
+                .origin(metadata.getOrigin())
+                .dateCreated(metadata.getDateCreated())
+                .build();
+    }
 
     private static Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -149,6 +173,13 @@ public class SerializableQuestion {
         return gson.fromJson(
                 new InputStreamReader(stream, StandardCharsets.UTF_8),
                 SerializableQuestion.class);
+    }
+    public static @Nullable SerializableQuestion deserialize(String path) {
+        try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
+            return gson.fromJson(reader, SerializableQuestion.class);
+        } catch (IOException e) {
+            return null;
+        }
     }
     public void serializeToFile(String path) throws IOException {
         try (var writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {

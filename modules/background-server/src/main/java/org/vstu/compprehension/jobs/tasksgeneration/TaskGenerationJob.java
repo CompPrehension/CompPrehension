@@ -1,6 +1,5 @@
 package org.vstu.compprehension.jobs.tasksgeneration;
 
-import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -12,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -23,8 +20,9 @@ import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -362,12 +360,12 @@ public class TaskGenerationJob {
             Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
             for (val file : allJsonFiles) {
-                val q = loadQuestion(file);
+                val q = SerializableQuestion.deserialize(file);
                 if (q == null) {
                     continue;
                 }
 
-                QuestionMetadataEntity meta = q.getMetadata();
+                QuestionMetadataEntity meta = q.toMetadataEntity();
                 if (meta == null) {
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
@@ -389,11 +387,11 @@ public class TaskGenerationJob {
 
                     // Если вопрос ещё не сохранен в базу
                     if (storage.findQuestionByName(meta.getName()) != null) {
-                        log.debug("Question [{}] already exist", q.getQuestionName());
+                        log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
                         break;
                     }
 
-                    log.debug("Question [{}] matches qr {}", q.getQuestionName(), qr.getId());
+                    log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
 
                     // set flag to use this question
                     shouldSave = true;
@@ -412,8 +410,8 @@ public class TaskGenerationJob {
 
                 // copy data file and save local sub-path to it
                 String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
-                        ? storage.saveQuestionData(domainId, q.getQuestionName(), SerializableQuestion.fromQuestion(q))
-                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionName(), SerializableQuestion.fromQuestion(q));
+                        ? storage.saveQuestionData(domainId, q.getQuestionData().getQuestionName(), q)
+                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionData().getQuestionName(), q);
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
@@ -422,16 +420,13 @@ public class TaskGenerationJob {
                 meta.setDomainShortname(config.getDomainShortName());
                 meta.setTemplateId(-1);
 
-                // set metadata instance back to ensure the data is saved
-                q.getQuestionData().setMetadata(meta);
-
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with path [{}]. Metadata id: {}, Affected qrs: {}", q.getQuestionName(), qDataPath, meta.getId(), meta.getQrlogIds());
+                log.info("Question [{}] saved with path [{}]. Metadata id: {}, Affected qrs: {}", q.getQuestionData().getQuestionName(), qDataPath, meta.getId(), meta.getQrlogIds());
                 savedQuestions += 1;
             }
 
@@ -461,33 +456,5 @@ public class TaskGenerationJob {
                 log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
             }
         }
-    }
-
-
-    /**
-     * @param inputStream file contents
-     * @return loaded question
-     * @see Domain::parseQuestionTemplate
-     */
-    private static Question parseQuestionJson(InputStream inputStream) {
-        Gson gson = Domain.getQuestionGson();
-        return gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question.class);
-    }
-
-    /**
-     * @param path absolute path to file location
-     * @return loaded question
-     * @see QuestionBank ::loadQuestion
-     */
-    private static Question loadQuestion(String path) {
-        Question q = null;
-        try (InputStream stream = new FileInputStream(path)) {
-            q = parseQuestionJson(stream);
-        } catch (IOException | NullPointerException | IllegalStateException e) {
-            log.error("Question parsing exception - {}", e.getMessage(), e);
-        }
-        return q;
     }
 }
