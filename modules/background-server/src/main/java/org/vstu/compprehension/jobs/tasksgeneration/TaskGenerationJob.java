@@ -381,7 +381,7 @@ public class TaskGenerationJob {
                 for (val qr : qrLogsToProcess) {
                     
                     if (!storage.isMatch(meta, qr)) {
-                        log.debug("Question [{}] does not match qr {}", q.getQuestionName(), qr.getId());
+                        log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
                         continue;
                     }
 
