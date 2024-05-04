@@ -22,6 +22,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -1973,28 +1974,18 @@ public class ControlFlowStatementsDomain extends Domain {
 //        return null;
 //    }
 
-    public static List<Question> readQuestions(InputStream inputStream) {
+    public List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-
-        Gson gson = getQuestionGson();
-
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-
+        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+                .map(q -> q.toQuestion(this))
+                .toArray(Question[]::new);
         Collections.addAll(res, questions);
         return res;
     }
 
     @Override
-    public Question parseQuestionTemplate(InputStream inputStream) {
-        Gson gson = getQuestionGson();
-
-        Question question = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question.class);
-
-        return question;
+    public Question parseQuestionTemplate(InputStream inputStream) {        
+        return SerializableQuestion.deserialize(inputStream).toQuestion(this);
     }
 
     @Override

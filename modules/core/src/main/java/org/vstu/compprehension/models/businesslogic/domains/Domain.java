@@ -1,7 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -336,13 +334,6 @@ public abstract class Domain {
     public List<Tag> getDefaultQuestionTags(String questionDomainType) {
         // the default
         return new ArrayList<>();
-    }
-
-    @NotNull
-    public static Gson getQuestionGson() {
-        return new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .create();
     }
 
     abstract public Question parseQuestionTemplate(InputStream stream);

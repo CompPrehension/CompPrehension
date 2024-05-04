@@ -31,7 +31,7 @@ public class Question {
     protected Set<String> tags;
     @Getter
     @NotNull 
-    transient final protected Domain domain;  // "transient" makes json reader ignore this field
+    final protected Domain domain;
     
     public Question(@NotNull QuestionEntity questionData, @NotNull Domain domain) {
         this.questionData = questionData;

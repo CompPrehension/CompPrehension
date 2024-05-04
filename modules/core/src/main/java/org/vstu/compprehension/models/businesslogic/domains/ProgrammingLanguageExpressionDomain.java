@@ -373,15 +373,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public Question parseQuestionTemplate(InputStream stream) {
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .create();
-
-        Question question = gson.fromJson(
-                new InputStreamReader(stream, StandardCharsets.UTF_8),
-                Question.class);
-
-        return question;
+        return SerializableQuestion.deserialize(stream).toQuestion(this);
     }
 
     @Override
@@ -397,14 +389,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .create();
-
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-
+        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+                .map(q -> q.toQuestion(this))
+                .toArray(Question[]::new);
         Collections.addAll(res, questions);
 
         // write questionName to each template

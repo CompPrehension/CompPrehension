@@ -5,9 +5,14 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.entities.AnswerObjectEntity;
+import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
+import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 
@@ -16,7 +21,9 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -162,6 +169,53 @@ public class SerializableQuestion {
                 .dateCreated(metadata.getDateCreated())
                 .build();
     }
+    
+    public Question toQuestion(@NotNull Domain domain) {
+        return toQuestion(domain, null);
+    }
+
+    public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataEntity qMeta) {
+        if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
+            throw new RuntimeException("Domain mismatch: " + qMeta.getDomainShortname() + " vs " + domain.getShortName());
+        }
+        
+        var questionData = getQuestionData();
+        var questionEntity = new QuestionEntity();
+        questionEntity.setQuestionType(questionData.getQuestionType());
+        questionEntity.setQuestionText(questionData.getQuestionText());
+        questionEntity.setQuestionName(questionData.getQuestionName());
+        questionEntity.setQuestionDomainType(questionData.getQuestionDomainType());
+        questionEntity.setMetadata(qMeta);
+        questionEntity.setOptions(questionData.getOptions());
+        questionEntity.setAnswerObjects(questionData.getAnswerObjects()
+                .stream()
+                .map(a -> AnswerObjectEntity.builder()
+                        .answerId(a.getAnswerId())
+                        .hyperText(a.getHyperText())
+                        .domainInfo(a.getDomainInfo())
+                        .isRightCol(a.isRightCol())
+                        .concept(a.getConcept())
+                        .build())
+                .toList());
+        questionEntity.setInteractions(new ArrayList<>());
+        questionEntity.setDomainEntity(domain.getDomainEntity());
+        questionEntity.setStatementFacts(questionData.getStatementFacts()
+                .stream()
+                .map(s -> new BackendFactEntity(
+                        s.getSubjectType(),
+                        s.getSubject(),
+                        s.getVerb(),
+                        s.getObjectType(),
+                        s.getObject()))
+                .toList());
+        questionEntity.setSolutionFacts(new ArrayList<>());
+
+        var result = new Question(questionEntity, domain);
+        result.setConcepts(new ArrayList<>(getConcepts()));
+        result.setTags(new HashSet<>(getTags()));
+        result.setNegativeLaws(new ArrayList<>(getNegativeLaws()));
+        return result;
+    }
 
     private static Gson gson = new GsonBuilder()
             .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -169,11 +223,19 @@ public class SerializableQuestion {
             .setPrettyPrinting()
             .registerTypeAdapter(QuestionData.class, new QuestionDataDeserializer())
             .create();
+    
     public static SerializableQuestion deserialize(InputStream stream) {
         return gson.fromJson(
                 new InputStreamReader(stream, StandardCharsets.UTF_8),
                 SerializableQuestion.class);
     }
+
+    public static SerializableQuestion[] deserializeMany(InputStream stream) {
+        return gson.fromJson(
+                new InputStreamReader(stream, StandardCharsets.UTF_8),
+                SerializableQuestion[].class);
+    }
+    
     public static @Nullable SerializableQuestion deserialize(String path) {
         try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
             return gson.fromJson(reader, SerializableQuestion.class);
@@ -181,16 +243,19 @@ public class SerializableQuestion {
             return null;
         }
     }
+    
     public void serializeToFile(String path) throws IOException {
         try (var writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
             gson.toJson(this, writer);
         }
     }
+    
     public void serializeToFile(Path path) throws IOException {
         try (var writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.UTF_8))) {
             gson.toJson(this, writer);
         }
     }
+    
     public void serializeToStream(OutputStream stream) throws IOException {
         try (var writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
             gson.toJson(this, writer);

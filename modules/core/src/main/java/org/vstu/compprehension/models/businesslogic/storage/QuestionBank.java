@@ -295,7 +295,7 @@ public class QuestionBank {
         try (InputStream stream = fileService.getFileStream(path)) {
             if (stream != null) {
                 var deserialized = SerializableQuestion.deserialize(stream);
-                return createQuestion(domain, qMeta, deserialized);
+                return deserialized.toQuestion(domain, qMeta);
             } else {
                 log.warn("File NOT found by storage: {}", path);
             }
@@ -309,52 +309,6 @@ public class QuestionBank {
             }
         }
         return null;
-    }
-    
-    private Question createQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta, SerializableQuestion question) {
-        if (question == null) {
-            return null;
-        }
-        if (!qMeta.getDomainShortname().equals(domain.getShortName())) {
-            throw new RuntimeException("Domain mismatch: " + qMeta.getDomainShortname() + " vs " + domain.getShortName());
-        }
-
-        var questionData = question.getQuestionData();
-        var questionEntity = new QuestionEntity();
-        questionEntity.setQuestionType(questionData.getQuestionType());
-        questionEntity.setQuestionText(questionData.getQuestionText());
-        questionEntity.setQuestionName(questionData.getQuestionName());
-        questionEntity.setQuestionDomainType(questionData.getQuestionDomainType());
-        questionEntity.setMetadata(qMeta);
-        questionEntity.setOptions(questionData.getOptions());
-        questionEntity.setAnswerObjects(questionData.getAnswerObjects()
-                .stream()
-                .map(a -> AnswerObjectEntity.builder()
-                        .answerId(a.getAnswerId())
-                        .hyperText(a.getHyperText())
-                        .domainInfo(a.getDomainInfo())
-                        .isRightCol(a.isRightCol())
-                        .concept(a.getConcept())
-                        .build())
-                .toList());
-        questionEntity.setInteractions(new ArrayList<>());
-        questionEntity.setDomainEntity(domain.getDomainEntity());
-        questionEntity.setStatementFacts(questionData.getStatementFacts()
-                .stream()
-                .map(s -> new BackendFactEntity(
-                        s.getSubjectType(),
-                        s.getSubject(), 
-                        s.getVerb(), 
-                        s.getObjectType(), 
-                        s.getObject()))
-                .toList());
-        questionEntity.setSolutionFacts(new ArrayList<>());
-
-        var result = new Question(questionEntity, domain);
-        result.setConcepts(new ArrayList<>(question.getConcepts()));
-        result.setTags(new HashSet<>(question.getTags()));
-        result.setNegativeLaws(new ArrayList<>(question.getNegativeLaws()));        
-        return result;
     }
 
     /**
