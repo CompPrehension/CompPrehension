@@ -30,9 +30,10 @@ public class Question {
     @Setter
     protected Set<String> tags;
     @Getter
-    transient protected Domain domain;  // "transient" makes json reader ignore this field
+    @NotNull 
+    transient final protected Domain domain;  // "transient" makes json reader ignore this field
     
-    public Question(@NotNull QuestionEntity questionData, Domain domain) {
+    public Question(@NotNull QuestionEntity questionData, @NotNull Domain domain) {
         this.questionData = questionData;
         this.domain = domain;
         concepts = new ArrayList<>();

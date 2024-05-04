@@ -1,13 +1,10 @@
 package org.vstu.compprehension.dto.question;
 
-import lombok.Builder;
-import org.vstu.compprehension.dto.QuestionAnswerDto;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.vstu.compprehension.dto.QuestionAnswerDto;
 
-@Data
+@Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @SuperBuilder
 public class MatchingQuestionDto extends QuestionDto {

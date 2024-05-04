@@ -1,11 +1,8 @@
 package org.vstu.compprehension.config;
 
 import lombok.val;
-import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
-import org.apache.tomcat.util.http.SameSiteCookies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
-import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -40,9 +37,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Bean
     public LocaleResolver localeResolver() {
-        final CookieLocaleResolver cookieLocaleResolver = new CookieLocaleResolver();
+        final CookieLocaleResolver cookieLocaleResolver = new CookieLocaleResolver("JLOCALE");
         cookieLocaleResolver.setDefaultLocale(Locale.ENGLISH);
-        cookieLocaleResolver.setCookieName("JLOCALE");
         cookieLocaleResolver.setCookieSecure(true);
         return cookieLocaleResolver;
     }
