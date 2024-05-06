@@ -15,7 +15,6 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -504,19 +503,6 @@ public abstract class Domain {
     public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
         return List.of();
     }
-
-    /**
-     * TODO: do we need this function?
-     * @return
-     */
-    public abstract ExerciseForm getExerciseForm();
-
-    /**
-     * TODO: do we need this function?
-     * @param ef
-     * @return
-     */
-    public abstract ExerciseEntity processExerciseForm(ExerciseForm ef);
 
     /**
      * Generate domain question with restrictions

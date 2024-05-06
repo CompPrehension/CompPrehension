@@ -30,7 +30,6 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -496,17 +495,6 @@ public class ControlFlowStatementsDomain extends Domain {
 
     protected String htmlStyled(String styleClass, String text) {
         return "<span class=\"" + styleClass + "\">" + text + "</span>";
-    }
-
-
-    @Override
-    public ExerciseForm getExerciseForm() {
-        return null;
-    }
-
-    @Override
-    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
-        return null;
     }
 
     @Override

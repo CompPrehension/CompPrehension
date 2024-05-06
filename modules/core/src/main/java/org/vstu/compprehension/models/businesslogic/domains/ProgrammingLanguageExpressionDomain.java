@@ -43,7 +43,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -82,8 +81,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
-    private final LocalizationService localizationService;
-    private final QuestionBank qMetaStorage;
+    protected final LocalizationService localizationService;
+    protected final QuestionBank qMetaStorage;
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
@@ -376,17 +375,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return SerializableQuestion.deserialize(stream).toQuestion(this);
     }
 
-    @Override
-    public ExerciseForm getExerciseForm() {
-        return null;
-    }
-
-    @Override
-    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
-        return null;
-    }
-
-
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
         Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
@@ -646,24 +634,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         }
 
-        if (res != null) {
-            log.info("Expression domain has prepared the question: {}", res.getQuestionName());
-
-            return makeQuestionCopy(res, exerciseAttempt, userLanguage);
+        if (res == null) {
+            throw new IllegalStateException("No valid questions found");
         }
 
-        // make a SingleChoice question ...
-        QuestionEntity question = new QuestionEntity();
-        question.setExerciseAttempt(exerciseAttempt);
-        question.setQuestionText("Choose associativity of operator binary +");
-        question.setQuestionType(QuestionType.SINGLE_CHOICE);
-        question.setQuestionDomainType("ChooseAssociativity");
-        question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                createAnswerObject(question, 0, "left", "left_associativity", "left", true),
-                createAnswerObject(question, 1, "right", "right_associativity", "right", true),
-                createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
-        )));
-        return new Question(question, this);
+        log.info("Expression domain has prepared the question: {}", res.getQuestionName());
+        return makeQuestionCopy(res, exerciseAttempt, userLanguage);
     }
 
     @Override
