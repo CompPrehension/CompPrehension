@@ -16,7 +16,7 @@ import org.springframework.core.env.Environment;
 public class DbLogAppenderConfig
 {
     @Autowired
-    private Environment env;    
+    private Environment env;
 
     @Value("${config.property.db-logging.enabled:false}")
     private boolean useDbLogging;
