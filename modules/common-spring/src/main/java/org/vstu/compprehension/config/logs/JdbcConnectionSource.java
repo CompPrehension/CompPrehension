@@ -1,7 +1,6 @@
 package org.vstu.compprehension.config.logs;
 
 
-import lombok.val;
 import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
 import org.apache.commons.dbcp2.PoolableConnectionFactory;
 import org.apache.commons.dbcp2.PoolingDataSource;
@@ -11,6 +10,7 @@ import org.apache.logging.log4j.core.appender.db.jdbc.AbstractConnectionSource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Properties;
 
 public class JdbcConnectionSource extends AbstractConnectionSource
@@ -19,16 +19,16 @@ public class JdbcConnectionSource extends AbstractConnectionSource
 
     public JdbcConnectionSource(String dbUrl, String userName, String password)
     {
-        val properties = new Properties();
+        var properties = new Properties();
         properties.setProperty("user", userName);
         properties.setProperty("password", password);
 
-        val connectionFactory = new DriverManagerConnectionFactory(dbUrl, properties);
-        val poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
-        val connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
+        var connectionFactory = new DriverManagerConnectionFactory(dbUrl, properties);
+        var poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
+        var connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
         poolableConnectionFactory.setPool(connectionPool);
         poolableConnectionFactory.setValidationQuery("SELECT 1");
-        poolableConnectionFactory.setValidationQueryTimeout(3);
+        poolableConnectionFactory.setValidationQueryTimeout(Duration.ofSeconds(3));
         poolableConnectionFactory.setDefaultReadOnly(false);
         poolableConnectionFactory.setDefaultAutoCommit(false);
         poolableConnectionFactory.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
