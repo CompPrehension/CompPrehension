@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1715286171444-52" author="Administrator (generated)">
+        <createIndex indexName="idx_app" tableName="logs">
+            <column name="app"/>
+        </createIndex>
+
+        <createIndex indexName="idx_date" tableName="logs">
+            <column descending="true" name="date"/>
+        </createIndex>
+
+        <createIndex indexName="idx_level" tableName="logs">
+            <column name="level"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

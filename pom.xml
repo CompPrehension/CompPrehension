@@ -15,6 +15,7 @@
         <module>modules/strategies</module>
         <module>modules/background-server</module>
         <module>modules/expr-domain-question-generator</module>
+        <module>modules/common-spring</module>
     </modules>
 
     <properties>

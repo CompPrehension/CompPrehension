@@ -9,8 +9,8 @@
         <Root level="INFO">
             <AppenderRef ref="Console" level="ERROR"/>
         </Root>
-        <Logger name="org.vstu.compprehension" level="DEBUG">
+        <AsyncLogger name="org.vstu.compprehension" level="DEBUG">
             <AppenderRef ref="Console" level="DEBUG"/>
-        </Logger>
+        </AsyncLogger>
     </Loggers>
 </Configuration>
