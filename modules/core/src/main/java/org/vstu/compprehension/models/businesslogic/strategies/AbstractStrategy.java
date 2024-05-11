@@ -82,19 +82,6 @@ public interface AbstractStrategy {
         }
         return deniedQuestions;
     }
-    /**
-     * Return names of questions were generated within an exercise attempt
-     * @param exerciseAttempt attempt
-     * @return list {@link QuestionEntity} instances
-     */
-    default List<QuestionEntity> listQuestionsOfAttempt(ExerciseAttemptEntity exerciseAttempt) {
-        ArrayList<QuestionEntity> questions = new ArrayList<>();
-        if (exerciseAttempt != null && exerciseAttempt.getQuestions() != null) {
-            questions.addAll(exerciseAttempt.getQuestions());
-        }
-        return questions;
-    }
-
 
     /** Find exercise stage for next question in an attempt
      * @param exerciseAttempt attempt in progress
@@ -168,7 +155,7 @@ public interface AbstractStrategy {
         /*qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));*/
 
         // deny individual questions only
-        qr.setDeniedQuestionMetaIds(listQuestionsOfAttempt(exerciseAttempt).stream()
+        qr.setDeniedQuestionMetaIds(exerciseAttempt.getQuestions().stream()
                 .filter(q -> q.getMetadata() != null)
                 .map(q -> q.getMetadata().getId())
                 .collect(Collectors.toList()));

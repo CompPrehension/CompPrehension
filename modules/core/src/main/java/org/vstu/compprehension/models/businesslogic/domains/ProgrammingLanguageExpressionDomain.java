@@ -31,6 +31,7 @@ import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
@@ -43,7 +44,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -371,22 +371,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return tags;
     }
 
-    @Override
-    public Question parseQuestionTemplate(InputStream stream) {
-        return SerializableQuestion.deserialize(stream).toQuestion(this);
-    }
-
-    @Override
-    public ExerciseForm getExerciseForm() {
-        return null;
-    }
-
-    @Override
-    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
-        return null;
-    }
-
-
     private List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
         Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
@@ -426,6 +410,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (found.equals(key))
             return base_question_text;
         return found;
+    }
+
+    @Override
+    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+        fl.addFromModel(getSchemaForSolving());
+        return fl;
     }
 
     Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
@@ -867,7 +858,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    @Override
     public Model getSchemaForSolving() {
         Model schemaModel = ModelFactory.createDefaultModel();
         // todo: cache it?
@@ -2331,7 +2321,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return model;
     }
 
-    @Override
     public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
         FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate, false));
 

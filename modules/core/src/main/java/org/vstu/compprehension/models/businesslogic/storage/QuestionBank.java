@@ -150,7 +150,6 @@ public class QuestionBank {
 
         var bankSearchRequest = createBankSearchRequest(qr);
 
-        QuestionMetadataManager metaMgr = this.questionMetadataManager;
         int nQuestionsInAttempt = Optional.ofNullable(bankSearchRequest.getDeniedQuestionNames()).map(List::size).orElse(0);
         int queryLimit = limit + nQuestionsInAttempt;
         int hardLimit = 25;
