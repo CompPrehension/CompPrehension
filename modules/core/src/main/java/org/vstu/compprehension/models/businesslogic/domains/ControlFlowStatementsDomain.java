@@ -30,7 +30,6 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -211,7 +210,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return null;
     }
 
-    @Override
     public Model getSchemaForSolving() {
         return VOCAB.getModel();
     }
@@ -221,72 +219,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return supplementary
                 ? EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE
                 : EXECUTION_ORDER_QUESTION_TYPE;
-    }
-
-    @Override
-    public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
-
-        ArrayList<CorrectAnswer> result = new ArrayList<>();
-
-        String qType = question.getQuestionData().getQuestionDomainType();
-        if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
-            // gather correct steps
-            List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
-            OntModel model = modelToOntModel(getSolutionModelOfQuestion(question));
-
-            while (true) {
-                log.debug("Getting getNextCorrectAnswer having {}", correctTraceAnswersObjects.size());
-                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
-                if (ca == null)
-                    break;
-                result.add(ca);
-
-                AnswerObjectEntity answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
-                correctTraceAnswersObjects.add(answerObj);
-            }
-        }
-
-        return result;
-    }
-
-    @Override
-    public List<HyperText> getCompleteSolvedTrace(Question question) {
-//        final String textMode = "text";
-        final String textMode = "html";
-
-        Language lang = getUserLanguage(question);
-
-        ArrayList<HyperText> result = new ArrayList<>();
-
-        String qType = question.getQuestionData().getQuestionDomainType();
-        if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
-            HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
-            FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
-            // TODO: add here new types of actions (hardcoded) ...
-            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "return", "break", "continue", "iteration" /* << iteration is not-a-class */);
-
-            // gather correct steps
-            List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
-            Model model = getSolutionModelOfQuestion(question);
-
-            while (true) {
-                log.debug("Getting getNextCorrectAnswer № {}", correctTraceAnswersObjects.size());
-                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, modelToOntModel(model));
-                if (ca == null)
-                    break;
-
-                AnswerObjectEntity answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
-                correctTraceAnswersObjects.add(answerObj);
-
-                // format a trace line ...
-
-                HyperText htext = _formatTraceLine(question.getQuestionData(), textMode, lang, exprName2ExecTime, qg,
-                        actionKinds, answerObj, false);
-                result.add(htext);
-            }
-        }
-
-        return result;
     }
 
     @Override
@@ -472,17 +404,6 @@ public class ControlFlowStatementsDomain extends Domain {
 
     private String htmlStyled(String styleClass, String text) {
         return "<span class=\"" + styleClass + "\">" + text + "</span>";
-    }
-
-
-    @Override
-    public ExerciseForm getExerciseForm() {
-        return null;
-    }
-
-    @Override
-    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
-        return null;
     }
 
     @Override
@@ -1984,11 +1905,6 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public Question parseQuestionTemplate(InputStream inputStream) {        
-        return SerializableQuestion.deserialize(inputStream).toQuestion(this);
-    }
-
-    @Override
     public List<Question> getQuestionTemplates() {
         if (QUESTIONS == null) {
             QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
@@ -2050,6 +1966,13 @@ public class ControlFlowStatementsDomain extends Domain {
     public String getMessage(String message_text, Language preferred_language) {
 
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
+    }
+
+    @Override
+    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+        fl.addFromModel(getSchemaForSolving());
+        return fl;
     }
 
     /**

@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
@@ -14,11 +12,9 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -318,10 +314,8 @@ public abstract class Domain {
         return getMessage(prefix + messageKey, preferredLanguage);
     }
 
-    public Model getSchemaForSolving(/* String questionType (?) */) {
-        // the default
-        return ModelFactory.createDefaultModel();
-    }
+    /** Get statement facts with common domain definitions for reasoning (schema) added */
+    public abstract Collection<Fact> getQuestionStatementFactsWithSchema(Question q);
 
     public String getDefaultQuestionType() {
         return getDefaultQuestionType(false);
@@ -336,48 +330,12 @@ public abstract class Domain {
         return new ArrayList<>();
     }
 
-    abstract public Question parseQuestionTemplate(InputStream stream);
-
-    /**
-     * More interactions a student does, greater possibility to mistake accidentally. A certain rate of mistakes (say 1 of 12) can be considered unintentional so no penalty is assessed.
-     * @return the rate threshold
-     */
-    public double getAcceptableRateOfIgnoredMistakes() {
-        return 0.0834;  // = 1/12
-    }
-
     /**
      * Get text description of all steps to right solution
      * @param question tested question
      * @return list of step descriptions
      */
     public abstract List<HyperText> getFullSolutionTrace(Question question);
-
-    /**
-     * Get text description of all steps to complete correct solution
-     * @param question not solved question
-     * @return list of step descriptions
-     */
-    public List<HyperText> getCompleteSolvedTrace(Question question) {
-        return List.of();
-    }
-
-    public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
-        return List.of();
-    }
-
-    /**
-     * TODO: do we need this function?
-     * @return
-     */
-    public abstract ExerciseForm getExerciseForm();
-
-    /**
-     * TODO: do we need this function?
-     * @param ef
-     * @return
-     */
-    public abstract ExerciseEntity processExerciseForm(ExerciseForm ef);
 
     /**
      * Generate domain question with restrictions
@@ -699,41 +657,4 @@ public abstract class Domain {
     }
 
     public abstract List<Concept> getLawConcepts(Law law);
-
-
-    //    API домена для обработки template’ов, которое будет вызываться службой хранилища
-    /** Compute inferences from question template by calling reasoner with appropriate rules.
-     * Returned RDF model should not include triples that exist in template or schema .
-     * @param templateName may be useful
-     * @param questionTemplate the main data to use
-     * @param domainSchema (pre-solved) ready-made RDF model to feed into reasoner with main data
-     * */
-    Model solveQuestionTemplateRDF(String templateName, Model questionTemplate, Model domainSchema) {
-        return null;
-    }
-
-    /** Compute inferences for (generated) question by calling reasoner with appropriate rules.
-     * Returned RDF model should not include triples that exist in template or schema .
-     * @param questionName (pre-solved) may be useful
-     * @param questionData includes (solved) template and basic data about question
-      * @param domainSchema ready-made RDF model to feed into reasoner with main data
-     * */
-    Model solveQuestionRDF(String questionName, Model questionData, Model domainSchema) {
-        return null;
-    }
-
-
-    /** Генерирует вопросы из шаблона, подбирая вопросы с разными наборам ошибок, минимальные по длине решения.
-     * Generate questions from a template, selecting questions with different sets of errors, and minimal solutions in length.
-     *
-     * @param templateName may be useful to make final question names
-     * @param solvedTemplate all known data about question template
-     * @param domainSchema (pre-solved) may be useful
-     * @param questionsLimit maximum questions to create (avoiding infinite loops)
-     * @return map: [new question name] -> [contents of QUESTION graph]
-     * */
-    public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
-        return null;
-    }
-
 }

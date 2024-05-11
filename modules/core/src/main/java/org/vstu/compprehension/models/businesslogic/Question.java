@@ -5,7 +5,6 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -123,9 +122,7 @@ public class Question {
 
     /** Get statement facts with common domain definitions for reasoning (schema) added */
     public Collection<Fact> getStatementFactsWithSchema() {
-        JenaFactList fl = JenaFactList.fromBackendFacts(questionData.getStatementFacts());
-        fl.addFromModel(domain.getSchemaForSolving());
-        return fl;
+        return domain.getQuestionStatementFactsWithSchema(this);        
     }
 
     public List<BackendFactEntity> getSolutionFacts() {
