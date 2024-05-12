@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -176,36 +178,45 @@ public class TaskGenerationJob {
                 .sort(GHRepositorySearchBuilder.Sort.STARS)
                 .order(GHDirection.DESC)
                 .list()
-                .withPageSize(30);
+                .withPageSize(100);
         var downloadedRepos = new ArrayList<Path>();
 
         int idx = 0;
         int skipped = 0;
         for (var repo : repoSearchQuery) {
-            if (seenReposNames.contains(repo.getName())) {
-                skipped++;
-                log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                continue;
-            }
-            log.info("Downloading repo [{}] ...", repo.getFullName());
+            var start = Instant.now();
+            try {
+                if (seenReposNames.contains(repo.getName())) {
+                    skipped++;
+                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                    continue;
+                }
+                log.info("Downloading repo [{}] ...", repo.getFullName());
 
-            repo.readZip(s -> {
-                Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
-                        .toAbsolutePath();
-                Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
-                        .toAbsolutePath();
-                Files.createDirectories(targetFolderPath);
-                java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                Files.delete(zipFile);
-                downloadedRepos.add(targetFolderPath);
-                log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                return 0;
-            }, null);
+                repo.readZip(s -> {
+                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
+                            .toAbsolutePath();
+                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
+                            .toAbsolutePath();
+                    Files.createDirectories(targetFolderPath);
+                    java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                    Files.delete(zipFile);
+                    downloadedRepos.add(targetFolderPath);
+                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                    return 0;
+                }, null);
 
-            // for now, limited number of repositories
-            if (++idx >= downloaderConfig.getRepositoriesToDownload())
-                break;
+                // for now, limited number of repositories
+                if (++idx >= downloaderConfig.getRepositoriesToDownload())
+                    break;                
+            } finally {
+                var durationMillis = Duration.between(start, Instant.now()).toMillis();
+                if (durationMillis < 2000) {
+                    // github has rate limit of 30 requests per minute, so we need to wait at least 2 seconds
+                    Thread.sleep(2000 - durationMillis);
+                }
+            }            
         }
 
         return downloadedRepos;
