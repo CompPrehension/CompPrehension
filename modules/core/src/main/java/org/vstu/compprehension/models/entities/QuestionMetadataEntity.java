@@ -186,14 +186,4 @@ public class QuestionMetadataEntity {
     public Long violationsUnsatisfiedFromRequest() {
         return ~violationBits & violationBitsInRequest;
     }
-
-    /**
-     * @return a copy with isDraft set to `false`; don't reset id
-     */
-    public QuestionMetadataEntity toMetadataEntity() {
-        return this.toBuilder()
-                // .id(null)  // don't reset id: reuse db row
-                .isDraft(false)
-                .build();
-    }
 }

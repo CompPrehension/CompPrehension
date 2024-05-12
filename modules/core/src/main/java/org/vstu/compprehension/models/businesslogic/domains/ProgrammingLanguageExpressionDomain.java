@@ -2404,7 +2404,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param rs instance of Storage
      * @return fresh Ordering Question
      */
-    public Question createQuestionFromModel(String questionName, Model model, QuestionBank rs) {
+    private Question createQuestionFromModel(String questionName, Model model) {
         List<BackendFactEntity> facts = modelToFacts(model, false);
         facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
         FactsGraph fg = new FactsGraph(facts);
@@ -2547,22 +2547,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setOptions(options);
         }
 
-        QuestionMetadataEntity meta = null;
-        if (rs != null) {
-            meta = rs.findQuestionByName(questionName);
-            if (meta == null) {
-                meta = rs.createQuestion(this, questionName, questionName.split("_v")[0], false);
-            }
-        }
-        if (meta == null) {
-            meta = QuestionMetadataEntity.builder()
-                    .name(questionName)
-                    .build();
-        }
-        // QuestionMetadataEntity metadata = entity.getOptions().getMetadata();
-        // // entity.getOptions().setMetadata(metadata); // see below
-
-        meta.setDraft(true);  // ordinary metadata instance but this may be useful to indicate it's still "draft", i.e. not yet accepted for import to main table.
+        QuestionMetadataEntity meta = QuestionMetadataEntity.builder()
+                .name(questionName)
+                .build();
 
         // meta.setName(questionName);
         meta.setDomainShortname(this.getShortName());
@@ -2595,14 +2582,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         meta.setSolutionSteps(solution_length);
         meta.setDistinctErrorsCount(violations.size());
 
-        // save current state into DB
-        if (rs != null) {
-            meta = rs.saveMetadataDraftEntity(meta);
-        }
-
         // write info to question metadata
-        QuestionMetadataEntity metadata = meta.toMetadataEntity();
-        entity.setMetadata(metadata);
+        entity.setMetadata(meta);
 
         return question;
     }
@@ -2681,7 +2662,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     // Save question data for domain in JSON
                     log.debug("Generating question: {}", questionName);
-                    Question domainQuestion = this.createQuestionFromModel(questionName, solvedQuestionModel, null /*don't use DB*/);
+                    Question domainQuestion = this.createQuestionFromModel(questionName, solvedQuestionModel);
 
                     if (domainQuestion == null) {
                         log.debug("--  Cancelled inappropriate question: {}", questionName);
