@@ -49,7 +49,7 @@ public class DbLogAppenderConfig
         ColumnConfig[] columnConfigs = new ColumnConfig[8];
         columnConfigs[0] = ColumnConfig.newBuilder().setName("request_id").setPattern("%X{correlationId}").setUnicode(true).build();
         columnConfigs[1] = ColumnConfig.newBuilder().setName("session_id").setPattern("%X{sessionId}").setUnicode(true).build();
-        columnConfigs[2] = ColumnConfig.newBuilder().setName("date").setPattern("%d{yyyy-MM-dd HH:mm:ss}{GMT+0}").build();
+        columnConfigs[2] = ColumnConfig.newBuilder().setName("date").setPattern("%d{yyyy-MM-dd HH:mm:ss.SSS}{GMT+0}").build();
         columnConfigs[3] = ColumnConfig.newBuilder().setName("level").setPattern("%level").setUnicode(true).build();
         columnConfigs[4] = ColumnConfig.newBuilder().setName("message").setPattern("%message").setUnicode(true).build();
         columnConfigs[5] = ColumnConfig.newBuilder().setName("payload").setPattern("%ex{full}").setUnicode(true).build();
