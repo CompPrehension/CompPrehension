@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
 
 import java.util.Date;
 import java.util.List;
@@ -65,4 +66,6 @@ public class UserEntity {
             inverseJoinColumns = @JoinColumn(name = "exercise_id"))
     private List<ExerciseEntity> exercises;
 
+    @OneToMany(mappedBy = "user")
+    private List<RoleUserAssignmentEntity> roleUserAssignments;
 }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="1715723682123-1" author="artem (generated)">
+        <!-- Добавление начальных данных в таблицу EducationResource -->
+        <sql>INSERT INTO education_resource (name, url) VALUES ('vstu', 'https://edu.vstu.ru');</sql>
+    </changeSet>
+    <changeSet id="1715723682123-2" author="artem (generated)">
+        <!-- Добавление начальных данных в таблицу Course -->
+        <sql>INSERT INTO course (name, education_resource_id) VALUES ('global', (SELECT id FROM education_resource WHERE name = 'vstu'));</sql>
+    </changeSet>
+    <changeSet id="1715723682123-3" author="artem (generated)">
+        <!-- Добавление начальных данных в таблицу PermissionScope -->
+        <sql>INSERT INTO permission_scope (kind, owner_id) VALUES ('course', (SELECT id FROM course WHERE name = 'global'));</sql>
+    </changeSet>
+    <changeSet id="1715723682123-4" author="artem (generated)">
+        <!-- Обновление существующих записей в таблице exercise -->
+        <sql>UPDATE exercise SET course_id = (SELECT id FROM course WHERE name = 'global');</sql>
+    </changeSet>
+    <changeSet id="1715723682123-5" author="artem (generated)">
+        <!-- Добавление начальных данных в таблицу Permission -->
+        <sql>INSERT INTO permission (name) VALUES ('view'), ('create'), ('edit'), ('delete'), ('solve');</sql>
+    </changeSet>
+    <changeSet id="1715723682123-6" author="artem (generated)">
+        <!-- Добавление начальных данных в таблицу Role -->
+        <sql>INSERT INTO role (name) VALUES ('admin'), ('student'), ('teacher'), ('guest');</sql>
+    </changeSet>
+    <changeSet id="1715723682123-7" author="artem (generated)">
+        <!-- Связывание разрешений с ролями -->
+        <sql>INSERT INTO role_permission (role_id, permission_id) VALUES
+          ((SELECT id FROM role WHERE name = 'admin'), (SELECT id FROM permission WHERE name = 'view')),
+          ((SELECT id FROM role WHERE name = 'admin'), (SELECT id FROM permission WHERE name = 'create')),
+          ((SELECT id FROM role WHERE name = 'admin'), (SELECT id FROM permission WHERE name = 'edit')),
+          ((SELECT id FROM role WHERE name = 'admin'), (SELECT id FROM permission WHERE name = 'delete')),
+          ((SELECT id FROM role WHERE name = 'admin'), (SELECT id FROM permission WHERE name = 'solve')),
+          ((SELECT id FROM role WHERE name = 'teacher'), (SELECT id FROM permission WHERE name = 'view')),
+          ((SELECT id FROM role WHERE name = 'teacher'), (SELECT id FROM permission WHERE name = 'create')),
+          ((SELECT id FROM role WHERE name = 'teacher'), (SELECT id FROM permission WHERE name = 'edit')),
+          ((SELECT id FROM role WHERE name = 'teacher'), (SELECT id FROM permission WHERE name = 'delete')),
+          ((SELECT id FROM role WHERE name = 'student'), (SELECT id FROM permission WHERE name = 'view')),
+          ((SELECT id FROM role WHERE name = 'student'), (SELECT id FROM permission WHERE name = 'solve')),
+          ((SELECT id FROM role WHERE name = 'guest'), (SELECT id FROM permission WHERE name = 'view'));</sql>
+    </changeSet>
+    <changeSet id="1715723682123-8" author="artem (generated)">
+        <!-- Связь пользователей с ролями -->
+        <sql>INSERT INTO role_user_assignment (role_id, user_id, permission_scope_id)
+             SELECT
+                     (SELECT id FROM role WHERE name = 'admin') as role_id,
+                     u.id as user_id,
+                     (SELECT id FROM permission_scope WHERE kind = 'course') as permission_scope_id
+             FROM
+                 user u;</sql>
+    </changeSet>
+</databaseChangeLog>
