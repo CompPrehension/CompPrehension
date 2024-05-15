@@ -8,5 +8,7 @@ public enum Role{
     @JsonProperty("TEACHER")
     TEACHER,
     @JsonProperty("ADMIN")
-    ADMIN;
+    ADMIN,
+    @JsonProperty("GUEST")
+    GUEST;
 }
