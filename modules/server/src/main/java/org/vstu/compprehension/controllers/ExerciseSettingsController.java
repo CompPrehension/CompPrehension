@@ -58,6 +58,10 @@ public class ExerciseSettingsController {
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();
         var strategyId = json.get("strategyId").asText();
-        return exerciseService.createExercise(name, domainId, strategyId).getId();
+
+        var courseIdJson = json.get("courseId");
+        var courseId = courseIdJson == null ? 1L : courseIdJson.asLong(1L);
+
+        return exerciseService.createExercise(name, domainId, strategyId, courseId).getId();
     }
 }
