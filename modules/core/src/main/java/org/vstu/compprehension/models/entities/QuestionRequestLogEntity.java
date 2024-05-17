@@ -59,7 +59,8 @@ public class QuestionRequestLogEntity {
     private List<String> deniedQuestionNames;
 
     @Type(JsonType.class)
-    private List<Integer> deniedQuestionTemplateIds = null;
+    private List<String> deniedQuestionTemplateIds = null;
+    
     @Type(JsonType.class)
     private List<Integer> deniedQuestionMetaIds = null;  // same as deniedQuestionNames but using ids instead of names
 

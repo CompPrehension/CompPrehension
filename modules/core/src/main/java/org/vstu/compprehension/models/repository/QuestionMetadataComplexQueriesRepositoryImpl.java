@@ -37,7 +37,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
 
         var query = entityManager.createNativeQuery(
                 "select count(*) as number from questions_meta q where " +
-                    "q.domain_shortname = :domainShortname AND q._stage = 3 " +
+                    "q.domain_shortname = :domainShortname " +
                     "AND q.solution_steps >= :stepsMin " +
                     "AND q.solution_steps <= :stepsMax " +
                     "AND q.concept_bits & :deniedConceptBits = 0 " +
@@ -90,7 +90,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
             "SELECT * FROM (" +
             "select * from questions_meta q where " +
-            "q.domain_shortname = :domainShortname AND q._stage = 3 " +
+            "q.domain_shortname = :domainShortname " +
             "AND q.solution_steps >= :stepsMin " +
             "AND q.solution_steps <= :stepsMax " +
             "AND q.concept_bits & :deniedConceptBits = 0 " +

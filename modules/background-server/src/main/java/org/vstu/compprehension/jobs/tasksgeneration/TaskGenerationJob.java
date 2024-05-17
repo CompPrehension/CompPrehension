@@ -426,10 +426,6 @@ public class TaskGenerationJob {
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
-                meta.setOrigin(repoName);
-                // meta.setDateLastUsed(null);
-                meta.setDomainShortname(config.getDomainShortName());
-                meta.setTemplateId(-1);
 
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);

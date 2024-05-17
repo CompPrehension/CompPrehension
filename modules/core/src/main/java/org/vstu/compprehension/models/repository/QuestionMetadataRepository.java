@@ -30,14 +30,13 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "min(q.integralComplexity), " +
             "avg(q.integralComplexity), " +
             "max(q.integralComplexity)) " +
-            "from QuestionMetadataEntity q where q.domainShortname = :DOMAIN_NAME AND q.stage = 3 " +
-            "AND q.isDraft = false")
+            "from QuestionMetadataEntity q where q.domainShortname = :DOMAIN_NAME ")
     ComplexityStats getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
     );
 
     @NotNull
-    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // ( AND q.stage = :stage ) ?
+    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")
     List<String> findAllOrigins(
             @Param("domainName") String domainName
     );

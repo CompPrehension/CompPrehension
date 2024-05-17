@@ -71,7 +71,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-messages";
-    
+
+    private static final int GENERATED_QUESTIONS_VERSION = 11;
     static final String MESSAGE_PREFIX = "expr_domain.";
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
@@ -2404,7 +2405,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param rs instance of Storage
      * @return fresh Ordering Question
      */
-    private Question createQuestionFromModel(String questionName, Model model) {
+    private Question createQuestionFromModel(String questionName, String templateName, String origin, Model model) {
         List<BackendFactEntity> facts = modelToFacts(model, false);
         facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
         FactsGraph fg = new FactsGraph(facts);
@@ -2556,9 +2557,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         double integralComplexity = 1/( 1 + Math.exp(-1*complexity));
         QuestionMetadataEntity meta = QuestionMetadataEntity.builder()
                 .name(questionName)
+                .templateId(templateName)
+                .origin(origin)
                 .domainShortname(this.getShortName())
-                .stage(QuestionBank.STAGE_READY)
-                .version(QuestionBank.GENERATOR_VERSION)
+                .version(GENERATED_QUESTIONS_VERSION)
                 .usedCount(0L)
                 .dateLastUsed(new Date())
                 .dateCreated(new Date())
@@ -2586,7 +2588,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param questionsLimit
      * @param origin
      */
-    public /*static*/ void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
+    public void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;
@@ -2597,18 +2599,18 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     break;
 
                 Path path = Path.of(file);
-                String name = path.getFileName().toString();
-                if (!name.endsWith(".ttl")) {
+                String templateName = path.getFileName().toString();
+                if (!templateName.endsWith(".ttl")) {
                     log.info("Skipping non-ttl file: {}", path);
                     continue;
                 }
 
-                name = name.substring(0, name.length() - ".ttl".length());
-                name = name.replaceAll("[^a-zA-Z0-9_=+-]", "");
+                templateName = templateName.substring(0, templateName.length() - ".ttl".length());
+                templateName = templateName.replaceAll("[^a-zA-Z0-9_=+-]", "");
                 count++;
 
                 // Create a template
-                log.debug("{} \tUpload model number {}", name, count);
+                log.debug("{} \tUpload model number {}", templateName, count);
                 Model templateModel = ModelFactory.createDefaultModel();
                 RDFDataMgr.read(templateModel, file);
 
@@ -2620,11 +2622,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         getDomainRulesForSolvingAtLevel(this, GraphRole.QUESTION_TEMPLATE_SOLVED),
                         false);
 
-                log.debug("Creating questions for template: {}", name);
+                log.debug("Creating questions for template: {}", templateName);
 
                 int templateQuestionsCount = 0;
                 Set<Set<String>> possibleViolations = new HashSet<>();
-                for (Map.Entry<String, Model> question : this.generateDistinctQuestions(name, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
+                for (Map.Entry<String, Model> question : this.generateDistinctQuestions(templateName, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
                     qCount++;
                     if (qCount >= questionsLimit)
                         break;
@@ -2646,14 +2648,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                     // (note! names of template and question must differ)
                     String questionName = question.getKey();
-                    if (questionName.equals(name)) {
+                    if (questionName.equals(templateName)) {
                         // guard for the case when the name was not changed
                         questionName += "_v";
                     }
 
                     // Save question data for domain in JSON
                     log.debug("Generating question: {}", questionName);
-                    Question domainQuestion = this.createQuestionFromModel(questionName, solvedQuestionModel);
+                    Question domainQuestion = this.createQuestionFromModel(questionName, templateName, origin, solvedQuestionModel);
 
                     if (domainQuestion == null) {
                         log.debug("--  Cancelled inappropriate question: {}", questionName);
@@ -2663,8 +2665,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                         log.debug("--  Cancelled question without metadata: {}", questionName);
                         continue;
                     }
-
-                    domainQuestion.getMetadata().setOrigin(origin);
 
                     // Save question data for domain in JSON
                     log.debug("++  Saving question: {}", questionName);

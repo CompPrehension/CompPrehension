@@ -27,29 +27,11 @@ public class QuestionMetadataEntity {
     @Column(name = "domain_shortname")
     private String domainShortname;
 
-    @Column(name = "template_id", nullable = false)
-    private Integer templateId;
-
-    @Column(name = "qt_graph")
-    private String qtGraphPath;
-
-    @Column(name = "qt_s_graph")
-    private String qtSolvedGraphPath;
-
-    @Column(name = "q_graph")
-    private String qGraphPath;
-
-    @Column(name = "q_s_graph")
-    private String qSolvedGraphPath;
+    @Column(name = "template_id")
+    private String templateId;
 
     @Column(name = "q_data_graph")
     private String qDataGraph;
-
-    /** workaround due to change in field name in db/json.
-     * Normally, use `setQDataGraph(path)`. */
-    public void setQDataGraphPath(String path) {
-        setQDataGraph(path);
-    }
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -78,12 +60,6 @@ public class QuestionMetadataEntity {
     @Column(name = "distinct_errors_count")
     private Integer distinctErrorsCount;
 
-    /** 3: ready for usage (or import, i.e. created),
-     *  4: imported,
-     *  other: invalid */
-    @Column(name = "_stage")
-    private Integer stage;
-
     @Column(name = "_version")
     private Integer version;
 
@@ -104,11 +80,6 @@ public class QuestionMetadataEntity {
     @Builder.Default
     @Column(name = "structure_hash")
     private String structureHash = "";
-
-
-    @Column(name = "is_draft")
-    @Builder.Default
-    private boolean isDraft = false;
 
     /**
      * URL or name of GitHub repository from which this question was created
