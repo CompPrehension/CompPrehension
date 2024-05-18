@@ -2322,7 +2322,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return model;
     }
 
-    public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
+    public Map<String, Model> generateDistinctQuestions(String parsedQuestionName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
         FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate, false));
 
         Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
@@ -2330,7 +2330,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (!fg.filterFacts(null, "text", "?:").isEmpty() || !fg.filterFacts(null, "text", "").isEmpty()) {
             return new HashMap<>(); // Skip bad generation of ternary operator
         }
-        addedFacts.put(templateName + "_v", new ArrayList<>());
+        addedFacts.put(parsedQuestionName + "_v", new ArrayList<>());
 
         List<BackendFactEntity> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
         switchPoints.sort(
@@ -2599,14 +2599,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     break;
 
                 Path path = Path.of(file);
-                String templateName = path.getFileName().toString();
-                if (!templateName.endsWith(".ttl")) {
+                String parsedQuestionName = path.getFileName().toString();
+                if (!parsedQuestionName.endsWith(".ttl")) {
                     log.info("Skipping non-ttl file: {}", path);
                     continue;
                 }
-
-                templateName = templateName.substring(0, templateName.length() - ".ttl".length());
-                templateName = templateName.replaceAll("[^a-zA-Z0-9_=+-]", "");
+                parsedQuestionName = parsedQuestionName.substring(0, parsedQuestionName.length() - ".ttl".length());
+                parsedQuestionName = parsedQuestionName.replaceAll("[^a-zA-Z0-9_=+-]", "");
+                
+                var templateName = parsedQuestionName;
+                templateName = templateName.replaceAll("__\\d{10}$", ""); // remove timestamp
+                
                 count++;
 
                 // Create a template
@@ -2626,7 +2629,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
                 int templateQuestionsCount = 0;
                 Set<Set<String>> possibleViolations = new HashSet<>();
-                for (Map.Entry<String, Model> question : this.generateDistinctQuestions(templateName, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
+                for (Map.Entry<String, Model> question : this.generateDistinctQuestions(parsedQuestionName, solvedTemplateModel, ModelFactory.createDefaultModel(), 12).entrySet()) {
                     qCount++;
                     if (qCount >= questionsLimit)
                         break;

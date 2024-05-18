@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -161,7 +160,9 @@ public class TaskGenerationJob {
         Files.createDirectories(outputFolderPath);
 
         // Учесть историю по использованным репозиториям
-        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName()).stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
             var repos = Files.list(outputFolderPath).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
@@ -170,6 +171,7 @@ public class TaskGenerationJob {
 
         GitHub github = new GitHubBuilder()
                 .withOAuthToken(downloaderConfig.getGithubOAuthToken())
+                .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)
                 .build();
         var repoSearchQuery = github.searchRepositories()
                 .language("c")
@@ -185,38 +187,30 @@ public class TaskGenerationJob {
         int skipped = 0;
         for (var repo : repoSearchQuery) {
             var start = Instant.now();
-            try {
-                if (seenReposNames.contains(repo.getName())) {
-                    skipped++;
-                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                    continue;
-                }
-                log.info("Downloading repo [{}] ...", repo.getFullName());
+            if (seenReposNames.contains(repo.getName())) {
+                skipped++;
+                log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                continue;
+            }
+            log.info("Downloading repo [{}] ...", repo.getFullName());
 
-                repo.readZip(s -> {
-                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
-                            .toAbsolutePath();
-                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
-                            .toAbsolutePath();
-                    Files.createDirectories(targetFolderPath);
-                    java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                    Files.delete(zipFile);
-                    downloadedRepos.add(targetFolderPath);
-                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                    return 0;
-                }, null);
+            repo.readZip(s -> {
+                Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
+                        .toAbsolutePath();
+                Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
+                        .toAbsolutePath();
+                Files.createDirectories(targetFolderPath);
+                java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                Files.delete(zipFile);
+                downloadedRepos.add(targetFolderPath);
+                log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                return 0;
+            }, null);
 
-                // for now, limited number of repositories
-                if (++idx >= downloaderConfig.getRepositoriesToDownload())
-                    break;                
-            } finally {
-                var durationMillis = Duration.between(start, Instant.now()).toMillis();
-                if (durationMillis < 2000) {
-                    // github has rate limit of 30 requests per minute, so we need to wait at least 2 seconds
-                    Thread.sleep(2000 - durationMillis);
-                }
-            }            
+            // for now, limited number of repositories
+            if (++idx >= downloaderConfig.getRepositoriesToDownload())
+                break;
         }
 
         return downloadedRepos;
