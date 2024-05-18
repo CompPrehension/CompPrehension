@@ -3,10 +3,7 @@ package org.vstu.compprehension.models.entities.role;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.vstu.compprehension.models.entities.UserEntity;
-
-import java.util.List;
 
 @Entity
 @Data
@@ -19,14 +16,14 @@ public class RoleUserAssignmentEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id", nullable = false)
     private RoleEntity role;
 
     @ManyToOne
-    @JoinColumn(name = "permission_scope_id")
+    @JoinColumn(name = "permission_scope_id", nullable = false)
     private PermissionScopeEntity permissionScope;
 }

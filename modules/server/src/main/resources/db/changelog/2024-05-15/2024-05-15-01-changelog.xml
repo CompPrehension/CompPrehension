@@ -108,5 +108,42 @@
                                  constraintName="fk_rolper_on_role_entity" referencedColumnNames="id"
                                  referencedTableName="role"/>
     </changeSet>
+    <changeSet id="1716068796158-7" author="artem (generated)">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="education_resource_id" tableName="course"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-8" author="artem (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="kind" tableName="permission_scope"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-10" author="artem (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="name" tableName="course" validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-11" author="artem (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="name" tableName="education_resource"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-12" author="artem (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="name" tableName="permission" validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-14" author="artem (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="name" tableName="role" validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-18" author="artem (generated)">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="permission_scope_id" tableName="role_user_assignment"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-25" author="artem (generated)">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="role_id" tableName="role_user_assignment"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-28" author="artem (generated)">
+        <addNotNullConstraint columnDataType="VARCHAR(255)" columnName="url" tableName="education_resource"
+                              validate="true"/>
+    </changeSet>
+    <changeSet id="1716068796158-29" author="artem (generated)">
+        <addNotNullConstraint columnDataType="BIGINT" columnName="user_id" tableName="role_user_assignment"
+                              validate="true"/>
+    </changeSet>
 
 </databaseChangeLog>

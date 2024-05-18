@@ -91,6 +91,7 @@ public class ExerciseEntity {
     @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
     private List<UserEntity> users;
 
+    // This field is actually not null. It gets this constraint after initialization in migration script
     @ManyToOne
     @JoinColumn(name = "course_id")
     private CourseEntity course;

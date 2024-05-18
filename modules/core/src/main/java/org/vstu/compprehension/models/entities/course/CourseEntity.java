@@ -17,11 +17,11 @@ public class CourseEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "education_resource_id")
+    @JoinColumn(name = "education_resource_id", nullable = false)
     private EducationResourceEntity educationResources;
 
     @OneToMany(mappedBy = "course")

@@ -16,10 +16,10 @@ public class EducationResourceEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "url")
+    @Column(name = "url", nullable = false)
     private String url;
 
     @OneToMany(mappedBy = "educationResources")

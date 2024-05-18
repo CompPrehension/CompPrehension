@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities.role;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 
 import java.util.List;
 
@@ -16,8 +17,9 @@ public class PermissionScopeEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "kind")
-    private String kind;
+    @Column(name = "kind", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PermissionScopeKind kind;
 
     @Column(name = "owner_id")
     private Long ownerId;
