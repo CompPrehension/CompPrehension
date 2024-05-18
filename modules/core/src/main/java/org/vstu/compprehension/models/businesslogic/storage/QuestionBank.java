@@ -25,12 +25,6 @@ import static java.lang.Long.bitCount;
 
 @Log4j2
 public class QuestionBank {
-    public static int STAGE_TEMPLATE = 1;
-    public static int STAGE_QUESTION = 2;
-    public static int STAGE_READY = 3; // in this stage the generated question may be moved to the production bank
-    public static int STAGE_EXPORTED = 4;
-    public static int GENERATOR_VERSION = 10;
-
     private final HashMap<String, RemoteFileService> fileServices;
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionMetadataManager questionMetadataManager;
@@ -310,80 +304,17 @@ public class QuestionBank {
         return null;
     }
 
-    /**
-     * Find and return row of question or question template with given name from 'question_meta_draft' table
-     */
-    public QuestionMetadataEntity findQuestionByName(String questionName) {
+    public boolean questionExists(String questionName) {
         val repo = this.questionMetadataRepository;
         if (repo == null)
-            return null;
+            return false;
 
-        val found = repo.findByName(questionName);
-        if (found.isEmpty())
-            return null;
-
-        return found.get(0);
-    }
-
-    @NotNull
-    public QuestionMetadataEntity saveMetadataDraftEntity(QuestionMetadataEntity meta) {
-        if (!meta.isDraft())
-            meta.setDraft(true);
-        return questionMetadataRepository.save(meta);
+        return repo.existsByName(questionName);
     }
 
     @NotNull
     public QuestionMetadataEntity saveMetadataEntity(QuestionMetadataEntity meta) {
-        if (meta.isDraft())
-            meta.setDraft(false);
         return questionMetadataRepository.save(meta);
-    }
-
-    /**
-     * Create metadata representing empty Question, but not overwrite existing data if recreate == false.
-     *
-     * @param questionName unique identifier-like name of question
-     * @return true on success
-     */
-    public QuestionMetadataEntity createQuestion(Domain domain, String questionName, String questionTemplateName, boolean recreate) {
-
-        // find template metadata
-        QuestionMetadataEntity templateMeta = findQuestionByName(questionTemplateName);
-
-
-        QuestionMetadataEntity meta;
-        if (!recreate) {
-            meta = findQuestionByName(questionName);
-            if (meta != null) {
-                if (templateMeta != null) {
-                    meta.setTemplateId(templateMeta.getId());
-                }
-                return meta;
-            }
-        }
-        QuestionMetadataEntity.QuestionMetadataEntityBuilder builder;
-        int templateId;
-        if (templateMeta != null) {
-            // get builder to copy data from template
-            builder = templateMeta.toBuilder()
-                    .id(null); // reset id
-            templateId = templateMeta.getId();
-        } else {
-            builder = QuestionMetadataEntity.builder()
-                    .domainShortname(Optional.ofNullable(domain).map(Domain::getShortName).orElse(""));
-            templateId = -1;
-        }
-
-        // проинициализировать метаданные вопроса, далее сохранить в БД
-        meta = builder.name(questionName)
-                    .templateId(templateId)
-                    .isDraft(true)
-                    .stage(STAGE_QUESTION)
-                    .version(GENERATOR_VERSION)
-                    .build();
-        meta = saveMetadataDraftEntity(meta);
-
-        return meta;
     }
 
     public String saveQuestionData(String domainId, String basePath, String questionName, SerializableQuestion question) throws IOException {

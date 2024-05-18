@@ -149,11 +149,7 @@ public interface AbstractStrategy {
 
         // questions
         qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));
-
-        // don't deny other questions from templates shown
-        qr.setDeniedQuestionTemplateIds(List.of(0));
-        /*qr.setDeniedQuestionTemplateIds(listQuestionsOfAttempt(exerciseAttempt).stream().map(q -> q.getOptions().getTemplateId()).filter(id -> id != -1).collect(Collectors.toList()));*/
-
+        
         // deny individual questions only
         qr.setDeniedQuestionMetaIds(exerciseAttempt.getQuestions().stream()
                 .filter(q -> q.getMetadata() != null)
