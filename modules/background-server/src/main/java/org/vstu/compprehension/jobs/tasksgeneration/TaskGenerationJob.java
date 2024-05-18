@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -184,7 +183,6 @@ public class TaskGenerationJob {
         int idx = 0;
         int skipped = 0;
         for (var repo : repoSearchQuery) {
-            var start = Instant.now();
             if (seenReposNames.contains(repo.getName())) {
                 skipped++;
                 log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
