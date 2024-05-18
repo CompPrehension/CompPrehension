@@ -304,19 +304,12 @@ public class QuestionBank {
         return null;
     }
 
-    /**
-     * Find and return row of question or question template with given name from 'question_meta_draft' table
-     */
-    public QuestionMetadataEntity findQuestionByName(String questionName) {
+    public boolean questionExists(String questionName) {
         val repo = this.questionMetadataRepository;
         if (repo == null)
-            return null;
+            return false;
 
-        val found = repo.findByName(questionName);
-        if (found.isEmpty())
-            return null;
-
-        return found.get(0);
+        return repo.existsByName(questionName);
     }
 
     @NotNull

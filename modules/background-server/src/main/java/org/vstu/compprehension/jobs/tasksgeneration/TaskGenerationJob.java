@@ -160,9 +160,7 @@ public class TaskGenerationJob {
         Files.createDirectories(outputFolderPath);
 
         // Учесть историю по использованным репозиториям
-        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName()).stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName());
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
             var repos = Files.list(outputFolderPath).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
@@ -347,6 +345,8 @@ public class TaskGenerationJob {
             log.info("generator is disabled by config");
             return;
         }
+        
+        var allDomainQuestionTemplates = metadataRep.findAllTemplates(config.getDomainShortName());
 
         log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
 
@@ -376,6 +376,11 @@ public class TaskGenerationJob {
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
                     continue;
                 }
+                
+                if (meta.getTemplateId() != null && allDomainQuestionTemplates.contains(meta.getTemplateId())) {
+                    log.info("Template [{}] exists. Skipping...", meta.getTemplateId());
+                    continue;
+                }
 
                 // init container: list of QR logs requiring this question
                 meta.setQrlogIds(new ArrayList<>());
@@ -391,7 +396,7 @@ public class TaskGenerationJob {
                     }
 
                     // Если вопрос ещё не сохранен в базу
-                    if (storage.findQuestionByName(meta.getName()) != null) {
+                    if (storage.questionExists(meta.getName())) {
                         log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
                         break;
                     }
