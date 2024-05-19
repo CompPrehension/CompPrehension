@@ -25,6 +25,9 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "limit :limit", nativeQuery = true)
     List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
     
+    @Query
+    long countByDomainShortname(String domainShortname);
+    
     @NotNull
     @Override
     Iterable<QuestionMetadataEntity> findAll();

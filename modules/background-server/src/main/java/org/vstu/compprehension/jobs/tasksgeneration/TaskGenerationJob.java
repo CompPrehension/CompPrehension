@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.vstu.compprehension.utils.ZipUtility;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -53,7 +55,16 @@ public class TaskGenerationJob {
     public void run() {
         log.info("Run generating questions for expression domain ...");
         try {
-            runImpl();
+            switch (config.getRunMode()) {
+                case TaskGenerationJobConfig.RunMode.Full full:
+                    runImpl(full);
+                    break;
+                case TaskGenerationJobConfig.RunMode.Incremental incremental:
+                    runImpl(incremental);
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown run mode: " + config.getRunMode());
+            }
         } catch (Exception e) {
             log.error("job exception - {}", e.getMessage(), e);
         }
@@ -61,9 +72,37 @@ public class TaskGenerationJob {
             System.exit(0);
         }
     }
+    
+    private void runImpl(TaskGenerationJobConfig.RunMode.Full mode) {
+        while (true) {
+            var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
+            if (bankQuestionCount >= mode.enoughQuestions()) {
+                log.info("Reached the limit of questions in the bank, finished job.");
+                break;
+            } else {
+                log.info("More questions are needed in the bank (currently {}/{}, {} needed), continue job.", bankQuestionCount, mode.enoughQuestions(), mode.enoughQuestions() - bankQuestionCount);
+            }
 
-    @SneakyThrows
-    public void runImpl() {
+            // folders cleanup
+            ensureFoldersCleaned();
+
+            // download repositories
+            var downloadedRepos = downloadRepositories();
+
+            // do parsing
+            var parsedRepos = parseRepositories(downloadedRepos);
+
+            // do question generation
+            var generatedRepos = generateQuestions(parsedRepos);
+
+            // filter & save questions
+            saveQuestions(generatedRepos);
+        }
+        
+        log.info("completed");
+    }
+    
+    private void runImpl(TaskGenerationJobConfig.RunMode.Incremental mode) {
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
         int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
@@ -196,7 +235,7 @@ public class TaskGenerationJob {
                 Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
                         .toAbsolutePath();
                 Files.createDirectories(targetFolderPath);
-                java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
                 ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
                 Files.delete(zipFile);
                 downloadedRepos.add(targetFolderPath);
@@ -256,7 +295,7 @@ public class TaskGenerationJob {
                 log.info("Run parser on repo: [{}]", leafFolder);
                 try {
                     Files.createDirectories(destination);
-                } catch (java.nio.file.AccessDeniedException ignored) {}
+                } catch (AccessDeniedException ignored) {}
                 var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
                         .redirectErrorStream(true)
                         .start();
@@ -336,7 +375,12 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(List<Path> generatedRepos, List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
+    private void saveQuestions(List<Path> generatedRepos) {
+        saveQuestions(generatedRepos, null, -1);
+    }
+
+    @SneakyThrows
+    private void saveQuestions(List<Path> generatedRepos, @Nullable List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
         var generatorConfig = config.getGenerator();
         var exportConfig = config.getExporter();
         if (!generatorConfig.isEnabled()) {
@@ -386,28 +430,32 @@ public class TaskGenerationJob {
                 // Проверить, подходит ли он нам
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
                 boolean shouldSave = false;
-                for (val qr : qrLogsToProcess) {
-                    
-                    if (!storage.isMatch(meta, qr)) {
-                        log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
-                        continue;
-                    }
-
-                    // Если вопрос ещё не сохранен в базу
-                    if (storage.questionExists(meta.getName())) {
-                        log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
-                        break;
-                    }
-
-                    log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
-
-                    // set flag to use this question
+                if (qrLogsToProcess == null) {
                     shouldSave = true;
-                    // update question metrics
-                    meta.getQrlogIds().add(qr.getId());
-                    // update qr metrics
-                    qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
-                    qrLogsProcessed.add(qr);
+                } else {
+                    for (val qr : qrLogsToProcess) {
+
+                        if (!storage.isMatch(meta, qr)) {
+                            log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
+                            continue;
+                        }
+
+                        // Если вопрос ещё не сохранен в базу
+                        if (storage.questionExists(meta.getName())) {
+                            log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
+                            break;
+                        }
+
+                        log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
+
+                        // set flag to use this question
+                        shouldSave = true;
+                        // update question metrics
+                        meta.getQrlogIds().add(qr.getId());
+                        // update qr metrics
+                        qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
+                        qrLogsProcessed.add(qr);
+                    }
                 }
 
                 if (!shouldSave) {
