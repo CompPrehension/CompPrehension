@@ -21,10 +21,12 @@ import java.util.stream.Collectors;
 public class MetadataHealthJob {
     private final QuestionMetadataRepository metadataRep;
     private final DomainRepository domainRep;
+    private final MetadataHealthJobConfig config;
 
-    public MetadataHealthJob(QuestionMetadataRepository metadataRep, DomainRepository domainRep) {
+    public MetadataHealthJob(QuestionMetadataRepository metadataRep, DomainRepository domainRep, MetadataHealthJobConfig config) {
         this.metadataRep = metadataRep;
         this.domainRep   = domainRep;
+        this.config      = config;
     }
 
     @Job
@@ -38,7 +40,7 @@ public class MetadataHealthJob {
 
     @SneakyThrows
     public void runImpl() {
-        log.info("Starting metadata health job");
+        log.info("Starting metadata health job. Mode: {}", config.getMode());
         
         var domains = domainRep.findAll()
                 .stream()
@@ -69,14 +71,16 @@ public class MetadataHealthJob {
                     continue;
                 }
                 
-                log.info("Question file not found for metadata {} with path: {}", metadata.getId(), fullMetadataPath);
+                log.warn("Question file not found for metadata {} with path: {}", metadata.getId(), fullMetadataPath);
                 toDelete.add(metadata);
             }
 
             if (!toDelete.isEmpty()) {
-                metadataRep.deleteAll(toDelete);
-                deleted += toDelete.size();
-                log.info("Deleted {} metadata entities", toDelete.size());
+                if (config.getMode() == MetadataHealthJobConfig.Mode.DELETE_INVALID) {
+                    metadataRep.deleteAll(toDelete);
+                    deleted += toDelete.size();
+                    log.info("Deleted {} metadata entities", toDelete.size());
+                }
             }
 
             processed += metadataChunk.size();

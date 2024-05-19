@@ -13,4 +13,10 @@ import org.springframework.context.annotation.Configuration;
 public class MetadataHealthJobConfig {
     private boolean runOnce;
     private String cronSchedule;
+    private Mode mode = Mode.SKIP_INVALID;
+    
+    public static enum Mode {
+        DELETE_INVALID,
+        SKIP_INVALID,
+    }
 }
