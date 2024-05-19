@@ -44,8 +44,7 @@ public class MetadataHealthJob {
                 .stream()
                 .collect(Collectors.toMap(DomainEntity::getShortName, domain -> domain));
         
-        int pageSize     = 5_000;
-        var toDelete     = new ArrayList<QuestionMetadataEntity>();
+        int pageSize     = 5_000;        
         long total       = metadataRep.count();
         int processed    = 0;
         int deleted      = 0;
@@ -56,8 +55,8 @@ public class MetadataHealthJob {
                 break;
             }
             lastLoadedId = metadataChunk.getLast().getId();
-            
-            toDelete.clear();
+
+            var toDelete = new ArrayList<QuestionMetadataEntity>();
             for (var metadata : metadataChunk) {
                 var domain = domains.get(metadata.getDomainShortname());
                 if (domain == null) {
