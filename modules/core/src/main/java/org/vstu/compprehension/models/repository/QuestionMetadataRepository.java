@@ -18,6 +18,14 @@ import java.util.List;
 public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer>, QuestionMetadataComplexQueriesRepository {
 
     @NotNull
+    @Query(value = 
+            "select * from questions_meta " +
+            "where id > :lastLoadedId " +
+            "order by id " +
+            "limit :limit", nativeQuery = true)
+    List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+    
+    @NotNull
     @Override
     Iterable<QuestionMetadataEntity> findAll();
 

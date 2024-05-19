@@ -20,7 +20,7 @@ public class TaskGenerationJobConfig {
     private GeneratorConfig generator;
     private ExporterConfig exporter;
     private boolean runOnce;
-    private int intervalMinutes;
+    private String cronSchedule;
     private EnumSet<CleanupMode> cleanupMode = EnumSet.of(CleanupMode.CleanupDownloadedShallow, CleanupMode.CleanupParsed);
 
     @Getter @Setter @NoArgsConstructor
