@@ -44,17 +44,20 @@ public class MetadataHealthJob {
                 .stream()
                 .collect(Collectors.toMap(DomainEntity::getShortName, domain -> domain));
         
-        int pageSize = 5_000;
-        int offset = 0;
-        var toDelete = new ArrayList<QuestionMetadataEntity>();
-        long total   = metadataRep.count();
-        int processed = 0;
+        int pageSize     = 5_000;
+        var toDelete     = new ArrayList<QuestionMetadataEntity>();
+        long total       = metadataRep.count();
+        int processed    = 0;
+        int deleted      = 0;
+        int lastLoadedId = 0;
         while (true) {
-            var metadataChunk = metadataRep.loadPage(offset, pageSize);
+            var metadataChunk = metadataRep.loadPage(lastLoadedId, pageSize);
             if (metadataChunk.isEmpty()) {
                 break;
             }
+            lastLoadedId = metadataChunk.getLast().getId();
             
+            toDelete.clear();
             for (var metadata : metadataChunk) {
                 var domain = domains.get(metadata.getDomainShortname());
                 if (domain == null) {
@@ -71,16 +74,16 @@ public class MetadataHealthJob {
                 toDelete.add(metadata);
             }
 
+            if (!toDelete.isEmpty()) {
+                metadataRep.deleteAll(toDelete);
+                deleted += toDelete.size();
+                log.info("Deleted {} metadata entities", toDelete.size());
+            }
+
             processed += metadataChunk.size();
-            offset    += pageSize;
             log.printf(Level.INFO, "Processed %d/%d (%2.2f%%) metadata entities", processed, total, 100f * processed / total);
         }
-
-        if (!toDelete.isEmpty()) {            
-            metadataRep.deleteAll(toDelete);
-            log.info("Deleted {} metadata entities", toDelete.size());
-        }
         
-        log.info("Finished metadata health job. Deleted {} metadata entities", toDelete.size());
+        log.info("Finished metadata health job. Deleted {} metadata entities", deleted);
     }
 }

@@ -20,9 +20,10 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @NotNull
     @Query(value = 
             "select * from questions_meta " +
+            "where id > :lastLoadedId " +
             "order by id " +
-            "limit :limit offset :offset", nativeQuery = true)
-    List<QuestionMetadataEntity> loadPage(@Param("offset") int offset, @Param("limit") int limit);
+            "limit :limit", nativeQuery = true)
+    List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
     
     @NotNull
     @Override

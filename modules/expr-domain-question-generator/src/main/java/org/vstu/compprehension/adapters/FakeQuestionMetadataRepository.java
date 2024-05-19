@@ -33,7 +33,7 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
-    public List<QuestionMetadataEntity> loadPage(int offset, int limit) {
+    public List<QuestionMetadataEntity> loadPage(int lastLoadedId, int limit) {
         return List.of();
     }
 
