@@ -18,6 +18,13 @@ import java.util.List;
 public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer>, QuestionMetadataComplexQueriesRepository {
 
     @NotNull
+    @Query(value = 
+            "select * from questions_meta " +
+            "order by id " +
+            "limit :limit offset :offset", nativeQuery = true)
+    List<QuestionMetadataEntity> loadPage(@Param("offset") int offset, @Param("limit") int limit);
+    
+    @NotNull
     @Override
     Iterable<QuestionMetadataEntity> findAll();
 
