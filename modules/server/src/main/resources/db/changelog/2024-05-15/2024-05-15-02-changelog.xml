@@ -5,70 +5,101 @@
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <changeSet id="1715723682123-1" author="artem (generated)">
         <!-- Добавление начальных данных в таблицу EducationResource -->
-        <sql>INSERT INTO education_resource (name, url) VALUES ('vstu', 'https://edu.vstu.ru');</sql>
+        <sql>INSERT INTO education_resource (name, url)
+             VALUES ('vstu', 'https://edu.vstu.ru');</sql>
     </changeSet>
     <changeSet id="1715723682123-2" author="artem (generated)">
         <!-- Добавление начальных данных в таблицу Course -->
-        <sql>INSERT INTO course (name, education_resource_id) VALUES ('global', (SELECT id FROM education_resource WHERE name = 'vstu'));</sql>
+        <sql>INSERT INTO course (name, education_resource_id)
+             VALUES ('global', (SELECT id FROM education_resource WHERE name = 'vstu'));</sql>
     </changeSet>
     <changeSet id="1715723682123-3" author="artem (generated)">
         <!-- Добавление начальных данных в таблицу PermissionScope -->
-        <sql>INSERT INTO permission_scope (kind, owner_id) VALUES ('GLOBAL', NULL), ('COURSE', (SELECT id FROM course WHERE name = 'global'));</sql>
+        <sql>INSERT INTO permission_scope (kind, owner_id)
+             VALUES ('GLOBAL', NULL),
+                    ('COURSE', (SELECT id FROM course WHERE name = 'global'));</sql>
     </changeSet>
     <changeSet id="1715723682123-4" author="artem (generated)">
         <!-- Обновление существующих записей в таблице exercise -->
-        <sql>UPDATE exercise SET course_id = (SELECT id FROM course WHERE name = 'global');</sql>
+        <sql>UPDATE exercise
+             SET course_id = (SELECT id FROM course WHERE name = 'global');</sql>
     </changeSet>
     <changeSet id="1715723682123-5" author="artem (generated)">
         <addNotNullConstraint columnDataType="BIGINT" columnName="course_id" tableName="exercise"/>
     </changeSet>
     <changeSet id="1715723682123-6" author="artem (generated)">
         <!-- Добавление начальных данных в таблицу Permission -->
-        <sql>INSERT INTO permission (name) VALUES ('ViewEducationResource'), ('CreateEducationResource'),
-                                     ('EditEducationResource'), ('DeleteEducationResource'), ('ViewCourse'),
-                                     ('CreateCourse'), ('EditCourse'), ('DeleteCourse'), ('ViewExercise'),
-                                     ('CreateExercise'), ('EditExercise'), ('DeleteExercise'), ('SolveExercise');</sql>
+        <sql>INSERT INTO permission (name)
+             VALUES ('ViewEducationResource'),
+                    ('CreateEducationResource'),
+                    ('EditEducationResource'),
+                    ('DeleteEducationResource'),
+                    ('ViewCourse'),
+                    ('CreateCourse'),
+                    ('EditCourse'),
+                    ('DeleteCourse'),
+                    ('ViewExercise'),
+                    ('CreateExercise'),
+                    ('EditExercise'),
+                    ('DeleteExercise'),
+                    ('SolveExercise');</sql>
     </changeSet>
     <changeSet id="1715723682123-7" author="artem (generated)">
         <!-- Добавление начальных данных в таблицу Role -->
-        <sql>INSERT INTO role (name) VALUES ('GlobalAdmin'), ('EducationResourceAdmin'), ('Teacher'), ('Assistant'), ('Student'), ('Guest');</sql>
+        <sql>INSERT INTO role (name)
+             VALUES ('GlobalAdmin'),
+                    ('EducationResourceAdmin'),
+                    ('Teacher'),
+                    ('Assistant'),
+                    ('Student'),
+                    ('Guest');</sql>
     </changeSet>
     <changeSet id="1715723682123-8" author="artem (generated)">
         <!-- Связывание разрешений с ролями -->
         <sql>
             INSERT INTO role_permission (role_id, permission_id)
             SELECT role.id, permission.id
-            FROM role, permission
+            FROM role,
+                 permission
             WHERE role.name = 'GlobalAdmin'
-              AND permission.name IN ('ViewEducationResource', 'CreateEducationResource', 'EditEducationResource', 'DeleteEducationResource');
+              AND permission.name IN ('ViewEducationResource', 'CreateEducationResource', 'EditEducationResource',
+                                      'DeleteEducationResource');
 
             INSERT INTO role_permission (role_id, permission_id)
             SELECT role.id, permission.id
-            FROM role, permission
+            FROM role,
+                 permission
             WHERE role.name = 'EducationResourceAdmin'
               AND permission.name IN ('ViewCourse', 'CreateCourse', 'EditCourse', 'DeleteCourse');
 
             INSERT INTO role_permission (role_id, permission_id)
             SELECT role.id, permission.id
-            FROM role, permission
+            FROM role,
+                 permission
             WHERE role.name = 'Teacher'
-              AND permission.name IN ('ViewCourse', 'CreateCourse', 'EditCourse', 'DeleteCourse', 'ViewExercise', 'CreateExercise', 'EditExercise', 'DeleteExercise', 'SolveExercise');
+              AND permission.name IN
+                  ('ViewCourse', 'CreateCourse', 'EditCourse', 'DeleteCourse', 'ViewExercise', 'CreateExercise',
+                   'EditExercise', 'DeleteExercise', 'SolveExercise');
 
             INSERT INTO role_permission (role_id, permission_id)
             SELECT role.id, permission.id
-            FROM role, permission
+            FROM role,
+                 permission
             WHERE role.name = 'Assistant'
-              AND permission.name IN ('ViewCourse', 'ViewExercise', 'CreateExercise', 'EditExercise', 'DeleteExercise', 'SolveExercise');
+              AND permission.name IN
+                  ('ViewCourse', 'ViewExercise', 'CreateExercise', 'EditExercise', 'DeleteExercise', 'SolveExercise');
 
             INSERT INTO role_permission (role_id, permission_id)
             SELECT role.id, permission.id
-            FROM role, permission
+            FROM role,
+                 permission
             WHERE role.name = 'Student'
               AND permission.name IN ('ViewCourse', 'ViewExercise', 'SolveExercise');
 
             INSERT INTO role_permission (role_id, permission_id)
             SELECT role.id, permission.id
-            FROM role, permission
+            FROM role,
+                 permission
             WHERE role.name = 'Guest'
               AND permission.name IN ('ViewCourse', 'ViewExercise');
         </sql>
@@ -77,11 +108,9 @@
     <changeSet id="1715723682123-9" author="artem (generated)">
         <!-- Связь пользователей с ролями -->
         <sql>INSERT INTO role_user_assignment (role_id, user_id, permission_scope_id)
-             SELECT
-                     (SELECT id FROM role WHERE name = 'GlobalAdmin') as role_id,
-                     u.id as user_id,
-                     (SELECT id FROM permission_scope WHERE kind = 'GLOBAL') as permission_scope_id
-             FROM
-                 user u;</sql>
+             SELECT (SELECT id FROM role WHERE name = 'GlobalAdmin')        as role_id,
+                    u.id                                                    as user_id,
+                    (SELECT id FROM permission_scope WHERE kind = 'GLOBAL') as permission_scope_id
+             FROM user u;</sql>
     </changeSet>
 </databaseChangeLog>
