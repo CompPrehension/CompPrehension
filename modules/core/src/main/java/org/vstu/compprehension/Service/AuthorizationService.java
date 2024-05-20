@@ -62,7 +62,7 @@ public class AuthorizationService {
         if (ownerId.isEmpty()) {
             return permissionScopeRepository.findByKind(permissionScopeKind);
         } else {
-            return permissionScopeRepository.findByOwnerIdAndAndKind(ownerId.get(), permissionScopeKind);
+            return permissionScopeRepository.findByOwnerIdAndKind(ownerId.get(), permissionScopeKind);
         }
     }
 

@@ -12,5 +12,5 @@ public interface PermissionScopeRepository extends CrudRepository<PermissionScop
 
     Optional<PermissionScopeEntity> findByKind(PermissionScopeKind kind);
 
-    Optional<PermissionScopeEntity> findByOwnerIdAndAndKind(long ownerId, PermissionScopeKind kind);
+    Optional<PermissionScopeEntity> findByOwnerIdAndKind(long ownerId, PermissionScopeKind kind);
 }
