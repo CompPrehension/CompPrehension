@@ -2,11 +2,13 @@ package org.vstu.compprehension.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.dto.RoleAssignmentDTO;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 import org.vstu.compprehension.models.entities.role.PermissionScopeEntity;
 import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
 import org.vstu.compprehension.models.repository.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -67,17 +69,27 @@ public class AuthorizationService {
     }
 
     /**
-     * Adds a user role to the database.
+     * Adds multiple user roles to the system.
      *
-     * @param  userId            the ID of the user
-     * @param  roleName          the name of the role to add
-     * @param  permissionScopeKind  the kind of permission scope
-     * @param  ownerId           the optional ID of the owner
+     * @param  userId  the ID of the user
+     * @param  roles   a list of RoleAssignmentDTO objects representing the roles to be added
+     */
+    public void addUserRoles(long userId, List<RoleAssignmentDTO> roles) {
+        for (var role : roles) {
+            addUserRole(userId, role);
+        }
+    }
+
+    /**
+     * Adds a user role to the system.
+     *
+     * @param userId the ID of the user
+     * @param roleAssignmentDTO the role assignment details
      * @throws EntityNotFoundException if the role or permission scope is not found
      */
-    public void addUserRole(long userId, String roleName, PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
-        var role = roleRepository.findByName(roleName).orElseThrow(() -> new EntityNotFoundException("Role not found"));
-        var permissionScope = _getPermissionScope(permissionScopeKind, ownerId).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
+    public void addUserRole(long userId, RoleAssignmentDTO roleAssignmentDTO) {
+        var role = roleRepository.findByName(roleAssignmentDTO.roleName()).orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        var permissionScope = _getPermissionScope(roleAssignmentDTO.permissionScopeKind(), roleAssignmentDTO.ownerId()).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
         var user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
         var userRoles = user.getRoleUserAssignments().stream().map(RoleUserAssignmentEntity::getRole).toList();
