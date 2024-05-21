@@ -61,7 +61,7 @@ public class AuthorizationService {
     }
 
     private Optional<PermissionScopeEntity> _getPermissionScope(PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
-        if (ownerId.isEmpty()) {
+        if (ownerId.isEmpty() || permissionScopeKind == PermissionScopeKind.GLOBAL) {
             return permissionScopeRepository.findByKind(permissionScopeKind);
         } else {
             return permissionScopeRepository.findByOwnerIdAndKind(ownerId.get(), permissionScopeKind);
