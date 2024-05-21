@@ -29,17 +29,18 @@ public class MetadataHealthJob {
         this.config      = config;
     }
 
-    @Job
+    @Job(name = "metadata-health-job", retries = 0)
     public void run() {
         try {
             runImpl();
         } catch (Exception e) {
             log.error("Metadata health job exception - {}", e.getMessage(), e);
+            throw e;
         }
     }
 
     @SneakyThrows
-    public void runImpl() {
+    public synchronized void runImpl() {
         log.info("Starting metadata health job. Mode: {}", config.getMode());
         
         var domains = domainRep.findAll()

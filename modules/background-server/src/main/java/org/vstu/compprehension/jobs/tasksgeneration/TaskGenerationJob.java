@@ -51,7 +51,7 @@ public class TaskGenerationJob {
         this.storage = storage;
     }
 
-    @Job
+    @Job(name = "task-generation-job", retries = 0)
     public void run() {
         log.info("Run generating questions for expression domain ...");
         try {
@@ -67,13 +67,14 @@ public class TaskGenerationJob {
             }
         } catch (Exception e) {
             log.error("job exception - {}", e.getMessage(), e);
+            throw e;
         }
         if (config.isRunOnce()) {
             System.exit(0);
         }
     }
     
-    private void runImpl(TaskGenerationJobConfig.RunMode.Full mode) {
+    private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Full mode) {
         while (true) {
             var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
             if (bankQuestionCount >= mode.enoughQuestions()) {
@@ -102,7 +103,7 @@ public class TaskGenerationJob {
         log.info("completed");
     }
     
-    private void runImpl(TaskGenerationJobConfig.RunMode.Incremental mode) {
+    private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Incremental mode) {
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
         int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
