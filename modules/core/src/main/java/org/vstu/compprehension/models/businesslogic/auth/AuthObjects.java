@@ -31,7 +31,16 @@ public class AuthObjects {
                         Permissions.viewEducationResource,
                         Permissions.createEducationResource,
                         Permissions.editEducationResource,
-                        Permissions.deleteEducationResource
+                        Permissions.deleteEducationResource,
+                        Permissions.viewCourse,
+                        Permissions.editCourse,
+                        Permissions.createCourse,
+                        Permissions.deleteCourse,
+                        Permissions.viewExercise,
+                        Permissions.editExercise,
+                        Permissions.createExercise,
+                        Permissions.deleteExercise,
+                        Permissions.solveExercise
         });
 
         public static final SystemRole educationResourceAdmin = new SystemRole("EducationResourceAdmin", "Администратор обучающего ресурса",
@@ -39,7 +48,12 @@ public class AuthObjects {
                         Permissions.viewCourse,
                         Permissions.createCourse,
                         Permissions.editCourse,
-                        Permissions.deleteCourse
+                        Permissions.deleteCourse,
+                        Permissions.viewExercise,
+                        Permissions.editExercise,
+                        Permissions.createExercise,
+                        Permissions.deleteExercise,
+                        Permissions.solveExercise
         });
 
         public static final SystemRole teacher = new SystemRole("Teacher", "Учитель",
