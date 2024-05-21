@@ -12,4 +12,6 @@ import java.util.List;
 public interface RoleUserAssignmentRepository extends CrudRepository<RoleUserAssignmentEntity, Long> {
 
     List<RoleUserAssignmentEntity> findAllByUserAndPermissionScope(UserEntity user, PermissionScopeEntity permissionScope);
+
+    boolean existsByUserIdAndRoleIdAndPermissionScopeId(long userId, long roleId, long permissionScopeId);
 }

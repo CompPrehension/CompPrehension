@@ -8,20 +8,40 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.Service.*;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
+import org.vstu.compprehension.models.businesslogic.auth.SystemRole;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
+import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
+import org.vstu.compprehension.models.entities.role.PermissionScopeEntity;
+import org.vstu.compprehension.models.entities.role.RoleEntity;
+import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
+import org.vstu.compprehension.models.repository.RoleRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PermissionScopeService permissionScopeService;
+    private final RoleRepository roleRepository;
+    private final CourseService courseService;
+    private final EducationResourceService educationResourceService;
+    private final RoleUserAssignmentService roleUserAssignmentService;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PermissionScopeService permissionScopeService, RoleRepository roleRepository, CourseService courseService, EducationResourceService educationResourceService, RoleUserAssignmentService roleUserAssignmentService) {
         this.userRepository = userRepository;
+        this.permissionScopeService = permissionScopeService;
+        this.roleRepository = roleRepository;
+        this.courseService = courseService;
+        this.educationResourceService = educationResourceService;
+        this.roleUserAssignmentService = roleUserAssignmentService;
     }
 
     public UserEntity getCurrentUser() throws Exception {
@@ -36,17 +56,36 @@ public class UserServiceImpl implements UserService {
         var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
 
         // use different role mappings for LTI & keycloak
-        HashSet<Role> roles;
+        HashSet<SystemRole> roles;
         Language language = null;
+        CourseEntity course = null;
+        PermissionScopeEntity permissionScopeEntity;
+
         if ("1.3.0".equals(parsedIdToken.getClaimAsString("https://purl.imsglobal.org/spec/lti/claim/version"))) {
             roles = fromLtiRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
+
             language = Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/launch_presentation"))
                     .flatMap(x -> Optional.ofNullable(x.get("locale")))
                     .map(l -> Language.fromString(l.toString()))
                     .orElse(null);
+
+            course = fromLtiCourses(
+                    Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/context"))
+                            .flatMap(x -> Optional.ofNullable(x.get("title").toString()))
+                            .orElse(null),
+                    parsedIdToken.getIssuer().toString()
+            );
+
+            if (course == null) {
+                var educationResource = fromLtiEducationResource(parsedIdToken.getIssuer().toString());
+                permissionScopeEntity = permissionScopeService.getOrCreatePermissionScope(PermissionScopeKind.EDUCATION_RESOURCE, Optional.ofNullable(educationResource.getId()));
+            } else {
+                permissionScopeEntity = permissionScopeService.getOrCreatePermissionScope(PermissionScopeKind.COURSE, Optional.ofNullable(course.getId()));
+            }
         } else {
+            permissionScopeEntity = null;
             var preparedRoles = authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .filter(r -> r.length() > 0)
@@ -55,14 +94,24 @@ public class UserServiceImpl implements UserService {
             language = entity.getPreferred_language();
         }
 
+        var roleEntities = roles.stream().map(r -> getRole(r).orElse(null)).filter(Objects::nonNull).collect(Collectors.toSet());
+
         entity.setFirstName(fullName);
         entity.setLogin(email);
         entity.setPassword(null);
         entity.setEmail(email);
         entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
-        entity.setRoles(roles);
         entity.setExternalId(externalId);
-        return userRepository.save(entity);
+
+        var user = userRepository.save(entity);
+
+        if (permissionScopeEntity == null) {
+            return user;
+        }
+
+        var roleUserAssignments = roleEntities.stream().map(role -> new RoleUserAssignmentEntity(user, role, permissionScopeEntity)).collect(Collectors.toSet());
+        roleUserAssignmentService.saveIfDoesNotExist(roleUserAssignments);
+        return user;
     }
 
     @NotNull
@@ -75,38 +124,81 @@ public class UserServiceImpl implements UserService {
         if (!(principal instanceof OidcUser)) {
             throw new Exception("Unexpected authorized user format");
         }
-        var parsedIdToken = ((OidcUser)principal).getIdToken();
+        var parsedIdToken = ((OidcUser) principal).getIdToken();
         if (parsedIdToken == null) {
             throw new Exception("No id_token found");
         }
         return parsedIdToken;
     }
 
-    private HashSet<Role> fromLtiRoles(Collection<String> roles) {
+    private HashSet<SystemRole> fromLtiRoles(Collection<String> roles) {
+        if (roles.contains("ROLE_SystemAdministrator")) {
+            return new HashSet<>(List.of(AuthObjects.Roles.globalAdmin));
+        }
+
         if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(Arrays.asList(Role.values().clone()));
+            return new HashSet<>(List.of(AuthObjects.Roles.educationResourceAdmin));
         }
 
-        var teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_TeachingAssistant", "ROLE_ContentDeveloper", "ROLE_Mentor");
+        if (roles.contains("ROLE_TeachingAssistant")) {
+            return new HashSet<>(List.of(AuthObjects.Roles.assistant));
+        }
+
+        var teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_ContentDeveloper", "ROLE_Mentor");
+
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
-            return new HashSet<>(List.of(Role.TEACHER, Role.STUDENT));
+            return new HashSet<>(List.of(AuthObjects.Roles.teacher));
         }
 
-        return new HashSet<>(List.of(Role.STUDENT));
+        if (roles.contains("ROLE_Learner")) {
+            return new HashSet<>(List.of(AuthObjects.Roles.student));
+        }
+
+        return new HashSet<>(List.of(AuthObjects.Roles.guest));
     }
 
-    private HashSet<Role> fromKeycloakRoles(Collection<String> roles) {
+    private HashSet<SystemRole> fromKeycloakRoles(Collection<String> roles) {
+        if (roles.contains("ROLE_SystemAdministrator")) {
+            return new HashSet<>(List.of(AuthObjects.Roles.globalAdmin));
+        }
         if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(Arrays.asList(Role.values().clone()));
+            return new HashSet<>(List.of(AuthObjects.Roles.educationResourceAdmin));
         }
         if (roles.contains("ROLE_Teacher")) {
-            return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
+            return new HashSet<>(List.of(AuthObjects.Roles.teacher));
         }
-        return new HashSet<>(List.of(Role.STUDENT));
+        if (roles.contains("ROLE_Learner")) {
+            return new HashSet<>(List.of(AuthObjects.Roles.student));
+        }
+        return new HashSet<>(List.of(AuthObjects.Roles.guest));
     }
 
+    private CourseEntity fromLtiCourses(String courseTitle, String fullUrlString) {
+        if (courseTitle == null)
+            return null;
 
+        var educationResource = fromLtiEducationResource(fullUrlString);
 
+        return courseService.getOrCreateCourse(courseTitle, educationResource.getId());
+    }
+
+    private EducationResourceEntity fromLtiEducationResource(String fullUrlString) {
+        URL fullUrl;
+        try {
+            fullUrl = new URL(fullUrlString);
+        } catch (MalformedURLException e) {
+            return null;
+        }
+
+        String mainUrl = fullUrl.getProtocol() + "://" + fullUrl.getAuthority();
+
+        String hostName = fullUrl.getHost().split("\\.")[0];
+        return educationResourceService.getOrCreateEducationResource(mainUrl, hostName);
+    }
+
+    private Optional<RoleEntity> getRole(SystemRole role) {
+        return roleRepository.findByName(role.name());
+    }
 
 
     /**

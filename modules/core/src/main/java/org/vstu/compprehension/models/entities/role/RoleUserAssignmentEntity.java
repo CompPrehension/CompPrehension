@@ -10,6 +10,13 @@ import org.vstu.compprehension.models.entities.UserEntity;
 @NoArgsConstructor
 @Table(name = "RoleUserAssignment")
 public class RoleUserAssignmentEntity {
+
+    public RoleUserAssignmentEntity(UserEntity user, RoleEntity role, PermissionScopeEntity permissionScope) {
+        this.user = user;
+        this.role = role;
+        this.permissionScope = permissionScope;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
