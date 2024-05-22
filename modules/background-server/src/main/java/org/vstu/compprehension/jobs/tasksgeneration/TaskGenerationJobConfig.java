@@ -25,7 +25,7 @@ public class TaskGenerationJobConfig {
     private boolean runOnce;
     private String cronSchedule;
     private RunMode runMode = new RunMode.Incremental();
-    private EnumSet<CleanupMode> cleanupMode = EnumSet.of(CleanupMode.CleanupDownloadedShallow, CleanupMode.CleanupParsed);
+    private EnumSet<CleanupMode> cleanupMode = EnumSet.of(CleanupMode.CleanupDownloadedOlderThanDay, CleanupMode.CleanupParsed);
 
     @Getter @Setter @NoArgsConstructor
     public static class ReposSearcherConfig {
@@ -90,6 +90,7 @@ public class TaskGenerationJobConfig {
     public enum CleanupMode {
         CleanupDownloaded,
         CleanupDownloadedShallow,
+        CleanupDownloadedOlderThanDay,
         CleanupParsed,
         CleanupGenerated;
     }

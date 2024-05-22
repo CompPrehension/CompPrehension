@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 
@@ -50,8 +51,8 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     );
 
     @NotNull
-    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainShortname")
-    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname);
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.dateCreated >= :from and q.dateCreated <= :to")
+    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname, @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
     boolean templateExists(@Param("domainShortname") String domainShortname, @Param("templateId") String templateId);

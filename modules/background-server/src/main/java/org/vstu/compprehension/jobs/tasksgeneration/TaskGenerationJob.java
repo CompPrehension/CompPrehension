@@ -22,12 +22,14 @@ import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -145,15 +147,38 @@ public class TaskGenerationJob {
 
         val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
         val downloadedPathExists = Files.exists(downloadedPath);
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
-            try {
-                Files.list(downloadedPath)
-                        .filter(f -> f.toFile().isDirectory())
-                        .forEach(FileUtility::clearDirectory);
-                Files.list(downloadedPath)
-                        .map(Path::toFile)
-                        .filter(File::isFile)
-                        .forEach(File::delete);
+        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedOlderThanDay) && downloadedPathExists) {
+            try (var paths = Files.list(downloadedPath)) {
+                for (var path : paths.collect(Collectors.toSet())) {
+                    var file = path.toFile();
+                    if (file.isDirectory() && file.lastModified() < LocalDateTime.now(ZoneId.of("UTC")).minusDays(1).toInstant(ZoneOffset.UTC).toEpochMilli()) {
+                        FileUtils.deleteDirectory(file);
+                        continue;
+                    }
+                    if (file.isDirectory()) {
+                        FileUtility.clearDirectory(path);
+                        continue;
+                    }
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                }
+            } catch (Exception exception) {
+                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+            }            
+            log.info("successfully cleanup downloaded repos folder (older than 1 day)");
+        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
+            try (var paths = Files.list(downloadedPath)) {
+                for (var path : paths.collect(Collectors.toSet())) {
+                    var file = path.toFile();
+                    if (file.isDirectory()) {
+                        FileUtility.clearDirectory(path);
+                        continue;
+                    }
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                }
             } catch (Exception exception) {
                 log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
             }
@@ -199,56 +224,84 @@ public class TaskGenerationJob {
         Files.createDirectories(outputFolderPath);
 
         // Учесть историю по использованным репозиториям
-        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName());
+        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName(), LocalDateTime.of(2000, 1, 1, 0, 0), LocalDateTime.now(ZoneId.of("UTC")).minusDays(1));
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
             var repos = Files.list(outputFolderPath).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
             seenReposNames.addAll(repos);
         }
 
+        // github limits amount of returnable searchable repositories to 1000, so we create 3 queries with different sorting
+        // 1) ordered by stars (most popular first)
+        // 2) ordered by updated date (newest first)
+        // 3) ordered by forks (most forks first)
+        // pagesize == 100 is max per query
         GitHub github = new GitHubBuilder()
                 .withOAuthToken(downloaderConfig.getGithubOAuthToken())
                 .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)
                 .build();
-        var repoSearchQuery = github.searchRepositories()
+        var repoSearchQueries = new ArrayList<PagedSearchIterable<GHRepository>>(3);
+        repoSearchQueries.add(github.searchRepositories()
                 .language("c")
                 .size("50..100000")
                 .fork(GHFork.PARENT_ONLY)
                 .sort(GHRepositorySearchBuilder.Sort.STARS)
                 .order(GHDirection.DESC)
                 .list()
-                .withPageSize(100);
+                .withPageSize(100));        
+        repoSearchQueries.add(github.searchRepositories()
+                .language("c")
+                .size("50..100000")
+                .fork(GHFork.PARENT_ONLY)
+                .sort(GHRepositorySearchBuilder.Sort.UPDATED)
+                .order(GHDirection.DESC)
+                .list()
+                .withPageSize(100));
+        repoSearchQueries.add(github.searchRepositories()
+                .language("c")
+                .size("50..100000")
+                .fork(GHFork.PARENT_ONLY)
+                .sort(GHRepositorySearchBuilder.Sort.FORKS)
+                .order(GHDirection.DESC)
+                .list()
+                .withPageSize(100));
+        
         var downloadedRepos = new ArrayList<Path>();
+        int skipped         = 0;
+        for (var repoSearchQuery : repoSearchQueries) {
+            for (var repo : repoSearchQuery) {
+                if (seenReposNames.contains(repo.getName())) {
+                    skipped++;
+                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                    continue;
+                }
+                log.info("Downloading repo [{}] ...", repo.getFullName());
 
-        int idx = 0;
-        int skipped = 0;
-        for (var repo : repoSearchQuery) {
-            if (seenReposNames.contains(repo.getName())) {
-                skipped++;
-                log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                continue;
+                repo.readZip(s -> {
+                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
+                            .toAbsolutePath();
+                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
+                            .toAbsolutePath();
+                    Files.createDirectories(targetFolderPath);
+                    Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                    Files.delete(zipFile);
+                    downloadedRepos.add(targetFolderPath);
+                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                    return 0;
+                }, null);
+
+                // for now, limited number of repositories
+                if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload())
+                    return downloadedRepos;
             }
-            log.info("Downloading repo [{}] ...", repo.getFullName());
 
-            repo.readZip(s -> {
-                Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
-                        .toAbsolutePath();
-                Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
-                        .toAbsolutePath();
-                Files.createDirectories(targetFolderPath);
-                Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                Files.delete(zipFile);
-                downloadedRepos.add(targetFolderPath);
-                log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                return 0;
-            }, null);
-
-            // for now, limited number of repositories
-            if (++idx >= downloaderConfig.getRepositoriesToDownload())
-                break;
+            log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
+            
+            // throttle            
+            Thread.sleep(2000L);
         }
-
+        
         return downloadedRepos;
     }
 
