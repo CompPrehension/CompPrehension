@@ -12,10 +12,6 @@ import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
-import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
-import org.vstu.compprehension.models.entities.EnumData.Role;
-
-import java.util.Optional;
 
 @Controller
 @RequestMapping("api")
@@ -49,18 +45,10 @@ public class ExerciseSettingsController {
         var courseId = exerciseCard.getCourseId();
         var currentUser = userService.getCurrentUser();
 
-        return authorizationService.isAuthorized(
-                    currentUser.getId(),
-                    AuthObjects.Permissions.editExercise.name(),
-                    PermissionScopeKind.COURSE,
-                    Optional.of(courseId))
-                ||
-                authorizationService.isAuthorized(
-                    currentUser.getId(),
-                    AuthObjects.Permissions.editExercise.name(),
-                    PermissionScopeKind.GLOBAL,
-                    Optional.empty()
-                );
+        return authorizationService.isAuthorizedAnyCourseOrGlobal(
+                currentUser.getId(),
+                AuthObjects.Permissions.editExercise.name(),
+                courseId);
     }
 
     @SneakyThrows
@@ -85,17 +73,10 @@ public class ExerciseSettingsController {
 
         var currentUser = userService.getCurrentUser();
 
-        var isAuthorized = authorizationService.isAuthorized(
-                    currentUser.getId(),
-                    AuthObjects.Permissions.createExercise.name(),
-                    PermissionScopeKind.COURSE,
-                    Optional.of(courseId))
-                ||
-                authorizationService.isAuthorized(
-                    currentUser.getId(),
-                    AuthObjects.Permissions.createExercise.name(),
-                    PermissionScopeKind.GLOBAL,
-                    Optional.empty());
+        var isAuthorized = authorizationService.isAuthorizedAnyCourseOrGlobal(
+                currentUser.getId(),
+                AuthObjects.Permissions.createExercise.name(),
+                courseId);
 
         if (!isAuthorized) {
             throw new AuthorizationServiceException("Unathorized");

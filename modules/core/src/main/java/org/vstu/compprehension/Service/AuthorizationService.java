@@ -15,19 +15,59 @@ import java.util.Optional;
 public class AuthorizationService {
 
     private final PermissionScopeRepository permissionScopeRepository;
-    private final PermissionRepository permissionRepository;
     private final RoleUserAssignmentRepository roleUserAssignmentRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public AuthorizationService(PermissionScopeRepository permissionScopeRepository, PermissionRepository permissionRepository,
+    public AuthorizationService(PermissionScopeRepository permissionScopeRepository,
                                 RoleUserAssignmentRepository roleUserAssignmentRepository, UserRepository userRepository,
                                 RoleRepository roleRepository) {
         this.permissionScopeRepository = permissionScopeRepository;
-        this.permissionRepository = permissionRepository;
         this.roleUserAssignmentRepository = roleUserAssignmentRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+    }
+
+    /**
+     * Checks if a user is authorized to perform a specific action globally based on their user ID and permission name.
+     *
+     * @param  userId        the ID of the user
+     * @param  permissionName    the name of the permission
+     * @return               true if the user is authorized, false otherwise
+     */
+    public boolean isAuthorizedGlobal(long userId, String permissionName) {
+        return isAuthorized(userId, permissionName, PermissionScopeKind.GLOBAL, Optional.empty());
+    }
+
+    /**
+     * Checks if a user is authorized to perform a specific action in a course based on their user ID, permission name, and course ID.
+     *
+     * @param  userId            the ID of the user
+     * @param  permissionName    the name of the permission
+     * @param  courseId          the ID of the course
+     * @return                   true if the user is authorized, false otherwise
+     */
+    public boolean isAuthorizedCourse(long userId, String permissionName, long courseId) {
+        return isAuthorized(userId, permissionName, PermissionScopeKind.COURSE, Optional.of(courseId));
+    }
+
+    /**
+     * Checks if a user is authorized to perform a specific action in any course or globally based on their user ID, permission name, and course ID.
+     *
+     * @param  userId            the ID of the user
+     * @param  permissionName    the name of the permission
+     * @param  courseId          the ID of the course
+     * @return                   true if the user is authorized, false otherwise
+     */
+    public boolean isAuthorizedAnyCourseOrGlobal(long userId, String permissionName, long courseId) {
+        try {
+            return roleUserAssignmentRepository.isUserAuthorizedForCourseOrGlobal(
+                    userId,
+                    permissionName,
+                    courseId);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -41,26 +81,18 @@ public class AuthorizationService {
      */
     public boolean isAuthorized(long userId, String permissionName, PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
         try {
-            var permissionScope = _getPermissionScope(permissionScopeKind, ownerId).orElse(null);
-            var permission = permissionRepository.findByName(permissionName).orElse(null);
-
-            if (permission == null || permissionScope == null) {
-                return false;
-            }
-
-            var user = userRepository.findById(userId).orElse(null);
-
-            var roles = roleUserAssignmentRepository.findAllByUserAndPermissionScope(user, permissionScope).stream()
-                    .map(RoleUserAssignmentEntity::getRole).toList();
-
-            return roles.stream().anyMatch(role -> role.getPermissions().contains(permission));
-
+            return roleUserAssignmentRepository.isUserAuthorized(
+                    userId,
+                    permissionName,
+                    permissionScopeKind,
+                    ownerId.orElse(null)
+            );
         } catch (Exception e) {
             return false;
         }
     }
 
-    private Optional<PermissionScopeEntity> _getPermissionScope(PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
+    private Optional<PermissionScopeEntity> getPermissionScope(PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
         if (ownerId.isEmpty() || permissionScopeKind == PermissionScopeKind.GLOBAL) {
             return permissionScopeRepository.findByKind(permissionScopeKind);
         } else {
@@ -89,7 +121,7 @@ public class AuthorizationService {
      */
     public void addUserRole(long userId, RoleAssignmentDTO roleAssignmentDTO) {
         var role = roleRepository.findByName(roleAssignmentDTO.roleName()).orElseThrow(() -> new EntityNotFoundException("Role not found"));
-        var permissionScope = _getPermissionScope(roleAssignmentDTO.permissionScopeKind(), roleAssignmentDTO.ownerId()).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
+        var permissionScope = getPermissionScope(roleAssignmentDTO.permissionScopeKind(), roleAssignmentDTO.ownerId()).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
         var user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
         var userRoles = user.getRoleUserAssignments().stream().map(RoleUserAssignmentEntity::getRole).toList();
@@ -117,7 +149,7 @@ public class AuthorizationService {
      */
     public void deleteUserRole(long userId, String roleName, PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
         var role = roleRepository.findByName(roleName).orElseThrow(() -> new EntityNotFoundException("Role not found"));
-        var permissionScope = _getPermissionScope(permissionScopeKind, ownerId).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
+        var permissionScope = getPermissionScope(permissionScopeKind, ownerId).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
         var user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
         var userRoles = user.getRoleUserAssignments();

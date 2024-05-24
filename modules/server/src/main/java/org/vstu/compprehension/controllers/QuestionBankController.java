@@ -17,11 +17,7 @@ import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
-import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
-
-import java.util.Optional;
 
 @Controller
 @RequestMapping("api/question-bank")
@@ -50,17 +46,10 @@ public class QuestionBankController {
 
         var currentUser = userService.getCurrentUser();
 
-        var isAuthorized = authorizationService.isAuthorized(
-                    currentUser.getId(),
-                    AuthObjects.Permissions.editExercise.name(),
-                    PermissionScopeKind.COURSE,
-                    Optional.of(courseId))
-                ||
-                authorizationService.isAuthorized(
-                    currentUser.getId(),
-                    AuthObjects.Permissions.editExercise.name(),
-                    PermissionScopeKind.GLOBAL,
-                    Optional.empty());
+        var isAuthorized = authorizationService.isAuthorizedAnyCourseOrGlobal(
+                currentUser.getId(),
+                AuthObjects.Permissions.editExercise.name(),
+                courseId);
 
         if (!isAuthorized) {
             throw new AuthorizationServiceException("Unathorized");
