@@ -160,7 +160,10 @@ public class TaskGenerationJob {
                         continue;
                     }
                     if (file.isFile()) {
-                        file.delete();
+                        var deleted = file.delete();
+                        if (!deleted) {
+                            log.error("Failed to delete file: {}", file.getAbsolutePath());
+                        }
                     }
                 }
             } catch (Exception exception) {
@@ -176,7 +179,10 @@ public class TaskGenerationJob {
                         continue;
                     }
                     if (file.isFile()) {
-                        file.delete();
+                        var deleted = file.delete();
+                        if (!deleted) {
+                            log.error("Failed to delete file: {}", file.getAbsolutePath());
+                        }
                     }
                 }
             } catch (Exception exception) {
@@ -216,7 +222,9 @@ public class TaskGenerationJob {
         if (!downloaderConfig.isEnabled()) {
             // get all downloaded previously:
             var rootDir = Path.of(downloaderConfig.getOutputFolderPath());
-            return Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
+            try (var list = Files.list(rootDir)) {
+                return list.filter(Files::isDirectory).collect(Collectors.toList());
+            }
         }
 
         // ensure out folder exists
@@ -227,8 +235,10 @@ public class TaskGenerationJob {
         var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName(), LocalDateTime.of(2000, 1, 1, 0, 0), LocalDateTime.now(ZoneId.of("UTC")).minusDays(1));
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
-            var repos = Files.list(outputFolderPath).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
-            seenReposNames.addAll(repos);
+            try (var list = Files.list(outputFolderPath)) {
+                var repos = list.filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
+                seenReposNames.addAll(repos);
+            }            
         }
 
         // github limits amount of returnable searchable repositories to 1000, so we create 3 queries with different sorting

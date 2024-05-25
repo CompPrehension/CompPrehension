@@ -234,7 +234,8 @@ public class SerializableQuestion {
     }
     
     public static @Nullable SerializableQuestion deserialize(String path) {
-        try (var reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8))) {
+        try (var stream = new FileInputStream(path);
+             var reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             return gson.fromJson(reader, SerializableQuestion.class);
         } catch (IOException e) {
             return null;
@@ -242,13 +243,15 @@ public class SerializableQuestion {
     }
     
     public void serializeToFile(String path) throws IOException {
-        try (var writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(path), StandardCharsets.UTF_8))) {
+        try (var stream = new FileOutputStream(path);
+             var writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
             gson.toJson(this, writer);
         }
     }
     
     public void serializeToFile(Path path) throws IOException {
-        try (var writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(path), StandardCharsets.UTF_8))) {
+        try (var stream = Files.newOutputStream(path);
+             var writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
             gson.toJson(this, writer);
         }
     }
