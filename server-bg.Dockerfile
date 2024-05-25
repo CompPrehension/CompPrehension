@@ -7,7 +7,7 @@ COPY ./modules/expr-domain-question-generator/target/expr-domain-question-genera
 
 # download parser
 RUN mkdir /parser && \
-    wget "https://github.com/CompPrehension/top-learning-generator/releases/download/v0.2.0/compph-task-generator" -O /parser/clang-task-generator && \
+    wget "https://github.com/CompPrehension/top-learning-generator/releases/download/v0.3.0/compph-task-generator" -O /parser/clang-task-generator && \
     chmod +x /parser/clang-task-generator
 
 # Generate the runner.sh script
