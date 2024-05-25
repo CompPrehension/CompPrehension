@@ -48,7 +48,7 @@ public class QuestionBankController {
 
         var isAuthorized = authorizationService.isAuthorizedAnyCourseOrGlobal(
                 currentUser.getId(),
-                AuthObjects.Permissions.editExercise.name(),
+                AuthObjects.Permissions.EditExercise.Name(),
                 courseId);
 
         if (!isAuthorized) {

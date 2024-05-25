@@ -5,91 +5,91 @@ public class AuthObjects {
     public static class Permissions {
 
         // EducationResource
-        public static final SystemPermission viewEducationResource = new SystemPermission("ViewEducationResource", "Просмотр обучающих ресурсов");
-        public static final SystemPermission createEducationResource = new SystemPermission("CreateEducationResource", "Создание обучающих ресурсов");
-        public static final SystemPermission editEducationResource = new SystemPermission("EditEducationResource", "Редактирование обучающих ресурсов");
-        public static final SystemPermission deleteEducationResource = new SystemPermission("DeleteEducationResource", "Удаление обучающих ресурсов");
+        public static final SystemPermission ViewEducationResource = new SystemPermission("ViewEducationResource", "Просмотр обучающих ресурсов");
+        public static final SystemPermission CreateEducationResource = new SystemPermission("CreateEducationResource", "Создание обучающих ресурсов");
+        public static final SystemPermission EditEducationResource = new SystemPermission("EditEducationResource", "Редактирование обучающих ресурсов");
+        public static final SystemPermission DeleteEducationResource = new SystemPermission("DeleteEducationResource", "Удаление обучающих ресурсов");
 
         // Courses
-        public static final SystemPermission viewCourse = new SystemPermission("ViewCourse", "Просмотр курсов");
-        public static final SystemPermission createCourse = new SystemPermission("CreateCourse", "Создание курсов");
-        public static final SystemPermission editCourse = new SystemPermission("EditCourse", "Редактирование курсов");
-        public static final SystemPermission deleteCourse = new SystemPermission("DeleteCourse", "Удаление курсов");
+        public static final SystemPermission ViewCourse = new SystemPermission("ViewCourse", "Просмотр курсов");
+        public static final SystemPermission CreateCourse = new SystemPermission("CreateCourse", "Создание курсов");
+        public static final SystemPermission EditCourse = new SystemPermission("EditCourse", "Редактирование курсов");
+        public static final SystemPermission DeleteCourse = new SystemPermission("DeleteCourse", "Удаление курсов");
 
         // Exercises
-        public static final SystemPermission viewExercise = new SystemPermission("ViewExercise", "Просмотр упражнений");
-        public static final SystemPermission createExercise = new SystemPermission("CreateExercise", "Создание упражнений");
-        public static final SystemPermission editExercise = new SystemPermission("EditExercise", "Редактирование упражнений");
-        public static final SystemPermission deleteExercise = new SystemPermission("DeleteExercise", "Удаление упражнений");
-        public static final SystemPermission solveExercise = new SystemPermission("SolveExercise", "Выполнение упражнений");
+        public static final SystemPermission ViewExercise = new SystemPermission("ViewExercise", "Просмотр упражнений");
+        public static final SystemPermission CreateExercise = new SystemPermission("CreateExercise", "Создание упражнений");
+        public static final SystemPermission EditExercise = new SystemPermission("EditExercise", "Редактирование упражнений");
+        public static final SystemPermission DeleteExercise = new SystemPermission("DeleteExercise", "Удаление упражнений");
+        public static final SystemPermission SolveExercise = new SystemPermission("SolveExercise", "Выполнение упражнений");
     }
 
     public static class Roles {
 
-        public static final SystemRole globalAdmin = new SystemRole("GlobalAdmin", "Глобальный администратор",
+        public static final SystemRole GlobalAdmin = new SystemRole("GlobalAdmin", "Глобальный администратор",
                 new SystemPermission[]{
-                        Permissions.viewEducationResource,
-                        Permissions.createEducationResource,
-                        Permissions.editEducationResource,
-                        Permissions.deleteEducationResource,
-                        Permissions.viewCourse,
-                        Permissions.editCourse,
-                        Permissions.createCourse,
-                        Permissions.deleteCourse,
-                        Permissions.viewExercise,
-                        Permissions.editExercise,
-                        Permissions.createExercise,
-                        Permissions.deleteExercise,
-                        Permissions.solveExercise
+                        Permissions.ViewEducationResource,
+                        Permissions.CreateEducationResource,
+                        Permissions.EditEducationResource,
+                        Permissions.DeleteEducationResource,
+                        Permissions.ViewCourse,
+                        Permissions.EditCourse,
+                        Permissions.CreateCourse,
+                        Permissions.DeleteCourse,
+                        Permissions.ViewExercise,
+                        Permissions.EditExercise,
+                        Permissions.CreateExercise,
+                        Permissions.DeleteExercise,
+                        Permissions.SolveExercise
         });
 
-        public static final SystemRole educationResourceAdmin = new SystemRole("EducationResourceAdmin", "Администратор обучающего ресурса",
+        public static final SystemRole EducationResourceAdmin = new SystemRole("EducationResourceAdmin", "Администратор обучающего ресурса",
                 new SystemPermission[]{
-                        Permissions.viewCourse,
-                        Permissions.createCourse,
-                        Permissions.editCourse,
-                        Permissions.deleteCourse,
-                        Permissions.viewExercise,
-                        Permissions.editExercise,
-                        Permissions.createExercise,
-                        Permissions.deleteExercise,
-                        Permissions.solveExercise
+                        Permissions.ViewCourse,
+                        Permissions.CreateCourse,
+                        Permissions.EditCourse,
+                        Permissions.DeleteCourse,
+                        Permissions.ViewExercise,
+                        Permissions.EditExercise,
+                        Permissions.CreateExercise,
+                        Permissions.DeleteExercise,
+                        Permissions.SolveExercise
         });
 
-        public static final SystemRole teacher = new SystemRole("Teacher", "Учитель",
+        public static final SystemRole Teacher = new SystemRole("Teacher", "Учитель",
                 new SystemPermission[]{
-                        Permissions.viewCourse,
-                        Permissions.createCourse,
-                        Permissions.editCourse,
-                        Permissions.deleteCourse,
-                        Permissions.viewExercise,
-                        Permissions.createExercise,
-                        Permissions.editExercise,
-                        Permissions.deleteExercise,
-                        Permissions.solveExercise
+                        Permissions.ViewCourse,
+                        Permissions.CreateCourse,
+                        Permissions.EditCourse,
+                        Permissions.DeleteCourse,
+                        Permissions.ViewExercise,
+                        Permissions.CreateExercise,
+                        Permissions.EditExercise,
+                        Permissions.DeleteExercise,
+                        Permissions.SolveExercise
         });
 
-        public static final SystemRole assistant = new SystemRole("Assistant", "Ассистент",
+        public static final SystemRole Assistant = new SystemRole("Assistant", "Ассистент",
                 new SystemPermission[]{
-                        Permissions.viewCourse,
-                        Permissions.viewExercise,
-                        Permissions.createExercise,
-                        Permissions.editExercise,
-                        Permissions.deleteExercise,
-                        Permissions.solveExercise
+                        Permissions.ViewCourse,
+                        Permissions.ViewExercise,
+                        Permissions.CreateExercise,
+                        Permissions.EditExercise,
+                        Permissions.DeleteExercise,
+                        Permissions.SolveExercise
         });
 
-        public static final SystemRole student = new SystemRole("Student", "Студент",
+        public static final SystemRole Student = new SystemRole("Student", "Студент",
                 new SystemPermission[]{
-                        Permissions.viewCourse,
-                        Permissions.viewExercise,
-                        Permissions.solveExercise
+                        Permissions.ViewCourse,
+                        Permissions.ViewExercise,
+                        Permissions.SolveExercise
         });
 
-        public static final SystemRole guest = new SystemRole("Guest", "Гость",
+        public static final SystemRole Guest = new SystemRole("Guest", "Гость",
                 new SystemPermission[]{
-                        Permissions.viewCourse,
-                        Permissions.viewExercise
+                        Permissions.ViewCourse,
+                        Permissions.ViewExercise
                 });
     }
 }

@@ -47,7 +47,7 @@ public class ExerciseSettingsController {
 
         return authorizationService.isAuthorizedAnyCourseOrGlobal(
                 currentUser.getId(),
-                AuthObjects.Permissions.editExercise.name(),
+                AuthObjects.Permissions.EditExercise.Name(),
                 courseId);
     }
 
@@ -75,7 +75,7 @@ public class ExerciseSettingsController {
 
         var isAuthorized = authorizationService.isAuthorizedAnyCourseOrGlobal(
                 currentUser.getId(),
-                AuthObjects.Permissions.createExercise.name(),
+                AuthObjects.Permissions.CreateExercise.Name(),
                 courseId);
 
         if (!isAuthorized) {

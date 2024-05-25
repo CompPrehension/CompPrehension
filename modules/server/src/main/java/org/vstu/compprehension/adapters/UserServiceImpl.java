@@ -133,44 +133,44 @@ public class UserServiceImpl implements UserService {
 
     private HashSet<SystemRole> fromLtiRoles(Collection<String> roles) {
         if (roles.contains("ROLE_SystemAdministrator")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.globalAdmin));
+            return new HashSet<>(List.of(AuthObjects.Roles.GlobalAdmin));
         }
 
         if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.educationResourceAdmin));
+            return new HashSet<>(List.of(AuthObjects.Roles.EducationResourceAdmin));
         }
 
         if (roles.contains("ROLE_TeachingAssistant")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.assistant));
+            return new HashSet<>(List.of(AuthObjects.Roles.Assistant));
         }
 
         var teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_ContentDeveloper", "ROLE_Mentor");
 
         if (CollectionUtils.containsAny(roles, teacherRoles)) {
-            return new HashSet<>(List.of(AuthObjects.Roles.teacher));
+            return new HashSet<>(List.of(AuthObjects.Roles.Teacher));
         }
 
         if (roles.contains("ROLE_Learner")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.student));
+            return new HashSet<>(List.of(AuthObjects.Roles.Student));
         }
 
-        return new HashSet<>(List.of(AuthObjects.Roles.guest));
+        return new HashSet<>(List.of(AuthObjects.Roles.Guest));
     }
 
     private HashSet<SystemRole> fromKeycloakRoles(Collection<String> roles) {
         if (roles.contains("ROLE_SystemAdministrator")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.globalAdmin));
+            return new HashSet<>(List.of(AuthObjects.Roles.GlobalAdmin));
         }
         if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.educationResourceAdmin));
+            return new HashSet<>(List.of(AuthObjects.Roles.EducationResourceAdmin));
         }
         if (roles.contains("ROLE_Teacher")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.teacher));
+            return new HashSet<>(List.of(AuthObjects.Roles.Teacher));
         }
         if (roles.contains("ROLE_Learner")) {
-            return new HashSet<>(List.of(AuthObjects.Roles.student));
+            return new HashSet<>(List.of(AuthObjects.Roles.Student));
         }
-        return new HashSet<>(List.of(AuthObjects.Roles.guest));
+        return new HashSet<>(List.of(AuthObjects.Roles.Guest));
     }
 
     private CourseEntity fromLtiCourses(String courseTitle, String fullUrlString) {
@@ -197,7 +197,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Optional<RoleEntity> getRole(SystemRole role) {
-        return roleRepository.findByName(role.name());
+        return roleRepository.findByName(role.Name());
     }
 
 
