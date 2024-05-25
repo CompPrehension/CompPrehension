@@ -2594,6 +2594,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
+            log.info("Start generating question(s) for template {}", file);
             try {
                 if (qCount > questionsLimit)
                     break;

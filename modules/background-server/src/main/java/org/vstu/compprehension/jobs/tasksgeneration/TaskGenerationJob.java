@@ -321,7 +321,9 @@ public class TaskGenerationJob {
         var outputFolderPath = Path.of(parserConfig.getOutputFolderPath()).toAbsolutePath();
         if (!parserConfig.isEnabled()) {
             log.info("parser is disabled by config");
-            return List.of();
+            try (var list = Files.list(outputFolderPath)) {
+                return list.filter(Files::isDirectory).collect(Collectors.toList());
+            }
         }
 
         // ensure output folder exists
@@ -386,7 +388,9 @@ public class TaskGenerationJob {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
-            return List.of();
+            try (var list = Files.list(Path.of(generatorConfig.getOutputFolderPath()))) {
+                return list.filter(Files::isDirectory).collect(Collectors.toList());
+            }
         }
 
         // find all sub-folders in root directory of parser output directory
