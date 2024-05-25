@@ -451,8 +451,6 @@ public class TaskGenerationJob {
             log.info("generator is disabled by config");
             return;
         }
-        
-        var allDomainQuestionTemplates = metadataRep.findAllTemplates(config.getDomainShortName());
 
         log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
 
@@ -478,13 +476,15 @@ public class TaskGenerationJob {
 
                 QuestionMetadataEntity meta = q.toMetadataEntity();
                 if (meta == null) {
+                    skippedQuestions += 1;
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
                     continue;
                 }
                 
-                if (meta.getTemplateId() != null && allDomainQuestionTemplates.contains(meta.getTemplateId())) {
-                    log.info("Template [{}] exists. Skipping...", meta.getTemplateId());
+                if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
+                    skippedQuestions += 1;
+                    log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
                     continue;
                 }
 
@@ -498,16 +498,9 @@ public class TaskGenerationJob {
                     shouldSave = true;
                 } else {
                     for (val qr : qrLogsToProcess) {
-
                         if (!storage.isMatch(meta, qr)) {
                             log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
                             continue;
-                        }
-
-                        // Если вопрос ещё не сохранен в базу
-                        if (storage.questionExists(meta.getName())) {
-                            log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
-                            break;
                         }
 
                         log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
@@ -524,7 +517,7 @@ public class TaskGenerationJob {
 
                 if (!shouldSave) {
                     skippedQuestions += 1;
-                    log.info("Question [{}] skipped because zero qr matches", meta.getName());
+                    log.debug("Question [{}] skipped because zero qr matches", meta.getName());
                     continue;
                 }
 

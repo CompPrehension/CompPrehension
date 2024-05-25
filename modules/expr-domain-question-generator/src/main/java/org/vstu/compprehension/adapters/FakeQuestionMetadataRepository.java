@@ -1,6 +1,7 @@
 package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -57,6 +58,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @Override
     public boolean existsByName(String questionName) {
+        return false;
+    }
+
+    @Override
+    public boolean existsByNameOrTemplateId(String domainShortname, String questionName, @Nullable String templateId) {
         return false;
     }
 
