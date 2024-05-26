@@ -109,7 +109,7 @@ public class TaskGenerationJob {
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
         int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
-        var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
+        var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), LocalDateTime.now().minusMonths(1), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
             log.info("Nothing to process, finished job.");
