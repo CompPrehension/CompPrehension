@@ -76,17 +76,27 @@ public class DiConfig {
             @Autowired UserRepository userRepository,
             @Autowired PermissionScopeService permissionScopeService,
             @Autowired RoleRepository roleRepository,
-            @Autowired CourseService courseService,
             @Autowired EducationResourceService educationResourceService,
-            @Autowired RoleUserAssignmentService roleUserAssignmentService) {
+            @Autowired RoleUserAssignmentService roleUserAssignmentService,
+            @Autowired CourseRepository courseRepository,
+            @Autowired EducationResourceRepository educationResourceRepository) {
         return new CachedUserService(new UserServiceImpl(
                 userRepository,
                 permissionScopeService,
                 roleRepository,
-                courseService,
+                getCourseService(courseRepository, educationResourceRepository, educationResourceService),
                 educationResourceService,
                 roleUserAssignmentService
         ));
+    }
+
+    @Bean
+    @SessionScope
+    CourseService getCourseService(
+            @Autowired CourseRepository courseRepository,
+            @Autowired EducationResourceRepository educationResourceRepository,
+            @Autowired EducationResourceService educationResourceService) {
+        return new CourseServiceImpl(courseRepository, educationResourceRepository, educationResourceService);
     }
 
     @Bean

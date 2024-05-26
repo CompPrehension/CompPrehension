@@ -55,7 +55,6 @@ public class UserServiceImpl implements UserService {
 
         var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
 
-        // use different role mappings for LTI & keycloak
         HashSet<SystemRole> roles;
         Language language = null;
         CourseEntity course = null;
@@ -71,12 +70,7 @@ public class UserServiceImpl implements UserService {
                     .map(l -> Language.fromString(l.toString()))
                     .orElse(null);
 
-            course = fromLtiCourses(
-                    Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/context"))
-                            .flatMap(x -> Optional.ofNullable(x.get("title").toString()))
-                            .orElse(null),
-                    parsedIdToken.getIssuer().toString()
-            );
+            course = courseService.getCurrentCourse();
 
             if (course == null) {
                 var educationResource = fromLtiEducationResource(parsedIdToken.getIssuer().toString());
@@ -171,15 +165,6 @@ public class UserServiceImpl implements UserService {
             return new HashSet<>(List.of(AuthObjects.Roles.Student));
         }
         return new HashSet<>(List.of(AuthObjects.Roles.Guest));
-    }
-
-    private CourseEntity fromLtiCourses(String courseTitle, String fullUrlString) {
-        if (courseTitle == null)
-            return null;
-
-        var educationResource = fromLtiEducationResource(fullUrlString);
-
-        return courseService.getOrCreateCourse(courseTitle, educationResource.getId());
     }
 
     private EducationResourceEntity fromLtiEducationResource(String fullUrlString) {
