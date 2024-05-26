@@ -13,8 +13,6 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
 
-import java.util.Optional;
-
 @Controller
 @RequestMapping("api")
 public class ExerciseSettingsController {
@@ -47,10 +45,10 @@ public class ExerciseSettingsController {
         var courseId = exerciseCard.getCourseId();
         var currentUser = userService.getCurrentUser();
 
-        return authorizationService.isAuthorizedAnyCourseOrGlobal(
+        return authorizationService.isAuthorizedCourse(
                 currentUser.getId(),
                 AuthObjects.Permissions.EditExercise.Name(),
-                Optional.of(courseId));
+                courseId);
     }
 
     @SneakyThrows
@@ -75,10 +73,10 @@ public class ExerciseSettingsController {
 
         var currentUser = userService.getCurrentUser();
 
-        var isAuthorized = authorizationService.isAuthorizedAnyCourseOrGlobal(
+        var isAuthorized = authorizationService.isAuthorizedCourse(
                 currentUser.getId(),
                 AuthObjects.Permissions.CreateExercise.Name(),
-                Optional.of(courseId));
+                courseId);
 
         if (!isAuthorized) {
             throw new AuthorizationServiceException("Unathorized");

@@ -20,7 +20,6 @@ import org.vstu.compprehension.models.repository.SurveyRepository;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("api/survey")
@@ -59,10 +58,10 @@ public class QuestionSurveyController {
         var course = courseService.getCurrentCourse();
         var userId = userService.getCurrentUser().getId();
 
-        return authorizationService.isAuthorizedAnyCourseOrGlobal(
+        return authorizationService.isAuthorizedCourse(
                 userId,
                 permissionName,
-                Optional.ofNullable(course != null ? course.getId() : null)
+                course.getId()
         );
     }
 

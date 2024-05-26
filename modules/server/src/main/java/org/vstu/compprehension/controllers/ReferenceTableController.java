@@ -24,7 +24,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,10 +75,10 @@ public class ReferenceTableController {
         var course = courseService.getCurrentCourse();
         var userId = userService.getCurrentUser().getId();
 
-        return authorizationService.isAuthorizedAnyCourseOrGlobal(
+        return authorizationService.isAuthorizedCourse(
                 userId,
                 permissionName,
-                Optional.ofNullable(course != null ? course.getId() : null)
+                course.getId()
         );
     }
 

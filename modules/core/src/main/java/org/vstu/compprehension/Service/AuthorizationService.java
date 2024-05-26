@@ -48,26 +48,7 @@ public class AuthorizationService {
      * @return                   true if the user is authorized, false otherwise
      */
     public boolean isAuthorizedCourse(long userId, String permissionName, long courseId) {
-        return isAuthorized(userId, permissionName, PermissionScopeKind.COURSE, Optional.of(courseId));
-    }
-
-    /**
-     * Checks if a user is authorized to perform a specific action in any course or globally based on their user ID, permission name, and course ID.
-     *
-     * @param  userId            the ID of the user
-     * @param  permissionName    the name of the permission
-     * @param  courseId          the ID of the course
-     * @return                   true if the user is authorized, false otherwise
-     */
-    public boolean isAuthorizedAnyCourseOrGlobal(long userId, String permissionName, Optional<Long> courseId) {
-        try {
-            return roleUserAssignmentRepository.isUserAuthorizedForCourseOrGlobal(
-                    userId,
-                    permissionName,
-                    courseId);
-        } catch (Exception e) {
-            return false;
-        }
+        return roleUserAssignmentRepository.isUserAuthorizedForCourseOrGlobal(userId, permissionName, Optional.of(courseId));
     }
 
     /**

@@ -21,7 +21,6 @@ import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("api/exercise")
@@ -57,10 +56,10 @@ public class ExerciseController {
         var course = courseService.getCurrentCourse();
         var userId = userService.getCurrentUser().getId();
 
-        return authorizationService.isAuthorizedAnyCourseOrGlobal(
+        return authorizationService.isAuthorizedCourse(
                 userId,
                 permissionName,
-                Optional.ofNullable(course != null ? course.getId() : null)
+                course.getId()
         );
     }
 
