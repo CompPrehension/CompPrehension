@@ -59,7 +59,7 @@ public class AuthorizationService {
      * @param  courseId          the ID of the course
      * @return                   true if the user is authorized, false otherwise
      */
-    public boolean isAuthorizedAnyCourseOrGlobal(long userId, String permissionName, long courseId) {
+    public boolean isAuthorizedAnyCourseOrGlobal(long userId, String permissionName, Optional<Long> courseId) {
         try {
             return roleUserAssignmentRepository.isUserAuthorizedForCourseOrGlobal(
                     userId,

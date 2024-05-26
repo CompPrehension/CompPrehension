@@ -19,6 +19,8 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
+import java.util.Optional;
+
 @Controller
 @RequestMapping("api/question-bank")
 @Log4j2
@@ -49,7 +51,7 @@ public class QuestionBankController {
         var isAuthorized = authorizationService.isAuthorizedAnyCourseOrGlobal(
                 currentUser.getId(),
                 AuthObjects.Permissions.EditExercise.Name(),
-                courseId);
+                Optional.of(courseId));
 
         if (!isAuthorized) {
             throw new AuthorizationServiceException("Unathorized");

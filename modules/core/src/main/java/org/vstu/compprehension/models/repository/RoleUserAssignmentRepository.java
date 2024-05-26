@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
 
+import java.util.Optional;
+
 @Repository
 public interface RoleUserAssignmentRepository extends CrudRepository<RoleUserAssignmentEntity, Long> {
 
@@ -36,5 +38,5 @@ public interface RoleUserAssignmentRepository extends CrudRepository<RoleUserAss
             "AND ( (ps.kind = 'GLOBAL') OR (ps.kind = 'COURSE' AND ps.ownerId = :courseId) )")
     boolean isUserAuthorizedForCourseOrGlobal(@Param("userId") long userId,
                                               @Param("permissionName") String permissionName,
-                                              @Param("courseId") Long courseId);
+                                              @Param("courseId") Optional<Long> courseId);
 }
