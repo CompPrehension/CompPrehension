@@ -420,7 +420,6 @@ public class ControlFlowStatementsDomain extends Domain {
             final int randomPoolSize = 1;  // 16;
             try {
                 // new version - invoke rdfStorage search
-                questionRequest = ensureQuestionRequestValid(questionRequest);
                 foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"

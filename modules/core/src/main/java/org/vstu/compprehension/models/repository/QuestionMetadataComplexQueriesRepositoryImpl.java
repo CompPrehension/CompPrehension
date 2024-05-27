@@ -13,9 +13,20 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         this.entityManager = entityManager;
     }
 
+    private void ensureRequestValid(QuestionBankSearchRequest qr) {
+        if (qr.getStepsMin() > qr.getStepsMax()) {
+            throw new IllegalArgumentException("Invalid bank search request: stepsMin > stepsMax");
+        }
+
+        if (qr.getStepsMin() == 0 && qr.getStepsMax() == 0) {
+            throw new IllegalArgumentException("Invalid bank search request: stepsMin == 0 && stepsMax == 0");
+        }
+    }
 
     @Override
     public int countQuestions(QuestionBankSearchRequest qr) {
+        ensureRequestValid(qr);
+        
         var domainShortname = qr.getDomainShortname();
         var stepsMin = qr.getStepsMin();
         var stepsMax = qr.getStepsMax();
@@ -68,6 +79,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
 
     @Override
     public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionBankSearchRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
+        ensureRequestValid(qr);
+        
         var domainShortname = qr.getDomainShortname();
         var stepsMin = qr.getStepsMin();
         var stepsMax = qr.getStepsMax();
