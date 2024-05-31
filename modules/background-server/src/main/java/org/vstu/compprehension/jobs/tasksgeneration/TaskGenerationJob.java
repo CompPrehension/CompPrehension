@@ -530,8 +530,6 @@ public class TaskGenerationJob {
                         ? storage.saveQuestionData(domainId, q.getQuestionData().getQuestionName(), q)
                         : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionData().getQuestionName(), q);
                 meta.setQDataGraph(qDataPath);
-                meta.setDateCreated(new Date());
-                meta.setUsedCount(0L);
 
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);

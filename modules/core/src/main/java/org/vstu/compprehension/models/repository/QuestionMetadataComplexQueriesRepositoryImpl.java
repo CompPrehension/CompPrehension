@@ -120,9 +120,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
             " + bit_count(q.violation_bits & :targetLawsBitmask)" +
             " DESC, " +
             // // " IF(abs(q.integral_complexity - :#{#qr.complexity}) <= :complWindow, 0, 1)" +
-            " abs(q.integral_complexity - :complexity) DIV :complWindow " +
-            " ASC, " +
-            " q.used_count ASC " +  // less often show "hot" questions
+            " abs(q.integral_complexity - :complexity) DIV :complWindow ASC," +
+            " (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) ASC " +  // less often show "hot" questions
             " limit :randomPoolLim" +
             ") T1 ORDER BY ((T1.trace_concept_bits & :targetConceptsBitmask <> 0) + (T1.concept_bits & :targetConceptsBitmask <> 0) + (T1.violation_bits & :targetLawsBitmask <> 0)) DESC, RAND() limit :lim"
                         , QuestionMetadataEntity.class)

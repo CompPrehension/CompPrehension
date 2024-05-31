@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
@@ -16,6 +17,7 @@ import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity @Getter @Setter
@@ -37,6 +39,10 @@ public class QuestionEntity {
 
     @Column(name = "question_name", length = 255)
     private String questionName;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
 
     @ToString.Exclude
     @ManyToOne
@@ -63,6 +69,11 @@ public class QuestionEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private @NotNull List<InteractionEntity> interactions = new ArrayList<>(0);
+
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "question_request_id", nullable = true)
+    private @Nullable QuestionRequestLogEntity questionRequestLog;
 
     @ToString.Exclude
     @ManyToOne

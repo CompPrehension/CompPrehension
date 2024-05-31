@@ -1,12 +1,15 @@
 package org.vstu.compprehension.models.entities;
 
 import jakarta.persistence.*;
-import lombok.ToString;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -21,6 +24,14 @@ public class ExerciseAttemptEntity {
 
     @Enumerated(EnumType.ORDINAL)
     private AttemptStatus attemptStatus;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Date updatedAt;
 
     @ToString.Exclude
     @ManyToOne

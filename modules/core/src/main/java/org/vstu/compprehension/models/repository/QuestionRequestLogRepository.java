@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface QuestionRequestLogRepository extends CrudRepository<QuestionRequestLogEntity, Long> {
 
-    @Query("SELECT r FROM QuestionRequestLogEntity r WHERE r.domainShortname = :domainShortName AND r.outdated = 0 AND r.foundCount <= :countThreshold AND r.createdDate >= :createdAfter")
+    @Query("SELECT r FROM QuestionRequestLogEntity r WHERE r.domainShortname = :domainShortName AND r.outdated = 0 AND r.foundCount <= :countThreshold AND r.createdAt >= :createdAfter")
     List<QuestionRequestLogEntity> findAllNotProcessed(
             @Param("domainShortName") String domainShortName,
             @Param("createdAfter") LocalDateTime createdAfter,

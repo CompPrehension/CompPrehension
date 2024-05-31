@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 
 import java.util.Date;
@@ -63,18 +64,6 @@ public class QuestionMetadataEntity {
     @Column(name = "_version")
     private Integer version;
 
-    @Builder.Default
-    @Column(name = "used_count")
-    private Long usedCount = 0L;
-
-    @Builder.Default
-    @Column(name = "date_last_used")
-    private Date dateLastUsed = null;
-
-    @Builder.Default
-    @Column(name = "last_attempt_id")
-    private Long lastAttemptId = 0L;
-
     /** compact representation of meaningful structure; may be used to determine similar questions
      * */
     @Builder.Default
@@ -93,10 +82,9 @@ public class QuestionMetadataEntity {
     @Column(name = "qrlog_ids", columnDefinition = "json")
     private List<Long> qrlogIds = null;
 
-    @Column(name = "date_created")
-    private Date dateCreated;
-
-
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
 
     @Transient
     @Builder.Default

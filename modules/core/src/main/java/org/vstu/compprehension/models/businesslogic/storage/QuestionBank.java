@@ -211,19 +211,6 @@ public class QuestionBank {
         List<Question> loadedQuestions = loadQuestions(domain, foundQuestionMetas);
         ch.hit("searchQuestionsAdvanced - files loaded");
 
-        if (loadedQuestions.size() == 1) {
-            // increment the question's usage counter
-            val meta = loadedQuestions.get(0).getQuestionData().getMetadata();
-            if (meta == null) {
-                throw new RuntimeException("No metadata for question " + loadedQuestions.get(0).getQuestionData().getId());
-            }
-            
-            meta.setUsedCount(Optional.ofNullable(meta.getUsedCount()).orElse(0L) + 1);
-            meta.setLastAttemptId(attempt.getId());
-            meta.setDateLastUsed(new Date());
-            questionMetadataRepository.save(meta);
-        }
-
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
 
         return loadedQuestions;
