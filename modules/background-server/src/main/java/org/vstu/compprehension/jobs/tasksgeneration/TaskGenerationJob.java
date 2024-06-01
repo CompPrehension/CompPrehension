@@ -106,17 +106,26 @@ public class TaskGenerationJob {
     }
     
     private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Incremental mode) {
-        // TODO проверка на то, что нужны новые вопросы
-        int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
-        int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
-        var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), LocalDateTime.now().minusMonths(1), tooFewQuestions);
-
-        if (qrLogsToProcess.isEmpty()) {
-            log.info("Nothing to process, finished job.");
+        // проверка на то, что нужны новые вопросы
+        var tooHotMetadataIds = metadataRep.findMostUsedMetadataIds(200, 100, 50, 20, 10);
+        if (tooHotMetadataIds.isEmpty()) {
+            log.info("No frequently used question found in the bank. Finish job");
             return;
         }
-
-        log.info("QR logs to process: {}", qrLogsToProcess.size());
+        log.info("Found {} frequently used questions in the bank.", tooHotMetadataIds.size());
+        log.debug("Metadata ids: {}", tooHotMetadataIds);
+        
+        var qrLogsToProcess = qrLogRep.findAllNotProcessedByMetadataIds(tooHotMetadataIds, LocalDateTime.now().minusMonths(1));
+        if (qrLogsToProcess.isEmpty()) {
+            log.info("No question requests found in the last month for frequently used questions. Finish job");
+            return;
+        }
+        log.info("Found {} question requests in the last month for frequently used questions.", qrLogsToProcess.size());        
+        if (qrLogsToProcess.size() > 5_000) {
+            qrLogsToProcess = qrLogsToProcess.subList(0, 5_000);
+            log.info("Too many question requests found. Limiting to 5000.");
+        }
+        
         log.info("QR log ids to be processed: {}.", qrLogsToProcess.stream().map(QuestionRequestLogEntity::getId).collect(Collectors.toList()));
 
         // folders cleanup
@@ -132,7 +141,7 @@ public class TaskGenerationJob {
         var generatedRepos = generateQuestions(parsedRepos);
 
         // filter & save questions
-        saveQuestions(generatedRepos, qrLogsToProcess, enoughQuestionsAdded);
+        saveQuestions(generatedRepos, qrLogsToProcess, 10);
 
         log.info("completed");
     }
@@ -551,7 +560,7 @@ public class TaskGenerationJob {
 
                     // increment processed counter for each repository touched by this qr
                     qr.setProcessedCount(qr.getProcessedCount() + 1);
-                    if (qr.getFoundCount() + qr.getAddedQuestions() >= enoughQuestionsForEachQr) {
+                    if (qr.getAddedQuestions() >= enoughQuestionsForEachQr) {
                         // don't more need to process it.
                         qr.setOutdated(1);
                         log.info("Question-request-log (id: {}) resolved with {} questions added.", qr.getId(), qr.getAddedQuestions());
