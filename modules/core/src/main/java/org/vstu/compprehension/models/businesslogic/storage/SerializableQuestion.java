@@ -261,6 +261,14 @@ public class SerializableQuestion {
             gson.toJson(this, writer);
         }
     }
+
+    public static SerializableQuestion deserializeFromString(String data) {
+        return new Gson().fromJson(data, SerializableQuestion.class);
+    }
+
+    public static String serializeToString(QuestionData questionData) {
+        return new Gson().toJson(questionData);
+    }
     
     private static class QuestionDataDeserializer implements JsonDeserializer<QuestionData> {
         @Override
