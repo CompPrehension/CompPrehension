@@ -37,7 +37,7 @@ public class CourseServiceImpl implements CourseService {
                 .orElse(null);
 
         if (courseTitle == null) {
-            return null;
+            return courseRepository.findById(getInitialCourseId()).orElse(null);
         }
 
         var fullUrlString = parsedIdToken.getIssuer().toString();
