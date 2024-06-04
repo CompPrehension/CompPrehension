@@ -258,7 +258,13 @@ public class QuestionBank {
 
     private @Nullable Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
         try {
-            QuestionDataEntity questionDataEntity = questionDataRepository.findById(qMeta.getQuestionData().getId()).orElse(null);
+            var questionData = qMeta.getQuestionData();
+            if (questionData == null) {
+                log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
+                return null;
+            }
+
+            QuestionDataEntity questionDataEntity = questionDataRepository.findById(questionData.getId()).orElse(null);
             if (questionDataEntity != null) {
                 var deserialized = SerializableQuestion.deserializeFromString(questionDataEntity.getData());
                 return deserialized.toQuestion(domain, qMeta);

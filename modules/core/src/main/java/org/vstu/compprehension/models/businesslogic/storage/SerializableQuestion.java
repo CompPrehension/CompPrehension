@@ -278,7 +278,7 @@ public class SerializableQuestion {
             
             var questionType = QuestionType.valueOf(questionObject.get("questionType").getAsString());
             var questionText = questionObject.get("questionText").getAsString();
-            var questionName = questionObject.get("questionName").getAsString();
+            var questionName = questionObject.has("questionName") ? questionObject.get("questionName").getAsString() : questionText;
             var questionDomainType = questionObject.get("questionDomainType").getAsString();
             var answerObjects = context.<List<AnswerObject>>deserialize(questionObject.get("answerObjects"), new TypeToken<List<AnswerObject>>(){}.getType());
             var statementFacts = context.<List<StatementFact>>deserialize(questionObject.get("statementFacts"), new TypeToken<List<StatementFact>>(){}.getType());
