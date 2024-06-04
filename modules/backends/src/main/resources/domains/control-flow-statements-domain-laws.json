@@ -1,0 +1,1426 @@
+[
+  {
+    "name": "rdfs_subset_positive",
+    "positive": true,
+    "concepts": [],
+    "tags": [],
+    "formulations": [
+      {
+        "name": "autogen_1",
+        "formulation": "(?x ?p ?y), (?p rdfs:domain ?c) -> (?x rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_2",
+        "formulation": "(?x ?p ?y), (?p rdfs:range ?c) -> (?y rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_3",
+        "formulation": "(?a ?p ?b), (?p rdfs:subPropertyOf ?q) -> (?a ?q ?b) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_4",
+        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_5",
+        "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_6",
+        "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "rdfs_subset_negative",
+    "positive": false,
+    "concepts": [],
+    "tags": [],
+    "formulations": [
+      {
+        "name": "autogen_7",
+        "formulation": "(?x ?p ?y), (?p rdfs:domain ?c) -> (?x rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_8",
+        "formulation": "(?x ?p ?y), (?p rdfs:range ?c) -> (?y rdf:type ?c) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_9",
+        "formulation": "(?a ?p ?b), (?p rdfs:subPropertyOf ?q) -> (?a ?q ?b) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_10",
+        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_11",
+        "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_12",
+        "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_alternative_helper",
+    "positive": true,
+    "salience": 10,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "if"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "name-branch-if-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-branch-else-if-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-branch-else-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name--body-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), noValue(?c2 rdfs:subClassOf ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_alternative_helper",
+    "positive": false,
+    "salience": 10,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "if"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "name-branch-if-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-branch-else-if-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-branch-else-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      },
+      {
+        "name": "name--body-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_helper",
+    "positive": false,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "fetch_kind_of_loop-helper",
+        "formulation": "(?a my:fetch_kind_of_loop ?Loop), (?Loop rdf:type ?LoopClass), noValue(?c2 rdfs:subClassOf ?LoopClass), (?LoopClass rdfs:label ?LoopLabel), -> drop(0), (?a my:field_kind_of_loop ?LoopLabel),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "action-boundaries-polyfill",
+    "positive": true,
+    "tags": [
+      {
+        "name": "action-boundaries-polyfill"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "action"
+      },
+      {
+        "name": "boundary"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "action-boundary-polyfill-begin_of",
+        "formulation": "(?a rdf:type my:action), noValue(?x my:begin_of ?a) , makeNamedSkolem(?b, my:boundary, ?a, \"begin_of\"), -> (?b rdf:type my:boundary) , (?b my:begin_of ?a) ,.",
+        "backend": "Jena"
+      },
+      {
+        "name": "action-boundary-polyfill-end_of",
+        "formulation": "(?a rdf:type my:action), noValue(?x my:end_of ?a) , makeNamedSkolem(?b, my:boundary, ?a, \"end_of\"), -> (?b rdf:type my:boundary) , (?b my:end_of ?a) ,.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "stmt_and_expr",
+    "positive": true,
+    "tags": [
+      {
+        "name": "stmt"
+      },
+      {
+        "name": "expr"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "stmt"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "interrupt_action"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "connect_StmtEnd",
+        "formulation": "(?st rdf:type my:stmt), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e), (?b my:StmtEnd ?e),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_ExprEnd",
+        "formulation": "(?st rdf:type my:expr), (?b my:begin_of ?st), (?e my:end_of ?st), -> (?b my:always_consequent ?e), (?b my:ExprEnd ?e),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_InterruptActionEnd",
+        "formulation": "(?st rdf:type my:interrupt_action), (?b my:begin_of ?st), makeNamedSkolem(?E, my:end, ?st), -> (?E my:halt_of ?st), (?b my:always_consequent ?E), (?b my:StmtEnd ?E), (?E my:interrupt_origin ?E),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "loop"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "branches_item-o-cond-to-parent_of",
+        "formulation": "(?a my:branches_item ?b), (?b my:cond ?c) -> (?a my:parent_of ?c).",
+        "backend": "Jena"
+      },
+      {
+        "name": "loop-cond-to-parent_of",
+        "formulation": "(?Loop rdf:type my:loop), (?Loop my:cond ?c) -> (?Loop my:parent_of ?c).",
+        "backend": "Jena"
+      },
+      {
+        "name": "attach-principal_violation-to-possible_violation-at-reason_node",
+        "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "break_and_continue_and_return",
+    "positive": true,
+    "tags": [
+      {
+        "name": "break"
+      },
+      {
+        "name": "continue"
+      },
+      {
+        "name": "return"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "return"
+      },
+      {
+        "name": "func"
+      },
+      {
+        "name": "break"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "continue"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "connect_InterruptedToplevel",
+        "formulation": "(?prev my:always_consequent ?halt_bnd), (?halt_bnd my:interrupt_origin ?_), (?halt_bnd my:halt_of ?st), (?alg my:entry_point ?st), (?e my:end_of ?st), -> drop(0), drop(1), (?prev my:always_consequent ?e), (?prev my:Interrupted ?e),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_InterruptedByReturn",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:return), (?halt_bnd my:halt_of ?inner_st), (?st my:parent_of ?inner_st), noValue(?st rdf:type my:func), noValue(?st my:entry_point ?_global), makeNamedSkolem(?E, my:h_ret, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_InterruptedByBreak",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:break), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?st rdf:type ?stType), (?stType rdfs:subClassOf my:action), noValue(?st rdf:type my:loop), makeNamedSkolem(?E, my:h_brk, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_InterruptedTillBreak",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:break), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?st rdf:type my:loop), (?e my:end_of ?st), -> (?halt_bnd my:always_consequent ?e), (?halt_bnd my:Interrupted ?e),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_InterruptedByContinue",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:continue), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?notL my:parent_of ?st), (?notL rdf:type ?notLtype), (?notLtype rdfs:subClassOf my:action), noValue(?notL rdf:type my:loop), makeNamedSkolem(?E, my:h_con, ?st), -> (?E my:halt_of ?st), (?E my:interrupt_origin ?o), (?halt_bnd my:always_consequent ?E), (?halt_bnd my:Interrupted ?E),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_InterruptedTillContinue",
+        "formulation": "(?halt_bnd my:interrupt_origin ?o), (?o my:boundary_of ?origin_st), (?origin_st rdf:type my:continue), (?halt_bnd my:boundary_of ?inner_st), (?st my:parent_of ?inner_st), (?L my:parent_of ?st), (?L rdf:type my:loop), (?e my:end_of ?st), -> (?halt_bnd my:always_consequent ?e), (?halt_bnd my:Interrupted ?e),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "entry_point_and_sequence",
+    "positive": true,
+    "tags": [
+      {
+        "name": "entry_point"
+      },
+      {
+        "name": "sequence"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "last_item"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "start__to__GlobalCode__rule_g4",
+        "formulation": "(?alg my:entry_point ?gc ), (?gc rdf:type my:sequence ), (?b my:begin_of ?gc), -> (?alg my:always_consequent ?b), (?alg my:GlobalCodeBegin ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_SequenceBegin_rule_g2",
+        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_SequenceNext",
+        "formulation": "(?block rdf:type my:sequence), (?block my:body_item ?st), (?st my:next ?st2), (?e my:end_of ?st), (?b my:begin_of ?st2), makeNamedSkolem(?R, my:Reason, ?e, ?b), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?previous_name), (?st2 my:stmt_name ?next_name), -> (?e my:always_consequent ?b), (?e my:SequenceNext ?b), (?R my:reason_kind my:SequenceNext), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_SEQ ?seq_name), (?R my:field_PREVIOUS ?previous_name), (?R my:field_NEXT ?next_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_SequenceEnd",
+        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "alternative",
+    "positive": true,
+    "tags": [
+      {
+        "name": "alternative"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "alt_branch"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "last_item"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "connect_AltBegin",
+        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_AltBranchBegin_CondTrue",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?e my:end_of ?cnd), (?b my:begin_of ?br), makeNamedSkolem(?R, my:Reason, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?br my:stmt_name ?branch_name), -> (?e my:on_true_consequent ?b), (?e my:AltBranchBegin ?b), (?R my:reason_kind my:AltBranchBegin), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_BRANCH ?branch_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "attach-possible_violation-for-AltBranchBegin",
+        "formulation": "(?R my:reason_kind my:AltBranchBegin), (?e my:to_reason ?R), (?e my:to_reason ?R2), (?R2 my:reason_kind my:AltElseBranchBegin), -> (?R my:possible_violation my:ElseBranchAfterTrueCondition).",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_NextAltCondition",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?e my:end_of ?cnd), (?b my:begin_of ?cnd2), makeNamedSkolem(?R, my:Reason, ?e, ?b), (?cnd my:stmt_name ?cnd_name), (?cnd2 my:stmt_name ?cnd2_name), -> (?e my:on_false_consequent ?b), (?e my:NextAltCondition ?b), (?R my:reason_kind my:NextAltCondition), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT_COND ?cnd_name), (?R my:field_NEXT_COND ?cnd2_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_AltElseBranch",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br my:next ?br2), (?br2 rdf:type my:else), (?e my:end_of ?cnd), (?b my:begin_of ?br2), makeNamedSkolem(?R, my:Reason, ?e, ?b), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:on_false_consequent ?b), (?e my:AltElseBranchBegin ?b), (?R my:reason_kind my:AltElseBranchBegin), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_AltEndAllFalse",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e), (?R my:reason_kind my:AltEndAllFalse), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_AltEndAfterBranch",
+        "formulation": "(?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?br), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:always_consequent ?e), (?e1 my:AltEndAfterBranch ?e), (?R my:reason_kind my:AltEndAfterBranch), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop",
+    "positive": true,
+    "tags": [
+      {
+        "name": "loop"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "start_with_cond"
+      },
+      {
+        "name": "start_with_body"
+      },
+      {
+        "name": "cond_then_body"
+      },
+      {
+        "name": "pre_update_loop"
+      },
+      {
+        "name": "conditional_loop"
+      },
+      {
+        "name": "body_then_cond"
+      },
+      {
+        "name": "start_with_init"
+      },
+      {
+        "name": "post_update_loop"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "connect_LoopBegin-cond",
+        "formulation": "(?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?b my:begin_of ?Loop), (?b2 my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:PreCondLoopBegin ?b2), (?R my:reason_kind my:PreCondLoopBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopBegin-body",
+        "formulation": "(?Loop rdf:type my:start_with_body), (?Loop my:body ?st), (?b my:begin_of ?Loop), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?Loop my:stmt_name ?loop_name), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:PostCondLoopBegin ?b2), (?R my:reason_kind my:PostCondLoopBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_LOOP ?loop_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopCond1-BodyBegin",
+        "formulation": "(?Loop rdf:type my:cond_then_body), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?e my:end_of ?cnd), (?b my:begin_of ?st), makeNamedSkolem(?R, my:Reason, ?e, ?b), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:on_true_consequent ?b), (?e my:IterationBeginOnTrueCond ?b), (?R my:reason_kind my:IterationBeginOnTrueCond), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:fetch_kind_of_loop ?Loop), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopCond1-update",
+        "formulation": "(?Loop rdf:type my:pre_update_loop), (?Loop my:cond ?cnd), (?Loop my:update ?upd), (?e my:end_of ?cnd), (?b my:begin_of ?upd), -> (?e my:on_true_consequent ?b), (?e my:LoopUpdateOnTrueCond ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopUpdate-body",
+        "formulation": "(?Loop rdf:type my:pre_update_loop), (?Loop my:update ?upd), (?Loop my:body ?st), (?e my:end_of ?upd), (?b my:begin_of ?st), -> (?e my:always_consequent ?b), (?e my:IterationAfterUpdate ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopCond0-LoopEnd",
+        "formulation": "(?Loop rdf:type my:conditional_loop), (?Loop my:cond ?cnd), (?e my:end_of ?Loop), (?e1 my:end_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:LoopEndOnFalseCond ?e), (?R my:reason_kind my:LoopEndOnFalseCond), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:fetch_kind_of_loop ?Loop), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopBody-cond",
+        "formulation": "(?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e, ?b), (?Loop my:stmt_name ?loop_name), (?cnd my:stmt_name ?cnd_name), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterIteration ?b), (?R my:reason_kind my:LoopCondBeginAfterIteration), (?e my:to_reason ?R), (?R my:from_reason ?b), (?R my:field_LOOP ?loop_name), (?R my:field_LOOP_COND ?cnd_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopBegin-init",
+        "formulation": "(?Loop rdf:type my:start_with_init), (?Loop my:init ?st), (?b my:begin_of ?Loop), (?b2 my:begin_of ?st), -> (?b my:always_consequent ?b2), (?b my:LoopWithInitBegin ?b2),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopInit-cond",
+        "formulation": "(?Loop rdf:type my:start_with_init), (?Loop my:init ?st), (?Loop my:cond ?cnd), (?e my:end_of ?st), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b), (?e my:LoopCondBeginAfterInit ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopBody-update",
+        "formulation": "(?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?e my:end_of ?st), (?b my:begin_of ?upd), -> (?e my:always_consequent ?b), (?e my:LoopUpdateAfterIteration ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "connect_LoopUpdate-cond",
+        "formulation": "(?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?e my:end_of ?upd), (?b my:begin_of ?cnd), -> (?e my:always_consequent ?b), (?e my:LoopCondAfterUpdate ?b),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "prepare-trace-step",
+    "positive": false,
+    "salience": 10,
+    "tags": [
+      {
+        "name": "prepare-trace-step"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "act_end"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "Redirect-normal-end-to-interrupted-end",
+        "formulation": "(?a my:student_next ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?st_b), (?bnd_a my:consequent ?bnd_halt), (?bnd_halt my:halt_of ?st_b), noValue(?bnd_a my:consequent ?bnd_b), -> drop(2), (?b my:executes ?bnd_halt),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "executes_id-to-executes-begin",
+        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_begin), (?bnd my:begin_of ?st), -> (?a my:executes ?bnd).",
+        "backend": "Jena"
+      },
+      {
+        "name": "executes_id-to-executes-end",
+        "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_end), (?bnd my:end_of ?st), -> (?a my:executes ?bnd).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "trace_helper",
+    "positive": false,
+    "tags": [
+      {
+        "name": "trace"
+      },
+      {
+        "name": "helper"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "Erroneous"
+      },
+      {
+        "name": "finish_trace_act"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "student_DepthIncr_rule_s6",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:student_next ?b), (?b rdf:type my:act_begin), (?a my:depth ?ad), addOne(?ad, ?bd), -> (?a my:student_parent_of ?b), (?b my:depth ?bd),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_DepthSame_b-e_rule_s7",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:student_next ?b), (?b rdf:type my:act_end), (?p my:student_parent_of ?a), (?a my:depth ?ad), -> (?p my:student_parent_of ?b), (?a my:student_corresponding_end ?b), (?b my:depth ?ad),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_DepthSame_e-b_rule_s8",
+        "formulation": "(?a rdf:type my:act_end), (?a my:student_next ?b), (?b rdf:type my:act_begin), (?p my:student_parent_of ?a), (?a my:depth ?ad), -> (?p my:student_parent_of ?b), (?b my:depth ?ad),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_DepthDecr_rule_s9",
+        "formulation": "(?a rdf:type my:act_end), (?a my:student_next ?b), (?b rdf:type my:act_end), (?p my:student_parent_of ?a), (?a my:depth ?ad), difference(?ad, 1, ?bd), -> (?p my:student_corresponding_end ?b), (?b my:depth ?bd),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "student_SameParentOfCorrActs_rule_s10",
+        "formulation": "(?a my:student_corresponding_end ?b), (?p my:student_parent_of ?a), -> (?p my:student_parent_of ?b).",
+        "backend": "Jena"
+      },
+      {
+        "name": "Erroneous-class-to-wrong_next_act",
+        "formulation": "(?b rdf:type my:Erroneous), (?a my:student_next ?b), -> (?a my:wrong_next_act ?b).",
+        "backend": "Jena"
+      },
+      {
+        "name": "Reason-4-correct-transition-4-student_next_latest",
+        "formulation": "(?a my:student_next_latest ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_a my:consequent ?bnd_b), (?bnd_a ?p ?bnd_b), noValue(?such_p rdfs:subPropertyOf ?p) -> (?b my:reason ?p).",
+        "backend": "Jena"
+      },
+      {
+        "name": "Mark-last-act-in-trace-as-finish_trace_act",
+        "formulation": "(?Trace my:executes ?alg), (?alg my:entry_point ?gc), (?bnd_e my:boundary_of ?gc), (?a my:in_trace ?Trace), (?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:always_consequent ?bnd_e), (?b my:student_next ?a), -> (?a rdf:type my:finish_trace_act).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "trace_mistake",
+    "positive": false,
+    "tags": [
+      {
+        "name": "trace"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "expr"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "UpcomingNeighbour"
+      },
+      {
+        "name": "NotNeighbour"
+      },
+      {
+        "name": "UnexpectedWhenInterrupting"
+      },
+      {
+        "name": "IgnoreInterruptingFlow"
+      },
+      {
+        "name": "TooEarlyWhenInterrupting"
+      },
+      {
+        "name": "WrongCondNeighbour"
+      },
+      {
+        "name": "CorrespondingEndMismatched"
+      },
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "WrongContext"
+      },
+      {
+        "name": "OneLevelShallower"
+      },
+      {
+        "name": "EndedDeeper"
+      },
+      {
+        "name": "EndedShallower"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "GenericMisconception_Error",
+        "formulation": "(?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:consequent ?some), noValue(?bx my:consequent ?by), (?bx my:boundary_of ?x), noValue(?x rdf:type my:expr), (?some my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:has_upcoming ?by), -> (?b rdf:type my:UpcomingNeighbour),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-all-missing-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx   my:has_upcoming ?some), (?some my:has_upcoming ?by), (?some my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:should_be_after ?some), (?b my:field_MISSING ?name), (?b my:field_MISSING_bound ?some),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-all-missing-on-1-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_true_consequent ?bx), (?b my:executes ?by), (?bx   my:has_upcoming ?some), (?some my:has_upcoming ?by), (?some my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:should_be_after ?some), (?b my:field_MISSING ?name), (?b my:field_MISSING_bound ?some),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-1st-missing-on-1-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_true_consequent ?bx), (?bx my:boundary_of ?bx_action), (?bx_action my:stmt_name ?bx_name), -> (?b my:should_be_after ?bx), (?b my:field_MISSING ?bx_name), (?b my:field_MISSING_bound ?bx),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-all-missing-on-0-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_false_consequent ?bx), (?b my:executes ?by), (?bx   my:has_upcoming ?some), (?some my:has_upcoming ?by), (?some my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:should_be_after ?some), (?b my:field_MISSING ?name), (?b my:field_MISSING_bound ?some),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-find-1st-missing-on-0-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?cnd_e), (?cnd_e my:on_false_consequent ?bx), (?bx my:boundary_of ?bx_action), (?bx_action my:stmt_name ?bx_name), -> (?b my:should_be_after ?bx), (?b my:field_MISSING ?bx_name), (?b my:field_MISSING_bound ?bx),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NotNeighbour-not-cond-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:always_consequent ?some_bnd), noValue(?bx my:has_upcoming ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b rdf:type my:NotNeighbour), (?b my:field_EXTRA ?name), (?b my:field_EXTRA_bound ?by),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UnexpectedWhenInterrupting-Error",
+        "formulation": "(?b rdf:type my:NotNeighbour), (?a my:student_next ?b), (?a my:executes ?bx), (?bx my:halt_of ?st_a), (?bx my:interrupt_origin ?o), (?o  my:boundary_of ?st), (?st rdf:type ?interrupt_class), (?interrupt_class rdfs:label ?kind), -> (?b rdf:type my:UnexpectedWhenInterrupting), (?b my:field_kind_of_action ?kind),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "IgnoreInterruptingFlow-Error",
+        "formulation": "(?b rdf:type my:UnexpectedWhenInterrupting), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:halt_of ?st_a), (?b2 my:end_of ?st_a), (?b2 my:has_upcoming ?by), -> (?b rdf:type my:IgnoreInterruptingFlow),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "TooEarlyWhenInterrupting-Error",
+        "formulation": "(?b rdf:type my:UpcomingNeighbour), (?a my:student_next ?b), (?a my:executes ?bx), (?bx my:halt_of ?st_a), (?bx my:consequent ?bn), (?bn  my:boundary_of ?st_n), (?st_n my:stmt_name ?name), (?bx my:interrupt_origin ?o), (?o  my:boundary_of ?st), (?st rdf:type ?interrupt_class), (?interrupt_class rdfs:label ?kind), -> (?b rdf:type my:TooEarlyWhenInterrupting), (?b my:field_MISSING ?name), (?b my:field_MISSING_bound ?bn), (?b my:field_kind_of_action ?kind),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "GenericMisconceptionWhenTrue_Error",
+        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), noValue(?bx my:on_true_consequent ?by), (?bx my:boundary_of ?x), (?x rdf:type my:expr), (?bx my:on_true_consequent ?on1), (?on1 my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-whenTrue-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_true_consequent ?on1), (?on1 my:has_upcoming ?by), -> (?b rdf:type my:UpcomingNeighbour),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "GenericMisconceptionWhenFalse_Error",
+        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), noValue(?bx my:on_false_consequent ?by), (?bx my:boundary_of ?x), (?x rdf:type my:expr), (?bx my:on_false_consequent ?on0), (?on0 my:boundary_of ?some_st), -> (?b rdf:type my:WrongNext), (?b my:should_be ?some_st), (?b my:precursor ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpcomingNeighbour-whenFalse-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?on0), (?on0 my:has_upcoming ?by), -> (?b rdf:type my:UpcomingNeighbour),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "GoFalseWhenTrue_Error",
+        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?by), (?bx my:on_true_consequent ?on1), (?on1 my:boundary_of ?some_st), -> (?b rdf:type my:WrongCondNeighbour), (?b my:should_be ?some_st), (?b my:has_causing_condition ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "WrongCondNeighbour-whenTrue-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?on0), (?bx my:on_true_consequent ?on1), (?on1 my:boundary_of ?some_st), (?on0 my:has_upcoming ?by), -> (?b rdf:type my:WrongCondNeighbour), (?b my:should_be ?some_st), (?b my:has_causing_condition ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "GoTrueWhenFalse_Error",
+        "formulation": "(?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_true_consequent ?by), (?bx my:on_false_consequent ?on0), (?on0 my:boundary_of ?some_st), -> (?b rdf:type my:WrongCondNeighbour), (?b my:should_be ?some_st), (?b my:has_causing_condition ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "WrongCondNeighbour-whenFalse-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?on0), (?bx my:on_true_consequent ?on1), (?on0 my:boundary_of ?some_st), (?on1 my:has_upcoming ?by), -> (?b rdf:type my:WrongCondNeighbour), (?b my:should_be ?some_st), (?b my:has_causing_condition ?a),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "WrongCondNeighbour-get-fields",
+        "formulation": "(?b rdf:type my:WrongCondNeighbour), (?b my:has_causing_condition ?a), (?a my:expr_value ?expr_val), (?a my:executes ?bx), (?bx my:boundary_of ?some_st_a), (?some_st_a my:stmt_name ?name_a), (?b my:executes ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b my:field_A ?name), (?b my:field_A_bound ?by), (?b my:field_COND ?name_a), (?b my:field_TrueFalse ?expr_val),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NotNeighbour-cond-Error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?a my:executes ?bx), (?b my:executes ?by), (?bx my:on_false_consequent ?on0), (?bx my:on_true_consequent ?on1), noValue(?bx my:consequent ?by), noValue(?on0 my:has_upcoming ?by), noValue(?on1 my:has_upcoming ?by), (?by my:boundary_of ?some_st), (?some_st my:stmt_name ?name), -> (?b rdf:type my:NotNeighbour), (?b my:field_EXTRA ?name), (?b my:field_EXTRA_bound ?by),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "CorrespondingEndMismatched-Error",
+        "formulation": "(?a my:student_corresponding_end ?b), (?a my:executes ?bnd1), (?b my:executes ?bnd2), (?bnd1 my:boundary_of ?st1), noValue(?bnd2 my:boundary_of ?st1), (?bnd2 my:boundary_of ?st2), (?st1 my:stmt_name ?a_name), (?st2 my:stmt_name ?b_name), -> (?b rdf:type my:CorrespondingEndMismatched), (?b my:cause ?a) (?b my:field_BEGIN ?a_name), (?b my:field_A ?b_name), (?b my:field_A_bound ?bnd2),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "GenericWrongStmtParent_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?p my:student_parent_of ?a), (?p my:executes ?bp), (?a my:executes ?ba), (?bp my:boundary_of ?sp), (?ba my:boundary_of ?sa), noValue(?sp my:parent_of ?sa), (?pa my:parent_of ?sa), (?sp my:stmt_name ?p_name), (?sa my:stmt_name ?a_name), -> (?a my:cause ?p), (?a my:context_should_be ?pa), (?a rdf:type my:WrongContext), (?a my:field_A ?a_name), (?a my:field_A_bound ?ba), (?a my:field_CONTEXT ?p_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "OneLevelShallower-Error",
+        "formulation": "(?a rdf:type my:WrongContext), (?a my:context_should_be ?pa), (?p my:student_parent_of ?a), (?p my:executes ?bp), (?bp my:begin_of ?sp), (?sp my:parent_of ?pa), (?pa my:stmt_name ?p_name), -> (?a rdf:type my:OneLevelShallower), (?a my:field_PARENT ?p_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "EndedDeeper-error",
+        "formulation": "(?a rdf:type my:CorrespondingEndMismatched), (?b my:student_corresponding_end ?a), (?b my:executes ?bb), (?a my:executes ?ba), (?bb my:boundary_of ?sb), (?ba my:boundary_of ?sa), (?sa my:hasPartTransitive ?sb), (?sa my:stmt_name ?a_name), (?sb my:stmt_name ?b_name), -> (?a rdf:type my:EndedDeeper), (?a my:field_A ?a_name), (?a my:field_INNER ?b_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "EndedShallower-error",
+        "formulation": "(?a rdf:type my:CorrespondingEndMismatched), (?b my:student_corresponding_end ?a), (?b my:executes ?bb), (?a my:executes ?ba), (?bb my:boundary_of ?sb), (?ba my:boundary_of ?sa), (?sb my:hasPartTransitive ?sa), -> (?a rdf:type my:EndedShallower).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "sequence_mistake",
+    "positive": false,
+    "tags": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "mistake"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "DuplicateOfAct"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "TooEarlyInSequence"
+      },
+      {
+        "name": "TooLateInSequence"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "Erroneous"
+      },
+      {
+        "name": "SequenceFinishedTooEarly"
+      },
+      {
+        "name": "SequenceFinishedNotInOrder"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "DuplicateOfAct-seq_Error (b,e)",
+        "formulation": "(?p my:student_parent_of ?a1), (?p my:student_parent_of ?a2), (?p my:executes ?bb), (?bb my:boundary_of ?block), (?block rdf:type my:sequence), (?block my:body_item ?st), (?bnd my:boundary_of ?st), (?a1 my:executes ?bnd), (?a2 my:executes ?bnd), (?a1 my:student_index ?i1), (?a2 my:student_index ?i2), lessThan(?i1, ?i2), (?st my:stmt_name ?a_name), (?block my:stmt_name ?p_name), -> (?a2 my:cause ?a1), (?a2 rdf:type my:DuplicateOfAct) (?a2 my:field_A ?a_name), (?a2 my:field_PARENT ?p_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "TooEarlyInSequence-Seq_error",
+        "formulation": "(?b rdf:type my:WrongNext), (?b my:should_be ?correct_b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st_b), (?p my:student_parent_of ?b), (?p my:executes ?bnd_p), (?bnd_p my:boundary_of ?seq), (?seq rdf:type my:sequence), (?seq my:body_item ?st_b), (?seq my:body_item ?correct_b), (?correct_b my:item_index ?index_c), (?st_b my:item_index ?index_b), lessThan(?index_c, ?index_b), (?st_b my:stmt_name ?b_name), (?correct_b my:stmt_name ?c_name), (?begin_of_corr_b my:begin_of ?correct_b), -> (?b my:should_be_after ?correct_b), (?b rdf:type my:TooEarlyInSequence), (?b my:field_A ?b_name), (?b my:field_MISSING ?c_name), (?b my:field_MISSING_bound ?begin_of_corr_b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "TooLateInSequence-Seq_error",
+        "formulation": "(?b rdf:type my:WrongNext), (?a my:student_next ?b), (?p my:student_parent_of ?a), (?p my:student_parent_of ?b), (?p my:executes ?bnd_p), (?bnd_p my:boundary_of ?seq), (?seq rdf:type my:sequence), (?seq my:body_item ?st_a), (?seq my:body_item ?st_b), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st_a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st_b), (?st_a my:item_index ?index_a), (?st_b my:item_index ?index_b), greaterThan(?index_a, ?index_b), (?st_a my:stmt_name ?a_name), (?st_b my:stmt_name ?b_name), -> (?b my:should_be_before ?st_a), (?b rdf:type my:TooLateInSequence) (?b my:field_A ?b_name), (?b my:field_PREVIOUS ?a_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_13",
+        "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_14",
+        "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_corresponding_end ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_15",
+        "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?par_e), -> (?par_e my:gathered_child_exec_till ?par_e), drop(0).",
+        "backend": "Jena"
+      },
+      {
+        "name": "autogen_16",
+        "formulation": "(?child_act my:gathered_child_exec_till ?par_e), (?par_b my:gather_child_exec_till ?par_e), (?child_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), -> drop(0).",
+        "backend": "Jena"
+      },
+      {
+        "name": "SequenceFinishedTooEarly-init1-Seq_error",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?a my:student_parent_of ?child_act), (?child_act rdf:type my:TooEarlyInSequence), (?prev_act my:student_next ?b), (?prev_act my:executes ?bnd_p), noValue(?bnd_p, my:interrupt_origin), -> (?a my:gather_child_exec_till ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "SequenceFinishedTooEarly-init2-Seq_error",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?b rdf:type my:Erroneous), (?prev_act my:student_next ?b), (?prev_act my:executes ?bnd_p), noValue(?bnd_p, my:interrupt_origin), -> (?a my:gather_child_exec_till ?b),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "SequenceFinishedTooEarly-finish-Seq_error",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_corresponding_end ?b), (?b my:gathered_child_exec_till ?b), (?seq my:body_item ?some_st), (?some_st_bnd my:begin_of ?some_st), noValue(?a my:child_executes ?some_st_bnd), (?seq my:stmt_name ?a_name), (?some_st my:stmt_name ?b_name), -> (?b my:should_be_after ?some_st), (?b rdf:type my:SequenceFinishedTooEarly), (?b my:field_A ?a_name), (?b my:field_MISSING ?b_name), (?b my:field_MISSING_bound ?some_st_bnd),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "SequenceFinishedNotInOrder-Seq_error",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?seq_e), (?seq_e my:boundary_of ?seq), (?seq rdf:type my:sequence), (?a my:student_next ?b), (?a my:executes ?bnd_b), (?bnd_b my:boundary_of ?sa), noValue(?bnd_b my:consequent ?seq_e), (?seq my:stmt_name ?a_name), -> (?b my:should_be_after ?st), (?b rdf:type my:SequenceFinishedNotInOrder), (?b my:field_A ?a_name),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "alternative_mistake",
+    "positive": false,
+    "tags": [
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "NoFirstCondition"
+      },
+      {
+        "name": "ConditionTooEarly"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "BranchOfFalseCondition"
+      },
+      {
+        "name": "BranchWithoutCondition"
+      },
+      {
+        "name": "BranchNotNextToCondition"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "ElseBranchNotNextToLastCondition"
+      },
+      {
+        "name": "ElseBranchAfterTrueCondition"
+      },
+      {
+        "name": "CondtionNotNextToPrevCondition"
+      },
+      {
+        "name": "ConditionTooLate"
+      },
+      {
+        "name": "DuplicateOfCondition"
+      },
+      {
+        "name": "ConditionAfterBranch"
+      },
+      {
+        "name": "AnotherExtraBranch"
+      },
+      {
+        "name": "alt_branch"
+      },
+      {
+        "name": "NoBranchWhenConditionIsTrue"
+      },
+      {
+        "name": "LastConditionIsFalseButNoElse"
+      },
+      {
+        "name": "NoNextCondition"
+      },
+      {
+        "name": "last_item"
+      },
+      {
+        "name": "LastFalseNoEnd"
+      },
+      {
+        "name": "NoAlternativeEndAfterBranch"
+      },
+      {
+        "name": "AlternativeEndAfterTrueCondition"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "NoFirstCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition), (?b my:field_ALT ?a_name), (?b my:field_REQUIRED_COND ?c_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ConditionTooEarly-atAltBegin-alt_Error",
+        "formulation": "(?b rdf:type my:NoFirstCondition), (?b my:executes ?bnd), (?bnd my:begin_of ?cnd), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br my:item_index ?br_i), greaterThan(?br_i, 0), (?cnd my:stmt_name ?c2_name), -> (?b rdf:type my:ConditionTooEarly), (?b my:field_CURRENT_ALT_COND ?c2_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "BranchOfFalseCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?b rdf:type my:act_begin), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br), (?a my:student_index ?i1), (?b my:student_index ?i2), lessThan(?i1, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b my:cause ?a), (?b rdf:type my:BranchOfFalseCondition), (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name), (?b my:field_UNEXPECTED_BRANCH ?b_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "BranchWithoutCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br my:cond ?cnd), (?st my:id ?i), (?cnd my:id ?i2), notEqual(?i, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:BranchWithoutCondition), (?a my:field_ALT ?a_name), (?a my:field_REQUIRED_COND ?c_name), (?a my:field_UNEXPECTED_BRANCH ?b_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "BranchNotNextToCondition-alt_Error",
+        "formulation": "(?a rdf:type my:BranchWithoutCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br my:cond ?cnd), (?alt_act my:student_parent_of ?a), (?c my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?a my:in_trace ?trace), (?c my:in_trace ?trace), (?alt_act my:student_index ?ia), (?c my:student_index ?ic), lessThan(?ia, ?ic), (?a my:student_index ?ib), lessThan(?ic, ?ib), -> (?a rdf:type my:BranchNotNextToCondition),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ElseBranchNotNextToLastCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br rdf:type my:else), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br1 my:next ?br), (?br1 my:cond ?cnd), (?st my:id ?i), (?cnd my:id ?i2), notEqual(?i, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:ElseBranchNotNextToLastCondition), (?a my:field_ALT ?a_name), (?a my:field_REQUIRED_COND ?c_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ElseBranchAfterTrueCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?br rdf:type my:else), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br1 my:next ?br), (?br1 my:cond ?cnd), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?b my:expr_value \"true\"^^xsd:boolean), (?alt_act my:student_parent_of ?a), (?alt_act my:executes ?bnd_alt), (?bnd_alt my:boundary_of ?alt), (?alt_act my:student_index ?alt_i), (?b my:student_index ?b_i), lessThan(?alt_i, ?b_i), (?a my:student_index ?a_i), lessThan(?b_i, ?a_i), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?a my:should_be_after ?cnd), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:ElseBranchAfterTrueCondition), (?a my:field_ALT ?a_name), (?a my:field_LATEST_ALT_COND ?c_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "CondtionNotNextToPrevCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?br2 my:cond ?cnd2), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?br1 my:next ?br2), (?br1 my:cond ?cnd1), (?st my:id ?i), (?cnd1 my:id ?i2), notEqual(?i, ?i2), (?alt my:stmt_name ?a_name), (?cnd1 my:stmt_name ?c_name), (?cnd2 my:stmt_name ?c2_name), -> (?a my:should_be_after ?cnd1), (?a my:precursor ?b), (?a my:context_should_be ?alt), (?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:field_ALT ?a_name), (?a my:field_REQUIRED_COND ?c_name), (?a my:field_CURRENT_ALT_COND ?c2_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ConditionTooEarly-afterCond-alt_Error",
+        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?br2 my:cond ?cnd2), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd1), (?br1 my:cond ?cnd1), (?alt my:branches_item ?br1), (?br1 my:item_index ?br1_i), (?br2 my:item_index ?br2_i), greaterThan(?br2_i, ?br1_i), -> (?a rdf:type my:ConditionTooEarly),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ConditionTooLate-alt_Error",
+        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd2), (?br2 my:cond ?cnd2), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?b my:student_next ?a), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd1), (?br1 my:cond ?cnd1), (?alt my:branches_item ?br1), (?br1 my:item_index ?br1_i), (?br2 my:item_index ?br2_i), lessThan(?br2_i, ?br1_i), -> (?a rdf:type my:ConditionTooLate),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "DuplicateOfCondition-alt_Error",
+        "formulation": "(?a rdf:type my:CondtionNotNextToPrevCondition), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?br2 my:cond ?cnd), (?alt my:branches_item ?br2), (?alt rdf:type my:alternative), (?p my:student_parent_of ?a), (?p my:student_parent_of ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?b my:student_index ?i1), (?a my:student_index ?i2), lessThan(?i1, ?i2), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?a rdf:type my:DuplicateOfCondition), (?a my:field_ALT ?a_name), (?a my:field_CURRENT_ALT_COND ?c_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ConditionAfterBranch-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b rdf:type my:ConditionAfterBranch), (?b my:field_ALT ?a_name), (?b my:field_UNEXPECTED_ALT_COND ?c_name), (?b my:field_BRANCH ?b_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "AnotherExtraBranch-alt_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?br2), (?alt my:branches_item ?br2), (?alt_act my:student_parent_of ?a), (?alt_act my:student_parent_of ?b), (?a my:student_index ?sia), (?b my:student_index ?sib), greaterThan(?sib, ?sia), (?alt my:stmt_name ?a_name), (?br my:stmt_name ?b_name), (?br2 my:stmt_name ?b2_name), -> (?b my:cause ?a), (?b rdf:type my:AnotherExtraBranch), (?b my:field_ALT ?a_name), (?b my:field_BRANCH ?b_name), (?b my:field_UNEXPECTED_BRANCH ?b2_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoBranchWhenConditionIsTrue-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"true\"^^xsd:boolean), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?br), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?br), (?b rdf:type my:NoBranchWhenConditionIsTrue), (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name), (?b my:field_EXPECTED_BRANCH ?b_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LastConditionIsFalseButNoElse-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?br my:next ?br2), (?br2 rdf:type my:else), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:should_be ?br2), (?b rdf:type my:LastConditionIsFalseButNoElse), (?b my:field_ALT ?a_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LastConditionIsFalseButNoElse-helper-alt_Error",
+        "formulation": "(?b rdf:type my:LastConditionIsFalseButNoElse), (?b my:should_be ?br2), (?alt my:branches_item ?br2), (?alt my:branches_item ?br), (?br my:cond ?cnd), (?cnd my:stmt_name ?c_name), -> (?b my:field_ALT_COND ?c_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoNextCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?cnd rdf:type my:expr), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?br my:next ?br2), (?br2 my:cond ?cnd2), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), (?cnd2 my:stmt_name ?c2_name), -> (?b my:should_be ?cnd2), (?b rdf:type my:NoNextCondition), (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name), (?b my:field_EXPECTED_ALT_COND ?c2_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LastFalseNoEnd-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br rdf:type my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:precursor ?a), (?b my:should_be ?alt), (?b rdf:type my:LastFalseNoEnd), (?b my:field_ALT ?a_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LastFalseNoEnd-helper-alt_Error",
+        "formulation": "(?b rdf:type my:LastFalseNoEnd), (?b my:should_be ?alt), (?alt my:branches_item ?br), (?br my:cond ?cnd), (?cnd my:stmt_name ?c_name), -> (?b my:field_ALT_COND ?c_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoAlternativeEndAfterBranch-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?br), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), (?br my:stmt_name ?b_name), -> (?b my:should_be ?alt), (?b rdf:type my:NoAlternativeEndAfterBranch), (?b my:field_ALT ?a_name), (?b my:field_BRANCH ?b_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "AlternativeEndAfterTrueCondition-alt_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?alt), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:should_be ?br), (?b my:precursor ?a), (?b rdf:type my:AlternativeEndAfterTrueCondition) (?b my:field_ALT ?a_name), (?b my:field_LATEST_ALT_COND ?c_name),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "loop_mistake",
+    "positive": false,
+    "tags": [
+      {
+        "name": "loop"
+      },
+      {
+        "name": "mistake"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "start_with_cond"
+      },
+      {
+        "name": "LoopStartIsNotCondition"
+      },
+      {
+        "name": "start_with_body"
+      },
+      {
+        "name": "LoopStartIsNotIteration"
+      },
+      {
+        "name": "act_end"
+      },
+      {
+        "name": "cond_then_body"
+      },
+      {
+        "name": "NoIterationAfterSuccessfulCondition"
+      },
+      {
+        "name": "LoopEndAfterSuccessfulCondition"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "WrongNext"
+      },
+      {
+        "name": "NoLoopEndAfterFailedCondition"
+      },
+      {
+        "name": "conditional_loop"
+      },
+      {
+        "name": "LoopEndsWithoutCondition"
+      },
+      {
+        "name": "ConditionMisuse"
+      },
+      {
+        "name": "LoopContinuedAfterFailedCondition"
+      },
+      {
+        "name": "IterationAfterFailedCondition"
+      },
+      {
+        "name": "body_then_cond"
+      },
+      {
+        "name": "NoConditionAfterIteration"
+      },
+      {
+        "name": "NoConditionBetweenIterations"
+      },
+      {
+        "name": "start_with_init"
+      },
+      {
+        "name": "LoopStartsNotWithInit"
+      },
+      {
+        "name": "InitNotAtLoopStart"
+      },
+      {
+        "name": "NoConditionAfterForInit"
+      },
+      {
+        "name": "IterationAfterForInit"
+      },
+      {
+        "name": "post_update_loop"
+      },
+      {
+        "name": "NoUpdateAfterIteration"
+      },
+      {
+        "name": "UpdateNotAfterIteration"
+      },
+      {
+        "name": "ForConditionAfterIteration"
+      },
+      {
+        "name": "NoConditionAfterForUpdate"
+      },
+      {
+        "name": "pre_update_loop"
+      },
+      {
+        "name": "NoForeachUpdateAfterSuccessfulCondition"
+      },
+      {
+        "name": "ForeachUpdateNotAfterSuccessfulCondition"
+      },
+      {
+        "name": "NoIterationAfterForeachUpdate"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "LoopStartIsNotCondition-loop_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_cond), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:end_of ?Loop), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopStartIsNotCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LoopStartIsNotIteration-loop_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_body), (?Loop my:body ?Body), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Loop), noValue(?bnd_b my:boundary_of ?Body), (?Loop my:stmt_name ?a_name), -> (?b rdf:type my:LoopStartIsNotIteration), (?b my:field_LOOP ?a_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoIterationAfterSuccessfulCondition-1-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?Loop my:body ?Body), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?Body), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoIterationAfterSuccessfulCondition) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LoopEndAfterSuccessfulCondition-1-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop my:cond ?cnd), (?Loop rdf:type my:cond_then_body), (?a my:expr_value \"true\"^^xsd:boolean), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?Loop), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:LoopEndAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoLoopEndAfterFailedCondition-0-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:loop), (?Loop my:cond ?cnd), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoLoopEndAfterFailedCondition) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LoopEndsWithoutCondition-loop_Error",
+        "formulation": "(?b rdf:type my:act_end), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?Loop), (?Loop rdf:type my:conditional_loop), (?a my:student_next ?b), (?Loop my:cond ?cnd), (?a my:executes ?bnd_a), noValue(?bnd_a my:halt_of ?st_a), noValue(?bnd_a my:boundary_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b rdf:type my:LoopEndsWithoutCondition).",
+        "backend": "Jena"
+      },
+      {
+        "name": "LoopContinuedAfterFailedCondition-loop_Error",
+        "formulation": "(?b rdf:type my:NoLoopEndAfterFailedCondition), (?b rdf:type my:ConditionMisuse), -> (?b rdf:type my:LoopContinuedAfterFailedCondition).",
+        "backend": "Jena"
+      },
+      {
+        "name": "IterationAfterFailedCondition-loop_Error",
+        "formulation": "(?b rdf:type my:NoLoopEndAfterFailedCondition), (?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?st), (?L my:body ?st), (?L rdf:type my:cond_then_body), -> (?b rdf:type my:IterationAfterFailedCondition).",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoConditionAfterIteration-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd), (?bnd my:end_of ?st), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoConditionAfterIteration) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoConditionBetweenIterations-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?Loop rdf:type my:body_then_cond), (?Loop my:body ?st), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st), (?a my:student_next ?b), (?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?st), (?Loop my:cond ?cnd), (?Loop my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b my:should_be_after ?cnd), (?b rdf:type my:NoConditionBetweenIterations) (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "LoopStartsNotWithInit-loop_Error",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:boundary_of ?Loop), (?Loop rdf:type my:start_with_init), (?Loop my:init ?init_stmt), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:end_of ?Loop), noValue(?bnd_b my:begin_of ?init_stmt), (?Loop my:stmt_name ?a_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:LoopStartsNotWithInit), (?b my:field_LOOP ?a_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "InitNotAtLoopStart-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd_b), (?bnd_b my:boundary_of ?init_stmt), (?Loop my:init ?init_stmt), (?Loop rdf:type my:start_with_init), (?a my:student_next ?b), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?Loop), (?bnd_a my:boundary_of ?a_stmt), (?a_stmt my:stmt_name ?a_name), (?Loop my:stmt_name ?L_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:InitNotAtLoopStart), (?b my:field_A ?a_name), (?b my:field_A_bound ?bnd_a), (?b my:field_LOOP ?L_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoConditionAfterForInit-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:end_of ?init_stmt), (?Loop rdf:type my:start_with_init), (?Loop my:init ?init_stmt), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:NoConditionAfterForInit), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "IterationAfterForInit-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?init_stmt), (?Loop my:init ?init_stmt), (?Loop rdf:type my:start_with_init), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?a my:student_next ?b), (?b my:executes ?bnd_b), (?bnd_b my:begin_of ?st), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?init_stmt my:stmt_name ?i_name), -> (?b rdf:type my:IterationAfterForInit), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_INIT ?i_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoUpdateAfterIteration-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:end_of ?st), (?Loop rdf:type my:post_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:begin_of ?upd), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoUpdateAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "UpdateNotAfterIteration-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:body ?st), (?a my:student_next ?b), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?st), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:UpdateNotAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ForConditionAfterIteration-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop rdf:type my:post_update_loop), (?Loop my:cond ?cnd), (?Loop my:body ?st), (?a my:student_next ?b), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?st), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?Loop my:update ?upd), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:ForConditionAfterIteration), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoConditionAfterForUpdate-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop rdf:type my:post_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?cnd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoConditionAfterForUpdate), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoForeachUpdateAfterSuccessfulCondition-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?cnd), (?Loop rdf:type my:pre_update_loop), (?Loop my:cond ?cnd), (?cnd my:expr_value \"true\"^^xsd:boolean), (?Loop my:update ?upd), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?upd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoForeachUpdateAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "ForeachUpdateNotAfterSuccessfulCondition-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop rdf:type my:pre_update_loop), (?Loop my:update ?upd), (?Loop my:cond ?cnd), (?a my:student_next ?b), (?a my:executes ?bnd_a), (?bnd_a my:end_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:ForeachUpdateNotAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_LOOP_COND ?c_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "NoIterationAfterForeachUpdate-loop_Error",
+        "formulation": "(?a rdf:type my:act_end), (?a my:executes ?bnd), (?bnd my:boundary_of ?upd), (?Loop my:update ?upd), (?Loop rdf:type my:pre_update_loop), (?Loop my:body ?st), (?a my:student_next ?b), (?b my:executes ?bnd_b), noValue(?bnd_b my:boundary_of ?st), (?Loop my:stmt_name ?a_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:NoIterationAfterForeachUpdate), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "IterationNotAfterForeachUpdate-loop_Error",
+        "formulation": "(?b rdf:type my:act_begin), (?b my:executes ?bnd), (?bnd my:boundary_of ?st), (?Loop rdf:type my:pre_update_loop), (?Loop my:body ?st), (?Loop my:update ?upd), (?a my:student_next ?b), (?a my:executes ?bnd_a), noValue(?bnd_a my:boundary_of ?upd), (?Loop my:stmt_name ?a_name), (?cnd  my:stmt_name ?c_name), (?upd  my:stmt_name ?u_name), -> (?b rdf:type my:ForeachUpdateNotAfterSuccessfulCondition), (?b my:field_LOOP ?a_name), (?b my:field_UPDATE ?u_name), (?b my:fetch_kind_of_loop ?Loop),.",
+        "backend": "Jena"
+      }
+    ]
+  }
+]

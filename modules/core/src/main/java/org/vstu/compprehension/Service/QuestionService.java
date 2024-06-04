@@ -9,12 +9,12 @@ import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.backends.Backend;
+import org.vstu.compprehension.models.businesslogic.backends.BackendFactoryInterface;
+import org.vstu.compprehension.models.businesslogic.backends.ReasoningOptions;
+import org.vstu.compprehension.models.businesslogic.backends.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.domain.Domain;
+import org.vstu.compprehension.models.businesslogic.domain.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
@@ -33,7 +33,7 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerObjectRepository answerObjectRepository;
     private final AbstractStrategyFactory strategyFactory;
-    private final BackendFactory backendFactory;
+    private final BackendFactoryInterface backendFactory;
     private final DomainService domainService;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
@@ -43,7 +43,7 @@ public class QuestionService {
     private final QuestionBank questionStorage;
 
     @Autowired
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactoryInterface backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
