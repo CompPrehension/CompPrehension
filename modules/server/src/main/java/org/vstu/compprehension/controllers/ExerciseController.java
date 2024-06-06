@@ -109,7 +109,7 @@ public class ExerciseController {
     @RequestMapping(value = {"generateQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.CreateExercise.Name())) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name())) {
             throw new AuthorizationServiceException("Unathorized");
         }
 

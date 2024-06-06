@@ -51,7 +51,7 @@ public class ReferenceTableController {
     @RequestMapping(value = {"/strategies"}, method = { RequestMethod.GET })
     @ResponseBody
     public List<StrategyDto> getStrategies() throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.EditExercise.Name())) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name())) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -85,7 +85,7 @@ public class ReferenceTableController {
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })
     @ResponseBody
     public Set<String> getBackends() throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.EditExercise.Name())) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name())) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -95,7 +95,7 @@ public class ReferenceTableController {
     @RequestMapping(value = {"/domains"}, method = { RequestMethod.GET })
     @ResponseBody
     public List<DomainDto> getDomains() throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.EditExercise.Name())) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name())) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
