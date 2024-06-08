@@ -88,10 +88,27 @@ public class AuthorizationService {
      * @param  roles   a list of RoleAssignmentDTO objects representing the roles to be added
      */
     public void addUserRoles(long userId, List<RoleAssignmentDTO> roles) {
-        for (var role : roles) {
-            addUserRole(userId, role);
+        var user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        for (RoleAssignmentDTO roleDto : roles) {
+            var role = roleRepository.findByName(roleDto.roleName()).orElseThrow(() -> new EntityNotFoundException("Role not found"));
+            var permissionScope = getPermissionScope(roleDto.permissionScopeKind(), roleDto.ownerId()).orElseThrow(() -> new EntityNotFoundException("PermissionScope not found"));
+
+            var userRoles = user.getRoleUserAssignments().stream().map(RoleUserAssignmentEntity::getRole).toList();
+            if (userRoles.contains(role)) {
+                continue;
+            }
+
+            var newRole = new RoleUserAssignmentEntity();
+            newRole.setUser(user);
+            newRole.setRole(role);
+            newRole.setPermissionScope(permissionScope);
+
+            user.getRoleUserAssignments().add(newRole);
         }
+        userRepository.save(user);
     }
+
 
     /**
      * Adds a user role to the system.
