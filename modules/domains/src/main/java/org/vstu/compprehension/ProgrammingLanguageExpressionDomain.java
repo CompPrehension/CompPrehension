@@ -66,7 +66,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
     static final String PRECEDENCE_TYPE_QUESTION_TYPE = "PrecedenceType";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
-    static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
+    static final String RESOURCES_LOCATION = "domains/";
     static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
     static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";

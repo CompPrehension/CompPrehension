@@ -52,7 +52,7 @@ import static org.vstu.compprehension.helpers.FactsGraph.factsListDeepCopy;
 @Log4j2
 public class ControlFlowStatementsDomain extends Domain {
     public static final String LOCALE_KEY_MARK = "!{locale:";
-    static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
+    static final String RESOURCES_LOCATION = "domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderActsSupplementary";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
