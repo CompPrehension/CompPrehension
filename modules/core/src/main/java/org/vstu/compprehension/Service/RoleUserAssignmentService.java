@@ -21,18 +21,25 @@ public class RoleUserAssignmentService {
 
     public void saveIfDoesNotExist(Collection<RoleUserAssignmentEntity> entities) {
         List<RoleUserAssignmentEntity> entitiesToSave = new ArrayList<>();
+        List<RoleUserAssignmentEntity> entitiesToRemove = new ArrayList<>();
 
         for (var entity : entities) {
-            var exists = roleUserAssignmentRepository.existsByUserIdAndRoleIdAndPermissionScopeId(
+
+            var existsRoles = roleUserAssignmentRepository.findUsersWithRoleOnPermissionScope(
                     entity.getUser().getId(),
-                    entity.getRole().getId(),
                     entity.getPermissionScope().getId()
             );
-            if (!exists) {
-                entitiesToSave.add(entity);
+
+            if (existsRoles.stream().anyMatch(r -> r.getRole().getId() == entity.getRole().getId())) {
+                continue;
+            } else if (!existsRoles.isEmpty()) {
+                entitiesToRemove.addAll(existsRoles);
             }
+
+            entitiesToSave.add(entity);
         }
 
+        roleUserAssignmentRepository.deleteAll(entitiesToRemove);
         roleUserAssignmentRepository.saveAll(entitiesToSave);
     }
 }
