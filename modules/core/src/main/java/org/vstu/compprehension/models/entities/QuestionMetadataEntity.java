@@ -18,7 +18,7 @@ public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    public Integer id;
+    private Integer id;
 
     // @Lob
     @Column(name = "name")
@@ -33,7 +33,7 @@ public class QuestionMetadataEntity {
     @Column(name = "q_data_graph")
     private String qDataGraph;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "question_data_id", referencedColumnName = "id")
     private QuestionDataEntity questionData;
 

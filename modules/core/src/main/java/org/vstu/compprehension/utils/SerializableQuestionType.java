@@ -1,7 +1,5 @@
 package org.vstu.compprehension.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
@@ -15,9 +13,6 @@ import java.sql.Types;
 import java.util.Objects;
 
 public class SerializableQuestionType implements UserType<SerializableQuestion> {
-
-    private static final Gson gson = new GsonBuilder().create();
-
     @Override
     public int getSqlType() {
         return Types.VARCHAR;
@@ -41,7 +36,7 @@ public class SerializableQuestionType implements UserType<SerializableQuestion> 
     @Override
     public void nullSafeSet(PreparedStatement st, SerializableQuestion value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
         if (value != null) {
-            st.setString(index, gson.toJson(value));
+            st.setString(index, SerializableQuestion.serializeToString(value.getQuestionData()));
         } else {
             st.setNull(index, Types.VARCHAR);
         }
@@ -52,8 +47,8 @@ public class SerializableQuestionType implements UserType<SerializableQuestion> 
         if (value == null) {
             return null;
         }
-        String json = gson.toJson(value);
-        return gson.fromJson(json, SerializableQuestion.class);
+        String json = SerializableQuestion.serializeToString(value.getQuestionData());
+        return SerializableQuestion.deserializeFromString(json);
     }
 
     @Override
@@ -79,6 +74,6 @@ public class SerializableQuestionType implements UserType<SerializableQuestion> 
     @Override
     public SerializableQuestion nullSafeGet(ResultSet rs, int columnIndex, SharedSessionContractImplementor session, Object owner) throws SQLException {
         String json = rs.getString(columnIndex);
-        return json != null ? gson.fromJson(json, SerializableQuestion.class) : null;
+        return json != null ? SerializableQuestion.deserializeFromString(json) : null;
     }
 }

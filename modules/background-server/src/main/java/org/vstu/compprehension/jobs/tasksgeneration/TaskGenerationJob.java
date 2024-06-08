@@ -524,11 +524,22 @@ public class TaskGenerationJob {
                     continue;
                 }
 
+
+                // copy data file and save local sub-path to it
+//                String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
+//                        ? storage.saveQuestionData(domainId, q.getQuestionData().getQuestionName(), q)
+//                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionData().getQuestionName(), q);
+//                meta.setQDataGraph(qDataPath);
+
                 // save question data in the database
                 QuestionDataEntity questionData = new QuestionDataEntity();
-                questionData.setData(SerializableQuestion.serializeFromQuestionData(q.getQuestionData())); // assuming you have a method to convert question data to JSON string
+
+                var json = SerializableQuestion.serializeToString(q.getQuestionData());
+                var newData = SerializableQuestion.deserializeFromString(json);
+
+                questionData.setData(newData);
                 questionData.setId(meta.getId());
-                questionData = storage.saveQuestionDataEntity(questionData); // save and get the updated entity with id
+                questionData = storage.saveQuestionDataEntity(questionData);
 
                 // set reference to the question data entity
                 meta.setQuestionData(questionData);

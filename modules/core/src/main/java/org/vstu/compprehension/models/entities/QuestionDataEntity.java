@@ -15,7 +15,6 @@ import org.vstu.compprehension.utils.SerializableQuestionType;
 @AllArgsConstructor
 public class QuestionDataEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 

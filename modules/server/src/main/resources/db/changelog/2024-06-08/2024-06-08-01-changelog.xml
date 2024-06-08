@@ -20,7 +20,7 @@
 
     <changeSet id="1717858857416-8" author="artem">
         <addColumn tableName="questions_data">
-            <column autoIncrement="true" incrementBy="1" name="id" startWith="1" type="INT">
+            <column name="id" type="INT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_questions_data" validateNullable="true"/>
             </column>
         </addColumn>
