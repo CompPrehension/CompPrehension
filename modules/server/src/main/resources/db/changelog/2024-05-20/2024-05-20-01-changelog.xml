@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="17290785683123-1" author="Artem Zhikharev">
+        <!-- Добавление EDUCATION_RESOURCE в таблицу PermissionScope -->
+        <sql>INSERT INTO permission_scope (kind, owner_id) VALUES ('EDUCATION_RESOURCE', (SELECT id FROM education_resource WHERE name = 'vstu'));</sql>
+    </changeSet>
+    <changeSet id="17290785683123-2" author="Artem Zhikharev">
+        <!-- Изменение ссылки на домен vstu -->
+        <sql>UPDATE education_resource SET url = 'https://compprehension.ddns.net' WHERE name = 'vstu';</sql>
+    </changeSet>
+</databaseChangeLog>

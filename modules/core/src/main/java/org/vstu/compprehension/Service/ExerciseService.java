@@ -10,6 +10,7 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
+import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
@@ -22,12 +23,14 @@ import java.util.stream.Collectors;
 public class ExerciseService {
     private final DomainRepository domainRepository;
     private final ExerciseRepository exerciseRepository;
+    private final CourseRepository courseRepository;
 
     @Autowired
     public ExerciseService(DomainRepository domainRepository,
-                           ExerciseRepository exerciseRepository) {
+                           ExerciseRepository exerciseRepository, CourseRepository courseRepository) {
         this.domainRepository = domainRepository;
         this.exerciseRepository = exerciseRepository;
+        this.courseRepository = courseRepository;
     }
 
     public ExerciseEntity getExercise(long exerciseId) {
@@ -37,11 +40,14 @@ public class ExerciseService {
 
     public ExerciseEntity createExercise(@NotNull String name,
                                          @NotNull String domainId,
-                                         @NotNull String strategyId
+                                         @NotNull String strategyId,
+                                         long courseId
     ) {
         var domain = domainRepository.findById(domainId)
                 .orElseThrow();
         var backendId = JenaBackend.BackendId;
+        var course = courseRepository.findById(courseId)
+                .orElseThrow();
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
@@ -49,6 +55,7 @@ public class ExerciseService {
         exercise.setComplexity(0.5f);
         exercise.setBackendId(backendId);
         exercise.setStrategyId(strategyId);
+        exercise.setCourse(course);
         exercise.setOptions(ExerciseOptionsEntity.builder()
                 .forceNewAttemptCreationEnabled(true)
                 .correctAnswerGenerationEnabled(true)
@@ -67,9 +74,12 @@ public class ExerciseService {
                 new NoSuchElementException("Exercise with id: " + card.getId() + " not found"));
         var domain = domainRepository.findById(card.getDomainId())
                 .orElseThrow();
+        var course = courseRepository.findById(card.getCourseId())
+                .orElseThrow();
 
         exercise.setName(card.getName());
         exercise.setDomain(domain);
+        exercise.setCourse(course);
         exercise.setStrategyId(card.getStrategyId());
         exercise.setBackendId(card.getBackendId());
         exercise.setTags(String.join(", ", card.getTags()));
@@ -86,10 +96,17 @@ public class ExerciseService {
         var exercise = exerciseRepository.findById(exerciseId).orElseThrow(() ->
                 new NoSuchElementException("Exercise with id: " + exerciseId + " not found"));
 
+        var course = exercise.getCourse();
+        if (course == null) {
+            exercise.setCourse(courseRepository.findById(1L).orElseThrow());
+            exercise = exerciseRepository.save(exercise);
+        }
+
         return ExerciseCardDto.builder()
                 .id(exercise.getId())
                 .name(exercise.getName())
                 .domainId(exercise.getDomain().getName())
+                .courseId(exercise.getCourse().getId())
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .stages(exercise.getStages()

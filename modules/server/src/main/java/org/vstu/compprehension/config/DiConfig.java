@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.Service.*;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -19,9 +19,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy_Manual50Autogen50;
 import org.vstu.compprehension.strategies.StaticStrategy;
@@ -74,8 +72,31 @@ public class DiConfig {
 
     @Bean
     @SessionScope
-    UserService getUserService(@Autowired UserRepository userRepository) {
-        return new CachedUserService(new UserServiceImpl(userRepository));
+    UserService getUserService(
+            @Autowired UserRepository userRepository,
+            @Autowired PermissionScopeService permissionScopeService,
+            @Autowired RoleRepository roleRepository,
+            @Autowired EducationResourceService educationResourceService,
+            @Autowired RoleUserAssignmentService roleUserAssignmentService,
+            @Autowired CourseRepository courseRepository,
+            @Autowired EducationResourceRepository educationResourceRepository) {
+        return new CachedUserService(new UserServiceImpl(
+                userRepository,
+                permissionScopeService,
+                roleRepository,
+                getCourseService(courseRepository, educationResourceRepository, educationResourceService),
+                educationResourceService,
+                roleUserAssignmentService
+        ));
+    }
+
+    @Bean
+    @SessionScope
+    CourseService getCourseService(
+            @Autowired CourseRepository courseRepository,
+            @Autowired EducationResourceRepository educationResourceRepository,
+            @Autowired EducationResourceService educationResourceService) {
+        return new CourseServiceImpl(courseRepository, educationResourceRepository, educationResourceService);
     }
 
     @Bean

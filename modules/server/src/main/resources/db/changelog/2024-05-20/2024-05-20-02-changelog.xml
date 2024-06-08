@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="1028728254123-1" author="artem (generated)">
+    <!-- Связывание разрешений с ролями -->
+    <sql>
+        INSERT INTO role_permission (role_id, permission_id)
+        SELECT role.id, permission.id
+        FROM role,
+        permission
+        WHERE role.name = 'GlobalAdmin'
+        AND permission.name IN ('ViewCourse', 'CreateCourse', 'EditCourse', 'DeleteCourse', 'ViewExercise',
+        'CreateExercise', 'EditExercise', 'DeleteExercise', 'SolveExercise');
+
+        INSERT INTO role_permission (role_id, permission_id)
+        SELECT role.id, permission.id
+        FROM role,
+        permission
+        WHERE role.name = 'EducationResourceAdmin'
+        AND permission.name IN ('ViewExercise', 'CreateExercise', 'EditExercise', 'DeleteExercise', 'SolveExercise');
+    </sql>
+    </changeSet>
+</databaseChangeLog>

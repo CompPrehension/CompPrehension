@@ -13,6 +13,7 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -89,4 +90,9 @@ public class ExerciseEntity {
 
     @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
     private List<UserEntity> users;
+
+    // This field is actually not null. It gets this constraint after initialization in migration script
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private CourseEntity course;
 }
