@@ -99,6 +99,7 @@ public class Main {
                     .filter(file -> !Files.isDirectory(file))
                     // .map(Path::getFileName)  // this makes name relative
                     .map(Path::toString)
+                    .sorted()
                     .collect(Collectors.toList());
         }
     }

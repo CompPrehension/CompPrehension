@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Level;
+import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +22,14 @@ import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -49,25 +53,63 @@ public class TaskGenerationJob {
         this.storage = storage;
     }
 
-    @Job
+    @Job(name = "task-generation-job", retries = 0)
     public void run() {
         log.info("Run generating questions for expression domain ...");
         try {
-            runImpl();
+            switch (config.getRunMode()) {
+                case TaskGenerationJobConfig.RunMode.Full full:
+                    runImpl(full);
+                    break;
+                case TaskGenerationJobConfig.RunMode.Incremental incremental:
+                    runImpl(incremental);
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown run mode: " + config.getRunMode());
+            }
         } catch (Exception e) {
             log.error("job exception - {}", e.getMessage(), e);
+            throw e;
         }
         if (config.isRunOnce()) {
             System.exit(0);
         }
     }
+    
+    private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Full mode) {
+        while (true) {
+            var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
+            if (bankQuestionCount >= mode.enoughQuestions()) {
+                log.info("Reached the limit of questions in the bank, finished job.");
+                break;
+            } else {
+                log.info("More questions are needed in the bank (currently {}/{}, {} needed), continue job.", bankQuestionCount, mode.enoughQuestions(), mode.enoughQuestions() - bankQuestionCount);
+            }
 
-    @SneakyThrows
-    public void runImpl() {
+            // folders cleanup
+            ensureFoldersCleaned();
+
+            // download repositories
+            var downloadedRepos = downloadRepositories();
+
+            // do parsing
+            var parsedRepos = parseRepositories(downloadedRepos);
+
+            // do question generation
+            var generatedRepos = generateQuestions(parsedRepos);
+
+            // filter & save questions
+            saveQuestions(generatedRepos);
+        }
+        
+        log.info("completed");
+    }
+    
+    private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Incremental mode) {
         // TODO проверка на то, что нужны новые вопросы
         int enoughQuestionsAdded = QuestionBank.getQrEnoughQuestions(0);  // mark QRLog resolved if such many questions were added (e.g. 150)
         int tooFewQuestions      = QuestionBank.getTooFewQuestionsForQR(0); // (e.g. 50)
-        var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), tooFewQuestions);
+        var qrLogsToProcess      = qrLogRep.findAllNotProcessed(config.getDomainShortName(), LocalDateTime.now().minusMonths(1), tooFewQuestions);
 
         if (qrLogsToProcess.isEmpty()) {
             log.info("Nothing to process, finished job.");
@@ -105,15 +147,44 @@ public class TaskGenerationJob {
 
         val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
         val downloadedPathExists = Files.exists(downloadedPath);
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
-            try {
-                Files.list(downloadedPath)
-                        .filter(f -> f.toFile().isDirectory())
-                        .forEach(FileUtility::clearDirectory);
-                Files.list(downloadedPath)
-                        .map(Path::toFile)
-                        .filter(File::isFile)
-                        .forEach(File::delete);
+        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedOlderThanDay) && downloadedPathExists) {
+            try (var paths = Files.list(downloadedPath)) {
+                for (var path : paths.collect(Collectors.toSet())) {
+                    var file = path.toFile();
+                    if (file.isDirectory() && file.lastModified() < LocalDateTime.now(ZoneId.of("UTC")).minusDays(1).toInstant(ZoneOffset.UTC).toEpochMilli()) {
+                        FileUtils.deleteDirectory(file);
+                        continue;
+                    }
+                    if (file.isDirectory()) {
+                        FileUtility.clearDirectory(path);
+                        continue;
+                    }
+                    if (file.isFile()) {
+                        var deleted = file.delete();
+                        if (!deleted) {
+                            log.error("Failed to delete file: {}", file.getAbsolutePath());
+                        }
+                    }
+                }
+            } catch (Exception exception) {
+                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+            }            
+            log.info("successfully cleanup downloaded repos folder (older than 1 day)");
+        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
+            try (var paths = Files.list(downloadedPath)) {
+                for (var path : paths.collect(Collectors.toSet())) {
+                    var file = path.toFile();
+                    if (file.isDirectory()) {
+                        FileUtility.clearDirectory(path);
+                        continue;
+                    }
+                    if (file.isFile()) {
+                        var deleted = file.delete();
+                        if (!deleted) {
+                            log.error("Failed to delete file: {}", file.getAbsolutePath());
+                        }
+                    }
+                }
             } catch (Exception exception) {
                 log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
             }
@@ -151,7 +222,9 @@ public class TaskGenerationJob {
         if (!downloaderConfig.isEnabled()) {
             // get all downloaded previously:
             var rootDir = Path.of(downloaderConfig.getOutputFolderPath());
-            return Files.list(rootDir).filter(Files::isDirectory).collect(Collectors.toList());
+            try (var list = Files.list(rootDir)) {
+                return list.filter(Files::isDirectory).collect(Collectors.toList());
+            }
         }
 
         // ensure out folder exists
@@ -159,55 +232,86 @@ public class TaskGenerationJob {
         Files.createDirectories(outputFolderPath);
 
         // Учесть историю по использованным репозиториям
-        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName() /*, 3 == STAGE_QUESTION_DATA*/).stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName(), LocalDateTime.of(2000, 1, 1, 0, 0), LocalDateTime.now(ZoneId.of("UTC")).minusDays(1));
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
-            var repos = Files.list(outputFolderPath).filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
-            seenReposNames.addAll(repos);
+            try (var list = Files.list(outputFolderPath)) {
+                var repos = list.filter(Files::isDirectory).map(Path::getFileName).map(Path::toString).toList();
+                seenReposNames.addAll(repos);
+            }            
         }
 
+        // github limits amount of returnable searchable repositories to 1000, so we create 3 queries with different sorting
+        // 1) ordered by stars (most popular first)
+        // 2) ordered by updated date (newest first)
+        // 3) ordered by forks (most forks first)
+        // pagesize == 100 is max per query
         GitHub github = new GitHubBuilder()
                 .withOAuthToken(downloaderConfig.getGithubOAuthToken())
+                .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)
                 .build();
-        var repoSearchQuery = github.searchRepositories()
+        var repoSearchQueries = new ArrayList<PagedSearchIterable<GHRepository>>(3);
+        repoSearchQueries.add(github.searchRepositories()
                 .language("c")
                 .size("50..100000")
                 .fork(GHFork.PARENT_ONLY)
                 .sort(GHRepositorySearchBuilder.Sort.STARS)
                 .order(GHDirection.DESC)
                 .list()
-                .withPageSize(30);
+                .withPageSize(100));        
+        repoSearchQueries.add(github.searchRepositories()
+                .language("c")
+                .size("50..100000")
+                .fork(GHFork.PARENT_ONLY)
+                .sort(GHRepositorySearchBuilder.Sort.UPDATED)
+                .order(GHDirection.DESC)
+                .list()
+                .withPageSize(100));
+        repoSearchQueries.add(github.searchRepositories()
+                .language("c")
+                .size("50..100000")
+                .fork(GHFork.PARENT_ONLY)
+                .sort(GHRepositorySearchBuilder.Sort.FORKS)
+                .order(GHDirection.DESC)
+                .list()
+                .withPageSize(100));
+        
         var downloadedRepos = new ArrayList<Path>();
+        int skipped         = 0;
+        for (var repoSearchQuery : repoSearchQueries) {
+            for (var repo : repoSearchQuery) {
+                if (seenReposNames.contains(repo.getName())) {
+                    skipped++;
+                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                    continue;
+                }
+                log.info("Downloading repo [{}] ...", repo.getFullName());
 
-        int idx = 0;
-        int skipped = 0;
-        for (var repo : repoSearchQuery) {
-            if (seenReposNames.contains(repo.getName())) {
-                skipped++;
-                log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                continue;
+                repo.readZip(s -> {
+                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
+                            .toAbsolutePath();
+                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
+                            .toAbsolutePath();
+                    Files.createDirectories(targetFolderPath);
+                    Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                    Files.delete(zipFile);
+                    downloadedRepos.add(targetFolderPath);
+                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                    return 0;
+                }, null);
+
+                // for now, limited number of repositories
+                if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload())
+                    return downloadedRepos;
             }
-            log.info("Downloading repo [{}] ...", repo.getFullName());
 
-            repo.readZip(s -> {
-                Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
-                        .toAbsolutePath();
-                Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
-                        .toAbsolutePath();
-                Files.createDirectories(targetFolderPath);
-                java.nio.file.Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                Files.delete(zipFile);
-                downloadedRepos.add(targetFolderPath);
-                log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                return 0;
-            }, null);
-
-            // for now, limited number of repositories
-            if (++idx >= downloaderConfig.getRepositoriesToDownload())
-                break;
+            log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
+            
+            // throttle            
+            Thread.sleep(2000L);
         }
-
+        
         return downloadedRepos;
     }
 
@@ -217,7 +321,9 @@ public class TaskGenerationJob {
         var outputFolderPath = Path.of(parserConfig.getOutputFolderPath()).toAbsolutePath();
         if (!parserConfig.isEnabled()) {
             log.info("parser is disabled by config");
-            return List.of();
+            try (var list = Files.list(outputFolderPath)) {
+                return list.filter(Files::isDirectory).collect(Collectors.toList());
+            }
         }
 
         // ensure output folder exists
@@ -255,7 +361,7 @@ public class TaskGenerationJob {
                 log.info("Run parser on repo: [{}]", leafFolder);
                 try {
                     Files.createDirectories(destination);
-                } catch (java.nio.file.AccessDeniedException ignored) {}
+                } catch (AccessDeniedException ignored) {}
                 var parserProcess = new ProcessBuilder(parserProcessCommandBuilder)
                         .redirectErrorStream(true)
                         .start();
@@ -282,7 +388,9 @@ public class TaskGenerationJob {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
-            return List.of();
+            try (var list = Files.list(Path.of(generatorConfig.getOutputFolderPath()))) {
+                return list.filter(Files::isDirectory).collect(Collectors.toList());
+            }
         }
 
         // find all sub-folders in root directory of parser output directory
@@ -335,7 +443,12 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(List<Path> generatedRepos, List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
+    private void saveQuestions(List<Path> generatedRepos) {
+        saveQuestions(generatedRepos, null, -1);
+    }
+
+    @SneakyThrows
+    private void saveQuestions(List<Path> generatedRepos, @Nullable List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
         var generatorConfig = config.getGenerator();
         var exportConfig = config.getExporter();
         if (!generatorConfig.isEnabled()) {
@@ -367,8 +480,15 @@ public class TaskGenerationJob {
 
                 QuestionMetadataEntity meta = q.toMetadataEntity();
                 if (meta == null) {
+                    skippedQuestions += 1;
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
+                    continue;
+                }
+                
+                if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
+                    skippedQuestions += 1;
+                    log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
                     continue;
                 }
 
@@ -378,33 +498,30 @@ public class TaskGenerationJob {
                 // Проверить, подходит ли он нам
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
                 boolean shouldSave = false;
-                for (val qr : qrLogsToProcess) {
-                    
-                    if (!storage.isMatch(meta, qr)) {
-                        log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
-                        continue;
-                    }
-
-                    // Если вопрос ещё не сохранен в базу
-                    if (storage.findQuestionByName(meta.getName()) != null) {
-                        log.debug("Question [{}] already exist", q.getQuestionData().getQuestionName());
-                        break;
-                    }
-
-                    log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
-
-                    // set flag to use this question
+                if (qrLogsToProcess == null) {
                     shouldSave = true;
-                    // update question metrics
-                    meta.getQrlogIds().add(qr.getId());
-                    // update qr metrics
-                    qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
-                    qrLogsProcessed.add(qr);
+                } else {
+                    for (val qr : qrLogsToProcess) {
+                        if (!storage.isMatch(meta, qr)) {
+                            log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
+                            continue;
+                        }
+
+                        log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
+
+                        // set flag to use this question
+                        shouldSave = true;
+                        // update question metrics
+                        meta.getQrlogIds().add(qr.getId());
+                        // update qr metrics
+                        qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
+                        qrLogsProcessed.add(qr);
+                    }
                 }
 
                 if (!shouldSave) {
                     skippedQuestions += 1;
-                    log.info("Question [{}] skipped because zero qr matches", meta.getName());
+                    log.debug("Question [{}] skipped because zero qr matches", meta.getName());
                     continue;
                 }
 
@@ -415,10 +532,6 @@ public class TaskGenerationJob {
                 meta.setQDataGraph(qDataPath);
                 meta.setDateCreated(new Date());
                 meta.setUsedCount(0L);
-                meta.setOrigin(repoName);
-                // meta.setDateLastUsed(null);
-                meta.setDomainShortname(config.getDomainShortName());
-                meta.setTemplateId(-1);
 
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);

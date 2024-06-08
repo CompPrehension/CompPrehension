@@ -13,9 +13,20 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         this.entityManager = entityManager;
     }
 
+    private void ensureRequestValid(QuestionBankSearchRequest qr) {
+        if (qr.getStepsMin() > qr.getStepsMax()) {
+            throw new IllegalArgumentException("Invalid bank search request: stepsMin > stepsMax");
+        }
+
+        if (qr.getStepsMin() == 0 && qr.getStepsMax() == 0) {
+            throw new IllegalArgumentException("Invalid bank search request: stepsMin == 0 && stepsMax == 0");
+        }
+    }
 
     @Override
     public int countQuestions(QuestionBankSearchRequest qr) {
+        ensureRequestValid(qr);
+        
         var domainShortname = qr.getDomainShortname();
         var stepsMin = qr.getStepsMin();
         var stepsMax = qr.getStepsMax();
@@ -37,7 +48,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
 
         var query = entityManager.createNativeQuery(
                 "select count(*) as number from questions_meta q where " +
-                    "q.domain_shortname = :domainShortname AND q._stage = 3 " +
+                    "q.domain_shortname = :domainShortname " +
                     "AND q.solution_steps >= :stepsMin " +
                     "AND q.solution_steps <= :stepsMax " +
                     "AND q.concept_bits & :deniedConceptBits = 0 " +
@@ -68,6 +79,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
 
     @Override
     public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionBankSearchRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
+        ensureRequestValid(qr);
+        
         var domainShortname = qr.getDomainShortname();
         var stepsMin = qr.getStepsMin();
         var stepsMax = qr.getStepsMax();
@@ -90,7 +103,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
             "SELECT * FROM (" +
             "select * from questions_meta q where " +
-            "q.domain_shortname = :domainShortname AND q._stage = 3 " +
+            "q.domain_shortname = :domainShortname " +
             "AND q.solution_steps >= :stepsMin " +
             "AND q.solution_steps <= :stepsMax " +
             "AND q.concept_bits & :deniedConceptBits = 0 " +

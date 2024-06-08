@@ -78,7 +78,7 @@ public class Question {
 
         return domainPrefix + Optional.ofNullable(getMetadata())
                 .map(QuestionMetadataEntity::getTemplateId)
-                .filter(i -> i != 0)
+                .filter(Objects::nonNull)
                 .map(tId -> ":template-id:" + tId)
                 .orElse(":question:"+getQuestionName());
     }

@@ -27,7 +27,7 @@ public class QuestionRequest {
     private List<Tag> targetTags;
 
     private @Nullable List<String> deniedQuestionNames;
-    private @Nullable List<Integer> deniedQuestionTemplateIds;
+    private @Nullable List<String> deniedQuestionTemplateIds;
     private @Nullable List<Integer> deniedQuestionMetaIds; // same as deniedQuestionNames but using ids instead of names
 
     /**

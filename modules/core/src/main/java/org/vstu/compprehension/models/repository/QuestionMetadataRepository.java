@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.repository;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 
 // Основной интерфейс для поиска вопросов по их метаданным
@@ -17,6 +20,17 @@ import java.util.List;
 public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer>, QuestionMetadataComplexQueriesRepository {
 
     @NotNull
+    @Query(value = 
+            "select * from questions_meta " +
+            "where id > :lastLoadedId " +
+            "order by id " +
+            "limit :limit", nativeQuery = true)
+    List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+    
+    @Query
+    long countByDomainShortname(String domainShortname);
+    
+    @NotNull
     @Override
     Iterable<QuestionMetadataEntity> findAll();
 
@@ -24,21 +38,30 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query("select q from #{#entityName} q where q.name = :questionName")
     List<QuestionMetadataEntity> findByName(@Param("questionName") String questionName);
 
+    @Query
+    boolean existsByName(String questionName);
+
+    @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and (m.name = :questionName or :templateId is not null and m.templateId = :templateId))")
+    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") @Nullable String templateId);
 
     @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
             "count(*), " +
             "min(q.integralComplexity), " +
             "avg(q.integralComplexity), " +
             "max(q.integralComplexity)) " +
-            "from QuestionMetadataEntity q where q.domainShortname = :DOMAIN_NAME AND q.stage = 3 " +
-            "AND q.isDraft = false")
+            "from QuestionMetadataEntity q where q.domainShortname = :DOMAIN_NAME ")
     ComplexityStats getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
     );
 
     @NotNull
-    @Query("select distinct(q.origin) from #{#entityName} q where q.domainShortname = :domainName")  // ( AND q.stage = :stage ) ?
-    List<String> findAllOrigins(
-            @Param("domainName") String domainName
-    );
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.dateCreated >= :from and q.dateCreated <= :to")
+    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname, @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
+    boolean templateExists(@Param("domainShortname") String domainShortname, @Param("templateId") String templateId);
+
+    @NotNull
+    @Query("select distinct(m.templateId) from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId is not null")
+    HashSet<String> findAllTemplates(@Param("domainShortname") String domainShortname);
 }

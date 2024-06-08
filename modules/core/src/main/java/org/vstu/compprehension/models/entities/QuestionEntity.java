@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +41,7 @@ public class QuestionEntity {
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "metadata_id", nullable = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @Nullable
     private QuestionMetadataEntity metadata;
 

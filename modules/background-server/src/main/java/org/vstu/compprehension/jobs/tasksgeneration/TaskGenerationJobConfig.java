@@ -5,7 +5,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.EnumSet;
@@ -20,8 +23,9 @@ public class TaskGenerationJobConfig {
     private GeneratorConfig generator;
     private ExporterConfig exporter;
     private boolean runOnce;
-    private int intervalMinutes;
-    private EnumSet<CleanupMode> cleanupMode = EnumSet.of(CleanupMode.CleanupDownloadedShallow, CleanupMode.CleanupParsed);
+    private String cronSchedule;
+    private RunMode runMode = new RunMode.Incremental();
+    private EnumSet<CleanupMode> cleanupMode = EnumSet.of(CleanupMode.CleanupDownloadedOlderThanDay, CleanupMode.CleanupParsed);
 
     @Getter @Setter @NoArgsConstructor
     public static class ReposSearcherConfig {
@@ -53,10 +57,40 @@ public class TaskGenerationJobConfig {
         private URI storageUploadFilesBaseUrl;
         private @Nullable String storageUploadRelativePath = "q_data";
     }
+    
+    public interface RunMode {        
+        public static record Full(int enoughQuestions) implements RunMode {};
+
+        public static record Incremental() implements RunMode {};
+
+        @Component
+        @ConfigurationPropertiesBinding
+        public class ModeConverter implements Converter<String, RunMode> {
+
+            @Override
+            public RunMode convert(String from) {
+                String[] data = from.split(",");
+                
+                if (data[0].equalsIgnoreCase("full")) {                    
+                    if (data.length > 1) {
+                        return new Full(Integer.parseInt(data[1]));
+                    }
+                    return new Full(15_000);
+                }
+                
+                if (data[0].equalsIgnoreCase("incremental")) {
+                    return new Incremental();
+                }
+                
+                throw new IllegalArgumentException("Unknown mode: " + from);
+            }
+        }
+    }
 
     public enum CleanupMode {
         CleanupDownloaded,
         CleanupDownloadedShallow,
+        CleanupDownloadedOlderThanDay,
         CleanupParsed,
         CleanupGenerated;
     }

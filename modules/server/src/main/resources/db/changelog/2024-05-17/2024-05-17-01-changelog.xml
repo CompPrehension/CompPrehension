@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1715969387856-50" author="Artem Prokudin">
+        <dropColumn columnName="_stage" tableName="questions_meta"/>
+
+        <dropColumn columnName="is_draft" tableName="questions_meta"/>
+
+        <dropColumn columnName="q_graph" tableName="questions_meta"/>
+
+        <dropColumn columnName="q_s_graph" tableName="questions_meta"/>
+
+        <dropColumn columnName="qt_graph" tableName="questions_meta"/>
+
+        <dropColumn columnName="qt_s_graph" tableName="questions_meta"/>
+
+        <dropColumn columnName="template_id" tableName="questions_meta"/>
+
+        <addColumn tableName="questions_meta">
+            <column name="template_id" type="VARCHAR(255)"/>
+        </addColumn>
+        
+        <sql>
+            UPDATE questions_meta q
+            INNER JOIN
+            (
+                SELECT  `id`,
+                        `name`,
+                        REGEXP_REPLACE(`name`, '__\\d{10}_+v.*$', '') AS `template_name`
+                FROM questions_meta
+                WHERE `domain_shortname` = 'expression'
+            ) AS upd ON q.id = upd.id
+            SET `template_id` = upd.`template_name`
+            WHERE q.id > 0;
+
+            UPDATE questions_meta q
+            INNER JOIN
+            (
+                SELECT  `id`,
+                        `name`,
+                        REGEXP_REPLACE(`name`, '_+v.*$', '') AS `template_name`
+                FROM questions_meta
+                WHERE `domain_shortname` = 'ctrl_flow'
+            ) AS upd ON q.id = upd.id
+            SET `template_id` = upd.`template_name`
+            WHERE q.id > 0;
+        </sql>
+        
+    </changeSet>
+
+</databaseChangeLog>

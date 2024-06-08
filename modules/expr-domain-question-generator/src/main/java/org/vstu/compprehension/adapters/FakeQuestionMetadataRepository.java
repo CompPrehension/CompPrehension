@@ -1,12 +1,14 @@
 package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +35,17 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
+    public List<QuestionMetadataEntity> loadPage(int lastLoadedId, int limit) {
+        return List.of();
+    }
+
+    @Override
+    public long countByDomainShortname(String domainShortname) {
+        return 0;
+    }
+
+    @NotNull
+    @Override
     public Iterable<QuestionMetadataEntity> findAll() {
         return List.of();
     }
@@ -41,6 +54,16 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     @Override
     public List<QuestionMetadataEntity> findByName(String questionName) {
         return List.of();
+    }
+
+    @Override
+    public boolean existsByName(String questionName) {
+        return false;
+    }
+
+    @Override
+    public boolean existsByNameOrTemplateId(String domainShortname, String questionName, @Nullable String templateId) {
+        return false;
     }
 
     @Override
@@ -95,7 +118,18 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
-    public List<String> findAllOrigins(String domainName) {
-        return List.of();
+    public HashSet<String> findAllOrigins(String domainName, LocalDateTime from, LocalDateTime to) {
+        return new HashSet<>();
+    }
+
+    @Override
+    public boolean templateExists(String domainShortname, String templateId) {
+        return false;
+    }
+
+    @NotNull
+    @Override
+    public HashSet<String> findAllTemplates(String domainShortname) {
+        return new HashSet<>();
     }
 }

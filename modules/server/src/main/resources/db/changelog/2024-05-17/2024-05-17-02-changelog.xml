@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1715973554785-51" author="Artem Prokudin">
+        <sql>
+            UPDATE question_request_log 
+            SET denied_question_template_ids = CAST('[]' AS JSON)
+            WHERE id > 0 AND JSON_CONTAINS(denied_question_template_ids, '[0]') AND JSON_LENGTH(denied_question_template_ids) = 1;
+
+            UPDATE question_request_log
+            SET denied_question_meta_ids = CAST('[]' AS JSON)
+            WHERE id > 0 AND JSON_CONTAINS(denied_question_meta_ids, '[0]') AND JSON_LENGTH(denied_question_meta_ids) = 1;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
