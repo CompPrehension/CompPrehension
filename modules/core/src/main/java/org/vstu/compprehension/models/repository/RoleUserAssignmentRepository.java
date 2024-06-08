@@ -19,8 +19,7 @@ public interface RoleUserAssignmentRepository extends CrudRepository<RoleUserAss
             "JOIN rua.permissionScope ps " +
             "WHERE rua.user.id = :userId " +
             "AND p.name = :permissionName " +
-            "AND ( (ps.kind = :permissionScopeKind) OR (ps.kind = 'GLOBAL') ) " +
-            "AND ( (:permissionScopeKind = 'GLOBAL') OR (ps.ownerId = :ownerId) )")
+            "AND ( (ps.kind = 'GLOBAL') OR ( (ps.kind = :permissionScopeKind) AND (ps.ownerId = :ownerId) ) )")
     boolean isUserAuthorized(@Param("userId") long userId,
                              @Param("permissionName") String permissionName,
                              @Param("permissionScopeKind") PermissionScopeKind permissionScopeKind,
