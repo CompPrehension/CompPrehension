@@ -17,12 +17,12 @@ public class FakeQuestionDataRepository implements QuestionDataRepository {
     }
 
     @Override
-    public Optional<QuestionDataEntity> findById(Long aLong) {
+    public Optional<QuestionDataEntity> findById(Integer aInteger) {
         return Optional.empty();
     }
 
     @Override
-    public boolean existsById(Long aLong) {
+    public boolean existsById(Integer aInteger) {
         return false;
     }
 
@@ -32,7 +32,7 @@ public class FakeQuestionDataRepository implements QuestionDataRepository {
     }
 
     @Override
-    public Iterable<QuestionDataEntity> findAllById(Iterable<Long> longs) {
+    public Iterable<QuestionDataEntity> findAllById(Iterable<Integer> longs) {
         return null;
     }
 
@@ -42,7 +42,7 @@ public class FakeQuestionDataRepository implements QuestionDataRepository {
     }
 
     @Override
-    public void deleteById(Long aLong) {
+    public void deleteById(Integer aInteger) {
 
     }
 
@@ -52,7 +52,7 @@ public class FakeQuestionDataRepository implements QuestionDataRepository {
     }
 
     @Override
-    public void deleteAllById(Iterable<? extends Long> longs) {
+    public void deleteAllById(Iterable<? extends Integer> longs) {
 
     }
 

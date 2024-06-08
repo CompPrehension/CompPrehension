@@ -10,7 +10,7 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
@@ -526,7 +526,8 @@ public class TaskGenerationJob {
 
                 // save question data in the database
                 QuestionDataEntity questionData = new QuestionDataEntity();
-                questionData.setData(SerializableQuestion.serializeToString(q.getQuestionData())); // assuming you have a method to convert question data to JSON string
+                questionData.setData(SerializableQuestion.serializeFromQuestionData(q.getQuestionData())); // assuming you have a method to convert question data to JSON string
+                questionData.setId(meta.getId());
                 questionData = storage.saveQuestionDataEntity(questionData); // save and get the updated entity with id
 
                 // set reference to the question data entity

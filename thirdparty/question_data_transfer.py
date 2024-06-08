@@ -47,7 +47,7 @@ class QuestionMetadataEntity(Base):
 class QuestionDataEntity(Base):
     __tablename__ = 'questions_data'
 
-    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=False, nullable=False)
     data = Column(JSON)
 
     question_metadata = relationship("QuestionMetadataEntity", back_populates="question_data")
@@ -79,10 +79,10 @@ def process_metadata_entities():
                 with open(json_file_path, 'r', encoding='utf-8') as file:
                     json_data = json.load(file)
 
-                # Create a new QuestionDataEntity with the JSON data
-                question_data = QuestionDataEntity(data=json_data)
+                # Create a new QuestionDataEntity with the JSON data and the same id as the QuestionMetadataEntity
+                question_data = QuestionDataEntity(id=entity.id, data=json_data)
                 session.add(question_data)
-                session.flush()  # Flush to get the new id of the question_data
+                session.flush()  # Flush to ensure the data is added to the session
 
                 # Update the QuestionMetadataEntity with the new question_data_id
                 entity.question_data_id = question_data.id

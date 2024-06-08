@@ -266,8 +266,7 @@ public class QuestionBank {
 
             QuestionDataEntity questionDataEntity = questionDataRepository.findById(questionData.getId()).orElse(null);
             if (questionDataEntity != null) {
-                var deserialized = SerializableQuestion.deserializeFromString(questionDataEntity.getData());
-                return deserialized.toQuestion(domain, qMeta);
+                return questionDataEntity.getData().toQuestion(domain, qMeta);
             } else {
                 log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
             }

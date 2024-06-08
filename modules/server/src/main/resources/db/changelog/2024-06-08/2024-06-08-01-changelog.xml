@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1717858857416-17" author="artem">
+        <dropForeignKeyConstraint baseTableName="questions_meta" constraintName="FK_QUESTIONS_META_ON_QUESTION_DATA"/>
+    </changeSet>
+
+    <changeSet id="1717858857416-15" author="artem">
+        <dropColumn columnName="question_data_id" tableName="questions_meta"/>
+    </changeSet>
+
+    <changeSet id="1717858857416-7" author="artem">
+        <dropColumn columnName="id" tableName="questions_data"/>
+    </changeSet>
+
+    <changeSet id="1717858857416-8" author="artem">
+        <addColumn tableName="questions_data">
+            <column autoIncrement="true" incrementBy="1" name="id" startWith="1" type="INT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_questions_data" validateNullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="1717858857416-16" author="artem">
+        <addColumn tableName="questions_meta">
+            <column name="question_data_id" type="INT">
+                <constraints foreignKeyName="FK_QUESTIONS_META_ON_QUESTION_DATA" references="questions_data(id)" unique="true" uniqueConstraintName="uc_questions_meta_question_data"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
