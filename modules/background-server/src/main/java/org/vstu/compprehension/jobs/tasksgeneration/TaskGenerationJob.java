@@ -533,11 +533,7 @@ public class TaskGenerationJob {
 
                 // save question data in the database
                 QuestionDataEntity questionData = new QuestionDataEntity();
-
-                var json = SerializableQuestion.serializeToString(q);
-                var newData = SerializableQuestion.deserializeFromString(json);
-
-                questionData.setData(newData);
+                questionData.setData(q);
                 questionData.setId(meta.getId());
                 questionData = storage.saveQuestionDataEntity(questionData);
 
