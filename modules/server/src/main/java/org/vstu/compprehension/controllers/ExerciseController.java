@@ -49,7 +49,8 @@ public class ExerciseController {
             throw new AuthorizationServiceException("Unathorized");
         }
 
-        return exerciseRepository.getAllExerciseItems();
+        var course = courseService.getCurrentCourse();
+        return exerciseRepository.getAllExerciseItemsByCourseId(course.getId());
     }
 
     private boolean isAuthorized(String permissionName) throws Exception {

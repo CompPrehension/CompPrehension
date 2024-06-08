@@ -67,9 +67,9 @@ public class ExerciseSettingsController {
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.PUT })
     @ResponseBody
     public long create(@RequestBody ObjectNode json) {
-        var courseIdJson = json.get("courseId");
+        var currentCourse = courseService.getCurrentCourse();
         var initCourse = courseService.getInitialCourseId();
-        var courseId = courseIdJson == null ? initCourse : courseIdJson.asLong(initCourse);
+        var courseId = currentCourse == null ? initCourse : currentCourse.getId();
 
         var currentUser = userService.getCurrentUser();
 
