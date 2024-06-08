@@ -36,7 +36,7 @@ public class SerializableQuestionType implements UserType<SerializableQuestion> 
     @Override
     public void nullSafeSet(PreparedStatement st, SerializableQuestion value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
         if (value != null) {
-            st.setString(index, SerializableQuestion.serializeToString(value.getQuestionData()));
+            st.setString(index, SerializableQuestion.serializeToString(value));
         } else {
             st.setNull(index, Types.VARCHAR);
         }
@@ -47,7 +47,7 @@ public class SerializableQuestionType implements UserType<SerializableQuestion> 
         if (value == null) {
             return null;
         }
-        String json = SerializableQuestion.serializeToString(value.getQuestionData());
+        String json = SerializableQuestion.serializeToString(value);
         return SerializableQuestion.deserializeFromString(json);
     }
 
