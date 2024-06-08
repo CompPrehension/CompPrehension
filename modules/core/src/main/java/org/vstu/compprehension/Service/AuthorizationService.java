@@ -48,7 +48,7 @@ public class AuthorizationService {
      * @return                   true if the user is authorized, false otherwise
      */
     public boolean isAuthorizedCourse(long userId, String permissionName, long courseId) {
-        return roleUserAssignmentRepository.isUserAuthorizedForCourseOrGlobal(userId, permissionName, Optional.of(courseId));
+        return roleUserAssignmentRepository.isUserAuthorized(userId, permissionName, PermissionScopeKind.COURSE, courseId);
     }
 
     /**
