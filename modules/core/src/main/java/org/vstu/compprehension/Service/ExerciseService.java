@@ -24,13 +24,15 @@ public class ExerciseService {
     private final DomainRepository domainRepository;
     private final ExerciseRepository exerciseRepository;
     private final CourseRepository courseRepository;
+    private final CourseService courseService;
 
     @Autowired
     public ExerciseService(DomainRepository domainRepository,
-                           ExerciseRepository exerciseRepository, CourseRepository courseRepository) {
+                           ExerciseRepository exerciseRepository, CourseRepository courseRepository, CourseService courseService) {
         this.domainRepository = domainRepository;
         this.exerciseRepository = exerciseRepository;
         this.courseRepository = courseRepository;
+        this.courseService = courseService;
     }
 
     public ExerciseEntity getExercise(long exerciseId) {
@@ -41,7 +43,7 @@ public class ExerciseService {
     public ExerciseEntity createExercise(@NotNull String name,
                                          @NotNull String domainId,
                                          @NotNull String strategyId,
-                                         long courseId
+                                         Long courseId
     ) {
         var domain = domainRepository.findById(domainId)
                 .orElseThrow();
@@ -98,7 +100,7 @@ public class ExerciseService {
 
         var course = exercise.getCourse();
         if (course == null) {
-            exercise.setCourse(courseRepository.findById(1L).orElseThrow());
+            exercise.setCourse(courseRepository.findById(courseService.getInitialCourseId()).get());
             exercise = exerciseRepository.save(exercise);
         }
 

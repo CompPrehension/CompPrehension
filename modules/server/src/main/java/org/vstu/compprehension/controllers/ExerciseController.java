@@ -71,34 +71,6 @@ public class ExerciseController {
         );
     }
 
-    private Long getCourseIdFromQuestion(Long questionId) {
-        try {
-            return questionRepository.findById(questionId).get().getExerciseAttempt().getExercise().getCourse().getId();
-        }
-        catch (Exception e) {
-            return null;
-        }
-    }
-
-
-    private Long getCourseIdFromAttempt(Long attemptId) {
-        try {
-            return exerciseAttemptRepository.findById(attemptId).get().getExercise().getCourse().getId();
-        }
-        catch (Exception e) {
-            return null;
-        }
-    }
-
-    private Long getCourseIdFromExercise(Long exerciseId) {
-        try {
-            return exerciseRepository.findById(exerciseId).get().getCourse().getId();
-        }
-        catch (Exception e) {
-            return null;
-        }
-    }
-
     /**
      * Add an answer to the question
      * @param interaction Interaction object
@@ -110,7 +82,7 @@ public class ExerciseController {
             consumes = "application/json")
     @ResponseBody
     public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromQuestion(interaction.getQuestionId()))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromQuestion(interaction.getQuestionId()))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -128,7 +100,7 @@ public class ExerciseController {
             consumes = "application/json")
     @ResponseBody
     public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromQuestion(interaction.getQuestionId()))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromQuestion(interaction.getQuestionId()))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -145,7 +117,7 @@ public class ExerciseController {
     @RequestMapping(value = {"generateQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromAttempt(attemptId))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromAttempt(attemptId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -163,7 +135,7 @@ public class ExerciseController {
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.CreateExercise.Name(), getCourseIdFromQuestion(questionRequest.getQuestionId()))) {
+        if (!isAuthorized(AuthObjects.Permissions.CreateExercise.Name(), courseService.getCourseIdFromQuestion(questionRequest.getQuestionId()))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -181,7 +153,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), getCourseIdFromQuestion(questionId))) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), courseService.getCourseIdFromQuestion(questionId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -198,7 +170,7 @@ public class ExerciseController {
     @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), getCourseIdFromQuestion(questionId))) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), courseService.getCourseIdFromQuestion(questionId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -218,7 +190,7 @@ public class ExerciseController {
     @RequestMapping(value = {"shortInfo"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseInfoDto getExerciseShortInfo(long id, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), getCourseIdFromExercise(id))) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), courseService.getCourseIdFromExercise(id))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -235,7 +207,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getExerciseStatistics"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), getCourseIdFromExercise(exerciseId))) {
+        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name(), courseService.getCourseIdFromExercise(exerciseId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -245,7 +217,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromAttempt(attemptId))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromAttempt(attemptId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -270,7 +242,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromExercise(exerciseId))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromExercise(exerciseId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -288,7 +260,7 @@ public class ExerciseController {
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromExercise(exerciseId))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromExercise(exerciseId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 
@@ -299,7 +271,7 @@ public class ExerciseController {
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), getCourseIdFromExercise(exerciseId))) {
+        if (!isAuthorized(AuthObjects.Permissions.SolveExercise.Name(), courseService.getCourseIdFromExercise(exerciseId))) {
             throw new AuthorizationServiceException("Unathorized");
         }
 

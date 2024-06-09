@@ -74,6 +74,21 @@ public class CourseServiceImpl implements CourseService {
         return courseRepository.save(course);
     }
 
+    @Override
+    public Long getCourseIdFromQuestion(Long questionId) {
+        return courseRepository.findCourseIdByQuestionId(questionId).orElse(null);
+    }
+
+    @Override
+    public Long getCourseIdFromAttempt(Long attemptId) {
+        return courseRepository.findCourseIdByAttemptId(attemptId).orElse(null);
+    }
+
+    @Override
+    public Long getCourseIdFromExercise(Long exerciseId) {
+        return courseRepository.findCourseIdByExerciseId(exerciseId).orElse(null);
+    }
+
     private static OidcIdToken getToken(Authentication authentication) throws Exception {
         var principal = authentication.getPrincipal();
         if (!(principal instanceof OidcUser)) {
