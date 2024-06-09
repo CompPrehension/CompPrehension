@@ -18,14 +18,16 @@ public interface RoleUserAssignmentRepository extends CrudRepository<RoleUserAss
     List<RoleUserAssignmentEntity> findUsersWithRoleOnPermissionScope(@Param("userId") long userId,
                                                                       @Param("permissionScopeId") long permissionScopeId);
 
-    @Query(value = "SELECT CASE WHEN COUNT(rua) > 0 THEN TRUE ELSE FALSE END " +
+    @Query(value = "SELECT EXISTS (" +
+            "SELECT 1 " +
             "FROM RoleUserAssignmentEntity rua " +
             "JOIN rua.role r " +
             "JOIN r.permissions p " +
             "JOIN rua.permissionScope ps " +
             "WHERE rua.user.id = :userId " +
             "AND p.name = :permissionName " +
-            "AND ( ( (ps.kind = :permissionScopeKind) AND (ps.ownerId = :ownerId) ) OR (ps.kind = 'GLOBAL') )")
+            "AND ( ( (ps.kind = :permissionScopeKind) AND (ps.ownerId = :ownerId) ) OR (ps.kind = 'GLOBAL') )" +
+            ")")
     boolean isUserAuthorized(@Param("userId") long userId,
                              @Param("permissionName") String permissionName,
                              @Param("permissionScopeKind") PermissionScopeKind permissionScopeKind,

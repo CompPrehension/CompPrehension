@@ -1,7 +1,6 @@
 package org.vstu.compprehension.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,7 +15,6 @@ import org.vstu.compprehension.dto.LawTreeItemDto;
 import org.vstu.compprehension.dto.StrategyDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
@@ -50,11 +48,7 @@ public class ReferenceTableController {
 
     @RequestMapping(value = {"/strategies"}, method = { RequestMethod.GET })
     @ResponseBody
-    public List<StrategyDto> getStrategies() throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name())) {
-            throw new AuthorizationServiceException("Unathorized");
-        }
-
+    public List<StrategyDto> getStrategies() {
         var strategyIds = strategyFactory.getStrategyIds();
         var currentLanguage = userService.tryGetCurrentUser()
                 .map(UserEntity::getPreferred_language)
@@ -71,34 +65,15 @@ public class ReferenceTableController {
                 .collect(Collectors.toList());
     }
 
-    private boolean isAuthorized(String permissionName) throws Exception {
-        var course = courseService.getCurrentCourse();
-        var userId = userService.getCurrentUser().getId();
-
-        return authorizationService.isAuthorizedCourse(
-                userId,
-                permissionName,
-                course.getId()
-        );
-    }
-
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })
     @ResponseBody
-    public Set<String> getBackends() throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name())) {
-            throw new AuthorizationServiceException("Unathorized");
-        }
-
+    public Set<String> getBackends() {
         return backendFactory.getBackendIds();
     }
 
     @RequestMapping(value = {"/domains"}, method = { RequestMethod.GET })
     @ResponseBody
-    public List<DomainDto> getDomains() throws Exception {
-        if (!isAuthorized(AuthObjects.Permissions.ViewExercise.Name())) {
-            throw new AuthorizationServiceException("Unathorized");
-        }
-
+    public List<DomainDto> getDomains() {
         var domainIds= domainFactory.getDomainIds();
         var currentLanguage = userService.tryGetCurrentUser()
                 .map(UserEntity::getPreferred_language)
