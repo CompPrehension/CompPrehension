@@ -36,7 +36,7 @@ public class AuthorizationService {
      * @return               true if the user is authorized, false otherwise
      */
     public boolean isAuthorizedGlobal(long userId, String permissionName) {
-        return isAuthorized(userId, permissionName, PermissionScopeKind.GLOBAL, Optional.empty());
+        return isAuthorized(userId, permissionName, PermissionScopeKind.GLOBAL, null);
     }
 
     /**
@@ -60,13 +60,13 @@ public class AuthorizationService {
      * @param  ownerId           the optional ID of the owner
      * @return                   true if the user is authorized, false otherwise
      */
-    public boolean isAuthorized(long userId, String permissionName, PermissionScopeKind permissionScopeKind, Optional<Long> ownerId) {
+    public boolean isAuthorized(long userId, String permissionName, PermissionScopeKind permissionScopeKind, Long ownerId) {
         try {
             return roleUserAssignmentRepository.isUserAuthorized(
                     userId,
                     permissionName,
                     permissionScopeKind,
-                    ownerId.orElse(null)
+                    ownerId
             );
         } catch (Exception e) {
             return false;
