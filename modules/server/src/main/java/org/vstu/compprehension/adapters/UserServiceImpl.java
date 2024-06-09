@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
             language = entity.getPreferred_language();
         }
 
-        var roleEntities = roles.stream().map(r -> getRole(r).orElse(null)).filter(Objects::nonNull).collect(Collectors.toSet());
+        var roleEntities = getRoles(roles).stream().filter(Objects::nonNull).collect(Collectors.toSet());
 
         entity.setFirstName(fullName);
         entity.setLogin(email);
@@ -181,8 +181,8 @@ public class UserServiceImpl implements UserService {
         return educationResourceService.getOrCreateEducationResource(mainUrl, hostName);
     }
 
-    private Optional<RoleEntity> getRole(SystemRole role) {
-        return roleRepository.findByName(role.Name());
+    private List<RoleEntity> getRoles(Set<SystemRole> role) {
+        return roleRepository.findAllByNameIn(role.stream().map(SystemRole::Name).toList());
     }
 
 
