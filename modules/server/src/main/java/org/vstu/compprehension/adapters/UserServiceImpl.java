@@ -175,10 +175,7 @@ public class UserServiceImpl implements UserService {
             return null;
         }
 
-        String mainUrl = fullUrl.getProtocol() + "://" + fullUrl.getAuthority();
-
-        String hostName = fullUrl.getHost().split("\\.")[0];
-        return educationResourceService.getOrCreateEducationResource(mainUrl, hostName);
+        return educationResourceService.getOrCreateEducationResource(fullUrl.getHost(), fullUrl.getHost());
     }
 
     private List<RoleEntity> getRoles(Set<SystemRole> role) {
