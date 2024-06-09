@@ -524,13 +524,6 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-
-                // copy data file and save local sub-path to it
-//                String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
-//                        ? storage.saveQuestionData(domainId, q.getQuestionData().getQuestionName(), q)
-//                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionData().getQuestionName(), q);
-//                meta.setQDataGraph(qDataPath);
-
                 // save question data in the database
                 QuestionDataEntity questionData = new QuestionDataEntity();
                 questionData.setData(q);

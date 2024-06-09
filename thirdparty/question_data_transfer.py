@@ -1,12 +1,17 @@
 import os
 import json
 import logging
+from urllib.parse import quote
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, JSON
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
+#pip install sqlalchemy mysql-connector-python
+
+# Base directory for JSON files
+BASE_DIR = "C:\\Temp2\\compp_prod\\qdata"
+
 # Database connection setup
-DATABASE_URL = "mysql+mysqlconnector://root:root@localhost/test_db"
-engine = create_engine(DATABASE_URL)
+engine = create_engine("mysql+mysqlconnector://root:%s@localhost/compph_prod" % quote('p@ssw0rd'))
 Session = sessionmaker(bind=engine)
 session = Session()
 

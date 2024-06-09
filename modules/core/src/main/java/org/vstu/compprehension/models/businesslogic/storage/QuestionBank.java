@@ -259,17 +259,16 @@ public class QuestionBank {
     private @Nullable Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
         try {
             var questionData = qMeta.getQuestionData();
-            if (questionData == null) {
-                log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
-                return null;
+            if (questionData != null) {
+                return questionData.getData().toQuestion(domain, qMeta);
             }
 
-            QuestionDataEntity questionDataEntity = questionDataRepository.findById(questionData.getId()).orElse(null);
+            QuestionDataEntity questionDataEntity = questionDataRepository.findById(qMeta.getId()).orElse(null);
             if (questionDataEntity != null) {
                 return questionDataEntity.getData().toQuestion(domain, qMeta);
-            } else {
-                log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
             }
+
+            log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
         } catch (Exception e) {
             log.error("Error loading question with metadata id [{}] - {}", qMeta.getId(), e.getMessage(), e);
         }
