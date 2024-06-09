@@ -42,7 +42,7 @@ public class QuestionBankController {
     @ResponseBody
     public Integer getQuestionsCount(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
         var initCourse = courseService.getInitialCourseId();
-        var courseId = searchRequest.getCourseId() == null ? initCourse : Long.parseLong(searchRequest.getCourseId());
+        var courseId = searchRequest.getCourseId() == null ? initCourse : searchRequest.getCourseId();
 
         var currentUser = userService.getCurrentUser();
 
