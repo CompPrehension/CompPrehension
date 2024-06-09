@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1715723682123-9" author="artem">
+        <!-- Связь пользователей с ролями -->
+        <sql>
+            -- Создаем временную таблицу для хранения user_id пользователей с ролью GlobalAdmin
+            CREATE TEMPORARY TABLE temp_global_admin_users AS
+            SELECT user_id
+            FROM role_user_assignment
+            WHERE role_id = (SELECT id FROM role WHERE name = 'GlobalAdmin');
+
+            -- Удаляем все роли, кроме GlobalAdmin, для пользователей, у которых есть роль GlobalAdmin
+            DELETE FROM role_user_assignment
+            WHERE user_id IN (SELECT user_id FROM temp_global_admin_users)
+              AND role_id != (SELECT id FROM role WHERE name = 'GlobalAdmin');
+
+            -- Удаляем временную таблицу
+            DROP TABLE temp_global_admin_users;
+        </sql>
+    </changeSet>
+    <changeSet id="1715723682123-10" author="artem">
+        <!-- Удаление ролей для пользователей с определенным external_id -->
+        <sql>
+            -- Создаем временную таблицу для хранения user_id пользователей с external_id, начинающимся на https://compprehension.ddns.net/mdl_
+            CREATE TEMPORARY TABLE temp_mdl_users AS
+            SELECT id as user_id
+            FROM user
+            WHERE external_id LIKE 'https://compprehension.ddns.net/mdl_%';
+
+            -- Удаляем все роли для пользователей из временной таблицы
+            DELETE FROM role_user_assignment
+            WHERE user_id IN (SELECT user_id FROM temp_mdl_users);
+
+            -- Удаляем временную таблицу
+            DROP TABLE temp_mdl_users;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
