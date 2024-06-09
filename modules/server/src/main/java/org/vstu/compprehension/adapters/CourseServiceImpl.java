@@ -110,7 +110,6 @@ public class CourseServiceImpl implements CourseService {
         }
 
         String mainUrl = fullUrl.getProtocol() + "://" + fullUrl.getAuthority();
-        String hostName = fullUrl.getHost().split("\\.")[0];
-        return educationResourceService.getOrCreateEducationResource(mainUrl, hostName);
+        return educationResourceService.getOrCreateEducationResource(mainUrl, fullUrl.getHost());
     }
 }
