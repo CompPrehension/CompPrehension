@@ -3,11 +3,13 @@ package org.vstu.compprehension.models.businesslogic;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.ControlFlowStatementsDomain;
+import org.vstu.compprehension.JenaBackend;
+import org.vstu.compprehension.adapters.DomainFactoryImpl;
+import org.vstu.compprehension.models.businesslogic.backends.Backend;
+import org.vstu.compprehension.models.businesslogic.backends.ReasoningOptions;
+import org.vstu.compprehension.models.businesslogic.backends.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.domain.Domain;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
 import java.util.Collection;
@@ -21,7 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ControlFlowStatementsDomainTest {
 
     @Autowired
-    ControlFlowStatementsDomain domain;
+    DomainFactoryImpl domainFactory;
+    Domain domain = domainFactory.getDomain("ctrl_flow");
 
     @Test
     public void testName() {

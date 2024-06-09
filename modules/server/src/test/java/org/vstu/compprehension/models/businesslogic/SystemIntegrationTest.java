@@ -1,14 +1,14 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.JenaBackend;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.backends.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.domain.Domain;
+import org.vstu.compprehension.models.businesslogic.domain.DomainFactory;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

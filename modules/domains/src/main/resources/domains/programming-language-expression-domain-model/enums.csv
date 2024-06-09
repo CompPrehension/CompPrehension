@@ -1,0 +1,5 @@
+state|unevaluated;evaluated;used;omitted|TRUE   |состояние|невычислен;вычислен;использован;опущен
+evaluatesTo|true;false|false                    |значение|true;false
+associativity|left;right;non-assoc|false        |ассоциативность|левая;правая;без ассоциативности
+place|prefix;postfix;infix;around|false         |положение|до операндов;после операндов;между операндами;вокруг операндов
+arity|unary;binary;ternary|false                |арность|унарный;бинарный;тернарный

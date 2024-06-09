@@ -1,0 +1,28 @@
+token|||токен
+element|||элемент
+operand|element||операнд
+operator|operand||оператор
+plus|operator||оператор +
+minus|operator||оператор -
+unaryPlus|operator||оператор +
+unaryMinus|operator||оператор -
+postfixInc|operator||оператор ++
+postfixDec|operator||оператор --
+prefixInc|operator||оператор ++
+prefixDec|operator||оператор --
+and|operator||оператор И
+or|operator||оператор ИЛИ
+not|operator||оператор НЕ
+equal|operator||оператор ==
+notequal|operator||оператор !=
+less|operator||оператор <
+lesseq|operator||оператор <=
+greater|operator||оператор >
+greatereq|operator||оператор >=
+ternary|operator||оператор ? :
+comma|operator||запятая
+multiplication|operator||оператор *
+division|operator||оператор /
+power|operator||оператор ^
+brackets|operator||оператор []
+parenthesis|element||скобки

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.JenaBackend;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
@@ -58,6 +59,6 @@ public class ExerciseSettingsController {
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();
         var strategyId = json.get("strategyId").asText();
-        return exerciseService.createExercise(name, domainId, strategyId).getId();
+        return exerciseService.createExercise(name, domainId, strategyId, JenaBackend.BackendId).getId();
     }
 }

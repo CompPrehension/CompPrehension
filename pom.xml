@@ -16,6 +16,8 @@
         <module>modules/background-server</module>
         <module>modules/expr-domain-question-generator</module>
         <module>modules/common-spring</module>
+        <module>modules/backends</module>
+        <module>modules/domains</module>
     </modules>
 
     <properties>

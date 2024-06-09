@@ -1,0 +1,154 @@
+ORDER_question_prompt	<p>Нажмите на действия алгоритма в том порядке, в котором они выполнятся. Активируйте действия при помощи кнопок play<img src="https://icons.bootstrap-4.ru/assets/icons/play-fill.svg" alt="Play" width="18"> (начать/выполнить) и stop<img src="https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg" alt="Stop" width="16"> (закончить).</p>	<p>Press the actions of the algorithm in the order they are evaluated. Activate actions with play<img src="https://icons.bootstrap-4.ru/assets/icons/play-fill.svg" alt="Play" width="18"> and stop<img src="https://icons.bootstrap-4.ru/assets/icons/stop-fill.svg" alt="Stop" width="16"> buttons.</p>
+
+
+UpcomingNeighbour Oжидаемый-рано	Почему вы пропустили <phased-MISSING> ?	Why did you skip <phased-MISSING> ?
+		
+NotNeighbour Hеожиданно	Почему вы выполнили <phased-EXTRA> ?	Why did you execute <phased-EXTRA> ?
+		
+WrongCondNeighbour Hе-при-том-условии	Почему вы выполнили <phased-A>, когда условие <COND> приняло значение <TrueFalse> ?	Why did you execute <phased-A>, when the condition <COND> is <TrueFalse> ?
+		
+TooEarlyWhenInterrupting Пропуск-в-цепочке-прерывания	Идёт прерывание действий по <kind_of_action>. Почему вы пропустили <phased-MISSING> ?	Actions are currently being interrupted by <kind_of_action>. Why did you skip <phased-MISSING> ?
+
+UnexpectedWhenInterrupting Лишнее-в-цепочке-прерывания	Почему вы выполнили <phased-EXTRA> ? Идёт прерывание действий по <kind_of_action>.	Why did you execute <phased-EXTRA> ? Actions are currently being interrupted by <kind_of_action>.
+
+IgnoreInterruptingFlow Не-прервалолсь	Почему вы продолжили выполнение до <phased-EXTRA> ? Идёт прерывание действий по <kind_of_action>.	Why did you go on to <phased-EXTRA> ? Actions are currently being interrupted by <kind_of_action>.
+
+SKIP___MisplacedBefore Раньше-объемлющего-акта	<A> не может выполняться до начала <B>, потому что <A> входит в <B>.	<A> is a part of <B> so <A> can't be executed before <B> starts.
+		
+SKIP___MisplacedAfter Позже-объемлющего-акта	<B> не может выполняться после окончания <A>, потому что <B> входит в <A>.	<B> is a part of <A> so <B> can't be executed after <A> ends.
+		
+CorrespondingEndMismatched Не-соответствующий-конец	Некорректная трасса: <BEGIN> закончилось как <A>.	Bad trace: <BEGIN> ended as <A>.
+
+EndedDeeper Конец-внутри-вложенного-акта	Действие не может завершиться до окончания всех вложенных действий, поэтому <A> не может закончиться до окончания действия <INNER>, которое входит в <A>.	An action ends only when all its nested actions have ended, so <A> cannot end until <INNER> ends as <INNER> is a part of <A>.
+
+EndedShallower Конец-внутри-внешнего-акта	<phased-A> не может быть окончанием действия <BEGIN>, которое содержит <A>.	<phased-A> can't end <BEGIN> as <BEGIN> contains <A>.
+		
+WrongContext Вне-контекста	<A> не может выполняться в рамках <CONTEXT>, потому что <A> не является непосредственной частью <CONTEXT>.	<A> can't be executed inside of <CONTEXT> because <A> is not a direct part of <CONTEXT>.
+		
+OneLevelShallower Через-уровень	<A> не может выполняться в рамках <CONTEXT>, потому что <A> является элементом <PARENT>, начните сначала <PARENT>.	<A> cannot be executed within <CONTEXT> because <A> is an element of <PARENT>, so start <PARENT> first.
+		
+TooEarlyInSequence Не-в-порядке-следования-рано	Следование выполняет все свои действия по порядку, поэтому <A> не может выполняться перед <phased-MISSING>.	A sequence executes its nested actions in order, so <A> cannot be executed before <phased-MISSING>.
+		
+TooLateInSequence Не-в-порядке-следования-поздно	Следование выполняет все свои действия по порядку, поэтому <A> не может выполняться после <PREVIOUS>.	A sequence executes its nested actions in order, so <A> cannot be executed after <PREVIOUS>.
+		
+SequenceFinishedTooEarly Следование-прервано	Следование выполняет все свои действия: нельзя закончить следование <A>, не выполнив действия: <phased-MISSING>.	A sequence always executes all its actions. The sequence <A> cannot finish until actions: <phased-MISSING> are executed.
+		
+SequenceFinishedNotInOrder Следование-без-начала	Нельзя закончить следование <A>, не начав его.	Sequence <A> cannot end until it starts.
+
+DuplicateOfAct Дубликат (sequence only)	Следование выполняет все свои действия ровно по 1 разу, поэтому во время выполнения действия <PARENT> действие <A> должно выполниться ровно один раз.	A sequence executes each its action once, so each execution of <PARENT> can contain only one execution of <A>.
+		
+NoFirstCondition Нет-первого-условия	Развилка проверяет все свои условия по порядку до первого истинного. Поэтому выполнение развилки <ALT> должно начинаться с проверки её первого условия <REQUIRED_COND>.	A selection statement evaluates its conditions in order until the first true condition. Selection statement <ALT> should start with evaluating its first condition <REQUIRED_COND>.
+		
+BranchNotNextToCondition Ветка-не-после-условия	Развилка выполняет ветку, только если условие этой ветки истинно. Ветка <UNEXPECTED_BRANCH> может начаться только непосредственно после условия <REQUIRED_COND>.	Selection statement executes its branch only if the branch condition is true. Selection statement <ALT> can execute the branch <UNEXPECTED_BRANCH> right after condition <REQUIRED_COND> only.
+		
+ElseBranchNotNextToLastCondition Ветка-иначе-без-условия	Развилка выполняет ветку "ИНАЧЕ", только если все условия были ложными. Альтернативная ветка "ELSE" не может начаться, пока условие <REQUIRED_COND> не вычислено.	A selection statement executes its "ELSE" branch only if all its conditions are false. Selection statement <ALT> cannot execute the branch "ELSE" until its condition <REQUIRED_COND> is evaluated.
+		
+ElseBranchAfterTrueCondition Ветка-иначе-после-успешного-условия	Развилка выполняет ветку "ИНАЧЕ", только если все условия были ложными. Альтернативная ветка ("ELSE") не должна начинаться, поскольку условие <LATEST_ALT_COND> истинно.	A selection statement executes its "ELSE" branch only if all its conditions are false. Selection statement <ALT> must not execute its branch "ELSE" since condition <LATEST_ALT_COND> is true.
+		
+CondtionNotNextToPrevCondition Условие-не-по-порядку	Развилка проверяет свои условия по порядку до первого истинного. При выполнении развилки <ALT> условие <CURRENT_ALT_COND> может быть вычислено только сразу после <REQUIRED_COND>, если условие <REQUIRED_COND> было ложным.	A selection statement evaluates its conditions in order up to the first true condition. Selection statement <ALT> can evaluate its condition <CURRENT_ALT_COND> right after the condition <REQUIRED_COND> only, if <REQUIRED_COND> is false.
+		
+ConditionTooEarly Условие-слишком-рано	Развилка проверяет свои условия по порядку до первого истинного. При выполнении развилки <ALT> условие <CURRENT_ALT_COND> рано вычислять, т.к. условие <REQUIRED_COND> еще не вычислено.	A selection statement evaluates its conditions in order up to the first true condition. Selection statement <ALT> cannot evaluate its condition <CURRENT_ALT_COND> until the condition <REQUIRED_COND> is evaluated.
+		
+ConditionTooLate Условие-слишком-поздно	Развилка проверяет свои условия по порядку до первого истинного. При выполнении развилки <ALT> условие <CURRENT_ALT_COND> должно было быть вычислено раньше, сразу после условия <REQUIRED_COND>.	A selection statement evaluates its conditions in order up to the first true condition. Selection statement <ALT> should evaluate its condition <CURRENT_ALT_COND> earlier, right after condition <REQUIRED_COND> is evaluated.
+
+ConditionAfterBranch Условие-после-ветки	Выполнив одну ветку, развилка завершается. При выполнении развилки <ALT> условие <UNEXPECTED_ALT_COND> не должно проверяться, потому что ветка <BRANCH> уже выполнена.	A selection statement executes no more than one alternative action and finishes. Selection statement <ALT> must not evaluate its condition <UNEXPECTED_ALT_COND> because the branch <BRANCH> was executed.
+		
+DuplicateOfCondition Повтор-условия	Развилка проверяет все условия по порядку до первого истинного. При выполнении развилки <ALT> условие <CURRENT_ALT_COND> не должно проверяться повторно.	A selection statement evaluates its conditions in order up to the first true condition. Selection statement <ALT> must not evaluate its condition <CURRENT_ALT_COND> twice.
+		
+NoNextCondition Нет-следующего-условия	Развилка проверяет все условия по порядку до первого истинного. При выполнении развилки <ALT> следующим должно проверяться условие <EXPECTED_ALT_COND>, так как условие <LATEST_ALT_COND> ложно.	A selection statement evaluates its conditions in order up to the first true condition. Selection statement <ALT> should evaluate its condition <EXPECTED_ALT_COND> next because the condition <LATEST_ALT_COND> is false.
+		
+BranchOfFalseCondition Ветка-при-ложном-условии	Развилка выполняет ветку, только если ее условие истинно. При выполнении развилки <ALT> не должна выполниться ветка <UNEXPECTED_BRANCH>, потому что условие <LATEST_ALT_COND> ложно.	A selection statement executes its branch only if its condition is true. Selection statement <ALT> must not execute the branch <UNEXPECTED_BRANCH> because its condition <LATEST_ALT_COND> is false.
+
+AnotherExtraBranch Лишняя-вторая-ветка	Выполнив одну ветку, развилка завершается. При выполнении развилки <ALT> ветка <UNEXPECTED_BRANCH> не должна начаться, потому что ветка <BRANCH> уже выполнилась.	A selection statement executes only one branch. Selection statement <ALT> must not start its branch <UNEXPECTED_BRANCH> because the branch <BRANCH> was executed.
+		
+BranchWithoutCondition Ветка-без-условия	Развилка выполняет ветку, только если условие этой ветки истинно. При выполнении развилки <ALT> ветка <UNEXPECTED_BRANCH> не может начаться, потому что условие <REQUIRED_COND> не вычислено.	A selection statement executes its branch when the branch condition evaluates to true. Selection statement <ALT> must not execute the branch <UNEXPECTED_BRANCH> without evaluating its condition <REQUIRED_COND> first.
+		
+NoBranchWhenConditionIsTrue Нет-ветки-при-истинном-условии	Развилка выполняет ветку, только если условие этой ветки истинно. При выполнении развилки <ALT> должна выполниться ветка <EXPECTED_BRANCH>, потому что условие <LATEST_ALT_COND> истинно.	A selection statement executes its branch when the corresponding condition is true. Selection statement <ALT> must execute the branch <EXPECTED_BRANCH> because its condition <LATEST_ALT_COND> is true.
+		
+LastFalseNoEnd Развилка-не-закончилась	Если все условия ложны и ветка "ИНАЧЕ" отсутствует, то развилка не выполнит ничего. Развилка <ALT>  должна завершиться, так как условие(-я) <ALT_COND> ложно(-ы) и ветка "ИНАЧЕ" отсутствует.	When all conditions of a selection statement are false and "ELSE" branch does not exist, the selection does nothing. Selection statement <ALT> does not have an 'else' branch so it must finish because its condition(s) <ALT_COND> is/are false.
+		
+AlternativeEndAfterTrueCondition Развилка-закончилась-после-истиннного-условия	Когда вычисленное условие развилки истинно, выполняется сответствующая ветка. Развилка <ALT> не должна завершиться, пока ветка истинного условия <LATEST_ALT_COND> не выполнена.	When a condition of a selection statement evaluates to true, the selection executes the corresponding branch. Selection statement <ALT> should not finish until the branch of successful condition <LATEST_ALT_COND> is executed.
+		
+NoAlternativeEndAfterBranch Развилка-не-закончена-после-ветки	Развилка завершается, выполнив одну ветку. Развилка <ALT> выполнила ветку <BRANCH> и должна завершиться.	A selection statement finishes after executing one branch. Selection statement <ALT> executed its branch <BRANCH> and should finish.
+		
+LastConditionIsFalseButNoElse Нет-ветки-иначе	Развилка выполняет ветку "ИНАЧЕ", только если все условия ложны. При выполнении развилки <ALT> условие(-я) <ALT_COND> ложно(-ы), поэтому должна выполниться ветка "ИНАЧЕ".	A selection statement executes its "ELSE" branch only if all conditions are false. Selection statement <ALT> must execute its branch "ELSE" because the condition(s) <ALT_COND> evaluated to false.
+		
+NoIterationAfterSuccessfulCondition Нет-итерации	Когда условие продолжения цикла <kind_of_loop> истинно, цикл должен продолжиться: начинается новая итерация цикла. Поскольку условие <LOOP_COND> истинно, должна начаться новая итерация цикла <LOOP>.	A <kind_of_loop> loop continues if its condition is true: its new iteration must begin. A new iteration of the loop <LOOP> must begin because its condition <LOOP_COND> is true.
+		
+LoopEndAfterSuccessfulCondition Конец-цикла-при-истинном-условии	Когда условие продолжения цикла истинно, цикл <kind_of_loop> должен продолжиться: начинается новая итерация цикла. Поэтому, раз условие <LOOP_COND> истинно, цикл <LOOP> заканчивать рано.	A <kind_of_loop> loop continues if its condition is true: its new iteration must begin. It's too early to finish the loop <LOOP> because its condition <LOOP_COND> is true.
+		
+NoLoopEndAfterFailedCondition Нет-конца-цикла	Цикл заканчивается, как только условие продолжения стало ложным. Так как условие <LOOP_COND> ложно, цикл <LOOP> должен завершиться.	A <kind_of_loop>  loop ends when its condition becomes false. As the condition <LOOP_COND> is false, the loop <LOOP> must end.
+		
+LoopEndsWithoutCondition Конец-цикла-без-проверки-условия	Цикл заканчивается, только если условие продолжения стало ложным. Поэтому цикл <LOOP> не должен завершиться, пока условие <LOOP_COND> не вычислено.	The finish of a loop is determined by its condition. Since the condition <LOOP_COND> is not evaluated yet, the loop <LOOP> must not end.
+		
+LoopStartIsNotCondition Цикл-начался-не-с-проверки-условия	Цикл <kind_of_loop> является циклом с предусловием. Поэтому начать цикл <LOOP> следует с проверки условия <LOOP_COND>.	A <kind_of_loop> loop is a pre-test loop. So the loop <LOOP> should start by evaluating its condition <LOOP_COND>.
+		
+LoopStartIsNotIteration Цикл-начался-не-с-итерации	Цикл DO является циклом с постусловием. Поэтому цикл <LOOP> следует начинать с итерации.	A DO loop is a post-test loop. Therefore, loop <LOOP> should begin with an iteration.
+		
+LoopContinuedAfterFailedCondition Продолжение-цикла-при-ложном-условии	Цикл заканчивается, когда условие продолжения стало ложным. Цикл <LOOP> не может продолжиться, потому что условие <LOOP_COND> ложно.	A loop ends when its condition becomes false. Since condition <LOOP_COND> is false, loop <LOOP> cannot continue.
+		
+IterationAfterFailedCondition Итерация-при-ложном-условии	Цикл заканчивается, когда условие продолжения стало ложным. Итерация цикла <LOOP> не может начаться, потому что условие <LOOP_COND> ложно.	A loop ends when its condition becomes false. Since condition <LOOP_COND> is false, the iteration of loop <LOOP> cannot start.
+
+NoConditionAfterIteration Нет-проверки-условия	После итерации цикла <kind_of_loop> нужно решить, продолжать ли цикл или закончить его. Для этого, после итерации цикла <LOOP> следует вычислить условие <LOOP_COND>.	After an iteration of <kind_of_loop> loop, its condition must be evaluated to determine whether to continue the loop or finish it. After an iteration of loop <LOOP>, its condition <LOOP_COND> should be evaluated.
+		
+NoConditionBetweenIterations Нет-проверки-условия-между-итерациями	После очередной итерации цикла <kind_of_loop> нужно решить, продолжать ли цикл или закончить его. Перед тем как перейти к следующей итерации цикла <LOOP>, нужно вычислить условие <LOOP_COND>.	After an iteration of <kind_of_loop> loop, it is to determine whether the loop continues or ends. Before proceeding to the next iteration of loop <LOOP>, its condition <LOOP_COND> should be evaluated.
+		
+LoopStartsNotWithInit Цикл-FOR-начался-не-с-инициализации	В начале цикла FOR выполняется инициализация. Начните выполнение цикла <LOOP> с инициализации <INIT>.	A FOR loop starts from initializing its variable. Begin loop <LOOP> from executing its initialization <INIT>.
+		
+InitNotAtLoopStart Инициализация-FOR-не-в-начале-цикла	Инициализация цикла FOR выполняется один раз в начале цикла. После <A> инициализацию <INIT> выполнять не следует.	The initialization of a FOR loop is executed once at the beginning of the loop. Initialization <INIT> should not be executed after <A>.
+		
+NoConditionAfterForInit Нет-проверки-условия-после-инициализации-цикла-FOR	Цикл FOR является циклом с предусловием, т.е. он должен вычислить условие перед первой итерацией. После инициализации <INIT> следует вычислить условие цикла <LOOP_COND>.	A FOR loop is a pre-test loop, so it should evaluate its condition before its first iteration. Condition <LOOP_COND> should be evaluated after initialization <INIT>.
+		
+IterationAfterForInit Итерация-после-инициализации-цикла-FOR	Цикл FOR является циклом с предусловием; он может не выполнить ни одной итерации, если условие окажется сразу ложным. После инициализации <INIT> следует вычислить условие цикла <LOOP_COND>.	A FOR loop is a pre-test loop, it won't start an iteration if its condition is false at the beginning. After initialization <INIT> condition <LOOP_COND> should be evaluated.
+		
+NoUpdateAfterIteration Нет-перехода-после-итерации-цикла-FOR	Цикл FOR имеет команду перехода к следующей итерации, которая обычно обновляет значение переменной цикла. После итерации цикла <LOOP> следует выполнить переход <UPDATE>.	A FOR loop has an advancement that updates the loop variable before next iteration. After iteration of loop <LOOP>, its advancement <UPDATE> should be executed.
+		
+UpdateNotAfterIteration Нет-перехода-после-итерации-цикла-FOR	Переход к следующей итерации выполняется сразу после окончания предыдущей итерации цикла FOR.  Переход <UPDATE> следует выполнять только после конца итерации цикла <LOOP>.	The FOR loop has an advancement that updates the loop variable. The advancement <UPDATE> should only be executed after the iteration of loop <LOOP>.
+		
+ForConditionAfterIteration Условие-после-итерации-цикла-FOR	До проверки условия цикла FOR необходимо выполнить переход к следующей итерации. После итерации цикла <LOOP> следует выполнить переход <UPDATE>.	A FOR loop has an advancement that updates the loop variable before the loop condition is evaluated. After iteration of loop <LOOP> its advancement <UPDATE> should be executed.
+		
+NoConditionAfterForUpdate Нет-условия-после-перехода-цикла-FOR	Цикл FOR проверяет истинность своего условия перед каждой итерацией. После перехода <UPDATE> следует вычислить условие <LOOP_COND>.	The FOR loop has an increment command that updates the loop variable before the loop condition is evaluated. After the advancement <UPDATE> the condition <LOOP_COND> should be evaluated.
+		
+NoForeachUpdateAfterSuccessfulCondition Нет-перехода-после-условия-цикла-FOREACH	Цикл FOREACH обходит коллекцию или перебирает итератор, переходя к очередному элементу при его наличии. Так как проверка на следующий элемент успешна (условие истинно), следует получить очередной элемент и начать итерацию цикла <B>.	The FOREACH loop traverses a collection or iterates over an iterator and proceeds to the next element is one exists. Since the check for the next element is successful (the condition is true), the next element should be retrieved and the iteration of the <B> loop should begin.
+		
+ForeachUpdateNotAfterSuccessfulCondition Переход-не-после-истинного-условия-цикла-FOREACH	Цикл FOREACH обходит коллекцию или перебирает итератор, и переходить к следующему элементу должен непосредственно после проверки наличия очередного элемента. В цикле <B> переход к очередному элементу должен следовать сразу за успешной проверкой на следующий элемент.	The FOREACH loop traverses a collection or iterator and must go to the next element immediately after checking for the next element. The <B> loop should go to the next element right after a successful check for the next element.
+		
+NoIterationAfterForeachUpdate Нет-итерации-после-перехода-цикла-FOREACH	Цикл FOREACH обходит коллекцию или перебирает итератор, и после перехода к очередному элементу должен начинать новую итерацию. Сразу за переходом к очередному элементу должно следовать начало итерации цикла <B>.	The FOREACH loop traverses a collection or iterator and must start a new iteration after moving to the next element. Immediately after the advance to the next element, the iteration of the <B> loop should begin.
+		
+IterationNotAfterForeachUpdate Итерация-не-после-перехода-цикла-FOREACH	Цикл FOREACH обходит коллекцию или перебирает итератор, и начинать новую итерацию должен непосредственно после перехода к очередному элементу. Сразу за переходом к очередному элементу должно следовать начало итерации цикла <B>.	The FOREACH loop traverses a collection or iterator, and should start a new iteration immediately after moving to the next element. Right after the advance to the next element the iteration of the <B> loop should start.
+
+
+
+
+SequenceBegin Первый акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> первым будет выполнено действие <INNER>.	Sequence executes its statements in their order, so for sequence <SEQ>, its statement <INNER> should be executed first.
+
+SequenceNext Следующий акт следования	Cледование выполняет все свои действия по порядку, поэтому в следовании <SEQ> после действия <PREVIOUS> будет выполнено действие <NEXT>	Sequence executes its statements in their order, so in sequence <SEQ>, its statement <PREVIOUS> should be followed by statement <NEXT>.
+
+SequenceEnd Конец следования	Следование выполняет все свои действия ровно по одному разу, поэтому после выполнения всех своих действий следование <SEQ> завершится.	Sequence executes its actions exactly once per run, so sequence <SEQ> finishes after all its actions completed.
+
+AltBegin Проверка первого условия развилки (if)	Развилка начинается с проверки первого условия, поэтому выполнение развилки <ALT> начнется с проверки условия <ALT_COND>.	A selection statement starts with evaluating its first condition, so selection <ALT> should start with evaluating its condition <ALT_COND>.
+
+AltBranchBegin Начало ветки истинного условия развилки	Развилка выполняет свою ветку при истинном условии. Поскольку условие <ALT_COND> истинно, выполняется ветка <BRANCH>.	A selection statement executes its branch when corresponding condition is true. As condition <ALT_COND> is true, branch <BRANCH> should begin.
+
+NextAltCondition Проверка следующего условия развилки (else-if)	Развилка проверяет следующее условие, когда текущее ложно. Поскольку условие <ALT_COND> ложно, проверится условие <NEXT_COND>.	A selection statement evaluates its consequent condition when current condition is false. As condition <ALT_COND> is false, condition <NEXT_COND> should be evaluated.
+
+AltElseBranchBegin Переход к ветке ИНАЧЕ (else)	Развилка выполняет ветку ИНАЧЕ, если все ее условия ложны. В данной ситуации развилка <ALT> выполнит ветку ИНАЧЕ.	A selection statement executes its ELSE branch when all of its conditions are false. As condition <ALT_COND> is false, selection <ALT> should execute its ELSE branch.
+
+AltEndAllFalse Конец развилки, т.к. все условия ложны	Развилка заканчивается, когда все условия ложны и нет ветки ИНАЧЕ. Развилка <ALT> должна закончиться.	A selection statement finishes when all of its conditions are false and the ELSE branch is absent. Selection <ALT> should finish.
+
+AltEndAfterBranch Окончание развилки по завершению ветки	Развилка может выполнить не более одной альтернативной ветки за раз. Ветка альтернативы выполнилась, и теперь развилка <ALT> должна закончится.	A selection statement executes at most one of its branches at a time. Selection statement branch has executed, and now selection statement <ALT> should end.
+
+PreCondLoopBegin Начало цикла с предусловием (while)	В цикле с предусловием (цикл WHILE) условие проверяется перед началом итерации. Цикл <LOOP> является циклом WHILE, поэтому в начале цикла проверится его условие <LOOP_COND>. 	 A WHILE loop (as a pre-test loop) evaluates its condition before its iteration begins. As <LOOP> loop is a WHILE loop, its condition <LOOP_COND> should be evaluated in the beginning of the loop.
+
+PostCondLoopBegin Начало цикла с постусловием (do-while, do-until)	В цикле с постусловием (цикл DO-WHILE) условие проверяется после окончания итерации. Цикл <LOOP> является циклом DO-WHILE, поэтому в начале цикла сразу же начнётся его итерация.	A DO-WHILE loop (as a post-test loop) evaluates its condition after its iteration ends. As <LOOP> loop is a DO-WHILE loop, its iteration should begin in the beginning of the loop.
+
+IterationBeginOnTrueCond Начало тела цикла при cond=1 (while, do-while, for)	Цикл <kind_of_loop> продолжается при истинном условии. Условие продолжения цикла <LOOP_COND> истинно, и теперь начнётся итерация цикла <LOOP>.	A <kind_of_loop> loop continues under the true condition. As loop condition <LOOP_COND> is true, the iteration of loop <LOOP> should start.
+
+IterationBeginOnFalseCond Начало тела цикла при cond=0 (do-until)	(~) Условие выхода из цикла ложно, и теперь начнётся итерация, потому что цикл <DO_UNTIL> продолжается при ложном условии	The loop exit condition is false, and now the iteration should start because the loop <DO_UNTIL> continues under the false condition. (~)
+
+LoopEndOnFalseCond Конец цикла при cond=0 (while, do-while, for, foreach)	Цикл <kind_of_loop> является циклом с предусловием и прерывается при ложном условии. Условие <LOOP_COND> ложно, и теперь цикл <LOOP> закончится.	A <kind_of_loop> loop finishes when condition is false. As loop condition <LOOP_COND> is false, loop <LOOP> should end.
+
+NormalLoopEnd Конец цикла при cond=1 (do-until)	(~) Условие выхода из цикла истинно, и теперь цикл закончится, потому что цикл <DO_UNTIL> прерывается при истинном условии	The loop exit condition is true, and now the loop should end because the loop <DO_UNTIL> stops under the true condition (~)
+
+LoopCondBeginAfterIteration После тела цикла - условие (while, do-while, do-until, foreach)	Выполнив итерацию, цикл проверяет своё условие. Итерация цикла <LOOP> завершилась, и теперь проверится условие цикла <LOOP_COND>.	A loop evaluates its condition once its iteration completed. As iteration of <LOOP> loop finished, loop condition <LOOP_COND> should be evaluated.
+

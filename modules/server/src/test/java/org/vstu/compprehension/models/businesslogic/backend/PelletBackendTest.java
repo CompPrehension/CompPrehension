@@ -1,9 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.vstu.compprehension.JenaBackend;
+import org.vstu.compprehension.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.adapters.DomainFactoryImpl;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.PositiveLaw;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.backends.ReasoningOptions;
+import org.vstu.compprehension.models.businesslogic.domain.Domain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -81,7 +84,8 @@ class Expression {
 @SpringBootTest
 class PelletBackendTest {
     @Autowired
-    ProgrammingLanguageExpressionDomain domain;
+    DomainFactoryImpl domainFactory;
+    Domain domain = domainFactory.getDomain("expression");
 
     static Optional<Integer> getIndexFromName(String name, boolean allowNotZeroStep) {
         Assertions.assertTrue(name.startsWith("op__"), name);
@@ -155,7 +159,7 @@ class PelletBackendTest {
         for (String token : expression.getTokens()) {
             facts.add(new BackendFactEntity(null, null, token));
         }
-        List<BackendFactEntity> statement = domain.getBackendFacts(facts);
+        List<BackendFactEntity> statement = ((ProgrammingLanguageExpressionDomain)domain).getBackendFacts(facts);
         List<BackendFactEntity> solution = backend.solve(laws, statement, new ReasoningOptions()).asBackendFactList();
 
         checkObjectProperty(solution, jsonRelations, expression.size());

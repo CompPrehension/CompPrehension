@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
@@ -37,11 +36,11 @@ public class ExerciseService {
 
     public ExerciseEntity createExercise(@NotNull String name,
                                          @NotNull String domainId,
-                                         @NotNull String strategyId
+                                         @NotNull String strategyId,
+                                         @NotNull String backendId
     ) {
         var domain = domainRepository.findById(domainId)
                 .orElseThrow();
-        var backendId = JenaBackend.BackendId;
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
