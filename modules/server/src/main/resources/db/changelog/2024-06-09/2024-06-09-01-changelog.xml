@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1717929739403-1" author="artem">
+        <addUniqueConstraint columnNames="kind, owner_id" constraintName="uc_kind_owner_id"
+                             tableName="permission_scope"/>
+    </changeSet>
+    <changeSet id="1717929739403-2" author="artem">
+        <addUniqueConstraint columnNames="name"
+                             constraintName="uc_permission_name"
+                             tableName="permission"/>
+    </changeSet>
+
+</databaseChangeLog>

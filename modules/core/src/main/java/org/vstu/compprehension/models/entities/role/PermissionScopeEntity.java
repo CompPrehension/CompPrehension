@@ -10,7 +10,7 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "PermissionScope")
+@Table(name = "PermissionScope", uniqueConstraints = @UniqueConstraint(columnNames = {"kind", "owner_id"}))
 public class PermissionScopeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
