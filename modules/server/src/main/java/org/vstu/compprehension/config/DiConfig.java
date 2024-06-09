@@ -20,6 +20,7 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy;
@@ -82,9 +83,10 @@ public class DiConfig {
     @Singleton
     QuestionBank getQuestionBank(
             @Autowired DomainRepository domainRepository,
-            @Autowired QuestionMetadataRepository metadataRepository) throws Exception {
+            @Autowired QuestionMetadataRepository metadataRepository,
+            @Autowired QuestionDataRepository questionDataRepository) throws Exception {
         var allDomains = domainRepository.findAll();
-        return new QuestionBank(allDomains, metadataRepository, new QuestionMetadataManager(metadataRepository));
+        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository));
     }
 
     @Bean

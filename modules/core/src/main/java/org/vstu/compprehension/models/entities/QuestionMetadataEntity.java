@@ -33,6 +33,10 @@ public class QuestionMetadataEntity {
     @Column(name = "q_data_graph")
     private String qDataGraph;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_data_id", referencedColumnName = "id")
+    private QuestionDataEntity questionData;
+
     @Column(name = "tag_bits")
     private Long tagBits;
 
