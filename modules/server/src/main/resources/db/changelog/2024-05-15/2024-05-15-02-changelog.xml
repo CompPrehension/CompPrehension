@@ -107,10 +107,19 @@
 
     <changeSet id="1715723682123-9" author="artem (generated)">
         <!-- Связь пользователей с ролями -->
-        <sql>INSERT INTO role_user_assignment (role_id, user_id, permission_scope_id)
-             SELECT (SELECT id FROM role WHERE name = 'GlobalAdmin')        as role_id,
-                    u.id                                                    as user_id,
-                    (SELECT id FROM permission_scope WHERE kind = 'GLOBAL') as permission_scope_id
-             FROM user u;</sql>
+        <sql>
+            INSERT INTO role_user_assignment (role_id, user_id, permission_scope_id)
+            SELECT
+                CASE ur.roles
+                    WHEN 'ADMIN' THEN (SELECT id FROM role WHERE name = 'GlobalAdmin')
+                    WHEN 'STUDENT' THEN (SELECT id FROM role WHERE name = 'Student')
+                    WHEN 'TEACHER' THEN (SELECT id FROM role WHERE name = 'Teacher')
+                    END as role_id,
+                ur.user_id as user_id,
+                (SELECT id FROM permission_scope WHERE kind = 'GLOBAL') as permission_scope_id
+            FROM user_role ur
+            WHERE ur.roles IN ('ADMIN', 'STUDENT', 'TEACHER');
+        </sql>
     </changeSet>
+
 </databaseChangeLog>
