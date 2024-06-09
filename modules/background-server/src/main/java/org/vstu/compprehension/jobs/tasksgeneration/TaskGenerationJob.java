@@ -11,9 +11,9 @@ import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
-import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -317,7 +317,7 @@ public class TaskGenerationJob {
 
             log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
             
-            // throttle            
+            // throttle
             Thread.sleep(2000L);
         }
         
@@ -459,7 +459,6 @@ public class TaskGenerationJob {
     @SneakyThrows
     private void saveQuestions(List<Path> generatedRepos, @Nullable List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
         var generatorConfig = config.getGenerator();
-        var exportConfig = config.getExporter();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
             return;
@@ -505,7 +504,7 @@ public class TaskGenerationJob {
                 meta.setQrlogIds(new ArrayList<>());
 
                 // Проверить, подходит ли он нам
-                // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и скопировав файл с данными вопроса...
+                // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
                 boolean shouldSave = false;
                 if (qrLogsToProcess == null) {
                     shouldSave = true;
@@ -534,11 +533,14 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-                // copy data file and save local sub-path to it
-                String qDataPath = StringHelper.isNullOrEmpty(exportConfig.getStorageUploadRelativePath())
-                        ? storage.saveQuestionData(domainId, q.getQuestionData().getQuestionName(), q)
-                        : storage.saveQuestionData(domainId, exportConfig.getStorageUploadRelativePath(), q.getQuestionData().getQuestionName(), q);
-                meta.setQDataGraph(qDataPath);
+                // save question data in the database
+                QuestionDataEntity questionData = new QuestionDataEntity();
+                questionData.setData(q);
+                questionData.setId(meta.getId());
+                questionData = storage.saveQuestionDataEntity(questionData);
+
+                // set reference to the question data entity
+                meta.setQuestionData(questionData);
 
                 if (generatorConfig.isSaveToDb()) {
                     meta = storage.saveMetadataEntity(meta);
@@ -546,7 +548,7 @@ public class TaskGenerationJob {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with path [{}]. Metadata id: {}, Affected qrs: {}", q.getQuestionData().getQuestionName(), qDataPath, meta.getId(), meta.getQrlogIds());
+                log.info("Question [{}] saved with data in database. Metadata id: {}, Affected qrs: {}", q.getQuestionData().getQuestionName(), meta.getId(), meta.getQrlogIds());
                 savedQuestions += 1;
             }
 

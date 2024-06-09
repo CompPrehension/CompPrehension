@@ -9,6 +9,7 @@ import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJobConfig;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.util.Objects;
@@ -21,6 +22,7 @@ public class CoreConfg {
     @Bean
     QuestionBank getQuestionBank(
             @Autowired DomainRepository domainRepository,
+            @Autowired QuestionDataRepository questionDataRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired TaskGenerationJobConfig config) throws Exception {
         var allDomains = domainRepository.findAll();
@@ -35,6 +37,6 @@ public class CoreConfg {
             }
         }
         
-        return new QuestionBank(allDomains, metadataRepository, new QuestionMetadataManager(metadataRepository));
+        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository));
     }
 }

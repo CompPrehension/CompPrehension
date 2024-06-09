@@ -260,6 +260,14 @@ public class SerializableQuestion {
             gson.toJson(this, writer);
         }
     }
+
+    public static SerializableQuestion deserializeFromString(String data) {
+        return gson.fromJson(data, SerializableQuestion.class);
+    }
+
+    public static String serializeToString(SerializableQuestion question) {
+        return gson.toJson(question);
+    }
     
     private static class QuestionDataDeserializer implements JsonDeserializer<QuestionData> {
         @Override
@@ -269,7 +277,7 @@ public class SerializableQuestion {
             
             var questionType = QuestionType.valueOf(questionObject.get("questionType").getAsString());
             var questionText = questionObject.get("questionText").getAsString();
-            var questionName = questionObject.get("questionName").getAsString();
+            var questionName = questionObject.has("questionName") ? questionObject.get("questionName").getAsString() : questionText;
             var questionDomainType = questionObject.get("questionDomainType").getAsString();
             var answerObjects = context.<List<AnswerObject>>deserialize(questionObject.get("answerObjects"), new TypeToken<List<AnswerObject>>(){}.getType());
             var statementFacts = context.<List<StatementFact>>deserialize(questionObject.get("statementFacts"), new TypeToken<List<StatementFact>>(){}.getType());

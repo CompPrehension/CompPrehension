@@ -2,7 +2,6 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.vfs2.FileSystemException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -11,13 +10,9 @@ import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.utils.Checkpointer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,37 +20,16 @@ import static java.lang.Long.bitCount;
 
 @Log4j2
 public class QuestionBank {
-    private final HashMap<String, RemoteFileService> fileServices;
     private final QuestionMetadataRepository questionMetadataRepository;
+    private final QuestionDataRepository questionDataRepository;
     private final QuestionMetadataManager questionMetadataManager;
 
     public QuestionBank(
-            Collection<DomainEntity> domains,
             QuestionMetadataRepository questionMetadataRepository,
-            QuestionMetadataManager questionMetadataManager) throws URISyntaxException {
-        this.fileServices = new HashMap<>();
-        for (var domain : domains) {
-            var fs = new RemoteFileService(domain.getOptions().getStorageUploadFilesBaseUrl(),
-                    Optional.ofNullable(domain.getOptions().getStorageDownloadFilesBaseUrl()).orElse(domain.getOptions().getStorageUploadFilesBaseUrl()),
-                    Optional.ofNullable(domain.getOptions().getStorageDummyDirsForNewFile()).orElse(1));
-
-            this.fileServices.put(domain.getShortName(), fs);
-            this.fileServices.put(domain.getName(), fs);
-        }
-
-        this.questionMetadataRepository = questionMetadataRepository;
-        this.questionMetadataManager = questionMetadataManager;
-    }
-
-    public QuestionBank(
-            String domainId,
-            RemoteFileService fileService,
-            QuestionMetadataRepository questionMetadataRepository,
+            QuestionDataRepository questionDataRepository,
             QuestionMetadataManager questionMetadataManager) {
-        this.fileServices = new HashMap<>();
-        this.fileServices.put(domainId, fileService);
-
         this.questionMetadataRepository = questionMetadataRepository;
+        this.questionDataRepository = questionDataRepository;
         this.questionMetadataManager = questionMetadataManager;
     }
 
@@ -189,7 +163,7 @@ public class QuestionBank {
                 unwantedLawsBitmask,
                 unwantedViolationsBitmask,
                 Math.min(limit, hardLimit)  // Note: queryLimit >= limit
-            );
+        );
 
         ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
         log.info("searchQuestionsAdvanced - candidates: {}", foundQuestionMetas.stream().map(QuestionMetadataEntity::getName).toList());
@@ -209,7 +183,7 @@ public class QuestionBank {
         }
 
         List<Question> loadedQuestions = loadQuestions(domain, foundQuestionMetas);
-        ch.hit("searchQuestionsAdvanced - files loaded");
+        ch.hit("searchQuestionsAdvanced - questions loaded");
 
         ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
 
@@ -270,23 +244,21 @@ public class QuestionBank {
     }
 
     private @Nullable Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
-        var path = qMeta.getQDataGraph();
-        var fileService = fileServices.get(domain.getDomainId());
-        try (InputStream stream = fileService.getFileStream(path)) {
-            if (stream != null) {
-                var deserialized = SerializableQuestion.deserialize(stream);
-                return deserialized.toQuestion(domain, qMeta);
+        try {
+            var questionData = qMeta.getQuestionData();
+            if (questionData == null) {
+                log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
+                return null;
+            }
+
+            QuestionDataEntity questionDataEntity = questionDataRepository.findById(questionData.getId()).orElse(null);
+            if (questionDataEntity != null) {
+                return questionDataEntity.getData().toQuestion(domain, qMeta);
             } else {
-                log.warn("File NOT found by storage: {}", path);
+                log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
             }
-        } catch (IOException | NullPointerException | IllegalStateException e) {
-            log.error("Error loading question with path [{}] - {}", path, e.getMessage(), e);
-        } finally {
-            try {
-                fileService.closeConnections();
-            } catch (FileSystemException e) {
-                log.error("Error closing connection - {}", e.getMessage(), e);
-            }
+        } catch (Exception e) {
+            log.error("Error loading question with metadata id [{}] - {}", qMeta.getId(), e.getMessage(), e);
         }
         return null;
     }
@@ -304,28 +276,7 @@ public class QuestionBank {
         return questionMetadataRepository.save(meta);
     }
 
-    public String saveQuestionData(String domainId, String basePath, String questionName, SerializableQuestion question) throws IOException {
-        var rawQuestionPath = Path.of(basePath, questionName + ".json");
-        return saveQuestionDataImpl(domainId, rawQuestionPath.toString(), question);
-    }
-
-    public String saveQuestionData(String domainId, String questionName, SerializableQuestion question) throws IOException {
-        return saveQuestionDataImpl(domainId, questionName + ".json", question);
-    }
-
-    private String saveQuestionDataImpl(String domainId, String rawQuestionPath, SerializableQuestion question) throws IOException {
-        var fileService = fileServices.get(domainId);
-        var questionPath = fileService.prepareNameForFile(rawQuestionPath, false);
-        try (OutputStream stream = fileService.openForWrite(questionPath)) {
-            assert stream != null;
-            question.serializeToStream(stream);
-            return questionPath;
-        } finally {
-            try {
-                fileService.closeConnections();
-            } catch (FileSystemException e) {
-                log.error("Error closing file service connection: {}", e.getMessage(), e);
-            }
-        }
+    public QuestionDataEntity saveQuestionDataEntity(QuestionDataEntity questionData) {
+        return questionDataRepository.save(questionData);
     }
 }
