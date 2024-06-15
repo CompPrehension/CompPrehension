@@ -2560,9 +2560,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 .origin(origin)
                 .domainShortname(this.getShortName())
                 .version(GENERATED_QUESTIONS_VERSION)
-                .usedCount(0L)
-                .dateLastUsed(new Date())
-                .dateCreated(new Date())
                 .tagBits(tagNames.stream().map(this::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a,b) -> a|b).orElse(0L))
                 .lawBits(lawNames.stream().map(this::getPositiveLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L)) // positive only laws
                 .violationBits(violations.stream().map(this::getNegativeLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a,b) -> a|b).orElse(0L))

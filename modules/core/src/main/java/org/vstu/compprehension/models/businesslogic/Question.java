@@ -70,6 +70,13 @@ public class Question {
         return questionData.getQuestionName();
     }
 
+    public @Nullable QuestionRequestLogEntity getQuestionRequest() {
+        return questionData.getQuestionRequestLog();
+    }
+    public void setQuestionRequest(QuestionRequestLogEntity qrLog) {
+        questionData.setQuestionRequestLog(qrLog);
+    }
+
     /** Make an identifier of the question template that is unique in system scope. Intended to be used as a solution key in reasoner's cache for this question and questions having the same solution (i.e. generated from the same template).
      * @return name of the question template or question itself prefixed with domain short name
      */

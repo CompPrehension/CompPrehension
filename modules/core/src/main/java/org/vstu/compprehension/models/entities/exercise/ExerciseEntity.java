@@ -4,7 +4,9 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.entities.DomainEntity;
@@ -15,6 +17,7 @@ import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +40,13 @@ public class ExerciseEntity {
     @Column(name = "useGuidingQuestions")
     private Boolean useGuidingQuestions;
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Date updatedAt;
 
     @Column(name = "hidden")
     private Boolean hidden;

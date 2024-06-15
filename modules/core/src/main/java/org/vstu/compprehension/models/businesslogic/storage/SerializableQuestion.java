@@ -139,7 +139,7 @@ public class SerializableQuestion {
                     .version(question.getMetadata().getVersion())
                     .structureHash(question.getMetadata().getStructureHash())
                     .origin(question.getMetadata().getOrigin())
-                    .dateCreated(question.getMetadata().getDateCreated())
+                    .dateCreated(question.getMetadata().getCreatedAt())
                     .build());
         }       
 
@@ -163,7 +163,6 @@ public class SerializableQuestion {
                 .version(metadata.getVersion())
                 .structureHash(metadata.getStructureHash())
                 .origin(metadata.getOrigin())
-                .dateCreated(metadata.getDateCreated())
                 .build();
     }
     

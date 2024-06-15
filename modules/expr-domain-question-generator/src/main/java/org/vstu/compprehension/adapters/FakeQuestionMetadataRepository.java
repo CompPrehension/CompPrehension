@@ -116,6 +116,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
         return 0;
     }
 
+    @Override
+    public List<Integer> findMostUsedMetadataIds(@Nullable Integer weekUsageThreshold, @Nullable Integer dayUsageThreshold, @Nullable Integer hourUsageThreshold, @Nullable Integer min15UsageThreshold, @Nullable Integer min5UsageThreshold) {
+        return List.of();
+    }
+
     @NotNull
     @Override
     public HashSet<String> findAllOrigins(String domainName, LocalDateTime from, LocalDateTime to) {
