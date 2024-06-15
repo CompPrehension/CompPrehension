@@ -17,7 +17,7 @@ public class QuestionBankSearchRequest {
     private long targetTagsBitmask;
 
     private @Nullable List<String> deniedQuestionNames;
-    private @Nullable List<Integer> deniedQuestionTemplateIds;
+    private @Nullable List<String> deniedQuestionTemplateIds;
     private @Nullable List<Integer> deniedQuestionMetaIds;
 
     private String domainShortname;

@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 
@@ -59,7 +60,8 @@ public class QuestionRequestLogEntity {
     private List<String> deniedQuestionNames;
 
     @Type(JsonType.class)
-    private List<Integer> deniedQuestionTemplateIds = null;
+    private List<String> deniedQuestionTemplateIds = null;
+    
     @Type(JsonType.class)
     private List<Integer> deniedQuestionMetaIds = null;  // same as deniedQuestionNames but using ids instead of names
 
@@ -103,9 +105,10 @@ public class QuestionRequestLogEntity {
 
     @Column(nullable = true)
     private int foundCount = -1;
-
-    Date createdDate;
-
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
 
     // fields filled by generator:
 

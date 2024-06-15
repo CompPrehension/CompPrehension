@@ -64,4 +64,12 @@
     <include file="db/changelog/2024-04-06/2024-04-06-02-changelog.xml"/>
     <include file="db/changelog/2024-04-07/2024-04-07-01-changelog.xml"/>
     <include file="db/changelog/2024-04-30/2024-04-30-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-09/2024-05-09-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-09/2024-05-09-02-changelog.xml"/>
+    <include file="db/changelog/2024-05-17/2024-05-17-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-17/2024-05-17-02-changelog.xml"/>
+    <include file="db/changelog/2024-05-19/2024-05-19-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-31/2024-05-31-01-changelog.xml"/>
+    <include file="db/changelog/2024-06-03/2024-06-03-01-changelog.xml"/>
+    <include file="db/changelog/2024-06-08/2024-06-08-01-changelog.xml"/>
 </databaseChangeLog>

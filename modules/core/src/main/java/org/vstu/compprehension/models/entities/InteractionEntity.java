@@ -1,12 +1,12 @@
 package org.vstu.compprehension.models.entities;
 
-import lombok.*;
-import org.vstu.compprehension.models.entities.EnumData.InteractionType;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
-
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,9 +32,9 @@ public class InteractionEntity {
     @Enumerated(EnumType.STRING)
     private InteractionType interactionType;
 
-    @Column(nullable = true, columnDefinition="DATETIME(6)")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date date;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "feedback_id", referencedColumnName = "id")
@@ -105,6 +105,5 @@ public class InteractionEntity {
                     .collect(Collectors.toList());
             this.setCorrectLaw(correctLaw);
         }
-        this.date = new Date();
     }
 }

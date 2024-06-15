@@ -61,18 +61,21 @@ public class QuestionService {
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
+       
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
+        qr = domain.ensureQuestionRequestValid(qr);
+        
         var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
         Question question = domain.makeQuestion(exerciseAttempt, qr, tags, exerciseAttempt.getUser().getPreferred_language());
-        saveQuestionRequest(qr);  // use it after the domain has set step range to qr
-        saveQuestion(question.getQuestionData());
+        question.setQuestionRequest(createQuestionRequestLog(qr));
+        
+        saveQuestion(question);
         return question;
     }
 
-    private void saveQuestionRequest(QuestionRequest qr) {
+    private QuestionRequestLogEntity createQuestionRequestLog(QuestionRequest qr) {
         int questionsFound = questionStorage.countQuestions(qr);
-        var qrl = qr.getLogEntity(questionsFound);
-        questionRequestLogRepository.save(qrl);
+        return qr.getLogEntity(questionsFound);
     }
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
@@ -81,7 +84,7 @@ public class QuestionService {
         if(responseGen.getResponse().getQuestion() != null){
             Question question = responseGen.getResponse().getQuestion();
             question.getQuestionData().setDomainEntity(domainService.getDomainEntity(domain.getName()));
-            saveQuestion(question.getQuestionData());
+            saveQuestion(question);
         }
         if(responseGen.getNewStep() != null){
             supplementaryStepRepository.save(responseGen.getNewStep());
@@ -215,24 +218,29 @@ public class QuestionService {
         return questionRepository.findById(questionId).get();
     }
 
-    public void saveQuestion(QuestionEntity question) {
-        if (question.getAnswerObjects() != null) {
+    public void saveQuestion(Question question) {
+        var questionData = question.getQuestionData();
+        
+        if (questionData.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
-                    answerObject.setQuestion(question);
+                    answerObject.setQuestion(questionData);
                 }
             }
-            answerObjectRepository.saveAll(question.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
+            answerObjectRepository.saveAll(questionData.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
+        }
+        
+        if (question.getQuestionRequest() != null) {
+            questionRequestLogRepository.save(question.getQuestionRequest());
         }
 
-        if (question.getInteractions() != null) {
-            for (val interactionEntity : question.getInteractions()) {
-                if (interactionEntity.getQuestion() == null) {
-                    interactionEntity.setQuestion(question);
-                }
+        for (val interactionEntity : questionData.getInteractions()) {
+            if (interactionEntity.getQuestion() == null) {
+                interactionEntity.setQuestion(questionData);
             }
         }
-        questionRepository.save(question);
+        
+        questionRepository.save(questionData);
     }
 
     public Domain.CorrectAnswer getNextCorrectAnswer(Question question) {

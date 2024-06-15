@@ -224,7 +224,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return null;
     }
 
-    @Override
     public Model getSchemaForSolving() {
         return getVocabulary().getModel();
     }
@@ -511,7 +510,6 @@ public class ControlFlowStatementsDomain extends Domain {
             final int randomPoolSize = 1;  // 16;
             try {
                 // new version - invoke rdfStorage search
-                questionRequest = ensureQuestionRequestValid(questionRequest);
                 foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"
@@ -2009,11 +2007,6 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
-    public Question parseQuestionTemplate(InputStream inputStream) {        
-        return SerializableQuestion.deserialize(inputStream).toQuestion(this);
-    }
-
-    @Override
     public List<Question> getQuestionTemplates() {
         if (QUESTIONS == null) {
             QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
@@ -2075,6 +2068,13 @@ public class ControlFlowStatementsDomain extends Domain {
     public String getMessage(String message_text, Language preferred_language) {
 
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
+    }
+
+    @Override
+    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+        fl.addFromModel(getSchemaForSolving());
+        return fl;
     }
 
     /**

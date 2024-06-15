@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1717182639809-46" author="Artem Prokudin">        
+        <addColumn tableName="exercise_attempt">
+            <column name="created_at" 
+                    type="DATETIME"/>
+            <column name="updated_at" 
+                    type="DATETIME"/>
+        </addColumn>
+        <sql>
+            UPDATE exercise_attempt att
+            INNER JOIN
+            (
+                SELECT  att.id as attempt_id,
+                        COALESCE(MIN(i.date), '2020-01-01 00:00:00.000000') as created_at,
+                        COALESCE(MAX(i.date), '2020-01-01 00:00:00.000000') AS updated_at
+                FROM exercise_attempt att
+                LEFT JOIN question q ON att.id = q.exercise_attempt_id
+                LEFT JOIN interaction i on q.id = i.question_id
+                GROUP BY att.id
+            ) AS upd on att.id = upd.attempt_id
+            SET att.created_at = upd.created_at,
+                att.updated_at = upd.updated_at
+            WHERE att.id > 0;            
+        </sql>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="created_at"
+                              tableName="exercise_attempt"/>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="updated_at"
+                              tableName="exercise_attempt"/>
+
+        
+        <addColumn tableName="exercise">
+            <column name="created_at" 
+                    type="DATETIME"/>
+            <column name="updated_at" 
+                    type="DATETIME"/>
+        </addColumn>
+        <sql>
+            UPDATE exercise ex
+            INNER JOIN
+            (
+                SELECT  e.id as exercise_id,
+                        COALESCE(MIN(i.date), '2020-01-01 00:00:00.000000') as created_at,
+                        COALESCE(MAX(i.date), '2020-01-01 00:00:00.000000') AS updated_at
+                FROM exercise e
+                LEFT JOIN exercise_attempt att ON e.id = att.exercise_id
+                LEFT JOIN question q ON att.id = q.exercise_attempt_id
+                LEFT JOIN interaction i on q.id = i.question_id
+                GROUP BY e.id
+            ) AS upd on ex.id = upd.exercise_id
+            SET ex.created_at = upd.created_at,
+                ex.updated_at = upd.updated_at
+            WHERE ex.id > 0;
+        </sql>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="created_at"
+                              tableName="exercise"/>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="updated_at"
+                              tableName="exercise"/>
+        
+        
+        <addColumn tableName="question">
+            <column name="created_at" 
+                    type="DATETIME"/>
+            <column name="question_request_id"
+                    type="BIGINT"/>
+        </addColumn>
+        <sql>
+            UPDATE question q
+            INNER JOIN
+            (
+                SELECT  q.id as question_id,
+                        COALESCE(MIN(i.date), '2020-01-01 00:00:00.000000') as created_at,
+                        COALESCE(MAX(i.date), '2020-01-01 00:00:00.000000') AS updated_at
+                FROM question q
+                LEFT JOIN interaction i on q.id = i.question_id
+                GROUP BY q.id
+            ) AS upd on q.id = upd.question_id
+            SET q.created_at = upd.created_at
+            WHERE q.id > 0;
+        </sql>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="created_at"
+                              tableName="question"/>
+        <addForeignKeyConstraint baseColumnNames="question_request_id"
+                                 baseTableName="question"
+                                 constraintName="FK_QUESTION_ON_QUESTION_REQUEST"
+                                 referencedColumnNames="id"
+                                 referencedTableName="question_request_log"/>
+
+        
+        <addColumn tableName="interaction">
+            <column name="created_at"
+                    type="DATETIME"/>
+        </addColumn>
+        <sql>
+            UPDATE interaction
+            SET created_at = COALESCE(date, '2020-01-01 00:00:00.000000')
+            WHERE id > 0;
+        </sql>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="created_at"
+                              tableName="interaction"/>
+        <dropColumn columnName="date"
+                    tableName="interaction"/>
+
+
+        <addColumn tableName="questions_meta">
+            <column name="created_at"
+                    type="DATETIME"/>
+        </addColumn>
+        <sql>
+            UPDATE questions_meta
+            SET created_at = COALESCE(date_created, '2020-01-01 00:00:00.000000')
+            WHERE id > 0;
+        </sql>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="created_at"
+                              tableName="questions_meta"/>
+        <dropColumn tableName="questions_meta">
+            <column name="date_created" />
+            <column name="used_count" />
+            <column name="date_last_used" />
+            <column name="last_attempt_id" />
+        </dropColumn>
+
+        
+        <addColumn tableName="question_request_log">
+            <column name="created_at"
+                    type="DATETIME"/>
+        </addColumn>
+        <sql>
+            UPDATE question_request_log
+            SET created_at = COALESCE(created_date, '2020-01-01 00:00:00.000000')
+            WHERE id > 0;
+        </sql>
+        <addNotNullConstraint columnDataType="DATETIME"
+                              columnName="created_at"
+                              tableName="question_request_log"/>
+        <dropColumn columnName="created_date"
+                    tableName="question_request_log"/>
+        
+    </changeSet>
+</databaseChangeLog>
