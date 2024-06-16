@@ -1017,9 +1017,9 @@ public class ControlFlowStatementsDomain extends Domain {
         return new HashSet<>();
     }
 
-    private static List<String> getFieldProperties() {
+    protected static List<String> getFieldProperties() {
         if (fieldPropertiesCache == null)
-            fieldPropertiesCache = getVocabulary().propertyDescendants("string_placeholder");
+            fieldPropertiesCache = getVocabulary().propertiesHavingBroader("string_placeholder");
         return fieldPropertiesCache;
     }
 
@@ -2111,7 +2111,7 @@ public class ControlFlowStatementsDomain extends Domain {
             return stringSubstitutor.replace(s);
         }
         catch (IllegalArgumentException exception) {
-            return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
+            return exception.getMessage() + " — template: " + s + " — placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
     }
 

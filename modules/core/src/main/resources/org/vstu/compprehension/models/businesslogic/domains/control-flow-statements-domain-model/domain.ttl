@@ -1,6 +1,7 @@
 @prefix : <http://vstu.ru/poas/code#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <http://anonymous> a owl:Ontology .
@@ -104,11 +105,14 @@
     rdfs:domain owl:Thing ;
     rdfs:range :action .
 
-:field_A_bound a owl:ObjectProperty .
+:field_A_bound a owl:ObjectProperty ;
+    skos:broader :string_placeholder .
 
-:field_EXTRA_bound a owl:ObjectProperty .
+:field_EXTRA_bound a owl:ObjectProperty ;
+    skos:broader :string_placeholder .
 
-:field_MISSING_bound a owl:ObjectProperty .
+:field_MISSING_bound a owl:ObjectProperty ;
+    skos:broader :string_placeholder .
 
 :from_reason a owl:ObjectProperty ;
     rdfs:domain owl:Thing ;
@@ -331,7 +335,9 @@
 
 :principal_violation a owl:AnnotationProperty .
 
-:RU.localizedName a owl:AnnotationProperty ;
+:RU.localizedName a owl:AnnotationProperty .
+
+skos:broader a owl:AnnotationProperty ;
     rdfs:domain owl:Thing ;
     rdfs:range owl:Thing .
 
@@ -356,94 +362,94 @@
         owl:FunctionalProperty .
 
 :field_A a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_ALT a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_ALT_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_BEGIN a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_BRANCH a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_BRANCH2 a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_CONTEXT a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_CURRENT_ALT_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_EXPECTED_ALT_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_EXPECTED_BRANCH a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_EXTRA a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_INIT a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_INNER a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_kind_of_action a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_kind_of_loop a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_LATEST_ALT_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_LOOP a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_LOOP_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_MISSING a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_NEXT a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_NEXT_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_PARENT a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_PREVIOUS a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_REQUIRED_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_SEQ a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_TrueFalse a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_UNEXPECTED_ALT_COND a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_UNEXPECTED_BRANCH a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :field_UPDATE a owl:DatatypeProperty ;
-    rdfs:subPropertyOf :string_placeholder .
+    skos:broader :string_placeholder .
 
 :func_args a owl:DatatypeProperty ;
     rdfs:domain owl:Thing ;

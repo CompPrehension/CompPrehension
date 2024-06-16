@@ -153,6 +153,18 @@ public class DomainVocabulary {
         return result;
     }
 
+    /** Get all properties having specified property connected as `object` via skos:broader */
+    public List<String> propertiesHavingBroader(String propertyName) {
+        ArrayList<String> result = new ArrayList<>();
+
+        ResIterator iter = model.listSubjectsWithProperty(
+                SKOS.broader,
+                model.createProperty(model.expandPrefix(":" + propertyName))
+        );
+
+        return iter.mapWith(Resource::getLocalName).toList();
+    }
+
 
 //    def get_base_classes(classes) -> set:
 //            return {sup for cl in classes for sup in cl.is_a}

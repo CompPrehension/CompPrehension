@@ -527,11 +527,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return situationModel;
     }
 
-    private static List<String> getFieldProperties() {
-        if (fieldPropertiesCache == null)
-            fieldPropertiesCache = getVocabulary().propertyDescendants("string_placeholder");
-        return fieldPropertiesCache;
-    }
 
     // ############
 
