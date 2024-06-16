@@ -535,6 +535,7 @@ skos:broader a owl:AnnotationProperty ;
 
 :action a owl:Class ;
     rdfs:subClassOf owl:Thing ;
+    :atom_action false ;
     :EN.localizedName "action"^^xsd:string ;
     :RU.localizedName "действие"^^xsd:string .
 
@@ -544,26 +545,32 @@ skos:broader a owl:AnnotationProperty ;
 :alt_branch a owl:Class ;
     rdfs:subClassOf :sequence ;
     :action_kind :sequence ;
+    :atom_action false ;
     :EN.localizedName "branch"^^xsd:string ;
     :RU.localizedName "ветка"^^xsd:string .
 
 :alternative a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :alternative ;
+    :atom_action false ;
     :EN.localizedName "selection statement"^^xsd:string ;
     :RU.localizedName "развилка"^^xsd:string .
 
 :alternative_multi_with_else a owl:Class ;
-    rdfs:subClassOf :alternative .
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
 
 :alternative_multi_without_else a owl:Class ;
-    rdfs:subClassOf :alternative .
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
 
 :alternative_simple a owl:Class ;
-    rdfs:subClassOf :alternative .
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
 
 :alternative_single_with_else a owl:Class ;
-    rdfs:subClassOf :alternative .
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
 
 :AlternativeEndAfterTrueCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse .
@@ -575,7 +582,8 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :TooEarlyInSequence .
 
 :body_then_cond a owl:Class ;
-    rdfs:subClassOf :conditional_loop .
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
 
 :boundary a owl:Class ;
     rdfs:subClassOf owl:Thing .
@@ -602,7 +610,8 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf owl:Thing .
 
 :cond_then_body a owl:Class ;
-    rdfs:subClassOf :conditional_loop .
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
 
 :ConditionAfterBranch a owl:Class ;
     rdfs:subClassOf :CondtionNotNextToPrevCondition,
@@ -610,6 +619,7 @@ skos:broader a owl:AnnotationProperty ;
 
 :conditional_loop a owl:Class ;
     rdfs:subClassOf :loop ;
+    :atom_action false ;
     :continues_on_true_condition true .
 
 :ConditionMisuse a owl:Class ;
@@ -648,6 +658,7 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :body_then_cond,
         :cond_then_body,
         :start_with_body ;
+    :atom_action false ;
     :EN.localizedName "DO-WHILE loop"^^xsd:string ;
     :RU.localizedName "цикл DO-WHILE"^^xsd:string .
 
@@ -660,11 +671,13 @@ skos:broader a owl:AnnotationProperty ;
 
 :else a owl:Class ;
     rdfs:subClassOf :alt_branch ;
+    :atom_action false ;
     :EN.localizedName "ELSE branch"^^xsd:string ;
     :RU.localizedName "ветка ELSE"^^xsd:string .
 
 :else-if a owl:Class ;
     rdfs:subClassOf :alt_branch ;
+    :atom_action false ;
     :EN.localizedName "ELSE-IF branch"^^xsd:string ;
     :RU.localizedName "ветка ELSE-IF"^^xsd:string .
 
@@ -704,6 +717,7 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :cond_then_body,
         :post_update_loop,
         :start_with_init ;
+    :atom_action false ;
     :EN.localizedName "FOR loop"^^xsd:string ;
     :RU.localizedName "цикл FOR"^^xsd:string .
 
@@ -715,6 +729,7 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :body_then_cond,
         :pre_update_loop,
         :start_with_cond ;
+    :atom_action false ;
     :EN.localizedName "FOREACH loop"^^xsd:string ;
     :RU.localizedName "цикл FOREACH"^^xsd:string .
 
@@ -723,14 +738,17 @@ skos:broader a owl:AnnotationProperty ;
 
 :func a owl:Class ;
     rdfs:subClassOf :action ;
-    :action_kind :func .
+    :action_kind :func ;
+    :atom_action false .
 
 :func_call a owl:Class ;
     rdfs:subClassOf :action ;
-    :action_kind :call .
+    :action_kind :call ;
+    :atom_action false .
 
 :if a owl:Class ;
     rdfs:subClassOf :alt_branch ;
+    :atom_action false ;
     :EN.localizedName "IF branch"^^xsd:string ;
     :RU.localizedName "ветка IF"^^xsd:string .
 
@@ -741,7 +759,8 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :act .
 
 :infinite_loop a owl:Class ;
-    rdfs:subClassOf :unconditional_loop .
+    rdfs:subClassOf :unconditional_loop ;
+    :atom_action false .
 
 :InitNotAtLoopStart a owl:Class ;
     rdfs:subClassOf :Erroneous .
@@ -775,23 +794,28 @@ skos:broader a owl:AnnotationProperty ;
 :loop a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :loop ;
+    :atom_action false ;
     :EN.localizedName "loop"^^xsd:string ;
     :RU.localizedName "цикл"^^xsd:string .
 
 :loop_body a owl:Class ;
     rdfs:subClassOf :sequence ;
     :action_kind :sequence ;
+    :atom_action false ;
     :EN.localizedName "iteration"^^xsd:string ;
     :RU.localizedName "итерация"^^xsd:string .
 
 :loop_with_initialization a owl:Class ;
-    rdfs:subClassOf :loop_with_pre_condition .
+    rdfs:subClassOf :loop_with_pre_condition ;
+    :atom_action false .
 
 :loop_with_post_condition a owl:Class ;
-    rdfs:subClassOf :conditional_loop .
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
 
 :loop_with_pre_condition a owl:Class ;
-    rdfs:subClassOf :conditional_loop .
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
 
 :LoopContinuedAfterFailedCondition a owl:Class ;
     rdfs:subClassOf :ConditionMisuse,
@@ -865,17 +889,20 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :Erroneous .
 
 :ntimes_loop a owl:Class ;
-    rdfs:subClassOf :unconditional_loop .
+    rdfs:subClassOf :unconditional_loop ;
+    :atom_action false .
 
 :OneLevelShallower a owl:Class ;
     rdfs:subClassOf :WrongContext .
 
 :post_update_loop a owl:Class ;
     rdfs:subClassOf :loop_with_initialization ;
-    owl:disjointWith :pre_update_loop .
+    owl:disjointWith :pre_update_loop ;
+    :atom_action false .
 
 :pre_update_loop a owl:Class ;
-    rdfs:subClassOf :loop_with_initialization .
+    rdfs:subClassOf :loop_with_initialization ;
+    :atom_action false .
 
 :return a owl:Class ;
     rdfs:label "return"^^xsd:string ;
@@ -889,6 +916,7 @@ skos:broader a owl:AnnotationProperty ;
 :sequence a owl:Class ;
     rdfs:subClassOf :action ;
     :action_kind :sequence ;
+    :atom_action false ;
     :EN.localizedName "sequence"^^xsd:string ;
     :RU.localizedName "последовательность"^^xsd:string .
 
@@ -899,13 +927,16 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :SequenceFinishedNotInOrder .
 
 :start_with_body a owl:Class ;
-    rdfs:subClassOf :loop_with_post_condition .
+    rdfs:subClassOf :loop_with_post_condition ;
+    :atom_action false .
 
 :start_with_cond a owl:Class ;
-    rdfs:subClassOf :loop_with_pre_condition .
+    rdfs:subClassOf :loop_with_pre_condition ;
+    :atom_action false .
 
 :start_with_init a owl:Class ;
-    rdfs:subClassOf :loop_with_pre_condition .
+    rdfs:subClassOf :loop_with_pre_condition ;
+    :atom_action false .
 
 :stmt a owl:Class ;
     rdfs:subClassOf :action ;
@@ -916,7 +947,8 @@ skos:broader a owl:AnnotationProperty ;
 
 :stmt_with_calls a owl:Class ;
     rdfs:subClassOf :action ;
-    :action_kind :stmt_with_calls .
+    :action_kind :stmt_with_calls ;
+    :atom_action false .
 
 :TooEarlyInSequence a owl:Class ;
     rdfs:subClassOf :WrongNext .
@@ -933,7 +965,8 @@ skos:broader a owl:AnnotationProperty ;
     :RU.localizedName "начало трассы выполнения"^^xsd:string .
 
 :unconditional_loop a owl:Class ;
-    rdfs:subClassOf :loop .
+    rdfs:subClassOf :loop ;
+    :atom_action false .
 
 :UnexpectedWhenInterrupting a owl:Class ;
     rdfs:subClassOf :NotNeighbour .
@@ -949,6 +982,7 @@ skos:broader a owl:AnnotationProperty ;
     rdfs:subClassOf :body_then_cond,
         :cond_then_body,
         :start_with_cond ;
+    :atom_action false ;
     :EN.localizedName "WHILE loop"^^xsd:string ;
     :RU.localizedName "цикл WHILE"^^xsd:string .
 

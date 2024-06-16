@@ -947,7 +947,14 @@
         "name": "helper"
       }
     ],
-    "concepts": [],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "act_end"
+      }
+    ],
     "formulations": [
       {
         "name": "act_kind-for-atom",
@@ -956,17 +963,17 @@
       },
       {
         "name": "act_kind-for-begin",
-        "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:begin_of ?action), (?a rdf:type ?act_begin), -> (?a my:act_kind my:begin).",
+        "formulation": "(?action_class my:atom_action \"false\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), notEqual(?action_class, my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:begin_of ?action), (?a rdf:type my:act_begin), -> (?a my:act_kind my:begin) , (?a my:_the_action_class_4b ?action_class).",
         "backend": "Jena"
       },
       {
         "name": "act_kind-for-end",
-        "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:end_of ?action), (?a rdf:type ?act_end), -> (?a my:act_kind my:end).",
+        "formulation": "(?action_class my:atom_action \"false\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), notEqual(?action_class, my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:end_of ?action), (?a rdf:type my:act_end), -> (?a my:act_kind my:end) , (?a my:_the_action_class_4e ?action_class).",
         "backend": "Jena"
       },
       {
         "name": "act_kind-for-halt",
-        "formulation": "noValue(?action_class my:atom_action \"true\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:halt_of ?action), (?a rdf:type ?act_end), -> (?a my:act_kind my:end).",
+        "formulation": "(?action_class my:atom_action \"false\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:halt_of ?action), (?a rdf:type my:act_end), -> (?a my:act_kind my:end).",
         "backend": "Jena"
       }
     ]
