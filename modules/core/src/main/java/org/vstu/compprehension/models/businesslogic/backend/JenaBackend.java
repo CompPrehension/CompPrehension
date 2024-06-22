@@ -331,6 +331,8 @@ public class JenaBackend implements Backend {
             ArrayList<Rule> ruleSet = domainRuleSets.get(salience);
             GenericRuleReasoner reasoner = new GenericRuleReasoner(ruleSet);
 
+            reasoner.setTransitiveClosureCaching(true);
+
 //            long startStepTime = System.nanoTime();
 
             InfModel inf = ModelFactory.createInfModel(reasoner, model);

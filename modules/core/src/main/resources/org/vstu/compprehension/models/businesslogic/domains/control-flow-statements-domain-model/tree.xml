@@ -277,7 +277,7 @@
                                             </LogicalOr>
                                           </Expression>
                                           <Outcome value="False">
-                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может продолжиться, пока вложенные действия ещё выполняются (например $B)" value="false" _errorNode="CtxInnerPending" _explanation="${class('CX','и')} ${val('CX','и')} не может продолжиться, пока вложенные действия ещё выполняются (например ${val('B','и')})" />
+                                            <BranchResultNode _alias="CtxInnerPending: Действие &lt;b&gt;CX&lt;/b&gt; не может продолжиться, пока вложенные действия ещё выполняются (например, %B)" value="false" _errorNode="CtxInnerPending" _explanation="${class('CX','и')} ${val('CX','и')} не может продолжиться, пока вложенные действия ещё выполняются (например, ${class('B','и')} ${val('B','и')})" />
                                           </Outcome>
                                           <Outcome value="True">
                                             <BranchResultNode _alias="CtxStartAgain: Действие &lt;b&gt;Y&lt;/b&gt; не может начаться лишний раз, т.к. уже выполняется" value="false" _errorNode="CtxStartAgain" _explanation="${class('Y','и')} ${val('Y','и')} не может начаться лишний раз, т.к. уже выполняется" />
@@ -1566,35 +1566,72 @@
                                                                 </LogicalNot>
                                                               </Expression>
                                                               <Outcome value="True">
-                                                                <FindActionNode _alias="Найти первое из пропущенных условий M после Al">
+                                                                <FindActionNode _alias="Найти первую пропущенную ветку &lt;b&gt;BN&lt;/b&gt;">
                                                                   <Expression>
-                                                                    <GetByCondition varName="M">
+                                                                    <GetByCondition varName="b">
                                                                       <LogicalAnd>
                                                                         <LogicalAnd>
                                                                           <CheckClass>
-                                                                            <Variable name="M" />
-                                                                            <Class name="expr" />
+                                                                            <Variable name="b" />
+                                                                            <Class name="else-if" />
                                                                           </CheckClass>
                                                                           <CheckRelationship>
-                                                                            <Relationship name="parent_of" />
-                                                                            <DecisionTreeVar name="B" />
-                                                                            <Variable name="M" />
+                                                                            <Relationship name="next" />
+                                                                            <GetByCondition varName="p">
+                                                                              <LogicalAnd>
+                                                                                <CheckClass>
+                                                                                  <Variable name="p" />
+                                                                                  <Class name="alt_branch" />
+                                                                                </CheckClass>
+                                                                                <CheckRelationship>
+                                                                                  <Relationship name="cond" />
+                                                                                  <Variable name="p" />
+                                                                                  <DecisionTreeVar name="P" />
+                                                                                </CheckRelationship>
+                                                                              </LogicalAnd>
+                                                                            </GetByCondition>
+                                                                            <Variable name="b" />
                                                                           </CheckRelationship>
                                                                         </LogicalAnd>
-                                                                        <CheckRelationship>
-                                                                          <Relationship name="next" />
-                                                                          <DecisionTreeVar name="P" />
-                                                                          <Variable name="M" />
-                                                                        </CheckRelationship>
+                                                                        <Compare operator="LESS">
+                                                                          <GetPropertyValue>
+                                                                            <Variable name="b" />
+                                                                            <Property name="item_index" />
+                                                                          </GetPropertyValue>
+                                                                          <GetPropertyValue>
+                                                                            <DecisionTreeVar name="Y" />
+                                                                            <Property name="item_index" />
+                                                                          </GetPropertyValue>
+                                                                        </Compare>
                                                                       </LogicalAnd>
                                                                     </GetByCondition>
                                                                   </Expression>
-                                                                  <DecisionTreeVarDecl name="M" type="expr" />
+                                                                  <DecisionTreeVarDecl name="BN" type="alt_branch" />
+                                                                  <Outcome value="Found">
+                                                                    <FindActionNode _alias="Найти первое из пропущенных условий &lt;b&gt;M&lt;/b&gt; (между &lt;br&gt;&lt;b&gt;А&lt;/b&gt;&lt;b&gt;l&lt;/b&gt; и &lt;b&gt;Y &lt;/b&gt;(после &lt;b&gt;А&lt;/b&gt;&lt;b&gt;l&lt;/b&gt; и до &lt;b&gt;Y&lt;/b&gt;)&lt;b&gt;&lt;br&gt;&lt;/b&gt;)">
+                                                                      <Expression>
+                                                                        <GetByCondition varName="M">
+                                                                          <LogicalAnd>
+                                                                            <CheckClass>
+                                                                              <Variable name="M" />
+                                                                              <Class name="expr" />
+                                                                            </CheckClass>
+                                                                            <CheckRelationship>
+                                                                              <Relationship name="cond" />
+                                                                              <DecisionTreeVar name="BN" />
+                                                                              <Variable name="M" />
+                                                                            </CheckRelationship>
+                                                                          </LogicalAnd>
+                                                                        </GetByCondition>
+                                                                      </Expression>
+                                                                      <DecisionTreeVarDecl name="M" type="expr" />
+                                                                      <Outcome value="Found">
+                                                                        <BranchResultNode _alias="AltEarlyElse: Ветку else начинать рано, т.к. не проверено условие &lt;b&gt;M&lt;/b&gt; развилки $B" value="false" _errorNode="AltEarlyElse" _explanation="Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки ${val('B','и')}" />
+                                                                      </Outcome>
+                                                                    </FindActionNode>
+                                                                  </Outcome>
                                                                   <Outcome value="Not found">
                                                                     <BranchResultNode _alias="+AltElseBranchBegin" value="true" />
-                                                                  </Outcome>
-                                                                  <Outcome value="Found">
-                                                                    <BranchResultNode _alias="AltEarlyElse: Ветку else начинать рано, т.к. не проверено условие &lt;b&gt;M&lt;/b&gt; развилки $B" value="false" _errorNode="AltEarlyElse" _explanation="Ветку else начинать рано, т.к. не проверено условие ${val('M','и')} развилки ${val('B','и')}" />
                                                                   </Outcome>
                                                                 </FindActionNode>
                                                               </Outcome>
@@ -2494,33 +2531,61 @@
                                                   <Property name="expr_value" />
                                                 </GetPropertyValue>
                                               </Expression>
+                                              <Outcome value="True">
+                                                <BranchResultNode _alias="AltEarlyEndNoBranch: Развилка $Y не может закончиться без выполнения ветки, условие которой истинно" value="false" _errorNode="AltEarlyEndNoBranch" _explanation="Развилка ${val('Y','и')} не может закончиться без выполнения ветки, условие которой истинно" />
+                                              </Outcome>
                                               <Outcome value="False">
-                                                <FindActionNode _alias="Найти первое из пропущенных условий M после Al">
+                                                <FindActionNode _alias="Найти первую пропущенную ветку &lt;b&gt;BN&lt;/b&gt;">
                                                   <Expression>
-                                                    <GetByCondition varName="M">
+                                                    <GetByCondition varName="b">
                                                       <LogicalAnd>
-                                                        <LogicalAnd>
-                                                          <CheckClass>
-                                                            <Variable name="M" />
-                                                            <Class name="expr" />
-                                                          </CheckClass>
-                                                          <CheckRelationship>
-                                                            <Relationship name="parent_of" />
-                                                            <DecisionTreeVar name="B" />
-                                                            <Variable name="M" />
-                                                          </CheckRelationship>
-                                                        </LogicalAnd>
+                                                        <CheckClass>
+                                                          <Variable name="b" />
+                                                          <Class name="else-if" />
+                                                        </CheckClass>
                                                         <CheckRelationship>
                                                           <Relationship name="next" />
-                                                          <DecisionTreeVar name="P" />
-                                                          <Variable name="M" />
+                                                          <GetByCondition varName="p">
+                                                            <LogicalAnd>
+                                                              <CheckClass>
+                                                                <Variable name="p" />
+                                                                <Class name="alt_branch" />
+                                                              </CheckClass>
+                                                              <CheckRelationship>
+                                                                <Relationship name="cond" />
+                                                                <Variable name="p" />
+                                                                <DecisionTreeVar name="P" />
+                                                              </CheckRelationship>
+                                                            </LogicalAnd>
+                                                          </GetByCondition>
+                                                          <Variable name="b" />
                                                         </CheckRelationship>
                                                       </LogicalAnd>
                                                     </GetByCondition>
                                                   </Expression>
-                                                  <DecisionTreeVarDecl name="M" type="expr" />
+                                                  <DecisionTreeVarDecl name="BN" type="alt_branch" />
                                                   <Outcome value="Found">
-                                                    <BranchResultNode _alias="AltEarlyEndNoCond: Развилка $Y не может завершиться, не проверив условие $M" value="false" _errorNode="AltEarlyEndNoCond" _explanation="Развилка ${val('Y','и')} не может завершиться, не проверив условие ${val('M','и')}" />
+                                                    <FindActionNode _alias="Найти первое из пропущенных условий &lt;b&gt;M&lt;/b&gt; (после &lt;b&gt;А&lt;/b&gt;&lt;b&gt;l&lt;/b&gt;)">
+                                                      <Expression>
+                                                        <GetByCondition varName="M">
+                                                          <LogicalAnd>
+                                                            <CheckClass>
+                                                              <Variable name="M" />
+                                                              <Class name="expr" />
+                                                            </CheckClass>
+                                                            <CheckRelationship>
+                                                              <Relationship name="cond" />
+                                                              <DecisionTreeVar name="BN" />
+                                                              <Variable name="M" />
+                                                            </CheckRelationship>
+                                                          </LogicalAnd>
+                                                        </GetByCondition>
+                                                      </Expression>
+                                                      <DecisionTreeVarDecl name="M" type="expr" />
+                                                      <Outcome value="Found">
+                                                        <BranchResultNode _alias="AltEarlyEndNoCond: Развилка $Y не может завершиться, не проверив условие $M" value="false" _errorNode="AltEarlyEndNoCond" _explanation="Развилка ${val('Y','и')} не может завершиться, не проверив условие ${val('M','и')}" />
+                                                      </Outcome>
+                                                    </FindActionNode>
                                                   </Outcome>
                                                   <Outcome value="Not found">
                                                     <QuestionNode _alias="Присутствует ли в развилке &lt;b&gt;Y&lt;/b&gt; ветка else?" type="bool" isSwitch="false">
@@ -2546,9 +2611,6 @@
                                                     </QuestionNode>
                                                   </Outcome>
                                                 </FindActionNode>
-                                              </Outcome>
-                                              <Outcome value="True">
-                                                <BranchResultNode _alias="AltEarlyEndNoBranch: Развилка $Y не может закончиться без выполнения ветки, условие которой истинно" value="false" _errorNode="AltEarlyEndNoBranch" _explanation="Развилка ${val('Y','и')} не может закончиться без выполнения ветки, условие которой истинно" />
                                               </Outcome>
                                             </QuestionNode>
                                           </Outcome>
