@@ -235,7 +235,6 @@ public class ControlFlowStatementsDomain extends Domain {
                 : EXECUTION_ORDER_QUESTION_TYPE;
     }
 
-//    @Override
     public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
 
         ArrayList<CorrectAnswer> result = new ArrayList<>();
@@ -261,7 +260,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return result;
     }
 
-//    @Override
     public List<HyperText> getCompleteSolvedTrace(Question question) {
 //        final String textMode = "text";
         final String textMode = "html";
