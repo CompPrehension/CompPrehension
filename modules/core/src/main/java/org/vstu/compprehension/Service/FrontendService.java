@@ -295,7 +295,7 @@ public class FrontendService {
                 ie.getFeedback().getGrade(),
                 ie.getFeedback().getInteractionsLeft(),
                 ie.getResponses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
-                true,
+                /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
                 strategyAttemptDecision);
     }
 
