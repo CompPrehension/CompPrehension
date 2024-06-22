@@ -585,7 +585,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 res = QUESTIONS.get(index);
                 tryCount += 1;
             } while (tryCount <= 20  // avoid infinite search
-                && questionRequest.getDeniedQuestionNames().contains(res.getQuestionName()));
+                && (questionRequest.getDeniedQuestionNames() != null && questionRequest.getDeniedQuestionNames().contains(res.getQuestionName())));
             ///
             /// add a mark to the question's name: this question is made by human.
             if (res.getQuestionName() != null && ! res.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
@@ -1982,7 +1982,7 @@ public class ControlFlowStatementsDomain extends Domain {
             final Set<String> possibleViolations = possibleMistakesByLaw(currentAct.lawName);
 
             final ArrayList<String> possibleViolationsSorted = new ArrayList<>(possibleViolations);
-            java.util.Collections.sort(possibleViolationsSorted);
+            Collections.sort(possibleViolationsSorted);
             String violSetKey = String.join(";", possibleViolationsSorted);
 
             // save unique sets of violations

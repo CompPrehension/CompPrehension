@@ -8,18 +8,13 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.text.StringSubstitutor;
-import org.apache.jena.ontology.AnnotationProperty;
-import org.apache.jena.ontology.Individual;
-import org.apache.jena.ontology.OntClass;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -42,8 +37,6 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
-import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
-import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 
 @Log4j2
 public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
@@ -52,7 +45,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String EXECUTION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderActsSupplementary";
     static final String DEFINE_TYPE_QUESTION_TYPE = "DefineType";
-    static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-laws.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow-messages"; // fixme!
     static final String TAG_DECISION_TREE = "decision-tree";
     static final String MESSAGE_PREFIX = "ctrlflow_";
@@ -77,7 +69,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     static List<Question> QUESTIONS;
 
 //    private static List<String> reasonPropertiesCache = null;
-    private static List<String> fieldPropertiesCache = null;
 
 
     private static DomainSolvingModel domainSolvingModel = null;
@@ -148,46 +139,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         var dtLaw = new DTLaw(domainSolvingModel.getDecisionTree());
         negativeLaws.put(dtLaw.getName(), dtLaw);
         // <<
-    }
-
-    /**
-     * Off. Don't use.
-     * Make negative laws that name each possible error & set bitflags for each law as defined within the vocabulary.
-     */
-//    @Override
-    protected void ___loadNegativeLawsFromVocabulary() {
-        // add negative laws that name each possible error
-        // Note: get flags and write to law object.
-
-        val voc = getVocabulary();
-        val model = voc.getModel();
-        val prop_has_bitflags = model.getProperty("law_bitflags");
-        String ns = model.getNsPrefixURI("");
-
-        for (String errClass : voc.classDescendants("Erroneous")) {
-//            val classNode = model.getResource(ns + errClass).as(OntClass.class);
-//            val classNode = model.createClass(ns + errClass);
-            val classNode = model.getOntClass(ns + errClass);
-            val law = new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
-
-            // fill data: bitFlags
-            val bitFlagStmt = classNode.getProperty(prop_has_bitflags);
-            if (bitFlagStmt != null) {
-                law.setBitflags(bitFlagStmt.getInt());
-            }
-            // fill data: impliesLaws
-            law.setImpliesLaws(new ArrayList<>());
-            for (val superClass : classNode.listSuperClasses(/*direct:*/true).toSet()) {
-                String name = superClass.getLocalName();
-                if (name.equals(errClass)) {
-                    continue;
-                }
-                law.getImpliesLaws().add(name);
-            }
-
-            negativeLaws.put(errClass, law);
-        }
-        // law.setBitmask() will be called afterwards outside this method.
     }
 
     @Override
@@ -389,30 +340,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     //-----------ФАКТЫ---------------
 
-//    @Override
-    public Collection<Fact> _OFF__processQuestionFactsForBackendSolve(Collection<Fact> questionFacts) {
-
-        // USE Jena: prepare solved facts since DT reasoner does nothing for solve()
-        Backend backend = new JenaBackend();
-
-        Collection<Fact> newFacts = backend.solve(
-                new ArrayList<>(this.getQuestionPositiveLaws(EXECUTION_ORDER_QUESTION_TYPE /*<Fixme: only one type of question is supported!*/, null)),
-                questionFacts,
-                new ReasoningOptions(
-                        false,
-                        this.getViolationVerbs(EXECUTION_ORDER_QUESTION_TYPE, List.of()),
-                        null)
-        );
-
-        return newFacts;
-
-//        var model = JenaFactList.fromFacts(newFacts).getModel();
-//
-//        its.model.definition.Domain situationModel = getDTSituationModel(model);
-//
-//        return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
-    }
-
     @Override
     public Collection<Fact> processQuestionFactsForBackendJudge(
             Collection<Fact> questionFacts,
@@ -577,253 +504,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 //    }
 
 
-    /** Append specific facts to `factsList` */
-    private void appendActFacts(Collection<Fact> factsList, int id, String actIRI, String ontoClass, String executesId, Integer studentIndex, String prevActIRI, String inTrace, Boolean exprValue, boolean isLatest) {
-        factsList.add(new Fact(
-                "owl:NamedIndividual", actIRI,
-                "rdf:type",
-                "owl:Class", ontoClass
-        ));
-        factsList.add(new Fact(
-                "owl:NamedIndividual", actIRI,
-                "id",
-                "xsd:int", String.valueOf(id)
-        ));
-        if (executesId != null) {
-            factsList.add(new Fact(
-                    "owl:NamedIndividual", actIRI,
-                    "executes_id",
-                    "xsd:int", String.valueOf(executesId)
-            ));
-        }
-        if (studentIndex != null) {
-            factsList.add(new Fact(
-                    "owl:NamedIndividual", actIRI,
-                    "student_index",
-                    "xsd:int", String.valueOf(studentIndex)
-            ));
-        }
-        if (prevActIRI != null) {
-            factsList.add(new Fact(
-                    "owl:NamedIndividual",
-                    prevActIRI,                     "student_next",
-                    "owl:NamedIndividual", actIRI
-            ));
-            if (isLatest) {
-                factsList.add(new Fact(
-                        "owl:NamedIndividual",
-                        prevActIRI, "student_next_latest",
-                        "owl:NamedIndividual", actIRI
-                ));
-            }
-        }
-        factsList.add(new Fact(
-                "owl:NamedIndividual", actIRI,
-                "in_trace",
-                "owl:NamedIndividual", inTrace
-        ));
-        if (exprValue != null) {
-            factsList.add(new Fact(
-                    "owl:NamedIndividual", actIRI,
-                    "expr_value",
-                    "xsd:boolean", exprValue.toString()
-            ));
-        }
-    }
-
-//    @Override
-    public InterpretSentenceResult _old__interpretSentence(Collection<Fact> violations) {
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        List<ViolationEntity> mistakes = new ArrayList<>();
-        HashSet<String> mistakeTypes = new HashSet<>();
-
-        OntModel model = factsAndSchemaToOntModel(violations);
-
-//        ///
-//        try {
-//            model.write(new FileOutputStream("c:/temp/interpret.n3"), Lang.NTRIPLES.getName());
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-
-        OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-        AnnotationProperty atom_action = model.getAnnotationProperty(model.expandPrefix(":atom_action"));
-        Property stmt_name = model.getProperty(model.expandPrefix(":stmt_name"));
-        Property executes = model.getProperty(model.expandPrefix(":executes"));
-        Property boundary_of = model.getProperty(model.expandPrefix(":boundary_of"));
-        Property begin_of    = model.getProperty(model.expandPrefix(":begin_of"));
-        Property end_of      = model.getProperty(model.expandPrefix(":end_of"));
-        Property halt_of     = model.getProperty(model.expandPrefix(":halt_of"));
-        Property wrong_next_act = model.getProperty(model.expandPrefix(":wrong_next_act"));
-        Property reason = model.getProperty(model.expandPrefix(":reason"));
-        OntClass OwlClass = model.getOntClass(OWL.Class.getURI());
-        Literal True = model.createTypedLiteral(true);
-
-//        Set<? extends OntResource> instSet = Erroneous.listInstances().toSet();
-        Set<RDFNode> instSet = model.listObjectsOfProperty(wrong_next_act).toSet();
-        for (RDFNode inst : instSet) {
-            // inst = instSet.next();
-
-            // find the most specific error class
-            if (inst instanceof Resource) {
-                Resource act_individual = inst.asResource();
-
-
-                // filter classNodes of act instance
-                List<OntClass> classes = new ArrayList<>();
-                List<RDFNode> classNodes = model.listObjectsOfProperty(inst.asResource(), RDF.type).toList();
-                classNodes.forEach(rdfNode -> {
-                    if (rdfNode instanceof Resource && rdfNode.asResource().hasProperty(RDF.type, OwlClass))
-                        classes.add(model.createClass(rdfNode.asResource().getURI()));
-                });
-
-                List<OntClass> errorOntClasses = retainLeafOntClasses(
-                        // act_individual.listOntClasses(true).toList()
-                        classes
-                );
-                //     properties_to_extract = ("id", "name", onto.precursor, onto.cause, onto.should_be,
-                //     onto.should_be_before, onto.should_be_after, onto.context_should_be, onto.text_line, )
-
-                Individual action = act_individual.getPropertyResourceValue(executes).getPropertyResourceValue(boundary_of).as(Individual.class);
-
-                String act_stmt_name = action.getPropertyValue(stmt_name).asLiteral().getString();
-
-                // extract ALL field_* facts, no matter what law they belong to.
-                List<Statement> actLinks = model.listStatements(act_individual, null, (String) null).toList();
-                HashMap<String, String> placeholders = new HashMap<>();
-                for (Statement statement : actLinks) {
-                    String verb = statement.getPredicate().getLocalName();
-                    if (getFieldProperties().contains(verb)) {
-                        String fieldName = verb.replaceAll("field_", "");
-                        String value;
-                        if (!fieldName.endsWith("_bound")) {
-                            // object is just an ordinal string
-                            value = statement.getString();
-                        } else {
-                            // process bound instance ...
-                            // statement.object is boundary, so we can retrieve action name & phase
-
-                            // cut "_bound" suffix
-                            fieldName = fieldName.substring(0, fieldName.length() - "_bound".length());
-                            // add 'phased-' prefix
-                            fieldName = "phased-" + fieldName;
-
-                            Individual bound = statement.getObject().asResource().as(Individual.class);
-                            Individual action_ = bound.getProperty(boundary_of).getObject().as(Individual.class);
-                            // value = bound.boundary_of.stmt_name
-                            value = action_.getPropertyValue(stmt_name).asLiteral().getString();
-
-                            // bound's action does not have 'atom_action'=true annotation
-                            if (action_.listOntClasses(false).toSet().stream()
-                                    .filter(c -> model.listStatements(c, atom_action, True).hasNext())
-                                    .findAny()
-                                    .isEmpty()
-                            ) {
-                                // find phase from bound's relation
-                                String phase_str = "";  // templated version since we don't know the locale now
-                                if (model.listStatements(bound, begin_of, action_).hasNext()) {
-                                    phase_str = "!{locale:phase.begin_of}" + " ";  //// getMessage("phase.begin_of", );
-                                } else if (model.listStatements(bound, end_of, action_).hasNext()
-                                        || model.listStatements(bound, halt_of, action_).hasNext()) {
-                                    phase_str = "!{locale:phase.end_of}" + " ";
-                                }
-                                // prepend prefix
-                                value = phase_str + value;
-                                // change case of description intro (that differs when used with phase in Russian)
-                                value = value.replaceFirst("!\\{locale:text\\.", "!{locale:text.phased-");
-                            }
-                        }
-
-                        // add to placeholders ...
-                        value = "«" + value + "»";
-                        if (placeholders.containsKey(fieldName)) {
-                            String prevData = placeholders.get(fieldName);
-                            // if not in previous data
-                            if (!prevData.equals(value) && !prevData.contains(value))
-                                // append to previous data
-                                value = prevData + ", " + value;
-                            //// System.out.println((":: WARNING :: retrieving field_* facts: clash at key '" + fieldName + "'.\n\tValues:\n\told: " + placeholders.get(fieldName) + "\n\tnew: " + value));
-                        }
-                        placeholders.put(fieldName, value);
-                    }
-                }
-
-                ///
-                //// System.out.println("\nPlaceholders:");
-                //// System.out.println(placeholders);
-
-                for (OntClass errClass : errorOntClasses) {
-                    // filter out not-error classes
-                    if (!testSubClassOfTransitive(errClass, Erroneous)) {
-                        continue;
-                    }
-
-                    String mistakeType = errClass.getLocalName();
-
-                    // skip mistake of the type that's already here
-                    if (mistakeTypes.contains(mistakeType)) {
-                        continue;
-                    }
-
-                    mistakeTypes.add(mistakeType);
-
-                    ///
-                    //// System.out.println("<>- Mistake for action " + act_stmt_name + ": " + mistakeType);
-
-
-                    ViolationEntity violationEntity = new ViolationEntity();
-                    violationEntity.setLawName(mistakeType);
-
-                    List<ExplanationTemplateInfoEntity> templates = new ArrayList<>();
-                    placeholders.forEach((name, value) -> {
-                        ExplanationTemplateInfoEntity explT = new ExplanationTemplateInfoEntity();
-                        explT.setFieldName(name);
-                        explT.setValue(value);
-                        explT.setViolation(violationEntity);
-                        templates.add(explT);
-                    });
-                    violationEntity.setExplanationTemplateInfo(templates);
-
-                    violationEntity.setViolationFacts(new ArrayList<>(Arrays.asList(
-                            new BackendFactEntity("owl:NamedIndividual", act_individual.getLocalName(),
-                                    "stmt_name",
-                                    "string", act_stmt_name) //,
-                            // TODO: add more (mistake-specific?) facts
-                    )));
-
-                    if (mistakeType.toLowerCase().contains("neighbour")) {
-                        // prepend
-                        mistakes.add(0, violationEntity);
-                    } else {
-                        // append
-                        mistakes.add(violationEntity);
-                    }
-                }
-            } else {
-                ///
-                log.debug("Cannot treat obj as Resource: {}", inst);
-            }
-        }
-
-        result.violations = mistakes;
-        mistakeTypes.clear();
-
-        // reason - наследник связи consequent (вычисляется ризонером для latest акта)
-        List<RDFNode> reasons = model.listObjectsOfProperty(reason).toList();
-        ArrayList<String> correctlyAppliedLaws = new ArrayList<>();
-        for (RDFNode reasonClass : reasons) {
-            correctlyAppliedLaws.add(reasonClass.asResource().getLocalName());
-        }
-        // add possible but not taken mistakes
-        correctlyAppliedLaws.addAll(notHappenedMistakes(correctlyAppliedLaws, violations));
-        result.correctlyAppliedLaws = correctlyAppliedLaws;
-
-        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = processResult.CountCorrectOptions;
-        result.IterationsLeft = processResult.IterationsLeft; // + (mistakes.isEmpty() ? 0 : 1);
-        return result;
-    }
-
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
         List<ViolationEntity> mistakes = DecisionTreeReasonerBackend.reasonerOutputFactsToViolations(
@@ -866,16 +546,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return ontModel;
     }
 
-    private static OntModel factsAndSchemaToOntModel(Collection<Fact> facts) {
-        Model schema = getVocabulary().getModel();
-        JenaFactList fl = JenaFactList.fromFacts(facts);
-        return modelToOntModel(schema.union(fl.getModel()));
-    }
-
-    private static Collection<Fact> modelToFacts(Model factsModel) {
-        return new JenaFactList(factsModel);
-    }
-
     @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         its.model.definition.Domain domain = solution.stream()
@@ -902,7 +572,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty()) // select only interactions without mistakes
                 .reduce((first, second) -> second);
         val lastCorrectInteractionAnswers = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
@@ -988,16 +658,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
     }
 
-    /** format pattern using MessageFormat class
-     * @param pattern pattern of MessageFormat
-     * @param arguments arguments for pattern
-     * @return formatted string
-     */
-    private static String formatTemplate(String pattern, Object... arguments) {
-        // from: https://docs.oracle.com/javase/8/docs/api/java/text/MessageFormat.html
-        return (new MessageFormat(pattern)).format(arguments, new StringBuffer(), null).toString();
-    }
-
     /** fill in the blanks using StringSubstitutor class
      * @param s pattern of StringSubstitutor
      * @param placeholders argument map for pattern
@@ -1016,27 +676,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
     }
-
-    private HashMap<String, Long> _getViolationsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(16);
-        name2bit.put("DuplicateOfAct", 0x1L);
-        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
-        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
-        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);
-        name2bit.put("NoFirstCondition", 0x10L);
-        name2bit.put("SequenceFinishedTooEarly", 0x20L);
-        name2bit.put("TooEarlyInSequence", 0x40L);
-        name2bit.put("BranchOfFalseCondition", 0x80L);
-        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);
-        name2bit.put("LastFalseNoEnd", 0x200L);
-        name2bit.put("LoopStartIsNotCondition", 0x400L);
-        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);
-        name2bit.put("NoConditionAfterIteration", 0x1000L);
-        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
-        name2bit.put("LoopStartIsNotIteration", 0x4000L);
-        return name2bit;
-    }
-
 
 
     private static void _test_Substitutor() {
