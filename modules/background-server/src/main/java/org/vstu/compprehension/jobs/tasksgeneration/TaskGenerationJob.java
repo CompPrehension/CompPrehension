@@ -42,40 +42,62 @@ import java.util.stream.Collectors;
 public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
-    private final TaskGenerationJobConfig config;
+    private final TaskGenerationJobConfig tasks;
+    /** Current active task config, `null` while no task is active. This is not thread-safe! */
+    private TaskGenerationJobConfig.TaskConfig config;
     private final QuestionBank storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig config, QuestionBank storage) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
-        this.config = config;
+        this.tasks = tasks;
+        this.config = null;
         this.storage = storage;
     }
 
     @Job(name = "task-generation-job", retries = 0)
     public void run() {
         log.info("Run generating questions for expression domain ...");
-        try {
-            switch (config.getRunMode()) {
-                case TaskGenerationJobConfig.RunMode.Full full:
-                    runImpl(full);
-                    break;
-                case TaskGenerationJobConfig.RunMode.Incremental incremental:
-                    runImpl(incremental);
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown run mode: " + config.getRunMode());
+
+        for (val config : tasks.getTasks())
+        {
+            if (!config.isEnabled())
+                continue;
+
+            // set active profile
+            this.config = config;
+
+            log.info("Run generating questions for {} domain ...", config.getDomainShortName());
+
+            try {
+                runWithMode();
+            } catch (Exception e) {
+                log.error("job exception - {} | {}", e.getMessage(), e);
+                throw e;
             }
-        } catch (Exception e) {
-            log.error("job exception - {}", e.getMessage(), e);
-            throw e;
         }
-        if (config.isRunOnce()) {
+
+        this.config = null;  // unset profile to prevent accidental access
+
+        if (tasks.isRunOnce()) {
             System.exit(0);
         }
     }
     
+    private void runWithMode() {
+        switch (config.getRunMode()) {
+            case TaskGenerationJobConfig.RunMode.Full full:
+                runImpl(full);
+                break;
+            case TaskGenerationJobConfig.RunMode.Incremental incremental:
+                runImpl(incremental);
+                break;
+            default:
+                throw new IllegalStateException("Unknown run mode: " + config.getRunMode());
+        };
+    }
+
     private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Full mode) {
         while (true) {
             var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
@@ -324,6 +346,13 @@ public class TaskGenerationJob {
         return downloadedRepos;
     }
 
+    private String fixDomainShortName(String name) {
+        if (name.equals("ctrl_flow"))
+            name = "control_flow";
+
+        return name;
+    }
+
     @SneakyThrows
     private List<Path> parseRepositories(List<Path> downloadedRepos) {
         var parserConfig = config.getParser();
@@ -362,7 +391,7 @@ public class TaskGenerationJob {
             parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
 
             parserProcessCommandBuilder.add("--");
-            parserProcessCommandBuilder.add(config.getDomainShortName());  // e.g. "expression"
+            parserProcessCommandBuilder.add(fixDomainShortName(config.getDomainShortName()));  // e.g. "expression"
             parserProcessCommandBuilder.add(destination.toString());
             log.debug("Parser executable command: {}", parserProcessCommandBuilder);
 

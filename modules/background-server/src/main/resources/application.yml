@@ -13,8 +13,12 @@ hibernate:
   generate_statistics: true
 
 task-generation:
-  run_once :  true
-  interval_minutes :  1
+  run-mode: incremental
+  # run_once: false (the default) or true
+  run_once: true
+#  interval_minutes :  1
+  # cron-schedule: use "never" to disable it.
+  cron-schedule: "*/30 * * * * *"
 
   tasks:
     # section 1 — first domain:
@@ -67,4 +71,16 @@ task-generation:
         storage_dummy_dirs_for_new_file: 2
         storage_upload_files_base_url: c:/data/compp-gen/control_flow
 
+metadata-health:
+  run-once: false
+  cron-schedule: 30 * * * *
+  mode: SKIP_INVALID
 
+# db logging config
+config:
+  property:
+    db-logging:
+      enabled: false
+      level: INFO
+      logger: org.vstu.compprehension
+#spring.application.name=compph-bg
