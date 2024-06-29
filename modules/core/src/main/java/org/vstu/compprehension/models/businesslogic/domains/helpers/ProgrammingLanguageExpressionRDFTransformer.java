@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
 @Log4j2
 public class ProgrammingLanguageExpressionRDFTransformer {
 
-    private static final String DEBUG_DIR = "C:\\Uni\\CompPrehension_mainDir\\inputs\\input_examples\\";
+    private static final String DEBUG_DIR = "./";
+
     private static void debugDumpLoqi(its.model.definition.Domain model, String filename){
         try (var writer = new FileWriter(DEBUG_DIR + filename)) {
             DomainLoqiWriter.saveDomain(
@@ -79,7 +80,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
             .map((r) -> base.getResource("http://vstu.ru/poas/code#" + r.getLeftAnswerObject().getDomainInfo()))
             .collect(Collectors.toList());
     
-        saveModel("base.ttl", base);
+        // saveModel("base.ttl", base);
         Model res = ModelFactory.createDefaultModel();
         res.setNsPrefix("", RDFUtils.POAS_PREF);
         Property indexProperty = base.getProperty("http://vstu.ru/poas/code#index");
@@ -147,7 +148,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
                 baseTokensToTokens.get(currentlyChosenRes).addProperty(varProperty, "X1");
             }
         }
-        saveModel("res.ttl", res);
+        // saveModel("res.ttl", res);
         return res;
     }
     
