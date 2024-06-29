@@ -9,11 +9,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Entity @Getter @Setter
 @NoArgsConstructor
@@ -31,14 +33,16 @@ public class SupplementaryStepEntity {
     @Setter
     @NoArgsConstructor
     public static class SupplementarySituation{
-        private Map<String, ObjectRef> reasoningVariables;
+        private Map<String, String> reasoningVariables;
         private Map<String, String> discussedVariables;
         private Map<Integer, Integer> givenAnswers;
         private Map<String, Boolean> assumedResults;
         private String localizationCode;
         
         public SupplementarySituation(QuestioningSituation situation){
-            this.reasoningVariables = situation.getDecisionTreeVariables();
+            this.reasoningVariables = situation.getDecisionTreeVariables()
+                .entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getObjectName()));
             this.discussedVariables = situation.getDiscussedVariables();
             this.givenAnswers = situation.getGivenAnswers();
             this.assumedResults = situation.getAssumedResults();
@@ -46,7 +50,9 @@ public class SupplementaryStepEntity {
         }
         
         public QuestioningSituation toQuestioningSituation(its.model.definition.Domain situationModel){
-            Map<String, ObjectRef> vars = new HashMap<>(reasoningVariables);
+            Map<String, ObjectRef> vars = reasoningVariables
+                .entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> new ObjectRef(e.getValue())));
             vars.putAll(LearningSituation.collectDecisionTreeVariables(situationModel));
             return new QuestioningSituation(situationModel, vars, discussedVariables, givenAnswers, assumedResults, localizationCode);
         }
