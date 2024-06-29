@@ -26,7 +26,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     static final String MESSAGE_PREFIX = "expr_domain_dt.";
     
     @Override
-    public String getDBShortName() {
+    public String getShortnameForQuestionSearch() {
         return "expression"; //
     }
     

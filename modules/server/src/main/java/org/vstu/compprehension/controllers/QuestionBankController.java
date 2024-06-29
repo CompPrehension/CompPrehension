@@ -81,7 +81,7 @@ public class QuestionBankController {
                 .deniedLaws(deniedLaws)
                 .complexity(searchRequest.getComplexity())
                 .targetTags(targetTags)
-                .domainShortname(domain.getDBShortName())
+                .domainShortname(domain.getShortnameForQuestionSearch())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);
         return questionStorage.countQuestions(qr);

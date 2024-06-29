@@ -65,7 +65,7 @@ public abstract class Domain {
      * Is the same as {@link #getShortName()} by default
      * FIXME - replace back to getShortName()
      */
-    public String getDBShortName(){
+    public String getShortnameForQuestionSearch(){
         return getShortName();
     }
     public String getVersion() {

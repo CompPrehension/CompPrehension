@@ -115,7 +115,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return DecisionTreeReasonerBackend.BACKEND_ID;
     }
 
-    public String getDBShortName(){
+    public String getShortnameForQuestionSearch(){
         return "ctrl_flow";
     }
 
