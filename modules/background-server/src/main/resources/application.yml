@@ -1,6 +1,8 @@
 
 
 spring:
+  application:
+    name: 'compph-bg'
   datasource:
     url: '${COMPPH_DB_JDBC_URL}'
     username: '${COMPPH_DB_USERNAME}'
@@ -83,4 +85,3 @@ config:
       enabled: false
       level: INFO
       logger: org.vstu.compprehension
-#spring.application.name=compph-bg
