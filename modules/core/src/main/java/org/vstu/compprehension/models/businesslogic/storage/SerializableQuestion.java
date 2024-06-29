@@ -174,7 +174,7 @@ public class SerializableQuestion {
 
     public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataEntity qMeta) {
         if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
-            log.warn("Domain mismatch: {} vs {}", qMeta.getDomainShortname(), domain.getShortName());
+            throw new RuntimeException(String.format("Domain mismatch: got `%s`, expected `%s`", qMeta.getDomainShortname(), domain.getShortName()));
         }
         
         var questionData = getQuestionData();
