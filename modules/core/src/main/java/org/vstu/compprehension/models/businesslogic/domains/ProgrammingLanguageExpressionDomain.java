@@ -77,14 +77,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     static final String SUPPLEMENTARY_PREFIX = "supplementary.";
 
     private final static NamespaceUtil NS_root = new NamespaceUtil("http://vstu.ru/poas/");
-    private final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
+    public final static NamespaceUtil NS_code = new NamespaceUtil(NS_root.get("code#"));
     private final static NamespaceUtil NS_graphs = new NamespaceUtil(NS_root.get("graphs/"));
 
     public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-schema.rdf";
 
     public static final String END_EVALUATION = "student_end_evaluation";
-    private final LocalizationService localizationService;
-    private final QuestionBank qMetaStorage;
+    protected final LocalizationService localizationService;
+    protected final QuestionBank qMetaStorage;
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));  	// (2 ^ 0)
@@ -637,24 +637,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
         }
 
-        if (res != null) {
-            log.info("Expression domain has prepared the question: {}", res.getQuestionName());
-
-            return makeQuestionCopy(res, exerciseAttempt, userLanguage);
+        if (res == null) {
+            throw new IllegalStateException("No valid questions found");
         }
 
-        // make a SingleChoice question ...
-        QuestionEntity question = new QuestionEntity();
-        question.setExerciseAttempt(exerciseAttempt);
-        question.setQuestionText("Choose associativity of operator binary +");
-        question.setQuestionType(QuestionType.SINGLE_CHOICE);
-        question.setQuestionDomainType("ChooseAssociativity");
-        question.setAnswerObjects(new ArrayList<>(Arrays.asList(
-                createAnswerObject(question, 0, "left", "left_associativity", "left", true),
-                createAnswerObject(question, 1, "right", "right_associativity", "right", true),
-                createAnswerObject(question, 2, "no associativity", "absent_associativity", "no associativity", true)
-        )));
-        return new Question(question, this);
+        log.info("Expression domain has prepared the question: {}", res.getQuestionName());
+        return makeQuestionCopy(res, exerciseAttempt, userLanguage);
     }
 
     @Override
@@ -812,18 +800,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             || questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
-                boolean needLaw = true;
-                for (Tag tag : law.getTags()) {
-                    boolean inQuestionTags = false;
-                    for (Tag questionTag : tags) {
-                        if (questionTag.getName().equals(tag.getName())) {
-                            inQuestionTags = true;
-                        }
-                    }
-                    if (!inQuestionTags) {
-                        needLaw = false;
-                    }
-                }
+                boolean needLaw = isLawNeededByQuestionTags(law, tags);
                 if (needLaw) {
                     positiveLaws.add(law);
                 }
@@ -831,16 +808,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             return positiveLaws;
         }
         return new ArrayList<>();
-    }
-
-    /**
-     * Get all needed (positive and negative) laws for this questionType using default tags
-     * @param questionDomainType type of question
-     * @return list of laws
-     */
-    public List<Law> getQuestionLaws(String questionDomainType /*, List<Tag> tags*/) {
-
-        return getQuestionLaws(questionDomainType, getDefaultQuestionTags(questionDomainType));
     }
 
     @Override
@@ -858,10 +825,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
+    private Model schemaModel = null;
+
     public Model getSchemaForSolving() {
-        Model schemaModel = ModelFactory.createDefaultModel();
-        // todo: cache it?
-        return schemaModel.read(VOCAB_SCHEMA_PATH);
+        if (schemaModel == null) {
+            // Read & cache the model.
+            schemaModel = ModelFactory.createDefaultModel();
+            schemaModel.read(VOCAB_SCHEMA_PATH);
+        }
+        return schemaModel;
+    }
+
+    /**
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
+     * Returns {@link JenaBackend#BackendId}
+     */
+    public String getSolvingBackendId(){
+        return JenaBackend.BackendId;
     }
 
     @Override
@@ -876,6 +856,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         if (Objects.equals(questionDomainType, EVALUATION_ORDER_QUESTION_TYPE)) {
             return Stream.of("basics", "operators", "order", "evaluation", "errors", "C++").map(this::getTag).filter(Objects::nonNull).collect(Collectors.toList());
         }
+        // empty list by default:
         return super.getDefaultQuestionTags(questionDomainType);
     }
 
@@ -1542,8 +1523,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
-    private Model mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
-        return ProgrammingLanguageExpressionRDFTransformer.questionToModel(lastMainQuestionInteraction.getQuestion(), lastMainQuestionInteraction);
+    private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+        return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
+            dtSupplementaryQuestionHelper.domainModel.getDomain(),
+            lastMainQuestionInteraction.getQuestion(),
+            lastMainQuestionInteraction
+        );
     }
 
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(

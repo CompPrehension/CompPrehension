@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.Getter;
 import lombok.Value;
 import org.jetbrains.annotations.Nullable;
 
@@ -7,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 public class Tag {
     String name;
     /** ID-like bit of the concept for a bitmask combining several Concepts */
+    @Getter
     long bitmask;
 
     public static long combineToBitmask(@Nullable Iterable<Tag> tags) {

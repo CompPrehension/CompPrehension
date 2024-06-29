@@ -104,12 +104,13 @@ public class QuestionService {
 
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Backend backend = backendFactory.getBackend(domain.getSolvingBackendId());
+//        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
 
         // use reasoner to solve question
         Collection<Fact> solution = backend.solve(
                 /*new ArrayList<>*/(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFactsWithSchema(),
+                domain.processQuestionFactsForBackendSolve(question.getStatementFactsWithSchema()),
                 new ReasoningOptions(
                         false,
                         domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
@@ -154,21 +155,39 @@ public class QuestionService {
         return result;
     }
 
+    /**
+     * @param question current question being solved
+     * @param responses new responses from student (to add to solution if correct)
+     * @param tags Exercise tags
+     * @return interpretation of backend's judgement
+     */
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Collection<Fact> responseFacts = question.responseToFacts(responses);
-        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Backend backend = backendFactory.getBackend(domain.getJudgingBackendId());
+//        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
+        Collection<Fact> solutionFacts = Fact.entitiesToFacts(question.getSolutionFacts());
         Collection<Fact> violations = backend.judge(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFactsWithSchema(),
-                Fact.entitiesToFacts(question.getSolutionFacts()),
+                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses, responseFacts, solutionFacts),
+                solutionFacts,
                 responseFacts,
                 new ReasoningOptions(
                         false,
                         domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
                         question.getQuestionUniqueTemplateName())
         );
-        return domain.interpretSentence(violations);
+        Domain.InterpretSentenceResult result = domain.interpretSentence(violations);
+
+        Language lang;
+        try {
+            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+        } catch (NullPointerException e) {
+            lang = Language.ENGLISH;  // fallback if it cannot be figured out
+        }
+        result.explanations = domain.makeExplanations(violations.stream().toList(), lang);
+
+        return result;
     }
 
     public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {

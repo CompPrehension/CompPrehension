@@ -7,6 +7,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.models.businesslogic.domains.*;
 import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -54,6 +55,30 @@ public class DomainFactoryImpl implements DomainFactory {
                     randomProvider,
                     questionStorage);
             domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
+        }
+        {
+            var dtDomainEntity = domains
+                    .stream().filter(x -> x.getShortName().equals("expression_dt"))
+                    .findFirst()
+                    .orElseThrow();
+            var dtDomain = new ProgrammingLanguageExpressionDTDomain(
+                    dtDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionStorage);
+            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
+        }
+        {
+            var dtDomainEntity = domains
+                    .stream().filter(x -> x.getName/*!*/().equals("ControlFlowStatementsDTDomain"))
+                    .findFirst()
+                    .orElseThrow();
+            var dtDomain = new ControlFlowStatementsDTDomain(
+                    dtDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionStorage);
+            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
         }
 
     }

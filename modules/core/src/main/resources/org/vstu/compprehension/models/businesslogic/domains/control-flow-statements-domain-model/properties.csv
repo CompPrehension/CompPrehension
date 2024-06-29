@@ -1,0 +1,8 @@
+continues_on_true_condition|BOOLEAN||TRUE|conditional_loop|
+expr_value|BOOLEAN||FALSE|act|
+item_index|INTEGER||FALSE|action|0-9999
+student_index|INTEGER||FALSE|act|0-9999
+act_kind|ENUM|act_kind|FALSE|act|
+has_interrupt_kind|ENUM|interrupt_kind|TRUE|interrupt_action|
+has_role|ENUM|role_for_parent|FALSE|action|
+action_kind|ENUM|action_kind|TRUE|action|

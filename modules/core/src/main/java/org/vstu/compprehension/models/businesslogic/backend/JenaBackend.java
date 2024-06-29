@@ -13,6 +13,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
+import org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -29,10 +30,12 @@ import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
+import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 
 
 @Primary
@@ -49,7 +52,6 @@ public class JenaBackend implements Backend {
         BuiltinRegistry.theRegistry.register(new MakeNamedSkolem());
     }
 
-    static String BACKEND_TYPE = "Jena";
 
     String baseIRIPrefix;
     OntModel model;
@@ -186,7 +188,11 @@ public class JenaBackend implements Backend {
     void addLaw(Law law) {
         assert law != null;
 
-        for (LawFormulation lawFormulation : law.getFormulations()) {
+        var formulations = law.getFormulations();
+        if (formulations == null)
+            return;
+
+        for (LawFormulation lawFormulation : formulations) {
 //        /// debug
 //            System.out.println("addLaw() : " + lawFormulation.getName());
 
@@ -198,11 +204,11 @@ public class JenaBackend implements Backend {
 
             if (lawFormulation.getBackend().equals("OWL")) {
                 addOWLLawFormulation(lawFormulation.getName(), lawFormulation.getFormulation());
-            } else if (lawFormulation.getBackend().equals(BACKEND_TYPE)) {
+            } else if (lawFormulation.getBackend().equals(BackendId)) {
                 appendRuleSet(lawFormulation, ruleSet);
-            } else if ("can_covert" == null) {
+            } /*else if ("can_covert" == null) {
                 // TODO: convert rules if possible ?
-            }
+            }*/
         }
     }
 
@@ -324,6 +330,8 @@ public class JenaBackend implements Backend {
 
             ArrayList<Rule> ruleSet = domainRuleSets.get(salience);
             GenericRuleReasoner reasoner = new GenericRuleReasoner(ruleSet);
+
+            reasoner.setTransitiveClosureCaching(true);
 
 //            long startStepTime = System.nanoTime();
 
@@ -484,16 +492,56 @@ public class JenaBackend implements Backend {
         return result;
     }
 
+    public OntModel filterModelForCtrlFlowDecisionTree(OntModel m) {
+        // delete all facts about Erroneous and its child classes
+        Set<Resource> undesiredClasses = new HashSet<>();
+        undesiredClasses.add(m.createClass(model.expandPrefix(":Erroneous")));
+        undesiredClasses.add(m.createClass(model.expandPrefix(":linked_list")));
+        undesiredClasses.add(m.createClass(model.expandPrefix(":first_item")));
+        undesiredClasses.add(m.createClass(model.expandPrefix(":last_item")));
+        //// undesiredClasses.add(m.createClass(model.expandPrefix(":last_item")));
+        undesiredClasses.add(m.getResource("http://www.w3.org/2001/XMLSchema#string"));
+        for (RDFNode obj : m.listObjectsOfProperty(RDF.type).toSet()) {
+            boolean undesiredObj = false;
+            for (Resource undesiredClass : undesiredClasses) {
+                if (undesiredClass.equals(obj)
+                        ||
+                        undesiredClass instanceof OntClass && obj.canAs(OntClass.class) && testSubClassOfTransitive(obj.as(OntClass.class), undesiredClass.as(OntClass.class))
+                ) {
+                    // non-leaf or undesired class asserted: remove all triples with it.
+                    undesiredObj = true;
+                    break;
+                }
+            }
+            if (undesiredObj) {
+                for (Statement s : m.listStatements(null, RDF.type, obj).toSet())
+                    m.remove(s);
+            }
+        }
+        DomainVocabulary.retainLeafTypesOnlyForIndividuals(m);
+        return m;
+    }
+
     private void debug_dump_model(String name) {
         if (false) {
             String out_rdf_path = "c:/temp/" + name + ".n3";
             FileOutputStream out = null;
             try {
+                // filter model >>
+                OntModel m = ModelFactory.createOntologyModel(OWL_MEM);
+                m.add(model);
+                m = filterModelForCtrlFlowDecisionTree(m);
+                // << filter model
+
                 out = new FileOutputStream(out_rdf_path);
-                RDFDataMgr.write(out, model, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
-                log.debug("Debug written: {}. N of of triples: {}", out_rdf_path, model.size());
+                RDFDataMgr.write(out, m, Lang.NTRIPLES);  // Lang.NTRIPLES  or  Lang.RDFXML
+                out.close();
+                log.info("Debug written: {}. N of triples: {} (unfiltered {})", out_rdf_path, m.size(), model.size());
             } catch (FileNotFoundException e) {
                 log.error("Cannot write to file: {}", out_rdf_path, e);
+            } catch (IOException e) {
+                log.error("Cannot close stream: {}", out_rdf_path, e);
+                ////  throw new RuntimeException(e);
             }
         }
     }
@@ -515,7 +563,7 @@ public class JenaBackend implements Backend {
 
         addBackendFacts(statement);
 
-        debug_dump_model("solve");
+//        debug_dump_model("solve");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         debug_dump_model("solved");
 
@@ -530,7 +578,7 @@ public class JenaBackend implements Backend {
         }
         addFacts(statement);
 
-        debug_dump_model("solve-f");
+//        debug_dump_model("solve-f");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         debug_dump_model("solved-f");
 
@@ -565,7 +613,7 @@ public class JenaBackend implements Backend {
         addBackendFacts(correctAnswer);
         ch.hit("judge: add facts");
 
-        debug_dump_model("judge");
+//        debug_dump_model("judge");
 
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         ch.hit("judge: callReasoner");
@@ -594,7 +642,7 @@ public class JenaBackend implements Backend {
         addFacts(correctAnswer);
         // ch.hit("judge-f: add facts");
 
-        debug_dump_model("judge-f");
+//        debug_dump_model("judge-f");
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
         // ch.hit("judge-f: callReasoner");
         debug_dump_model("judged-f");

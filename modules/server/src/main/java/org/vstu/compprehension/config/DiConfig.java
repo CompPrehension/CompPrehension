@@ -13,6 +13,7 @@ import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
@@ -40,14 +41,18 @@ public class DiConfig {
     List<Backend> getAllBackends(
             @Autowired @Lazy JenaBackend jenaBackend,
             @Autowired @Lazy PelletBackend pelletBackend,
+            @Autowired DecisionTreeReasonerBackend decisionTreeReasonerBackend,
             @Autowired BackendTaskQueue taskQueue,
-		    @Autowired Cache<String, JenaFactList> jenaCache) {
+            @Autowired Cache<String, JenaFactList> jenaCache)
+    {
         return List.of(
-              new RateLimitBackendDecorator(
-                      JenaBackend.BackendId,
-                      new SolutionCachingJenaBackendDecorator(jenaBackend, jenaCache),
-                      taskQueue),
-              new RateLimitBackendDecorator(PelletBackend.BackendId, pelletBackend, taskQueue)
+            new RateLimitBackendDecorator(
+                JenaBackend.BackendId,
+                new SolutionCachingJenaBackendDecorator(jenaBackend, jenaCache),
+                taskQueue
+            ),
+            decisionTreeReasonerBackend, //FIXME wrap with RateLimitBackendDecorator
+            new RateLimitBackendDecorator(PelletBackend.BackendId, pelletBackend, taskQueue)
         );
     }
 

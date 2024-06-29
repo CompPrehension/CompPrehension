@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -31,6 +32,7 @@ import java.util.List;
  */
 @Builder
 @Getter
+@Log4j2
 public class SerializableQuestion {
     private QuestionData questionData;
     private QuestionMetadata metadata;
@@ -172,7 +174,7 @@ public class SerializableQuestion {
 
     public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataEntity qMeta) {
         if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
-            throw new RuntimeException("Domain mismatch: " + qMeta.getDomainShortname() + " vs " + domain.getShortName());
+            throw new RuntimeException(String.format("Domain mismatch: got `%s`, expected `%s`", qMeta.getDomainShortname(), domain.getShortName()));
         }
         
         var questionData = getQuestionData();

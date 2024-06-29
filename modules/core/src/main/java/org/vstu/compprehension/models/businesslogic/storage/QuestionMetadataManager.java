@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class QuestionMetadataManager {
     private final QuestionMetadataRepository questionRepository;
     private final ConcurrentHashMap<String, ComplexityStats> complexityStats;
-    
+
     private record ComplexityStats(LocalDateTime createDate, NumericStat stats) {}
 
     public QuestionMetadataManager(QuestionMetadataRepository questionMetadataRepository) {
@@ -43,4 +43,30 @@ public class QuestionMetadataManager {
         this.complexityStats.put(domainShortname, newStats);
         return newStats;
     }
+
+    /* List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutQIds(
+            QuestionRequest qr,
+            double complexityMaxDifference,
+            int limit,
+            int randomPoolLimit
+    ) {
+        ensureBankStatLoaded();
+
+        // lists cannot be empty in SQL: workaround
+        val templatesIds = qr.getDeniedQuestionTemplateIds();
+        if (templatesIds == null || templatesIds.isEmpty()) {
+            qr.setDeniedQuestionTemplateIds(List.of(0));
+        }
+        val questionsIds = qr.getDeniedQuestionMetaIds();
+        if (questionsIds == null || questionsIds.isEmpty()) {
+            qr.setDeniedQuestionMetaIds(List.of(0));
+        }
+        if (randomPoolLimit < limit)
+            randomPoolLimit = limit;
+        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,
+                limit, randomPoolLimit);
+        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        iter.forEach(foundQuestions::add);
+        return foundQuestions;
+    } */
 }

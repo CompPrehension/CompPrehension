@@ -17,6 +17,7 @@ import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 @RequestScope
@@ -54,6 +55,15 @@ public abstract class Domain {
     }
     public String getShortName() {
         return domainEntity.getShortName();  // same as name by default
+    }
+    
+    /**
+     * A temporary method to reuse DB-stored questions between Domains
+     * Is the same as {@link #getShortName()} by default
+     * FIXME - replace back to getShortName()
+     */
+    public String getShortnameForQuestionSearch(){
+        return getShortName();
     }
     public String getVersion() {
         return version;
@@ -104,6 +114,30 @@ public abstract class Domain {
         return getPositiveLaw(name);
     }
 
+    public Collection<? extends Law> getLawWithChildren(String name_) {
+        return getLawsWithChildren(List.of(name_));
+    }
+
+    public Collection<? extends Law> getLawsWithChildren(Collection<String> names) {
+        Set<String> res = new HashSet<>();
+        Set<String> pool = new HashSet<>(names);
+        while (!pool.isEmpty()) {
+            // copy concepts from pool to res
+            res.addAll(pool);
+
+            for (String name : new HashSet<>(pool)) {
+                pool.remove(name);
+                Law currLaw = getLaw(name);
+                if (currLaw != null && currLaw.getChildLaws() != null) {
+                    // try to add all children of current concept
+                    pool.addAll(currLaw.getChildLaws().stream().map(Law::getName).collect(Collectors.toSet()));
+                    pool.removeAll(res);  // guard: don't allow infinite recursion.
+                }
+            }
+        }
+        return res.stream().map(this::getLaw).filter(Objects::nonNull).collect(Collectors.toSet());
+    }
+
     public List<PositiveLaw> getPositiveLawWithImplied(String name) {
         PositiveLaw law = getPositiveLaw(name);
         if (law == null)
@@ -148,7 +182,7 @@ public abstract class Domain {
      * @return map representing groups of concepts (base concept -> concepts in the group)
      */
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
-        Map<Concept, List<Concept>> res = new HashMap<>();
+        Map<Concept, List<Concept>> res = new TreeMap<>();
         Set<Concept> wanted = this.concepts.values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
@@ -205,6 +239,84 @@ public abstract class Domain {
         wanted.removeAll(added);
         for (Concept t : wanted) {
             res.put(t, new ArrayList<>());
+        }
+
+        // sort list items
+        for (var list : res.values()) {
+            list.sort(TreeNodeWithBitmask::compareTo);
+        }
+
+        return res;
+    }
+
+    /** Get laws with given flags (e.g. visible) organized into two-level hierarchy
+     * @param requiredFlags e.g. Law.FLAG_VISIBLE_TO_TEACHER
+     * @return map representing groups of laws (base law -> laws in the group)
+     */
+    public Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags) {
+        Map<Law, List<Law>> res = new TreeMap<>();
+        Set<Law> wanted = Stream.concat(this.getPositiveLaws().stream(), this.getNegativeLaws().stream())
+                .filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Law> added = new HashSet<>();
+        for (Law ct : new ArrayList<>(wanted)) {
+            // ensure we are dealing with bottom-level law
+            Collection<Law> children = (Collection<Law>) this.getLawWithChildren(ct.getName());
+            children.remove(ct);
+            boolean hasChildren =
+                    children.stream().anyMatch(wanted::contains);
+            if (hasChildren) {
+                continue;  // skip non-bottom laws
+            }
+
+            Law nearestWantedBase = null;
+            List<Law> bases = new ArrayList<>(ct.getLawsImplied());
+            while (!bases.isEmpty()) {
+                for (Law base : new ArrayList<>(bases)) {
+                    if (wanted.contains(base)) {
+                        nearestWantedBase = base;
+                        bases.clear();
+                        break;
+                    }
+                    bases.remove(base);
+                    bases.addAll(base.getLawsImplied());
+                }
+            }
+            Law key;
+            List<Law> value;
+
+            if (nearestWantedBase != null) {
+                // law is within a group
+                key = nearestWantedBase;
+                value = new ArrayList<>(List.of(ct));
+                added.add(ct);
+
+            } else {
+                // law does not belong to any group (has no bases we want)
+                key = ct;
+                value = new ArrayList<>();
+            }
+            // put into a group or as top-level
+            if (res.containsKey(key)) {
+                List<Law> arr = res.get(key);
+                for (Law oneValue : value)
+                    if (!arr.contains(oneValue)) {
+                        arr.add(oneValue);
+                        added.add(oneValue);
+                    }
+            } else {
+                res.put(key, value);
+                added.add(key);
+            }
+        }
+        // add all top-level bases we skipped
+        wanted.removeAll(added);
+        for (Law t : wanted) {
+            res.put(t, new ArrayList<>());
+        }
+
+        // sort list items
+        for (var list : res.values()) {
+            list.sort(TreeNodeWithBitmask::compareTo);
         }
 
         return res;
@@ -277,7 +389,7 @@ public abstract class Domain {
 
     /** Set direct children to both positive and negative Laws. This is needed since names of laws are stored only */
     protected void fillLawsTree() {
-        // set direct child Laws to Laws
+        // set direct implied (base) Laws to each Law
         for (Law t : positiveLaws.values()) {
             if (t.getImpliesLaws() == null) {
                 t.setLawsImplied(List.of());
@@ -292,6 +404,20 @@ public abstract class Domain {
                 t.setLawsImplied(t.getImpliesLaws().stream().map(this::getNegativeLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
             }
         }
+
+        // set direct child Laws to Laws
+        var allLaws = Stream.concat(getPositiveLaws().stream(), getNegativeLaws().stream()).collect(Collectors.toSet());
+        for (Law law : allLaws) {
+            if (law.getLawsImplied() == null)
+                continue;
+            for (Law base : law.getLawsImplied()) {
+                if (base.getChildLaws() == null) {
+                    base.setChildLaws(new HashSet<>());
+                }
+                base.getChildLaws().add(law);
+            }
+        }
+
     }
 
 
@@ -312,6 +438,18 @@ public abstract class Domain {
      */
     public String getMessage(String messageKey, String prefix, Language preferredLanguage) {
         return getMessage(prefix + messageKey, preferredLanguage);
+    }
+
+    public Collection<Fact> processQuestionFactsForBackendSolve(Collection<Fact> questionFacts){
+        return questionFacts;
+    }
+
+    public Collection<Fact> processQuestionFactsForBackendJudge(
+            Collection<Fact> questionFacts,
+            Collection<ResponseEntity> responses,
+            Collection<Fact> responseFacts,
+            Collection<Fact> solutionFacts){
+        return questionFacts;
     }
 
     /** Get statement facts with common domain definitions for reasoning (schema) added */
@@ -350,15 +488,44 @@ public abstract class Domain {
         return questionRequest;
     }
 
+    protected static long lawsToBitmask(List<Law> laws) {
+        long lawBitmask = 0;
+        // Note: violations are not positive laws.
+        for (Law t : laws) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            lawBitmask |= newBit;
+        }
+        return lawBitmask;
+    }
+    
+    /**
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
+     */
+    public abstract String getSolvingBackendId();
 
-        /**
-         * Generate explanation of violations
-         * @param violations list of student violations
-         * @param feedbackType TODO: use feedbackType or delete it
-         * @param lang user preferred language
-         * @return explanation for each violation in random order
-         */
+    /**
+     * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
+     */
+    public String getJudgingBackendId(/* TODO: pass question type ??*/){
+        return this.getSolvingBackendId();
+    }
+
+    /**
+     * Generate explanation of violations
+     * @param violations list of student violations
+     * @param feedbackType TODO: use feedbackType or delete it
+     * @param lang user preferred language
+     * @return explanation for each violation in random order
+     */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
+
+    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang){
+        return null;
+    }
 
     /**
      * Get all needed (positive and negative) laws in this questionType
@@ -375,8 +542,34 @@ public abstract class Domain {
         return laws;
     }
 
+    /** Check if a law needed for a question with tags specified.
+     * Returns true in two cases:
+     * 1) the law has no tags attached, or
+     * 2) the two sets of tag names do intersect (i.e. contain at least one common tag).
+     * @param law Law to check tags for
+     * @param tags Tags to check against.
+     * @return true if any common tag exists.
+     */
+    public static boolean isLawNeededByQuestionTags(Law law, Collection<Tag> tags) {
+        boolean needLaw = true;
+        for (Tag tag : law.getTags()) {  // law having no tags is still needed.
+            boolean inQuestionTags = false;
+            for (Tag questionTag : tags) {
+                if (questionTag.getName().equals(tag.getName())) {
+                    inQuestionTags = true;
+                    break;
+                }
+            }
+            if (!inQuestionTags) {
+                needLaw = false;
+                break;
+            }
+        }
+        return needLaw;
+    }
+
     /** Get all needed (positive and negative) laws for this questionType using default tags */
-    public abstract List<Law> getQuestionLaws(String questionDomainType);
+    //LOOK public abstract List<Law> getQuestionLaws(String questionDomainType);
 
     /**
      * Get positive needed laws in this questionType
@@ -439,6 +632,8 @@ public abstract class Domain {
          * All violations
          */
         public List<ViolationEntity> violations;
+
+        public List<HyperText> explanations;
         /**
          * List of all negative laws that not occurred
          * (all answers where this answer would be the cause of the violation)
@@ -477,6 +672,8 @@ public abstract class Domain {
 
     /**
      * Get statistics for initial step of question evaluation
+     * FIXME? Удалить? Используется только внутри {@link #interpretSentence}, нет смысла объявлять как часть интерфейса
+     *
      * @param solution solution backend facts
      */
     public abstract ProcessSolutionResult processSolution(Collection<Fact> solution);
@@ -517,6 +714,8 @@ public abstract class Domain {
     public abstract CorrectAnswer getAnyNextCorrectAnswer(Question q);
 
     /**
+     * FIXME? Удалить?
+     *
      * Get set of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
      * @param q question
      * @param completedSteps ignore mistakes possible in these steps
@@ -525,6 +724,8 @@ public abstract class Domain {
     public abstract Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps);
 
     /** Shortcut to `possibleViolations(question, completedSteps=null)`
+     * FIXME? Удалить?
+     *
      * @param q
      * @return
      */
@@ -533,6 +734,8 @@ public abstract class Domain {
     }
 
     /**
+     * FIXME? Удалить?
+     *
      * Get set of sets of mistakes that can be made by a student when solving remaining part of the task (or whole task if stepsPassed is null or empty)
      * @param q question
      * @param completedSteps ignore mistakes possible in these steps
@@ -541,6 +744,8 @@ public abstract class Domain {
     public abstract Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps);
 
     /** Shortcut to `possibleViolationsByStep(question, completedSteps=null)`
+     * FIXME? Удалить?
+     *
      * @param q
      * @return
      */

@@ -2,8 +2,12 @@
   {
     "name": "rdfs_subset_positive",
     "positive": true,
+    "tags": [
+      {
+        "name": "decision-tree"
+      }
+    ],
     "concepts": [],
-    "tags": [],
     "formulations": [
       {
         "name": "autogen_1",
@@ -22,16 +26,11 @@
       },
       {
         "name": "autogen_4",
-        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
-        "backend": "Jena"
-      },
-      {
-        "name": "autogen_5",
         "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_6",
+        "name": "autogen_5",
         "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
         "backend": "Jena"
       }
@@ -44,42 +43,40 @@
     "tags": [],
     "formulations": [
       {
-        "name": "autogen_7",
+        "name": "autogen_6",
         "formulation": "(?x ?p ?y), (?p rdfs:domain ?c) -> (?x rdf:type ?c) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_8",
+        "name": "autogen_7",
         "formulation": "(?x ?p ?y), (?p rdfs:range ?c) -> (?y rdf:type ?c) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_9",
+        "name": "autogen_8",
         "formulation": "(?a ?p ?b), (?p rdfs:subPropertyOf ?q) -> (?a ?q ?b) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_10",
-        "formulation": "(?x owl:subClassOf ?y), (?y owl:subClassOf ?z) -> (?a owl:subClassOf ?z) .",
-        "backend": "Jena"
-      },
-      {
-        "name": "autogen_11",
+        "name": "autogen_9",
         "formulation": "(?x rdfs:subClassOf ?y), (?a rdf:type ?x) -> (?a rdf:type ?y) .",
         "backend": "Jena"
       },
       {
-        "name": "autogen_12",
+        "name": "autogen_10",
         "formulation": "[transitiveRule: (?P rdf:type owl:TransitiveProperty), (?A ?P ?B), (?B ?P ?C) -> (?A ?P ?C) ]",
         "backend": "Jena"
       }
     ]
   },
   {
-    "name": "loop_alternative_helper",
+    "name": "decision-tree_loop_alternative_helper",
     "positive": true,
     "salience": 10,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "loop"
       },
@@ -110,22 +107,27 @@
     "formulations": [
       {
         "name": "name-branch-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name--body-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-global-code-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:entry_point ?b), strConcat( \"«!{locale:text.global_scope}»\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       }
     ]
@@ -154,10 +156,13 @@
     ]
   },
   {
-    "name": "loop_alternative_helper",
+    "name": "decision-tree_loop_alternative_helper",
     "positive": false,
     "salience": 10,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "loop"
       },
@@ -188,22 +193,27 @@
     "formulations": [
       {
         "name": "name-branch-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-if-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else-if ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?b my:cond ?cnd), (?cnd my:stmt_name ?cnd_name), strConcat( \"!{locale:text.branch.else-if} \\\"\", ?cnd_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name-branch-else-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:else ), (?a my:branches_item ?b), (?a rdf:type my:alternative), (?a my:stmt_name ?alt_name), strConcat( \"!{locale:text.branch.else} \\\"\", ?alt_name, \"\\\"\", ?new_name) notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       },
       {
         "name": "name--body-helper",
-        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name), (?b my:_stmt_name_updated 1).",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:body ?b), (?a rdf:type my:loop), (?a my:stmt_name ?loop_name), strConcat( \"!{locale:text.loop-body} \\\"\", ?loop_name, \"\\\"\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "name-global-code-helper",
+        "formulation": "(?b my:stmt_name ?old_name), (?b rdf:type my:sequence ), (?a my:entry_point ?b), strConcat( \"«!{locale:text.global_scope}»\", ?new_name), notEqual(?old_name, ?new_name) -> drop(0), (?b my:stmt_name ?new_name),.",
         "backend": "Jena"
       }
     ]
@@ -232,9 +242,12 @@
     ]
   },
   {
-    "name": "action-boundaries-polyfill",
+    "name": "decision-tree_action-boundaries-polyfill",
     "positive": true,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "action-boundaries-polyfill"
       }
@@ -301,9 +314,72 @@
     ]
   },
   {
-    "name": "helper",
+    "name": "decision-tree_alternative_helper",
     "positive": true,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      },
+      {
+        "name": "else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      },
+      {
+        "name": "alternative_multi_without_else"
+      },
+      {
+        "name": "if"
+      },
+      {
+        "name": "alternative_single_with_else"
+      },
+      {
+        "name": "alternative_simple"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "alternative-to-alternative_multi_with_else",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:else-if), (?a my:branches_item ?b2), (?b2 rdf:type my:else), -> (?a rdf:type my:alternative_multi_with_else),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "alternative-to-alternative_multi_without_else",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:else-if), noValue(?b, my:next), -> (?a rdf:type my:alternative_multi_without_else),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "alternative-to-alternative_single_with_else",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:if), (?b my:next ?b2), (?b2 rdf:type my:else), -> (?a rdf:type my:alternative_single_with_else),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "alternative-to-alternative_simple",
+        "formulation": "(?a rdf:type my:alternative), (?a my:branches_item ?b), (?b rdf:type my:if), noValue(?b, my:next), -> (?a rdf:type my:alternative_simple),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "decision-tree_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "helper"
       }
@@ -311,6 +387,12 @@
     "concepts": [
       {
         "name": "loop"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop_body"
       }
     ],
     "formulations": [
@@ -325,8 +407,126 @@
         "backend": "Jena"
       },
       {
+        "name": "seq-of-loop-to-loop_body",
+        "formulation": "(?Loop rdf:type my:loop), (?block rdf:type my:sequence), (?Loop my:body ?block) -> (?block rdf:type my:loop_body).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [],
+    "formulations": [
+      {
         "name": "attach-principal_violation-to-possible_violation-at-reason_node",
         "formulation": "(?R my:reason_kind ?reason), (?reason my:principal_violation ?viol) -> (?R my:possible_violation ?viol).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "decision-tree_action_helper",
+    "positive": true,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "action"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "func"
+      },
+      {
+        "name": "func_call"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "alt_branch"
+      },
+      {
+        "name": "expr"
+      },
+      {
+        "name": "stmt"
+      },
+      {
+        "name": "first_item"
+      },
+      {
+        "name": "last_item"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "role-for-func_body",
+        "formulation": "(?action rdf:type my:sequence), (?parent rdf:type my:func), (?parent my:body ?action), -> (?action my:has_role my:func_body).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-func_call",
+        "formulation": "(?action rdf:type my:func_call), -> (?action my:has_role my:func_call).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_body",
+        "formulation": "(?action rdf:type my:sequence), (?parent rdf:type my:loop), (?parent my:body ?action), -> (?action my:has_role my:loop_body).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-sequence_element",
+        "formulation": "(?parent rdf:type my:sequence), (?parent my:body_item ?action), -> (?action my:has_role my:sequence_element).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-alt_branch",
+        "formulation": "(?action rdf:type my:alt_branch), -> (?action my:has_role my:alt_branch).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-alt_cond",
+        "formulation": "(?action rdf:type my:expr), (?parent rdf:type my:alt_branch), (?parent my:cond ?action), -> (?action my:has_role my:alt_cond).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_init",
+        "formulation": "(?action rdf:type my:stmt), (?parent rdf:type my:loop), (?parent my:init ?action), -> (?action my:has_role my:loop_init).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_cond",
+        "formulation": "(?action rdf:type my:expr), (?parent rdf:type my:loop), (?parent my:cond ?action), -> (?action my:has_role my:loop_cond).",
+        "backend": "Jena"
+      },
+      {
+        "name": "role-for-loop_update",
+        "formulation": "(?action rdf:type my:stmt), (?parent rdf:type my:loop), (?parent my:update ?action), -> (?action my:has_role my:loop_update).",
+        "backend": "Jena"
+      },
+      {
+        "name": "type-prop-first_item",
+        "formulation": "(?st rdf:type my:first_item), -> (?st my:list_item_role my:first_item),.",
+        "backend": "Jena"
+      },
+      {
+        "name": "type-prop-last_item",
+        "formulation": "(?st rdf:type my:last_item), -> (?st my:list_item_role my:last_item),.",
         "backend": "Jena"
       }
     ]
@@ -409,12 +609,6 @@
     "concepts": [
       {
         "name": "sequence"
-      },
-      {
-        "name": "first_item"
-      },
-      {
-        "name": "last_item"
       }
     ],
     "formulations": [
@@ -425,7 +619,7 @@
       },
       {
         "name": "connect_SequenceBegin_rule_g2",
-        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st rdf:type my:first_item), (?b2 my:begin_of ?st), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
+        "formulation": "(?block rdf:type my:sequence), (?b my:begin_of ?block), (?block my:body_item ?st), (?st my:list_item_role my:first_item), (?b2 my:begin_of ?st), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?block my:stmt_name ?seq_name), (?st my:stmt_name ?inner_name), -> (?b my:always_consequent ?b2), (?b my:SequenceBegin ?b2), (?R my:reason_kind my:SequenceBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_SEQ ?seq_name), (?R my:field_INNER ?inner_name),.",
         "backend": "Jena"
       },
       {
@@ -435,7 +629,7 @@
       },
       {
         "name": "connect_SequenceEnd",
-        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st rdf:type my:last_item), (?e1 my:end_of ?st), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
+        "formulation": "(?block rdf:type my:sequence), (?e my:end_of ?block), (?block my:body_item ?st), (?st my:list_item_role my:last_item), (?e1 my:end_of ?st), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?block my:stmt_name ?seq_name), -> (?e1 my:always_consequent ?e), (?e1 my:SequenceEnd ?e), (?R my:reason_kind my:SequenceEnd), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_SEQ ?seq_name),.",
         "backend": "Jena"
       }
     ]
@@ -453,9 +647,6 @@
         "name": "alternative"
       },
       {
-        "name": "first_item"
-      },
-      {
         "name": "expr"
       },
       {
@@ -463,15 +654,12 @@
       },
       {
         "name": "else"
-      },
-      {
-        "name": "last_item"
       }
     ],
     "formulations": [
       {
         "name": "connect_AltBegin",
-        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
+        "formulation": "(?alt rdf:type my:alternative), (?b my:begin_of ?alt), (?alt my:branches_item ?br), (?br my:list_item_role my:first_item), (?br my:cond ?cnd), (?b2 my:begin_of ?cnd), makeNamedSkolem(?R, my:Reason, ?b, ?b2), (?alt my:stmt_name ?alt_name), (?cnd my:stmt_name ?cnd_name), -> (?b my:always_consequent ?b2), (?b my:AltBegin ?b2), (?R my:reason_kind my:AltBegin), (?b my:to_reason ?R), (?R my:from_reason ?b2), (?R my:field_ALT ?alt_name), (?R my:field_ALT_COND ?cnd_name),.",
         "backend": "Jena"
       },
       {
@@ -496,7 +684,7 @@
       },
       {
         "name": "connect_AltEndAllFalse",
-        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br rdf:type my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e), (?R my:reason_kind my:AltEndAllFalse), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
+        "formulation": "(?cnd rdf:type my:expr), (?br my:cond ?cnd), (?br rdf:type my:alt_branch), (?alt my:branches_item ?br), (?br my:list_item_role my:last_item), (?alt rdf:type my:alternative), (?e my:end_of ?alt), (?e1 my:end_of ?cnd), makeNamedSkolem(?R, my:Reason, ?e1, ?e), (?alt my:stmt_name ?alt_name), -> (?e1 my:on_false_consequent ?e), (?e1 my:AltEndAllFalse ?e), (?R my:reason_kind my:AltEndAllFalse), (?e1 my:to_reason ?R), (?R my:from_reason ?e), (?R my:field_ALT ?alt_name),.",
         "backend": "Jena"
       },
       {
@@ -607,6 +795,30 @@
         "name": "prepare-trace-step"
       }
     ],
+    "concepts": [],
+    "formulations": [
+      {
+        "name": "Redirect-normal-end-to-interrupted-end",
+        "formulation": "(?a my:student_next ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?st_b), (?bnd_a my:consequent ?bnd_halt), (?bnd_halt my:halt_of ?st_b), noValue(?bnd_a my:consequent ?bnd_b), -> drop(2), (?b my:executes ?bnd_halt),.",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "decision-tree_act_workaround",
+    "positive": false,
+    "salience": 10,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "act"
+      },
+      {
+        "name": "workaround"
+      }
+    ],
     "concepts": [
       {
         "name": "act_begin"
@@ -616,11 +828,6 @@
       }
     ],
     "formulations": [
-      {
-        "name": "Redirect-normal-end-to-interrupted-end",
-        "formulation": "(?a my:student_next ?b), (?a my:executes ?bnd_a), (?b my:executes ?bnd_b), (?bnd_b my:end_of ?st_b), (?bnd_a my:consequent ?bnd_halt), (?bnd_halt my:halt_of ?st_b), noValue(?bnd_a my:consequent ?bnd_b), -> drop(2), (?b my:executes ?bnd_halt),.",
-        "backend": "Jena"
-      },
       {
         "name": "executes_id-to-executes-begin",
         "formulation": "(?a my:executes_id ?i), (?st my:id ?i), (?a rdf:type my:act_begin), (?bnd my:begin_of ?st), -> (?a my:executes ?bnd).",
@@ -634,9 +841,12 @@
     ]
   },
   {
-    "name": "trace_helper",
+    "name": "decision-tree_trace_helper",
     "positive": false,
     "tags": [
+      {
+        "name": "decision-tree"
+      },
       {
         "name": "trace"
       },
@@ -659,6 +869,15 @@
       },
       {
         "name": "finish_trace_act"
+      },
+      {
+        "name": "loop"
+      },
+      {
+        "name": "sequence"
+      },
+      {
+        "name": "loop_body"
       }
     ],
     "formulations": [
@@ -688,6 +907,11 @@
         "backend": "Jena"
       },
       {
+        "name": "student_corresponding_end-to-corresponding_end",
+        "formulation": "(?a my:student_corresponding_end ?b), noValue(?_x my:student_next_latest ?b), -> (?a my:corresponding_end ?b).",
+        "backend": "Jena"
+      },
+      {
         "name": "Erroneous-class-to-wrong_next_act",
         "formulation": "(?b rdf:type my:Erroneous), (?a my:student_next ?b), -> (?a my:wrong_next_act ?b).",
         "backend": "Jena"
@@ -700,6 +924,56 @@
       {
         "name": "Mark-last-act-in-trace-as-finish_trace_act",
         "formulation": "(?Trace my:executes ?alg), (?alg my:entry_point ?gc), (?bnd_e my:boundary_of ?gc), (?a my:in_trace ?Trace), (?a rdf:type my:act_end), (?a my:executes ?bnd_a), (?bnd_a my:always_consequent ?bnd_e), (?b my:student_next ?a), -> (?a rdf:type my:finish_trace_act).",
+        "backend": "Jena"
+      },
+      {
+        "name": "seq-of-loop-to-loop_body-2",
+        "formulation": "(?Loop rdf:type my:loop), (?block rdf:type my:sequence), (?Loop my:body ?block) -> (?block rdf:type my:loop_body).",
+        "backend": "Jena"
+      }
+    ]
+  },
+  {
+    "name": "decision-tree_act_helper",
+    "positive": false,
+    "tags": [
+      {
+        "name": "decision-tree"
+      },
+      {
+        "name": "act"
+      },
+      {
+        "name": "helper"
+      }
+    ],
+    "concepts": [
+      {
+        "name": "act_begin"
+      },
+      {
+        "name": "act_end"
+      }
+    ],
+    "formulations": [
+      {
+        "name": "act_kind-for-atom",
+        "formulation": "(?action_class my:atom_action \"true\"^^xsd:boolean), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:boundary_of ?action), -> (?a my:act_kind my:atom).",
+        "backend": "Jena"
+      },
+      {
+        "name": "act_kind-for-begin",
+        "formulation": "(?action_class my:atom_action \"false\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), notEqual(?action_class, my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:begin_of ?action), (?a rdf:type my:act_begin), -> (?a my:act_kind my:begin) , (?a my:_the_action_class_4b ?action_class).",
+        "backend": "Jena"
+      },
+      {
+        "name": "act_kind-for-end",
+        "formulation": "(?action_class my:atom_action \"false\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), notEqual(?action_class, my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:end_of ?action), (?a rdf:type my:act_end), -> (?a my:act_kind my:end) , (?a my:_the_action_class_4e ?action_class).",
+        "backend": "Jena"
+      },
+      {
+        "name": "act_kind-for-halt",
+        "formulation": "(?action_class my:atom_action \"false\"^^xsd:boolean), (?action_class rdfs:subClassOf my:action), (?action rdf:type ?action_class), (?a my:executes ?bnd), (?bnd my:halt_of ?action), (?a rdf:type my:act_end), -> (?a my:act_kind my:end).",
         "backend": "Jena"
       }
     ]
@@ -952,22 +1226,22 @@
         "backend": "Jena"
       },
       {
-        "name": "autogen_13",
+        "name": "autogen_11",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_14",
+        "name": "autogen_12",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_corresponding_end ?child2_act), (?par_b my:student_parent_of ?child2_act), (?child2_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), (?child2_act my:executes ?bound), -> (?par_b my:child_executes ?bound), (?child2_act my:gathered_child_exec_till ?par_e),.",
         "backend": "Jena"
       },
       {
-        "name": "autogen_15",
+        "name": "autogen_13",
         "formulation": "(?par_b my:gather_child_exec_till ?par_e), noValue(?par_e my:gathered_child_exec_till ?par_e), (?child1_act my:gathered_child_exec_till ?par_e), (?child1_act my:student_next ?par_e), -> (?par_e my:gathered_child_exec_till ?par_e), drop(0).",
         "backend": "Jena"
       },
       {
-        "name": "autogen_16",
+        "name": "autogen_14",
         "formulation": "(?child_act my:gathered_child_exec_till ?par_e), (?par_b my:gather_child_exec_till ?par_e), (?child_act my:student_index ?i1), (?par_e my:student_index ?i2), lessThan(?i1, ?i2), -> drop(0).",
         "backend": "Jena"
       },
@@ -1013,9 +1287,6 @@
       },
       {
         "name": "WrongNext"
-      },
-      {
-        "name": "first_item"
       },
       {
         "name": "NoFirstCondition"
@@ -1075,9 +1346,6 @@
         "name": "NoNextCondition"
       },
       {
-        "name": "last_item"
-      },
-      {
         "name": "LastFalseNoEnd"
       },
       {
@@ -1090,7 +1358,7 @@
     "formulations": [
       {
         "name": "NoFirstCondition-alt_Error",
-        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br rdf:type my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition), (?b my:field_ALT ?a_name), (?b my:field_REQUIRED_COND ?c_name),.",
+        "formulation": "(?a rdf:type my:act_begin), (?a my:executes ?bnd), (?bnd my:begin_of ?alt), (?alt rdf:type my:alternative), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:branches_item ?br), (?br my:list_item_role my:first_item), (?br my:cond ?cnd), (?alt my:stmt_name ?a_name), (?cnd my:stmt_name ?c_name), -> (?b rdf:type my:NoFirstCondition), (?b my:field_ALT ?a_name), (?b my:field_REQUIRED_COND ?c_name),.",
         "backend": "Jena"
       },
       {
@@ -1175,7 +1443,7 @@
       },
       {
         "name": "LastFalseNoEnd-alt_Error",
-        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br rdf:type my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:precursor ?a), (?b my:should_be ?alt), (?b rdf:type my:LastFalseNoEnd), (?b my:field_ALT ?a_name),.",
+        "formulation": "(?a rdf:type my:act_end), (?cnd rdf:type my:expr), (?a my:executes ?bnd_a), (?bnd_a my:boundary_of ?cnd), (?a my:expr_value \"false\"^^xsd:boolean), (?br my:cond ?cnd), (?alt my:branches_item ?br), (?alt rdf:type my:alternative), (?br my:list_item_role my:last_item), (?a my:student_next ?b), (?b rdf:type my:WrongNext), (?alt my:stmt_name ?a_name), -> (?b my:precursor ?a), (?b my:should_be ?alt), (?b rdf:type my:LastFalseNoEnd), (?b my:field_ALT ?a_name),.",
         "backend": "Jena"
       },
       {
@@ -1422,5 +1690,546 @@
         "backend": "Jena"
       }
     ]
+  },
+  {
+    "name": "DuplicateOfAct",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "Sequence_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      }
+    ]
+  },
+  {
+    "name": "SequenceFinishedTooEarly",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "Sequence_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      }
+    ]
+  },
+  {
+    "name": "TooEarlyInSequence",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "Sequence_of_length_gte_2_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "sequence"
+      }
+    ]
+  },
+  {
+    "name": "AltAnotherBranch",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltBranchOnFalse",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltAllFalseNoElse_error_base",
+      "AltNextCond_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_multi_without_else"
+      },
+      {
+        "name": "alternative_simple"
+      },
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltCondAfterTrue",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_multi_without_else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      },
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltEarlyEndNoCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltEndingErrors"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltEarlyEndNoBranch",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltBranchDup",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltCondAfterBranch",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative"
+      }
+    ]
+  },
+  {
+    "name": "AltElseOnTrue",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base",
+      "AltElseBegin_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_single_with_else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      }
+    ]
+  },
+  {
+    "name": "AltEarlyEndNoElse",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "AltBranch_error_base",
+      "AltElseBegin_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "alternative_single_with_else"
+      },
+      {
+        "name": "alternative_multi_with_else"
+      }
+    ]
+  },
+  {
+    "name": "PostCondLoopCondBeforeIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopBeginIsIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      }
+    ]
+  },
+  {
+    "name": "PostCondLoopEarlyEndNoIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondTrue_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      }
+    ]
+  },
+  {
+    "name": "PostCondLoopNoCondBtwIters",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondTrue_error_base",
+      "LoopCondAfterIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopEarlyEndCondStillTrue",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondTrue_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      },
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopNoEndOnFalseCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "do_while_loop"
+      },
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopIterBeforeCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopBeginIsCond_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "while_loop"
+      },
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "PreCondLoopEarlyEndNoCond",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopEndingErrors",
+      "LoopCondAfterIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "while_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopInitDup",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopBeginIsInit_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopUpdateBeforeIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopUpdateAfterIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopCondBeforeUpdate",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondTrue_error_base",
+      "LoopUpdateBeforeIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopCondBeforeInit",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopBeginIsInit_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopUpdateTwice",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondTrue_error_base",
+      "LoopUpdateAfterIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "for_loop"
+      },
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "PreUpdateLoopIterBeforeUpdate",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondTrue_error_base",
+      "LoopCondAfterIter_error_base",
+      "LoopUpdateBeforeIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "LoopCondBeforeIter",
+    "bitflags": 2,
+    "positive": false,
+    "impliesLaws": [
+      "LoopCondAfterIter_error_base"
+    ],
+    "concepts": [
+      {
+        "name": "foreach_loop"
+      }
+    ]
+  },
+  {
+    "name": "Sequence_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "sortOrder": 1,
+    "concepts": []
+  },
+  {
+    "name": "Sequence_of_length_gte_2_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Sequence_error_base"
+    ],
+    "concepts": []
+  },
+  {
+    "name": "Alternative_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "sortOrder": 2,
+    "concepts": []
+  },
+  {
+    "name": "AltBranch_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Alternative_error_base"
+    ],
+    "sortOrder": 21,
+    "concepts": []
+  },
+  {
+    "name": "AltAllFalseNoElse_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Alternative_error_base"
+    ],
+    "sortOrder": 22,
+    "concepts": []
+  },
+  {
+    "name": "AltElseBegin_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Alternative_error_base"
+    ],
+    "sortOrder": 23,
+    "concepts": []
+  },
+  {
+    "name": "AltNextCond_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Alternative_error_base"
+    ],
+    "sortOrder": 24,
+    "concepts": []
+  },
+  {
+    "name": "Loop_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [],
+    "sortOrder": 3,
+    "concepts": []
+  },
+  {
+    "name": "LoopCondTrue_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 31,
+    "concepts": []
+  },
+  {
+    "name": "LoopCondAfterIter_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 32,
+    "concepts": []
+  },
+  {
+    "name": "LoopBeginIsCond_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 33,
+    "concepts": []
+  },
+  {
+    "name": "LoopBeginIsIter_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 34,
+    "concepts": []
+  },
+  {
+    "name": "LoopBeginIsInit_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 35,
+    "concepts": []
+  },
+  {
+    "name": "LoopUpdateAfterIter_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 36,
+    "concepts": []
+  },
+  {
+    "name": "LoopUpdateBeforeIter_error_base",
+    "bitflags": 3,
+    "positive": false,
+    "impliesLaws": [
+      "Loop_error_base"
+    ],
+    "sortOrder": 37,
+    "concepts": []
   }
 ]

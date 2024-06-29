@@ -24,13 +24,14 @@ public class CoreConfg {
             @Autowired DomainRepository domainRepository,
             @Autowired QuestionDataRepository questionDataRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
-            @Autowired TaskGenerationJobConfig config) throws Exception {
+            @Autowired TaskGenerationJobConfig tasks) throws Exception {
         var allDomains = domainRepository.findAll();
         
         // overrider default options from db
         for (var domain: allDomains) {
             if (Objects.equals(domain.getName(), "ProgrammingLanguageExpressionDomain")) {
                 var options = domain.getOptions();
+                var config = tasks.getTasks().stream().filter(t -> t.getDomainShortName().equals("expression")).findFirst().orElseThrow();
                 options.setStorageUploadFilesBaseUrl(config.getExporter().getStorageUploadFilesBaseUrl().toString());
                 options.setStorageDownloadFilesBaseUrl(config.getExporter().getStorageUploadFilesBaseUrl().toString());
                 options.setStorageDummyDirsForNewFile(config.getExporter().getStorageDummyDirsForNewFile());
