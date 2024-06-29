@@ -346,6 +346,7 @@ public class TaskGenerationJob {
         return downloadedRepos;
     }
 
+    /** TODO: delete after compph-task-generator.exe has its input interface fixed. */
     private String fixDomainShortName(String name) {
         if (name.equals("ctrl_flow"))
             name = "control_flow";
