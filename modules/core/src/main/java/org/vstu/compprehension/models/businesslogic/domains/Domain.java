@@ -4,13 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -455,11 +452,6 @@ public abstract class Domain {
         return questionFacts;
     }
 
-    public Model getSchemaForSolving(/* String questionType (?) */) {
-        // the default
-        return ModelFactory.createDefaultModel();
-    }
-
     /** Get statement facts with common domain definitions for reasoning (schema) added */
     public abstract Collection<Fact> getQuestionStatementFactsWithSchema(Question q);
 
@@ -512,15 +504,11 @@ public abstract class Domain {
     
     /**
      * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
-     * Returns {@link JenaBackend#BackendId} by default, as Jena was de-facto only Backend used
      */
-    public String getSolvingBackendId(){
-        return JenaBackend.BackendId;
-    }
+    public abstract String getSolvingBackendId();
 
     /**
      * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
-     * Returns {@link JenaBackend#BackendId} by default, as Jena was de-facto only Backend used
      */
     public String getJudgingBackendId(/* TODO: pass question type ??*/){
         return this.getSolvingBackendId();

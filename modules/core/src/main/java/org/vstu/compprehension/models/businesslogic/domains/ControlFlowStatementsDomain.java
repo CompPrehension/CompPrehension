@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
@@ -226,6 +227,14 @@ public class ControlFlowStatementsDomain extends Domain {
 
     public Model getSchemaForSolving() {
         return getVocabulary().getModel();
+    }
+
+    /**
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
+     * Returns {@link JenaBackend#BackendId}
+     */
+    public String getSolvingBackendId(){
+        return JenaBackend.BackendId;
     }
 
     @Override

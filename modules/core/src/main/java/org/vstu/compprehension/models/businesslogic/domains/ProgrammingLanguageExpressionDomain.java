@@ -825,10 +825,23 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
+    private Model schemaModel = null;
+
     public Model getSchemaForSolving() {
-        Model schemaModel = ModelFactory.createDefaultModel();
-        // todo: cache it?
-        return schemaModel.read(VOCAB_SCHEMA_PATH);
+        if (schemaModel == null) {
+            // Read & cache the model.
+            schemaModel = ModelFactory.createDefaultModel();
+            schemaModel.read(VOCAB_SCHEMA_PATH);
+        }
+        return schemaModel;
+    }
+
+    /**
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
+     * Returns {@link JenaBackend#BackendId}
+     */
+    public String getSolvingBackendId(){
+        return JenaBackend.BackendId;
     }
 
     @Override

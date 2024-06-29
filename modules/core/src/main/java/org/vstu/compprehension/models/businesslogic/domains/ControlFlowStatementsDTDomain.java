@@ -99,13 +99,13 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return localizationService.getMessage("ctrlflow_text.display_name" + MESSAGE_DT_SUFFIX, language);
     }
 
-    /* **
+    /**
      * Jena is used to SOLVE this domain's questions
-     ** /
+     **/
     @Override
-    public String getSolvingBackendId(){
+    public String getSolvingBackendId() {
         return JenaBackend.BackendId;
-    }  // */
+    }
 
     /**
      * Decision Tree Reasoner is used to JUDGE this domain's questions.
