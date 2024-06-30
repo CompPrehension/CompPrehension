@@ -904,7 +904,7 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                 }
 
                 @Override
-                protected InterpretSentenceResult interpretCouldNotRun(
+                protected InterpretSentenceResult interpretJudgeNotPerformed(
                     Question judgedQuestion,
                     LearningSituation preparedSituation
                 ) {
@@ -919,19 +919,19 @@ public class ProgrammingLanguageExpressionDTDomain extends Domain {
                 }
 
                 @Override
-                protected void updateInterpretationResult(
-                    InterpretSentenceResult result,
+                protected void updateJudgeInterpretationResult(
+                    InterpretSentenceResult interpretationResult,
                     DecisionTreeReasonerBackend.Output backendOutput
                 ) {
-                    updateInterpretationResult(result, backendOutput.situation());
+                    updateInterpretationResult(interpretationResult, backendOutput.situation());
                 }
 
                 private void updateInterpretationResult(
-                    InterpretSentenceResult result,
+                    InterpretSentenceResult interpretationResult,
                     LearningSituation situation
                 ){
-                    result.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-                    result.IterationsLeft = situation.getDomain().getObjects()
+                    interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
+                    interpretationResult.IterationsLeft = situation.getDomain().getObjects()
                         .stream().filter(objectDef ->
                             objectDef.isInstanceOf("element")
                                 && objectDef.getPropertyValue("state")

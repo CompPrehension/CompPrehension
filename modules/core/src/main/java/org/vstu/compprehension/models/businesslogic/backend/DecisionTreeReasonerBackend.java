@@ -1,6 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
-import its.model.DomainSolvingModel;
 import its.model.TypedVariable;
 import its.model.definition.Domain;
 import its.model.definition.MetadataProperty;
@@ -10,15 +9,12 @@ import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
 
@@ -28,10 +24,10 @@ import java.util.stream.Collectors;
 import static org.vstu.compprehension.models.businesslogic.domains.Domain.InterpretSentenceResult;
 
 /**
- * TODO Class Description
- *
- * @author Marat Gumerov
- * @since 28.01.2024
+ * A reasoning backend that works with decision-tree based reasoning;<br>
+ * Uses {@link Domain} objects to encode data, and {@link DecisionTree}s to encode reasoning processes.<br>
+ * Domains aiming to support this backend should have a corresponding {@link Interface}
+ * @see its.model.DomainSolvingModel
  */
 @Primary
 @Component
@@ -48,14 +44,26 @@ public class DecisionTreeReasonerBackend
         return BACKEND_ID;
     }
 
+    /**
+     * Information, needed to perform a decision-tree based reasoning
+     * @param situationDomain combined question and domain data, described in the {@link Domain} form
+     * @param decisionTree a decision tree structure that describes the reasoning process
+     */
     public record Input(
         Domain situationDomain,
         DecisionTree decisionTree
     ){}
 
+    /**
+     * Output of a decision-tree based reasoning
+     * @param situation the situation object, describing the (possibly) changed state of the source question
+     * @param isReasoningDone false, if no reasoning actually happened (see {@link Interface#interpretJudgeNotPerformed}),
+     *                       otherwise true
+     * @param results if reasoning was actually performed, describes its results
+     */
     public record Output(
         LearningSituation situation,
-        boolean successfulRun,
+        boolean isReasoningDone,
         List<DecisionTreeReasoner.DecisionTreeEvaluationResult> results
     ){}
 
@@ -105,8 +113,8 @@ public class DecisionTreeReasonerBackend
             Output backendOutput
         ) {
 
-            if(!backendOutput.successfulRun){
-                return interpretCouldNotRun(judgedQuestion, backendOutput.situation);
+            if(!backendOutput.isReasoningDone){
+                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation);
             }
 
             List<DecisionTreeReasoner.DecisionTreeEvaluationResult> errResults =
@@ -128,25 +136,49 @@ public class DecisionTreeReasonerBackend
             result.correctlyAppliedLaws = new ArrayList<>();
             result.isAnswerCorrect = mistakes.isEmpty();
 
-            updateInterpretationResult(result, backendOutput);
+            updateJudgeInterpretationResult(result, backendOutput);
 
-            Language lang;
-            try {
-                lang = judgedQuestion.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-            } catch (NullPointerException e) {
-                lang = Language.ENGLISH;  // fallback if it cannot be figured out
-            }
-            result.explanations = makeExplanations(errResults, backendOutput.situation, lang);
+            result.explanations = makeExplanations(
+                errResults,
+                backendOutput.situation,
+                getUserLanguageByQuestion(judgedQuestion)
+            );
             return result;
         }
 
-        protected abstract InterpretSentenceResult interpretCouldNotRun(
+        /**
+         * Get current user's language from a question
+         */
+        protected Language getUserLanguageByQuestion(Question question){
+            try {
+                return question.getQuestionData()
+                    .getExerciseAttempt()
+                    .getUser()
+                    .getPreferred_language(); // The language currently selected in UI
+            } catch (NullPointerException e) {
+                return Language.ENGLISH;  // fallback if it cannot be figured out
+            }
+        }
+
+        /**
+         * Create an interpretation result for a situation, in which a reasoning could not be performed
+         * (Currently only possible if not all input variables are present)
+         * @param judgedQuestion a question which prompted the unfinished judge
+         * @param preparedSituation a learning situation that was prepared for this question by {@link #prepareBackendInfoForJudge} 
+         */
+        protected abstract InterpretSentenceResult interpretJudgeNotPerformed(
             Question judgedQuestion,
             LearningSituation preparedSituation
         );
 
-        protected abstract void updateInterpretationResult(
-            InterpretSentenceResult result,
+        /**
+         * Update a {@link #judge} interpretation result with domain-specific logic
+         * Mainly used on {@link InterpretSentenceResult#IterationsLeft}
+         * @param interpretationResult the updated result
+         * @param backendOutput the output from the backend's {@link #judge} method
+         */
+        protected abstract void updateJudgeInterpretationResult(
+            InterpretSentenceResult interpretationResult,
             Output backendOutput
         );
 
