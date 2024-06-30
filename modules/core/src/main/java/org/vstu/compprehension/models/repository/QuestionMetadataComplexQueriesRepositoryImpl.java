@@ -62,7 +62,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                     "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
 
-                    "AND (abs(q.integral_complexity - :complexity)) DIV :complWindow = 0 " +
+                    "AND q.integral_complexity BETWEEN :complexity - :complWindow AND :complexity + :complWindow " +
                     "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                     "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
@@ -144,7 +144,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                         "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                         "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
                         
-                        "AND (abs(q.integral_complexity - :complexity)) DIV :complWindow = 0 " +
+                        "AND q.integral_complexity BETWEEN :complexity - :complWindow AND :complexity + :complWindow " +
                         "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                         "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                         "AND (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) = 0 " +
@@ -214,6 +214,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
                                 "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                                 "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
+                                "AND q.integral_complexity <= :complexity + :complWindow " +
 
                                 "order by " +
                                 " abs(q.integral_complexity - :complexity) DIV :complWindow ASC, " +
