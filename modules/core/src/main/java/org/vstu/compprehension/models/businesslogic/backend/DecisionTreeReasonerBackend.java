@@ -64,7 +64,7 @@ public class DecisionTreeReasonerBackend implements Backend {
     ) {
         if (1==1) {
             // early exit (no-op).
-            return statement;
+            return new ArrayList<>(statement);
         }
 
         DecisionTree decisionTree = laws.stream()
