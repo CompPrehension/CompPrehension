@@ -74,12 +74,21 @@ public class QuestionBank {
             return false;
         }
 
+        // Присутствует хотя бы один из целевых концептов и законов
+        if (qr.getTargetConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0
+                || qr.getTargetLawsBitmask() != 0 && (meta.getLawBits() & qr.getTargetLawsBitmask()) == 0
+        ) {
+            return false;
+        }
+
+        /*
         // Присутствует хотя бы половина целевых концептов и законов
         if (qr.getTargetConceptsBitmask() != 0 && ((meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0 || Long.bitCount(meta.getConceptBits() & qr.getTargetConceptsBitmask()) < Long.bitCount(qr.getTargetConceptsBitmask()) / 2)
                 || qr.getTargetLawsBitmask() != 0 && ((meta.getLawBits() & qr.getTargetLawsBitmask()) == 0 || Long.bitCount(meta.getLawBits() & qr.getTargetLawsBitmask()) < Long.bitCount(qr.getTargetLawsBitmask()) / 2)
         ) {
             return false;
         }
+        */
 
         return true;
     }

@@ -57,15 +57,14 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "AND q.solution_steps <= :stepsMax " +
                     "AND q.concept_bits & :deniedConceptBits = 0 " +
                     "AND q.violation_bits & :deniedLawBits = 0 " +
-
                     "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
                     "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
                     "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
-
                     "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
+
+                    "AND (abs(q.integral_complexity - :complexity)) DIV :complWindow = 0 " +
                     "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
-                    "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
-                    "AND IF(:complexity <> 0, q.integral_complexity <= :complexity, 1) ", Integer.class)
+                    "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
@@ -77,6 +76,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("targetTagsBitmask", targetTagsBitmask)
                 .setParameter("targetConceptsBitmask", targetConceptsBitmask)
                 .setParameter("targetLawsBitmask", targetLawsBitmask)
+                .setParameter("complWindow", complexityWindow)
                 .setParameter("complexity", complexity);
         return ((Number) query.getSingleResult()).intValue();
     }
@@ -145,10 +145,11 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                         "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
                         
                         "AND (abs(q.integral_complexity - :complexity)) DIV :complWindow = 0 " +
+                        "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
+                        "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                         "AND (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) = 0 " +
-                        "AND bit_count(q.trace_concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
-                        "AND bit_count(q.concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
-                        "AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
+                        //"AND bit_count(q.trace_concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
+                        //"AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
                         
                         "order by " + 
                         " (GREATEST(bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), bit_count(q.concept_bits & :unwantedConceptsBitmask)) + bit_count(q.law_bits & :unwantedLawsBitmask) + bit_count(q.violation_bits & :unwantedViolationsBitmask)) DIV 3 ASC, " +
