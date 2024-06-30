@@ -69,8 +69,8 @@ public class QuestionBank {
             return false;
         }
 
-        // сложность должна быть <= от запрашиваемой
-        if (qr.getComplexity() != 0 && meta.getIntegralComplexity() > qr.getComplexity()) {
+        // сложность должна быть в пределах 0.1 от запрашиваемой
+        if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > 0.1) {
             return false;
         }
 
