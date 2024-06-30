@@ -135,11 +135,13 @@ public class ProgrammingLanguageExpressionRDFTransformer {
             for (Resource baseToken : selected.subList(0, selected.size() - 1)) {
                 baseTokensToElements.get(baseToken).removeAll(stateProperty);
                 baseTokensToElements.get(baseToken).addProperty(stateProperty, getResource(res, "evaluated"));
-                baseToken.listProperties(base.getProperty("http://vstu.ru/poas/code#ast_edge")).toList()
-                    .forEach((s) -> {
-                        Resource el = baseTokensToElements.get(s.getObject().asResource());
-                        el.removeAll(stateProperty);
-                        el.addProperty(stateProperty, getResource(res, "used"));
+                baseToken.listProperties(base.getProperty("http://vstu.ru/poas/code#ast_edge")).toList().stream()
+                    .map(s -> s.getObject().asResource())
+                    .filter(resource -> !resource.equals(getOtherComplex(baseToken)))
+                    .map(baseTokensToElements::get)
+                    .forEach(operand -> {
+                        operand.removeAll(stateProperty);
+                        operand.addProperty(stateProperty, getResource(res, "used"));
                     });
             }
             Resource currentlyChosenRes = selected.get(selected.size() - 1);
