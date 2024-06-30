@@ -9,6 +9,7 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
+import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,7 +57,8 @@ public class Main {
                 new QuestionBank(
                         new FakeQuestionMetadataRepository(),
                         new FakeQuestionDataRepository(),
-                        new QuestionMetadataManager( new FakeQuestionMetadataRepository())
+                        new QuestionMetadataManager( new FakeQuestionMetadataRepository()),
+                        new RandomProvider()
                 )
         );
 

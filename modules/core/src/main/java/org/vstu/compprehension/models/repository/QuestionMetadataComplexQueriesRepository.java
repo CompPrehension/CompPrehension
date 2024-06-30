@@ -11,10 +11,7 @@ public interface QuestionMetadataComplexQueriesRepository {
 
     List<Integer> findMostUsedMetadataIds(@Nullable Integer weekUsageThreshold, @Nullable Integer dayUsageThreshold, @Nullable Integer hourUsageThreshold, @Nullable Integer min15UsageThreshold, @Nullable Integer min5UsageThreshold);
 
-    List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(
-            QuestionBankSearchRequest qr,
-            double complexityWindow,
-            int limitNumber,
-            int randomPoolLimitNumber
-    );
+    List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, int limitNumber);
+
+    List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, int limitNumber);
 }
