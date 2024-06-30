@@ -26,7 +26,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
 
     private static final String DEBUG_DIR = "./";
 
-    private static void debugDumpLoqi(its.model.definition.Domain model, String filename){
+    /*private static void debugDumpLoqi(its.model.definition.Domain model, String filename){
         try (var writer = new FileWriter(DEBUG_DIR + filename)) {
             DomainLoqiWriter.saveDomain(
                 model,
@@ -36,7 +36,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         } catch (IOException e) {
             log.debug("Could not save " + filename);
         }
-    }
+    }*/
 
     public static its.model.definition.Domain questionToDomainModel(
         its.model.definition.Domain commonDomainModel,
@@ -67,7 +67,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
 
         val dumpModel = situationModel.copy();
         dumpModel.subtract(commonDomainModel);
-        debugDumpLoqi(dumpModel, "out.loqi");
+        /*debugDumpLoqi(dumpModel, "out.loqi");*/
         return situationModel;
     }
 
