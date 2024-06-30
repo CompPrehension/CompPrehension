@@ -255,7 +255,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "(current_timestamp(), current_timestamp(), CAST(:questionRequest AS JSON), :questionsToGenerate, 0, 0) " +
                     "ON DUPLICATE KEY UPDATE " +
                     "updated_at = current_timestamp(), " +
-                    "questions_to_generate = questions_to_generate + :questionsToGenerate")
+                    "questions_to_generate = LEAST(questions_to_generate + :questionsToGenerate, 30)")
                 .setParameter("questionRequest", questionRequestJson)
                 .setParameter("questionsToGenerate", questionsToGenerate)
                 .executeUpdate();
