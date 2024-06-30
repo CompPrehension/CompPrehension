@@ -1,6 +1,8 @@
 package org.vstu.compprehension.models.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -239,5 +241,23 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .getResultList();
         //noinspection unchecked
         return (List<QuestionMetadataEntity>)result;
+    }
+
+    @SneakyThrows
+    @Override
+    public void createGenerationRequest(QuestionBankSearchRequest qr, int questionsToGenerate) {
+        var objectMapper = new ObjectMapper();
+        var questionRequestJson = objectMapper.writeValueAsString(qr);
+        entityManager.createNativeQuery(
+                "INSERT INTO question_generation_requests " +
+                    "(created_at, updated_at, question_request, questions_to_generate, questions_generated, processing_attempts) " +
+                    "VALUES " +
+                    "(current_timestamp(), current_timestamp(), CAST(:questionRequest AS JSON), :questionsToGenerate, 0, 0) " +
+                    "ON DUPLICATE KEY UPDATE " +
+                    "updated_at = current_timestamp(), " +
+                    "questions_to_generate = questions_to_generate + :questionsToGenerate")
+                .setParameter("questionRequest", questionRequestJson)
+                .setParameter("questionsToGenerate", questionsToGenerate)
+                .executeUpdate();
     }
 }

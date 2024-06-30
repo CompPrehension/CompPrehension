@@ -9,6 +9,8 @@ import java.util.List;
 
 @Builder(toBuilder = true)
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionBankSearchRequest {
     private long deniedConceptsBitmask;
     private long targetConceptsBitmask;

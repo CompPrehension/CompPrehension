@@ -1,13 +1,10 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 
 import java.util.Date;
-import java.util.List;
 
 @Getter @Setter
 @Builder(toBuilder = true)
@@ -80,11 +77,6 @@ public class QuestionMetadataEntity {
     @Builder.Default
     @Column(name = "origin")
     private String origin = "";
-
-    @Builder.Default
-    @Type(JsonType.class)
-    @Column(name = "qrlog_ids", columnDefinition = "json")
-    private List<Long> qrlogIds = null;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

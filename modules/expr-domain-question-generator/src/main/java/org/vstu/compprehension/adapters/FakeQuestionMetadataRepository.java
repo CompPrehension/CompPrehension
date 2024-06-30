@@ -131,6 +131,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
         return List.of();
     }
 
+    @Override
+    public void createGenerationRequest(QuestionBankSearchRequest qr, int questionsToGenerate) {
+        
+    }
+
     @NotNull
     @Override
     public HashSet<String> findAllOrigins(String domainName, LocalDateTime from, LocalDateTime to) {

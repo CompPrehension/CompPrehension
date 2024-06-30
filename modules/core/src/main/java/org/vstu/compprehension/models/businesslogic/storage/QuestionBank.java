@@ -47,7 +47,7 @@ public class QuestionBank {
         return isMatch(meta, bankSearchRequest);
     }
 
-    private boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
+    public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
         // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
         if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())) {
             throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
@@ -89,12 +89,6 @@ public class QuestionBank {
         return questionMetadataRepository.countQuestions(bankSearchRequest);
     }
 
-    /**
-     * Find question templates in the questions bank. If no questions satisfy the requirements exactly, finds ones of similar complexity. Denied concepts and laws (laws map to violations on DB) cannot present in result questions anyway.
-     * @param qr QuestionRequest
-     * @param limit maximum questions to return (must be > 0)
-     * @return questions found or empty list if the requirements cannot be satisfied
-     */
     public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
@@ -138,9 +132,10 @@ public class QuestionBank {
         List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, 10);
         log.debug("search query executed with {} candidates", foundQuestionMetas.size());
         
-        if (foundQuestionMetas.size() < 7) {
-            // TODO send generation request
+        int generatorThreshold = 7;
+        if (foundQuestionMetas.size() < generatorThreshold) {
             log.info("no enough candidates found, need additional generation");
+            questionMetadataRepository.createGenerationRequest(preparedQuery, 10 - foundQuestionMetas.size());
         }
         
         if (foundQuestionMetas.isEmpty()) {
