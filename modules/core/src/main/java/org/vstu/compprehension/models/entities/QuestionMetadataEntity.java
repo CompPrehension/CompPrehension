@@ -8,10 +8,12 @@ import java.util.Date;
 
 @Getter @Setter
 @Builder(toBuilder = true)
-@Entity
-@Table(name = "questions_meta")
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "questions_meta", indexes = {
+    @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
+})
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
