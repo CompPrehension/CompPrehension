@@ -234,23 +234,23 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         else if(text.equals("&=") ) classname = "operator_&=";
         /*else if(text.equals("(") ) classname = "__parentheses";*/
         else if(text.equals("*=") ) classname = "operator_*=";
-        else if(text.equals("->") ) classname = "operator_->";
+        else if(text.equals("->") ) classname = "operator_pointer_field";
         else if(text.equals(".") ) classname = "operator_.";
         else if(text.equals("::") ) classname = "operator_::";
-        else if(text.equals("<<") ) classname = "operator_<<";
-        else if(text.equals("<<=") ) classname = "operator_<<=";
+        else if(text.equals("<<") ) classname = "operator_left_shift";
+        else if(text.equals("<<=") ) classname = "operator_left_shift_assign";
         else if(text.equals("=") ) classname = "operator_=";
-        else if(text.equals(">>") ) classname = "operator_>>";
-        else if(text.equals(">>=") ) classname = "operator_>>=";
-        else if(text.equals("^=") ) classname = "operator_^=";
-        else if(text.equals("|") ) classname = "operator_|";
-        else if(text.equals("|=") ) classname = "operator_|=";
+        else if(text.equals(">>") ) classname = "operator_right_shift";
+        else if(text.equals(">>=") ) classname = "operator_right_shift_assign";
+        else if(text.equals("^=") ) classname = "operator_xor_assign";
+        else if(text.equals("|") ) classname = "operator_bitwise_or";
+        else if(text.equals("|=") ) classname = "operator_bitwise_or_assign";
         else if(text.equals("~") ) classname = "operator_~";
         else if(text.equals("sizeof") ) classname = "operator_sizeof";
         else if(text.equals("co_await") ) classname = "operator_co_await";
         else if(text.equals("new") ) classname = "operator_new";
         else if(text.equals("delete") ) classname = "operator_delete";
-        else if(text.equals("<=>") ) classname = "operator_<=>";
+        else if(text.equals("<=>") ) classname = "operator_spaceship";
         else if(text.equals("throw") ) classname = "operator_throw";
         else if(text.equals("co_yield") ) classname = "operator_co_yield";
         // The default.

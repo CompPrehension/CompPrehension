@@ -652,7 +652,7 @@ class `operator_*=` : operator {
 	EN.localizedName = "operator *=" ;
 ]
 
-class `operator_->` : operator {
+class `operator_pointer_field` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -700,7 +700,7 @@ class `operator_::` : operator {
 	EN.localizedName = "operator ::" ;
 ]
 
-class `operator_<<` : operator {
+class `operator_left_shift` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -716,7 +716,7 @@ class `operator_<<` : operator {
 	EN.localizedName = "operator <<" ;
 ]
 
-class `operator_<<=` : operator {
+class `operator_left_shift_assign` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -748,7 +748,7 @@ class `operator_=` : operator {
 	EN.localizedName = "operator =" ;
 ]
 
-class `operator_>>` : operator {
+class `operator_right_shift` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -764,7 +764,7 @@ class `operator_>>` : operator {
 	EN.localizedName = "operator >>" ;
 ]
 
-class `operator_>>=` : operator {
+class `operator_right_shift_assign` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -780,7 +780,7 @@ class `operator_>>=` : operator {
 	EN.localizedName = "operator >>=" ;
 ]
 
-class `operator_^=` : operator {
+class `operator_xor_assign` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -812,7 +812,7 @@ class `operator_&` : operator {
 	EN.localizedName = "biwise operator &" ;
 ]
 
-class `operator_|` : operator {
+class `operator_bitwise_or` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -828,7 +828,7 @@ class `operator_|` : operator {
 	EN.localizedName = "biwise operator |" ;
 ]
 
-class `operator_|=` : operator {
+class `operator_bitwise_or_assign` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
@@ -940,7 +940,7 @@ class `operator_delete` : operator {
 	EN.localizedName = "operator delete" ;
 ]
 
-class `operator_<=>` : operator {
+class `operator_spaceship` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
