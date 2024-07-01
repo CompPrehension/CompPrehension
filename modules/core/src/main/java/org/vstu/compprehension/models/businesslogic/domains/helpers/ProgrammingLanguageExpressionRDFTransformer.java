@@ -205,7 +205,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         Property isFunctionCallProperty = baseToken.getModel().getProperty("http://vstu.ru/poas/code#is_function_call");
 
         if(text.equals("(") || text.equals(")"))
-            classname = Objects.equals(baseToken.getProperty(isFunctionCallProperty).getString(), "true") ? "function_call" : "parenthesis";
+            classname = /*Objects.equals(baseToken.getProperty(isFunctionCallProperty).getString(), "true") ? "function_call" :*/ "parenthesis";
         else if(text.equals("[") || text.equals("]")) classname = "brackets";
         else if(text.equals("&&") ) classname = "and";
         else if(text.equals("||") ) classname = "or";
