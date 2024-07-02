@@ -11,7 +11,6 @@ import java.util.List;
 
 public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMetadataComplexQueriesRepository {
     private final EntityManager entityManager;
-    private final double complexityWindow = 0.1;
 
     public QuestionMetadataComplexQueriesRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -28,7 +27,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
     }
 
     @Override
-    public int countQuestions(QuestionBankSearchRequest qr) {
+    public int countQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
         ensureRequestValid(qr);
         
         var domainShortname = qr.getDomainShortname();
@@ -107,7 +106,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         return (List<Integer>)query.getResultList();        
     }
 
-    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
+    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();
@@ -178,7 +177,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         return (List<QuestionMetadataEntity>)result;
     }
 
-    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, int limitNumber) {
+    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();

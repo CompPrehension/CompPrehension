@@ -21,6 +21,7 @@ public class QuestionBank {
     private final QuestionDataRepository questionDataRepository;
     private final QuestionMetadataManager questionMetadataManager;
     private final RandomProvider randomProvider;
+    private static final float COMPLEXITY_WINDOW = 0.1f;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
@@ -69,8 +70,8 @@ public class QuestionBank {
             return false;
         }
 
-        // сложность должна быть в пределах 0.1 от запрашиваемой
-        if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > 0.1) {
+        // сложность должна быть в пределах COMPLEXITY_WINDOW от запрашиваемой
+        if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > COMPLEXITY_WINDOW) {
             return false;
         }
 
@@ -95,7 +96,7 @@ public class QuestionBank {
 
     public int countQuestions(QuestionRequest qr) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        return questionMetadataRepository.countQuestions(bankSearchRequest);
+        return questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
     }
 
     public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
@@ -138,7 +139,7 @@ public class QuestionBank {
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
                 .build();
         log.debug("search query prepared: {}", preparedQuery);
-        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, 10);
+        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
         log.debug("search query executed with {} candidates", foundQuestionMetas.size());
         
         int generatorThreshold = 7;
@@ -149,7 +150,7 @@ public class QuestionBank {
         
         if (foundQuestionMetas.isEmpty()) {
             log.debug("zero candidates found, trying to do relaxed search");
-            foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, 10);
+            foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
             log.debug("search query executed with {} candidates", foundQuestionMetas.size());            
         }
         

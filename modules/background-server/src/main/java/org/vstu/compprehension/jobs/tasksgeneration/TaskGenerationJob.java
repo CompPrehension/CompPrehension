@@ -578,7 +578,7 @@ public class TaskGenerationJob {
             log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
 
             // update QR-log: statistics and possibly status
-            if (generationRequests != null) {
+            if (generationRequests != null && !allJsonFiles.isEmpty()) {
                 for (var gr : generationRequests) {
                     // increment processed counter for each repository touched by this qr
                     gr.setProcessingAttempts(gr.getProcessingAttempts() + 1);
@@ -587,6 +587,7 @@ public class TaskGenerationJob {
                     }
                 }
                 if (generatorConfig.isSaveToDb()) {
+                    // TODO check race conditions
                     generatorRequestsQueue.saveAll(generationRequests);
                 } else {
                     log.info("Saving updates actually SKIPPED due to DEBUG mode.");
