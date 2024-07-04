@@ -3,6 +3,8 @@ package org.vstu.compprehension.models.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
 
@@ -83,6 +85,14 @@ public class QuestionMetadataEntity {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "generation_request_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private QuestionGenerationRequestEntity generatedBy;
+    
+    @Column(name = "generation_request_id")
+    private Integer generationRequestId;
 
     @Transient
     @Builder.Default

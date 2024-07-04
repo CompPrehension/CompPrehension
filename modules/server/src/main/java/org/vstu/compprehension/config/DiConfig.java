@@ -87,9 +87,9 @@ public class DiConfig {
             @Autowired DomainRepository domainRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired QuestionDataRepository questionDataRepository,
-            @Autowired RandomProvider randomProvider) throws Exception {
+            @Autowired QuestionGenerationRequestRepository generationRequestRepository) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository), randomProvider);
+        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository), generationRequestRepository);
     }
 
     @Bean

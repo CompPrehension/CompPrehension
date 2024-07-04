@@ -11,10 +11,10 @@ import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
+import org.vstu.compprehension.dto.GenerationRequest;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -31,7 +31,10 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -136,7 +139,7 @@ public class TaskGenerationJob {
             log.info("Too many generation requests found. Limiting to 5000.");
         }
         
-        var generationRequestIds = generationRequests.stream().map(QuestionGenerationRequestEntity::getId).collect(Collectors.toList());
+        var generationRequestIds = generationRequests.stream().flatMap(x -> Arrays.stream(x.getGenerationRequestIds())).collect(Collectors.toList());
         log.debug("Generation requests ids: {}", generationRequestIds);
 
         // folders cleanup
@@ -476,7 +479,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<QuestionGenerationRequestEntity> generationRequests) {
+    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequest> generationRequests) {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
@@ -484,6 +487,8 @@ public class TaskGenerationJob {
         }
 
         log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
+        
+        var questionsGenerated = new HashMap<GenerationRequest, Integer>();
 
         for (var repoDir : generatedRepos) {
             String repoName = repoDir.getFileName().toString();
@@ -495,9 +500,6 @@ public class TaskGenerationJob {
 
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
-
-            var domainId = "ProgrammingLanguageExpressionDomain";
-            var updatedGenerationRequests = new HashSet<QuestionGenerationRequestEntity>();
 
             for (val file : allJsonFiles) {
                 val q = SerializableQuestion.deserialize(file);
@@ -522,30 +524,26 @@ public class TaskGenerationJob {
                 // Проверить, подходит ли он нам
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
                 boolean shouldSave = false;
+                Integer matchedGenerationRequestId = null;
                 if (generationRequests == null) {
                     shouldSave = true;
                 } else {
                     for (var gr : generationRequests) {
-                        if (gr.getQuestionsGenerated() >= gr.getQuestionsToGenerate())
+                        if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
                             continue;
                         
                         var searchRequest = gr.getQuestionRequest();                        
                         if (!storage.isMatch(meta, searchRequest)) {
-                            log.debug("Question [{}] does not match generation requests {}", q.getQuestionData().getQuestionName(), gr.getId());
+                            log.debug("Question [{}] does not match generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
                             continue;
                         }
 
-                        log.debug("Question [{}] matches generation requests {}", q.getQuestionData().getQuestionName(), gr.getId());
+                        log.debug("Question [{}] matches generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
 
                         // set flag to use this question
                         shouldSave = true;
-                        // update qr metrics
-                        gr.setQuestionsGenerated(Optional.ofNullable(gr.getQuestionsGenerated()).orElse(0) + 1);
-                        updatedGenerationRequests.add(gr);
-                        
-                        if (gr.getQuestionsGenerated() >= gr.getQuestionsToGenerate()) {
-                            log.debug("Generation requests [{}] reached questions to generate limit: {}", gr.getId(), gr.getQuestionsToGenerate());                            
-                        }
+                        questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
+                        matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
                     }
                 }
 
@@ -555,17 +553,15 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-                // save question data in the database
-                QuestionDataEntity questionData = new QuestionDataEntity();
-                questionData.setData(q);
-                questionData.setId(meta.getId());
-                questionData = storage.saveQuestionDataEntity(questionData);
-
-                // set reference to the question data entity
-                meta.setQuestionData(questionData);
-
                 if (generatorConfig.isSaveToDb()) {
+                    // save question data in the database
+                    meta.setGenerationRequestId(matchedGenerationRequestId);
                     meta = storage.saveMetadataEntity(meta);
+
+                    QuestionDataEntity questionData = new QuestionDataEntity();
+                    questionData.setId(meta.getId());
+                    questionData.setData(q);
+                    storage.saveQuestionDataEntity(questionData);
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
@@ -576,22 +572,19 @@ public class TaskGenerationJob {
 
             log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
             log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
+        }
 
-            // update QR-log: statistics and possibly status
-            if (generationRequests != null && !allJsonFiles.isEmpty()) {
+        // update QR-log: statistics and possibly status
+        if (generationRequests != null) {
+            if (generatorConfig.isSaveToDb()) {
                 for (var gr : generationRequests) {
-                    // increment processed counter for each repository touched by this qr
-                    gr.setProcessingAttempts(gr.getProcessingAttempts() + 1);
-                    if (gr.getQuestionsGenerated() >= gr.getQuestionsToGenerate()) {
-                        log.info("Generation request [{}] finished with {} questions added.", gr.getId(), gr.getQuestionsGenerated());
+                    generatorRequestsQueue.updateGeneratorRequest(gr.getGenerationRequestIds());
+                    if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate()) {
+                        log.info("Generation request [{}] finished with {} questions added.", gr.getGenerationRequestIds(), gr.getQuestionsGenerated());
                     }
                 }
-                if (generatorConfig.isSaveToDb()) {
-                    // TODO check race conditions
-                    generatorRequestsQueue.saveAll(generationRequests);
-                } else {
-                    log.info("Saving updates actually SKIPPED due to DEBUG mode.");
-                }
+            } else {
+                log.info("Saving updates actually SKIPPED due to DEBUG mode.");
             }
         }
     }

@@ -10,8 +10,8 @@ import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
+import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.*;
 
@@ -20,17 +20,18 @@ public class QuestionBank {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionDataRepository questionDataRepository;
     private final QuestionMetadataManager questionMetadataManager;
-    private final RandomProvider randomProvider;
+    private final QuestionGenerationRequestRepository generationRequestRepository;
     private static final float COMPLEXITY_WINDOW = 0.1f;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
-            QuestionMetadataManager questionMetadataManager, RandomProvider randomProvider) {
+            QuestionMetadataManager questionMetadataManager, 
+            QuestionGenerationRequestRepository generationRequestRepository) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
         this.questionMetadataManager = questionMetadataManager;
-        this.randomProvider = randomProvider;
+        this.generationRequestRepository = generationRequestRepository;
     }
 
     private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
@@ -143,10 +144,10 @@ public class QuestionBank {
         log.debug("search query executed with {} candidates", foundQuestionMetas.size());
         
         int generatorThreshold = 7;
-        if (foundQuestionMetas.size() < generatorThreshold) {
+        //if (foundQuestionMetas.size() < generatorThreshold) {
             log.info("no enough candidates found, need additional generation");
-            questionMetadataRepository.createGenerationRequest(preparedQuery, 10 - foundQuestionMetas.size());
-        }
+            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 /*- foundQuestionMetas.size()*/, attempt.getId()));
+       // }
         
         if (foundQuestionMetas.isEmpty()) {
             log.debug("zero candidates found, trying to do relaxed search");

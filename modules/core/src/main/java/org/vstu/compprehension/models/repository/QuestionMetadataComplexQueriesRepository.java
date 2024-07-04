@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.repository;
 
 import org.jetbrains.annotations.Nullable;
-import org.springframework.data.jpa.repository.Modifying;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
@@ -15,7 +14,4 @@ public interface QuestionMetadataComplexQueriesRepository {
     List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber);
 
     List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber);
-
-    @Modifying
-    void createGenerationRequest(QuestionBankSearchRequest qr, int questionsToGenerate);
 }

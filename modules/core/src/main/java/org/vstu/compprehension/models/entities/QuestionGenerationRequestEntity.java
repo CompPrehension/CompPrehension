@@ -2,12 +2,12 @@ package org.vstu.compprehension.models.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 
 import java.util.Date;
@@ -16,14 +16,13 @@ import java.util.Date;
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "question_generation_requests", indexes = {
-    // unique index for all generated columns
-    @Index(name = "question_generation_requests_unique_idx", unique = true, columnList = "domain_shortname,denied_concepts_bitmask,target_concepts_bitmask,target_laws_bitmask,denied_laws_bitmask,target_tags_bitmask,complexity,steps_min,steps_max"),
-    @Index(name = "question_generation_requests_domain_idx", columnList = "domain_shortname, created_at, questions_to_generate, questions_generated")
+    @Index(name = "question_generation_requests_search_idx", columnList = "domain_shortname,is_completed,created_at,questions_to_generate")
 })
 public class QuestionGenerationRequestEntity {
-    public QuestionGenerationRequestEntity(QuestionBankSearchRequest questionRequest, Integer questionsToGenerate) {
+    public QuestionGenerationRequestEntity(QuestionBankSearchRequest questionRequest, int questionsToGenerate, Long exerciseAttemptId) {
         this.questionRequest = questionRequest;
         this.questionsToGenerate = questionsToGenerate;
+        this.exerciseAttemptId = exerciseAttemptId;
     }
     
     @Id
@@ -38,6 +37,9 @@ public class QuestionGenerationRequestEntity {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
+    
+    @Column(name = "is_completed", nullable = false, columnDefinition = "boolean default false")
+    private boolean isCompleted = false;
 
     @Type(JsonType.class)
     @Column(name = "question_request", columnDefinition = "json", nullable = false)
@@ -46,11 +48,16 @@ public class QuestionGenerationRequestEntity {
     @Column(name = "questions_to_generate", nullable = false)
     private int questionsToGenerate = 0;
     
-    @Column(name = "questions_generated", nullable = false)
-    private int questionsGenerated = 0;
-    
     @Column(name = "processing_attempts", nullable = false)
     private int processingAttempts = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercise_attempt_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private ExerciseAttemptEntity exerciseAttempt;
+
+    @Column(name = "exercise_attempt_id")
+    private Long exerciseAttemptId;
 
     //region generated columns
     
