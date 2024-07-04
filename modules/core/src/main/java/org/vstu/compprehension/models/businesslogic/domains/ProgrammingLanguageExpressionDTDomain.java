@@ -10,6 +10,7 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.DecisionTreeHelper;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.*;
@@ -48,9 +49,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
     
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
-    private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
-            DomainSolvingModel.BuildMethod.LOQI
+    private final DomainSolvingModel domainSolvingModel = DecisionTreeHelper.buildDomainModelFromLOQI(
+        this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)
     );
 
     @NotNull

@@ -20,6 +20,7 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.DecisionTreeHelper;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -74,9 +75,8 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     private static DomainSolvingModel domainSolvingModel = null;
     private void loadDTModel() {
         if (domainSolvingModel == null)
-            domainSolvingModel = new DomainSolvingModel(
-                this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
-                DomainSolvingModel.BuildMethod.DICT_RDF  // or: .LOQI
+            domainSolvingModel = DecisionTreeHelper.buildDomainModelFromDict(
+                this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)
             );
     }
 

@@ -14,6 +14,7 @@ import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.DecisionTreeHelper;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -35,7 +36,7 @@ public class DecisionTreeSupQuestionHelper {
         Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
-        this.domainModel = new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI);
+        this.domainModel = DecisionTreeHelper.buildDomainModelFromLOQI(domainModelDirectoryURL);
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
                 domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
