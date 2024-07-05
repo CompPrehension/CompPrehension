@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1720159334972-1" author="Artem Prokudin">
+        <dropIndex tableName="question_generation_requests" indexName="question_generation_requests_search_idx" />
+        
+        <dropColumn tableName="question_generation_requests" columnName="is_completed" />
+        
+        <addColumn tableName="question_generation_requests">
+            <column defaultValueNumeric="0"
+                    name="status"
+                    type="int"
+                    afterColumn="created_at"
+            />
+        </addColumn>
+        <addNotNullConstraint tableName="question_generation_requests" columnName="status" columnDataType="int" />
+        
+        <createIndex tableName="question_generation_requests" indexName="question_generation_requests_search_idx">
+            <column name="status" />
+            <column name="domain_shortname" />
+            <column name="created_at" />
+            <column name="questions_to_generate" />
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

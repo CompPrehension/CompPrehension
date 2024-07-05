@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1719752246600-46" author="Artem Prokudin">
+        <createTable tableName="question_generation_requests">
+            <column autoIncrement="true" name="id" type="INT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_question_generation_requests"/>
+            </column>
+            <column name="created_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="question_request" type="json">
+                <constraints nullable="false"/>
+            </column>
+            <column name="questions_to_generate" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="questions_generated" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processing_attempts" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <sql>
+            ALTER TABLE question_generation_requests
+            ADD COLUMN domain_shortname VARCHAR(255)
+            GENERATED ALWAYS AS (question_request->>"$.domainShortname") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN denied_concepts_bitmask bigint
+            GENERATED ALWAYS AS (question_request->>"$.deniedConceptsBitmask") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN target_concepts_bitmask bigint
+            GENERATED ALWAYS AS (question_request->>"$.targetConceptsBitmask") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN target_laws_bitmask bigint
+            GENERATED ALWAYS AS (question_request->>"$.targetLawsBitmask") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN denied_laws_bitmask bigint
+            GENERATED ALWAYS AS (question_request->>"$.deniedLawsBitmask") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN target_tags_bitmask bigint
+            GENERATED ALWAYS AS (question_request->>"$.targetTagsBitmask") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN complexity float
+            GENERATED ALWAYS AS (question_request->>"$.complexity") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN steps_min int
+            GENERATED ALWAYS AS (question_request->>"$.stepsMin") VIRTUAL NOT NULL;
+
+            ALTER TABLE question_generation_requests
+            ADD COLUMN steps_max int
+            GENERATED ALWAYS AS (question_request->>"$.stepsMax") VIRTUAL NOT NULL;
+        </sql>
+
+        <createIndex indexName="question_generation_requests_domain_idx" tableName="question_generation_requests">
+            <column name="domain_shortname"/>
+            <column name="created_at"/>
+            <column name="questions_to_generate"/>
+            <column name="questions_generated"/>
+        </createIndex>
+
+        <createIndex indexName="question_generation_requests_unique_idx" tableName="question_generation_requests"
+                     unique="true">
+            <column name="domain_shortname"/>
+            <column name="denied_concepts_bitmask"/>
+            <column name="target_concepts_bitmask"/>
+            <column name="target_laws_bitmask"/>
+            <column name="denied_laws_bitmask"/>
+            <column name="target_tags_bitmask"/>
+            <column name="complexity"/>
+            <column name="steps_min"/>
+            <column name="steps_max"/>
+        </createIndex>
+
+        <dropColumn columnName="qrlog_ids" tableName="questions_meta"/>
+    </changeSet>
+
+</databaseChangeLog>

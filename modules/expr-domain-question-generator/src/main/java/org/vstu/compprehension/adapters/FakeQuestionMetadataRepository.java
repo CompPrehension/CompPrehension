@@ -57,6 +57,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
+    public List<QuestionMetadataEntity> findLastNExerciseAttemptMeta(long attemptId, int limit) {
+        return List.of();
+    }
+
+    @Override
     public boolean existsByName(String questionName) {
         return false;
     }
@@ -107,17 +112,22 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionBankSearchRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
-        return List.of();
-    }
-
-    @Override
-    public int countQuestions(QuestionBankSearchRequest qr) {
+    public int countQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
         return 0;
     }
 
     @Override
     public List<Integer> findMostUsedMetadataIds(@Nullable Integer weekUsageThreshold, @Nullable Integer dayUsageThreshold, @Nullable Integer hourUsageThreshold, @Nullable Integer min15UsageThreshold, @Nullable Integer min5UsageThreshold) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
         return List.of();
     }
 

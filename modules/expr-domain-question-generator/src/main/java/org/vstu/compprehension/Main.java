@@ -56,7 +56,8 @@ public class Main {
                 new QuestionBank(
                         new FakeQuestionMetadataRepository(),
                         new FakeQuestionDataRepository(),
-                        new QuestionMetadataManager( new FakeQuestionMetadataRepository())
+                        new QuestionMetadataManager( new FakeQuestionMetadataRepository()),
+                        null
                 )
         );
 

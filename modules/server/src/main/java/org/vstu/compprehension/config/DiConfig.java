@@ -20,10 +20,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionDataRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy_Manual50Autogen50;
 import org.vstu.compprehension.strategies.StaticStrategy;
@@ -89,9 +86,10 @@ public class DiConfig {
     QuestionBank getQuestionBank(
             @Autowired DomainRepository domainRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
-            @Autowired QuestionDataRepository questionDataRepository) throws Exception {
-        var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository));
+            @Autowired QuestionDataRepository questionDataRepository,
+            @Autowired QuestionGenerationRequestRepository generationRequestRepository) throws Exception {
+        //var allDomains = domainRepository.findAll();
+        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository), generationRequestRepository);
     }
 
     @Bean
