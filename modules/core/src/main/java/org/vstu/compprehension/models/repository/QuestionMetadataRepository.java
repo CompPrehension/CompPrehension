@@ -38,6 +38,13 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query("select q from #{#entityName} q where q.name = :questionName")
     List<QuestionMetadataEntity> findByName(@Param("questionName") String questionName);
 
+    @Query("select meta from QuestionEntity q " +
+            "join q.metadata meta " +
+            "where q.exerciseAttempt.id = :attemptId AND meta is not null " +
+            "order by q.createdAt desc " +
+            "limit :limit")
+    List<QuestionMetadataEntity> findLastNExerciseAttemptMeta(@Param("attemptId") long attemptId, @Param("limit") int limit);
+
     @Query
     boolean existsByName(String questionName);
 

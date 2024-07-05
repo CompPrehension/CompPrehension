@@ -11,11 +11,12 @@ import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
+import org.vstu.compprehension.dto.GenerationRequest;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
@@ -30,7 +31,10 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -42,17 +46,16 @@ import java.util.stream.Collectors;
 public class TaskGenerationJob {
     private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
+    private final QuestionGenerationRequestRepository generatorRequestsQueue;
     private final TaskGenerationJobConfig tasks;
-    /** Current active task config, `null` while no task is active. This is not thread-safe! */
-    private TaskGenerationJobConfig.TaskConfig config;
     private final QuestionBank storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, TaskGenerationJobConfig tasks, QuestionBank storage) {
+    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.qrLogRep = qrLogRep;
         this.metadataRep = metadataRep;
+        this.generatorRequestsQueue = generatorRequestsQueue;
         this.tasks = tasks;
-        this.config = null;
         this.storage = storage;
     }
 
@@ -65,40 +68,35 @@ public class TaskGenerationJob {
             if (!config.isEnabled())
                 continue;
 
-            // set active profile
-            this.config = config;
-
             log.info("Run generating questions for {} domain ...", config.getDomainShortName());
 
             try {
-                runWithMode();
+                runWithMode(config);
             } catch (Exception e) {
                 log.error("job exception - {} | {}", e.getMessage(), e);
                 throw e;
             }
         }
 
-        this.config = null;  // unset profile to prevent accidental access
-
         if (tasks.isRunOnce()) {
             System.exit(0);
         }
     }
     
-    private void runWithMode() {
+    private void runWithMode(TaskGenerationJobConfig.TaskConfig config) {
         switch (config.getRunMode()) {
             case TaskGenerationJobConfig.RunMode.Full full:
-                runImpl(full);
+                runImpl(config, full);
                 break;
             case TaskGenerationJobConfig.RunMode.Incremental incremental:
-                runImpl(incremental);
+                runImpl(config, incremental);
                 break;
             default:
                 throw new IllegalStateException("Unknown run mode: " + config.getRunMode());
         };
     }
 
-    private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Full mode) {
+    private synchronized void runImpl(TaskGenerationJobConfig.TaskConfig config, TaskGenerationJobConfig.RunMode.Full mode) {
         while (true) {
             var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
             if (bankQuestionCount >= mode.enoughQuestions()) {
@@ -109,67 +107,61 @@ public class TaskGenerationJob {
             }
 
             // folders cleanup
-            ensureFoldersCleaned();
+            ensureFoldersCleaned(config);
 
             // download repositories
-            var downloadedRepos = downloadRepositories();
+            var downloadedRepos = downloadRepositories(config);
 
             // do parsing
-            var parsedRepos = parseRepositories(downloadedRepos);
+            var parsedRepos = parseRepositories(config, downloadedRepos);
 
             // do question generation
-            var generatedRepos = generateQuestions(parsedRepos);
+            var generatedRepos = generateQuestions(config, parsedRepos);
 
             // filter & save questions
-            saveQuestions(generatedRepos);
+            saveQuestions(config, generatedRepos);
         }
         
         log.info("completed");
     }
     
-    private synchronized void runImpl(TaskGenerationJobConfig.RunMode.Incremental mode) {
+    private synchronized void runImpl(TaskGenerationJobConfig.TaskConfig config, TaskGenerationJobConfig.RunMode.Incremental mode) {
         // проверка на то, что нужны новые вопросы
-        var tooHotMetadataIds = metadataRep.findMostUsedMetadataIds(200, 100, 50, 20, 10);
-        if (tooHotMetadataIds.isEmpty()) {
-            log.info("No frequently used question found in the bank. Finish job");
+        var generationRequests = generatorRequestsQueue.findAllActual(config.getDomainShortName(), LocalDateTime.now().minusMonths(3));        
+        if (generationRequests.isEmpty()) {
+            log.info("No generation requests found. Finish job");
             return;
         }
-        log.info("Found {} frequently used questions in the bank.", tooHotMetadataIds.size());
-        log.debug("Metadata ids: {}", tooHotMetadataIds);
-        
-        var qrLogsToProcess = qrLogRep.findAllNotProcessedByMetadataIds(tooHotMetadataIds, LocalDateTime.now().minusMonths(1));
-        if (qrLogsToProcess.isEmpty()) {
-            log.info("No question requests found in the last month for frequently used questions. Finish job");
-            return;
-        }
-        log.info("Found {} question requests in the last month for frequently used questions.", qrLogsToProcess.size());        
-        if (qrLogsToProcess.size() > 5_000) {
-            qrLogsToProcess = qrLogsToProcess.subList(0, 5_000);
-            log.info("Too many question requests found. Limiting to 5000.");
+        log.info("Found {} generation requests", generationRequests.size());
+
+        if (generationRequests.size() > 5_000) {
+            generationRequests = generationRequests.subList(0, 5_000);
+            log.info("Too many generation requests found. Limiting to 5000.");
         }
         
-        log.info("QR log ids to be processed: {}.", qrLogsToProcess.stream().map(QuestionRequestLogEntity::getId).collect(Collectors.toList()));
+        var generationRequestIds = generationRequests.stream().map(GenerationRequest::getGenerationRequestIds).collect(Collectors.toList());
+        log.debug("Generation requests ids: {}", generationRequestIds);
 
         // folders cleanup
-        ensureFoldersCleaned();
+        ensureFoldersCleaned(config);
 
         // download repositories
-        var downloadedRepos = downloadRepositories();
+        var downloadedRepos = downloadRepositories(config);
 
         // do parsing
-        var parsedRepos = parseRepositories(downloadedRepos);
+        var parsedRepos = parseRepositories(config, downloadedRepos);
 
         // do question generation
-        var generatedRepos = generateQuestions(parsedRepos);
+        var generatedRepos = generateQuestions(config, parsedRepos);
 
         // filter & save questions
-        saveQuestions(generatedRepos, qrLogsToProcess, 10);
+        saveQuestions(config, generatedRepos, generationRequests);
 
         log.info("completed");
     }
 
     @SneakyThrows
-    private void ensureFoldersCleaned() {
+    private void ensureFoldersCleaned(TaskGenerationJobConfig.TaskConfig config) {
         var cleanupModes = config.getCleanupMode();
         if (cleanupModes.isEmpty()) {
             log.info("no folders cleanup needed");
@@ -247,7 +239,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private List<Path> downloadRepositories() {
+    private List<Path> downloadRepositories(TaskGenerationJobConfig.TaskConfig config) {
         var downloaderConfig = config.getSearcher();
 
         if (!downloaderConfig.isEnabled()) {
@@ -355,7 +347,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private List<Path> parseRepositories(List<Path> downloadedRepos) {
+    private List<Path> parseRepositories(TaskGenerationJobConfig.TaskConfig config,List<Path> downloadedRepos) {
         var parserConfig = config.getParser();
         var outputFolderPath = Path.of(parserConfig.getOutputFolderPath()).toAbsolutePath();
         if (!parserConfig.isEnabled()) {
@@ -423,7 +415,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private List<Path> generateQuestions(List<Path> parsedRepos) {
+    private List<Path> generateQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> parsedRepos) {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
@@ -482,12 +474,12 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(List<Path> generatedRepos) {
-        saveQuestions(generatedRepos, null, -1);
+    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos) {
+        saveQuestions(config, generatedRepos, null);
     }
 
     @SneakyThrows
-    private void saveQuestions(List<Path> generatedRepos, @Nullable List<QuestionRequestLogEntity> qrLogsToProcess, int enoughQuestionsForEachQr) {
+    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequest> generationRequests) {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
@@ -495,6 +487,8 @@ public class TaskGenerationJob {
         }
 
         log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
+        
+        var questionsGenerated = new HashMap<GenerationRequest, Integer>();
 
         for (var repoDir : generatedRepos) {
             String repoName = repoDir.getFileName().toString();
@@ -506,9 +500,6 @@ public class TaskGenerationJob {
 
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
-
-            var domainId = "ProgrammingLanguageExpressionDomain";
-            Set<QuestionRequestLogEntity> qrLogsProcessed = new HashSet<>();
 
             for (val file : allJsonFiles) {
                 val q = SerializableQuestion.deserialize(file);
@@ -530,30 +521,29 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-                // init container: list of QR logs requiring this question
-                meta.setQrlogIds(new ArrayList<>());
-
                 // Проверить, подходит ли он нам
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
                 boolean shouldSave = false;
-                if (qrLogsToProcess == null) {
+                Integer matchedGenerationRequestId = null;
+                if (generationRequests == null) {
                     shouldSave = true;
                 } else {
-                    for (val qr : qrLogsToProcess) {
-                        if (!storage.isMatch(meta, qr)) {
-                            log.debug("Question [{}] does not match qr {}", q.getQuestionData().getQuestionName(), qr.getId());
+                    for (var gr : generationRequests) {
+                        if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
+                            continue;
+                        
+                        var searchRequest = gr.getQuestionRequest();                        
+                        if (!storage.isMatch(meta, searchRequest)) {
+                            log.debug("Question [{}] does not match generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
                             continue;
                         }
 
-                        log.debug("Question [{}] matches qr {}", q.getQuestionData().getQuestionName(), qr.getId());
+                        log.debug("Question [{}] matches generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
 
                         // set flag to use this question
                         shouldSave = true;
-                        // update question metrics
-                        meta.getQrlogIds().add(qr.getId());
-                        // update qr metrics
-                        qr.setAddedQuestions(Optional.ofNullable(qr.getAddedQuestions()).orElse(0) + 1);
-                        qrLogsProcessed.add(qr);
+                        questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
+                        matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
                     }
                 }
 
@@ -563,49 +553,38 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-                // save question data in the database
-                QuestionDataEntity questionData = new QuestionDataEntity();
-                questionData.setData(q);
-                questionData.setId(meta.getId());
-                questionData = storage.saveQuestionDataEntity(questionData);
-
-                // set reference to the question data entity
-                meta.setQuestionData(questionData);
-
                 if (generatorConfig.isSaveToDb()) {
+                    // save question data in the database
+                    meta.setGenerationRequestId(matchedGenerationRequestId);
                     meta = storage.saveMetadataEntity(meta);
+
+                    QuestionDataEntity questionData = new QuestionDataEntity();
+                    questionData.setId(meta.getId());
+                    questionData.setData(q);
+                    storage.saveQuestionDataEntity(questionData);
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with data in database. Metadata id: {}, Affected qrs: {}", q.getQuestionData().getQuestionName(), meta.getId(), meta.getQrlogIds());
+                log.info("Question [{}] saved with data in database. Metadata id: {}", q.getQuestionData().getQuestionName(), meta.getId());
                 savedQuestions += 1;
             }
 
             log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
             log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
+        }
 
-            if (qrLogsProcessed.size() > 0) {
-
-                // update QR-log: statistics and possibly status
-                for (var qr : qrLogsProcessed) {
-
-                    // increment processed counter for each repository touched by this qr
-                    qr.setProcessedCount(qr.getProcessedCount() + 1);
-                    if (qr.getAddedQuestions() >= enoughQuestionsForEachQr) {
-                        // don't more need to process it.
-                        qr.setOutdated(1);
-                        log.info("Question-request-log (id: {}) resolved with {} questions added.", qr.getId(), qr.getAddedQuestions());
+        // update QR-log: statistics and possibly status
+        if (generationRequests != null) {
+            if (generatorConfig.isSaveToDb()) {
+                for (var gr : generationRequests) {
+                    generatorRequestsQueue.updateGeneratorRequest(gr.getGenerationRequestIds());
+                    if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate()) {
+                        log.info("Generation request [{}] finished with {} questions added.", gr.getGenerationRequestIds(), gr.getQuestionsGenerated());
                     }
-                    qr.setLastProcessedDate(new Date());
                 }
-                if (generatorConfig.isSaveToDb()) {
-                    qrLogRep.saveAll(qrLogsProcessed);
-                } else {
-                    log.info("Saving updates actually SKIPPED due to DEBUG mode.");
-                }
-
-                log.info("saved updates to {} question-request-log rows.", qrLogsProcessed.size());
+            } else {
+                log.info("Saving updates actually SKIPPED due to DEBUG mode.");
             }
         }
     }

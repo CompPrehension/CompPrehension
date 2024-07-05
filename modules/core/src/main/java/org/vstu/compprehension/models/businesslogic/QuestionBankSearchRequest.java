@@ -7,8 +7,10 @@ import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
 import java.util.List;
 
-@Builder
+@Builder(toBuilder = true)
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuestionBankSearchRequest {
     private long deniedConceptsBitmask;
     private long targetConceptsBitmask;
@@ -32,6 +34,13 @@ public class QuestionBankSearchRequest {
 
     /** максимум шагов в решении */
     private int stepsMax;
+    
+    /** нерелевантные концепты */    
+    private long unwantedConceptsBitmask;
+    /** нерелевантные законы */
+    private long unwantedLawsBitmask;
+    /** нерелевантные виолешены */
+    private long unwantedViolationsBitmask;
 
     public static QuestionBankSearchRequest fromQuestionRequest(QuestionRequest qr, double bankMinComplexity, double bankMaxComplexity) {
         var normalizedComplexity = MathHelper.linearInterpolateToNewRange(

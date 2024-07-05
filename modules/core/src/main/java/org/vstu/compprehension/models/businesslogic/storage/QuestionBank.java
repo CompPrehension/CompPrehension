@@ -9,44 +9,29 @@ import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
-import org.vstu.compprehension.utils.Checkpointer;
+import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.lang.Long.bitCount;
 
 @Log4j2
 public class QuestionBank {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionDataRepository questionDataRepository;
     private final QuestionMetadataManager questionMetadataManager;
+    private final QuestionGenerationRequestRepository generationRequestRepository;
+    private static final float COMPLEXITY_WINDOW = 0.1f;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
-            QuestionMetadataManager questionMetadataManager) {
+            QuestionMetadataManager questionMetadataManager, 
+            QuestionGenerationRequestRepository generationRequestRepository) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
         this.questionMetadataManager = questionMetadataManager;
-    }
-
-    private List<QuestionMetadataEntity> findLastNQuestionsMeta(QuestionBankSearchRequest qr, ExerciseAttemptEntity exerciseAttempt, int n) {
-        List<QuestionEntity> list = exerciseAttempt.getQuestions();
-        List<QuestionMetadataEntity> result = new ArrayList<>();
-        long toSkip = Math.max(0, list.size() - n);
-        for (QuestionEntity questionEntity : list) {
-            if (toSkip > 0) {
-                toSkip--;
-                continue;
-            }
-            QuestionMetadataEntity meta = questionEntity.getMetadata();
-            if (meta != null)
-                result.add(meta);
-        }
-        return result;
+        this.generationRequestRepository = generationRequestRepository;
     }
 
     private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
@@ -64,7 +49,7 @@ public class QuestionBank {
         return isMatch(meta, bankSearchRequest);
     }
 
-    private boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
+    public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
         // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
         if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())) {
             throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
@@ -86,62 +71,59 @@ public class QuestionBank {
             return false;
         }
 
-        // сложность должна быть <= от запрашиваемой
-        if (qr.getComplexity() != 0 && meta.getIntegralComplexity() > qr.getComplexity()) {
+        // сложность должна быть в пределах COMPLEXITY_WINDOW от запрашиваемой
+        if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > COMPLEXITY_WINDOW) {
             return false;
         }
 
-        // Присутствует хотя бы один целевой концепт и закон (если они заданы)
+        // Присутствует хотя бы один из целевых концептов и законов
         if (qr.getTargetConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0
                 || qr.getTargetLawsBitmask() != 0 && (meta.getLawBits() & qr.getTargetLawsBitmask()) == 0
         ) {
             return false;
         }
 
+        /*
+        // Присутствует хотя бы половина целевых концептов и законов
+        if (qr.getTargetConceptsBitmask() != 0 && ((meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0 || Long.bitCount(meta.getConceptBits() & qr.getTargetConceptsBitmask()) < Long.bitCount(qr.getTargetConceptsBitmask()) / 2)
+                || qr.getTargetLawsBitmask() != 0 && ((meta.getLawBits() & qr.getTargetLawsBitmask()) == 0 || Long.bitCount(meta.getLawBits() & qr.getTargetLawsBitmask()) < Long.bitCount(qr.getTargetLawsBitmask()) / 2)
+        ) {
+            return false;
+        }
+        */
+
         return true;
     }
 
     public int countQuestions(QuestionRequest qr) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        return questionMetadataRepository.countQuestions(bankSearchRequest);
+        return questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
     }
 
-    /**
-     * Find question templates in the questions bank. If no questions satisfy the requirements exactly, finds ones of similar complexity. Denied concepts and laws (laws map to violations on DB) cannot present in result questions anyway.
-     * @param qr QuestionRequest
-     * @param limit maximum questions to return (must be > 0)
-     * @return questions found or empty list if the requirements cannot be satisfied
-     */
     public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
 
-        Checkpointer ch = new Checkpointer(log);
-
         var bankSearchRequest = createBankSearchRequest(qr);
+        
+        var prevQuestionsMetadata = questionMetadataRepository.findLastNExerciseAttemptMeta(attempt.getId(), 4);
 
-        int nQuestionsInAttempt = Optional.ofNullable(bankSearchRequest.getDeniedQuestionNames()).map(List::size).orElse(0);
-        int queryLimit = limit + nQuestionsInAttempt;
-        int hardLimit = 25;
-
-        double complexity = bankSearchRequest.getComplexity();
-
-        long targetConceptsBitmask = bankSearchRequest.getTargetConceptsBitmask();
+        long targetConceptsBitmaskInPlan = bankSearchRequest.getTargetConceptsBitmask();
+        long targetConceptsBitmask = targetConceptsBitmaskInPlan;
         long deniedConceptsBitmask = bankSearchRequest.getDeniedConceptsBitmask();
-        long unwantedConceptsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
+        long unwantedConceptsBitmask = prevQuestionsMetadata.stream()
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
-        targetConceptsBitmask &= ~deniedConceptsBitmask;
-        long targetConceptsBitmaskInPlan = bankSearchRequest.getTargetConceptsBitmask();
+        targetConceptsBitmask &= ~deniedConceptsBitmask;        
 
         // use laws, for e.g. Expr domain
-        long targetLawsBitmask = bankSearchRequest.getTargetLawsBitmask();
+        long targetViolationsBitmaskInPlan = bankSearchRequest.getTargetLawsBitmask();
+        long targetLawsBitmask = targetViolationsBitmaskInPlan;
         long deniedLawsBitmask = bankSearchRequest.getDeniedLawsBitmask();
-        long unwantedLawsBitmask = findLastNQuestionsMeta(bankSearchRequest, attempt, 4).stream()
+        long unwantedLawsBitmask = prevQuestionsMetadata.stream()
                 .mapToLong(QuestionMetadataEntity::getLawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
-        long targetViolationsBitmaskInPlan = bankSearchRequest.getTargetLawsBitmask();
 
         // use violations from all questions is exercise attempt
         long unwantedViolationsBitmask = attempt.getQuestions().stream()
@@ -150,24 +132,36 @@ public class QuestionBank {
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
 
-        ch.hit("searchQuestionsAdvanced - bitmasks prepared");
+        var preparedQuery = bankSearchRequest.toBuilder()
+                .targetConceptsBitmask(targetConceptsBitmask)
+                .targetLawsBitmask(targetLawsBitmask)
+                .unwantedConceptsBitmask(unwantedConceptsBitmask)
+                .unwantedLawsBitmask(unwantedLawsBitmask)
+                .unwantedViolationsBitmask(unwantedViolationsBitmask)
+                .build();
+        log.debug("search query prepared: {}", preparedQuery);
+        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
+        log.debug("search query executed with {} candidates", foundQuestionMetas.size());
+        
+        int generatorThreshold = 7;
+        if (foundQuestionMetas.size() < generatorThreshold) {
+            log.info("no enough candidates found, need additional generation");
+            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), attempt.getId()));
+        }
+        
+        if (foundQuestionMetas.isEmpty()) {
+            log.debug("zero candidates found, trying to do relaxed search");
+            foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
+            log.debug("search query executed with {} candidates", foundQuestionMetas.size());            
+        }
+        
+        if (foundQuestionMetas.isEmpty()) {
+            log.warn("no candidates found");
+            return Collections.emptyList();
+        }
 
-        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findSampleAroundComplexityWithoutQIds(bankSearchRequest, 0.1, queryLimit, 12);
-
-        ch.hit("searchQuestionsAdvanced - query executed with " + foundQuestionMetas.size() + " candidates");
-
-        foundQuestionMetas = filterQuestionMetas(foundQuestionMetas,
-                complexity,
-                targetConceptsBitmask,
-                unwantedConceptsBitmask,
-                unwantedLawsBitmask,
-                unwantedViolationsBitmask,
-                Math.min(limit, hardLimit)  // Note: queryLimit >= limit
-        );
-
-        ch.hit("searchQuestionsAdvanced - filtered up to " + foundQuestionMetas.size() + " candidates");
-        log.info("searchQuestionsAdvanced - candidates: {}", foundQuestionMetas.stream().map(QuestionMetadataEntity::getName).toList());
-
+        foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, foundQuestionMetas.size()));
+        
         // set concepts from request (for future reference via questions' saved metadata)
         for (QuestionMetadataEntity m : foundQuestionMetas) {
             m.setConceptBitsInPlan(targetConceptsBitmaskInPlan);
@@ -183,53 +177,9 @@ public class QuestionBank {
         }
 
         List<Question> loadedQuestions = loadQuestions(domain, foundQuestionMetas);
-        ch.hit("searchQuestionsAdvanced - questions loaded");
-
-        ch.since_start("searchQuestionsAdvanced - completed with " + loadedQuestions.size() + " questions");
+        log.info("{} questions loaded", loadedQuestions.size());
 
         return loadedQuestions;
-    }
-
-    private List<QuestionMetadataEntity> filterQuestionMetas(
-            List<QuestionMetadataEntity> given,
-            double scaledComplexity,
-            long targetConceptsBitmask,
-            long unwantedConceptsBitmask,
-            long unwantedLawsBitmask,
-            long unwantedViolationsBitmask,
-            int limit) {
-        if (given.size() <= limit)
-            return given;
-
-        List<QuestionMetadataEntity> ranking1 = given.stream()
-                .sorted(Comparator.comparingDouble(q -> q.complexityAbsDiff(scaledComplexity)))
-                .toList();
-
-        List<QuestionMetadataEntity> ranking3 = given.stream()
-                .sorted(Comparator.comparingInt(
-                        q -> bitCount(q.getConceptBits() & unwantedConceptsBitmask)
-                        + bitCount(q.getLawBits() & unwantedLawsBitmask)
-                        + bitCount(q.getViolationBits() & unwantedViolationsBitmask)
-                        - bitCount(q.getConceptBits() & targetConceptsBitmask) * 3
-                ))
-                .toList();
-
-
-        // want more diversity in question ?? count control values -> take more with '1' not with '0'
-//        List<QuestionMetadataEntity> ranking6 = given.stream()
-//                .sorted(Comparator.comparingInt(q -> -q.getDistinctErrorsCount()))
-//                .collect(Collectors.toList());
-
-        List<QuestionMetadataEntity> finalRanking = given.stream()
-                .sorted(Comparator.comparingInt(q -> (
-                        ranking1.indexOf(q) +
-                        /*ranking2.indexOf(q) +*/
-                        ranking3.indexOf(q)
-                        /*ranking6.indexOf(q)*/
-                        )))
-                .collect(Collectors.toList());
-
-        return finalRanking.subList(0, limit);
     }
 
     private List<Question> loadQuestions(Domain domain, Collection<QuestionMetadataEntity> metas) {

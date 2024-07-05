@@ -1,20 +1,21 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
-import java.util.List;
 
 @Getter @Setter
 @Builder(toBuilder = true)
-@Entity
-@Table(name = "questions_meta")
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "questions_meta", indexes = {
+    @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
+})
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -81,14 +82,17 @@ public class QuestionMetadataEntity {
     @Column(name = "origin")
     private String origin = "";
 
-    @Builder.Default
-    @Type(JsonType.class)
-    @Column(name = "qrlog_ids", columnDefinition = "json")
-    private List<Long> qrlogIds = null;
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "generation_request_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private QuestionGenerationRequestEntity generatedBy;
+    
+    @Column(name = "generation_request_id")
+    private Integer generationRequestId;
 
     @Transient
     @Builder.Default

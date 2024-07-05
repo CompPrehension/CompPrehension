@@ -6,8 +6,10 @@ import org.apache.logging.log4j.Level;
 import org.jobrunr.jobs.annotations.Job;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.models.entities.DomainEntity;
+import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.net.URI;
@@ -20,13 +22,15 @@ import java.util.stream.Collectors;
 @Service
 public class MetadataHealthJob {
     private final QuestionMetadataRepository metadataRep;
+    private final QuestionGenerationRequestRepository genRequestsRep;
     private final DomainRepository domainRep;
     private final MetadataHealthJobConfig config;
 
-    public MetadataHealthJob(QuestionMetadataRepository metadataRep, DomainRepository domainRep, MetadataHealthJobConfig config) {
-        this.metadataRep = metadataRep;
-        this.domainRep   = domainRep;
-        this.config      = config;
+    public MetadataHealthJob(QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository genRequestsRep, DomainRepository domainRep, MetadataHealthJobConfig config) {
+        this.metadataRep    = metadataRep;
+        this.genRequestsRep = genRequestsRep;
+        this.domainRep      = domainRep;
+        this.config         = config;
     }
 
     @Job(name = "metadata-health-job", retries = 0)
@@ -40,7 +44,13 @@ public class MetadataHealthJob {
     }
 
     @SneakyThrows
-    public synchronized void runImpl() {
+    private synchronized void runImpl() {
+        //checkMetadataHealth();
+        removeTooOldGenerationRequestStats();
+    }
+
+    @SneakyThrows
+    private synchronized void checkMetadataHealth() {
         log.info("Starting metadata health job. Mode: {}", config.getMode());
         
         var domains = domainRep.findAll()
@@ -89,5 +99,20 @@ public class MetadataHealthJob {
         }
         
         log.info("Finished metadata health job. Deleted {} metadata entities", deleted);
+    }
+    
+    private void removeTooOldGenerationRequestStats() {
+        log.info("Starting to remove too old generation requests");
+        var nonProcessableRequests = genRequestsRep.findAllIdsByStatusAndProcessingAttemptsGreaterThan(QuestionGenerationRequestEntity.Status.ACTUAL, 5000);
+        if (nonProcessableRequests.isEmpty()) {
+            log.info("No too old generation requests found");
+            return;
+        }
+        
+        log.info("Found {} non processable generation requests: {}", nonProcessableRequests.size(), nonProcessableRequests);        
+        genRequestsRep.setCancelled(nonProcessableRequests);
+        log.info("Cancelled {} non processable generation requests", nonProcessableRequests.size());
+
+        log.info("Finished removing too old generation requests");
     }
 }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1719835126166-45" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="questions_meta" indexName="idx_questions_meta_domain_shortname" />
+        </preConditions>
+        <dropIndex tableName="questions_meta" indexName="idx_questions_meta_domain_shortname" />
+    </changeSet>
+
+    <changeSet id="1719835126166-46" author="Artem Prokudin">
+        <sql>
+            UPDATE questions_meta
+            SET name = SUBSTRING(name, 0, 255)
+            WHERE LENGTH(name) > 255;
+
+            ALTER TABLE questions_meta
+            MODIFY COLUMN name VARCHAR(255);
+        </sql>
+    </changeSet>    
+    
+    <changeSet id="1719835126166-47" author="Artem Prokudin">
+        <createIndex indexName="questions_meta_search_idx" tableName="questions_meta">
+            <column name="domain_shortname"/>
+            <column name="solution_steps"/>
+            <column name="integral_complexity"/>
+            <column name="template_id(50)" />
+            <column name="name(50)"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
