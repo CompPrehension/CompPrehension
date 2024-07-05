@@ -72,11 +72,4 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
         long questionsToGenerate;
         long questionsGenerated;
     }
-
-    public static interface RawFindAllActualResult2 {
-        //String getGenerationRequestIds();
-        //String getQuestionRequest();
-        Integer getQuestionsToGenerate();
-        Integer getQuestionsGenerated();
-    }
 }
