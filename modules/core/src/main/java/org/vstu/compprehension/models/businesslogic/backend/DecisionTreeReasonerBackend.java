@@ -62,10 +62,6 @@ public class DecisionTreeReasonerBackend implements Backend {
         Collection<Fact> statement,
         ReasoningOptions reasoningOptions
     ) {
-//        if (1==1) {
-//            // early exit (no-op).
-//            return new ArrayList<>(statement);
-//        }
 
         DecisionTree decisionTree = laws.stream()
             .filter(l -> l instanceof DTLaw)
