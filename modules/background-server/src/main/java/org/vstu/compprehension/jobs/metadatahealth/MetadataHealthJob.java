@@ -45,7 +45,7 @@ public class MetadataHealthJob {
 
     @SneakyThrows
     private synchronized void runImpl() {
-        checkMetadataHealth();
+        //checkMetadataHealth();
         removeTooOldGenerationRequestStats();
     }
 
@@ -103,7 +103,7 @@ public class MetadataHealthJob {
     
     private void removeTooOldGenerationRequestStats() {
         log.info("Starting to remove too old generation requests");
-        var nonProcessableRequests = genRequestsRep.findAllByStatusAndProcessingAttemptsGreaterThan(QuestionGenerationRequestEntity.Status.ACTUAL, 5000);
+        var nonProcessableRequests = genRequestsRep.findAllIdsByStatusAndProcessingAttemptsGreaterThan(QuestionGenerationRequestEntity.Status.ACTUAL, 5000);
         if (nonProcessableRequests.isEmpty()) {
             log.info("No too old generation requests found");
             return;

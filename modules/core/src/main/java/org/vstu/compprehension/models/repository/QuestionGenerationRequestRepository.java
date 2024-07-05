@@ -22,7 +22,9 @@ public interface QuestionGenerationRequestRepository extends CrudRepository<Ques
     @Modifying
     void updateGeneratorRequest(@Param("generationRequestIds") Integer[] generationRequestIds);
     
-    List<Integer> findAllByStatusAndProcessingAttemptsGreaterThan(QuestionGenerationRequestEntity.Status status, int processingAttempts);
+    
+    @Query(value = "SELECT id FROM QuestionGenerationRequestEntity WHERE status = :status AND processingAttempts > :processingAttempts")
+    List<Integer> findAllIdsByStatusAndProcessingAttemptsGreaterThan(@Param("status") QuestionGenerationRequestEntity.Status status, @Param("processingAttempts") int processingAttempts);
     
     @Transactional
     @Query(value = 
@@ -31,6 +33,6 @@ public interface QuestionGenerationRequestRepository extends CrudRepository<Ques
             "updated_at = CURRENT_TIMESTAMP() " + 
             "WHERE id IN :generationRequestIds", nativeQuery = true)
     @Modifying
-    void setCancelled(List<Integer> generationRequestIds);
+    void setCancelled(@Param("generationRequestIds") List<Integer> generationRequestIds);
 }
 
