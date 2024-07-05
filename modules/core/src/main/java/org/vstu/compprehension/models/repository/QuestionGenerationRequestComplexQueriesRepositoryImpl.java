@@ -34,7 +34,7 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
                                 "LEFT JOIN questions_meta on question_generation_requests.id = questions_meta.generation_request_id " +
                                 "GROUP BY question_generation_requests.id " +
                             ") AS qcount ON r.id = qcount.id " +
-                            "WHERE r.is_completed = 0 AND r.domain_shortname = :domainShortname AND r.created_at >= :createdAfter " +
+                            "WHERE r.status = 0 AND r.domain_shortname = :domainShortname AND r.created_at >= :createdAfter " +
                             "GROUP BY " +
                             " r.denied_concepts_bitmask, " +
                             " r.target_concepts_bitmask, " +

@@ -16,7 +16,7 @@ import java.util.Date;
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "question_generation_requests", indexes = {
-    @Index(name = "question_generation_requests_search_idx", columnList = "domain_shortname,is_completed,created_at,questions_to_generate")
+    @Index(name = "question_generation_requests_search_idx", columnList = "status,domain_shortname,created_at,questions_to_generate")
 })
 public class QuestionGenerationRequestEntity {
     public QuestionGenerationRequestEntity(QuestionBankSearchRequest questionRequest, int questionsToGenerate, Long exerciseAttemptId) {
@@ -38,8 +38,8 @@ public class QuestionGenerationRequestEntity {
     @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
     
-    @Column(name = "is_completed", nullable = false, columnDefinition = "boolean default false")
-    private boolean isCompleted = false;
+    @Column(name = "status", nullable = false, columnDefinition = "int default 0")
+    private Status status = Status.ACTUAL;
 
     @Type(JsonType.class)
     @Column(name = "question_request", columnDefinition = "json", nullable = false)
@@ -107,4 +107,10 @@ public class QuestionGenerationRequestEntity {
     private Integer stepsMax;
     
     //endregion
+    
+    public static enum Status {
+        ACTUAL,
+        COMPLETED,
+        CANCELLED,
+    }
 }

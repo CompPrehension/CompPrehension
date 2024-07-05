@@ -8,16 +8,29 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
 
+import java.util.List;
+
 @Repository
 public interface QuestionGenerationRequestRepository extends CrudRepository<QuestionGenerationRequestEntity, Integer>, QuestionGenerationRequestComplexQueriesRepository {
     @Transactional
     @Query(value = 
             "UPDATE question_generation_requests SET " +
-            "is_completed = (SELECT COUNT(*) FROM questions_meta WHERE generation_request_id IN :generationRequestIds) >= (SELECT * FROM (SELECT SUM(questions_to_generate) FROM question_generation_requests WHERE id IN :generationRequestIds) as something), " +
+            "status = IF((SELECT COUNT(*) FROM questions_meta WHERE generation_request_id IN :generationRequestIds) >= (SELECT * FROM (SELECT SUM(questions_to_generate) FROM question_generation_requests WHERE id IN :generationRequestIds) as something), 1, 0), " +
             "processing_attempts = processing_attempts + 1," +
-            "updated_at = NOW() " + 
+            "updated_at = CURRENT_TIMESTAMP() " + 
             "WHERE id IN :generationRequestIds", nativeQuery = true)
     @Modifying
     void updateGeneratorRequest(@Param("generationRequestIds") Integer[] generationRequestIds);
+    
+    List<Integer> findAllByStatusAndProcessingAttemptsGreaterThan(QuestionGenerationRequestEntity.Status status, int processingAttempts);
+    
+    @Transactional
+    @Query(value = 
+            "UPDATE question_generation_requests SET " +
+            "status = 2," +
+            "updated_at = CURRENT_TIMESTAMP() " + 
+            "WHERE id IN :generationRequestIds", nativeQuery = true)
+    @Modifying
+    void setCancelled(List<Integer> generationRequestIds);
 }
 
