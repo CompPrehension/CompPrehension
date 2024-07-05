@@ -144,10 +144,10 @@ public class QuestionBank {
         log.debug("search query executed with {} candidates", foundQuestionMetas.size());
         
         int generatorThreshold = 7;
-        //if (foundQuestionMetas.size() < generatorThreshold) {
+        if (foundQuestionMetas.size() < generatorThreshold) {
             log.info("no enough candidates found, need additional generation");
-            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 /*- foundQuestionMetas.size()*/, attempt.getId()));
-       // }
+            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), attempt.getId()));
+        }
         
         if (foundQuestionMetas.isEmpty()) {
             log.debug("zero candidates found, trying to do relaxed search");
