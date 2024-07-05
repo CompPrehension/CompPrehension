@@ -139,7 +139,7 @@ public class TaskGenerationJob {
             log.info("Too many generation requests found. Limiting to 5000.");
         }
         
-        var generationRequestIds = generationRequests.stream().flatMap(x -> Arrays.stream(x.getGenerationRequestIds())).collect(Collectors.toList());
+        var generationRequestIds = generationRequests.stream().map(GenerationRequest::getGenerationRequestIds).collect(Collectors.toList());
         log.debug("Generation requests ids: {}", generationRequestIds);
 
         // folders cleanup
