@@ -26,7 +26,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
 
     private static final String DEBUG_DIR = "./";
 
-    private static void debugDumpLoqi(its.model.definition.Domain model, String filename){
+    /*private static void debugDumpLoqi(its.model.definition.Domain model, String filename){
         try (var writer = new FileWriter(DEBUG_DIR + filename)) {
             DomainLoqiWriter.saveDomain(
                 model,
@@ -36,7 +36,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         } catch (IOException e) {
             log.debug("Could not save " + filename);
         }
-    }
+    }*/
 
     public static its.model.definition.Domain questionToDomainModel(
         its.model.definition.Domain commonDomainModel,
@@ -67,7 +67,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
 
         val dumpModel = situationModel.copy();
         dumpModel.subtract(commonDomainModel);
-        debugDumpLoqi(dumpModel, "out.loqi");
+        /*debugDumpLoqi(dumpModel, "out.loqi");*/
         return situationModel;
     }
 
@@ -135,11 +135,13 @@ public class ProgrammingLanguageExpressionRDFTransformer {
             for (Resource baseToken : selected.subList(0, selected.size() - 1)) {
                 baseTokensToElements.get(baseToken).removeAll(stateProperty);
                 baseTokensToElements.get(baseToken).addProperty(stateProperty, getResource(res, "evaluated"));
-                baseToken.listProperties(base.getProperty("http://vstu.ru/poas/code#ast_edge")).toList()
-                    .forEach((s) -> {
-                        Resource el = baseTokensToElements.get(s.getObject().asResource());
-                        el.removeAll(stateProperty);
-                        el.addProperty(stateProperty, getResource(res, "used"));
+                baseToken.listProperties(base.getProperty("http://vstu.ru/poas/code#ast_edge")).toList().stream()
+                    .map(s -> s.getObject().asResource())
+                    .filter(resource -> !resource.equals(getOtherComplex(baseToken)))
+                    .map(baseTokensToElements::get)
+                    .forEach(operand -> {
+                        operand.removeAll(stateProperty);
+                        operand.addProperty(stateProperty, getResource(res, "used"));
                     });
             }
             Resource currentlyChosenRes = selected.get(selected.size() - 1);
@@ -190,17 +192,20 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         en += " at position " + index;
         return Pair.of(ru, en);
     }
-    
+
     private static String getText(Resource baseToken){
         return baseToken.getProperty(baseToken.getModel().getProperty("http://vstu.ru/poas/code#text")).getString();
     }
-    
+
     private static String className(Resource baseToken){
         String classname;
         String text = getText(baseToken);
         Property arityProperty = baseToken.getModel().getProperty("http://vstu.ru/poas/code#arity");
         Property placeProperty = baseToken.getModel().getProperty("http://vstu.ru/poas/code#prefix_postfix");
-        if(text.equals("(") || text.equals(")")) classname = "parenthesis";
+        Property isFunctionCallProperty = baseToken.getModel().getProperty("http://vstu.ru/poas/code#is_function_call");
+
+        if(text.equals("(") || text.equals(")"))
+            classname = /*Objects.equals(baseToken.getProperty(isFunctionCallProperty).getString(), "true") ? "function_call" :*/ "parenthesis";
         else if(text.equals("[") || text.equals("]")) classname = "brackets";
         else if(text.equals("&&") ) classname = "and";
         else if(text.equals("||") ) classname = "or";
@@ -215,13 +220,42 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         else if(text.equals("-") ) classname = baseToken.getProperty(arityProperty).getString().equals("binary") ? "minus" : "unaryMinus";
         else if(text.equals("++") ) classname = baseToken.getProperty(placeProperty).getString().equals("prefix") ? "prefixInc" : "postfixInc";
         else if(text.equals("--") ) classname = baseToken.getProperty(placeProperty).getString().equals("prefix") ? "prefixDec" : "postfixDec";
-        else if(text.equals("*") ) classname = "multiplication";
+        else if(text.equals("*") ) classname = baseToken.getProperty(arityProperty).getString().equals("binary") ? "multiplication" : "operator_unary_*";
         else if(text.equals("/") ) classname = "division";
         else if(text.equals("?") || text.equals(":")) classname = "ternaryConditional";
         else if(text.equals(",") ) classname = "comma";
         else if(text.equals("^") ) classname = "power";
+
+        // новое от 30.06.2024 //
+        else if(text.equals("+=") ) classname = "operator_+=";
+        else if(text.equals("%") ) classname = "operator_%";
+        else if(text.equals("%=") ) classname = "operator_%=";
+        else if(text.equals("&") ) classname = baseToken.getProperty(arityProperty).getString().equals("binary") ? "operator_&" : "operator_unary_&";
+        else if(text.equals("&=") ) classname = "operator_&=";
+        /*else if(text.equals("(") ) classname = "__parentheses";*/
+        else if(text.equals("*=") ) classname = "operator_*=";
+        else if(text.equals("->") ) classname = "operator_pointer_field";
+        else if(text.equals(".") ) classname = "operator_.";
+        else if(text.equals("::") ) classname = "operator_::";
+        else if(text.equals("<<") ) classname = "operator_left_shift";
+        else if(text.equals("<<=") ) classname = "operator_left_shift_assign";
+        else if(text.equals("=") ) classname = "operator_=";
+        else if(text.equals(">>") ) classname = "operator_right_shift";
+        else if(text.equals(">>=") ) classname = "operator_right_shift_assign";
+        else if(text.equals("^=") ) classname = "operator_xor_assign";
+        else if(text.equals("|") ) classname = "operator_bitwise_or";
+        else if(text.equals("|=") ) classname = "operator_bitwise_or_assign";
+        else if(text.equals("~") ) classname = "operator_~";
+        else if(text.equals("sizeof") ) classname = "operator_sizeof";
+        else if(text.equals("co_await") ) classname = "operator_co_await";
+        else if(text.equals("new") ) classname = "operator_new";
+        else if(text.equals("delete") ) classname = "operator_delete";
+        else if(text.equals("<=>") ) classname = "operator_spaceship";
+        else if(text.equals("throw") ) classname = "operator_throw";
+        else if(text.equals("co_yield") ) classname = "operator_co_yield";
+        // The default.
         else classname = "operand";
-        
+
         return classname;
     }
     

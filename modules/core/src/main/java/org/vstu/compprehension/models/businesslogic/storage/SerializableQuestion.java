@@ -22,10 +22,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Модель вопроса для сериализации
@@ -174,7 +171,7 @@ public class SerializableQuestion {
 
     public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataEntity qMeta) {
         if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
-            throw new RuntimeException(String.format("Domain mismatch: got `%s`, expected `%s`", qMeta.getDomainShortname(), domain.getShortName()));
+            log.info("Domain mismatch: {} vs {}", qMeta.getDomainShortname(), domain.getShortName());
         }
         
         var questionData = getQuestionData();
@@ -211,7 +208,7 @@ public class SerializableQuestion {
         var result = new Question(questionEntity, domain);
         result.setConcepts(new ArrayList<>(getConcepts()));
         result.setTags(new HashSet<>(getTags()));
-        result.setNegativeLaws(new ArrayList<>(getNegativeLaws()));
+        result.setNegativeLaws(new ArrayList<>(Optional.ofNullable(getNegativeLaws()).orElse(List.of())));
         return result;
     }
 
