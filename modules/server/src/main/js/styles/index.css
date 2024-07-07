@@ -107,6 +107,12 @@ body ul {
   background-color: #e7e7e7;
   */
   border: 2px solid #b5b5b5;
+  position: relative;
+}
+
+.comp-ph-expr .btn.comp-ph-complete-btn .comp-ph-expr-top-hint,
+.comp-ph-expr .btn.comp-ph-complete-btn .comp-ph-expr-bottom-hint {
+  display: none;
 }
 
 .comp-ph-expr .btn.comp-ph-complete-btn:hover, .comp-ph-expr .btn.comp-ph-complete-btn.disabled {
