@@ -52,7 +52,6 @@ public class ExerciseService {
         var exercise = new ExerciseEntity();
         exercise.setName(name);
         exercise.setDomain(domainEntity);
-        exercise.setComplexity(0.5f);
         exercise.setBackendId(backendId);
         exercise.setStrategyId(strategyId);
         exercise.setOptions(ExerciseOptionsEntity.builder()
@@ -62,7 +61,7 @@ public class ExerciseService {
                 .supplementaryQuestionsEnabled(true)
                 .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, new ArrayList<>(), new ArrayList<>()))));
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;
@@ -82,9 +81,8 @@ public class ExerciseService {
         exercise.setBackendId(backendId);
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
-        exercise.setComplexity(card.getComplexity());
         exercise.setStages(card.getStages()
-                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
+                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
                 .collect(Collectors.toList()));
 
         exerciseRepository.save(exercise);
@@ -101,9 +99,8 @@ public class ExerciseService {
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .stages(exercise.getStages()
-                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
+                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
                         .collect(Collectors.toList()))
-                .complexity(exercise.getComplexity())
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
                 .build();

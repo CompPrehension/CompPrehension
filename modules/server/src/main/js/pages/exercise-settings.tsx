@@ -150,20 +150,6 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     </select>
                     <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
                 </div>
-                <div className="row">
-                    <div className="col-md-6">
-                        <div className="form-group">
-                            <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
-                            <div>
-                                <input type="range"
-                                    className="form-control-range"
-                                    id="formControlRange1"
-                                    value={(store.currentCard?.complexity ?? 0.5) * 100}
-                                    onChange={e => store.setCardQuestionComplexity(e.target.value)} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_qopt')}</label>
@@ -244,7 +230,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                             <div className="col-md-12">
                                 <div className="list-group list-group-flush">
                                     <ExerciseConcepts                                        
-                                        key="common"
+                                        id="common_concepts"
                                         store={store}
                                         concepts={sharedDomainConcepts}
                                         cardConcepts={cardConcepts}
@@ -266,7 +252,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         <label className="font-weight-bold">{t('exercisesettings_commonLaws')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseLaws
-                                key="common"
+                                id="common_laws"
                                 store={store}
                                 laws={sharedDomainLaws}
                                 cardLaws={cardLaws}
@@ -363,12 +349,22 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                         </div>
                     || null
                 }
+                <div className="form-group">
+                    <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
+                    <div>
+                        <input type="range"
+                            className="form-control-range"
+                            id={`complexity_stage${stageIdx}`}
+                            value={(stage.complexity ?? 0.5) * 100}
+                            onChange={e => store.setCardStageComplexity(stageIdx, e.target.value)} />
+                    </div>
+                </div>
                 {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
                     <div className="form-group">
                         <label className="font-weight-bold">{t('exercisesettings_stageN_concepts')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseConcepts
-                                key={stageIdx}
+                                id={`stage${stageIdx}_concepts`}
                                 store={store}
                                 concepts={stageDomainConcepts}
                                 cardConcepts={cardConcepts}
@@ -388,7 +384,7 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                         <label className="font-weight-bold">{t('exercisesettings_stageN_laws')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseLaws
-                                key={stageIdx}
+                                id={`stage${stageIdx}_laws`}
                                 store={store}
                                 laws={stageDomainLaws}
                                 cardLaws={cardLaws}
@@ -416,14 +412,14 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
 })
 
 type ExerciseConceptsProps = {
-    key: string | number,
+    id: string | number,
     store: ExerciseSettingsStore,
     concepts: DomainConcept[],
     cardConcepts: Record<string, ExerciseCardConcept>,
     onChange: (concept: DomainConcept, conceptValue: ExerciseCardConceptKind, parent?: DomainConcept) => void,
 }
 const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
-    const { key, store, concepts, cardConcepts, onChange } = props;
+    const { id, store, concepts, cardConcepts, onChange } = props;
     const { t  } = useTranslation();
     const card = store.currentCard;
     if (!card)
@@ -441,7 +437,7 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
                     <div key={idx} className="list-group-item p-0 bg-transparent pt-2 pb-2">
                         <div>
                             <div className={`d-flex flex-row align-items-center`}>
-                                <ToggleSwitch id={`concept_${key}_toggle_${card.id}_${coreConcept.name}_${idx}`}
+                                <ToggleSwitch id={`concept_${id}_toggle_${card.id}_${coreConcept.name}_${idx}`}
                                     selected={mapKindToValue(cardConcepts[coreConcept.name]?.kind)}
                                     values={getConceptFlags(coreConcept)}                                                            
                                     valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
@@ -457,7 +453,7 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
                                     <>
                                         <li key={i}
                                             className={`d-flex flex-row align-items-centers mt-3`}>
-                                            <ToggleSwitch id={`concept_${key}_toggle_${card.id}_${childConcept.name}_${idx}_${i}`}
+                                            <ToggleSwitch id={`concept_${id}_toggle_${card.id}_${childConcept.name}_${idx}_${i}`}
                                                 selected={mapKindToValue(cardConcepts[childConcept.name]?.kind)}
                                                 values={getConceptFlags(childConcept)}
                                                 valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
@@ -473,14 +469,14 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
 })
 
 type ExerciseLawsProps = {    
-    key: string | number,
+    id: string | number,
     store: ExerciseSettingsStore,
     laws: DomainLaw[],
     cardLaws: Record<string, ExerciseCardLaw>,
     onChange: (law: DomainLaw, lawValue: ExerciseCardConceptKind, parent?: DomainLaw) => void,
 }
 const ExerciseLaws = observer((props: ExerciseLawsProps) => {
-    const { key, store, laws, cardLaws, onChange } = props;
+    const { id, store, laws, cardLaws, onChange } = props;
     const { t  } = useTranslation();
     const card = store.currentCard;
     if (!card)
@@ -497,7 +493,7 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
                 (<div className="list-group-item p-0 bg-transparent pt-2 pb-2" key={idx}>
                     <div>
                         <div className={`d-flex flex-row align-items-center`}>
-                            <ToggleSwitch id={`law_${key}_toggle_${card.id}_${idx}`}
+                            <ToggleSwitch id={`law_${id}_toggle_${card.id}_${idx}`}
                                 selected={mapKindToValue(cardLaws[coreLaw.name]?.kind)}
                                 values={['Denied', 'Allowed', 'Target']}
                                 valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
@@ -512,7 +508,7 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
                             {coreLaw.childs.map((childLaw, i) =>
                                 <>
                                     <li key={i} className={`d-flex flex-row align-items-centers mt-3`}>
-                                    <ToggleSwitch id={`law_${key}_toggle_${card.id}_${idx}_${i}`}
+                                    <ToggleSwitch id={`law_${id}_toggle_${card.id}_${idx}_${i}`}
                                         selected={mapKindToValue(cardLaws[childLaw.name]?.kind)}
                                         values={['Denied', 'Allowed', 'Target']}
                                         valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}

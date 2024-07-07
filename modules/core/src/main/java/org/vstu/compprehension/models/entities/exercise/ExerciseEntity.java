@@ -79,10 +79,6 @@ public class ExerciseEntity {
     @Enumerated(EnumType.ORDINAL)
     private ExerciseType exerciseType;
 
-    /** Desired "integral" complexity for questions: [0..1] */
-    @Column(name = "complexity", nullable = false)
-    private Float complexity;
-
     @Column(name = "language_id")
     @Enumerated(EnumType.ORDINAL)
     private Language language;

@@ -50,11 +50,13 @@ export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
 
 export type ExerciseStage = {
     numberOfQuestions: number,
+    complexity: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
 }
 export const TExerciseStage : io.Type<ExerciseStage> = io.type({
     numberOfQuestions: io.number,
+    complexity: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
 })
@@ -66,7 +68,6 @@ export type ExerciseCard = {
     domainId: string,
     strategyId: string,
     backendId: string,
-    complexity: number,
     stages: NonEmptyArray<ExerciseStage>,
     tags: string[],
     options: ExerciseOptions,
@@ -78,7 +79,6 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     domainId: io.string,
     strategyId: io.string,
     backendId: io.string,
-    complexity: io.number,
     stages: nonEmptyArray(TExerciseStage),    
     tags: io.array(io.string),
     options: TExerciseOptions,

@@ -20,7 +20,6 @@ export type ExerciseCardViewModel = {
     strategyId: string,
     backendId: string,
     tags: string[],
-    complexity: number;
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
     options: ExerciseOptions,
 }
@@ -32,18 +31,20 @@ export class ExerciseStageStore implements Disposable {
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
     bankQuestionsCount: number = 0
+    complexity: number = 0.5
     autorunner?: IReactionDisposer
 
     constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
         this.numberOfQuestions = stage.numberOfQuestions;
+        this.complexity        = stage.complexity;
         this.card     = card;
 
         makeAutoObservable(this);
 
         this.autorunner = autorun(async () => {
-            const complexity = this.card.complexity;
+            const complexity = this.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
             await this.updateBankStats(concepts, laws, card.tags, complexity);
@@ -108,7 +109,7 @@ export class ExerciseSettingsStore {
             ...card,
             stages: pipe(
                 card.stages,
-                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, numberOfQuestions: stage.numberOfQuestions }))
+                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
             ),
         }
     }
@@ -229,12 +230,13 @@ export class ExerciseSettingsStore {
         
     }
     
-    setCardQuestionComplexity(rawComplexity: string) {
-        if (!this.currentCard)
+    setCardStageComplexity(stageIdx: number, rawComplexity: string) {
+        if (!this.currentCard || !this.currentCard.stages[stageIdx])
             return;
 
+        const stage = this.currentCard.stages[stageIdx];
         const complexity = Number.parseInt(rawComplexity);
-        this.currentCard.complexity = complexity / 100.0;
+        stage.complexity = complexity / 100.0;
     }
     
     
@@ -412,6 +414,7 @@ export class ExerciseSettingsStore {
             this.currentCard, 
             {
                 numberOfQuestions: 10,
+                complexity: 0.5,
                 laws: stageLaws,
                 concepts: stageConcepts,
             });
