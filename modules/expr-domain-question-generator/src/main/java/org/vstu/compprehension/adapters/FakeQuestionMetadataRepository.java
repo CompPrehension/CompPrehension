@@ -117,6 +117,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
+    public int countTopRatedQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+        return 0;
+    }
+
+    @Override
     public List<Integer> findMostUsedMetadataIds(@Nullable Integer weekUsageThreshold, @Nullable Integer dayUsageThreshold, @Nullable Integer hourUsageThreshold, @Nullable Integer min15UsageThreshold, @Nullable Integer min5UsageThreshold) {
         return List.of();
     }
@@ -128,6 +133,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @Override
     public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
         return List.of();
     }
 
