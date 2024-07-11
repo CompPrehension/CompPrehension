@@ -599,48 +599,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 foundQuestions = new ArrayList<>();
             }
         }
-
-        Question res;
-        if (foundQuestions != null && !foundQuestions.isEmpty()) {
-            res = foundQuestions.get(0);
-        } else {
-            // old version - search in domain's in-memory questions
-            // Prepare concept name sets ...
-            HashSet<String> deniedConceptNames = new HashSet<>();
-            for (Concept concept : questionRequest.getDeniedConcepts()) {
-                deniedConceptNames.add(concept.getName());
-            }
-            deniedConceptNames.add("supplementary");
-
-            HashSet<String> lawNames = new HashSet<>();
-            if (questionRequest.getTargetLaws() != null) {
-                for (Law law : questionRequest.getTargetLaws()) {
-                    lawNames.add(law.getName());
-                }
-            }
-
-            HashSet<String> deniedLawNames = new HashSet<>();
-            if (questionRequest.getDeniedLaws() != null) {
-                for (Law law : questionRequest.getDeniedLaws()) {
-                    deniedLawNames.add(law.getName());
-                }
-            }
-
-            HashSet<String> deniedQuestions = new HashSet<>();
-            if (exerciseAttempt != null &&
-                    exerciseAttempt.getQuestions() != null &&
-                    exerciseAttempt.getQuestions().size() > 0) {
-                deniedQuestions.add(exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1).getQuestionName());
-            }
-            questionRequest.setDeniedQuestionNames(List.of());
-
-            res = findQuestion(tags, conceptNames, deniedConceptNames, lawNames, deniedLawNames, deniedQuestions);
-        }
-
-        if (res == null) {
+        
+        if (foundQuestions == null || foundQuestions.isEmpty()) {
             throw new IllegalStateException("No valid questions found");
         }
 
+        var res = foundQuestions.getFirst();
         log.info("Expression domain has prepared the question: {}", res.getQuestionName());
         return makeQuestionCopy(res, exerciseAttempt, userLanguage);
     }

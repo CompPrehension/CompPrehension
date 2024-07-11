@@ -150,3 +150,12 @@ export const TStrategy: io.Type<Strategy> = io.type({
     }),
 })
 
+export type QuestionBankCount = {
+    count: number,
+    topRatedCount: number,
+}
+export const TQuestionBankCount: io.Type<QuestionBankCount> = io.type({
+    count: io.number,
+    topRatedCount: io.number,
+})
+

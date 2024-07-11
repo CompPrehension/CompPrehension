@@ -1,7 +1,7 @@
 import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, Strategy } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, QuestionBankCount, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -30,7 +30,7 @@ export class ExerciseStageStore implements Disposable {
     laws: ExerciseCardLaw[]
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
-    bankQuestionsCount: number = 0
+    bankQuestionsCount: QuestionBankCount | null = null
     complexity: number = 0.5
     autorunner?: IReactionDisposer
 
@@ -54,7 +54,7 @@ export class ExerciseStageStore implements Disposable {
     *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number) {
         const { card } = this;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
-        const newData: E.Either<RequestError, number> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, tags, complexity);
+        const newData: E.Either<RequestError, QuestionBankCount> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, tags, complexity);
         if (E.isRight(newData)) {
             runInAction(() => {
                 this.bankQuestionsCount = newData.right;

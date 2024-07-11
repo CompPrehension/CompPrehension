@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.dto.QuestionBankCountDto;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -36,7 +37,7 @@ public class QuestionBankController {
 
     @RequestMapping(value = {"count"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public Integer getQuestionsCount(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
+    public QuestionBankCountDto getQuestionsCount(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");
@@ -84,6 +85,6 @@ public class QuestionBankController {
                 .domainShortname(domain.getShortnameForQuestionSearch())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);
-        return questionStorage.countQuestions(qr);
+        return questionStorage.countQuestionsWithTopRated(qr);
     }
 }

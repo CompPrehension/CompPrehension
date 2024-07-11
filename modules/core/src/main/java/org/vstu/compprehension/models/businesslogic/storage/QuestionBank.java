@@ -1,9 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.dto.QuestionBankCountDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
@@ -13,7 +15,10 @@ import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 @Log4j2
 public class QuestionBank {
@@ -100,6 +105,13 @@ public class QuestionBank {
         return questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
     }
 
+    public QuestionBankCountDto countQuestionsWithTopRated(QuestionRequest qr) {
+        var bankSearchRequest = createBankSearchRequest(qr);
+        var ordinaryCount = questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
+        var topRatedCount = questionMetadataRepository.countTopRatedQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
+        return new QuestionBankCountDto(ordinaryCount, topRatedCount);
+    }
+
     public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
@@ -139,9 +151,9 @@ public class QuestionBank {
                 .unwantedLawsBitmask(unwantedLawsBitmask)
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
                 .build();
-        log.debug("search query prepared: {}", preparedQuery);
+        log.info("search query prepared: {}", new Gson().toJson(preparedQuery));
         List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
-        log.debug("search query executed with {} candidates", foundQuestionMetas.size());
+        log.info("search query executed with {} candidates", foundQuestionMetas.size());
         
         int generatorThreshold = 7;
         if (foundQuestionMetas.size() < generatorThreshold) {
@@ -150,14 +162,15 @@ public class QuestionBank {
         }
         
         if (foundQuestionMetas.isEmpty()) {
-            log.debug("zero candidates found, trying to do relaxed search");
+            log.info("zero candidates found, trying to do relaxed search");
             foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
-            log.debug("search query executed with {} candidates", foundQuestionMetas.size());            
+            log.info("search query executed with {} candidates", foundQuestionMetas.size());            
         }
         
         if (foundQuestionMetas.isEmpty()) {
-            log.warn("no candidates found");
-            return Collections.emptyList();
+            log.warn("no candidates found, trying to do max relaxed search");
+            foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, COMPLEXITY_WINDOW, 10);
+            log.info("search query executed with {} candidates", foundQuestionMetas.size());
         }
 
         foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, foundQuestionMetas.size()));

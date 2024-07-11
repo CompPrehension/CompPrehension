@@ -332,9 +332,9 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     <div>
                         <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
                         {
-                            stage.bankLoadingState === 'IN_PROGRESS' 
+                            stage.bankLoadingState === 'IN_PROGRESS' || stage.bankQuestionsCount === null
                                 ? <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
-                                : stage.bankQuestionsCount
+                                : <span>{`${stage.bankQuestionsCount.count} (${stage.bankQuestionsCount?.topRatedCount})`}</span>
                         }
                     </div>
                 </div>
