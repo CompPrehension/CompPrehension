@@ -254,8 +254,8 @@ public class TaskGenerationJob {
         var outputFolderPath = Path.of(downloaderConfig.getOutputFolderPath());
         Files.createDirectories(outputFolderPath);
 
-        // Учесть историю по использованным репозиториям
-        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName(), LocalDateTime.of(2000, 1, 1, 0, 0), LocalDateTime.now(ZoneId.of("UTC")).minusDays(1));
+        // Учесть историю по использованным репозиториям (обработанные меньше дня назад или есть папка в директории скачки)
+        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName(), LocalDateTime.now(ZoneId.of("UTC")).minusDays(1));
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
             try (var list = Files.list(outputFolderPath)) {

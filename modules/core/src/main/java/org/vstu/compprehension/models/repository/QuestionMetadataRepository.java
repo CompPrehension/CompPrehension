@@ -62,8 +62,8 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     );
 
     @NotNull
-    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.createdAt >= :from and q.createdAt <= :to")
-    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname, @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.createdAt >= :from")
+    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname, @Param("from") LocalDateTime from);
 
     @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
     boolean templateExists(@Param("domainShortname") String domainShortname, @Param("templateId") String templateId);
