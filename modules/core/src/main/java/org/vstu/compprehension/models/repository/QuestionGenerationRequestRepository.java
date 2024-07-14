@@ -15,7 +15,7 @@ public interface QuestionGenerationRequestRepository extends CrudRepository<Ques
     @Transactional
     @Query(value = 
             "UPDATE question_generation_requests SET " +
-            "status = IF((SELECT COUNT(*) FROM questions_meta WHERE generation_request_id IN :generationRequestIds) >= (SELECT * FROM (SELECT SUM(questions_to_generate) FROM question_generation_requests WHERE id IN :generationRequestIds) as something), 1, 0), " +
+            "status = IF((SELECT COUNT(*) FROM questions_meta WHERE generation_request_id IN :generationRequestIds) >= (SELECT * FROM (SELECT MAX(questions_to_generate) + COUNT(*) - 1 FROM question_generation_requests WHERE id IN :generationRequestIds) as something), 1, 0), " +
             "processing_attempts = processing_attempts + 1," +
             "updated_at = CURRENT_TIMESTAMP() " + 
             "WHERE id IN :generationRequestIds", nativeQuery = true)
