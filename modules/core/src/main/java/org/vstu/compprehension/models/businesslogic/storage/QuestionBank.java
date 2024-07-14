@@ -83,7 +83,8 @@ public class QuestionBank {
 
         // Присутствует хотя бы один из целевых концептов и законов
         if (qr.getTargetConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0
-                || qr.getTargetLawsBitmask() != 0 && (meta.getLawBits() & qr.getTargetLawsBitmask()) == 0
+                || qr.getTargetLawsBitmask() != 0 && (meta.getViolationBits() & qr.getTargetLawsBitmask()) == 0
+                // Note: ↑ violation в meta — это негативные законы (нарушения), в текущей редакции сопоставляются с negative laws, которые настраиваются в упражнении.
         ) {
             return false;
         }
@@ -91,7 +92,7 @@ public class QuestionBank {
         /*
         // Присутствует хотя бы половина целевых концептов и законов
         if (qr.getTargetConceptsBitmask() != 0 && ((meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0 || Long.bitCount(meta.getConceptBits() & qr.getTargetConceptsBitmask()) < Long.bitCount(qr.getTargetConceptsBitmask()) / 2)
-                || qr.getTargetLawsBitmask() != 0 && ((meta.getLawBits() & qr.getTargetLawsBitmask()) == 0 || Long.bitCount(meta.getLawBits() & qr.getTargetLawsBitmask()) < Long.bitCount(qr.getTargetLawsBitmask()) / 2)
+                || qr.getTargetLawsBitmask() != 0 && ((meta.getViolationBits() & qr.getTargetLawsBitmask()) == 0 || Long.bitCount(meta.getLawBits() & qr.getTargetLawsBitmask()) < Long.bitCount(qr.getTargetLawsBitmask()) / 2)
         ) {
             return false;
         }
