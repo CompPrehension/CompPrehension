@@ -25,7 +25,7 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
                         "SELECT " +
                                 "JSON_UNQUOTE(JSON_ARRAYAGG(r.id)) AS generationrequestids, " +
                                 "JSON_UNQUOTE(MAX(r.question_request)) AS questionrequest, " +
-                                "CAST(SUM(r.questions_to_generate) AS SIGNED) AS questionstogenerate," +
+                                "CAST(MAX(r.questions_to_generate) + COUNT(*) - 1 AS SIGNED) AS questionstogenerate," +
                                 "CAST(SUM(qcount.count) AS SIGNED) AS questionsgenerated " +
                             "FROM question_generation_requests r " +
                             "LEFT JOIN (" +
