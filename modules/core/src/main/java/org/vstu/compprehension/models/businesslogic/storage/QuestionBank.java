@@ -54,6 +54,12 @@ public class QuestionBank {
         return isMatch(meta, bankSearchRequest);
     }
 
+    /**
+     * Реализует логику, равносильную QuestionMetadataComplexQueriesRepository.findTopRatedMetadata, для сопоставления сгенерированного вопроса с запросом на поиск в банке.
+     * @param meta метаданные сгенерированного вопроса
+     * @param qr поисковый запрос к банку вопросов (complexity нормализована на диапазон сложности в банке)
+     * @return true, если имеет место совпадение вопроса с поисковым запросом
+     */
     public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
         // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
         if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())) {

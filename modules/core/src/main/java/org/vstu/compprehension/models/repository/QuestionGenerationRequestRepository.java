@@ -12,6 +12,11 @@ import java.util.List;
 
 @Repository
 public interface QuestionGenerationRequestRepository extends CrudRepository<QuestionGenerationRequestEntity, Integer>, QuestionGenerationRequestComplexQueriesRepository {
+    /**
+     * Обновить статус группы равносильных запросов на генерацию вопросов.
+     * При этом каждый вопрос, сгенерированный для любого из этих запросов, учитывается один раз для каждого запроса из группы.
+     * @param generationRequestIds список «сливающихся» запросов на генерацию
+     */
     @Transactional
     @Query(value = 
             "UPDATE question_generation_requests SET " +
