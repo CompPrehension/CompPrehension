@@ -351,12 +351,13 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                 }
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
-                    <div>
+                    <div className="d-flex">
                         <input type="range"
                             className="form-control-range"
                             id={`complexity_stage${stageIdx}`}
                             value={(stage.complexity ?? 0.5) * 100}
                             onChange={e => store.setCardStageComplexity(stageIdx, e.target.value)} />
+                        <div className="ml-2">{stage.complexity.toFixed(2)}</div>
                     </div>
                 </div>
                 {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
