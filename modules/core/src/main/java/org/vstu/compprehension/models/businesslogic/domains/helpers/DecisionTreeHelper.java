@@ -36,6 +36,15 @@ public abstract class DecisionTreeHelper {
         ));
     }
 
+    public static DomainSolvingModel buildDomainModelFromLoqiOrDict(URL domainURL) {
+        try {
+            return buildDomainModelFromLOQI(domainURL);
+        } catch (RuntimeException e) {
+            return buildDomainModelFromDict(domainURL);
+        }
+    }
+
+
     private static DomainSolvingModel buildDomainModel(URL domainURL, Domain domain) throws URISyntaxException {
         return new DomainSolvingModel(
             domain,
