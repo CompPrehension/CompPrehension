@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
-import its.model.definition.rdf.DomainRDFFiller;
 import its.questions.gen.QuestioningSituation;
 import its.questions.gen.formulations.Localization;
 import its.questions.gen.states.Question;
@@ -9,7 +8,6 @@ import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
 import its.questions.gen.strategies.QuestionAutomata;
 import lombok.val;
-import org.apache.jena.rdf.model.Model;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
@@ -36,7 +34,7 @@ public class DecisionTreeSupQuestionHelper {
         Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
-        this.domainModel = DecisionTreeHelper.buildDomainModelFromLOQI(domainModelDirectoryURL);
+        this.domainModel = DecisionTreeHelper.buildDomainModelFromLoqiOrDict(domainModelDirectoryURL);
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
                 domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
@@ -44,7 +42,7 @@ public class DecisionTreeSupQuestionHelper {
     }
 
     private final Domain domain;
-    final DomainSolvingModel domainModel ;
+    final DomainSolvingModel domainModel;
     private final QuestionAutomata supplementaryAutomata;
     private final Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer;
 

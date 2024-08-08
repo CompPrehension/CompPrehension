@@ -65,9 +65,9 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         );
         situationModel.validateAndThrowInvalid();
 
-        val dumpModel = situationModel.copy();
+        /*val dumpModel = situationModel.copy();
         dumpModel.subtract(commonDomainModel);
-        /*debugDumpLoqi(dumpModel, "out.loqi");*/
+        debugDumpLoqi(dumpModel, "out.loqi");*/
         return situationModel;
     }
 
