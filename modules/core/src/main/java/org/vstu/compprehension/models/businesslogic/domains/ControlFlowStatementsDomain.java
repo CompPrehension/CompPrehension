@@ -6,7 +6,6 @@ import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.*;
@@ -18,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
+import static org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDTDomain.processQuestionFactsForBackendJudge_static;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
@@ -73,6 +74,8 @@ public class ControlFlowStatementsDomain extends Domain {
         initVocab();
         return VOCAB;
     }
+
+    static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "control-flow-statements-domain-model/";
 
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
     static List<Question> QUESTIONS;
@@ -642,7 +645,7 @@ public class ControlFlowStatementsDomain extends Domain {
     protected Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLanguage) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
-                .showSupplementaryQuestions(false)
+                .showSupplementaryQuestions(true)
                 .showTrace(true)
                 .multipleSelectionEnabled(true)
                 //.requireAllAnswers(false)
@@ -1576,17 +1579,54 @@ public class ControlFlowStatementsDomain extends Domain {
 
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
+        /*
         return false;
+                if (violation.getLawName().equals("error_base_student_error_in_complex") ||
+                violation.getLawName().equals("error_base_student_error_strict_operands_order") ||
+                violation.getLawName().equals("error_base_student_error_unevaluated_operand") ||
+                violation.getLawName().equals("error_base_student_error_early_finish")) {
+            return false;
+        }
+         */
+        return true;
     }
+
+    private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+
+        val questionData = lastMainQuestionInteraction.getQuestion();
+
+        val questionFacts = this.getQuestionStatementFactsWithSchema(questionData);
+        val responseFacts = this.responseToFacts(questionData.getQuestionDomainType(), lastMainQuestionInteraction.getResponses(), questionData.getAnswerObjects());
+        val solutionFacts = Fact.entitiesToFacts(questionData.getSolutionFacts());
+
+        List<Fact> prepared = processQuestionFactsForBackendJudge_static(questionFacts, /*responses,*/ responseFacts, solutionFacts, this);
+
+        val situationModel = ((DecisionTreeReasonerBackend.DomainFact)prepared.getFirst()).getDomain();
+
+        return situationModel;
+        /*
+        return ControlFlowStatementsDomainRDFTransformer.questionToDomainModel(
+            dtSupplementaryQuestionHelper.domainModel.getDomain(),
+            lastMainQuestionInteraction.getQuestion(),
+            lastMainQuestionInteraction
+        );*/
+    }
+
+    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
+            this,
+            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
+            this::mainQuestionToModel
+    );
 
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
-        throw new NotImplementedException();
+        /* if (sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()) */
+            return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
     }
 
     @Override
     public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
-        throw new NotImplementedException();
+        return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 
     protected static OntModel modelToOntModel(Model model) {
@@ -1747,7 +1787,7 @@ public class ControlFlowStatementsDomain extends Domain {
      * @param q question
      * @return solution & statement facts as single model
      */
-    private Model getSolutionModelOfQuestion(Question q) {
+    public static Model getSolutionModelOfQuestion(Question q) {
         // find next consequent (using solved facts)
         JenaFactList fl = JenaFactList.fromBackendFacts(q.getSolutionFacts());
         fl.addBackendFacts(q.getStatementFacts());
@@ -2080,6 +2120,12 @@ public class ControlFlowStatementsDomain extends Domain {
     @Override
     public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
         JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+        fl.addFromModel(getSchemaForSolving());
+        return fl;
+    }
+
+    public Collection<Fact> getQuestionStatementFactsWithSchema(QuestionEntity q) {
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getStatementFacts());
         fl.addFromModel(getSchemaForSolving());
         return fl;
     }

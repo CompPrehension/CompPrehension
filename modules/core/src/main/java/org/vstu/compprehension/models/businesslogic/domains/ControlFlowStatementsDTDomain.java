@@ -345,6 +345,20 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             Collection<ResponseEntity> responses,
             Collection<Fact> responseFacts,
             Collection<Fact> solutionFacts) {
+        // Call utility static method.
+        return processQuestionFactsForBackendJudge_static(questionFacts, /*responses,*/ responseFacts, solutionFacts, this);
+    }
+
+    /**
+     * Запускает ризонинг Jena на данных, после чего заполняет localizedName для объектов с именами.
+     * → Идея: использовать этот метод также для подготовки модели для подсистемы наводящих вопросов по дереву решений.
+     * @return list with the only fact that is DomainFact containing situationModel.
+     * */
+    public static List<Fact> processQuestionFactsForBackendJudge_static(
+            Collection<Fact> questionFacts,
+            /*Collection<ResponseEntity> responses,*/
+            Collection<Fact> responseFacts,
+            Collection<Fact> solutionFacts, ControlFlowStatementsDomain self) {
         assert responseFacts != null;
         assert solutionFacts != null;
 
@@ -355,13 +369,13 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 //        ch.hit("responseToFacts: schema obtained");
 
         JenaFactList newFacts = backend.judge(
-                new ArrayList<>(this.getQuestionNegativeLaws(EXECUTION_ORDER_QUESTION_TYPE /*<Fixme: only one type of question is supported!*/, null)),
+                new ArrayList<>(self.getQuestionNegativeLaws(EXECUTION_ORDER_QUESTION_TYPE /*<Fixme: only one type of question is supported!*/, null)),
                 questionFacts,
                 solutionFacts,
                 responseFacts,
                 new ReasoningOptions(
                         false,
-                        this.getViolationVerbs(EXECUTION_ORDER_QUESTION_TYPE, List.of()),
+                        getViolationVerbsStatic(EXECUTION_ORDER_QUESTION_TYPE, List.of()),
                         null)
         );
 
@@ -387,7 +401,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
                 continue;
             String stmt_name = t.getObject().asLiteral().getString();
             if (stmt_name.contains(LOCALE_KEY_MARK)) {
-                stmt_name = replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
+                stmt_name = self.replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
             } else {
                 stmt_name = String.format("«%s»", stmt_name);  // Format name in HTML.
             }
@@ -440,7 +454,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
     @NotNull
-    private its.model.definition.Domain getDTSituationModel(Model model) {
+    private static its.model.definition.Domain getDTSituationModel(Model model) {
         // @see also: questionToDomainModel
         its.model.definition.Domain situationModel = domainSolvingModel.getDomain().getDomain().copy();
         DomainRDFFiller.fillDomain(
@@ -583,16 +597,16 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
     }
 
-    /**
+    /* *
      * @param q question
      * @return solution & statement facts as single model
      */
-    private Model getSolutionModelOfQuestion(Question q) {
+    /*private Model getSolutionModelOfQuestion(Question q) {
         // find next consequent (using solved facts)
         JenaFactList fl = JenaFactList.fromBackendFacts(q.getSolutionFacts());
         fl.addBackendFacts(q.getStatementFacts());
         return fl.getModel();
-    }
+    }*/
 
     @Nullable
     protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
