@@ -92,7 +92,7 @@
     rdfs:subPropertyOf :boundary_of ;
     :act_class :act_end ;
     :EN.localizedName "the ending of"^^xsd:string ;
-    :RU.localizedName "окочание"^^xsd:string .
+    :RU.localizedName "окончание"^^xsd:string .
 
 :entry_point a owl:FunctionalProperty,
         owl:ObjectProperty ;
@@ -555,7 +555,7 @@ skos:broader a owl:AnnotationProperty .
 :act_end a owl:Class ;
     rdfs:subClassOf :act ;
     :EN.localizedName "the ending of execution"^^xsd:string ;
-    :RU.localizedName "окочание выполнения"^^xsd:string .
+    :RU.localizedName "окончание выполнения"^^xsd:string .
 
 :action a owl:Class ;
     rdfs:subClassOf owl:Thing ;
