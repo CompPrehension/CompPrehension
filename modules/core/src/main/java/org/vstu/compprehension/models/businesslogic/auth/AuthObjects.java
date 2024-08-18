@@ -68,7 +68,7 @@ public class AuthObjects {
                 "Удаление курсов",
                 List.of(PermissionScopeKind.GLOBAL, PermissionScopeKind.EDUCATION_RESOURCE, PermissionScopeKind.COURSE));
 
-        /** Право на просмотр упражнений */
+        /** Право на просмотр настроек упражнений */
         public static final SystemPermission ViewExercise = new SystemPermission(
                 "ViewExercise",
                 "Просмотр упражнений",

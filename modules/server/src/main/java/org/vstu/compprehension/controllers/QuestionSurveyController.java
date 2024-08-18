@@ -4,11 +4,14 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.Service.AuthorizationService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.survey.SurveyDto;
 import org.vstu.compprehension.dto.survey.SurveyResultDto;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
 import org.vstu.compprehension.models.entities.SurveyAnswerEntity;
 import org.vstu.compprehension.models.repository.QuestionRepository;
 import org.vstu.compprehension.models.repository.SurveyAnswerRepository;
@@ -25,18 +28,26 @@ public class QuestionSurveyController {
     private final SurveyRepository surveyRepository;
     private final QuestionRepository questionRepository;
     private final SurveyAnswerRepository surveyResultRepository;
+    private final AuthorizationService authorizationService;
 
     @Autowired
-    public QuestionSurveyController(UserService userService, SurveyRepository surveyRepository, QuestionRepository questionRepository, SurveyAnswerRepository surveyResultRepository) {
+    public QuestionSurveyController(UserService userService, SurveyRepository surveyRepository, QuestionRepository questionRepository, SurveyAnswerRepository surveyResultRepository, AuthorizationService authorizationService) {
         this.userService = userService;
         this.surveyRepository = surveyRepository;
         this.questionRepository = questionRepository;
         this.surveyResultRepository = surveyResultRepository;
+        this.authorizationService = authorizationService;
     }
 
     @GetMapping("/{id}")
     @ResponseBody
-    public SurveyDto getSurvey(@PathVariable("id") String surveyId) {
+    public SurveyDto getSurvey(@PathVariable("id") String surveyId) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         var survey = surveyRepository.findOne(surveyId)
                 .orElseThrow(() -> new IllegalStateException(String.format("Couldn't find survey with id %s", surveyId)));
         return Mapper.toDto(survey);
@@ -47,6 +58,12 @@ public class QuestionSurveyController {
     @ResponseBody
     public List<SurveyResultDto> getCurrentUserAttemptSurveyResults(@PathVariable("id") String surveyId,
                                                                     @RequestParam("attemptId") Long attemptId) {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         var userId = userService.getCurrentUser().getId();
         return surveyRepository.findUserAttemptVotes(userId, attemptId, surveyId);
     }
@@ -54,6 +71,10 @@ public class QuestionSurveyController {
     @PostMapping("")
     public ResponseEntity<?> addSurveyResult(@RequestBody SurveyResultDto result) throws Exception {
         var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
 
         // ensure question correct
         var question = questionRepository.findById(result.getQuestionId())

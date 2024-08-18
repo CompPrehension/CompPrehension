@@ -8,11 +8,13 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.Service.AuthorizationService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,18 +27,25 @@ public class ExerciseController {
     private final FrontendService frontendService;
     private final UserService userService;
     private final ExerciseRepository exerciseRepository;
+    private final AuthorizationService authorizationService;
 
     @Autowired
-    public ExerciseController(FrontendService frontendService, UserService userService, ExerciseRepository exerciseRepository) {
+    public ExerciseController(FrontendService frontendService, UserService userService, ExerciseRepository exerciseRepository, AuthorizationService authorizationService) {
         this.frontendService = frontendService;
         this.userService = userService;
         this.exerciseRepository = exerciseRepository;
+        this.authorizationService = authorizationService;
     }
-
 
     @RequestMapping(value = { "all"}, method = { RequestMethod.GET })
     @ResponseBody
-    public List<ExerciseDto> getAll() {
+    public List<ExerciseDto> getAll() throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.ViewExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         return exerciseRepository.getAllExerciseItems();
     }
 
@@ -51,6 +60,12 @@ public class ExerciseController {
             consumes = "application/json")
     @ResponseBody
     public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         return frontendService.addQuestionAnswer(interaction);
     }
 
@@ -65,6 +80,12 @@ public class ExerciseController {
             consumes = "application/json")
     @ResponseBody
     public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         return frontendService.addSupplementaryQuestionAnswer(interaction);
     }
 
@@ -78,6 +99,12 @@ public class ExerciseController {
     @RequestMapping(value = {"generateQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateQuestion(attemptId);
     }
@@ -92,6 +119,12 @@ public class ExerciseController {
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val locale = LocaleContextHolder.getLocale();
         return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
@@ -106,6 +139,12 @@ public class ExerciseController {
     @RequestMapping(value = {"getQuestion"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         return frontendService.getQuestion(questionId);
     }
 
@@ -119,22 +158,25 @@ public class ExerciseController {
     @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val locale = LocaleContextHolder.getLocale();;
         return frontendService.generateNextCorrectAnswer(questionId);
     }
 
-
-    /**
-     * Load session info
-     * @param request Current request
-     * @return Session info
-     * @throws Exception Something got wrong
-     */
-
-
     @RequestMapping(value = {"shortInfo"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseInfoDto getExerciseShortInfo(long id, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val exercise = exerciseRepository.findById(id).orElseThrow();
         return new ExerciseInfoDto(id, exercise.getOptions());
     }
@@ -147,13 +189,25 @@ public class ExerciseController {
      */
     @RequestMapping(value = {"getExerciseStatistics"}, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {
+    public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.ViewExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         return frontendService.getExerciseStatistics(exerciseId);
     }
 
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val userId = userService.getCurrentUser().getId();
         var result = frontendService.getExerciseAttempt(attemptId);
         if (result == null) {
@@ -175,6 +229,12 @@ public class ExerciseController {
     @RequestMapping(value = {"getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val userId = userService.getCurrentUser().getId();
         return frontendService.getExistingExerciseAttempt(exerciseId, userId);
     }
@@ -189,6 +249,12 @@ public class ExerciseController {
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val userId = userService.getCurrentUser().getId();
         return frontendService.createExerciseAttempt(exerciseId, userId);
     }
@@ -196,6 +262,12 @@ public class ExerciseController {
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+        var currentUser = userService.getCurrentUser();
+        var courceId = 1;
+        if (!authorizationService.isAuthorizedCourse(currentUser.getId(), AuthObjects.Permissions.RunExercise.Name(), courceId)) {
+            throw new AuthorizationServiceException("Authorization error");
+        }
+
         val userId = userService.getCurrentUser().getId();
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
     }
