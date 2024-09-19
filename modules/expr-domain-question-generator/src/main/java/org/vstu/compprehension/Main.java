@@ -4,11 +4,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
-import org.vstu.compprehension.adapters.FakeDomainRepository;
-import org.vstu.compprehension.adapters.FakeLocalizationService;
-import org.vstu.compprehension.adapters.FakeQuestionMetadataRepository;
-import org.vstu.compprehension.adapters.FakeRandomProvider;
+import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
 import java.io.IOException;
@@ -54,7 +53,12 @@ public class Main {
                 domainEntity,
                 new FakeLocalizationService(),
                 new FakeRandomProvider(),
-                new FakeQuestionMetadataRepository()
+                new QuestionBank(
+                        new FakeQuestionMetadataRepository(),
+                        new FakeQuestionDataRepository(),
+                        new QuestionMetadataManager( new FakeQuestionMetadataRepository()),
+                        null
+                )
         );
 
 //        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
@@ -92,6 +96,7 @@ public class Main {
                     .filter(file -> !Files.isDirectory(file))
                     // .map(Path::getFileName)  // this makes name relative
                     .map(Path::toString)
+                    .sorted()
                     .collect(Collectors.toList());
         }
     }

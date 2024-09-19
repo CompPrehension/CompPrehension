@@ -4,13 +4,13 @@ import {
     Domain,
     DomainConcept,
     DomainConceptFlag,
+    DomainLaw,
     ExerciseCardConcept,
     ExerciseCardConceptKind,
     ExerciseCardLaw,
-    ExerciseCardViewModel,
     Strategy
 } from "../types/exercise-settings";
-import {ExerciseSettingsStore} from "../stores/exercise-settings-store";
+import {ExerciseCardViewModel, ExerciseSettingsStore, ExerciseStageStore} from "../stores/exercise-settings-store";
 import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
 import {Link} from "react-router-dom";
@@ -105,7 +105,7 @@ type ExerciseCardElementProps = {
 
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const { card, domains, backends, strategies, store } = props;
-    const { t } = useTranslation();    
+    const { t } = useTranslation();
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
     }, [store.user?.language])
@@ -116,25 +116,13 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     if (card == null)
         return (<div>No exercise selected</div>);
 
-    function mapKindToValue(kind?: ExerciseCardConceptKind): 'Denied' | 'Allowed' | 'Target' {
-        return kind === 'FORBIDDEN' ? 'Denied'
-            : kind === 'TARGETED' ? 'Target' : 'Allowed'
-    }
-    function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target'): ExerciseCardConceptKind {
-        return value === 'Denied' ? 'FORBIDDEN'
-            : value === 'Target' ? 'TARGETED' : 'PERMITTED'
-    }
-    function getConceptFlags(c: DomainConcept): ['Denied', 'Allowed'] | ['Denied', 'Allowed', 'Target'] {
-        return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
-    }
-
     const currentDomain = domains.find(z => z.id === card.domainId);
     const stageDomainLaws = currentDomain?.laws
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
     const stageDomainConcepts = currentDomain?.concepts
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
     const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
-    const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);    
+    const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
     const sharedDomainLaws = currentDomain?.laws
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
     const sharedDomainConcepts = currentDomain?.concepts
@@ -161,20 +149,6 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         {strategies?.map(d => <option value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
                     </select>
                     <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
-                </div>
-                <div className="row">
-                    <div className="col-md-6">
-                        <div className="form-group">
-                            <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
-                            <div>
-                                <input type="range"
-                                    className="form-control-range"
-                                    id="formControlRange1"
-                                    value={(store.currentCard?.complexity ?? 0.5) * 100}
-                                    onChange={e => store.setCardQuestionComplexity(e.target.value)} />
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div className="form-group">
@@ -255,44 +229,18 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         <div className="row">
                             <div className="col-md-12">
                                 <div className="list-group list-group-flush">
-                                    {sharedDomainConcepts
-                                        .map((coreConcept, idx) =>
-                                            <div key={idx} className="list-group-item p-0 bg-transparent pt-2 pb-2">
-                                                <div>
-                                                    <div className={`d-flex flex-row align-items-center`}>
-                                                        <ToggleSwitch id={`sharedconcept_toggle_${card.id}_${coreConcept.name}_${idx}`}
-                                                            selected={mapKindToValue(cardConcepts[coreConcept.name]?.kind)}
-                                                            values={getConceptFlags(coreConcept)}                                                            
-                                                            valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                            displayNames={conceptFlagNames}
-                                                            onChange={val => {
-                                                                store.setCardCommonConceptValue(coreConcept.name, mapValueToKind(val))
-                                                                coreConcept.childs.forEach(c => store.setCardCommonConceptValue(c.name, mapValueToKind(val)));
-                                                            }} />
-                                                        <div style={{ marginLeft: '15px' }}>{coreConcept.displayName}</div>
-                                                    </div>
-                                                </div>
-
-                                                {coreConcept.childs.length > 0 &&
-                                                    <ul className="">
-                                                        {coreConcept.childs.map((childConcept, i) =>
-                                                            <>
-                                                                <li key={i}
-                                                                    className={`d-flex flex-row align-items-centers mt-3`}>
-                                                                    <ToggleSwitch id={`sharedconcept_toggle_${card.id}_${childConcept.name}_${idx}`}
-                                                                        selected={mapKindToValue(cardConcepts[childConcept.name]?.kind)}
-                                                                        values={getConceptFlags(childConcept)}
-                                                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                                        displayNames={conceptFlagNames}
-                                                                        onChange={val => {
-                                                                            store.setCardCommonConceptValue(childConcept.name, mapValueToKind(val))
-                                                                            store.setCardCommonConceptValue(coreConcept.name, 'PERMITTED')
-                                                                        }} />
-                                                                    <div style={{ marginLeft: '15px' }}>{childConcept.displayName}</div>
-                                                                </li>
-                                                            </>)}
-                                                    </ul>}
-                                            </div>)}
+                                    <ExerciseConcepts                                        
+                                        id="common_concepts"
+                                        store={store}
+                                        concepts={sharedDomainConcepts}
+                                        cardConcepts={cardConcepts}
+                                        onChange={(concept, conceptValue, parent) => {
+                                            store.setCardCommonConceptValue(concept.name, conceptValue)
+                                            if (!parent)
+                                                concept.childs.forEach(c => store.setCardCommonConceptValue(c.name, conceptValue));
+                                            else
+                                                store.setCardCommonConceptValue(parent.name, 'PERMITTED');
+                                        }} />
                                 </div>
                             </div>
                         </div>
@@ -303,21 +251,19 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     && <div className="form-group">
                         <label className="font-weight-bold">{t('exercisesettings_commonLaws')}</label>
                         <div className="list-group list-group-flush">
-                            {sharedDomainLaws
-                                .map((c, idx) =>
-                                (<div className="list-group-item p-0 bg-transparent pt-2 pb-2" key={idx}>
-                                    <div className="d-flex flex-row align-items-start justify-content-start">
-                                        <div>
-                                            <ToggleSwitch id={`sharedlaw_toggle_${card.id}_${idx}`}
-                                                selected={mapKindToValue(cardLaws[c.name]?.kind)}
-                                                values={['Denied', 'Allowed', 'Target']}
-                                                valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                displayNames={conceptFlagNames}
-                                                onChange={val => store.setCardCommonLawValue(c.name, mapValueToKind(val))} />
-                                        </div>
-                                        <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
-                                    </div>
-                                </div>))}
+                            <ExerciseLaws
+                                id="common_laws"
+                                store={store}
+                                laws={sharedDomainLaws}
+                                cardLaws={cardLaws}
+                                onChange={(law, lawValue, parent) => {
+                                    store.setCardCommonLawValue(law.name, lawValue)
+                                    if (!parent)
+                                        law.childs.forEach(c => store.setCardCommonLawValue(c.name, lawValue));
+                                    else
+                                        store.setCardCommonLawValue(parent.name, 'PERMITTED');
+                                }}
+                            />
                         </div>
                     </div>
                     || null
@@ -325,103 +271,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_stages')}</label>
                     <div className="list-group list-group-flush">
-                        {card.stages.map((stage, stageIdx, stages) =>
-                            <>
-                                <div className="card mb-3">
-                                    {stages.length > 1 &&
-                                        <button type="button" 
-                                                className="close" 
-                                                aria-label="Close" 
-                                                style={{'position': 'absolute', 'top': '10px', 'right': '10px'}}
-                                                onClick={() => store.removeStage(stageIdx)}>
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        || null
-                                    }                                    
-                                    <div className="card-body">
-                                        <div className="form-group">{t('exercisesettings_stageN', { stageNumber: stageIdx + 1})}</div>
-                                        {currentStrategy?.options.multiStagesEnabled
-                                            && <div className="form-group">
-                                                    <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
-                                                    <input type="text"
-                                                        className="form-control"
-                                                        id={`numberOfQuestions_stage${stageIdx}`}
-                                                        value={stage.numberOfQuestions}
-                                                        onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
-                                               </div>
-                                            || null
-                                        }                                        
-                                        {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
-                                            <div className="form-group">
-                                                <label className="font-weight-bold">{t('exercisesettings_stageN_concepts')}</label>
-                                                <div className="list-group list-group-flush">
-                                                    {stageDomainConcepts
-                                                        ?.map((coreConcept, idx) =>
-                                                            <div key={idx} className="list-group-item p-0 bg-transparent pt-2 pb-2">
-                                                                <div>
-                                                                    <div
-                                                                        className={`d-flex flex-row align-items-center`}>
-                                                                        <ToggleSwitch id={`stageconcept${stageIdx}_toggle_${card.id}_${coreConcept.name}_${idx}`}
-                                                                            selected={mapKindToValue(stage.concepts.find(l => l.name === coreConcept.name)?.kind)}
-                                                                            values={getConceptFlags(coreConcept)}
-                                                                            valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                                            displayNames={conceptFlagNames}
-                                                                            onChange={val => {
-                                                                                store.setCardStageConceptValue(stageIdx, coreConcept.name, mapValueToKind(val))
-                                                                                coreConcept.childs.forEach(c => store.setCardStageConceptValue(stageIdx, c.name, mapValueToKind(val)));
-                                                                            }} />
-                                                                        <div style={{ marginLeft: '15px' }}>{coreConcept.displayName}</div>
-                                                                    </div>
-                                                                </div>
-                                                                {coreConcept.childs.length > 0 &&
-                                                                    <ul className="">
-                                                                        {coreConcept.childs.map((childConcept, i) =>
-                                                                            <>
-                                                                                <li key={i}
-                                                                                    className={`d-flex flex-row align-items-centers mt-3`}>
-                                                                                    <ToggleSwitch id={`stageconcept${stageIdx}_toggle_${card.id}_${childConcept.name}_${idx}`}
-                                                                                        selected={mapKindToValue(stage.concepts.find(l => l.name === childConcept.name)?.kind)}
-                                                                                        values={getConceptFlags(childConcept)}
-                                                                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                                                        displayNames={conceptFlagNames}
-                                                                                        onChange={val => {
-                                                                                            store.setCardStageConceptValue(stageIdx, childConcept.name, mapValueToKind(val))
-                                                                                            store.setCardStageConceptValue(stageIdx, coreConcept.name, 'PERMITTED')
-                                                                                        }} />
-                                                                                    <div style={{ marginLeft: '15px' }}>{childConcept.displayName}</div>
-                                                                                </li>
-                                                                            </>)}
-                                                                    </ul>}
-                                                            </div>)}
-                                                </div>
-                                            </div>
-                                            || null}
-                                        {(stageDomainLaws && stageDomainLaws.length > 0)
-                                            &&
-                                            <div className="form-group">
-                                                <label className="font-weight-bold">{t('exercisesettings_stageN_laws')}</label>
-                                                <div className="list-group list-group-flush">
-                                                    {stageDomainLaws.map((c, idx) =>
-                                                    (<div className="list-group-item p-0 bg-transparent pt-2 pb-2" key={idx}>
-                                                        <div className="d-flex flex-row align-items-start justify-content-start">
-                                                            <div>
-                                                                <ToggleSwitch id={`stagelaw${stageIdx}_toggle_${card.id}_${idx}`}
-                                                                    selected={mapKindToValue(stage.laws.find(l => l.name === c.name)?.kind)}
-                                                                    values={['Denied', 'Allowed', 'Target']}
-                                                                    valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                                    displayNames={conceptFlagNames}
-                                                                    onChange={val => store.setCardStageLawValue(stageIdx, c.name, mapValueToKind(val))} />
-                                                            </div>
-                                                            <div style={{ marginLeft: '15px' }}>{c.displayName}</div>
-                                                        </div>
-                                                    </div>))}
-                                                </div>
-                                            </div>
-                                            || null
-                                        }
-                                    </div>
-                                </div>
-                            </>)}
+                        {card.stages.map((stage, stageIdx, stages) => 
+                            <ExerciseStage
+                                key={stageIdx} 
+                                store={store} 
+                                stage={stage} 
+                                stageIdx={stageIdx}
+                                showDeleteBtn={stages.length > 1}
+                                strategy={currentStrategy}
+                                stageDomainConcepts={stageDomainConcepts}
+                                stageDomainLaws={stageDomainLaws} />)
+                        }
                     </div>
                 </div>
                 {card.stages.length < 5 && currentStrategy?.options.multiStagesEnabled
@@ -444,3 +304,234 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
 
     );
 })
+
+
+type ExerciseStageProps = {
+    store: ExerciseSettingsStore,
+    stage: ExerciseStageStore,    
+    stageIdx: number,
+    showDeleteBtn?: boolean,
+    strategy?: Strategy,
+    stageDomainConcepts?: DomainConcept[],
+    stageDomainLaws?: DomainLaw[],
+}
+const ExerciseStage = observer((props: ExerciseStageProps) => {
+    const { t } = useTranslation();
+    const { store, stage, strategy, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws } = props;
+    const card = store.currentCard;
+    if (!card)
+        throw new Error('card not set');
+    const cardConcepts = stage.concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
+    const cardLaws = stage.laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
+
+    return (
+        <div className="card mb-3">
+            <div className="card-body">
+                <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div>{t('exercisesettings_stageN', { stageNumber: stageIdx + 1 })}</div>                                            
+                    <div>
+                        <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
+                        {
+                            stage.bankLoadingState === 'IN_PROGRESS' || stage.bankQuestionsCount === null
+                                ? <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
+                                : <span>{`${stage.bankQuestionsCount.count} (${stage.bankQuestionsCount?.topRatedCount})`}</span>
+                        }
+                    </div>
+                </div>
+                {strategy?.options.multiStagesEnabled
+                    && <div className="form-group">
+                            <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
+                            <input type="text"
+                                className="form-control"
+                                id={`numberOfQuestions_stage${stageIdx}`}
+                                value={stage.numberOfQuestions}
+                                onChange={e => store.setCardStageNumberOfQuestions(stageIdx, e.target.value)} />
+                        </div>
+                    || null
+                }
+                <div className="form-group">
+                    <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
+                    <div className="d-flex">
+                        <input type="range"
+                            className="form-control-range"
+                            id={`complexity_stage${stageIdx}`}
+                            value={(stage.complexity ?? 0.5) * 100}
+                            onChange={e => store.setCardStageComplexity(stageIdx, e.target.value)} />
+                        <div className="ml-2">{stage.complexity.toFixed(2)}</div>
+                    </div>
+                </div>
+                {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
+                    <div className="form-group">
+                        <label className="font-weight-bold">{t('exercisesettings_stageN_concepts')}</label>
+                        <div className="list-group list-group-flush">
+                            <ExerciseConcepts
+                                id={`stage${stageIdx}_concepts`}
+                                store={store}
+                                concepts={stageDomainConcepts}
+                                cardConcepts={cardConcepts}
+                                onChange={(concept, conceptValue, parent) => {
+                                    store.setCardStageConceptValue(stageIdx, concept.name, conceptValue)
+                                    if (!parent)
+                                        concept.childs.forEach(c => store.setCardStageConceptValue(stageIdx, c.name, conceptValue));
+                                    else
+                                        store.setCardStageConceptValue(stageIdx, parent.name, 'PERMITTED');
+                                }} />
+                        </div>
+                    </div>
+                    || null}
+                {(stageDomainLaws && stageDomainLaws.length > 0)
+                    &&
+                    <div className="form-group">
+                        <label className="font-weight-bold">{t('exercisesettings_stageN_laws')}</label>
+                        <div className="list-group list-group-flush">
+                            <ExerciseLaws
+                                id={`stage${stageIdx}_laws`}
+                                store={store}
+                                laws={stageDomainLaws}
+                                cardLaws={cardLaws}
+                                onChange={(law, lawValue, parent) => {
+                                    store.setCardStageLawValue(stageIdx, law.name, lawValue)
+                                    if (!parent)
+                                        law.childs.forEach(c => store.setCardStageLawValue(stageIdx, c.name, lawValue));
+                                    else
+                                        store.setCardStageLawValue(stageIdx, parent.name, 'PERMITTED');
+                                }}
+                            />
+                        </div>
+                    </div>
+                    || null
+                }
+                {showDeleteBtn &&
+                    <div className="d-flex justify-content-end">
+                        <button type="button" className="btn btn-danger" onClick={() => store.removeStage(stageIdx)}>{t('exercisesettings_removeStage')}</button>
+                    </div>
+                    || null
+                }
+            </div>
+        </div>
+    );
+})
+
+type ExerciseConceptsProps = {
+    id: string | number,
+    store: ExerciseSettingsStore,
+    concepts: DomainConcept[],
+    cardConcepts: Record<string, ExerciseCardConcept>,
+    onChange: (concept: DomainConcept, conceptValue: ExerciseCardConceptKind, parent?: DomainConcept) => void,
+}
+const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
+    const { id, store, concepts, cardConcepts, onChange } = props;
+    const { t  } = useTranslation();
+    const card = store.currentCard;
+    if (!card)
+        throw new Error('card not set');
+    
+    const conceptFlagNames = useMemo(() => {
+        return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
+    }, [store.user?.language])
+    
+
+    return (
+        <>
+            {concepts
+                .map((coreConcept, idx) =>
+                    <div key={idx} className="list-group-item p-0 bg-transparent pt-2 pb-2">
+                        <div>
+                            <div className={`d-flex flex-row align-items-center`}>
+                                <ToggleSwitch id={`concept_${id}_toggle_${card.id}_${coreConcept.name}_${idx}`}
+                                    selected={mapKindToValue(cardConcepts[coreConcept.name]?.kind)}
+                                    values={getConceptFlags(coreConcept)}                                                            
+                                    valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                    displayNames={conceptFlagNames}
+                                    onChange={val => onChange(coreConcept, mapValueToKind(val))} />
+                                <div style={{ marginLeft: '15px' }}>{coreConcept.displayName}</div>
+                            </div>
+                        </div>
+
+                        {coreConcept.childs.length > 0 &&
+                            <ul className="">
+                                {coreConcept.childs.map((childConcept, i) =>
+                                    <>
+                                        <li key={i}
+                                            className={`d-flex flex-row align-items-centers mt-3`}>
+                                            <ToggleSwitch id={`concept_${id}_toggle_${card.id}_${childConcept.name}_${idx}_${i}`}
+                                                selected={mapKindToValue(cardConcepts[childConcept.name]?.kind)}
+                                                values={getConceptFlags(childConcept)}
+                                                valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                                displayNames={conceptFlagNames}
+                                                onChange={val => onChange(childConcept, mapValueToKind(val), coreConcept)} />
+                                            <div style={{ marginLeft: '15px' }}>{childConcept.displayName}</div>
+                                        </li>
+                                    </>)}
+                            </ul>}
+                    </div>)}
+        </>
+    )
+})
+
+type ExerciseLawsProps = {    
+    id: string | number,
+    store: ExerciseSettingsStore,
+    laws: DomainLaw[],
+    cardLaws: Record<string, ExerciseCardLaw>,
+    onChange: (law: DomainLaw, lawValue: ExerciseCardConceptKind, parent?: DomainLaw) => void,
+}
+const ExerciseLaws = observer((props: ExerciseLawsProps) => {
+    const { id, store, laws, cardLaws, onChange } = props;
+    const { t  } = useTranslation();
+    const card = store.currentCard;
+    if (!card)
+        throw new Error('card not set');   
+    
+    const lawFlagNames = useMemo(() => {
+        return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
+    }, [store.user?.language])
+
+    return(
+    <>
+        {
+            laws.map((coreLaw, idx) =>
+                (<div className="list-group-item p-0 bg-transparent pt-2 pb-2" key={idx}>
+                    <div>
+                        <div className={`d-flex flex-row align-items-center`}>
+                            <ToggleSwitch id={`law_${id}_toggle_${card.id}_${idx}`}
+                                selected={mapKindToValue(cardLaws[coreLaw.name]?.kind)}
+                                values={['Denied', 'Allowed', 'Target']}
+                                valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                displayNames={lawFlagNames}
+                                onChange={val => onChange(coreLaw, mapValueToKind(val))} />
+                            <div style={{ marginLeft: '15px' }}>{coreLaw.displayName}</div>
+                        </div>
+                    </div>
+
+                    {coreLaw.childs.length > 0 &&
+                        <ul className="">
+                            {coreLaw.childs.map((childLaw, i) =>
+                                <>
+                                    <li key={i} className={`d-flex flex-row align-items-centers mt-3`}>
+                                    <ToggleSwitch id={`law_${id}_toggle_${card.id}_${idx}_${i}`}
+                                        selected={mapKindToValue(cardLaws[childLaw.name]?.kind)}
+                                        values={['Denied', 'Allowed', 'Target']}
+                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                        displayNames={lawFlagNames}
+                                        onChange={val => onChange(childLaw, mapValueToKind(val), coreLaw)} />
+                                        <div style={{ marginLeft: '15px' }}>{childLaw.displayName}</div>
+                                    </li>
+                                </>)}
+                        </ul>}
+                </div>))
+        }
+    </>)
+})
+
+function mapKindToValue(kind?: ExerciseCardConceptKind): 'Denied' | 'Allowed' | 'Target' {
+    return kind === 'FORBIDDEN' ? 'Denied'
+        : kind === 'TARGETED' ? 'Target' : 'Allowed'
+}
+function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target'): ExerciseCardConceptKind {
+    return value === 'Denied' ? 'FORBIDDEN'
+        : value === 'Target' ? 'TARGETED' : 'PERMITTED'
+}
+function getConceptFlags(c: DomainConcept): ['Denied', 'Allowed'] | ['Denied', 'Allowed', 'Target'] {
+    return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
+}

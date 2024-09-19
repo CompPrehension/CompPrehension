@@ -1,16 +1,13 @@
 package org.vstu.compprehension.models.entities;
 
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
-import jakarta.persistence.*;
-import lombok.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -51,8 +48,7 @@ public class UserEntity {
     @Enumerated(EnumType.ORDINAL)
     private Language preferred_language;
 
-    @ElementCollection(targetClass = Role.class)
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "UserRole", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;

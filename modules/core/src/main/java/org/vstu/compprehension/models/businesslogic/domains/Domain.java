@@ -1,15 +1,9 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.aop.framework.AopProxyUtils;
@@ -19,18 +13,16 @@ import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.storage.AbstractRdfStorage;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 @RequestScope
@@ -53,20 +45,12 @@ public abstract class Domain {
     @Getter
     protected final RandomProvider randomProvider;
     @Getter
-    protected AbstractRdfStorage qMetaStorage = null;
-    @Getter
     private final DomainEntity domainEntity;
 
     public Domain(DomainEntity domainEntity, RandomProvider randomProvider) {
         this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
     }
-
-    /**
-     * Function for update all internal domain db info
-     */
-    public abstract void update();
-
 
     public @NotNull String getDomainId() {
         return domainEntity.getName();
@@ -77,13 +61,13 @@ public abstract class Domain {
     public String getShortName() {
         return domainEntity.getShortName();  // same as name by default
     }
-    
+
     /**
      * A temporary method to reuse DB-stored questions between Domains
      * Is the same as {@link #getShortName()} by default
      * FIXME - replace back to getShortName()
      */
-    public String getDBShortName(){
+    public String getShortnameForQuestionSearch(){
         return getShortName();
     }
     public String getVersion() {
@@ -91,6 +75,7 @@ public abstract class Domain {
     }
     public abstract @NotNull String getDisplayName(Language language);
     public abstract @Nullable String getDescription(Language language);
+    public DomainOptionsEntity getOptions() { return domainEntity.getOptions(); }
 
     public DomainEntity getEntity() {
         return domainEntity;
@@ -119,12 +104,43 @@ public abstract class Domain {
         return getMessage(lawName, "law.", language);
     }
 
-    public PositiveLaw getPositiveLaw(String name) {
+    public @Nullable PositiveLaw getPositiveLaw(String name) {
         return positiveLaws.getOrDefault(name, null);
     }
 
-    public NegativeLaw getNegativeLaw(String name) {
+    public @Nullable NegativeLaw getNegativeLaw(String name) {
         return negativeLaws.getOrDefault(name, null);
+    }
+
+    public @Nullable Law getLaw(String name) {
+        var negative = getNegativeLaw(name);
+        if (negative != null)
+            return negative;
+        return getPositiveLaw(name);
+    }
+
+    public Collection<? extends Law> getLawWithChildren(String name_) {
+        return getLawsWithChildren(List.of(name_));
+    }
+
+    public Collection<? extends Law> getLawsWithChildren(Collection<String> names) {
+        Set<String> res = new HashSet<>();
+        Set<String> pool = new HashSet<>(names);
+        while (!pool.isEmpty()) {
+            // copy concepts from pool to res
+            res.addAll(pool);
+
+            for (String name : new HashSet<>(pool)) {
+                pool.remove(name);
+                Law currLaw = getLaw(name);
+                if (currLaw != null && currLaw.getChildLaws() != null) {
+                    // try to add all children of current concept
+                    pool.addAll(currLaw.getChildLaws().stream().map(Law::getName).collect(Collectors.toSet()));
+                    pool.removeAll(res);  // guard: don't allow infinite recursion.
+                }
+            }
+        }
+        return res.stream().map(this::getLaw).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     public List<PositiveLaw> getPositiveLawWithImplied(String name) {
@@ -171,7 +187,7 @@ public abstract class Domain {
      * @return map representing groups of concepts (base concept -> concepts in the group)
      */
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
-        Map<Concept, List<Concept>> res = new HashMap<>();
+        Map<Concept, List<Concept>> res = new TreeMap<>();
         Set<Concept> wanted = this.concepts.values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
@@ -228,6 +244,84 @@ public abstract class Domain {
         wanted.removeAll(added);
         for (Concept t : wanted) {
             res.put(t, new ArrayList<>());
+        }
+
+        // sort list items
+        for (var list : res.values()) {
+            list.sort(TreeNodeWithBitmask::compareTo);
+        }
+
+        return res;
+    }
+
+    /** Get laws with given flags (e.g. visible) organized into two-level hierarchy
+     * @param requiredFlags e.g. Law.FLAG_VISIBLE_TO_TEACHER
+     * @return map representing groups of laws (base law -> laws in the group)
+     */
+    public Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags) {
+        Map<Law, List<Law>> res = new TreeMap<>();
+        Set<Law> wanted = Stream.concat(this.getPositiveLaws().stream(), this.getNegativeLaws().stream())
+                .filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Law> added = new HashSet<>();
+        for (Law ct : new ArrayList<>(wanted)) {
+            // ensure we are dealing with bottom-level law
+            Collection<Law> children = (Collection<Law>) this.getLawWithChildren(ct.getName());
+            children.remove(ct);
+            boolean hasChildren =
+                    children.stream().anyMatch(wanted::contains);
+            if (hasChildren) {
+                continue;  // skip non-bottom laws
+            }
+
+            Law nearestWantedBase = null;
+            List<Law> bases = new ArrayList<>(ct.getLawsImplied());
+            while (!bases.isEmpty()) {
+                for (Law base : new ArrayList<>(bases)) {
+                    if (wanted.contains(base)) {
+                        nearestWantedBase = base;
+                        bases.clear();
+                        break;
+                    }
+                    bases.remove(base);
+                    bases.addAll(base.getLawsImplied());
+                }
+            }
+            Law key;
+            List<Law> value;
+
+            if (nearestWantedBase != null) {
+                // law is within a group
+                key = nearestWantedBase;
+                value = new ArrayList<>(List.of(ct));
+                added.add(ct);
+
+            } else {
+                // law does not belong to any group (has no bases we want)
+                key = ct;
+                value = new ArrayList<>();
+            }
+            // put into a group or as top-level
+            if (res.containsKey(key)) {
+                List<Law> arr = res.get(key);
+                for (Law oneValue : value)
+                    if (!arr.contains(oneValue)) {
+                        arr.add(oneValue);
+                        added.add(oneValue);
+                    }
+            } else {
+                res.put(key, value);
+                added.add(key);
+            }
+        }
+        // add all top-level bases we skipped
+        wanted.removeAll(added);
+        for (Law t : wanted) {
+            res.put(t, new ArrayList<>());
+        }
+
+        // sort list items
+        for (var list : res.values()) {
+            list.sort(TreeNodeWithBitmask::compareTo);
         }
 
         return res;
@@ -300,7 +394,7 @@ public abstract class Domain {
 
     /** Set direct children to both positive and negative Laws. This is needed since names of laws are stored only */
     protected void fillLawsTree() {
-        // set direct child Laws to Laws
+        // set direct implied (base) Laws to each Law
         for (Law t : positiveLaws.values()) {
             if (t.getImpliesLaws() == null) {
                 t.setLawsImplied(List.of());
@@ -315,6 +409,20 @@ public abstract class Domain {
                 t.setLawsImplied(t.getImpliesLaws().stream().map(this::getNegativeLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
             }
         }
+
+        // set direct child Laws to Laws
+        var allLaws = Stream.concat(getPositiveLaws().stream(), getNegativeLaws().stream()).collect(Collectors.toSet());
+        for (Law law : allLaws) {
+            if (law.getLawsImplied() == null)
+                continue;
+            for (Law base : law.getLawsImplied()) {
+                if (base.getChildLaws() == null) {
+                    base.setChildLaws(new HashSet<>());
+                }
+                base.getChildLaws().add(law);
+            }
+        }
+
     }
 
 
@@ -337,10 +445,8 @@ public abstract class Domain {
         return getMessage(prefix + messageKey, preferredLanguage);
     }
 
-    public Model getSchemaForSolving(/* String questionType (?) */) {
-        // the default
-        return ModelFactory.createDefaultModel();
-    }
+    /** Get statement facts with common domain definitions for reasoning (schema) added */
+    public abstract Collection<Fact> getQuestionStatementFactsWithSchema(Question q);
 
     public String getDefaultQuestionType() {
         return getDefaultQuestionType(false);
@@ -355,41 +461,6 @@ public abstract class Domain {
         return new ArrayList<>();
     }
 
-    @NotNull
-    public static Gson getQuestionGson() {
-        RuntimeTypeAdapterFactory<Question> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Question.class, "questionType")
-                        .registerSubtype(Ordering.class, "ORDERING")
-                        .registerSubtype(SingleChoice.class, "SINGLE_CHOICE")
-                        .registerSubtype(MultiChoice.class, "MULTI_CHOICE")
-                        .registerSubtype(Matching.class, "MATCHING");
-        return new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-    }
-
-    abstract public Question parseQuestionTemplate(InputStream stream);
-
-    /**
-     * More interactions a student does, greater possibility to mistake accidentally. A certain rate of mistakes (say 1 of 12) can be considered unintentional so no penalty is assessed.
-     * @return the rate threshold
-     */
-    public double getAcceptableRateOfIgnoredMistakes() {
-        return 0.0834;  // = 1/12
-    }
-
-    private static final Gson gson = new GsonBuilder()
-        .disableHtmlEscaping()
-        .setPrettyPrinting()
-        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-        .create();
-    public static String questionToJson(Question question, String questionType) {
-        var jsonObj = gson.toJsonTree(question).getAsJsonObject();
-        jsonObj.add("questionType", new JsonPrimitive(questionType));
-        return gson.toJson(jsonObj);
-    }
-
     /**
      * Get text description of all steps to right solution
      * @param question tested question
@@ -398,66 +469,16 @@ public abstract class Domain {
     public abstract List<HyperText> getFullSolutionTrace(Question question);
 
     /**
-     * Get text description of all steps to complete correct solution
-     * @param question not solved question
-     * @return list of step descriptions
-     */
-    public List<HyperText> getCompleteSolvedTrace(Question question) {
-        return List.of();
-    }
-
-    public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
-        return List.of();
-    }
-
-    /**
-     * TODO: do we need this function?
-     * @return
-     */
-    public abstract ExerciseForm getExerciseForm();
-
-    /**
-     * TODO: do we need this function?
-     * @param ef
-     * @return
-     */
-    public abstract ExerciseEntity processExerciseForm(ExerciseForm ef);
-
-    /**
      * Generate domain question with restrictions
      * @param questionRequest params of needed question
      * @param tags question tags (like programming language)
      * @param userLanguage question wording language
      * @return generated question
      */
-    public abstract Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
+    public abstract Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
 
-    /** Convert lists of concepts and laws to bitmasks */
-    public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
-        qr.setConceptsTargetedBitmask(conceptsToBitmask(qr.getTargetConcepts()));
-//        qr.setConceptsAllowedBitmask(conceptsToBitmask(qr.getAllowedConcepts()));  // unused ?
-        qr.setConceptsDeniedBitmask(conceptsToBitmask(qr.getDeniedConcepts()));
-        qr.setConceptsTargetedInPlanBitmask(conceptsToBitmask(qr.getTargetConceptsInPlan()));
-
-        qr.setLawsTargetedBitmask(lawsToBitmask(qr.getTargetLaws()));
-//        qr.setAllowedLawsBitmask(awsToBitmask(qr.getAllowedLaws()));  // unused ?
-        qr.setLawsDeniedBitmask(lawsToBitmask(qr.getDeniedLaws()));
-        qr.setLawsTargetedInPlanBitmask(lawsToBitmask(qr.getTargetLawsInPlan()));
-
-        return qr;
-    }
-
-    protected static long conceptsToBitmask(List<Concept> concepts) {
-        long conceptBitmask = 0; //
-        for (Concept t : concepts) {
-            long newBit = t.getBitmask();
-            if (newBit == 0) {
-                // make use of children
-                newBit = t.getSubTreeBitmask();
-            }
-            conceptBitmask |= newBit;
-        }
-        return conceptBitmask;
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest;
     }
 
     protected static long lawsToBitmask(List<Law> laws) {
@@ -473,23 +494,31 @@ public abstract class Domain {
         }
         return lawBitmask;
     }
-    
+
     /**
-     * Get domain-defined backend id, which determines the backend used to solve this domain's questions
-     * Returns {@link JenaBackend#BackendId} by default, as Jena was de-facto only Backend used
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
      */
-    public String getBackendId(){
-        return JenaBackend.BackendId;
+    public abstract String getSolvingBackendId();
+
+    /**
+     * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
+     */
+    public String getJudgingBackendId(/* TODO: pass question type ??*/){
+        return this.getSolvingBackendId();
     }
 
-        /**
-         * Generate explanation of violations
-         * @param violations list of student violations
-         * @param feedbackType TODO: use feedbackType or delete it
-         * @param lang user preferred language
-         * @return explanation for each violation in random order
-         */
+    /**
+     * Generate explanation of violations
+     * @param violations list of student violations
+     * @param feedbackType TODO: use feedbackType or delete it
+     * @param lang user preferred language
+     * @return explanation for each violation in random order
+     */
     public abstract List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
+
+    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang){
+        return null;
+    }
 
     /**
      * Get all needed (positive and negative) laws in this questionType
@@ -826,44 +855,6 @@ public abstract class Domain {
     }
 
     public abstract List<Concept> getLawConcepts(Law law);
-
-
-    //    API домена для обработки template’ов, которое будет вызываться службой хранилища
-    /** Compute inferences from question template by calling reasoner with appropriate rules.
-     * Returned RDF model should not include triples that exist in template or schema .
-     * @param templateName may be useful
-     * @param questionTemplate the main data to use
-     * @param domainSchema (pre-solved) ready-made RDF model to feed into reasoner with main data
-     * */
-    Model solveQuestionTemplateRDF(String templateName, Model questionTemplate, Model domainSchema) {
-        return null;
-    }
-
-    /** Compute inferences for (generated) question by calling reasoner with appropriate rules.
-     * Returned RDF model should not include triples that exist in template or schema .
-     * @param questionName (pre-solved) may be useful
-     * @param questionData includes (solved) template and basic data about question
-      * @param domainSchema ready-made RDF model to feed into reasoner with main data
-     * */
-    Model solveQuestionRDF(String questionName, Model questionData, Model domainSchema) {
-        return null;
-    }
-
-
-    /** Генерирует вопросы из шаблона, подбирая вопросы с разными наборам ошибок, минимальные по длине решения.
-     * Generate questions from a template, selecting questions with different sets of errors, and minimal solutions in length.
-     * FIXME? Удалить? используется только в {@link ProgrammingLanguageExpressionDomain}
-     *
-     *
-     * @param templateName may be useful to make final question names
-     * @param solvedTemplate all known data about question template
-     * @param domainSchema (pre-solved) may be useful
-     * @param questionsLimit maximum questions to create (avoiding infinite loops)
-     * @return map: [new question name] -> [contents of QUESTION graph]
-     * */
-    public Map<String, Model> generateDistinctQuestions(String templateName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
-        return null;
-    }
 
     //-----
 

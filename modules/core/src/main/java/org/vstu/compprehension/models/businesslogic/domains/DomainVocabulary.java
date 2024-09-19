@@ -1,6 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import lombok.Getter;
 import org.apache.jena.ontology.OntClass;
+import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -12,21 +14,19 @@ import java.util.*;
 
 public class DomainVocabulary {
     String vocabularyPath;
-    Model model;
+
+    @Getter
+    OntModel model;
 
     public DomainVocabulary(String vocabularyPath) {
         this.vocabularyPath = vocabularyPath;
-        model = ModelFactory.createDefaultModel();
+        model = ModelFactory.createOntologyModel();
 
         // read an RDF file
         model.read(vocabularyPath);
 
         ////    If the syntax is not as the file extension, a language can be declared:
         //    model.read("data.foo", "TURTLE") ;
-    }
-
-    public Model getModel() {
-        return model;
     }
 
     public List<Concept> readConcepts() {
@@ -128,7 +128,7 @@ public class DomainVocabulary {
 
     /** Extends given list with local names of subclasses till given depth limit.
      * Intended for internal use but can be utilized as-is.
-     * maxDepth unlimited search if < 0; get only direct children if == 1.
+     * maxDepth: unlimited search if < 0; get direct children only if equals to 1.
      *  */
     public void addDescendants(String className, List<String> classes, int maxDepth, Property childOf) {
         if (maxDepth == 0)
@@ -142,8 +142,8 @@ public class DomainVocabulary {
             String childClassName = childClassNode.getLocalName();
             if (!classes.contains(childClassName)) {
                 classes.add(childClassName);
+                addDescendants(childClassName, classes, maxDepth - 1, childOf);
             }
-            addDescendants(childClassName, classes, maxDepth - 1, childOf);
         }
     }
 
@@ -151,6 +151,18 @@ public class DomainVocabulary {
         ArrayList<String> result = new ArrayList<>();
         addDescendants(propertyName, result, -1, RDFS.subPropertyOf);
         return result;
+    }
+
+    /** Get all properties having specified property connected as `object` via skos:broader */
+    public List<String> propertiesHavingBroader(String propertyName) {
+        ArrayList<String> result = new ArrayList<>();
+
+        ResIterator iter = model.listSubjectsWithProperty(
+                SKOS.broader,
+                model.createProperty(model.expandPrefix(":" + propertyName))
+        );
+
+        return iter.mapWith(Resource::getLocalName).toList();
     }
 
 
@@ -200,6 +212,32 @@ public class DomainVocabulary {
         ArrayList<OntClass> result = new ArrayList<>(classes);
         result.removeAll(set);
         return result;
+    }
+
+    /**
+     * Update model `m` so each individual in it has only one rdf:type assertion (the most specific class of all asserted before).
+     * @param m model to update
+     * @return model `m`
+     */
+    public static OntModel retainLeafTypesOnlyForIndividuals(OntModel m) {
+        // ...
+        for (Resource res : m.listSubjectsWithProperty(RDF.type).toSet()) {
+            List<OntClass> types = m.listObjectsOfProperty(res, RDF.type).toSet().stream()
+                    .map(n -> n.canAs(OntClass.class) ?
+                        n.as(OntClass.class) : null)
+                    .filter(Objects::nonNull)
+                    .toList();
+            if (types.size() <= 1)
+                continue;
+            List<OntClass> leaves = retainLeafOntClasses(types);
+            for (OntClass cls : types) {
+                if (leaves.contains(cls))
+                    continue;
+                // non-leaf class asserted: remove the triple.
+                m.remove(res, RDF.type, cls);
+            }
+        }
+        return m;
     }
 
     public static boolean testSubClassOfTransitive(OntClass a, OntClass b) {

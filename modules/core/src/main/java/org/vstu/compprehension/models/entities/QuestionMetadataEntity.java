@@ -1,19 +1,21 @@
 package org.vstu.compprehension.models.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Date;
-import java.util.List;
 
 @Getter @Setter
 @Builder(toBuilder = true)
-@Entity
-@Table(name = "questions_meta")
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "questions_meta", indexes = {
+    @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
+})
 public class QuestionMetadataEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,29 +29,15 @@ public class QuestionMetadataEntity {
     @Column(name = "domain_shortname")
     private String domainShortname;
 
-    @Column(name = "template_id", nullable = false)
-    private Integer templateId;
-
-    @Column(name = "qt_graph")
-    private String qtGraphPath;
-
-    @Column(name = "qt_s_graph")
-    private String qtSolvedGraphPath;
-
-    @Column(name = "q_graph")
-    private String qGraphPath;
-
-    @Column(name = "q_s_graph")
-    private String qSolvedGraphPath;
+    @Column(name = "template_id")
+    private String templateId;
 
     @Column(name = "q_data_graph")
     private String qDataGraph;
 
-    /** workaround due to change in field name in db/json.
-     * Normally, use `setQDataGraph(path)`. */
-    public void setQDataGraphPath(String path) {
-        setQDataGraph(path);
-    }
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_data_id", referencedColumnName = "id")
+    private QuestionDataEntity questionData;
 
     @Column(name = "tag_bits")
     private Long tagBits;
@@ -78,37 +66,14 @@ public class QuestionMetadataEntity {
     @Column(name = "distinct_errors_count")
     private Integer distinctErrorsCount;
 
-    /** 3: ready for usage (or import, i.e. created),
-     *  4: imported,
-     *  other: invalid */
-    @Column(name = "_stage")
-    private Integer stage;
-
     @Column(name = "_version")
     private Integer version;
-
-    @Builder.Default
-    @Column(name = "used_count")
-    private Long usedCount = 0L;
-
-    @Builder.Default
-    @Column(name = "date_last_used")
-    private Date dateLastUsed = null;
-
-    @Builder.Default
-    @Column(name = "last_attempt_id")
-    private Long lastAttemptId = 0L;
 
     /** compact representation of meaningful structure; may be used to determine similar questions
      * */
     @Builder.Default
     @Column(name = "structure_hash")
     private String structureHash = "";
-
-
-    @Column(name = "is_draft")
-    @Builder.Default
-    private boolean isDraft = false;
 
     /**
      * URL or name of GitHub repository from which this question was created
@@ -117,15 +82,17 @@ public class QuestionMetadataEntity {
     @Column(name = "origin")
     private String origin = "";
 
-    @Builder.Default
-    @Type(JsonType.class)
-    @Column(name = "qrlog_ids", columnDefinition = "json")
-    private List<Long> qrlogIds = null;
-
-    @Column(name = "date_created")
-    private Date dateCreated;
-
-
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "generation_request_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private QuestionGenerationRequestEntity generatedBy;
+    
+    @Column(name = "generation_request_id")
+    private Integer generationRequestId;
 
     @Transient
     @Builder.Default
@@ -185,15 +152,5 @@ public class QuestionMetadataEntity {
     /** Violations from request absent in question's violations */
     public Long violationsUnsatisfiedFromRequest() {
         return ~violationBits & violationBitsInRequest;
-    }
-
-    /**
-     * @return a copy with isDraft set to `false`; don't reset id
-     */
-    public QuestionMetadataEntity toMetadataEntity() {
-        return this.toBuilder()
-                // .id(null)  // don't reset id: reuse db row
-                .isDraft(false)
-                .build();
     }
 }

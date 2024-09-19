@@ -197,6 +197,25 @@ class brackets : operator {
 	EN.localizedName = "operator []" ;
 ]
 
+class `function_call` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 2 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = false ;
+	needsInnerOperand = true ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 2 ;
+	is_function_call = true ;
+} [
+	RU.localizedName = "вызов функции" ;
+	EN.localizedName = "function call" ;
+]
+// не путать со свободными круглыми скобками parenthesis↑, parentheses↓
+
+
 class comma : operator {
 
 	arity = arity:binary ;
@@ -417,8 +436,8 @@ class postfixDec : operator {
 	hasStrictOperandOrder = false ;
 	countOfTokens = 1 ;
 } [
-	RU.localizedName = "оператор --" ;
-	EN.localizedName = "operator --" ;
+	RU.localizedName = "оператор ▯--" ;
+	EN.localizedName = "operator ▯--" ;
 ]
 
 class postfixInc : operator {
@@ -433,15 +452,15 @@ class postfixInc : operator {
 	hasStrictOperandOrder = false ;
 	countOfTokens = 1 ;
 } [
-	RU.localizedName = "оператор ++" ;
-	EN.localizedName = "operator ++" ;
+	RU.localizedName = "оператор ▯++" ;
+	EN.localizedName = "operator ▯++" ;
 ]
 
 class power : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 4 ;
+	precedence = 12 ;
 	associativity = associativity:left ;
 	needsLeftOperand = true ;
 	needsRightOperand = true ;
@@ -449,8 +468,8 @@ class power : operator {
 	hasStrictOperandOrder = false ;
 	countOfTokens = 1 ;
 } [
-	RU.localizedName = "оператор ^" ;
-	EN.localizedName = "operator ^" ;
+	RU.localizedName = "побитовый оператор ^" ;
+	EN.localizedName = "biwise operator ^" ;
 ]
 
 class prefixDec : operator {
@@ -465,8 +484,8 @@ class prefixDec : operator {
 	hasStrictOperandOrder = false ;
 	countOfTokens = 1 ;
 } [
-	RU.localizedName = "оператор --" ;
-	EN.localizedName = "operator --" ;
+	RU.localizedName = "оператор --▯" ;
+	EN.localizedName = "operator --▯" ;
 ]
 
 class prefixInc : operator {
@@ -481,8 +500,8 @@ class prefixInc : operator {
 	hasStrictOperandOrder = false ;
 	countOfTokens = 1 ;
 } [
-	RU.localizedName = "оператор ++" ;
-	EN.localizedName = "operator ++" ;
+	RU.localizedName = "оператор ++▯" ;
+	EN.localizedName = "operator ++▯" ;
 ]
 
 class ternaryConditional : operator {
@@ -535,3 +554,436 @@ class unaryPlus : operator {
 
 
 
+// доп. виды операций из исходного домена Выражений (с 30.06.2024) //
+
+class `operator_+=` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор +=" ;
+	EN.localizedName = "operator +=" ;
+]
+
+class `operator_%` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 5 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор %" ;
+	EN.localizedName = "operator %" ;
+]
+
+class `operator_%=` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор %=" ;
+	EN.localizedName = "operator %=" ;
+]
+
+class `operator_unary_&` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор &" ;
+	EN.localizedName = "operator &" ;
+]
+
+class `operator_&=` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор &=" ;
+	EN.localizedName = "operator &=" ;
+]
+
+class `operator_*=` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор *=" ;
+	EN.localizedName = "operator *=" ;
+]
+
+class `operator_pointer_field` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 2 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор ->" ;
+	EN.localizedName = "operator ->" ;
+]
+
+class `operator_.` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 2 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "точка" ;
+	EN.localizedName = "period" ;
+]
+
+class `operator_::` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 1 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор ::" ;
+	EN.localizedName = "operator ::" ;
+]
+
+class `operator_left_shift` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 7 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор <<" ;
+	EN.localizedName = "operator <<" ;
+]
+
+class `operator_left_shift_assign` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор <<=" ;
+	EN.localizedName = "operator <<=" ;
+]
+
+class `operator_=` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор =" ;
+	EN.localizedName = "operator =" ;
+]
+
+class `operator_right_shift` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 7 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор >>" ;
+	EN.localizedName = "operator >>" ;
+]
+
+class `operator_right_shift_assign` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор >>=" ;
+	EN.localizedName = "operator >>=" ;
+]
+
+class `operator_xor_assign` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор ^=" ;
+	EN.localizedName = "operator ^=" ;
+]
+
+class `operator_&` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 11 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "побитовый оператор &" ;
+	EN.localizedName = "biwise operator &" ;
+]
+
+class `operator_bitwise_or` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 13 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "побитовый оператор |" ;
+	EN.localizedName = "biwise operator |" ;
+]
+
+class `operator_bitwise_or_assign` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор |=" ;
+	EN.localizedName = "operator |=" ;
+]
+
+class `operator_unary_*` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "унарный оператор *" ;
+	EN.localizedName = "unary operator *" ;
+]
+
+class `operator_~` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор ~" ;
+	EN.localizedName = "operator ~" ;
+]
+
+class `operator_sizeof` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор sizeof" ;
+	EN.localizedName = "operator sizeof" ;
+]
+
+class `operator_co_await` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор co_await" ;
+	EN.localizedName = "operator co_await" ;
+]
+
+class `operator_new` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор new" ;
+	EN.localizedName = "operator new" ;
+]
+
+class `operator_delete` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 3 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор delete" ;
+	EN.localizedName = "operator delete" ;
+]
+
+class `operator_spaceship` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 8 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор <=>" ;
+	EN.localizedName = "operator <=>" ;
+]
+
+class `operator_throw` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор throw" ;
+	EN.localizedName = "operator throw" ;
+]
+
+class `operator_co_yield` : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 16 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	hasStrictOperandOrder = false ;
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "оператор co_yield" ;
+	EN.localizedName = "operator co_yield" ;
+]

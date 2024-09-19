@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ExerciseStageDto {
     private int numberOfQuestions;
+    private float complexity;
     private @NotNull List<ExerciseLawDto> laws;
     private @NotNull List<ExerciseConceptDto> concepts;
 }

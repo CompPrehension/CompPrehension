@@ -21,7 +21,6 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.List;
-import java.util.Random;
 
 @Log4j2
 public class StaticStrategy implements AbstractStrategy {
@@ -81,12 +80,12 @@ public class StaticStrategy implements AbstractStrategy {
         if (badConcept != null)
             qr.getDeniedConcepts().add(badConcept);
 
-        Random random = domain.getRandomProvider().getRandom();
-
-        //  * (0.8 .. 1.2)
-        float changeCoeff = 0.8f + 0.4f * random.nextFloat();
-        float complexity = qr.getComplexity() * changeCoeff;
-        qr.setComplexity(complexity);
+//        Random random = domain.getRandomProvider().getRandom();
+//
+//        //  * (0.8 .. 1.2)
+//        float changeCoeff = 0.8f + 0.4f * random.nextFloat();
+//        float complexity = qr.getComplexity() * changeCoeff;
+//        qr.setComplexity(complexity);
 
         return adjustQuestionRequest(qr, exerciseAttempt);
     }

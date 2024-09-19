@@ -1,3 +1,4 @@
+import { observable } from "mobx";
 import { observer } from "mobx-react";
 import React, { useState } from "react";
 
@@ -33,7 +34,7 @@ export type ToggleSwitchProps<T extends string> = {
     selected: T,
     onChange?: (val: T) => void,
 }
-export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => {
+export const ToggleSwitch = observer(<T extends string>(props: ToggleSwitchProps<T>) => {
   const handleChange = (val: T) => {
     props.onChange?.(val);
   };
@@ -68,5 +69,5 @@ export const ToggleSwitch = <T extends string,>(props: ToggleSwitchProps<T>) => 
       })}
     </div>
   );
-}
+})
 

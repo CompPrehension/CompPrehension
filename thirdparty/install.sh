@@ -1,3 +1,4 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-mvn install:install-file -Dfile=questionGen-1.0.jar -DgroupId=com.github.max_person.its -DartifactId=questionGen -Dversion=1.0 -Dpackaging=jar
+curl -L -O https://github.com/CompPrehension/top-learning-generator/releases/download/v0.4.0/question-gen-2.0-SNAPSHOT.jar
+mvn install:install-file -Dfile=question-gen-2.0-SNAPSHOT.jar -DgroupId=ru.compprehension.its -DartifactId=question-gen -Dversion=2.0-SNAPSHOT -Dpackaging=jar

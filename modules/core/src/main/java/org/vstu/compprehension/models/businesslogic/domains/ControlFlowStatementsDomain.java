@@ -18,11 +18,12 @@ import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.storage.LocalRdfStorage;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -30,8 +31,6 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -68,9 +67,10 @@ public class ControlFlowStatementsDomain extends Domain {
     }};
 
     // dictionary
-    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.rdf";
+    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-schema.ttl";
     private static DomainVocabulary VOCAB = null;
     public static DomainVocabulary getVocabulary() {
+        initVocab();
         return VOCAB;
     }
 
@@ -79,20 +79,19 @@ public class ControlFlowStatementsDomain extends Domain {
 
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
-
-    private final LocalizationService localizationService;
+    protected final LocalizationService localizationService;
+    protected final QuestionBank qMetaStorage;
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            QuestionMetadataRepository questionMetadataRepository) {
+            QuestionBank qMetaStorage) {
         super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
-        this.qMetaStorage = new LocalRdfStorage(
-                domainEntity, questionMetadataRepository, new QuestionMetadataManager(this, questionMetadataRepository));
+        this.qMetaStorage = qMetaStorage;
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
@@ -127,12 +126,12 @@ public class ControlFlowStatementsDomain extends Domain {
     private void fillConcepts() {
         concepts = new HashMap<>();
         initVocab();
-        addConcepts(VOCAB.readConcepts());
+        addConcepts(getVocabulary().readConcepts());
 
         // add concepts about expressions present in algorithms
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;
+        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;  // only allowed or denied.
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        Concept nested_loop = new Concept("nested_loop", List.of(), flagsAll);
+        Concept nested_loop = new Concept("nested_loop", List.of(getConcept("loop")), flagsAll);
         Concept exprC = new Concept("exprs_in_use", List.of(), flags);
         List<Concept> bases = List.of(exprC);
         addConcepts(List.of(
@@ -157,7 +156,11 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
-    private void readLaws(InputStream inputStream) {
+    /**
+     * Read laws for reasoning with jena
+     * @param inputStream file stream to read from
+     */
+    protected void readLaws(InputStream inputStream) {
         Objects.requireNonNull(inputStream);
         positiveLaws = new HashMap<>();
         negativeLaws = new HashMap<>();
@@ -183,10 +186,7 @@ public class ControlFlowStatementsDomain extends Domain {
             }
         }
 
-        // add empty laws that name each possible error
-        for (String errClass : VOCAB.classDescendants("Erroneous")) {
-            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
-        }
+        loadNegativeLawsFromVocabulary();
 
 
         fillLawsTree();
@@ -207,20 +207,34 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
+    /**
+     Make negative laws that name each possible error (iterating over subclasses of "Erroneous" in the vocabulary)
+     and add them to `negativeLaws`.
+     * Called from {@link ControlFlowStatementsDomain}.readLaws() (and descendant classes by default)
+     */
+    protected void loadNegativeLawsFromVocabulary() {
+        // add empty laws that name each possible error
+        // Note: no bits read and written.
+        for (String errClass : getVocabulary().classDescendants("Erroneous")) {
+            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+        }
+    }
+
     @Override
     public List<Concept> getLawConcepts(Law law) {
         return null;
     }
 
-    @Override
-    public void update() {
-        // init questions storage
-        getQMetaStorage();
+    public Model getSchemaForSolving() {
+        return getVocabulary().getModel();
     }
 
-    @Override
-    public Model getSchemaForSolving() {
-        return VOCAB.getModel();
+    /**
+     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
+     * Returns {@link JenaBackend#BackendId}
+     */
+    public String getSolvingBackendId(){
+        return JenaBackend.BackendId;
     }
 
     @Override
@@ -230,7 +244,6 @@ public class ControlFlowStatementsDomain extends Domain {
                 : EXECUTION_ORDER_QUESTION_TYPE;
     }
 
-    @Override
     public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
 
         ArrayList<CorrectAnswer> result = new ArrayList<>();
@@ -256,7 +269,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return result;
     }
 
-    @Override
     public List<HyperText> getCompleteSolvedTrace(Question question) {
 //        final String textMode = "text";
         final String textMode = "html";
@@ -269,8 +281,8 @@ public class ControlFlowStatementsDomain extends Domain {
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
             FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
-            // TODO: add here new types of actions (hardcoded) ...
-            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "return", "break", "continue", "iteration" /* << iteration is not-a-class */);
+
+            final List<String> actionKinds = getActionKinds();
 
             // gather correct steps
             List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
@@ -311,8 +323,8 @@ public class ControlFlowStatementsDomain extends Domain {
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
             FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
-            // TODO: add here new types of actions (hardcoded) ...
-            final List<String> actionKinds = List.of("stmt", "expr", "loop", "alternative","if","else-if","else", "return", "break", "continue", "iteration" /* << iteration is not-a-class */);
+
+            final List<String> actionKinds = getActionKinds();
 
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
 
@@ -351,7 +363,17 @@ public class ControlFlowStatementsDomain extends Domain {
         return result;
     }
 
-    private HyperText _formatTraceLine(QuestionEntity question, String textMode, Language lang,
+    protected static List<String> getActionKinds() {
+        // TODO: add here new types of actions (hardcoded) ...
+        return List.of("stmt", "expr",
+                "loop", "alternative",
+                "if", "else-if", "else",
+                "return", "break", "continue",
+                "iteration" /* << iteration is not-a-class */
+        );
+    }
+
+    protected HyperText _formatTraceLine(QuestionEntity question, String textMode, Language lang,
                                        HashMap<String, Integer> exprName2ExecTime, FactsGraph qg, List<String> actionKinds,
                                        AnswerObjectEntity answerObj, boolean lineIsWrong) {
 //        AnswerObjectEntity answerObj = response.getLeftAnswerObject();
@@ -436,7 +458,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return new HyperText(line);
     }
 
-    private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
         List<ResponseEntity> responses = new ArrayList<>();
 
@@ -477,23 +499,12 @@ public class ControlFlowStatementsDomain extends Domain {
         return responses;
     }
 
-    private String htmlStyled(String styleClass, String text) {
+    protected String htmlStyled(String styleClass, String text) {
         return "<span class=\"" + styleClass + "\">" + text + "</span>";
     }
 
-
     @Override
-    public ExerciseForm getExerciseForm() {
-        return null;
-    }
-
-    @Override
-    public ExerciseEntity processExerciseForm(ExerciseForm ef) {
-        return null;
-    }
-
-    @Override
-    public Question makeQuestion(QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
+    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
 
         Question res;
 
@@ -506,14 +517,13 @@ public class ControlFlowStatementsDomain extends Domain {
             final int randomPoolSize = 1;  // 16;
             try {
                 // new version - invoke rdfStorage search
-                questionRequest = fillBitmasksInQuestionRequest(questionRequest);
-                foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, randomPoolSize);
+                foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, randomPoolSize);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = getQMetaStorage().searchQuestions(this, questionRequest, randomPoolSize);
+                    foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, randomPoolSize);
                 }
                 log.info("Autogenerated questions found: {}", foundQuestions.size());
             } catch (Exception e) {
@@ -582,7 +592,7 @@ public class ControlFlowStatementsDomain extends Domain {
                 res = QUESTIONS.get(index);
                 tryCount += 1;
             } while (tryCount <= 20  // avoid infinite search
-                && questionRequest.getDeniedQuestionNames().contains(res.getQuestionName()));
+                && (questionRequest.getDeniedQuestionNames() != null && questionRequest.getDeniedQuestionNames().contains(res.getQuestionName())));
             ///
             /// add a mark to the question's name: this question is made by human.
             if (res.getQuestionName() != null && ! res.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
@@ -591,7 +601,7 @@ public class ControlFlowStatementsDomain extends Domain {
             ///
 
         }
-        Question questionCopy = makeQuestionCopy(res, questionRequest.getExerciseAttempt(), userLanguage);
+        Question questionCopy = makeQuestionCopy(res, exerciseAttempt, userLanguage);
 
         //// patch question text for survey: hide comments
         // questionCopy.getQuestionData().setQuestionText(
@@ -607,6 +617,14 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Override
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return questionRequest.toBuilder()
+                .stepsMin(3)
+                .stepsMax(30)
+                .build();
+    }
+
+    /* ^^ old method here:
     public QuestionRequest fillBitmasksInQuestionRequest(QuestionRequest qr) {
         qr = super.fillBitmasksInQuestionRequest(qr);
 
@@ -619,24 +637,6 @@ public class ControlFlowStatementsDomain extends Domain {
         qr.setStepsMax(30);
 
         return qr;
-    }
-
-    /*static List<BackendFactEntity> schemaFactsCache = null;
-
-    static List<BackendFactEntity> getSchemaFacts() {
-        if (schemaFactsCache == null) {
-            schemaFactsCache = modelToFacts(VOCAB.getModel());
-        }
-        return schemaFactsCache;
-    }
-
-    static List<BackendFactEntity> getSchemaFacts(boolean deepCopy) {
-        List<BackendFactEntity> schemaFacts = getSchemaFacts();
-        if (deepCopy) {
-            return factsListDeepCopy(schemaFacts);
-        }
-
-        return schemaFacts;
     }*/
 
     protected Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLanguage) {
@@ -647,9 +647,6 @@ public class ControlFlowStatementsDomain extends Domain {
                 .multipleSelectionEnabled(true)
                 //.requireAllAnswers(false)
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("/", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
-                .templateId(q.getQuestionData().getOptions().getTemplateId())  // copy from loaded question
-                .questionMetaId(q.getQuestionData().getOptions().getQuestionMetaId())
-                .metadata(q.getQuestionData().getOptions().getMetadata())  // copy from loaded question
                 .build();
 
         QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
@@ -685,8 +682,10 @@ public class ControlFlowStatementsDomain extends Domain {
         }
         entity.setAnswerObjects(answerObjectEntities);
         entity.setExerciseAttempt(exerciseAttemptEntity);
+        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
+        entity.setMetadata(q.getMetadata());
 
         // DON'T: add schema facts
         List<BackendFactEntity> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
@@ -708,15 +707,15 @@ public class ControlFlowStatementsDomain extends Domain {
                 entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
                 patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
                 entity.setOptions(orderQuestionOptions);
-                return new Ordering(entity, this);
+                return new Question(entity, this);
             case MATCHING:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(matchingQuestionOptions);
-                return new Matching(entity, this);
+                return new Question(entity, this);
             case MULTI_CHOICE:
                 entity.setQuestionText((q.getQuestionText().getText()));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new MultiChoice(entity, this);
+                return new Question(entity, this);
             default:
                 throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -884,7 +883,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     /** handle special locale-dependent placeholders */
     @NotNull
-    private String replaceLocaleMarks(Language userLang, String value) {
+    protected String replaceLocaleMarks(Language userLang, String value) {
         final int lenLkm = LOCALE_KEY_MARK.length();
         int i, pos = 0;
         while ((i = value.indexOf(LOCALE_KEY_MARK, pos)) > -1) {
@@ -899,7 +898,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
     /** handle possible word duplications (from template and action description inserted) */
     @NotNull
-    private String postProcessFormattedMessage(String msg) {
+    protected String postProcessFormattedMessage(String msg) {
         Pattern p = Pattern.compile("\\s([\\p{L}]+\\s+)\\s*[\"«]?\\s*\\1");  //  [\p{L}] is partial (alphabetical only) unicode replacement of \w (https://stackoverflow.com/a/4305084/12824563)
         Matcher m = p.matcher(msg);
         // remove first of duplicated words
@@ -919,7 +918,7 @@ public class ControlFlowStatementsDomain extends Domain {
         return msg;
     }
 
-    /**
+    /*\*
      * Get all needed (positive and negative) laws for this questionType using default tags
      * @param questionDomainType type of question
      * @return list of laws
@@ -1017,7 +1016,7 @@ public class ControlFlowStatementsDomain extends Domain {
                     "has_interrupt_kind"
             ));
             if (reasonPropertiesCache == null)
-                reasonPropertiesCache = VOCAB.propertyDescendants("consequent");
+                reasonPropertiesCache = getVocabulary().propertyDescendants("consequent");
             verbs.addAll(reasonPropertiesCache);
             verbs.addAll(getFieldProperties());
             return verbs;
@@ -1025,9 +1024,9 @@ public class ControlFlowStatementsDomain extends Domain {
         return new HashSet<>();
     }
 
-    private static List<String> getFieldProperties() {
+    protected static List<String> getFieldProperties() {
         if (fieldPropertiesCache == null)
-            fieldPropertiesCache = VOCAB.propertyDescendants("string_placeholder");
+            fieldPropertiesCache = getVocabulary().propertiesHavingBroader("string_placeholder");
         return fieldPropertiesCache;
     }
 
@@ -1309,7 +1308,7 @@ public class ControlFlowStatementsDomain extends Domain {
 
                 // filter classNodes of act instance
                 List<OntClass> classes = new ArrayList<>();
-                List<RDFNode> classNodes = model.listObjectsOfProperty(inst.asResource(), RDF.type).toList();
+                List<RDFNode> classNodes = model.listObjectsOfProperty(act_individual, RDF.type).toList();
                 classNodes.forEach(rdfNode -> {
                     if (rdfNode instanceof Resource && rdfNode.asResource().hasProperty(RDF.type, OwlClass))
                         classes.add(model.createClass(rdfNode.asResource().getURI()));
@@ -1373,7 +1372,8 @@ public class ControlFlowStatementsDomain extends Domain {
                         }
 
                         // add to placeholders ...
-                        value = "«" + value + "»";
+                        if (!value.contains("«"))
+                            value = "«" + value + "»";
                         if (placeholders.containsKey(fieldName)) {
                             String prevData = placeholders.get(fieldName);
                             // if not in previous data
@@ -1589,13 +1589,14 @@ public class ControlFlowStatementsDomain extends Domain {
         throw new NotImplementedException();
     }
 
-    private static OntModel modelToOntModel(Model model) {
-        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);        ontModel.add(model);
+    protected static OntModel modelToOntModel(Model model) {
+        OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
+        ontModel.add(model);
         return ontModel;
     }
 
     private static OntModel factsAndSchemaToOntModel(Collection<Fact> facts) {
-        Model schema = VOCAB.getModel();
+        Model schema = getVocabulary().getModel();
         JenaFactList fl = JenaFactList.fromFacts(facts);
         return modelToOntModel(schema.union(fl.getModel()));
     }
@@ -1612,7 +1613,7 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     /** receive solution as model */
-    private ProcessSolutionResult processSolution(OntModel model) {
+    protected ProcessSolutionResult processSolution(OntModel model) {
         InterpretSentenceResult result = new InterpretSentenceResult();
         // there is always one correct answer
         result.CountCorrectOptions = 1;
@@ -1623,6 +1624,17 @@ public class ControlFlowStatementsDomain extends Domain {
             // 1) find last act of partial trace (the one having no student_next prop) ...
 //            OntProperty student_next = model.getOntProperty(model.expandPrefix(":student_next"));
             OntProperty student_next_latest = model.getOntProperty(model.expandPrefix(":student_next_latest"));
+            OntProperty wrong_next_act = model.getOntProperty(model.expandPrefix(":wrong_next_act"));
+
+            // retrieve entry point of algorithm
+            ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
+            Individual entrySt;
+            {
+                List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
+                assert !(entryAsList.isEmpty());
+                entrySt = entryAsList.getFirst().as(Individual.class);
+            }
+
 
             List<Statement> tripleLastInTraceAsList =
                     model.listStatements(null, student_next_latest, (RDFNode) null).toList();
@@ -1633,9 +1645,11 @@ public class ControlFlowStatementsDomain extends Domain {
             Individual lastAct = tripleLastInTrace.getObject().as(Individual.class);
 
             // if last act is wrong, roll back to previous (the correct one)
-            OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
-            if (lastAct.hasOntClass(Erroneous)) {
-                lastAct = tripleLastInTrace.getSubject().as(Individual.class);
+//            OntClass Erroneous = model.getOntClass(model.expandPrefix(":Erroneous"));
+//            if (lastAct.hasOntClass(Erroneous)) {}
+            Individual prevAct = tripleLastInTrace.getSubject().as(Individual.class);
+            if (prevAct.hasProperty(wrong_next_act, lastAct)) {
+                lastAct = prevAct;
             }
 
             Individual actionInd = null;
@@ -1650,13 +1664,8 @@ public class ControlFlowStatementsDomain extends Domain {
                 }
             }
             if (lastAct == null || actionInd == null) {
-                // retrieve entry point of algorithm
-                ObjectProperty entry_point = model.getObjectProperty(model.expandPrefix(":entry_point"));
-                List<RDFNode> entryAsList = model.listObjectsOfProperty(entry_point).toList();
-
-                assert !(entryAsList.isEmpty());
-
-                actionInd = entryAsList.get(0).as(Individual.class);
+                // use the entry point of algorithm
+                actionInd = entrySt;
             }
 
             /// assert actionInd != null;  // did not get last act correctly ?
@@ -1671,18 +1680,20 @@ public class ControlFlowStatementsDomain extends Domain {
             OntProperty on_false_consequent = model.getOntProperty(model.expandPrefix(":on_false_consequent"));
             OntProperty consequent = model.getOntProperty(model.expandPrefix(":consequent"));
             // get boundary of the initial action
-            Individual bound;
+            Individual nextBound;
             if (boundRes == null) {
                 List<Resource> bounds = model.listSubjectsWithProperty(begin_of, actionInd).toList(); // actionInd
                 // .getPropertyResourceValue(boundary_of);
                 assert !bounds.isEmpty();
                 boundRes = bounds.get(0);
             }
-            bound = boundRes.as(Individual.class);
+            nextBound = boundRes.as(Individual.class);
+            Individual bound = null;
 
             // boolean endOfPath = false;
-            while (bound != null) {
-                Individual nextBound = null;
+            while (nextBound != null) {
+                bound = nextBound;
+                nextBound = null;
                 // move along on_false_consequent, or along "consequent" if absent
                 if (bound.hasProperty(on_false_consequent)) {
                     ++pathLen;
@@ -1698,16 +1709,21 @@ public class ControlFlowStatementsDomain extends Domain {
                         --pathLen;
                     }
                 }
-                bound = nextBound;
             }
             // the last transition (to PROGRAM ENDED) exists in the graph but not shown in GUI - skip it
-            --pathLen;
+            if (bound != null) {
+                boolean endsEntryPoint = bound.hasProperty(boundary_of, entrySt);
+                if (endsEntryPoint) {
+                    // global code ended.
+                    --pathLen;
+                }
+            }
         } catch (AssertionFailedError error) {
             pathLen = 99;
             log.debug("WARN: processSolution(): cannot find entry_point, fallback to: pathLen = {}", pathLen);
         }
 
-        result.IterationsLeft = pathLen;
+        result.IterationsLeft = Math.max(0, pathLen);  // guard for negative pathLen: end of question (same as 0)
         return result;
     }
 
@@ -1739,12 +1755,12 @@ public class ControlFlowStatementsDomain extends Domain {
     }
 
     @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
         return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
     }
 
     @Nullable
-    private CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
 
 
         // get shortcuts to properties
@@ -1885,7 +1901,8 @@ public class ControlFlowStatementsDomain extends Domain {
                     String fieldName = verb.replaceAll("field_", "");
                     String value = statement.getString();
                     value = replaceLocaleMarks(userLang, value);
-                    value = "«" + value + "»";
+                    if (!value.contains("«"))
+                        value = "«" + value + "»";
                     if (placeholders.containsKey(fieldName)) {
                         // append to previous data
                         value = placeholders.get(fieldName) + ", " + value;
@@ -1972,7 +1989,7 @@ public class ControlFlowStatementsDomain extends Domain {
             final Set<String> possibleViolations = possibleMistakesByLaw(currentAct.lawName);
 
             final ArrayList<String> possibleViolationsSorted = new ArrayList<>(possibleViolations);
-            java.util.Collections.sort(possibleViolationsSorted);
+            Collections.sort(possibleViolationsSorted);
             String violSetKey = String.join(";", possibleViolationsSorted);
 
             // save unique sets of violations
@@ -1987,28 +2004,13 @@ public class ControlFlowStatementsDomain extends Domain {
 //        return null;
 //    }
 
-    public static List<Question> readQuestions(InputStream inputStream) {
+    public List<Question> readQuestions(InputStream inputStream) {
         List<Question> res = new ArrayList<>();
-
-        Gson gson = getQuestionGson();
-
-        Question[] questions = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question[].class);
-
+        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+                .map(q -> q.toQuestion(this))
+                .toArray(Question[]::new);
         Collections.addAll(res, questions);
         return res;
-    }
-
-    @Override
-    public Question parseQuestionTemplate(InputStream inputStream) {
-        Gson gson = getQuestionGson();
-
-        Question question = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Question.class);
-
-        return question;
     }
 
     @Override
@@ -2075,6 +2077,13 @@ public class ControlFlowStatementsDomain extends Domain {
         return localizationService.getMessage(MESSAGE_PREFIX + message_text, Language.getLocale(preferred_language));
     }
 
+    @Override
+    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+        fl.addFromModel(getSchemaForSolving());
+        return fl;
+    }
+
     /**
      * Check if a message is in a default (ENGLISH) locale
      * @param message_text message key
@@ -2109,56 +2118,86 @@ public class ControlFlowStatementsDomain extends Domain {
             return stringSubstitutor.replace(s);
         }
         catch (IllegalArgumentException exception) {
-            return exception.getMessage() + " - template: " + s + " - placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
+            return exception.getMessage() + " — template: " + s + " — placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
         }
     }
 
     private HashMap<String, Long> _getConceptsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(26);
-        name2bit.put("pointer", 0x1L);
-        name2bit.put("C++", 0x2L);
-        name2bit.put("loops", 0x4L);
-        name2bit.put("if/else", 0x8L);
-        name2bit.put("expr:array", 0x10L);
-        name2bit.put("expr:pointer", 0x20L);
-        name2bit.put("expr:func_call", 0x40L);
-        name2bit.put("expr:explicit_cast", 0x80L);
-        name2bit.put("expr:class_member_access", 0x100L);
-        name2bit.put("alternative", 0x200L);
-        name2bit.put("else", 0x400L);
-        name2bit.put("expr", 0x800L);
-        name2bit.put("if", 0x1000L);
-        name2bit.put("sequence", 0x2000L);
-        name2bit.put("return", 0x4000L);
-        name2bit.put("loop", 0x8000L);
-        name2bit.put("while_loop", 0x10000L);
-        name2bit.put("for_loop", 0x20000L);
-        name2bit.put("else-if", 0x40000L);
-        name2bit.put("nested_loop", 0x80000L);
-        name2bit.put("do_while_loop", 0x100000L);
-        name2bit.put("break", 0x200000L);
-        name2bit.put("continue", 0x400000L);
-                 //   stmt       0x800000L
-        name2bit.put("seq_longer_than1", 0x1000000L);
+        HashMap<String, Long> name2bit = new HashMap<>(30);
+        name2bit.put("pointer", 0x1L);  		// (1)
+        name2bit.put("C++", 0x2L);  			// (2)
+        name2bit.put("loops", 0x4L);  			// (4)
+        name2bit.put("if/else", 0x8L);  		// (8)
+        name2bit.put("expr:array", 0x10L);  	// (16)
+        name2bit.put("expr:pointer", 0x20L);    // (32)
+        name2bit.put("expr:func_call", 0x40L);  // (64)
+        name2bit.put("expr:explicit_cast", 0x80L);  // (128)
+        name2bit.put("expr:class_member_access", 0x100L);  // (256)
+        name2bit.put("alternative", 0x200L);    // (512)
+        name2bit.put("else", 0x400L);  			// (1024)
+        name2bit.put("expr", 0x800L);  			// (2048)
+        name2bit.put("if", 0x1000L);  			// (4096)
+        name2bit.put("sequence", 0x2000L);  	// (8192)
+        name2bit.put("return", 0x4000L);  		// (16384)
+        name2bit.put("loop", 0x8000L);  		// (32768)
+        name2bit.put("while_loop", 0x10000L);   // (65536)
+        name2bit.put("for_loop", 0x20000L);     // (131072)
+        name2bit.put("else-if", 0x40000L);  	// (262144)
+        name2bit.put("nested_loop", 0x80000L);  // (524288)
+        name2bit.put("do_while_loop", 0x100000L);  // (1048576)
+        name2bit.put("break", 0x200000L);  		// (2097152)
+        name2bit.put("continue", 0x400000L);    // (4194304)
+        // name2bit.put("stmt", 0x800000L);  	// (8388608)
+        name2bit.put("seq_longer_than1", 0x1000000L);  // (16777216)
+        name2bit.put("alternative_simple", 0x2000000L);  // (33554432)
+        name2bit.put("alternative_multi_without_else", 0x4000000L);  // (67108864)
+        name2bit.put("alternative_single_with_else", 0x8000000L);  // (134217728)
+        name2bit.put("alternative_multi_with_else", 0x10000000L);  // (268435456)
+        name2bit.put("foreach_loop", 0x20000000L);  // (536870912)
         return name2bit;
     }
     private HashMap<String, Long> _getViolationsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(16);
-        name2bit.put("DuplicateOfAct", 0x1L);
-        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);
-        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);
-        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);
-        name2bit.put("NoFirstCondition", 0x10L);
-        name2bit.put("SequenceFinishedTooEarly", 0x20L);
-        name2bit.put("TooEarlyInSequence", 0x40L);
-        name2bit.put("BranchOfFalseCondition", 0x80L);
-        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);
-        name2bit.put("LastFalseNoEnd", 0x200L);
-        name2bit.put("LoopStartIsNotCondition", 0x400L);
-        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);
-        name2bit.put("NoConditionAfterIteration", 0x1000L);
-        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);
-        name2bit.put("LoopStartIsNotIteration", 0x4000L);
+        HashMap<String, Long> name2bit = new HashMap<>(40);
+        name2bit.put("DuplicateOfAct", 0x1L);  						// (1)
+        name2bit.put("ElseBranchAfterTrueCondition", 0x2L);  		// (2)
+        name2bit.put("NoAlternativeEndAfterBranch", 0x4L);  		// (4)
+        name2bit.put("NoBranchWhenConditionIsTrue", 0x8L);  		// (8)
+        name2bit.put("NoFirstCondition", 0x10L);  					// (16)
+        name2bit.put("SequenceFinishedTooEarly", 0x20L);  			// (32)
+        name2bit.put("TooEarlyInSequence", 0x40L);  				// (64)
+        name2bit.put("BranchOfFalseCondition", 0x80L);  			// (128)
+        name2bit.put("LastConditionIsFalseButNoElse", 0x100L);  	// (256)
+        name2bit.put("LastFalseNoEnd", 0x200L);  					// (512)
+        name2bit.put("LoopStartIsNotCondition", 0x400L);  			// (1024)
+        name2bit.put("NoLoopEndAfterFailedCondition", 0x800L);  	// (2048)
+        name2bit.put("NoConditionAfterIteration", 0x1000L);  		// (4096)
+        name2bit.put("NoIterationAfterSuccessfulCondition", 0x2000L);  // (8192)
+        name2bit.put("LoopStartIsNotIteration", 0x4000L);  			// (16384)
+        name2bit.put("AltAnotherBranch", 0x8000L);  				// (32768)
+        name2bit.put("AltBranchDup", 0x10000L);  					// (65536)
+        name2bit.put("AltCondAfterBranch", 0x20000L);  				// (131072)
+        name2bit.put("AltCondAfterTrue", 0x40000L);  				// (262144)
+        name2bit.put("AltEarlyEndNoBranch", 0x80000L);  			// (524288)
+        name2bit.put("AltEarlyEndNoCond", 0x100000L);  				// (1048576)
+        name2bit.put("AltElseOnTrue", 0x200000L);  					// (2097152)
+        name2bit.put("AltBranchOnFalse", 0x400000L);  				// (4194304)
+        name2bit.put("LoopInitDup", 0x800000L);  					// (8388608)
+        name2bit.put("LoopIterBeforeCond", 0x1000000L);  			// (16777216)
+        name2bit.put("LoopIterOnFailedCond", 0x2000000L);  			// (33554432)
+        name2bit.put("LoopNoEndOnFalseCond", 0x4000000L);  			// (67108864)
+        name2bit.put("PreCondLoopEarlyEndNoCond", 0x8000000L);  	// (134217728)
+        name2bit.put("PreUpdateLoopIterBeforeUpdate", 0x10000000L); // (268435456)
+        name2bit.put("LoopEarlyEndCondStillTrue", 0x20000000L);     // (536870912)
+        name2bit.put("LoopUpdateBeforeIter", 0x40000000L);  		// (1073741824)
+        name2bit.put("AltEarlyEndNoElse", 0x80000000L);  			// (2147483648)
+        name2bit.put("LoopUpdateBeforeCond", 0x100000000L);  		// (4294967296)
+        name2bit.put("PostCondLoopNoCondBtwIters", 0x200000000L);   // (8589934592)
+        name2bit.put("LoopCondBeforeInit", 0x400000000L);  			// (17179869184)
+        name2bit.put("LoopCondBeforeIter", 0x800000000L);  			// (34359738368)
+        name2bit.put("LoopCondBeforeUpdate", 0x1000000000L);  		// (68719476736)
+        name2bit.put("LoopUpdateTwice", 0x2000000000L);  			// (137438953472)
+        name2bit.put("PostCondLoopCondBeforeIter", 0x4000000000L);  // (274877906944)
+        name2bit.put("PostCondLoopEarlyEndNoIter", 0x8000000000L);  // (549755813888)
         return name2bit;
     }
 
@@ -2243,9 +2282,9 @@ public class ControlFlowStatementsDomain extends Domain {
         } else {
             ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
             d.getQuestionTemplates();
-            VOCAB.classDescendants("Erroneous");
+            getVocabulary().classDescendants("Erroneous");
 
-            JenaFactList fl = new JenaFactList(VOCAB.getModel());
+            JenaFactList fl = new JenaFactList(getVocabulary().getModel());
             fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
         }
     }

@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.domains.*;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
@@ -25,7 +25,7 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionMetadataRepository questionMetadataRepository) {
+                             QuestionBank questionStorage) {
 
         var domains = Lists.newArrayList(domainRepository.findAll());
         {
@@ -37,7 +37,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     progExprDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    questionStorage);
             domainToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
         }
         {
@@ -49,7 +49,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     controlFlowDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    questionStorage);
             domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
         }
         {
@@ -61,7 +61,19 @@ public class DomainFactoryImpl implements DomainFactory {
                     dtDomainEntity,
                     localizationService,
                     randomProvider,
-                    questionMetadataRepository);
+                    questionStorage);
+            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
+        }
+        {
+            var dtDomainEntity = domains
+                    .stream().filter(x -> x.getName/*!*/().equals("ControlFlowStatementsDTDomain"))
+                    .findFirst()
+                    .orElseThrow();
+            var dtDomain = new ControlFlowStatementsDTDomain(
+                    dtDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionStorage);
             domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
         }
 

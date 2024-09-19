@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 
@@ -28,8 +29,6 @@ public class QuestionRequestLogEntity {
 
     @Type(JsonType.class)
     private List<String> targetConceptNames;
-    @Type(JsonType.class)
-    private List<String> targetConceptNamesInPlan;
 
     @Type(JsonType.class)
     private List<String> deniedConceptNames;
@@ -38,11 +37,8 @@ public class QuestionRequestLogEntity {
     @Type(JsonType.class)
     private List<String> allowedConceptNames;
 
-
     @Type(JsonType.class)
     private List<String> targetLawNames;
-    @Type(JsonType.class)
-    private List<String> targetLawNamesInPlan;
 
     @Type(JsonType.class)
     private List<String> deniedLawNames;
@@ -50,19 +46,22 @@ public class QuestionRequestLogEntity {
     @Type(JsonType.class)
     private List<String> allowedLawNames;
 
+    @Type(JsonType.class)
+    private List<String> targetTags;
+
     // bit fields
     long conceptsTargetedBitmask;  // set to 0 if traceConceptsTargetedBitmask set
-    long traceConceptsTargetedBitmask = 0;  // set if required for search
     long conceptsDeniedBitmask;
     long lawsTargetedBitmask;
     long lawsDeniedBitmask;
-
+    long targetTagsBitmask;
 
     @Type(JsonType.class)
     private List<String> deniedQuestionNames;
 
     @Type(JsonType.class)
-    private List<Integer> deniedQuestionTemplateIds = null;
+    private List<String> deniedQuestionTemplateIds = null;
+    
     @Type(JsonType.class)
     private List<Integer> deniedQuestionMetaIds = null;  // same as deniedQuestionNames but using ids instead of names
 
@@ -106,9 +105,10 @@ public class QuestionRequestLogEntity {
 
     @Column(nullable = true)
     private int foundCount = -1;
-
-    Date createdDate;
-
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
 
     // fields filled by generator:
 

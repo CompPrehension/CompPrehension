@@ -33,7 +33,7 @@ public class QuestionGroupStat {
 //        lawStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataBaseEntity::getLawBits).collect(Collectors.toList()));
 //        violationStat = new BitmaskStat(questionSet.stream().map(QuestionMetadataEntity::getViolationBits).collect(Collectors.toList()));
 
-        complexityStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getIntegralComplexity).collect(Collectors.toList()), false);
+        complexityStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getIntegralComplexity).collect(Collectors.toList()));
 //        solutionStepsStat = new NumericStat(questionSet.stream().map(QuestionMetadataEntity::getSolutionSteps).map(Double::valueOf).collect(Collectors.toList()), false);
     }
 

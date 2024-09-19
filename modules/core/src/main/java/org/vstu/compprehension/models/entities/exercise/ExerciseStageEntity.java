@@ -19,11 +19,16 @@ import java.util.List;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExerciseStageEntity {
+public class ExerciseStageEntity {    
     @Builder.Default
-    private int numberOfQuestions = 5;
+    int numberOfQuestions = 5;
+    
     @Builder.Default
-    private @NotNull List<ExerciseLawDto> laws = new ArrayList<>(0);
+    float complexity = 0.5f;
+    
     @Builder.Default
-    private @NotNull List<ExerciseConceptDto> concepts = new ArrayList<>(0);
+    @NotNull List<ExerciseLawDto> laws = new ArrayList<>(0);
+    
+    @Builder.Default
+    @NotNull List<ExerciseConceptDto> concepts = new ArrayList<>(0);
 }

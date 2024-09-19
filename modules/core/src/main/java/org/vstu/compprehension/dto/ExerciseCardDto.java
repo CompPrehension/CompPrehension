@@ -15,7 +15,6 @@ public class ExerciseCardDto {
     private @NotNull String domainId;
     private @NotNull String strategyId;
     private @NotNull String backendId;
-    private float complexity;
     private @NotNull List<String> tags;
     private @NotNull List<ExerciseStageDto> stages;
     private @NotNull ExerciseOptionsEntity options;

@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
@@ -48,12 +47,11 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(domainId)
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getBackendId();
+        var backendId = domain.getSolvingBackendId();
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
         exercise.setDomain(domainEntity);
-        exercise.setComplexity(0.5f);
         exercise.setBackendId(backendId);
         exercise.setStrategyId(strategyId);
         exercise.setOptions(ExerciseOptionsEntity.builder()
@@ -63,7 +61,7 @@ public class ExerciseService {
                 .supplementaryQuestionsEnabled(true)
                 .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, new ArrayList<>(), new ArrayList<>()))));
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;
@@ -75,7 +73,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(card.getDomainId())
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getBackendId();
+        var backendId = domain.getSolvingBackendId();
 
         exercise.setName(card.getName());
         exercise.setDomain(domainEntity);
@@ -83,9 +81,8 @@ public class ExerciseService {
         exercise.setBackendId(backendId);
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
-        exercise.setComplexity(card.getComplexity());
         exercise.setStages(card.getStages()
-                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
+                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
                 .collect(Collectors.toList()));
 
         exerciseRepository.save(exercise);
@@ -102,9 +99,8 @@ public class ExerciseService {
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .stages(exercise.getStages()
-                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getLaws(), s.getConcepts()))
+                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
                         .collect(Collectors.toList()))
-                .complexity(exercise.getComplexity())
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
                 .build();

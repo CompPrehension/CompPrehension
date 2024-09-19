@@ -14,6 +14,7 @@ import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.DecisionTreeHelper;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -164,7 +165,7 @@ public class DecisionTreeSupQuestionHelper {
             opt.setShowSupplementaryQuestions(true);
             opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
             generated.setOptions(opt);
-            return new Matching(generated, domain);
+            return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
         }
         else {
             generated.setQuestionType(QuestionType.SINGLE_CHOICE);
@@ -172,7 +173,7 @@ public class DecisionTreeSupQuestionHelper {
             opt.setShowSupplementaryQuestions(true);
             opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
             generated.setOptions(opt);
-            return new SingleChoice(generated, domain);
+            return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
         }
     }
     private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){

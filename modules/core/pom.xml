@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-core</artifactId>
-            <version>4.9.0</version>
+            <version>${jena.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -121,19 +121,19 @@
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-querybuilder</artifactId>
-            <version>4.9.0</version>
+            <version>${jena.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-arq</artifactId>
-            <version>4.9.0</version>
+            <version>${jena.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-rdfconnection</artifactId>
-            <version>4.9.0</version>
+            <version>${jena.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

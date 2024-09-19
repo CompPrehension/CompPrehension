@@ -70,6 +70,7 @@ const resources = {
             exercisesettings_stageN_concepts: "Concepts",
             exercisesettings_stageN_laws: "Laws",
             exercisesettings_addStage: "Add stage",
+            exercisesettings_removeStage: "Remove stage",
             exercisesettings_save: "Save",
             exercisesettings_saveNopen: "Save & Open",
             exercisesettings_open: "Open",
@@ -77,6 +78,7 @@ const resources = {
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
+            exercisesettings_questionsInBank: "Questions in bank",
 
             survey_sendresults: "Send survey results",
         },
@@ -129,6 +131,7 @@ const resources = {
             exercisesettings_stageN_concepts: "Концепты",
             exercisesettings_stageN_laws: "Законы",
             exercisesettings_addStage: "Добавить стадию",
+            exercisesettings_removeStage: "Удалить стадию",
             exercisesettings_save: "Сохранить",
             exercisesettings_saveNopen: "Сохранить & Открыть",
             exercisesettings_open: "Открыть",
@@ -136,6 +139,7 @@ const resources = {
             exercisesettings_optDenied: "Запрет",
             exercisesettings_optAllowed: "Разреш.",
             exercisesettings_optTarget: "Цель",
+            exercisesettings_questionsInBank: "Вопросов в банке задач",
 
             survey_sendresults: "Отправить результаты опроса",
         },
@@ -188,6 +192,7 @@ const resources = {
             exercisesettings_stageN_concepts: "Concepts",
             exercisesettings_stageN_laws: "Laws",
             exercisesettings_addStage: "Add stage",
+            exercisesettings_removeStage: "Remove stage",
             exercisesettings_save: "Save",
             exercisesettings_saveNopen: "Save & Open",
             exercisesettings_open: "Open",
@@ -195,6 +200,7 @@ const resources = {
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
+            exercisesettings_questionsInBank: "Questions in bank",
 
             survey_sendresults: "Send survey results",
         },

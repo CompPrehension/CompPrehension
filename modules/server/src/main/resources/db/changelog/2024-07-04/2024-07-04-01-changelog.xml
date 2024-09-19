@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1720120029815-64" author="Artem Prokudin">
+
+        <dropColumn tableName="question_generation_requests">
+            <column name="questions_generated" />
+        </dropColumn>       
+        
+        <addColumn tableName="question_generation_requests">
+            <column name="exercise_attempt_id" type="BIGINT"/>
+            <column defaultValueBoolean="false" name="is_completed" type="boolean" afterColumn="updated_at"/>
+        </addColumn>
+        <addForeignKeyConstraint baseColumnNames="exercise_attempt_id" baseTableName="question_generation_requests"
+                                 constraintName="FK_QUESTION_GENERATION_REQUESTS_ON_EXERCISE_ATTEMPT"
+                                 onDelete="SET NULL" referencedColumnNames="id" referencedTableName="exercise_attempt"/>
+        <addNotNullConstraint columnDataType="boolean" columnName="is_completed"
+                              tableName="question_generation_requests"/>
+        
+        <addColumn tableName="questions_meta">
+            <column name="generation_request_id" type="INT"/>
+        </addColumn>
+        <addForeignKeyConstraint baseColumnNames="generation_request_id" baseTableName="questions_meta"
+                                 constraintName="FK_QUESTIONS_META_ON_GENERATION_REQUEST" onDelete="SET NULL"
+                                 referencedColumnNames="id" referencedTableName="question_generation_requests"/>
+        
+        <dropIndex tableName="question_generation_requests" indexName="question_generation_requests_unique_idx" />
+        <dropIndex tableName="question_generation_requests" indexName="question_generation_requests_domain_idx" />
+        <createIndex indexName="question_generation_requests_search_idx" tableName="question_generation_requests"
+                     unique="false">
+            <column name="domain_shortname"/>
+            <column defaultValueBoolean="false" name="is_completed"/>
+            <column name="created_at"/>
+            <column name="questions_to_generate"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

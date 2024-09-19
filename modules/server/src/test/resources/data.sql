@@ -16,6 +16,13 @@ VALUES (1, 'ProgrammingLanguageExpressionDTDomain', 'expression_dt',
             "StorageUploadFilesBaseUrl": "file:///C:/data/compp/expression/",
             "QuestionsGraphPath": "C:/data/compp/expression.ttl"}' FORMAT JSON);
 
+INSERT INTO `domain` (`version`, `name`, `short_name`, `options_json`)
+VALUES (1, 'ControlFlowStatementsDTDomain', 'ctrl_flow_dt',
+	'{"StorageSPARQLEndpointUrl": null,
+                "StorageDummyDirsForNewFile": 2, "StorageDownloadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
+                "StorageUploadFilesBaseUrl": "file:///C:/data/compp/control_flow/",
+                "QuestionsGraphPath": "C:/data/compp/control_flow.ttl"}' FORMAT JSON);
+
 INSERT INTO `exercise` (`id`, `complexity`, `exercise_type`, `hidden`, `language_id`, `max_retries`, `name`, `time_limit`, `use_guiding_questions`, `strategy_id`, `backend_id`, `domain_id`, `tags`, `options_json`, `stages_json`)
 VALUES (5, 1, 1, 0, 1, '10', 'test', 8, 1, 'GradeConfidenceBaseStrategy', 'Jena', 'ProgrammingLanguageExpressionDomain', 'basics,operators,order,evaluation,C++', '{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true}', '[{"laws": [], "concepts": [], "numberOfQuestions": 10}]');
 

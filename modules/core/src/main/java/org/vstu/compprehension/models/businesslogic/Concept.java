@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.*;
+import org.apache.commons.lang3.builder.ToStringExclude;
 
 import java.util.*;
 
@@ -20,16 +21,23 @@ public class Concept implements TreeNodeWithBitmask {
     @EqualsAndHashCode.Include
     String name;
 
+    @ToStringExclude
     List<Concept> baseConcepts;
 
     /** Cached references to Concept instances */
+    @ToStringExclude
     @Getter
     @Setter
     Collection<Concept> childConcepts = null;
 
 
     /** ID-like bit of the concept for a bitmask combining several Concepts */
+    @Getter @Setter
     long bitmask;
+
+    @Builder.Default
+    @Getter @Setter
+    int sortOrder = 999;
 
     public Concept(String name) {
         this.name = name;
@@ -101,5 +109,21 @@ public class Concept implements TreeNodeWithBitmask {
             set.addAll(childConcept.getDescendants());
         }
         return set;
+    }
+
+    public static long combineToBitmask(Iterable<Concept> concepts) {
+        if (concepts == null)
+            return 0;
+
+        long conceptBitmask = 0;
+        for (Concept t : concepts) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            conceptBitmask |= newBit;
+        }
+        return conceptBitmask;
     }
 }

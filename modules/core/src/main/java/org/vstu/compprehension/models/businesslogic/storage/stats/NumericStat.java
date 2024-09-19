@@ -1,41 +1,47 @@
 package org.vstu.compprehension.models.businesslogic.storage.stats;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
-@NoArgsConstructor
-@Data
+@AllArgsConstructor
+@Value
 public class NumericStat {
+    int count;
+    double min;
+    double mean;
+    double max;
 
-    private int count;
-    private double min;
-    private double mean;
-    private double max;
-    Set<Double> distinctValues = null;
+    public NumericStat(Collection<Double> evidenceSet) {
+        if (evidenceSet.isEmpty())
+        {
+            this.min   = 0;
+            this.max   = 1;
+            this.mean  = 0.5;
+            this.count = 0;
+            return;
+        }
 
-    public NumericStat(Collection<Double> evidenceSet, boolean rememberValuesGiven) {
-        super();
+        double min  = Double.MAX_VALUE;
+        double max  = Double.MIN_VALUE;
+        double mean = 0;
+        for (Double value : evidenceSet) {
+            if (value < min) {
+                min = value;
+            }
+            if (value > max) {
+                max = value;
+            }
+            mean += value;
+        }
+        mean /= evidenceSet.size();
 
-        acceptItems(evidenceSet);
-        if (rememberValuesGiven)
-            distinctValues = new HashSet<>(evidenceSet);
+        this.min   = min;
+        this.max   = max;
+        this.mean  = mean;
+        this.count = evidenceSet.size();
     }
-
-/*
-    public NumericStat(Collection<Integer> evidenceSet, boolean rememberValuesGiven) {
-        super();
-        // convert
-        List<Double> evidenceSetDouble =
-                evidenceSet.stream().map(Double::valueOf).collect(Collectors.toList());
-        acceptItems(evidenceSetDouble);
-        if (rememberValuesGiven)
-            distinctValues = new HashSet<>(evidenceSetDouble);
-    }
-*/
 
     public double rescaleExternalValue(double value, double rangeMin, double rangeMax) {
         double valueFactor = (value - rangeMin) / (rangeMax - rangeMin);
@@ -57,15 +63,4 @@ public class NumericStat {
         }
         return desiredValue;
     }
-
-    private void acceptItems(Collection<Double> evidenceSet) {
-        int count = 0;
-        min = evidenceSet.stream().min(Double::compare).orElse(0.);
-        max = evidenceSet.stream().max(Double::compare).orElse(0.);
-        if (!evidenceSet.isEmpty())
-            mean = evidenceSet.stream().reduce(Double::sum).orElse(0.) / evidenceSet.size();
-        else
-            mean = 0;
-    }
-
 }

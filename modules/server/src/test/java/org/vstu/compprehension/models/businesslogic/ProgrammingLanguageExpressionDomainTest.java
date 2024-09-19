@@ -102,7 +102,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setTargetLaws(List.of());
         qr.setDeniedLaws(List.of());
 
-        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Question q = domain.makeQuestion(null, qr, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr), q.getQuestionName());
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p><div class='comp-ph-question'><p class='comp-ph-expr'><span data-comp-ph-pos='1' class='comp-ph-expr-const' data-comp-ph-value=''>a</span><span data-comp-ph-pos='2' id='answer_0' class='comp-ph-expr-op-btn' data-comp-ph-value=''>==</span><span data-comp-ph-pos='3' class='comp-ph-expr-const' data-comp-ph-value=''>b</span><span data-comp-ph-pos='4' id='answer_1' class='comp-ph-expr-op-btn' data-comp-ph-value=''><</span><span data-comp-ph-pos='5' class='comp-ph-expr-const' data-comp-ph-value=''>c</span><!-- Original expression: a == b < c --></p></div>",
                 q.getQuestionText().getText());
@@ -121,7 +121,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr2.setTargetLaws(List.of());
         qr2.setDeniedLaws(List.of());
 
-        q = domain.makeQuestion(qr2, tags, Language.ENGLISH);
+        q = domain.makeQuestion(null, qr2, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr2), q.getQuestionName());
         //        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c"), List.of("", "operator", "", "operator", ""))), domain.makeQuestion(qr2, tags, Language.ENGLISH).getQuestionText().getText());
 
@@ -140,7 +140,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         ));
         qr3.setTargetLaws(List.of());
         qr3.setDeniedLaws(List.of());
-        q = domain.makeQuestion(qr3, tags, Language.ENGLISH);
+        q = domain.makeQuestion(null, qr3, tags, Language.ENGLISH);
         assertTrue(validateQuestionByQuestionRequest(q, qr3), q.getQuestionName());
 //        assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "+", "b", "+", "c", "--"), List.of("", "operator", "", "operator", "", "operator"))), );
 
@@ -158,7 +158,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr4.setTargetLaws(List.of());
         qr4.setDeniedLaws(List.of());
         assertEquals("Choose associativity of operator binary +",
-                domain.makeQuestion(qr4, tags, Language.ENGLISH).getQuestionText().getText());
+                domain.makeQuestion(null, qr4, tags, Language.ENGLISH).getQuestionText().getText());
     }
 
     @Test
@@ -187,7 +187,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setDeniedLaws(List.of(
                 domain.getNegativeLaw("error_base_student_error_strict_operands_order")
         ));
-        Question question = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Question question = domain.makeQuestion(null, qr, tags, Language.ENGLISH);
         assertEquals("<p>Press the operators in the expression in the order they are evaluated</p>" + ProgrammingLanguageExpressionDomain.ExpressionToHtml(createStatement(List.of("a", "==", "b", "<", "c"), List.of("", "operator", "", "operator", ""))), question.getQuestionText().getText());
 
         JenaBackend backend = (JenaBackend) backendFactory.getBackend("Jena");
@@ -228,7 +228,7 @@ public class ProgrammingLanguageExpressionDomainTest {
                 domain.getNegativeLaw("error_base_higher_precedence_right"),
                 domain.getNegativeLaw("error_base_same_precedence_left_associativity_left")
         ));
-        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Question q = domain.makeQuestion(null, qr, tags, Language.ENGLISH);
         JenaBackend backend = (JenaBackend) backendFactory.getBackend("Jena");
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
@@ -297,7 +297,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         qr.setTargetLaws(List.of(
                 domain.getNegativeLaw("error_base_student_error_unevaluated_operand")
         ));
-        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Question q = domain.makeQuestion(null, qr, tags, Language.ENGLISH);
         JenaBackend backend = (JenaBackend) backendFactory.getBackend("Jena");
         Collection<Fact> solution = backend.solve(
                 domain.getQuestionLaws(q.getQuestionDomainType(), tags),
@@ -326,7 +326,7 @@ public class ProgrammingLanguageExpressionDomainTest {
         ));
         qr.setTargetLaws(List.of(
         ));
-        Question q = domain.makeQuestion(qr, tags, Language.ENGLISH);
+        Question q = domain.makeQuestion(null, qr, tags, Language.ENGLISH);
 
         assertFalse(q.getSolutionFacts().isEmpty());
     }

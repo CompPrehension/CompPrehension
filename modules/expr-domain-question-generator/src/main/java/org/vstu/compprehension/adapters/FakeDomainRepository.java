@@ -1,9 +1,11 @@
 package org.vstu.compprehension.adapters;
 
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -39,8 +41,9 @@ public class FakeDomainRepository implements DomainRepository {
         return true;
     }
 
+    @NotNull
     @Override
-    public Iterable<DomainEntity> findAll() {
+    public List<DomainEntity> findAll() {
         return findById("").stream().collect(Collectors.toList());
     }
 

@@ -2,8 +2,9 @@ package org.vstu.compprehension.models.businesslogic;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -11,43 +12,32 @@ import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
 
-public abstract class Question {
-    
+public class Question {
+    @Getter
+    @NotNull
     protected QuestionEntity questionData;
-    @Setter
+    
+    @Getter @Setter
     protected List<String> concepts;
     @Setter
     protected List<String> negativeLaws;
 
-    /**
-     * @return either question's metadata or data options' metadata, whichever is set, or null
-     */
-    public QuestionMetadataEntity getMetadataAny() {
-        if (metadata != null)
-            return metadata;
-        if (questionData != null && questionData.getOptions() != null) {
-            // metadata can still be null
-            return questionData.getOptions().getMetadata();
-        }
-        return null;
+    public @Nullable QuestionMetadataEntity getMetadata() {
+        return questionData.getMetadata();
     }
-
-    @Getter @Setter
-    protected QuestionMetadataEntity metadata = null;
+    @Getter
     @Setter
     protected Set<String> tags;
-    transient protected Domain domain;  // "transient" makes json reader ignore this field
+    @Getter
+    @NotNull 
+    final protected Domain domain;
     
-    public Question(QuestionEntity questionData, Domain domain) {
+    public Question(@NotNull QuestionEntity questionData, @NotNull Domain domain) {
         this.questionData = questionData;
         this.domain = domain;
         concepts = new ArrayList<>();
         negativeLaws = new ArrayList<>();
         tags = new HashSet<>();
-    }
-
-    public Domain getDomain() {
-        return this.domain;
     }
 
     public int answerObjectsCount() {
@@ -80,6 +70,13 @@ public abstract class Question {
         return questionData.getQuestionName();
     }
 
+    public @Nullable QuestionRequestLogEntity getQuestionRequest() {
+        return questionData.getQuestionRequestLog();
+    }
+    public void setQuestionRequest(QuestionRequestLogEntity qrLog) {
+        questionData.setQuestionRequestLog(qrLog);
+    }
+
     /** Make an identifier of the question template that is unique in system scope. Intended to be used as a solution key in reasoner's cache for this question and questions having the same solution (i.e. generated from the same template).
      * @return name of the question template or question itself prefixed with domain short name
      */
@@ -88,7 +85,7 @@ public abstract class Question {
 
         return domainPrefix + Optional.ofNullable(getMetadata())
                 .map(QuestionMetadataEntity::getTemplateId)
-                .filter(i -> i != 0)
+                .filter(Objects::nonNull)
                 .map(tId -> ":template-id:" + tId)
                 .orElse(":question:"+getQuestionName());
     }
@@ -104,23 +101,7 @@ public abstract class Question {
         
         return questionData.getQuestionType();
     }
-    
-    public QuestionEntity getQuestionData() {
-        
-        return questionData;
-    }
 
-    /**
-     * Don't use it for normal questions, only for templates
-     * @return
-     */
-    public List<String> getConcepts() {
-        return concepts;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
     /**
      * Don't use it for normal questions, only for templates
      * @return
@@ -138,7 +119,9 @@ public abstract class Question {
      *
      * @return - факты в универсальной форме
      */
-    public abstract Collection<Fact> responseToFacts(List<ResponseEntity> responses);
+    public Collection<Fact> responseToFacts(List<ResponseEntity> responses) {
+        return domain.responseToFacts(questionData.getQuestionDomainType(), responses, questionData.getAnswerObjects());
+    }
 
     public List<BackendFactEntity> getStatementFacts() {
         return questionData.getStatementFacts();
@@ -146,9 +129,7 @@ public abstract class Question {
 
     /** Get statement facts with common domain definitions for reasoning (schema) added */
     public Collection<Fact> getStatementFactsWithSchema() {
-        JenaFactList fl = JenaFactList.fromBackendFacts(questionData.getStatementFacts());
-        fl.addFromModel(domain.getSchemaForSolving());
-        return fl;
+        return domain.getQuestionStatementFactsWithSchema(this);        
     }
 
     public List<BackendFactEntity> getSolutionFacts() {
@@ -160,6 +141,6 @@ public abstract class Question {
     }
 
     public boolean isSupplementary() {
-        return this.questionData != null && this.questionData.getQuestionDomainType().contains("Supplementary");
+        return this.questionData.getQuestionDomainType().contains("Supplementary");
     }
 }

@@ -70,7 +70,7 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(
         <Alert variant={variant}>
-            {message.message}            
+            <div dangerouslySetInnerHTML={{ __html: message.message }} />
             {showGenerateSupQuestion && message.type === 'ERROR' && message.violationLaw &&
                 <GenerateSupQuestion 
                     store={supQuestionStore!}

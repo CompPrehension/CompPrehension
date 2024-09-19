@@ -1,11 +1,12 @@
 import { injectable } from "tsyringe";
-import { Domain, ExerciseCard, ExerciseListItem, Strategy, TDomain, TExerciseCard, TExerciseListItem, TStrategy } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseListItem, QuestionBankCount, Strategy, TDomain, TExerciseCard, TExerciseListItem, TQuestionBankCount, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
 import { API_URL } from "../../appconfig";
 import { toJS } from "mobx";
-import { TOptionalRequestResult, TOptionalRequestResultV } from "../../utils/helpers";
+import { TOptionalRequestResult, TOptionalRequestResultV, delayPromise, getRandomInt } from "../../utils/helpers";
+import * as E from "fp-ts/lib/Either";
 
 
 @injectable()
@@ -50,4 +51,15 @@ export class ExerciseSettingsController {
     getDomainConcepts(domainsId: string) : PromiseEither<RequestError, string[]> {
         return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
+
+    getBankStats(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number): PromiseEither<RequestError, QuestionBankCount> {
+        const body = {
+            domainId,
+            tags,
+            concepts,
+            laws,
+            complexity,
+        }
+        return ajaxPost(`${API_URL}/api/question-bank/count`, body, TQuestionBankCount);
+    }    
 }

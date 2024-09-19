@@ -50,11 +50,13 @@ export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
 
 export type ExerciseStage = {
     numberOfQuestions: number,
+    complexity: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
 }
 export const TExerciseStage : io.Type<ExerciseStage> = io.type({
     numberOfQuestions: io.number,
+    complexity: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
 })
@@ -66,30 +68,17 @@ export type ExerciseCard = {
     domainId: string,
     strategyId: string,
     backendId: string,
-    complexity: number,
     stages: NonEmptyArray<ExerciseStage>,
     tags: string[],
     options: ExerciseOptions,
 }
 
-export type ExerciseCardViewModel = {
-    id: number,
-    name: string,
-    domainId: string,
-    strategyId: string,
-    backendId: string,
-    complexity: number,
-    tags: string[],
-    stages: NonEmptyArray<ExerciseStage>,
-    options: ExerciseOptions,
-}
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     id: io.number,
     name: io.string,
     domainId: io.string,
     strategyId: io.string,
     backendId: io.string,
-    complexity: io.number,
     stages: nonEmptyArray(TExerciseStage),    
     tags: io.array(io.string),
     options: TExerciseOptions,
@@ -100,12 +89,14 @@ export type DomainLaw = {
     name: string,
     displayName: string,
     bitflags: number,
+    childs: DomainLaw[],
 }
-export const TDomainLaw : io.Type<DomainLaw> = io.type({
+export const TDomainLaw : io.Type<DomainLaw> = io.recursion('DomainLaw', () => io.type({
     name: io.string,
     displayName: io.string,
     bitflags: io.number,
-})
+    childs: io.array(TDomainLaw),
+}))
 
 export enum DomainConceptFlag {
     VisibleToTeacher = 1,
@@ -157,5 +148,14 @@ export const TStrategy: io.Type<Strategy> = io.type({
     options: io.type({
         multiStagesEnabled: io.boolean,
     }),
+})
+
+export type QuestionBankCount = {
+    count: number,
+    topRatedCount: number,
+}
+export const TQuestionBankCount: io.Type<QuestionBankCount> = io.type({
+    count: io.number,
+    topRatedCount: io.number,
 })
 

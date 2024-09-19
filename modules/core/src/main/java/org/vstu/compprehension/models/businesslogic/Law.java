@@ -1,8 +1,11 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.builder.ToStringExclude;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,26 +25,39 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     @Getter
     String name;
-    @Getter
+    @Getter @Setter
     int bitflags;
     @Getter @Setter
     long bitmask = 0;
     @Getter
+    @ToStringExclude
     List<LawFormulation> formulations;
     @Getter
+    @ToStringExclude
     List<Concept> concepts;
     @Getter
     List<Tag> tags;
 
+    @Builder.Default
+    @Getter @Setter
+    int sortOrder = 999;
+
     /**
-     * Names of laws that should be enabled automatically when this law is added/enabled.
+     * Names of "base" laws that should be enabled automatically when this law is added/enabled.
      */
-    @Getter
+    @Getter @Setter
     List<String> impliesLaws;
 
-    /** Cached references to Law instances */
+    /** Cached references to "base" Law instances — semantically the same as `impliesLaws` */
     @Getter @Setter
+    @ToStringExclude
     Collection<Law> lawsImplied;
+
+    /** Cached references to Law instances */
+    @ToStringExclude
+    @Getter
+    @Setter
+    Collection<Law> childLaws = null;
 
     /**
      * Priority of the law. Higher value means higher priority,
@@ -63,6 +79,10 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     public abstract boolean isPositiveLaw();
 
+    /**
+     * @param flagCode flag bitmask (see Law.FLAG_* constants)
+     * @return true iff all given bits exist in the law's bitflags
+     */
     public boolean hasFlag(int flagCode) {
     	return (bitflags & flagCode) != 0;
     }
@@ -84,4 +104,20 @@ public abstract class Law implements TreeNodeWithBitmask {
         return subTreeBitmaskCache = result;
     }
 
+    public static long combineToBitmask(@Nullable Iterable<Law> laws) {
+        if (laws == null)
+            return 0;
+
+        long lawBitmask = 0;
+        // Note: violations are not positive laws.
+        for (Law t : laws) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            lawBitmask |= newBit;
+        }
+        return lawBitmask;
+    }
 }

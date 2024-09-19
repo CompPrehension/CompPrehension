@@ -26,9 +26,4 @@ public class DTLaw extends NegativeLaw {
         );
         this.decisionTree = decisionTree;
     }
-
-    @Override
-    public boolean isPositiveLaw() {
-        return true;
-    }
 }

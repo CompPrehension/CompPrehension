@@ -23,7 +23,7 @@ public class FileUtility {
             result = walk
                     .filter(p -> !Files.isDirectory(p))
                     // convert path to string
-                    .map(p -> p.toString()/*.toLowerCase()*/)
+                    .map(Path::toString)
                     .filter(f -> isEndWith(f.toLowerCase(), fileExtensions))
                     .collect(Collectors.toList());
         }
@@ -40,11 +40,13 @@ public class FileUtility {
             throw new IllegalArgumentException("Path must be a directory!");
         }
         // just iterate and delete anything within the dir
-        try {
-            Files.list(path)
-                    .map(Path::toFile)
-                    .forEach(FileUtils::deleteQuietly);
-        } catch (IOException ignored) {}
+        try (var paths = Files.list(path)) {
+            for(var p : paths.collect(Collectors.toSet())) {
+                FileUtils.deleteQuietly(p.toFile());
+            }
+        } catch (IOException ignored) {
+            
+        }
     }
 
 

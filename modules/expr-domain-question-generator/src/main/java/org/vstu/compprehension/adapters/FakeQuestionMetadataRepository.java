@@ -1,13 +1,14 @@
 package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.ComplexityStats;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
-import java.util.Collection;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +35,17 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
+    public List<QuestionMetadataEntity> loadPage(int lastLoadedId, int limit) {
+        return List.of();
+    }
+
+    @Override
+    public long countByDomainShortname(String domainShortname) {
+        return 0;
+    }
+
+    @NotNull
+    @Override
     public Iterable<QuestionMetadataEntity> findAll() {
         return List.of();
     }
@@ -42,6 +54,21 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     @Override
     public List<QuestionMetadataEntity> findByName(String questionName) {
         return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findLastNExerciseAttemptMeta(long attemptId, int limit) {
+        return List.of();
+    }
+
+    @Override
+    public boolean existsByName(String questionName) {
+        return false;
+    }
+
+    @Override
+    public boolean existsByNameOrTemplateId(String domainShortname, String questionName, @Nullable String templateId) {
+        return false;
     }
 
     @Override
@@ -85,28 +112,49 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public List<QuestionMetadataEntity> findSampleAroundComplexityWithoutQIds(QuestionRequest qr, double complexityWindow, int limitNumber, int randomPoolLimitNumber) {
+    public int countQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+        return 0;
+    }
+
+    @Override
+    public int countTopRatedQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+        return 0;
+    }
+
+    @Override
+    public List<Integer> findMostUsedMetadataIds(@Nullable Integer weekUsageThreshold, @Nullable Integer dayUsageThreshold, @Nullable Integer hourUsageThreshold, @Nullable Integer min15UsageThreshold, @Nullable Integer min5UsageThreshold) {
         return List.of();
     }
 
     @Override
-    public int countQuestions(QuestionRequest qr) {
-        return 0;
+    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return List.of();
     }
 
     @NotNull
     @Override
-    public List<String> findAllOrigins(String domainName) {
-        return List.of();
+    public HashSet<String> findAllOrigins(String domainName, LocalDateTime from) {
+        return new HashSet<>();
     }
 
     @Override
-    public Collection<QuestionMetadataEntity> findSuitableQuestions(QuestionRequestLogEntity qr, int limitNumber) {
-        return List.of();
+    public boolean templateExists(String domainShortname, String templateId) {
+        return false;
     }
 
+    @NotNull
     @Override
-    public List<QuestionMetadataEntity> findNotYetExportedQuestions(String domainShortname) {
-        return List.of();
+    public HashSet<String> findAllTemplates(String domainShortname) {
+        return new HashSet<>();
     }
 }
