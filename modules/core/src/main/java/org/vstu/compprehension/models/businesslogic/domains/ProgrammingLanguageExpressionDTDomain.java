@@ -70,7 +70,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
     @Override
     public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
-        return Collections.singletonList(new DTLaw(this.domainSolvingModel.getDecisionTree()));
+        throw new UnsupportedOperationException("no Laws are used for " + this.getClass().getSimpleName());
     }
 
     // filter positive laws by question type and tags
@@ -102,7 +102,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
 
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
-        return Collections.singletonList(new DTLaw(this.domainSolvingModel.getDecisionTree()));
+        throw new UnsupportedOperationException("no Laws are used for " + this.getClass().getSimpleName());
     }
 
     @Override

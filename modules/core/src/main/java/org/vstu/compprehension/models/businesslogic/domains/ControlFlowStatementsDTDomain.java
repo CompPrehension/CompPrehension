@@ -125,22 +125,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return tags;
     }
 
-    /**
-     * Read laws for reasoning with jena
-     * @param inputStream file stream to read from
-     */
-    @Override
-    protected void readLaws(InputStream inputStream) {
-
-        super.readLaws(inputStream);
-
-        // add a new law made from DecisionTree
-        loadDTModel();
-        var dtLaw = new DTLaw(domainSolvingModel.getDecisionTree());
-        negativeLaws.put(dtLaw.getName(), dtLaw);
-        // <<
-    }
-
     @Override
     public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
 
@@ -340,7 +324,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     //-----------ФАКТЫ---------------
 
-    @Override
     public Collection<Fact> processQuestionFactsForBackendJudge(
             Collection<Fact> questionFacts,
             Collection<ResponseEntity> responses,
@@ -437,7 +420,10 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         varContainer.addMerge(new VariableDef("A", objName));
 
 
-        return Collections.singletonList(new DecisionTreeReasonerBackend.DomainFact(situationModel));
+        return Collections.singletonList(
+            null
+//            new DecisionTreeReasonerBackend.DomainFact(situationModel)
+        );
     }
 
     @NotNull
@@ -506,9 +492,11 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        List<ViolationEntity> mistakes = DecisionTreeReasonerBackend.reasonerOutputFactsToViolations(
-            violations.stream().toList()
-        );
+        List<ViolationEntity> mistakes =
+            new ArrayList<>();
+//            DecisionTreeReasonerBackend.reasonerOutputFactsToViolations(
+//            violations.stream().toList()
+//        );
 
         InterpretSentenceResult result = new InterpretSentenceResult();
         result.violations = mistakes;
@@ -523,7 +511,8 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     @Override
     public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang) {
-        return DecisionTreeReasonerBackend.makeExplanations(reasonerOutputFacts, lang);
+        throw new RuntimeException();
+//        return DecisionTreeReasonerBackend.makeExplanations(reasonerOutputFacts, lang);
     }
 
     @Override
@@ -548,11 +537,13 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
-        its.model.definition.Domain domain = solution.stream()
-                .filter(it -> it instanceof DecisionTreeReasonerBackend.DomainFact)
-                .findFirst()
-                .map((Fact t) -> ((DecisionTreeReasonerBackend.DomainFact)t).getDomain())
-                .orElse(null);
+        its.model.definition.Domain domain =
+            null;
+//            solution.stream()
+//                .filter(it -> it instanceof DecisionTreeReasonerBackend.DomainFact)
+//                .findFirst()
+//                .map((Fact t) -> ((DecisionTreeReasonerBackend.DomainFact)t).getDomain())
+//                .orElse(null);
 
         assert domain != null;
         OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
