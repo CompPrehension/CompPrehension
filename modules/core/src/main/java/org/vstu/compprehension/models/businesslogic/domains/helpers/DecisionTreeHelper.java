@@ -18,32 +18,11 @@ import java.util.concurrent.Callable;
 
 public abstract class DecisionTreeHelper {
     public static DomainSolvingModel buildDomainModelFromLOQI(URL domainURL){
-        return withHandledExceptions(() -> buildDomainModel(
-            domainURL,
-            DomainLoqiBuilder.buildDomain(
-                new BufferedReader(new InputStreamReader(Utils.plus(domainURL, "domain.loqi").openStream()))
-            )
-        ));
+        return withHandledExceptions(() -> new DomainSolvingModel(domainURL, DomainSolvingModel.BuildMethod.LOQI));
     }
 
     public static DomainSolvingModel buildDomainModelFromDict(URL domainURL){
-        return withHandledExceptions(() -> buildDomainModel(
-            domainURL,
-            DomainDictionariesRDFBuilder.buildDomain(
-                domainURL,
-                Collections.singleton(DomainRDFFiller.Option.NARY_RELATIONSHIPS_OLD_COMPAT)
-            )
-        ));
-    }
-
-    private static DomainSolvingModel buildDomainModel(URL domainURL, Domain domain) throws URISyntaxException {
-        return new DomainSolvingModel(
-            domain,
-            Collections.singletonMap(
-                "",
-                DecisionTreeXMLBuilder.fromXMLFile(Utils.plus(domainURL, "tree.xml").toURI().toString())
-            )
-        );
+        return withHandledExceptions(() -> new DomainSolvingModel(domainURL, DomainSolvingModel.BuildMethod.DICT_RDF));
     }
 
     private static <T> T withHandledExceptions(Callable<T> callable){

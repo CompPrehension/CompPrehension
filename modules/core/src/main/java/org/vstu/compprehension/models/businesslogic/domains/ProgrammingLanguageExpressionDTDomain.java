@@ -2,10 +2,12 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
 import its.model.definition.EnumValueRef;
+import its.model.definition.ObjectDef;
 import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -50,7 +52,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         //LOOK readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
     
-    private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
+    public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
             DomainSolvingModel.BuildMethod.LOQI
@@ -127,6 +129,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         return new HashSet<>(); //Не нужно для DT
     }
 
+    private static final String STILL_UNEVALUATED_LEFT_VIOLATION_NAME = "stillUnevaluatedLeft";
+
     @Override
     public Set<DomainToBackendInterface<?, ?, ?>> createBackendInterfaces() {
         return Set.of(
@@ -140,9 +144,10 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 ) {
                     return new DecisionTreeReasonerBackend.Input(
                         ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-                            domainSolvingModel.getDomain(),
-                            question.getStatementFactsWithSchema().stream().map(Fact::asBackendFact).toList(),
-                            responses.stream().toList()
+                            domainSolvingModel.getMergedTagDomain("c++"),
+                            domainSolvingModel.getDecisionTrees(),
+                            question,
+                            responses
                         ),
                         domainSolvingModel.getDecisionTree()
                     );
@@ -154,13 +159,24 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     LearningSituation preparedSituation
                 ) {
                     ViolationEntity violation = new ViolationEntity();
-                    violation.setLawName("stillUnevaluatedLeft");
+                    violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
                     violation.setViolationFacts(new ArrayList<>());
                     InterpretSentenceResult result = new InterpretSentenceResult();
                     result.violations = List.of(violation);
-                    result.explanations = List.of(new HyperText("There are still unevaluated elements in the expression"));
+                    result.explanations = List.of(new HyperText(
+                        locCodeToStillUnevaluatedElementsLeftFormulationsMap().get(
+                            getUserLanguageByQuestion(judgedQuestion).toLocaleString().toUpperCase()
+                        )
+                    ));
                     updateInterpretationResult(result, preparedSituation);
                     return result;
+                }
+
+                private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap(){
+                    return Map.ofEntries(
+                        Pair.of("RU", "В выражении все еще есть невычисленные операторы"),
+                        Pair.of("EN", "There are still unevaluated operators left in the expression")
+                    );
                 }
 
                 @Override
@@ -176,13 +192,25 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     LearningSituation situation
                 ){
                     interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-                    interpretationResult.IterationsLeft = situation.getDomain().getObjects()
+                    interpretationResult.IterationsLeft = (int) situation.getDomain().getObjects()
                         .stream().filter(objectDef ->
-                            objectDef.isInstanceOf("element")
-                                && objectDef.getPropertyValue("state")
-                                .equals(new EnumValueRef("state", "unevaluated"))
+                            hasState(objectDef, "unevaluated")
+                                || (hasState(objectDef, "omitted")
+                                    && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
                         )
-                        .toList().size();
+                        .count();
+                }
+
+                private Optional<ObjectDef> getParent(ObjectDef object){
+                    return object.getRelationshipLinks().listByName("isOperandOf").stream().findFirst()
+                        .map(link -> link.getObjects().get(0));
+                }
+
+                private boolean hasState(ObjectDef object, String stateValueName){
+                    if(!object.isInstanceOf("operand")){
+                        return false;
+                    }
+                    return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state"));
                 }
 
                 @Override
@@ -292,18 +320,17 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         return null;
     }
-    
+
+    @Override
+    public List<HyperText> getFullSolutionTrace(Question question) {
+        //TODO - this probably needs to be moved inside a BackendInterface and redone
+        return super.getFullSolutionTrace(question);
+    }
+
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
-                .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
-                .reduce((first, second) -> second);
-        
-        val solution = Fact.entitiesToFacts(q.getSolutionFacts());
-        assert solution != null;
-        //TODO
-        return null;
+        //TODO - this probably needs to be moved inside a BackendInterface and redone
+        return super.getAnyNextCorrectAnswer(q);
     }
     
     @Override
@@ -322,20 +349,21 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        return true;
+        return !STILL_UNEVALUATED_LEFT_VIOLATION_NAME.equals(violation.getLawName());
     }
 
     private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
         return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            dtSupplementaryQuestionHelper.domainModel.getDomain(),
-            lastMainQuestionInteraction.getQuestion(),
-            lastMainQuestionInteraction
+            domainSolvingModel.getMergedTagDomain("c++"),
+            domainSolvingModel.getDecisionTrees(),
+            new Question(lastMainQuestionInteraction.getQuestion(), this),
+            lastMainQuestionInteraction.getResponses()
         );
     }
     
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION),
+            domainSolvingModel,
             this::mainQuestionToModel
     );
     

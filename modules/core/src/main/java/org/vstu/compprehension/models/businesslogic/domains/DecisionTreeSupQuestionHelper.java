@@ -32,15 +32,27 @@ import java.util.stream.Collectors;
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
         Domain domain,
-        URL domainModelDirectoryURL,
+        DomainSolvingModel domainSolvingModel,
         Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
-        this.domainModel = new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI);
+        this.domainModel = domainSolvingModel;
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
-                domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
+            domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
         this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
+    }
+
+    public DecisionTreeSupQuestionHelper(
+        Domain domain,
+        URL domainModelDirectoryURL,
+        Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer
+    ) {
+        this(
+            domain,
+            new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
+            mainQuestionToModelTransformer
+        );
     }
 
     private final Domain domain;

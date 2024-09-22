@@ -1489,9 +1489,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
         return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            dtSupplementaryQuestionHelper.domainModel.getDomain(),
-            lastMainQuestionInteraction.getQuestion(),
-            lastMainQuestionInteraction
+            dtSupplementaryQuestionHelper.domainModel.getMergedTagDomain("c++"),
+            dtSupplementaryQuestionHelper.domainModel.getDecisionTrees(),
+            new Question(lastMainQuestionInteraction.getQuestion(), this),
+            lastMainQuestionInteraction.getResponses()
         );
     }
 

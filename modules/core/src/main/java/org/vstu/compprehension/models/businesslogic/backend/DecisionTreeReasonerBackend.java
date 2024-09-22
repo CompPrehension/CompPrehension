@@ -106,7 +106,7 @@ public class DecisionTreeReasonerBackend
             super(DecisionTreeReasonerBackend.class);
         }
 
-        private final static String ERROR_NODE_ATTR = "errorNode";
+        private final static String ERROR_NODE_ATTR = "error";
         @Override
         public InterpretSentenceResult interpretJudgeOutput(
             Question judgedQuestion,
@@ -203,9 +203,7 @@ public class DecisionTreeReasonerBackend
         }
 
         private static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation){
-            Object explanation = resultNode.getMetadata().get(
-                new MetadataProperty("explanation") //FIXME
-            );
+            Object explanation = resultNode.getMetadata().get(textSituation.getLocalizationCode(), "explanation");
             String explanationTemplate = explanation == null ? "WRONG" : explanation.toString();
             return textSituation.getTemplating().interpret(explanationTemplate);
         }
