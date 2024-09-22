@@ -1,7 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers;
 
 import its.model.definition.ClassDef;
-import its.model.definition.Domain;
+import its.model.definition.DomainModel;
 import its.model.definition.ObjectDef;
 import its.model.definition.loqi.DomainLoqiWriter;
 import its.model.nodes.DecisionTree;
@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static its.model.definition.build.DomainBuilderUtils.*;
-import static its.model.definition.build.DomainBuilderUtils.addMeta;
 
 @Log4j2
 public class ProgrammingLanguageExpressionRDFTransformer {
@@ -30,7 +29,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     private static final String DEBUG_DIR = "./modules/core/src/main/resources/" + ProgrammingLanguageExpressionDTDomain.DOMAIN_MODEL_LOCATION;
     private static final String BASE_TTL_PREF = "http://vstu.ru/poas/code#";
 
-    public static void debugDumpLoqi(Domain model, String filename){
+    public static void debugDumpLoqi(DomainModel model, String filename) {
         if(!ENABLE_DEBUG_SAVE) return;
         try {
             DomainLoqiWriter.saveDomain(
@@ -43,19 +42,20 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         }
     }
 
-    public static Domain questionToDomainModel(
-        Domain domainModel,
+    public static DomainModel questionToDomainModel(
+        DomainModel domainModel,
         Map<String, DecisionTree> decisionTreeMap,
         Question question,
         List<ResponseEntity> responses
     ){
-        return questionToDomainModel(domainModel, decisionTreeMap, question, responses, true).domain;
+        return questionToDomainModel(domainModel, decisionTreeMap, question, responses, true).domainModel;
     }
 
-    public record ParsedDomain(Domain domain, List<Integer> errorPos){}
+    public record ParsedDomain(DomainModel domainModel, List<Integer> errorPos) {
+    }
 
     public static ParsedDomain questionToDomainModel(
-        Domain domainModel,
+        DomainModel domainModel,
         Map<String, DecisionTree> decisionTreeMap,
         Question question,
         List<ResponseEntity> responses,
@@ -80,7 +80,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     }
 
     private static ParsedDomain questionToDomainModel(
-        Domain domainModel,
+        DomainModel domainModel,
         Map<String, DecisionTree> decisionTreeMap,
         Model base,
         List<Resource> selectedTokens,
@@ -88,7 +88,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     ){
         saveModel("base.ttl", base);
 
-        Domain situationDomain = new Domain();
+        DomainModel situationDomain = new DomainModel();
         ParsedDomain parseResult = new ParsedDomain(situationDomain, new ArrayList<>());
 
         Property indexProperty = base.getProperty(BASE_TTL_PREF + "index");
@@ -139,8 +139,8 @@ public class ProgrammingLanguageExpressionRDFTransformer {
 
     private static void createAndPutObjects(
         Resource baseToken,
-        Domain domainModel,
-        Domain situationDomain,
+        DomainModel domainModel,
+        DomainModel situationDomain,
         ParsedDomain parseResult,
         Map<Resource, ObjectDef> baseTokensToTokens,
         Map<Resource, ObjectDef> baseTokensToElements,
@@ -185,7 +185,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     }
 
     private static void solveSituation(
-        Domain situationDomain,
+        DomainModel situationDomain,
         Map<String, DecisionTree> decisionTreeMap,
         List<Resource> selected,
         boolean isLastSelectionVariable,
@@ -228,7 +228,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
     }
 
     private static ObjectDef resTokenFromBase(Resource baseToken, ObjectDef resElement){
-        Domain situation = resElement.getDomain();
+        DomainModel situation = resElement.getDomainModel();
         ObjectDef token = newObject(situation, "token_" + baseToken.getLocalName(), "token");
         addRelationship(resElement, "has", token.getName());
         addMeta(token, "index", getIndex(baseToken));
@@ -322,7 +322,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         }
     }
 
-    private static ParsedClassName className(Resource baseToken, Domain domainModel){
+    private static ParsedClassName className(Resource baseToken, DomainModel domainModel) {
         String text = getText(baseToken);
 
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()

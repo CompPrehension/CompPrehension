@@ -1,8 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 import its.model.TypedVariable;
-import its.model.definition.Domain;
-import its.model.definition.MetadataProperty;
+import its.model.definition.DomainModel;
 import its.model.nodes.BranchResultNode;
 import its.model.nodes.DecisionTree;
 import its.questions.gen.QuestioningSituation;
@@ -13,19 +12,21 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendInterface;
+import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.vstu.compprehension.models.businesslogic.domains.Domain.InterpretSentenceResult;
 
 /**
  * A reasoning backend that works with decision-tree based reasoning;<br>
- * Uses {@link Domain} objects to encode data, and {@link DecisionTree}s to encode reasoning processes.<br>
+ * Uses {@link DomainModel} objects to encode data, and {@link DecisionTree}s to encode reasoning processes.<br>
  * Domains aiming to support this backend should have a corresponding {@link Interface}
  * @see its.model.DomainSolvingModel
  */
@@ -46,11 +47,11 @@ public class DecisionTreeReasonerBackend
 
     /**
      * Information, needed to perform a decision-tree based reasoning
-     * @param situationDomain combined question and domain data, described in the {@link Domain} form
+     * @param situationDomainModel combined question and domain data, described in the {@link DomainModel} form
      * @param decisionTree a decision tree structure that describes the reasoning process
      */
     public record Input(
-        Domain situationDomain,
+        DomainModel situationDomainModel,
         DecisionTree decisionTree
     ){}
 
@@ -69,7 +70,7 @@ public class DecisionTreeReasonerBackend
 
     @Override
     public DecisionTreeReasonerBackend.Output judge(Input questionData) {
-        Domain situationModel = questionData.situationDomain;
+        DomainModel situationModel = questionData.situationDomainModel;
         DecisionTree decisionTree = questionData.decisionTree;
 
         LearningSituation situation = new LearningSituation(
@@ -189,7 +190,7 @@ public class DecisionTreeReasonerBackend
         ){
 
             QuestioningSituation textSituation = new QuestioningSituation(
-                situation.getDomain(),
+                situation.getDomainModel(),
                 lang.toLocaleString()
             );
 

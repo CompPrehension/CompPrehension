@@ -1,6 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers;
 
-import its.model.definition.Domain;
+import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
 import its.model.nodes.DecisionTree;
@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
  * A helper class used to solve problems from the {@link ProgrammingLanguageExpressionDTDomain}
  */
 public class ProgrammingLanguageExpressionsSolver {
-    public static List<ObjectDef> getUnevaluated(Domain domain){
+    public static List<ObjectDef> getUnevaluated(DomainModel domain) {
         return domain.getObjects().stream()
             .filter(obj ->
                 obj.isInstanceOf("operator")
@@ -25,7 +25,7 @@ public class ProgrammingLanguageExpressionsSolver {
             .toList();
     }
 
-    public boolean solveForX(ObjectDef xObject, Domain domain, DecisionTree decisionTree){
+    public boolean solveForX(ObjectDef xObject, DomainModel domain, DecisionTree decisionTree) {
         LearningSituation situation = new LearningSituation(
             domain,
             new HashMap<>(Collections.singletonMap("X", xObject.getReference()))
@@ -33,8 +33,8 @@ public class ProgrammingLanguageExpressionsSolver {
         return DecisionTreeReasoner.solve(decisionTree, situation).getLast().getNode().getValue();
     }
 
-    private void solve(Domain domain, DecisionTree decisionTree, BiConsumer<ObjectDef, ObjectDef> retain) {
-        Domain situationDomain = domain.copy();
+    private void solve(DomainModel domain, DecisionTree decisionTree, BiConsumer<ObjectDef, ObjectDef> retain) {
+        DomainModel situationDomain = domain.copy();
 
         List<ObjectDef> unevaluated = getUnevaluated(situationDomain);
         while (!unevaluated.isEmpty()){
@@ -50,7 +50,7 @@ public class ProgrammingLanguageExpressionsSolver {
         ));
     }
 
-    public void solveTree(Domain domain, Map<String, DecisionTree> decisionTreeMap){
+    public void solveTree(DomainModel domain, Map<String, DecisionTree> decisionTreeMap) {
         solve(domain, decisionTreeMap.get("no_strict"), (domainObj, solvedObj) -> {
             domainObj.getRelationshipLinks().addAll(
                 solvedObj.getRelationshipLinks().stream()
@@ -62,7 +62,7 @@ public class ProgrammingLanguageExpressionsSolver {
         });
     }
 
-    public void solveStrict(Domain domain, Map<String, DecisionTree> decisionTreeMap){
+    public void solveStrict(DomainModel domain, Map<String, DecisionTree> decisionTreeMap) {
         solve(domain, decisionTreeMap.get(""), (domainObj, solvedObj) -> {
             Optional.ofNullable(solvedObj.getDefinedPropertyValues().get("state"))
                 .filter(property ->

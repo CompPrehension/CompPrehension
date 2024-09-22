@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import its.model.definition.DomainModel;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -1487,7 +1488,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
-    private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+    private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
         return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
             dtSupplementaryQuestionHelper.domainModel.getMergedTagDomain("c++"),
             dtSupplementaryQuestionHelper.domainModel.getDecisionTrees(),

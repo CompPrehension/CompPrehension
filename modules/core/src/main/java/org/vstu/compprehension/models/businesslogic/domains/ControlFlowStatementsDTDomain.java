@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
+import its.model.definition.DomainModel;
 import its.model.definition.VariableDef;
 import its.model.definition.rdf.DomainRDFFiller;
 import its.model.definition.rdf.DomainRDFWriter;
@@ -30,7 +31,6 @@ import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -391,11 +391,11 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
         var model = newFacts.getModel();
 
-        its.model.definition.Domain situationModel = getDTSituationModel(model);
+        DomainModel situationModel = getDTSituationModel(model);
 
 
         // fill initial variables.
-        var varContainer = situationModel.getDomain().getVariables();
+        var varContainer = situationModel.getDomainModel().getVariables();
 
         String iri = m.listStatements(null, RDF.type, m.getOntClass(m.expandPrefix(":algorithm")))
                 .nextOptional().map(Statement::getSubject).map(Resource::getURI)
@@ -427,9 +427,9 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
     @NotNull
-    private its.model.definition.Domain getDTSituationModel(Model model) {
+    private DomainModel getDTSituationModel(Model model) {
         // @see also: questionToDomainModel
-        its.model.definition.Domain situationModel = domainSolvingModel.getDomain().getDomain().copy();
+        DomainModel situationModel = domainSolvingModel.getDomainModel().copy();
         DomainRDFFiller.fillDomain(
             situationModel,
                 model,
@@ -537,7 +537,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
-        its.model.definition.Domain domain =
+        DomainModel domain =
             null;
 //            solution.stream()
 //                .filter(it -> it instanceof DecisionTreeReasonerBackend.DomainFact)

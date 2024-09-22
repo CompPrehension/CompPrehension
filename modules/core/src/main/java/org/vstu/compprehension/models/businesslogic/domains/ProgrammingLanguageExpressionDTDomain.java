@@ -1,12 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
+import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
 import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +14,6 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.DecisionTreeHelper;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.*;
@@ -192,7 +191,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     LearningSituation situation
                 ){
                     interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-                    interpretationResult.IterationsLeft = (int) situation.getDomain().getObjects()
+                    interpretationResult.IterationsLeft = (int) situation.getDomainModel().getObjects()
                         .stream().filter(objectDef ->
                             hasState(objectDef, "unevaluated")
                                 || (hasState(objectDef, "omitted")
@@ -352,7 +351,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         return !STILL_UNEVALUATED_LEFT_VIOLATION_NAME.equals(violation.getLawName());
     }
 
-    private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+    private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
         return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
             domainSolvingModel.getMergedTagDomain("c++"),
             domainSolvingModel.getDecisionTrees(),

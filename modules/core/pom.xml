@@ -158,19 +158,19 @@
         <dependency>
             <groupId>com.github.Max-Person</groupId>
             <artifactId>its_DomainModel</artifactId>
-            <version>78442a08</version> <!-- commit from 22.09.24 -->
+            <version>a2f69bf3</version> <!-- commit from 22.09.24 -->
 <!--            <version>master-SNAPSHOT</version> &lt;!&ndash; for local development &ndash;&gt;-->
         </dependency>
         <dependency>
             <groupId>com.github.Max-Person</groupId>
             <artifactId>its_Reasoner</artifactId>
-            <version>03e3e11f</version> <!--  commit from 31.08.24 -->
+            <version>bc115356</version> <!--  commit from 22.09.24 -->
 <!--            <version>master-SNAPSHOT</version> &lt;!&ndash; for local development &ndash;&gt;-->
         </dependency>
         <dependency>
             <groupId>com.github.Max-Person</groupId>
             <artifactId>its_QuestionGen</artifactId>
-            <version>c33e868d</version> <!--  commit from 22.09.24 -->
+            <version>d6372863</version> <!--  commit from 22.09.24 -->
 <!--            <version>master-SNAPSHOT</version> &lt;!&ndash; for local development &ndash;&gt;-->
         </dependency>
         <dependency>
