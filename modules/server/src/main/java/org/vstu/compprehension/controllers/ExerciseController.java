@@ -208,7 +208,7 @@ public class ExerciseController {
             throw new AuthorizationServiceException("Authorization error");
         }
 
-        val userId = userService.getCurrentUser().getId();
+        val userId = currentUser.getId();
         var result = frontendService.getExerciseAttempt(attemptId);
         if (result == null) {
             throw new Exception("No such attempt");
@@ -235,7 +235,7 @@ public class ExerciseController {
             throw new AuthorizationServiceException("Authorization error");
         }
 
-        val userId = userService.getCurrentUser().getId();
+        val userId = currentUser.getId();
         return frontendService.getExistingExerciseAttempt(exerciseId, userId);
     }
 
@@ -255,7 +255,7 @@ public class ExerciseController {
             throw new AuthorizationServiceException("Authorization error");
         }
 
-        val userId = userService.getCurrentUser().getId();
+        val userId = currentUser.getId();
         return frontendService.createExerciseAttempt(exerciseId, userId);
     }
 
@@ -268,7 +268,7 @@ public class ExerciseController {
             throw new AuthorizationServiceException("Authorization error");
         }
 
-        val userId = userService.getCurrentUser().getId();
+        val userId = currentUser.getId();
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
     }
 }

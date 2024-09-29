@@ -9,12 +9,9 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.models.entities.DomainEntity;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
-import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -95,4 +92,8 @@ public class ExerciseEntity {
 
     @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
     private List<UserEntity> users;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id", nullable = false)
+    private CourseEntity course;
 }
