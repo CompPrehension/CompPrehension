@@ -23,6 +23,7 @@ import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
@@ -35,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -74,7 +75,7 @@ public class TaskGenerationJob {
                 runWithMode(config);
             } catch (Exception e) {
                 log.error("job exception - {} | {}", e.getMessage(), e);
-                throw e;
+                // throw new JobRunrException(e.getMessage(), e);
             }
         }
 
@@ -301,38 +302,69 @@ public class TaskGenerationJob {
         
         var downloadedRepos = new ArrayList<Path>();
         int skipped         = 0;
-        for (var repoSearchQuery : repoSearchQueries) {
-            for (var repo : repoSearchQuery) {
-                if (seenReposNames.contains(repo.getName())) {
-                    skipped++;
-                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                    continue;
+        try (ExecutorService executorService = Executors.newFixedThreadPool(1)) {
+            for (var repoSearchQuery : repoSearchQueries) {
+                for (var repo : repoSearchQuery) {
+                    if (seenReposNames.contains(repo.getName())) {
+                        skipped++;
+                        log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                        continue;
+                    }
+                    log.info("Downloading repo [{}] ...", repo.getFullName());
+
+                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip").toAbsolutePath();
+                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName()).toAbsolutePath();
+
+                    Future<Void> future = executorService.submit(() -> {
+                        try {
+                            Files.createDirectories(targetFolderPath);
+
+                            repo.readZip(s -> {
+                                try {
+                                    Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                                    Files.delete(zipFile);
+                                    downloadedRepos.add(targetFolderPath);
+                                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                return 0;
+                            }, null);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            // Cleanup in case of an exception or interruption
+                            if (Files.exists(zipFile)) {
+                                try {
+                                    Files.delete(zipFile);
+                                } catch (IOException e) {
+                                    log.error("Failed to delete zip file [{}]", zipFile, e);
+                                }
+                            }
+                        }
+                        return null;
+                    });
+
+                    try {
+                        future.get(30, TimeUnit.SECONDS);  // Timeout after 30 seconds
+                    } catch (TimeoutException e) {
+                        log.warn("Timeout while downloading repo [{}] from GitHub", repo.getFullName());
+                        future.cancel(true);  // Cancel the task if it times out
+                    } catch (Exception e) {
+                        log.error("Error while downloading repo [{}] from GitHub. {}", repo.getFullName(), e.getMessage(), e);
+                    }
+
+                    // for now, limited number of repositories
+                    if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload())
+                        return downloadedRepos;
                 }
-                log.info("Downloading repo [{}] ...", repo.getFullName());
 
-                repo.readZip(s -> {
-                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
-                            .toAbsolutePath();
-                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
-                            .toAbsolutePath();
-                    Files.createDirectories(targetFolderPath);
-                    Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                    Files.delete(zipFile);
-                    downloadedRepos.add(targetFolderPath);
-                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                    return 0;
-                }, null);
+                log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
 
-                // for now, limited number of repositories
-                if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload())
-                    return downloadedRepos;
+                // throttle
+                Thread.sleep(2000L);
             }
-
-            log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
-            
-            // throttle
-            Thread.sleep(2000L);
         }
         
         return downloadedRepos;
