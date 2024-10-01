@@ -18,7 +18,7 @@ RUN echo '#!/bin/bash' > /generator/runner.sh && \
 # Install Python and clean up
 RUN apt-get update && \
     apt-get install -y python3 python3-pip python-is-python3 && \
-    pip install --no-cache-dir pycparser && \
+    pip install --no-cache-dir pycparser --break-system-packages && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
