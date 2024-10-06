@@ -18,7 +18,6 @@ import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
@@ -45,15 +44,13 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 public class TaskGenerationJob {
-    private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
     private final QuestionGenerationRequestRepository generatorRequestsQueue;
     private final TaskGenerationJobConfig tasks;
     private final QuestionBank storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
-        this.qrLogRep = qrLogRep;
+    public TaskGenerationJob(QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.metadataRep = metadataRep;
         this.generatorRequestsQueue = generatorRequestsQueue;
         this.tasks = tasks;
@@ -75,12 +72,8 @@ public class TaskGenerationJob {
                 runWithMode(config);
             } catch (Exception e) {
                 log.error("job exception - {} | {}", e.getMessage(), e);
-                // throw new JobRunrException(e.getMessage(), e);
+                throw new RuntimeException(e);
             }
-        }
-
-        if (tasks.isRunOnce()) {
-            System.exit(0);
         }
     }
     
@@ -282,7 +275,7 @@ public class TaskGenerationJob {
                 .sort(GHRepositorySearchBuilder.Sort.STARS)
                 .order(GHDirection.DESC)
                 .list()
-                .withPageSize(100));        
+                .withPageSize(100));
         repoSearchQueries.add(github.searchRepositories()
                 .language("c")
                 .size("50..100000")
