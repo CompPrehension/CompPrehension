@@ -164,69 +164,78 @@ public class TaskGenerationJob {
 
         val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
         val downloadedPathExists = Files.exists(downloadedPath);
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedOlderThanDay) && downloadedPathExists) {
-            try (var paths = Files.list(downloadedPath)) {
-                for (var path : paths.collect(Collectors.toSet())) {
-                    var file = path.toFile();
-                    if (file.isDirectory() && file.lastModified() < LocalDateTime.now(ZoneId.of("UTC")).minusDays(1).toInstant(ZoneOffset.UTC).toEpochMilli()) {
-                        FileUtils.deleteDirectory(file);
-                        continue;
-                    }
-                    if (file.isDirectory()) {
-                        FileUtility.clearDirectory(path);
-                        continue;
-                    }
-                    if (file.isFile()) {
-                        var deleted = file.delete();
-                        if (!deleted) {
-                            log.error("Failed to delete file: {}", file.getAbsolutePath());
-                        }
-                    }
-                }
-            } catch (Exception exception) {
-                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
-            }            
-            log.info("successfully cleanup downloaded repos folder (older than 1 day)");
-        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
-            try (var paths = Files.list(downloadedPath)) {
-                for (var path : paths.collect(Collectors.toSet())) {
-                    var file = path.toFile();
-                    if (file.isDirectory()) {
-                        FileUtility.clearDirectory(path);
-                        continue;
-                    }
-                    if (file.isFile()) {
-                        var deleted = file.delete();
-                        if (!deleted) {
-                            log.error("Failed to delete file: {}", file.getAbsolutePath());
-                        }
-                    }
-                }
-            } catch (Exception exception) {
-                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
-            }
-            log.info("successfully cleanup downloaded repos folder (shallow mode)");
-        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloaded) && downloadedPathExists) {
-            try {
-                FileUtils.deleteDirectory(downloadedPath.toFile());
-            } catch (IllegalArgumentException exception) {
-                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
-            }
-            log.info("successfully cleanup downloaded repos folder");
-        }
 
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupParsed)) {
-            val parsedPath = Path.of(config.getParser().getOutputFolderPath());
-            if (Files.exists(parsedPath))
-                FileHelper.deleteFolderContent(parsedPath.toFile());
-            log.info("successfully cleanup parsed questions folder");
-        }
-
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupGenerated)) {
-            val generatedPath = Path.of(config.getGenerator().getOutputFolderPath());
-            if (Files.exists(generatedPath))
-                FileHelper.deleteFolderContent(generatedPath.toFile());
-            log.info("successfully cleanup generated questions folder");
+        log.info("Cleanup modes: {}", cleanupModes);
+        for (var mode : cleanupModes) {
+            switch (mode) {
+                case TaskGenerationJobConfig.CleanupMode.CleanupDownloadedOlderThan(long amount, TimeUnit timeUnit) when downloadedPathExists -> {
+                    try (var paths = Files.list(downloadedPath)) {
+                        for (var path : paths.collect(Collectors.toSet())) {
+                            var file = path.toFile();
+                            if (file.isDirectory() && file.lastModified() < LocalDateTime.now(ZoneId.of("UTC")).minus(amount, timeUnit.toChronoUnit()).toInstant(ZoneOffset.UTC).toEpochMilli()) {
+                                FileUtils.deleteDirectory(file);
+                                continue;
+                            }
+                            if (file.isDirectory()) {
+                                FileUtility.clearDirectory(path);
+                                continue;
+                            }
+                            if (file.isFile()) {
+                                var deleted = file.delete();
+                                if (!deleted) {
+                                    log.error("Failed to delete file: {}", file.getAbsolutePath());
+                                }
+                            }
+                        }
+                    } catch (Exception exception) {
+                        log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+                    }
+                    log.info("successfully cleanup downloaded repos folder (older than {} {})", amount, timeUnit);
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow() when downloadedPathExists -> {
+                    try (var paths = Files.list(downloadedPath)) {
+                        for (var path : paths.collect(Collectors.toSet())) {
+                            var file = path.toFile();
+                            if (file.isDirectory()) {
+                                FileUtility.clearDirectory(path);
+                                continue;
+                            }
+                            if (file.isFile()) {
+                                var deleted = file.delete();
+                                if (!deleted) {
+                                    log.error("Failed to delete file: {}", file.getAbsolutePath());
+                                }
+                            }
+                        }
+                    } catch (Exception exception) {
+                        log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+                    }
+                    log.info("successfully cleanup downloaded repos folder (shallow mode)");
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupDownloaded() -> {
+                    try {
+                        FileUtils.deleteDirectory(downloadedPath.toFile());
+                    } catch (IllegalArgumentException exception) {
+                        log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+                    }
+                    log.info("successfully cleanup downloaded repos folder");
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupParsed() -> {
+                    val parsedPath = Path.of(config.getParser().getOutputFolderPath());
+                    if (Files.exists(parsedPath))
+                        FileHelper.deleteFolderContent(parsedPath.toFile());
+                    log.info("successfully cleanup parsed questions folder");
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupGenerated() -> {
+                    val generatedPath = Path.of(config.getGenerator().getOutputFolderPath());
+                    if (Files.exists(generatedPath))
+                        FileHelper.deleteFolderContent(generatedPath.toFile());
+                    log.info("successfully cleanup generated questions folder");
+                }
+                case null, default -> {
+                    log.info("Unknown cleanup mode: {}", mode);
+                }
+            }
         }
 
         log.info("cleanup finished");
@@ -357,6 +366,7 @@ public class TaskGenerationJob {
 
                 // throttle
                 Thread.sleep(2000L);
+                log.debug("Sleeped {}ms to avoid github api abuse", 2000);
             }
         }
         
