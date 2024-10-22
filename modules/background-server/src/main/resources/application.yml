@@ -15,10 +15,8 @@ hibernate:
   generate_statistics: true
 
 task-generation:
-  run-mode: incremental
-  # run_once: false (the default) or true
-  run_once: true
-#  interval_minutes :  1
+  # run-once: false (the default) or true
+  run-once: false
   # cron-schedule: use "never" to disable it.
   cron-schedule: "*/30 * * * * *"
 
@@ -54,7 +52,7 @@ task-generation:
     -
       domain_short_name: ctrl_flow
 
-      enabled :  true
+      enabled :  false
 
       searcher:
         github_oauth_token: '${COMPPH_GITHIB_SEARCH_TOKEN}'

@@ -18,11 +18,11 @@ import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.QuestionRequestLogRepository;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -44,15 +44,13 @@ import java.util.stream.Collectors;
 @Log4j2
 @Service
 public class TaskGenerationJob {
-    private final QuestionRequestLogRepository qrLogRep;
     private final QuestionMetadataRepository metadataRep;
     private final QuestionGenerationRequestRepository generatorRequestsQueue;
     private final TaskGenerationJobConfig tasks;
     private final QuestionBank storage;
 
     @Autowired
-    public TaskGenerationJob(QuestionRequestLogRepository qrLogRep, QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
-        this.qrLogRep = qrLogRep;
+    public TaskGenerationJob(QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.metadataRep = metadataRep;
         this.generatorRequestsQueue = generatorRequestsQueue;
         this.tasks = tasks;
@@ -74,12 +72,8 @@ public class TaskGenerationJob {
                 runWithMode(config);
             } catch (Exception e) {
                 log.error("job exception - {} | {}", e.getMessage(), e);
-                throw e;
+                throw new RuntimeException(e);
             }
-        }
-
-        if (tasks.isRunOnce()) {
-            System.exit(0);
         }
     }
     
@@ -170,69 +164,78 @@ public class TaskGenerationJob {
 
         val downloadedPath = Path.of(config.getSearcher().getOutputFolderPath());
         val downloadedPathExists = Files.exists(downloadedPath);
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedOlderThanDay) && downloadedPathExists) {
-            try (var paths = Files.list(downloadedPath)) {
-                for (var path : paths.collect(Collectors.toSet())) {
-                    var file = path.toFile();
-                    if (file.isDirectory() && file.lastModified() < LocalDateTime.now(ZoneId.of("UTC")).minusDays(1).toInstant(ZoneOffset.UTC).toEpochMilli()) {
-                        FileUtils.deleteDirectory(file);
-                        continue;
-                    }
-                    if (file.isDirectory()) {
-                        FileUtility.clearDirectory(path);
-                        continue;
-                    }
-                    if (file.isFile()) {
-                        var deleted = file.delete();
-                        if (!deleted) {
-                            log.error("Failed to delete file: {}", file.getAbsolutePath());
-                        }
-                    }
-                }
-            } catch (Exception exception) {
-                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
-            }            
-            log.info("successfully cleanup downloaded repos folder (older than 1 day)");
-        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow) && downloadedPathExists) {
-            try (var paths = Files.list(downloadedPath)) {
-                for (var path : paths.collect(Collectors.toSet())) {
-                    var file = path.toFile();
-                    if (file.isDirectory()) {
-                        FileUtility.clearDirectory(path);
-                        continue;
-                    }
-                    if (file.isFile()) {
-                        var deleted = file.delete();
-                        if (!deleted) {
-                            log.error("Failed to delete file: {}", file.getAbsolutePath());
-                        }
-                    }
-                }
-            } catch (Exception exception) {
-                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
-            }
-            log.info("successfully cleanup downloaded repos folder (shallow mode)");
-        } else if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupDownloaded) && downloadedPathExists) {
-            try {
-                FileUtils.deleteDirectory(downloadedPath.toFile());
-            } catch (IllegalArgumentException exception) {
-                log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
-            }
-            log.info("successfully cleanup downloaded repos folder");
-        }
 
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupParsed)) {
-            val parsedPath = Path.of(config.getParser().getOutputFolderPath());
-            if (Files.exists(parsedPath))
-                FileHelper.deleteFolderContent(parsedPath.toFile());
-            log.info("successfully cleanup parsed questions folder");
-        }
-
-        if (cleanupModes.contains(TaskGenerationJobConfig.CleanupMode.CleanupGenerated)) {
-            val generatedPath = Path.of(config.getGenerator().getOutputFolderPath());
-            if (Files.exists(generatedPath))
-                FileHelper.deleteFolderContent(generatedPath.toFile());
-            log.info("successfully cleanup generated questions folder");
+        log.info("Cleanup modes: {}", cleanupModes);
+        for (var mode : cleanupModes) {
+            switch (mode) {
+                case TaskGenerationJobConfig.CleanupMode.CleanupDownloadedOlderThan(long amount, TimeUnit timeUnit) when downloadedPathExists -> {
+                    try (var paths = Files.list(downloadedPath)) {
+                        for (var path : paths.collect(Collectors.toSet())) {
+                            var file = path.toFile();
+                            if (file.isDirectory() && file.lastModified() < LocalDateTime.now(ZoneId.of("UTC")).minus(amount, timeUnit.toChronoUnit()).toInstant(ZoneOffset.UTC).toEpochMilli()) {
+                                FileUtils.deleteDirectory(file);
+                                continue;
+                            }
+                            if (file.isDirectory()) {
+                                FileUtility.clearDirectory(path);
+                                continue;
+                            }
+                            if (file.isFile()) {
+                                var deleted = file.delete();
+                                if (!deleted) {
+                                    log.error("Failed to delete file: {}", file.getAbsolutePath());
+                                }
+                            }
+                        }
+                    } catch (Exception exception) {
+                        log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+                    }
+                    log.info("successfully cleanup downloaded repos folder (older than {} {})", amount, timeUnit);
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupDownloadedShallow() when downloadedPathExists -> {
+                    try (var paths = Files.list(downloadedPath)) {
+                        for (var path : paths.collect(Collectors.toSet())) {
+                            var file = path.toFile();
+                            if (file.isDirectory()) {
+                                FileUtility.clearDirectory(path);
+                                continue;
+                            }
+                            if (file.isFile()) {
+                                var deleted = file.delete();
+                                if (!deleted) {
+                                    log.error("Failed to delete file: {}", file.getAbsolutePath());
+                                }
+                            }
+                        }
+                    } catch (Exception exception) {
+                        log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+                    }
+                    log.info("successfully cleanup downloaded repos folder (shallow mode)");
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupDownloaded() -> {
+                    try {
+                        FileUtils.deleteDirectory(downloadedPath.toFile());
+                    } catch (IllegalArgumentException exception) {
+                        log.error("Error while clearing downloaded folders: `{}`", exception.getMessage(), exception);
+                    }
+                    log.info("successfully cleanup downloaded repos folder");
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupParsed() -> {
+                    val parsedPath = Path.of(config.getParser().getOutputFolderPath());
+                    if (Files.exists(parsedPath))
+                        FileHelper.deleteFolderContent(parsedPath.toFile());
+                    log.info("successfully cleanup parsed questions folder");
+                }
+                case TaskGenerationJobConfig.CleanupMode.CleanupGenerated() -> {
+                    val generatedPath = Path.of(config.getGenerator().getOutputFolderPath());
+                    if (Files.exists(generatedPath))
+                        FileHelper.deleteFolderContent(generatedPath.toFile());
+                    log.info("successfully cleanup generated questions folder");
+                }
+                case null, default -> {
+                    log.info("Unknown cleanup mode: {}", mode);
+                }
+            }
         }
 
         log.info("cleanup finished");
@@ -281,7 +284,7 @@ public class TaskGenerationJob {
                 .sort(GHRepositorySearchBuilder.Sort.STARS)
                 .order(GHDirection.DESC)
                 .list()
-                .withPageSize(100));        
+                .withPageSize(100));
         repoSearchQueries.add(github.searchRepositories()
                 .language("c")
                 .size("50..100000")
@@ -301,38 +304,70 @@ public class TaskGenerationJob {
         
         var downloadedRepos = new ArrayList<Path>();
         int skipped         = 0;
-        for (var repoSearchQuery : repoSearchQueries) {
-            for (var repo : repoSearchQuery) {
-                if (seenReposNames.contains(repo.getName())) {
-                    skipped++;
-                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
-                    continue;
+        try (ExecutorService executorService = Executors.newFixedThreadPool(1)) {
+            for (var repoSearchQuery : repoSearchQueries) {
+                for (var repo : repoSearchQuery) {
+                    if (seenReposNames.contains(repo.getName())) {
+                        skipped++;
+                        log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getName());
+                        continue;
+                    }
+                    log.info("Downloading repo [{}] ...", repo.getFullName());
+
+                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip").toAbsolutePath();
+                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName()).toAbsolutePath();
+
+                    Future<Void> future = executorService.submit(() -> {
+                        try {
+                            Files.createDirectories(targetFolderPath);
+
+                            repo.readZip(s -> {
+                                try {
+                                    Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
+                                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
+                                    Files.delete(zipFile);
+                                    downloadedRepos.add(targetFolderPath);
+                                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                return 0;
+                            }, null);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            // Cleanup in case of an exception or interruption
+                            if (Files.exists(zipFile)) {
+                                try {
+                                    Files.delete(zipFile);
+                                } catch (IOException e) {
+                                    log.error("Failed to delete zip file [{}]", zipFile, e);
+                                }
+                            }
+                        }
+                        return null;
+                    });
+
+                    try {
+                        future.get(30, TimeUnit.SECONDS);  // Timeout after 30 seconds
+                    } catch (TimeoutException e) {
+                        log.warn("Timeout while downloading repo [{}] from GitHub", repo.getFullName());
+                        future.cancel(true);  // Cancel the task if it times out
+                    } catch (Exception e) {
+                        log.error("Error while downloading repo [{}] from GitHub. {}", repo.getFullName(), e.getMessage(), e);
+                    }
+
+                    // for now, limited number of repositories
+                    if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload())
+                        return downloadedRepos;
                 }
-                log.info("Downloading repo [{}] ...", repo.getFullName());
 
-                repo.readZip(s -> {
-                    Path zipFile = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName() + ".zip")
-                            .toAbsolutePath();
-                    Path targetFolderPath = Path.of(downloaderConfig.getOutputFolderPath(), repo.getName())
-                            .toAbsolutePath();
-                    Files.createDirectories(targetFolderPath);
-                    Files.copy(s, zipFile, StandardCopyOption.REPLACE_EXISTING);
-                    ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
-                    Files.delete(zipFile);
-                    downloadedRepos.add(targetFolderPath);
-                    log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
-                    return 0;
-                }, null);
+                log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
 
-                // for now, limited number of repositories
-                if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload())
-                    return downloadedRepos;
+                // throttle
+                Thread.sleep(2000L);
+                log.debug("Sleeped {}ms to avoid github api abuse", 2000);
             }
-
-            log.info("No enough repositories found for query. {}/{} repositories downloaded so far. Trying the next query...", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
-            
-            // throttle
-            Thread.sleep(2000L);
         }
         
         return downloadedRepos;

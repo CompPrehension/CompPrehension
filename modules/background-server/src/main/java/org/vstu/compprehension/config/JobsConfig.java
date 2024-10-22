@@ -25,27 +25,34 @@ public class JobsConfig {
     @PostConstruct
     public void jobsConfig() {
         // TaskGenerationJob
-        jobScheduler.delete("TaskGenerationJob");
-        if (taskGenerationJobConfig.isRunOnce()) {
-            jobScheduler.enqueue(TaskGenerationJob::run);
-            log.info("TaskGenerationJob scheduled once");
-        } else {
-            if (!"never".equalsIgnoreCase(taskGenerationJobConfig.getCronSchedule())) {
-                jobScheduler.scheduleRecurrently("TaskGenerationJob", taskGenerationJobConfig.getCronSchedule(), TaskGenerationJob::run);
+        {
+            var taskGenerationJobId = "TaskGenerationJob";
+            jobScheduler.delete(taskGenerationJobId);
+            if (taskGenerationJobConfig.isRunOnce()) {
+                jobScheduler.enqueue(TaskGenerationJob::run);
+                log.info("TaskGenerationJob scheduled once");
+            } else {
+                if (!"never".equalsIgnoreCase(taskGenerationJobConfig.getCronSchedule())) {
+                    jobScheduler.scheduleRecurrently(taskGenerationJobId, taskGenerationJobConfig.getCronSchedule(), TaskGenerationJob::run);
+                }
+                log.info("TaskGenerationJob scheduled with schedule: {}", taskGenerationJobConfig.getCronSchedule());
             }
-            log.info("TaskGenerationJob scheduled with schedule: {}", taskGenerationJobConfig.getCronSchedule());
-        }        
+        }
+
 
         // MetadataHealthJob
-        jobScheduler.delete("MetadataHealthJob");
-        if (metadataHealthJobConfig.isRunOnce()) {
-            jobScheduler.enqueue(MetadataHealthJob::run);
-            log.info("MetadataHealthJob scheduled once");
-        } else {
-            if (!"never".equalsIgnoreCase(metadataHealthJobConfig.getCronSchedule())) {
-                jobScheduler.scheduleRecurrently("MetadataHealthJob", metadataHealthJobConfig.getCronSchedule(), MetadataHealthJob::run);
+        {
+            var metadataHealthJobId = "MetadataHealthJob";
+            jobScheduler.delete(metadataHealthJobId);
+            if (metadataHealthJobConfig.isRunOnce()) {
+                jobScheduler.enqueue(MetadataHealthJob::run);
+                log.info("MetadataHealthJob scheduled once");
+            } else {
+                if (!"never".equalsIgnoreCase(metadataHealthJobConfig.getCronSchedule())) {
+                    jobScheduler.scheduleRecurrently(metadataHealthJobId, metadataHealthJobConfig.getCronSchedule(), MetadataHealthJob::run);
+                }
+                log.info("MetadataHealthJob scheduled with schedule: {}", metadataHealthJobConfig.getCronSchedule());
             }
-            log.info("MetadataHealthJob scheduled with schedule: {}", metadataHealthJobConfig.getCronSchedule());
         }
     }
 }

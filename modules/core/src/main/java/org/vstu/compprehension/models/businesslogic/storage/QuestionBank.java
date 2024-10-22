@@ -155,6 +155,21 @@ public class QuestionBank {
         log.info("search query prepared: {}", new Gson().toJson(preparedQuery));
         List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
         log.info("search query executed with {} candidates", foundQuestionMetas.size());
+
+        // runtime assert to find possible desync between findTopRatedMetadata and isMatch methods
+        {
+            List<Integer> notMatchedMetadata = null;
+            for (QuestionMetadataEntity question : foundQuestionMetas) {
+                if (!isMatch(question, preparedQuery)) {
+                    if (notMatchedMetadata == null)
+                        notMatchedMetadata = new ArrayList<>();
+                    notMatchedMetadata.add(question.getId());
+                }
+            }
+            if (notMatchedMetadata != null) {
+                log.error("isMatch desync detected. Metadata with ids={} does not match bank search query {}", notMatchedMetadata, new Gson().toJson(preparedQuery));
+            }
+        }
         
         int generatorThreshold = 7;
         if (foundQuestionMetas.size() < generatorThreshold) {

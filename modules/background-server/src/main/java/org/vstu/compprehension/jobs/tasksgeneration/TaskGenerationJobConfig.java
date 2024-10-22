@@ -11,8 +11,9 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @Configuration
 @ConfigurationProperties(prefix = "task-generation")
@@ -31,7 +32,7 @@ public class TaskGenerationJobConfig {
         private ParserConfig parser;
         private GeneratorConfig generator;
         private ExporterConfig exporter;
-        private EnumSet<CleanupMode> cleanupMode = EnumSet.of(CleanupMode.CleanupDownloadedOlderThanDay, CleanupMode.CleanupParsed);
+        private List<CleanupMode> cleanupMode = List.of(new CleanupMode.CleanupDownloadedOlderThan(1, TimeUnit.DAYS), new CleanupMode.CleanupParsed());
 
         @Getter @Setter @NoArgsConstructor
         public static class ReposSearcherConfig {
@@ -94,11 +95,44 @@ public class TaskGenerationJobConfig {
         }
     }
 
-    public enum CleanupMode {
-        CleanupDownloaded,
-        CleanupDownloadedShallow,
-        CleanupDownloadedOlderThanDay,
-        CleanupParsed,
-        CleanupGenerated;
+    public interface CleanupMode {
+        record CleanupDownloaded() implements CleanupMode {};
+        record CleanupDownloadedShallow() implements CleanupMode {};
+        record CleanupDownloadedOlderThan(long amount, TimeUnit unit) implements CleanupMode {};
+        record CleanupParsed() implements CleanupMode {};
+        record CleanupGenerated() implements CleanupMode {};
+
+        @Component
+        @ConfigurationPropertiesBinding
+        public class ModeConverter implements Converter<String, CleanupMode> {
+
+            @Override
+            public CleanupMode convert(String from) {
+                switch (from) {
+                    case "CleanupDownloaded" -> {
+                        return new CleanupDownloaded();
+                    }
+                    case "CleanupDownloadedShallow" -> {
+                        return new CleanupDownloadedShallow();
+                    }
+                    case "CleanupParsed" -> {
+                        return new CleanupParsed();
+                    }
+                    case "CleanupGenerated" -> {
+                        return new CleanupGenerated();
+                    }
+                }
+
+                if (from.startsWith("CleanupDownloadedOlderThan")) {
+                    var pattern = Pattern.compile("^CleanupDownloadedOlderThan\\(\\s*(\\d+)\\s*,\\s*(SECONDS|MINUTES|HOURS|DAYS)\\s*\\)\\s*$", Pattern.CASE_INSENSITIVE);
+                    var matcher = pattern.matcher(from);
+                    if (matcher.find()) {
+                        return new CleanupDownloadedOlderThan(Long.parseLong(matcher.group(1)), TimeUnit.valueOf(matcher.group(2).toUpperCase()));
+                    }
+                }
+
+                throw new IllegalArgumentException("Unknown mode: " + from);
+            }
+        }
     }
 }
