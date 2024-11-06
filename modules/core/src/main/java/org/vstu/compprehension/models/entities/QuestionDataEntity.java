@@ -17,13 +17,11 @@ import org.vstu.compprehension.utils.SerializableQuestionType;
 @AllArgsConstructor
 public class QuestionDataEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
     @Column(name = "data", columnDefinition = "json", nullable = false)
     @Type(SerializableQuestionType.class)
     private SerializableQuestion data;
-
-    @OneToOne(mappedBy = "questionData")
-    private QuestionMetadataEntity questionMetadata;
 }

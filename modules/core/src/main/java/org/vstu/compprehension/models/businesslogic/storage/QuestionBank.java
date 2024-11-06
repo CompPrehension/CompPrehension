@@ -228,12 +228,6 @@ public class QuestionBank {
             if (questionData != null) {
                 return questionData.getData().toQuestion(domain, qMeta);
             }
-
-            QuestionDataEntity questionDataEntity = questionDataRepository.findById(qMeta.getId()).orElse(null);
-            if (questionDataEntity != null) {
-                return questionDataEntity.getData().toQuestion(domain, qMeta);
-            }
-
             log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
         } catch (Exception e) {
             log.error("Error loading question with metadata id [{}] - {}", qMeta.getId(), e.getMessage(), e);

@@ -590,13 +590,14 @@ public class TaskGenerationJob {
 
                 if (generatorConfig.isSaveToDb()) {
                     // save question data in the database
-                    meta.setGenerationRequestId(matchedGenerationRequestId);
-                    meta = storage.saveMetadataEntity(meta);
-
                     QuestionDataEntity questionData = new QuestionDataEntity();
-                    questionData.setId(meta.getId());
                     questionData.setData(q);
-                    storage.saveQuestionDataEntity(questionData);
+                    questionData = storage.saveQuestionDataEntity(questionData);
+
+                    // then save metadata
+                    meta.setGenerationRequestId(matchedGenerationRequestId);
+                    meta.setQuestionData(questionData);
+                    meta = storage.saveMetadataEntity(meta);
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
