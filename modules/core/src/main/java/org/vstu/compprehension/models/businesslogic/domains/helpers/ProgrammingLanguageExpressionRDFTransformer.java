@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import static its.model.definition.build.DomainBuilderUtils.*;
 
 @Log4j2
+@Deprecated
 public class ProgrammingLanguageExpressionRDFTransformer {
 
     private static final String DEBUG_DIR = "./modules/core/src/main/resources/" + ProgrammingLanguageExpressionDTDomain.DOMAIN_MODEL_LOCATION;
