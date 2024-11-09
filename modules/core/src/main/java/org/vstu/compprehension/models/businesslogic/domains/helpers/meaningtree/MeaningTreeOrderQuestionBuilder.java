@@ -674,7 +674,6 @@ public class MeaningTreeOrderQuestionBuilder {
                 .replaceAll("\\n", "<br>")
                 .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
         sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
-        System.out.println(sb);
         return sb.toString();
     }
 }
