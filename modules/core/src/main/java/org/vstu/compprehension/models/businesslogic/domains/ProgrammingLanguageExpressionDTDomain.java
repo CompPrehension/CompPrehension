@@ -14,13 +14,21 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.meaningtree.SupportedLanguage;
+import org.vstu.meaningtree.utils.tokens.Token;
+import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.util.*;
 
@@ -29,16 +37,41 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-dt-messages";
     static final String MESSAGE_PREFIX = "expr_domain_dt.";
 
+    private static final HashMap<String, Tag> tags = new HashMap<>() {{
+        put("C++", new Tag("C++", 1L));    // (2 ^ 0)
+        put("basics", new Tag("basics", 2L));    // (2 ^ 1)
+        put("errors", new Tag("errors", 4L));    // (2 ^ 2)
+        put("evaluation", new Tag("evaluation", 8L));    // (2 ^ 3)
+        put("operators", new Tag("operators", 16L));    // (2 ^ 4)
+        put("order", new Tag("order", 32L));    // (2 ^ 5)
+        put("Python", new Tag("Python", 64L));    // (2 ^ 6)
+        put("Java", new Tag("Java", 128L));    // (2 ^ 7)
+    }};
+
+    @NotNull
+    @Override
+    public Map<String, Tag> getTags() {
+        return tags;
+    }
+
     @Override
     public String getShortnameForQuestionSearch() {
         return "expression"; //
     }
-    
+
     @Override
     public String getSolvingBackendId() {
         return DecisionTreeReasonerBackend.BACKEND_ID;
     }
-    
+
+    @Override
+    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
+        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(exerciseAttempt.getExercise().getTags());
+
+        return QuestionDynamicDataAppender.appendQuestionData(super.makeQuestion(exerciseAttempt,
+                questionRequest, tags, userLanguage), exerciseAttempt, qMetaStorage, lang, this);
+    }
+
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(
             DomainEntity domainEntity,
@@ -50,7 +83,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
         //LOOK readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
-    
+
     public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
@@ -78,7 +111,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     @Override
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)
-            || questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+                || questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
                 boolean needLaw = true;
@@ -119,11 +152,11 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
 
     //-----Суждение вопросов и подобное ------
-    
+
     public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         return new HashSet<>(); //Не нужно для DT
     }
-    
+
     public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
         return new HashSet<>(); //Не нужно для DT
     }
@@ -133,98 +166,95 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     @Override
     public Set<DomainToBackendInterface<?, ?, ?>> createBackendInterfaces() {
         return Set.of(
-            new DecisionTreeReasonerBackend.Interface() {
+                new DecisionTreeReasonerBackend.Interface() {
 
-                @Override
-                public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
-                    Question question,
-                    List<ResponseEntity> responses,
-                    List<Tag> tags
-                ) {
-                    return new DecisionTreeReasonerBackend.Input(
-                        ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-                            domainSolvingModel.getMergedTagDomain("c++"),
-                            domainSolvingModel.getDecisionTrees(),
-                            question,
-                            responses
-                        ),
-                        domainSolvingModel.getDecisionTree()
-                    );
-                }
-
-                @Override
-                protected InterpretSentenceResult interpretJudgeNotPerformed(
-                    Question judgedQuestion,
-                    LearningSituation preparedSituation
-                ) {
-                    ViolationEntity violation = new ViolationEntity();
-                    violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
-                    violation.setViolationFacts(new ArrayList<>());
-                    InterpretSentenceResult result = new InterpretSentenceResult();
-                    result.violations = List.of(violation);
-                    result.explanations = List.of(new HyperText(
-                        locCodeToStillUnevaluatedElementsLeftFormulationsMap().get(
-                            getUserLanguageByQuestion(judgedQuestion).toLocaleString().toUpperCase()
-                        )
-                    ));
-                    updateInterpretationResult(result, preparedSituation);
-                    return result;
-                }
-
-                private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap(){
-                    return Map.ofEntries(
-                        Pair.of("RU", "В выражении все еще есть невычисленные операторы"),
-                        Pair.of("EN", "There are still unevaluated operators left in the expression")
-                    );
-                }
-
-                @Override
-                protected void updateJudgeInterpretationResult(
-                    InterpretSentenceResult interpretationResult,
-                    DecisionTreeReasonerBackend.Output backendOutput
-                ) {
-                    updateInterpretationResult(interpretationResult, backendOutput.situation());
-                }
-
-                private void updateInterpretationResult(
-                    InterpretSentenceResult interpretationResult,
-                    LearningSituation situation
-                ){
-                    interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-                    interpretationResult.IterationsLeft = (int) situation.getDomainModel().getObjects()
-                        .stream().filter(objectDef ->
-                            hasState(objectDef, "unevaluated")
-                                || (hasState(objectDef, "omitted")
-                                    && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
-                        )
-                        .count();
-                }
-
-                private Optional<ObjectDef> getParent(ObjectDef object){
-                    return object.getRelationshipLinks().listByName("isOperandOf").stream().findFirst()
-                        .map(link -> link.getObjects().get(0));
-                }
-
-                private boolean hasState(ObjectDef object, String stateValueName){
-                    if(!object.isInstanceOf("operand")){
-                        return false;
+                    @Override
+                    public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
+                            Question question,
+                            List<ResponseEntity> responses,
+                            List<Tag> tags
+                    ) {
+                        return new DecisionTreeReasonerBackend.Input(
+                                MeaningTreeRDFTransformer.questionToDomainModel(
+                                        domainSolvingModel, question, responses, tags
+                                ),
+                                domainSolvingModel.getDecisionTree()
+                        );
                     }
-                    return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state"));
-                }
 
-                @Override
-                public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
-                    return null; //Solve not used in DecisionTreeReasonerBackend
+                    @Override
+                    protected InterpretSentenceResult interpretJudgeNotPerformed(
+                            Question judgedQuestion,
+                            LearningSituation preparedSituation
+                    ) {
+                        ViolationEntity violation = new ViolationEntity();
+                        violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
+                        violation.setViolationFacts(new ArrayList<>());
+                        InterpretSentenceResult result = new InterpretSentenceResult();
+                        result.violations = List.of(violation);
+                        result.explanations = List.of(new HyperText(
+                                locCodeToStillUnevaluatedElementsLeftFormulationsMap().get(
+                                        getUserLanguageByQuestion(judgedQuestion).toLocaleString().toUpperCase()
+                                )
+                        ));
+                        updateInterpretationResult(result, preparedSituation);
+                        return result;
+                    }
+
+                    private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap() {
+                        return Map.ofEntries(
+                                Pair.of("RU", "В выражении все еще есть невычисленные операторы"),
+                                Pair.of("EN", "There are still unevaluated operators left in the expression")
+                        );
+                    }
+
+                    @Override
+                    protected void updateJudgeInterpretationResult(
+                            InterpretSentenceResult interpretationResult,
+                            DecisionTreeReasonerBackend.Output backendOutput
+                    ) {
+                        updateInterpretationResult(interpretationResult, backendOutput.situation());
+                    }
+
+                    private void updateInterpretationResult(
+                            InterpretSentenceResult interpretationResult,
+                            LearningSituation situation
+                    ) {
+                        interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
+                        interpretationResult.IterationsLeft = (int) situation.getDomainModel().getObjects()
+                                .stream().filter(objectDef ->
+                                        hasState(objectDef, "unevaluated")
+                                                || (hasState(objectDef, "omitted")
+                                                && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
+                                )
+                                .count();
+                    }
+
+                    private Optional<ObjectDef> getParent(ObjectDef object) {
+                        return object.getRelationshipLinks().listByName("isOperandOf").stream().findFirst()
+                                .map(link -> link.getObjects().get(0));
+                    }
+
+                    private boolean hasState(ObjectDef object, String stateValueName) {
+                        if (!object.isInstanceOf("operand")) {
+                            return false;
+                        }
+                        return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state"));
+                    }
+
+                    @Override
+                    public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
+                        return null; //Solve not used in DecisionTreeReasonerBackend
+                    }
                 }
-            }
         );
     }
 
     @Override
     public Collection<Fact> responseToFacts(
-        String questionDomainType,
-        List<ResponseEntity> responses,
-        List<AnswerObjectEntity> answerObjects
+            String questionDomainType,
+            List<ResponseEntity> responses,
+            List<AnswerObjectEntity> answerObjects
     ) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
@@ -322,8 +352,59 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        //TODO - this probably needs to be moved inside a BackendInterface and redone
-        return super.getFullSolutionTrace(question);
+        Language lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
+        SupportedLanguage plang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(
+                question.getQuestionData().getExerciseAttempt().getExercise().getTags());
+
+        ArrayList<HyperText> result = new ArrayList<>();
+
+        String qType = question.getQuestionData().getQuestionDomainType();
+        if (qType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+            TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(question.getStatementFacts(), plang);
+
+            for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+                StringJoiner builder = new StringJoiner(" ");
+                builder.add("<span>" + getMessage("OPERATOR", lang) + "</span>");
+                // format a trace line ...
+                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                String domainInfo = answerObj.getDomainInfo();
+                if (domainInfo.equals("end_token")) {
+                    continue;
+                }
+                String[] domainInfoComponents = domainInfo.split("_");
+                int tokenIndex = Integer.parseInt(domainInfoComponents[domainInfoComponents.length - 1]);
+                builder.add("<span style='color: #700;text-decoration: underline;'>" +
+                        tokens.get(tokenIndex).value +
+                        "</span>");
+                builder.add("<span>" + getMessage("AT_POS", lang) + "</span>");
+                builder.add("<span style='color: #f00;font-weight: bold;'>" +
+                        tokenIndex +
+                        "</span>");
+                builder.add("<span>" + getMessage("CALCULATED", lang) + "</span>");
+
+                Object value = tokens.get(tokenIndex).getAssignedValue();
+                if (value != null) {
+                    builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
+                    builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
+                            value +
+                            "</span>");
+                }
+
+                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
+                var finalHtml = responseIsWrong
+                        ? "<span style='background-color: #ff9;'>" + builder + "</span>"
+                        : builder.toString();
+                result.add(new HyperText(finalHtml));
+            }
+        } else {
+            ///
+            result.addAll(Arrays.asList(
+                    new HyperText("debugging trace line #1 for unknown question Type" + question.getQuestionData().getQuestionDomainType()),
+                    new HyperText("trace <b>line</b> #2"),
+                    new HyperText("trace <i>line</i> #3")
+            ));
+        }
+        return result;
     }
 
     @Override
@@ -331,13 +412,13 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         //TODO - this probably needs to be moved inside a BackendInterface and redone
         return super.getAnyNextCorrectAnswer(q);
     }
-    
+
     @Override
     @Deprecated
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
         return null;
     }
-    
+
     @Override
     @Deprecated
     public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
@@ -345,39 +426,40 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
 
     //----------Вспомогательные вопросы------------
-    
+
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
         return !STILL_UNEVALUATED_LEFT_VIOLATION_NAME.equals(violation.getLawName());
     }
 
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
-        return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            domainSolvingModel.getMergedTagDomain("c++"),
-            domainSolvingModel.getDecisionTrees(),
-            new Question(lastMainQuestionInteraction.getQuestion(), this),
-            lastMainQuestionInteraction.getResponses()
+        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getExerciseAttempt().
+                getExercise().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
+        return MeaningTreeRDFTransformer.questionToDomainModel(
+                domainSolvingModel,
+                new Question(lastMainQuestionInteraction.getQuestion(), this),
+                lastMainQuestionInteraction.getResponses(), tags
         );
     }
-    
+
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
             domainSolvingModel,
             this::mainQuestionToModel
     );
-    
+
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
         return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
     }
-    
+
     @Override
     public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
         return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 
     //-----------Объяснения---------------
-    
+
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
         return null; //FIXME удалить?
@@ -391,8 +473,9 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         }
         return result;
     }
-    
+
     private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
         return new HyperText("WRONG");
     }
+
 }

@@ -152,8 +152,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operatorBinaryDivideConcept = addConcept("operator_/", List.of(singleTokenBinaryConcept, arithmetics), "x / y", invisible);
         Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept, arithmetics), "+z", invisible);
         Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", invisible);
-        // Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
-        // Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
+        Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
+        Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
 
         Concept incrementConcept = addConcept("increment", List.of(unaryConcept), "Инкремент и декремент", flags);
         Concept prefixOperatorConcept = addConcept("prefix", List.of(incrementConcept));
@@ -175,7 +175,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_^=", List.of(aug_assignments), "a ^= b", invisible);
         addConcept("operator_<<=",List.of(aug_assignments), "a <<= b", invisible);
         addConcept("operator_>>=",List.of(aug_assignments), "a >>= b", invisible);
-        // addConcept("operator_:=", List.of(aug_assignments), "a := b", invisible);  // Python only
+        addConcept("operator_:=", List.of(aug_assignments), "a := b", invisible);  // Python only
 
         Concept comparison = addConcept("comparison", List.of(singleTokenBinaryConcept), "Операции сравнения", flags);
         Concept operatorEqualsConcept = addConcept("operator_==", List.of(comparison), "a == b", invisible);
@@ -185,14 +185,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operatorLeConcept = addConcept("operator_<=", List.of(comparison), "a <= b", invisible);
         Concept operatorGeConcept = addConcept("operator_>=", List.of(comparison), "a >= b", invisible);
         Concept operatorEqConcept = addConcept("operator_<=>", List.of(comparison), "a <=> b", invisible);
-        // Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
+        Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
+        Concept operatorInConcept = addConcept("operator_in", List.of(comparison), "a in b", invisible);  // Python only
 
         Concept logical = addConcept("logical", List.of(), "Логические операции", flags);
         addConcept("operator_!", List.of(singleTokenUnaryConcept, logical), "!a", invisible);
         addConcept("operator_&&", List.of(singleTokenBinaryConcept, logical), "a && b", invisible);
         addConcept("operator_||", List.of(singleTokenBinaryConcept, logical), "a || b", invisible);
-        // addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
-        // addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
+        addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
+        addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
 
         Concept bitwise = addConcept("bitwise", List.of(), "Побитовые операции", flags);
         addConcept("operator_~", List.of(singleTokenUnaryConcept, bitwise), "~b", invisible);
@@ -533,6 +534,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @NotNull
     private static String reformatQuestionText(Question q) {
+        if (q.getMetadata().getVersion() >= 12) {
+            return q.getQuestionText().getText();
+        }
+
         // avoid changing generated files: re-generate html
         OntModel m = factsToOntModel(q.getStatementFacts());
         OntProperty text_prop = m.createOntProperty("http://vstu.ru/poas/code#text");
@@ -2768,7 +2773,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
         List<ResponseEntity> responses = new ArrayList<>();
         List<InteractionEntity> interactions = q.getInteractions();
