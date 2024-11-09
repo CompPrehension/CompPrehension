@@ -145,7 +145,7 @@ public class SerializableQuestion {
         return builder.build();
     }
     
-    public QuestionMetadataEntity toMetadataEntity() {
+    public static QuestionMetadataEntity toMetadataEntity(QuestionMetadata metadata) {
         return QuestionMetadataEntity.builder()
                 .name(metadata.getName())
                 .domainShortname(metadata.getDomainShortname())
@@ -163,6 +163,10 @@ public class SerializableQuestion {
                 .structureHash(metadata.getStructureHash())
                 .origin(metadata.getOrigin())
                 .build();
+    }
+
+    public QuestionMetadataEntity toMetadataEntity() {
+        return toMetadataEntity(metadata);
     }
     
     public Question toQuestion(@NotNull Domain domain) {
