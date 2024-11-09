@@ -225,22 +225,6 @@ class `operator_<=` : operator {
 	EN.localizedName = "operator <=" ;
 ]
 
-class `operator_=` : operator {
-
-	arity = arity:binary ;
-	place = place:infix ;
-	precedence = 18 ;
-	associativity = associativity:left ;
-	needsLeftOperand = true ;
-	needsRightOperand = true ;
-	needsInnerOperand = false ;
-	countOfTokens = 1 ;
-} [
-	text = "=" ;
-	RU.localizedName = "оператор =" ;
-	EN.localizedName = "operator =" ;
-]
-
 class `operator_==` : operator {
 
 	arity = arity:binary ;
@@ -357,24 +341,25 @@ class operator_await : operator {
 	EN.localizedName = "operator await" ;
 ]
 
+class operator_if : StrictOrderOperator {
+    arity = arity:ternary ;
+    place = place:infix ;
+    precedence = 16 ;
+    associativity = associativity:left ;
+    needsLeftOperand = true ;
+    needsRightOperand = true ;
+    needsInnerOperand = true ;
+    countOfTokens = 2 ;
 
-
-// class operator_if : StrictOrderOperator {
-
-// 	arity = arity:ternary ;
-// 	place = place:infix ;
-// 	precedence = 16 ;
-// 	associativity = associativity:left ;
-// 	needsLeftOperand = true ;
-// 	needsRightOperand = true ;
-// 	needsInnerOperand = true ;
-// 	countOfTokens = 2 ;
-// } [
-// 	text = "if" ;
-// 	token2text = "else";
-// 	RU.localizedName = "оператор if" ;
-// 	EN.localizedName = "operator if" ;
-// ]
+    isTConditional = true;
+    requiredLeftValForRight = ExpectedValue:`false` ;
+    requiredLeftValForCenter = ExpectedValue:`false` ;
+} [
+    text = "if" ;
+    token2text = "else";
+    RU.localizedName = "оператор if" ;
+    EN.localizedName = "operator if" ;
+]
 
 class operator_in : operator {
 
@@ -406,6 +391,22 @@ class operator_is : operator {
 	text = "is" ;
 	RU.localizedName = "оператор is" ;
 	EN.localizedName = "operator is" ;
+]
+
+class operator_not : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 13 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	countOfTokens = 1 ;
+} [
+	text = "not" ;
+	RU.localizedName = "оператор not" ;
+	EN.localizedName = "operator not" ;
 ]
 
 class operator_lambda : operator {
