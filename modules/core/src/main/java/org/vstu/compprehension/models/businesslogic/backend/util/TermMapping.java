@@ -158,6 +158,9 @@ public class TermMapping {
                 case "xsd:float": {
                     return model.createTypedLiteral(Float.parseFloat(obj));
                 }
+                case "xsd:long": {
+                    return model.createTypedLiteral(Long.parseLong(obj));
+                }
                 default:
                     throw new UnsupportedOperationException("TermMapping.objectToLiteralOrResource(): unknown datatype in objectType: " + objType);
             }
