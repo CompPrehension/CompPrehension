@@ -573,7 +573,7 @@ public class TaskGenerationJob {
                             continue;
                         }
 
-                        log.debug("Question [{}] matches generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                        log.info("Question [{}] matches generation requests {}", meta.getName(), gr.getGenerationRequestIds());
 
                         // set flag to use this question
                         shouldSave = true;
@@ -602,7 +602,7 @@ public class TaskGenerationJob {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with data in database. Metadata id: {}", q.getQuestionData().getQuestionName(), meta.getId());
+                log.info("Question [{}] saved with data in database. Metadata id: {}", meta.getName(), meta.getId());
                 savedQuestions += 1;
             }
 
