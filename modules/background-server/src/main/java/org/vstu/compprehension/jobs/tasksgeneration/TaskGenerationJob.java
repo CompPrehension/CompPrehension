@@ -567,9 +567,15 @@ public class TaskGenerationJob {
                         if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
                             continue;
                         
-                        var searchRequest = gr.getQuestionRequest();                        
-                        if (!storage.isMatch(meta, searchRequest)) {
-                            log.debug("Question [{}] does not match generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                        var searchRequest = gr.getQuestionRequest();
+                        try {
+                            if (!storage.isMatch(meta, searchRequest)) {
+                                log.info("Question [{}] does not match generation requests {}",
+                                        meta.getName(), gr.getGenerationRequestIds());
+                                continue;
+                            }
+                        } catch (MatchException e) {
+                            log.debug(e.getMessage());
                             continue;
                         }
 
