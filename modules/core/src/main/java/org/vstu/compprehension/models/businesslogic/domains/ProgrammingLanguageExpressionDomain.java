@@ -2546,6 +2546,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
+            file = file.replaceAll("\\\\","/");
             log.info("Start generating question(s) for template {}", file);
             try {
                 if (qCount > questionsLimit)
@@ -2816,6 +2817,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_==", 0x4L);  	// (4)
         name2bit.put("operator_!", 0x8L);  	// (8)
         name2bit.put("operator_&&", 0x10L);  	// (16)
+        name2bit.put("operator_and", 0x10L);  	// (16)
         name2bit.put("operator_<=", 0x20L);  	// (32)
         name2bit.put("precedence", 0x40L);  	// (64)
         name2bit.put("associativity", 0x80L);  	// (128)
@@ -2823,6 +2825,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_>=", 0x200L);  	// (512)
         name2bit.put("operator_binary_-", 0x400L);  	// (1024)
         name2bit.put("operator_||", 0x800L);  	// (2048)
+        name2bit.put("operator_or", 0x800L);  	// (2048)
         name2bit.put("operator_&", 0x1000L);  	// (4096)
         name2bit.put("operator_=", 0x2000L);  	// (8192)
         name2bit.put("operator_binary_+", 0x4000L);  	// (16384)
@@ -2857,6 +2860,11 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_subscript", 0x40000000000L);  	// (4398046511104)
         name2bit.put("operator_prefix_++", 0x80000000000L);  	// (8796093022208)
         name2bit.put("operator_prefix_--", 0x100000000000L);  	// (17592186044416)
+        name2bit.put("operator_:=", 0x200000000000L);  	// (35184372088832)
+        name2bit.put("operator_is", 0x400000000000L);  	// (70368744177664)
+        name2bit.put("operator_in", 0x800000000000L);  	// (140737488355328)
+        name2bit.put("operator_@", 0x1000000000000L);  	// (281474976710656)
+        name2bit.put("operator_//", 0x2000000000000L);  	// (562949953421312)
         return name2bit;
         // (developer tip: see sqlite2mysql)
     }
