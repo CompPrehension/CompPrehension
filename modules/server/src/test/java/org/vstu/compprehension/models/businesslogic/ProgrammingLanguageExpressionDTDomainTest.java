@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,6 +9,7 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
@@ -46,10 +48,13 @@ public class ProgrammingLanguageExpressionDTDomainTest {
             Optional<QuestionDataEntity> data = qdata_repo.findById(id);
             if (data.isPresent()) {
                 QuestionDataEntity entity = data.get();
-                SerializableQuestion newData = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(entity.getData(), SupportedLanguage.PYTHON, domain);
-                entity.setData(newData);
+                QuestionMetadataEntity oldMeta = qmeta_repo.findById(entity.getId()).get();
+                Question q = data.get().getData().toQuestion(domain, oldMeta);
+                Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> pair =
+                        MeaningTreeOrderQuestionBuilder.fromExistingQuestion(q, domain).build(SupportedLanguage.PYTHON).getFirst();
+                entity.setData(pair.getLeft());
                 qdata_repo.save(entity);
-                QuestionMetadataEntity metaEntity = newData.toMetadataEntity();
+                QuestionMetadataEntity metaEntity = pair.getRight().toMetadataEntity();
                 metaEntity.setQuestionData(entity);
                 metaEntity.setId(id);
                 qmeta_repo.save(metaEntity);
@@ -60,7 +65,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
     @Test
     public void generateExampleQuestion()  {
         ProgrammingLanguageExpressionDTDomain domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
-        List<SerializableQuestion> questions = MeaningTreeOrderQuestionBuilder
+        List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> questions = MeaningTreeOrderQuestionBuilder
                 .newQuestion("a && b && (c || d)", SupportedLanguage.CPP, domain)
                 .build(SupportedLanguage.PYTHON);
     }

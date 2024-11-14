@@ -17,12 +17,11 @@ public class QuestionDynamicDataAppender {
     public static Question appendQuestionData(Question q, ExerciseAttemptEntity attempt, QuestionBank bank,
                                               SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
         if (q.getMetadata().getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
-            SerializableQuestion serialized = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(SerializableQuestion.fromQuestion(q), lang, domain);
-            QuestionDataEntity dataEntity = new QuestionDataEntity(null, serialized);
+            q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, lang, domain);
+            QuestionDataEntity dataEntity = new QuestionDataEntity(null, SerializableQuestion.fromQuestion(q));
             bank.saveQuestionDataEntity(dataEntity);
-            QuestionMetadataEntity meta = serialized.toMetadataEntity();
+            QuestionMetadataEntity meta = q.getMetadata();
             meta.setQuestionData(dataEntity);
-            q = serialized.toQuestion(domain, meta);
             bank.saveMetadataEntity(q.getMetadata());
         }
 
