@@ -384,10 +384,11 @@ public class MeaningTreeOrderQuestionBuilder {
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
-        this.metadata = SerializableQuestion.QuestionMetadata.builder()
-                .name(metadata != null ? metadata.getName() : customTemplateId.concat("_v"))
+        String customTemplateId = rawTranslatedCode.replaceAll(" ", "_").replaceAll("[/:*?\"<>|\\\\]", "");
+        String customQuestionId = customTemplateId.concat(Integer.toString(stmtFacts.hashCode())).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
+                .name(metadata != null ? metadata.getName() : customQuestionId)
                 .domainShortname(metadata != null ? metadata.getDomainShortname() : "expression")
                 .templateId(metadata != null ? metadata.getTemplateId() : customTemplateId)
                 .tagBits(tags.stream().map(domain::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a, b) -> a|b).orElse(0L))
