@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
@@ -8,28 +11,29 @@ import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.*;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.meaningtree.SupportedLanguage;
-import org.vstu.meaningtree.utils.tokens.Token;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 @Log4j2
@@ -248,6 +252,135 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     }
                 }
         );
+    }
+
+    protected static String oldQuestionModelToTokens(List<BackendFactEntity> facts) {
+        Map<Integer, String> indexes = new HashMap<>();
+        Map<String, String> tokenValues = new HashMap<>();
+        StringBuilder tokenBuilder = new StringBuilder();
+
+        for (BackendFactEntity st : facts) {
+            if (st.getVerb().equals("index")) {
+                indexes.put(Integer.parseInt(st.getObject()), st.getSubject());
+            } else if (st.getVerb().equals("text")) {
+                tokenValues.put(st.getSubject(), st.getObject());
+            }
+        }
+        for (int i = 0; i <= indexes.keySet().stream().max(Long::compare).orElse(0); i++) {
+            if (indexes.containsKey(i)) {
+                tokenBuilder.append(tokenValues.get(indexes.get(i)));
+                tokenBuilder.append(' ');
+            }
+        }
+        return tokenBuilder.substring(0, tokenBuilder.length() - 1);
+    }
+
+    /**
+     * Note! It saves result file to specified directory, not to location where question storage usually reads questions from.
+     * @param templatePaths
+     * @param outputDir
+     * @param questionsLimit
+     * @param origin
+     */
+    public void generateManyQuestions(List<String> templatePaths, String outputDir, int questionsLimit, String origin) {
+        int count = 0;  // templates
+        int qCount = 0;
+        int savedCount = 0;
+
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                .disableHtmlEscaping()
+                .setPrettyPrinting()
+                .create();
+
+        for (String file : templatePaths) {
+            file = file.replaceAll("\\\\","/");
+            log.info("Start generating question(s) for template {}", file);
+            try {
+                if (qCount > questionsLimit)
+                    break;
+
+                Path path = Path.of(file);
+                String parsedQuestionName = path.getFileName().toString();
+
+                SupportedLanguage currentLang = SupportedLanguage.CPP;
+                String expressionText;
+
+                if (parsedQuestionName.endsWith(".ttl")) {
+                    for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
+                        String languageStr = language.toString().toLowerCase();
+                        if (parsedQuestionName.endsWith(String.format("%s.ttl", languageStr))) {
+                            currentLang = language;
+                            break;
+                        }
+                    }
+                    Model templateModel = ModelFactory.createDefaultModel();
+                    RDFDataMgr.read(templateModel, file);
+                    Model domainSchemaModel = getFullSchema();
+                    Model targetModel = domainSchemaModel
+                            .union(templateModel);
+                    expressionText = oldQuestionModelToTokens(MeaningTreeRDFHelper.factsFromModel(targetModel));
+                } else if (parsedQuestionName.endsWith(".json")) {
+                    try {
+                        QuestionGeneratedTemplate q = gson.fromJson(Files.readString(path), QuestionGeneratedTemplate.class);
+                        if (q.getTokens() != null && !q.getTokens().isEmpty()) {
+                            expressionText = String.join(" ", q.getTokens());
+                        } else if (q.getText() != null){
+                            expressionText = q.getText();
+                        } else {
+                            log.warn("Empty question: required tokens or text in json file");
+                            continue;
+                        }
+                        currentLang = SupportedLanguage.fromString(q.getLanguage());
+                    } catch (JsonSyntaxException | IOException e) {
+                        log.error("Skip a json file due to error: ", e);
+                        continue;
+                    }
+                } else {
+                    log.info("Skipping non-question file: {}", path);
+                    continue;
+                }
+
+                parsedQuestionName = parsedQuestionName.substring(0, parsedQuestionName.length() - ".ttl".length());
+                parsedQuestionName = parsedQuestionName.replaceAll("[^a-zA-Z0-9_=+-]", "");
+
+                var templateName = parsedQuestionName;
+                templateName = templateName.replaceAll("__\\d{10}$", ""); // remove timestamp
+
+                count++;
+
+                // Create a template
+                log.debug("{} \tUpload model number {}", templateName, count);
+
+                log.debug("Creating questions for template: {}", templateName);
+                MeaningTreeOrderQuestionBuilder builder =
+                        MeaningTreeOrderQuestionBuilder.
+                                newQuestion(expressionText, currentLang, this)
+                                .questionOrigin(origin)
+                        ;
+
+
+                int templateQuestionsCount = 0;
+                for (SerializableQuestionTemplate template : builder.buildAll()) {
+                    String questionName = template.getCommonQuestion().getQuestionData().getQuestionName();
+                    if (questionName.equals(templateName)) {
+                        // guard for the case when the name was not changed
+                        questionName += "_v";
+                    }
+
+                    template.serializeToFile(Path.of(outputDir, questionName + ".json"));
+                    ++templateQuestionsCount;
+                }
+
+                if (templateQuestionsCount > 0) {
+                    log.info("Successfully generated {} question(s) for template {}", templateQuestionsCount, file);
+                }
+            } catch (Exception e) {
+                log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
+            }
+        }
+
+        log.info("Total questions generated: {} ({} saved).\n", qCount, savedCount);
     }
 
     @Override

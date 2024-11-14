@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.dto.GenerationRequest;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
@@ -537,23 +537,26 @@ public class TaskGenerationJob {
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
             for (val file : allJsonFiles) {
-                val q = SerializableQuestion.deserialize(file);
+                val q = SerializableQuestionTemplate.deserialize(file);
                 if (q == null) {
                     continue;
                 }
 
-                QuestionMetadataEntity meta = q.toMetadataEntity();
-                if (meta == null) {
+                List<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
+                        .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity).toList();
+                if (metaList.isEmpty()) {
                     skippedQuestions += 1;
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
                     continue;
                 }
-                
-                if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
-                    skippedQuestions += 1;
-                    log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
-                    continue;
+
+                for (QuestionMetadataEntity meta : metaList) {
+                    if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
+                        skippedQuestions += 1;
+                        log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+                        continue;
+                    }
                 }
 
                 // Проверить, подходит ли он нам
@@ -567,13 +570,15 @@ public class TaskGenerationJob {
                         if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
                             continue;
                         
-                        var searchRequest = gr.getQuestionRequest();                        
-                        if (!storage.isMatch(meta, searchRequest)) {
-                            log.debug("Question [{}] does not match generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
-                            continue;
+                        var searchRequest = gr.getQuestionRequest();
+                        for (QuestionMetadataEntity meta : metaList) {
+                            if (!storage.isMatch(meta, searchRequest)) {
+                                log.debug("Question [{}] does not match generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                                continue;
+                            }
                         }
 
-                        log.debug("Question [{}] matches generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                        log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
 
                         // set flag to use this question
                         shouldSave = true;
@@ -584,25 +589,32 @@ public class TaskGenerationJob {
 
                 if (!shouldSave) {
                     skippedQuestions += 1;
-                    log.debug("Question [{}] skipped because zero qr matches", meta.getName());
+                    log.debug("Question [{}] skipped because zero qr matches: ", metaList.stream()
+                            .map(QuestionMetadataEntity::getName).collect(Collectors.joining(", ")));
                     continue;
                 }
 
                 if (generatorConfig.isSaveToDb()) {
                     // save question data in the database
                     QuestionDataEntity questionData = new QuestionDataEntity();
-                    questionData.setData(q);
+                    questionData.setData(q.getCommonQuestion());
                     questionData = storage.saveQuestionDataEntity(questionData);
 
                     // then save metadata
-                    meta.setGenerationRequestId(matchedGenerationRequestId);
-                    meta.setQuestionData(questionData);
-                    meta = storage.saveMetadataEntity(meta);
+                    for (QuestionMetadataEntity meta : metaList) {
+                        meta.setGenerationRequestId(matchedGenerationRequestId);
+                        meta.setQuestionData(questionData);
+                        meta = storage.saveMetadataEntity(meta);
+                    }
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with data in database. Metadata id: {}", q.getQuestionData().getQuestionName(), meta.getId());
+                log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
+                        metaList.stream()
+                                .map(QuestionMetadataEntity::getId)
+                                .map((Integer i) -> Integer.toString(i))
+                                .collect(Collectors.joining(", ")));
                 savedQuestions += 1;
             }
 
