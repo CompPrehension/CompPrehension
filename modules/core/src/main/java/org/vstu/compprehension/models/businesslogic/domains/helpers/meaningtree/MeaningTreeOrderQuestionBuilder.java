@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
@@ -42,6 +43,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Log4j2
 public class MeaningTreeOrderQuestionBuilder {
     /***
      * Построитель сериализованного вопроса SerializableQuestion, пригодного для сохранения в хранилище
@@ -90,8 +92,8 @@ public class MeaningTreeOrderQuestionBuilder {
 
     /***
      * Построить новый вопрос из старого с помощью MeaningTree
-     * @param q - сериализованный вопрос
-     * @param domain - поддерживаемый домен
+     * @param q объект вопроса
+     * @param domain поддерживаемый домен
      * @return построитель вопроса
      */
     public static MeaningTreeOrderQuestionBuilder fromExistingQuestion(Question q, ProgrammingLanguageExpressionDTDomain domain) {
@@ -110,6 +112,7 @@ public class MeaningTreeOrderQuestionBuilder {
         return builder;
     }
 
+    // Извлечение выражения из существующего вопроса в старом формате и превращение его в общее дерево
     protected static MeaningTree extractExpression(List<BackendFactEntity> facts) {
         CppTranslator cppTranslator = new CppTranslator(new HashMap<>() {{
             put("skipErrors", "true");
@@ -138,6 +141,7 @@ public class MeaningTreeOrderQuestionBuilder {
             }
         }
         String tokens = tokenBuilder.substring(0, tokenBuilder.length() - 1);
+        log.debug("Extracted expression text from existing question: {}", tokens);
         TokenList tokenList = cppTranslator.getTokenizer().tokenizeExtended(cppTranslator.prepareCode(tokens));
         HashMap<TokenGroup, Object> semanticValuesIndexes = new HashMap<>();
         for (int i = 0; i < indexes.keySet().stream().max(Long::compare).orElse(0); i++) {
@@ -149,7 +153,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
 
-
+    // Определить по тегам язык программирования
     public static SupportedLanguage detectLanguageFromTags(Collection<String> tags) {
         // Считаем, что в тегах может быть указан только один язык
         List<String> languages = SupportedLanguage.getMap().keySet().stream().map(SupportedLanguage::toString).toList();
@@ -161,6 +165,13 @@ public class MeaningTreeOrderQuestionBuilder {
         return SupportedLanguage.CPP;
     }
 
+    /**
+     * Создать новый вопрос из выражения
+     * @param expression строковое представление выражения
+     * @param language язык программирования
+     * @param domain домен, для которого создаем вопрос
+     * @return построитель вопроса
+     */
     public static MeaningTreeOrderQuestionBuilder newQuestion(String expression,
                                                               SupportedLanguage language,
                                                               ProgrammingLanguageExpressionDTDomain domain) {
@@ -178,6 +189,11 @@ public class MeaningTreeOrderQuestionBuilder {
 
     }
 
+    /**
+     * Отдельная генерация объектов ответа под заданные токены. Обычно вызывается перед выдачей самого вопроса
+     * @param tokens токены
+     * @return список объектов ответа
+     */
     public static List<SerializableQuestion.AnswerObject> generateAnswerObjects(TokenList tokens) {
         List<SerializableQuestion.AnswerObject> result = new ArrayList<>();
         int answerObjId = 0;
@@ -207,12 +223,26 @@ public class MeaningTreeOrderQuestionBuilder {
         return result;
     }
 
+    /**
+     * Построить новый вопрос из общего дерева под заданный язык
+     * @param mt общее дерево
+     * @param language заданный язык программирования
+     * @param domain домен, под который будет осуществляться генерация
+     * @return построитель вопроса
+     */
     public static MeaningTreeOrderQuestionBuilder newQuestion(MeaningTree mt, SupportedLanguage language, ProgrammingLanguageExpressionDTDomain domain) {
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
         builder.sourceExpressionTree = mt;
         return builder;
     }
 
+    /**
+     * Построить один вопрос из уже существующего без возвращения построителя вопроса
+     * @param data сущность вопроса из приложения
+     * @param lang язык программирования
+     * @param domain домен, под который будет осуществляться генерация
+     * @return сгенерированный вопрос
+     */
     public static Question fastBuildFromExisting(Question data, SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
         return MeaningTreeOrderQuestionBuilder.fromExistingQuestion(data, domain)
                 .buildQuestion(lang).getFirst();
@@ -242,6 +272,10 @@ public class MeaningTreeOrderQuestionBuilder {
         return generateManyQuestions(language);
     }
 
+    /**
+     * Построить вопрос для всех поддерживаемых языков
+     * @return список вопросов для каждого языка в формате: один общий вопрос, содержащий общее дерево для всех языков и несколько метаданных для разных языков
+     */
     public List<SerializableQuestionTemplate> buildAll() {
         List<SerializableQuestionTemplate> resultList = new ArrayList<>();
 
@@ -263,14 +297,33 @@ public class MeaningTreeOrderQuestionBuilder {
         return resultList;
     }
 
+    /**
+     * Построить объекты вопроса приложения по заданному построителю вопроса
+     * @param lang язык, под который нужно сгенерировать вопрос
+     * @return
+     */
     public List<Question> buildQuestion(SupportedLanguage lang) {
         return build(lang).stream().map(
                 (Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> q) ->
                         q.getKey().toQuestion(domain, q.getValue().toMetadataEntity())).toList();
     }
 
+    private String debugTokenPrint(TokenList list, int tokenPos, boolean value) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < list.size(); i++) {
+            builder.append(list.get(i).value);
+            if (i == tokenPos) {
+                builder.append("<--");
+                builder.append(Boolean.toString(value).toUpperCase());
+                builder.append(';');
+            }
+            builder.append(' ');
+        }
+        return builder.toString();
+    }
+
     /**
-     * Шаг 7: Формирование уникального вопроса из шаблона
+     * Формирование уникального вопроса из шаблона
      * @return сериализуемый вопрос
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, int tokenPos, boolean value) {
@@ -294,6 +347,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     .negativeLaws(List.of())
                     .tags(defaultTags)
                     .build();
+            log.info("Created question: {}", debugTokenPrint(tokens, tokenPos, value));
             return new ImmutablePair<>(serialized, metadata);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Failed to create translator");
@@ -302,7 +356,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Шаг 6: Генерирование нескольких вопросов из одного шаблона
+     * Генерирование нескольких вопросов из одного шаблона
      * @return много сериализуемых вопросов из одного шаблона
      */
     protected List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generateManyQuestions(SupportedLanguage language) {
@@ -311,6 +365,7 @@ public class MeaningTreeOrderQuestionBuilder {
         processMetadata(language);
 
         if (tokens.stream().anyMatch((Token t) -> t.getAssignedValue() != null)) {
+            log.debug("Given data already contains values paired with tokens");
             return List.of(generateFromTemplate(language, -1, false));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
@@ -327,7 +382,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Шаг 2: Извлечение токенов из выражения
+     * Создание токенов выражения из результирующего общего дерева (т.е. для выходных данных)
      */
     protected void processTokens(SupportedLanguage language) {
         LanguageTranslator toTranslator;
@@ -345,7 +400,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Шаг 7.1: Формирование данных уникального вопроса
+     * Формирование данных уникального вопроса
      * @param facts - содержимое вопроса
      */
     protected void processQuestionData(List<SerializableQuestion.StatementFact> facts) {
@@ -370,7 +425,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Шаг 5: Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
+     * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
      */
     protected void processMetadata(SupportedLanguage language) {
         QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
@@ -409,7 +464,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Шаг 4: Построение StatementFacts для шаблона вопроса
+     * Построение StatementFacts для шаблона вопроса
      */
     protected void processTemplateStatementFacts() {
         RDFSerializer rdfSerializer = new RDFSerializer();
@@ -610,6 +665,13 @@ public class MeaningTreeOrderQuestionBuilder {
         return set;
     }
 
+    /**
+     * Создание текста вопроса, рекомендуемое для вызова перед выдачей вопроса
+     * @param tokens токены результирующего вопроса
+     * @param domain домен, для которого генерируется
+     * @param lang язык программирования
+     * @return строка вопроса в HTML
+     */
     static String questionToHtml(TokenList tokens,
                                  ProgrammingLanguageExpressionDTDomain domain,
                                  Language lang

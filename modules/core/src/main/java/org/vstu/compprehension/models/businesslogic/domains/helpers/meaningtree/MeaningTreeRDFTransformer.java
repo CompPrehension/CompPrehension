@@ -192,7 +192,6 @@ public class MeaningTreeRDFTransformer {
         int tokenPrecedence = ((OperatorToken)token).precedence;
         return new ParsedClassName(
                 possibleClasses.stream()
-                        //TODO: fix different precedences
                         .filter(classDef -> Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
                         .findFirst()
                         .map(ClassDef::getName)

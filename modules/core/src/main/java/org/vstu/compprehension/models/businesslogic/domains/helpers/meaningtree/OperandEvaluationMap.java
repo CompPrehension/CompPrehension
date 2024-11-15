@@ -6,6 +6,11 @@ import org.vstu.meaningtree.utils.tokens.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Класс предназначен для генерации уникальных значений операндов в вопросе, которые влияют на вычисление выражения.
+ * Работает по принципу поиска в выражении групп токенов, которые могут не вычисляться в вопросе из-за определенных значений операндов
+ * В зависимости от найденных групп генерируются значения операндов, создающие уникальные по возможным типам ошибок и концептов вопросы
+ */
 public class OperandEvaluationMap {
     private record DisposableGroup(OperatorToken operator, TokenGroup rest, boolean partialEval) {};
     private record DisposableIndex(int index, int alt) {};

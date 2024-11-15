@@ -7,17 +7,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Один из форматов входных данных для генерируемого вопроса, передаваемого в генератор
+ */
+@Getter
 @AllArgsConstructor
 public class QuestionGeneratedTemplate {
-    @Getter
     @NotNull
     String language;
 
-    @Getter
     @Nullable
     List<String> tokens;
 
-    @Getter
     @Nullable
     String text;
 }

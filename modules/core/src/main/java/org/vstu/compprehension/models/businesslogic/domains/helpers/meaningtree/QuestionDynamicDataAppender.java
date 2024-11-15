@@ -14,6 +14,17 @@ import org.vstu.meaningtree.utils.tokens.TokenList;
 import java.util.ArrayList;
 
 public class QuestionDynamicDataAppender {
+    /**
+     * Добавить информацию в вопрос перед его выдачей в зависимости от языка программирования
+     * В вопрос добавляется объекты ответа, текст вопроса.
+     * Если вопрос в старом формате, то перед выдачей он преобразуется и сохраняется в новом формате
+     * @param q вопрос
+     * @param attempt попытка выполнения упражнения
+     * @param bank банк вопросов
+     * @param lang язык программирования, на котором должен быть вопрос
+     * @param domain домен, для которого вопрос предназначается
+     * @return заполненный вопрос или новый объект вопроса в новом формате
+     */
     public static Question appendQuestionData(Question q, ExerciseAttemptEntity attempt, QuestionBank bank,
                                               SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
         if (q.getMetadata().getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
