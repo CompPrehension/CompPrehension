@@ -96,6 +96,7 @@ public class SerializableQuestionTemplate {
         private String origin;
         private Date dateCreated;
         private String language;
+        private int treeHashCode;
 
         public QuestionMetadataEntity toMetadataEntity() {
             return QuestionMetadataEntity.builder()

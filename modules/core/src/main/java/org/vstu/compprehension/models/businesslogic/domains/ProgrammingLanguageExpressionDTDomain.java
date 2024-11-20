@@ -362,13 +362,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
                 int templateQuestionsCount = 0;
                 for (SerializableQuestionTemplate template : builder.buildAll()) {
-                    String questionName = template.getCommonQuestion().getQuestionData().getQuestionName();
-                    if (questionName.equals(templateName)) {
-                        // guard for the case when the name was not changed
-                        questionName += "_v";
-                    }
-
-                    template.serializeToFile(Path.of(outputDir, questionName + ".json"));
+                    String fileName = Integer.toString(template.getMetadataList().getFirst().getTreeHashCode());
+                    template.serializeToFile(Path.of(outputDir, "question_" + fileName + ".json"));
                     ++templateQuestionsCount;
                 }
 

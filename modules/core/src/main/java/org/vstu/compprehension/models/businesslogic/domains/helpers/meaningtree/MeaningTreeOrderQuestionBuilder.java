@@ -35,7 +35,6 @@ import org.vstu.meaningtree.nodes.expressions.pointers.PointerPackOp;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerUnpackOp;
 import org.vstu.meaningtree.nodes.expressions.unary.UnaryMinusOp;
 import org.vstu.meaningtree.nodes.expressions.unary.UnaryPlusOp;
-import org.vstu.meaningtree.nodes.statements.ExpressionSequence;
 import org.vstu.meaningtree.serializers.rdf.RDFSerializer;
 import org.vstu.meaningtree.utils.tokens.*;
 
@@ -287,7 +286,7 @@ public class MeaningTreeOrderQuestionBuilder {
         for (List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> grouped
             : metadata.stream().collect(
                     Collectors.groupingBy(pair ->
-                            pair.getLeft().getQuestionData().getStatementFacts().hashCode())).values()
+                            pair.getRight().getTreeHashCode())).values()
         ) {
             SerializableQuestion common = grouped.getFirst().getLeft();
             List<SerializableQuestionTemplate.QuestionMetadata> metadataList = grouped.stream().map(Pair::getRight).toList();
@@ -308,13 +307,14 @@ public class MeaningTreeOrderQuestionBuilder {
                         q.getKey().toQuestion(domain, q.getValue().toMetadataEntity())).toList();
     }
 
-    private String debugTokenPrint(TokenList list, int tokenPos, boolean value) {
+    private String debugTokensString(TokenList list, Integer[] tokenPos, boolean[] values) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             builder.append(list.get(i).value);
-            if (i == tokenPos) {
+            int foundIndex = Arrays.asList(tokenPos).indexOf(i);
+            if (foundIndex != -1) {
                 builder.append("<--");
-                builder.append(Boolean.toString(value).toUpperCase());
+                builder.append(Boolean.toString(values[foundIndex]).toUpperCase());
                 builder.append(';');
             }
             builder.append(' ');
@@ -323,36 +323,45 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Формирование уникального вопроса из шаблона
+     * Формирование уникального вопроса из шаблона и значений токенов
      * @return сериализуемый вопрос
      */
-    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, int tokenPos, boolean value) {
+    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, Integer[] tokenPosArr, boolean[] values) {
         try {
             MeaningTree mt = lang.createTranslator(new HashMap<>() {{
                 put("skipErrors", "true");
                 put("expressionMode", "true");
                 put("translationUnitMode", "false");
             }}).getMeaningTree(tokens, new HashMap<>() {{
-                if (tokenPos != -1) {
-                    put(new TokenGroup(tokenPos, tokenPos + 1, tokens), value);
+                for (int i = 0; i < tokenPosArr.length; i++) {
+                    put(new TokenGroup(tokenPosArr[i], tokenPosArr[i] + 1, tokens), values[i]);
                 }
             }});
             Model model = new RDFSerializer().serialize(mt.getRootNode());
-            processQuestionData(MeaningTreeRDFHelper.backendFactsToSerialized(
-                    MeaningTreeRDFHelper.factsFromModel(model)
-            ));
+            List<SerializableQuestion.StatementFact> facts = MeaningTreeRDFHelper.backendFactsToSerialized(
+                    MeaningTreeRDFHelper.factsFromModel(model));
+            processMetadata(lang, mt.hashCode());
+            processQuestionData(facts);
             SerializableQuestion serialized = SerializableQuestion.builder()
                     .questionData(qdata)
                     .concepts(List.of())
                     .negativeLaws(List.of())
                     .tags(defaultTags)
                     .build();
-            log.info("Created question: {}", debugTokenPrint(tokens, tokenPos, value));
+            log.info("Created question: {}", debugTokensString(tokens, tokenPosArr, values));
             return new ImmutablePair<>(serialized, metadata);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Failed to create translator");
         }
 
+    }
+
+    /**
+     * Формирование уникального вопроса из шаблона без дополнительных значений
+     * @return сериализуемый вопрос
+     */
+    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang) {
+        return generateFromTemplate(lang, new Integer[0], new boolean[0]);
     }
 
     /**
@@ -362,20 +371,19 @@ public class MeaningTreeOrderQuestionBuilder {
     protected List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generateManyQuestions(SupportedLanguage language) {
         processTokens(language);
         answerObjects = generateAnswerObjects(tokens);
-        processMetadata(language);
 
         if (tokens.stream().anyMatch((Token t) -> t.getAssignedValue() != null)) {
             log.debug("Given data already contains values paired with tokens");
-            return List.of(generateFromTemplate(language, -1, false));
+            return List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
         OperandEvaluationMap map = new OperandEvaluationMap(this);
-        Map<Integer, Boolean> generatedValues = map.generate();
-        for (Map.Entry<Integer, Boolean> entry : generatedValues.entrySet()) {
-            generated.add(generateFromTemplate(language, entry.getKey(), entry.getValue()));
+        Pair<Integer[], List<boolean[]>> generatedValues = map.generate();
+        for (boolean[] entry : generatedValues.getValue()) {
+            generated.add(generateFromTemplate(language, generatedValues.getKey(), entry));
         }
-        if (generatedValues.isEmpty()) {
-            return List.of(generateFromTemplate(language,-1, false));
+        if (generatedValues.getKey().length == 0) {
+            return List.of(generateFromTemplate(language));
         }
 
         return generated;
@@ -427,7 +435,7 @@ public class MeaningTreeOrderQuestionBuilder {
     /**
      * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
      */
-    protected void processMetadata(SupportedLanguage language) {
+    protected void processMetadata(SupportedLanguage language, int treeHash) {
         QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
         tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
         String languageStr = language.toString();
@@ -440,7 +448,7 @@ public class MeaningTreeOrderQuestionBuilder {
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
         String customTemplateId = rawTranslatedCode.replaceAll(" ", "_").replaceAll("[/:*?\"<>|\\\\]", "");
-        String customQuestionId = customTemplateId.concat(Integer.toString(stmtFacts.hashCode())).concat("_v");
+        String customQuestionId = customTemplateId.concat(Integer.toString(treeHash)).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
                 .name(metadata != null ? metadata.getName() : customQuestionId)
@@ -456,6 +464,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 .solutionSteps(solutionLength)
                 .distinctErrorsCount(possibleViolations.size())
                 .version(TARGET_VERSION)
+                .treeHashCode(treeHash)
                 .language(language.toString())
                 .structureHash(metadata != null ? metadata.getStructureHash() : "")
                 .origin(metadata != null ? (metadata.getOrigin().startsWith("mt_") ? "" :"mt_").concat(metadata.getOrigin()) :
