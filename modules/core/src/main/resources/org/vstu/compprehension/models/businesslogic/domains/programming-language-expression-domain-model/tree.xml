@@ -2173,7 +2173,7 @@
                                             </CheckRelationship>
                                             <ExistenceQuantifier varName="l" type="operator">
                                                 <CheckRelationship>
-                                                    <Relationship name="isCenterOperandOf" />
+                                                    <Relationship name="isLeftOperandOf"/>
                                                     <Variable name="l" />
                                                     <DecisionTreeVar name="T" />
                                                 </CheckRelationship>
