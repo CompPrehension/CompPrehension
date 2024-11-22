@@ -1,160 +1,196 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.vstu.meaningtree.utils.tokens.*;
+import org.vstu.meaningtree.MeaningTree;
+import org.vstu.meaningtree.SupportedLanguage;
+import org.vstu.meaningtree.exceptions.MeaningTreeException;
+import org.vstu.meaningtree.languages.LanguageTranslator;
+import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.nodes.expressions.BinaryExpression;
+import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
+import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
+import org.vstu.meaningtree.nodes.expressions.other.TernaryOperator;
+import org.vstu.meaningtree.utils.NodeLabel;
+import org.vstu.meaningtree.utils.tokens.TokenList;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Класс предназначен для генерации уникальных значений операндов в вопросе, которые влияют на вычисление выражения.
- * Работает по принципу поиска в выражении групп токенов, которые могут не вычисляться в вопросе из-за определенных значений операндов
+ * Работает по принципу поиска в выражении узлов AST, которые могут не вычисляться в вопросе из-за определенных значений операндов
  * В зависимости от найденных групп генерируются значения операндов, создающие уникальные по возможным типам ошибок и концептов вопросы
- *
- * На данный момент реализация класса выполнена не совсем качественно.
- * Он слишком громоздкий и сложный. К сожалению, это единственный выход в текущей реализации MeaningTree.
- * Общее дерево MeaningTree сейчас плохо поддерживает модификацию, поэтому вместо него здесь
- * предпочитается использовать менее понятную реализацию на токенах
  */
+@Log4j2
 public class OperandEvaluationMap {
-    // Набор токенов, принадлежащих операнду или операндам операции (например, цепочка из одного оператора: a && b && c)
-    // partialEval указывает, что из данной группы что-то будет вычислено в любом случае и её нельзя исключать
-    // В данном случае под это условие подходит тернарный оператор
-    // Группа состоит из основного оператора и оставшегося операнда. Например: a && b, где такая группа: && - оператор, b - оставшаяся группа
-    // Если группа - цепочная. Например: a && b && c. То - первый && - оператор, а b && c - оставшаяся группа
-    private record DisposableGroup(OperatorToken operator, TokenGroup rest, boolean partialEval) {};
 
-    // Специальный класс, который указывает на индекс из списка List<DisposableGroup>.
-    // Суть в том, что у тернарного оператора вычисляет обязательно какой-то из операндов.
-    // Поэтому поле alt (от 0) указывает какой именно, если это тернарный оператор. Для других операторов alt = 0
-    private record DisposableIndex(int index, int alt) {};
+    /**
+     * Информация о возможного отключаемого участка в дереве, представляющее узел.
+     * Представляет собой информацию о тернарном операторе или операторе И/ИЛИ
+     */
+    private record DisposableNodeInfo(Node.Info node, boolean partialEval, boolean valRequiredForEval) {
+        public long getNodeId() {
+            return node.node().getId();
+        }
+
+        public Node getNode() {
+            return node.node();
+        }
+    };
+
+    /**
+     * Специальный класс, который указывает на индекс из списка List<DisposableNodeInfo>.
+     * Суть в том, что у тернарного оператора вычисляет обязательно какой-то из операндов.
+     * Поэтому поле alt (от 0) указывает какой именно, если это тернарный оператор. Для других операторов alt = 0
+     */
+    private record DisposableIndex(DisposableNodeInfo id, int alt) {
+        public long getNodeId() {
+            return id.getNodeId();
+        }
+
+        public Node getNode() {
+            return id.getNode();
+        }
+    };
 
     private MeaningTreeOrderQuestionBuilder builder;
 
     /**
-     * Группы, которые можно отключить (не вычислять при определенном значении операнда) частично или полностью
+     * Участки, которые можно отключить (не вычислять при определенном значении операнда) частично или полностью
      */
-    private final List<DisposableGroup> possibleDisposableOperands = new ArrayList<>();
+    private final List<DisposableNodeInfo> possibleDisposableOperands = new ArrayList<>();
 
     /**
-     *  [индекс отключаемой группы, номер альтернативы] -> уникальные типы ошибок студента, если эта группа вычислится
+     *  [отключаемая группа, номер альтернативы] -> уникальные типы ошибок студента, если эта группа вычислится
      */
-    private final Map<DisposableIndex, Set<String>> groupViolations = new HashMap<>();
+    private final SequencedMap<DisposableIndex, Set<String>> groupViolations = new LinkedHashMap<>();
 
     /**
-     * Изначальные типы ошибок, когда все возможные отключаемые группы отключены,
+     * Зависимости между узлами. Пример: a && b && c. Здесь c не имеет значения, если b = false, следовательно, его вычислимость зависит от b
+     * А вариативность вопроса, где этот операнд с разными значениями в любом случае не вычислится, не нужна
+     */
+    private final HashMap<Long, Long> deps = new HashMap<>();
+
+    /**
+     * Изначальные типы ошибок, когда все потенциально не вычисляемые зоны отключены,
      * а те, что не отключаются полностью переведены в стандартное положение (у тернарного - false)
      */
     private Set<String> initialDisposedViolations;
-    private TokenList initialDisposedTokens;
 
-    OperandEvaluationMap(MeaningTreeOrderQuestionBuilder builder) {
+    /**
+     * Дерево, где все потенциально не вычисляемые участки переведены в значение,
+     * при котором эти участки не вычислятся
+     */
+    private MeaningTree initialTree;
+
+    private LanguageTranslator languageTranslator;
+
+    OperandEvaluationMap(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
         this.builder = builder;
+        initialTree = builder.sourceExpressionTree.clone();
+
+        log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
+
+        try {
+            languageTranslator = language.createTranslator(new HashMap<>() {{
+                put("skipErrors", "true");
+                put("expressionMode", "true");
+                put("translationUnitMode", "false");
+            }});
+        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+            throw new MeaningTreeException(e);
+        }
+
         findDisposableGroups();
         calculateInitialViolations();
         calculateViolations();
         filterViolations();
     }
 
-    private boolean isOperatorCanBeOmitted(OperatorToken op) {
-        return op.arity == OperatorArity.TERNARY && ((ComplexOperatorToken)op).positionOfToken == 0
-                || op.arity == OperatorArity.BINARY && op.additionalOpType != OperatorType.OTHER;
-    }
-
     /**
      * Сгенерировать уникальный набор значений, чтобы сделать разнообразные вопросы
      * @return словарь из ключа - позиции токена, которым нужно присвоить значение true/false
      */
-    public Pair<Integer[], List<boolean[]>> generate() {
-        List<Integer> indexes = new ArrayList<>();
-
+    public List<Pair<MeaningTree, Integer>> generate() {
         // Предпочтительные значения для операндов, которые увеличат число возможных типов ошибок
-        Map<Integer, Boolean> preferred = new HashMap<>();
-
-        // Зависимости между токенами. Пример: a && b && c. Здесь c не имеет значения, если b = false, следовательно, его вычислимость зависит от b
-        // А вариативность вопроса, где этот операнд с разными значениями в любом случае не вычислится, не нужна
-        Map<Integer, Integer> dependencies = new HashMap<>();
+        MeaningTree preferred = initialTree.clone();
+        int initialHash = preferred.hashCode();
+        List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
         // Заполнение начальных данных
-        for (DisposableIndex index : groupViolations.keySet().stream()
-                .sorted((DisposableIndex first, DisposableIndex second) -> Integer.compare(
-                        possibleDisposableOperands.get(first.index).rest.length(),
-                        possibleDisposableOperands.get(second.index).rest.length()
-                )).toList().reversed()
-        ) {
-            DisposableGroup grp = possibleDisposableOperands.get(index.index);
-            int tokenPosInList = builder.tokens.indexOf(grp.operator);
-            if (grp.partialEval) {
-                preferred.put(tokenPosInList, index.alt == 0);
-            } else {
-                preferred.put(tokenPosInList, true);
-            }
-            if (!indexes.contains(tokenPosInList)) {
-                indexes.add(tokenPosInList);
-            }
-            for (Token tok : grp.rest) {
-                if (tok instanceof OperatorToken op && isOperatorCanBeOmitted(op)) {
-                    int foundTokenIndex = builder.tokens.indexOf(tok);
-                    if (tokenPosInList != foundTokenIndex) {
-                        dependencies.put(foundTokenIndex, tokenPosInList);
-                    }
+        for (Node.Info nodeInfo : preferred) {
+            Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
+            if (foundDisposable.isPresent()) {
+                DisposableIndex grp = foundDisposable.get();
+                if (grp.id().partialEval) {
+                    nodeInfo.node().setAssignedValueTag(grp.alt == 0);
+                    nodeInfo.node().removeLabel(NodeLabel.DUMMY);
+                    preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.alt == 0));
+                } else {
+                    nodeInfo.node().removeLabel(NodeLabel.DUMMY);
+                    nodeInfo.node().setAssignedValueTag(!grp.id().valRequiredForEval);
+                    preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.id().valRequiredForEval));
                 }
             }
         }
 
-        boolean[] preferredValues = new boolean[indexes.size()];
-        for (int i = 0; i < indexes.size(); i++) {
-            preferredValues[i] = preferred.get(indexes.get(i));
-        }
-
         // Больше 128 комбинаций не экономно по памяти и производительности
-        if (indexes.size() > 7) {
-            return new ImmutablePair<>(indexes.toArray(new Integer[0]), List.of(preferredValues));
+        if (groupViolations.size() > 7) {
+            log.info("Too many values can be generated for question. Generated questions will be shorten");
+            return List.of(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
         }
 
         // Здесь будут отфильтрованные комбинации, без бесполезных комбинаций
         Set<boolean[]> combinations = new HashSet<>();
 
-        for (boolean[] array : generateCombinations(indexes.size())) {
+        for (boolean[] array : generateCombinations(groupViolations.size())) {
             boolean[] arrayCopy = new boolean[array.length];
             System.arraycopy(array, 0, arrayCopy, 0, array.length);
 
             for (int i = 0; i < array.length; i++) {
                 // Приводим одинаковые по смыслу комбинации к одному виду, чтобы они не дублировались в результирующем множестве
-                int tokenIndex = indexes.get(i);
-                int depTokenIndex = dependencies.getOrDefault(tokenIndex, -1);
-                int depArrayIndex = indexes.indexOf(depTokenIndex);
-                if (depTokenIndex != -1 && depArrayIndex != -1) {
-                    OperatorToken op = (OperatorToken) builder.tokens.get(depTokenIndex);
-                    if (op.arity == OperatorArity.BINARY && !array[depArrayIndex]) {
-                        // Зануляем эту часть, так как в ней нет смысла, она не выполнится
-                        arrayCopy[i] = false;
-                    } else if (op.arity == OperatorArity.TERNARY) {
-                        OperandToken operand = (OperandToken) builder.tokens.get(tokenIndex);
-                        Map<OperandPosition, TokenGroup> operandsOfTernary = builder.tokens.findOperands(depTokenIndex);
-                        boolean containsOperand = false;
-                        OperandPosition targetBranch = array[depArrayIndex] ? OperandPosition.CENTER : OperandPosition.RIGHT;
-                        for (Token tok : operandsOfTernary.get(targetBranch)) {
-                            if (tok.equals(operand)) {
-                                containsOperand = true;
-                                break;
-                            }
-                        }
-                        if (!containsOperand) {
-                            arrayCopy[i] = false;
-                        }
+                DisposableIndex tokenIndex = groupViolations.sequencedKeySet().stream().toList().get(i);
+                for (int j = i + 1; j < array.length; j++) {
+                    DisposableIndex nextTokenIndex = groupViolations.sequencedKeySet().stream().toList().get(i);
+                    if (tokenIndex.id().valRequiredForEval() != array[j]
+                            && isTransitiveDependency(nextTokenIndex.getNodeId(), tokenIndex.getNodeId())) {
+                        array[j] = false;
                     }
                 }
             }
             combinations.add(arrayCopy);
         }
 
-        List<boolean[]> result = new ArrayList<>(combinations.stream().limit(7).toList());
-        if (preferredValues.length > 0) result.add(preferredValues); // Обязательно добавляем наиболее богатую по количеству ошибок комбинацию
+        List<boolean[]> values = new ArrayList<>(combinations.stream().limit(10).toList());
+        List<Pair<MeaningTree, Integer>> result = new ArrayList<>();
+        for (boolean[] combination : values) {
+            result.add(makeTreeFromValues(initialTree, combination));
+        }
+        result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
 
+        return result;
+    }
 
-        return new ImmutablePair<>(indexes.toArray(new Integer[0]), result);
+    // Собрать дерево, в котором потенциально не вычисляемые участки будут иметь заданную комбинацию значений
+    private Pair<MeaningTree, Integer> makeTreeFromValues(MeaningTree initialTree, boolean[] combination) {
+        MeaningTree preferred = initialTree.clone();
+        int initialHash = preferred.hashCode();
+        List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
+
+        // Заполнение начальных данных
+        for (Node.Info nodeInfo : preferred) {
+            Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
+            if (foundDisposable.isPresent()) {
+                DisposableIndex grp = foundDisposable.get();
+                int index = groupViolations.sequencedKeySet().stream().toList().indexOf(grp);
+                nodeInfo.node().setAssignedValueTag(combination[index]);
+                preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination[index]));
+            }
+        }
+        return new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash));
     }
 
     // Отобрать типы ошибок, которые будут полезны в вопросе
@@ -181,98 +217,120 @@ public class OperandEvaluationMap {
         }
     }
 
-    // Функция чистого представления токенов - игнорируются отключенные токены. Нужна, например, для поиска типов ошибок в них
-    private TokenList clearTokens(TokenList tokens) {
-        return new TokenList(tokens.stream().filter(Objects::nonNull).toList());
+    private Optional<DisposableNodeInfo> findDisposable(long compareId) {
+        return possibleDisposableOperands
+                .stream()
+                .filter((DisposableNodeInfo id) -> id.node.node().getId() == compareId)
+                .findFirst();
+    }
+
+    private Optional<DisposableIndex> findDisposableIndex(long compareId) {
+        return groupViolations.keySet()
+                .stream()
+                .filter((DisposableIndex disposable) -> disposable.id().node.node().getId() == compareId)
+                .findFirst();
+    }
+
+    // Зависит ли один узел от другого транзитивно
+    private boolean isTransitiveDependency(long nodeId1, long nodeId2) {
+        long base = nodeId1;
+        do {
+            base = deps.getOrDefault(base, -1L);
+        } while (base != -1L && base != nodeId2);
+
+        return base != -1L;
     }
 
     // Подсчитать, какие токены и типы ошибок будут у выражения, если отключить все не вычисляемые группы
     private void calculateInitialViolations() {
-        TokenList tokens = builder.tokens;
-        for (int i = 0; i < possibleDisposableOperands.size(); i++) {
-            DisposableGroup grp = possibleDisposableOperands.get(i);
-            if (grp.partialEval) {
-                TokenList op = grp.rest.findOperands(grp.rest.source.indexOf(grp.operator)).get(OperandPosition.RIGHT).copyToList();
-                tokens = tokens.replace(grp.rest, null); // чтобы индексы не сдвигались вырезаем группу токенов фактической заменой их на null
-                tokens.setAll(grp.rest.start, op);
-            } else {
-                tokens = tokens.replace(grp.rest, null);
-                tokens.set(builder.tokens.indexOf(grp.operator), null);
+        MeaningTree calculationTree = initialTree.clone();
+
+        for (Node.Info node : calculationTree) {
+            Optional<DisposableNodeInfo> foundDisposable = findDisposable(node.node().getId());
+            if (foundDisposable.isPresent()) {
+                DisposableNodeInfo disposable = foundDisposable.get();
+                if (disposable.partialEval && node.node() instanceof TernaryOperator ternary) {
+                    if (node.parent() != null) {
+                        node.parent().substituteNodeChildren(disposable.node.fieldName(),
+                                ternary.getElseExpr(),
+                                disposable.node.pos() == -1 ? null : disposable.node.pos());
+                    } else {
+                        calculationTree.changeRoot(ternary.getElseExpr());
+                    }
+                } else if (node.node() instanceof BinaryExpression binOp) {
+                    log.debug("Possible disposable question element: {}", binOp.getRight());
+                    if (node.parent() != null) {
+                        node.parent().substituteNodeChildren(disposable.node.fieldName(),
+                                binOp.getLeft(),
+                                disposable.node.pos() == -1 ? null : disposable.node.pos()
+                        );
+                    } else {
+                        calculationTree.changeRoot(binOp.getLeft());
+                    }
+
+                }
             }
         }
-        initialDisposedViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(clearTokens(tokens));
-        initialDisposedTokens = tokens;
+        for (Node.Info node : initialTree) {
+            Optional<DisposableNodeInfo> foundDisposable = findDisposable(node.node().getId());
+            if (foundDisposable.isPresent()) {
+                if (node.node() instanceof BinaryExpression binOp) {
+                    binOp.getLeft().setAssignedValueTag(!(binOp instanceof ShortCircuitAndOp));
+                } else {
+                    node.node().setAssignedValueTag(false);
+                }
+            }
+        }
+        log.debug("Question with disposed groups of tokens (initial): {}", languageTranslator.getCode(calculationTree));
+        TokenList tokens = languageTranslator.getTokenizer().tokenizeExtended(calculationTree);
+        initialDisposedViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
     }
 
     // Посчитать по отключаемым зонам возможные типы ошибок в них
     private void calculateViolations() {
         for (int i = 0; i < possibleDisposableOperands.size(); i++) {
-            DisposableGroup grp = possibleDisposableOperands.get(i);
-            calcDisposableGroupDiff(i, grp, initialDisposedViolations, initialDisposedTokens);
+            DisposableNodeInfo grp = possibleDisposableOperands.get(i);
+            calcDisposableGroupDiff(grp, initialDisposedViolations);
         }
     }
 
     // Посчитать разницу между возможными ошибками в изначальном варианте (где все отключаемые группы не вычисляются) и с включенной только этой группой
-    private void calcDisposableGroupDiff(int i, DisposableGroup grp,
-                                         Set<String> initial, TokenList tokens) {
-        if (grp.partialEval) {
-            var operands = grp.rest.findOperands(grp.rest.source.indexOf(grp.operator));
+    private void calcDisposableGroupDiff(DisposableNodeInfo id, Set<String> initial) {
+        if (id.partialEval && id.node.node() instanceof TernaryOperator ternary) {
             for (int k = 0; k < 2; k++) {
-                TokenList variant = tokens.clone();
-                variant.setAll(grp.rest.start, operands.get(k == 0 ? OperandPosition.CENTER : OperandPosition.RIGHT).copyToList());
-                Set<String> currentViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(clearTokens(variant));
+                Node target = k == 0 ? ternary.getThenExpr() : ternary.getElseExpr();
+                TokenList tokens = languageTranslator.getTokenizer().tokenizeExtended(target);
+                Set<String> currentViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
                 currentViolations.removeAll(initial);
-                groupViolations.put(new DisposableIndex(i, k), currentViolations);
+                groupViolations.put(new DisposableIndex(id, k), currentViolations);
             }
-        } else {
-            TokenList variant = tokens.clone();
-            variant.set(grp.rest.start - 1, grp.operator);
-            variant.setAll(grp.rest.start, grp.rest.copyToList());
-            Set<String> currentViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(clearTokens(variant));
+        } else if (id.node.node() instanceof BinaryExpression binOp) {
+            TokenList tokens = languageTranslator.getTokenizer().tokenizeExtended(binOp.getRight());
+            Set<String> currentViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
             currentViolations.removeAll(initial);
-            groupViolations.put(new DisposableIndex(i, 0), currentViolations);
+            groupViolations.put(new DisposableIndex(id, 0), currentViolations);
         }
     }
 
     // Найти отключаемые группы, т.е. те, что полностью или частично не могут быть вычислены
     private void findDisposableGroups() {
-        HashSet<OperatorToken> visited = new HashSet<>();
-        for (int i = 0; i < builder.tokens.size(); i++) {
-            Token t = builder.tokens.get(i);
-            if (t instanceof OperatorToken op && !visited.contains(op) && isOperatorCanBeOmitted(op)) {
-                Map<OperandPosition, TokenGroup> operands = builder.tokens.findOperands(i);
-                // У тернарного оператора операнды имеет только токен ? (или if), последующий токен вспомогательный
-                // То же касается скобок вызова функций и индекса
-                if (op.arity == OperatorArity.TERNARY) {
-                    possibleDisposableOperands.add(new DisposableGroup(op, new TokenGroup(
-                            operands.get(OperandPosition.LEFT).start,
-                            operands.get(OperandPosition.RIGHT).stop,
-                            builder.tokens
-                    ), true));
-                } else if (op.arity == OperatorArity.BINARY) {
-                    Pair<Integer, Token> foundRightmost = builder.tokens.findOperands(i).get(OperandPosition.LEFT)
-                            .getRightmostToken(op.value);
-                    if (foundRightmost != null && ((OperandToken)foundRightmost.getValue()).baseEquals(op)) {
-                        // Chaining binary operator - т.е. случай, если a && b && c && d и т.д.
-                        List<OperatorToken> chain = new ArrayList<>();
-                        chain.add(op);
-                        visited.add(op);
-                        while (chain.getLast().operandOf() != null && chain.getLast().operandOf().baseEquals(op)) {
-                            chain.add(chain.getLast().operandOf());
-                        }
-                        possibleDisposableOperands.add(new DisposableGroup(op, new ChainedTokenGroup(builder.tokens,
-                                chain.stream().map((OperatorToken opTok) ->
-                                        builder.tokens.findOperands(
-                                                builder.tokens.indexOf(opTok)).get(OperandPosition.RIGHT)).toList().toArray(new TokenGroup[0])),
-                                false
-                        ));
-                    } else {
-                        possibleDisposableOperands.add(new DisposableGroup(op, operands.get(OperandPosition.RIGHT), false));
-                    }
-                }
-                visited.add(op);
+        for (Node.Info nodeInfo : initialTree) {
+            Node node = nodeInfo.node();
+            if (isDisposableNode(node) && node instanceof BinaryExpression binOp) {
+                possibleDisposableOperands.add(
+                        new DisposableNodeInfo(nodeInfo, false, binOp instanceof ShortCircuitAndOp)
+                );
+            } else if (isDisposableNode(node) && node instanceof TernaryOperator){
+                possibleDisposableOperands.add(
+                        new DisposableNodeInfo(nodeInfo, true, false)
+                );
             }
+            if (nodeInfo.parent() != null) deps.put(node.getId(), nodeInfo.parent().getId());
         }
+    }
+
+    private boolean isDisposableNode(Node node) {
+        return node instanceof ShortCircuitAndOp || node instanceof ShortCircuitOrOp || node instanceof TernaryOperator;
     }
 
     // Комбинаторика

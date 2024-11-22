@@ -307,53 +307,48 @@ public class MeaningTreeOrderQuestionBuilder {
                         q.getKey().toQuestion(domain, q.getValue().toMetadataEntity())).toList();
     }
 
-    private String debugTokensString(TokenList list, Integer[] tokenPos, boolean[] values) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < list.size(); i++) {
-            builder.append(list.get(i).value);
-            int foundIndex = Arrays.asList(tokenPos).indexOf(i);
-            if (foundIndex != -1) {
-                builder.append("<--");
-                builder.append(Boolean.toString(values[foundIndex]).toUpperCase());
-                builder.append(';');
+    private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {
+        try {
+            TokenList list = lang.createTranslator(new HashMap<>() {{
+                put("skipErrors", "true");
+                put("translationUnitMode", "false");
+                put("expressionMode", "true");
+            }}).getTokenizer().tokenizeExtended(mt);
+
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < list.size(); i++) {
+                builder.append(list.get(i).value);
+                if (list.get(i).getAssignedValue() != null) {
+                    builder.append("<--");
+                    builder.append(list.get(i).getAssignedValue().toString().toUpperCase());
+                    builder.append(';');
+                }
+                builder.append(' ');
             }
-            builder.append(' ');
+            return builder.toString();
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new MeaningTreeException(e);
         }
-        return builder.toString();
     }
 
     /**
      * Формирование уникального вопроса из шаблона и значений токенов
      * @return сериализуемый вопрос
      */
-    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, Integer[] tokenPosArr, boolean[] values) {
-        try {
-            MeaningTree mt = lang.createTranslator(new HashMap<>() {{
-                put("skipErrors", "true");
-                put("expressionMode", "true");
-                put("translationUnitMode", "false");
-            }}).getMeaningTree(tokens, new HashMap<>() {{
-                for (int i = 0; i < tokenPosArr.length; i++) {
-                    put(new TokenGroup(tokenPosArr[i], tokenPosArr[i] + 1, tokens), values[i]);
-                }
-            }});
-            Model model = new RDFSerializer().serialize(mt.getRootNode());
-            List<SerializableQuestion.StatementFact> facts = MeaningTreeRDFHelper.backendFactsToSerialized(
-                    MeaningTreeRDFHelper.factsFromModel(model));
-            processMetadata(lang, mt.hashCode());
-            processQuestionData(facts);
-            SerializableQuestion serialized = SerializableQuestion.builder()
-                    .questionData(qdata)
-                    .concepts(List.of())
-                    .negativeLaws(List.of())
-                    .tags(defaultTags)
-                    .build();
-            log.info("Created question: {}", debugTokensString(tokens, tokenPosArr, values));
-            return new ImmutablePair<>(serialized, metadata);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            throw new MeaningTreeException("Failed to create translator");
-        }
-
+    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, MeaningTree mt, int treeHash) {
+        Model model = new RDFSerializer().serialize(mt.getRootNode());
+        List<SerializableQuestion.StatementFact> facts = MeaningTreeRDFHelper.backendFactsToSerialized(
+                MeaningTreeRDFHelper.factsFromModel(model));
+        processMetadata(lang, treeHash);
+        processQuestionData(facts);
+        SerializableQuestion serialized = SerializableQuestion.builder()
+                .questionData(qdata)
+                .concepts(List.of())
+                .negativeLaws(List.of())
+                .tags(defaultTags)
+                .build();
+        log.info("Created question: {}", debugTokensString(mt, lang));
+        return new ImmutablePair<>(serialized, metadata);
     }
 
     /**
@@ -361,7 +356,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return сериализуемый вопрос
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang) {
-        return generateFromTemplate(lang, new Integer[0], new boolean[0]);
+        return generateFromTemplate(lang, sourceExpressionTree, sourceExpressionTree.hashCode());
     }
 
     /**
@@ -377,12 +372,12 @@ public class MeaningTreeOrderQuestionBuilder {
             return List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
-        OperandEvaluationMap map = new OperandEvaluationMap(this);
-        Pair<Integer[], List<boolean[]>> generatedValues = map.generate();
-        for (boolean[] entry : generatedValues.getValue()) {
-            generated.add(generateFromTemplate(language, generatedValues.getKey(), entry));
+        OperandEvaluationMap map = new OperandEvaluationMap(this, language);
+        List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
+        for (Pair<MeaningTree, Integer> pair : generatedValues) {
+            generated.add(generateFromTemplate(language, pair.getLeft(), pair.getRight()));
         }
-        if (generatedValues.getKey().length == 0) {
+        if (generatedValues.isEmpty()) {
             return List.of(generateFromTemplate(language));
         }
 
