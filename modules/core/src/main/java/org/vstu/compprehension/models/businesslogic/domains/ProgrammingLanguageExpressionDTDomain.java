@@ -7,6 +7,7 @@ import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
+import its.model.nodes.DecisionTree;
 import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -20,6 +21,7 @@ import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.*;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
@@ -537,8 +539,35 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        //TODO - this probably needs to be moved inside a BackendInterface and redone
-        return super.getAnyNextCorrectAnswer(q);
+        Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
+                .reduce((first, second) -> second);
+        List<ResponseEntity> responses = new ArrayList<>();
+        lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
+        List<Tag> tags = q.getQuestionData().getExerciseAttempt().getExercise().getTags().stream().map(this::getTag).toList();
+        DomainModel domain = MeaningTreeRDFTransformer.questionToDomainModel(
+                domainSolvingModel, q, responses, tags
+        );
+        DecisionTree dt = domainSolvingModel.getDecisionTree();
+        ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
+        Optional<ObjectDef> found = domain.getObjects().stream().filter(domainObj ->
+                domainObj.getClazz().isSubclassOf("operator") && solver.solveForX(domainObj, domain, dt)).findFirst();
+        if (found.isPresent()) {
+            String[] objName = found.get().getName().split("_");
+            int tokenPos = Integer.parseInt(objName[objName.length - 1]);
+            for (AnswerObjectEntity answer : q.getAnswerObjects()) {
+                if (answer.getDomainInfo().endsWith(String.valueOf(tokenPos))) {
+                    CorrectAnswer correctAnswer = new CorrectAnswer();
+                    correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
+                    correctAnswer.question = q.getQuestionData();
+                    correctAnswer.lawName = ""; // TODO: add correct data
+                    correctAnswer.explanation = new HyperText("Explanation of correct answer is temporarily unavailable"); // TODO: add correct data
+                    return correctAnswer;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
