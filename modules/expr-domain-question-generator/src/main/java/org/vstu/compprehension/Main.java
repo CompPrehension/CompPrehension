@@ -8,7 +8,6 @@ import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
-import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,16 +59,6 @@ public class Main {
                         null
                 )
         );
-
-//        String rdf_dir = "c:\\Temp2\\exprdata_v7\\";
-
-        // set configuration for storage creation into domain options:
-        // FTP_BASE = storage_base_dir;
-        // FTP_DOWNLOAD_BASE = storage_base_dir;
-        DomainOptionsEntity cnf = domain.getEntity().getOptions();
-        cnf.setStorageDownloadFilesBaseUrl(outputPath);
-        cnf.setStorageUploadFilesBaseUrl(outputPath);
-        cnf.setStorageDummyDirsForNewFile(2);
 
         // Find files in local directory
         List<String> files = new ArrayList<>();

@@ -3,14 +3,12 @@ package org.vstu.compprehension.jobs.tasksgeneration;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -31,7 +29,6 @@ public class TaskGenerationJobConfig {
         private ReposSearcherConfig searcher;
         private ParserConfig parser;
         private GeneratorConfig generator;
-        private ExporterConfig exporter;
         private List<CleanupMode> cleanupMode = List.of(new CleanupMode.CleanupDownloadedOlderThan(1, TimeUnit.DAYS), new CleanupMode.CleanupParsed());
 
         @Getter @Setter @NoArgsConstructor
@@ -56,12 +53,6 @@ public class TaskGenerationJobConfig {
             private String pathToExecutable;
             private String outputFolderPath;
             private boolean saveToDb = true;
-        }
-        @Getter @Setter @NoArgsConstructor
-        public static class ExporterConfig {
-            private int storageDummyDirsForNewFile = 2;
-            private URI storageUploadFilesBaseUrl;
-            private @Nullable String storageUploadRelativePath = "q_data";
         }
     }
 

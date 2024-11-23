@@ -42,10 +42,6 @@ task-generation:
         # set false for debugging:
         save_to_db: true
 
-      exporter:
-        storage_dummy_dirs_for_new_file: 2
-        storage_upload_files_base_url: c:/data/compp-gen/expr
-
 
 
     # section 2 — different domain:
@@ -66,10 +62,6 @@ task-generation:
       generator:
         path_to_executable: 'C:/data/compp-gen/gen-q-expr-jar.bat'
         output_folder_path: 'C:/data/compp-gen/control_flow/generated_questions/'
-
-      exporter:
-        storage_dummy_dirs_for_new_file: 2
-        storage_upload_files_base_url: c:/data/compp-gen/control_flow
 
 metadata-health:
   run-once: false
