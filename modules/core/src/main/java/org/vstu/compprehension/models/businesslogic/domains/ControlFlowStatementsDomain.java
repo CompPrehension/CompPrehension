@@ -2275,18 +2275,4 @@ public class ControlFlowStatementsDomain extends Domain {
             return this;
         }
     }
-
-    public static void main(String[] args) {
-        if (true) {
-            _test_Substitutor();
-        } else {
-            ControlFlowStatementsDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDomain.class);
-            d.getQuestionTemplates();
-            getVocabulary().classDescendants("Erroneous");
-
-            JenaFactList fl = new JenaFactList(getVocabulary().getModel());
-            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
-        }
-    }
-
 }
