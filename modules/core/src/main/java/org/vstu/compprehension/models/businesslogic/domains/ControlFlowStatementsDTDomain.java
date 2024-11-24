@@ -26,7 +26,6 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-import org.vstu.compprehension.utils.ApplicationContextProvider;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -750,18 +749,4 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             return this;
         }
     }
-
-    public static void main(String[] args) {
-        if (true) {
-            _test_Substitutor();
-        } else {
-            ControlFlowStatementsDTDomain d = ApplicationContextProvider.getApplicationContext().getBean(ControlFlowStatementsDTDomain.class);
-            d.getQuestionTemplates();
-            getVocabulary().classDescendants("Erroneous");
-
-            JenaFactList fl = new JenaFactList(getVocabulary().getModel());
-            fl.addBackendFacts(QUESTIONS.get(0).getStatementFacts());
-        }
-    }
-
 }

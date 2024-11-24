@@ -257,12 +257,4 @@ public class DomainVocabulary {
         }
         return found;
     }
-
-    /// debug
-    public static void main(String[] args) {
-        DomainVocabulary voc = new DomainVocabulary("c:\\D\\Work\\YDev\\CompPr\\CompPrehension\\modules\\server\\src" +
-                "\\main\\resources\\org\\vstu\\compprehension\\models\\businesslogic\\domains\\control-flow" +
-                "-statements-domain-schema.rdf");
-        voc.readConcepts();
-    }
 }
