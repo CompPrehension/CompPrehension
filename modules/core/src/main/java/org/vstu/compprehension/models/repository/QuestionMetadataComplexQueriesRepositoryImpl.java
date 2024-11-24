@@ -330,13 +330,13 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND q.solution_steps <= :stepsMax " +
 
                                 "order by " +
+                                " (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.name NOT IN (:deniedQuestionMetaIds)) DESC, " +
+                                " (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) DESC, " +
+                                " (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.name NOT IN (:deniedQuestionTemplateIds)) DESC, " +
                                 " abs(q.integral_complexity - :complexity) DIV :complWindow ASC, " +
                                 " q.integral_complexity <= :complexity + :complWindow DESC, " +
                                 " (q.concept_bits & :deniedConceptBits) + (q.violation_bits & :deniedLawBits) ASC, " +
                                 " IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) DESC, " +
-                                " (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) DESC, " +
-                                " (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.name NOT IN (:deniedQuestionTemplateIds)) DESC, " +
-                                " (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.name NOT IN (:deniedQuestionMetaIds)) DESC, " +
                                 " (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) ASC, " +  // less often show "hot" questions
                                 " (GREATEST(bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), bit_count(q.concept_bits & :unwantedConceptsBitmask)) + bit_count(q.law_bits & :unwantedLawsBitmask) + bit_count(q.violation_bits & :unwantedViolationsBitmask)) DIV 3 ASC, " +
                                 " GREATEST(bit_count(q.trace_concept_bits & :targetConceptsBitmask), bit_count(q.concept_bits & :targetConceptsBitmask)) + bit_count(q.violation_bits & :targetLawsBitmask) DESC " +
