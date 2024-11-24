@@ -77,7 +77,10 @@ public interface AbstractStrategy {
         ArrayList<String> deniedQuestions = new ArrayList<>();
         if (exerciseAttempt != null && exerciseAttempt.getQuestions() != null) {
             for (QuestionEntity q : exerciseAttempt.getQuestions()) {
-                deniedQuestions.add(q.getQuestionName());
+                String questionName = q.getQuestionName();
+                if (questionName != null) {
+                    deniedQuestions.add(questionName);
+                }
             }
         }
         return deniedQuestions;
@@ -155,6 +158,7 @@ public interface AbstractStrategy {
         qr.setDeniedQuestionMetaIds(exerciseAttempt.getQuestions().stream()
                 .filter(q -> q.getMetadata() != null)
                 .map(q -> q.getMetadata().getId())
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
         qr.setComplexitySearchDirection(SearchDirections.TO_SIMPLE);
