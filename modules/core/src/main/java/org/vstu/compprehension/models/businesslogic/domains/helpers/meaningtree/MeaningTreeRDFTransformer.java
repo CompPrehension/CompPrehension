@@ -47,7 +47,11 @@ public class MeaningTreeRDFTransformer {
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getQuestionData().getStatementFacts());
         MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(m));
         try {
-            return language.createTranslator().getTokenizer().tokenizeExtended(mt.getRootNode());
+            return language.createTranslator(new HashMap<>() {{
+                put("skipErrors", "true");
+                put("expressionMode", "true");
+                put("translationUnitMode", "false");
+            }}).getTokenizer().tokenizeExtended(mt.getRootNode());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("MeaningTree translator creation failed");
         }
@@ -203,11 +207,21 @@ public class MeaningTreeRDFTransformer {
         Map<Token, Token> map = new HashMap<>();
         for(int i = 0; i < baseTokens.size(); i++){
             Token currentToken = baseTokens.get(i);
-            if (currentToken instanceof ComplexOperatorToken complexOperatorToken && complexOperatorToken.isOpening()) {
-                int complexEnd = baseTokens.findClosingComplex(i);
-                if (complexEnd != -1){
-                    map.put(currentToken, baseTokens.get(complexEnd));
+            int complexEnd = -1;
+            if ((currentToken instanceof ComplexOperatorToken complexOperatorToken
+                            && complexOperatorToken.isOpening())) {
+                complexEnd = baseTokens.findClosingComplex(i);
+            } else if (currentToken.type.isOpeningBrace() && currentToken.type.isOnlyGroupingBrace()) {
+                // обычные скобки (не индексы или вызовы функций)
+                for (int j = i; j < baseTokens.size(); j++) {
+                    if (baseTokens.get(j).type.isClosingBrace() && baseTokens.get(j).type.isOnlyGroupingBrace()) {
+                        complexEnd = j;
+                        break;
+                    }
                 }
+            }
+            if (complexEnd != -1){
+                map.put(currentToken, baseTokens.get(complexEnd));
             }
         }
         return map;
@@ -286,7 +300,10 @@ public class MeaningTreeRDFTransformer {
     private static void appendTreeInfo(TokenList tokens, Map<Token, ObjectDef> baseTokensToElements) {
         for (Map.Entry<Token, ObjectDef> entry : baseTokensToElements.entrySet()) {
             if (entry.getKey() instanceof OperandToken op && op.operandOf() != null
-                    && op.operandOf().type == TokenType.OPERATOR && !op.operandOf().type.isBrace() // временное решение, пока не поддерживаются вызовы функций
+                    && op.type != TokenType.SEPARATOR
+                    // далее временное решение, пока не поддерживаются вызовы функций
+                    && op.operandOf().type == TokenType.OPERATOR
+                    && !op.operandOf().type.isBrace()
                     && !op.type.isBrace()
             ) {
                 addRelationship(entry.getValue(), "isOperandOf",
