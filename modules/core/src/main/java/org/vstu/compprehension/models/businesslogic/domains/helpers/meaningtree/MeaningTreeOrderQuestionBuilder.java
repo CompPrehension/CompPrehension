@@ -102,6 +102,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     q.getQuestionData().getStatementFacts()
             );
         } else {
+            log.info("Converting old-format question with metadata id={}", q.getMetadata().getId());
             mt = extractExpression(q.getQuestionData().getStatementFacts());
         }
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
@@ -140,7 +141,7 @@ public class MeaningTreeOrderQuestionBuilder {
             }
         }
         String tokens = tokenBuilder.substring(0, tokenBuilder.length() - 1);
-        log.debug("Extracted expression text from existing question: {}", tokens);
+        log.info("Extracted expression text from existing question: {}", tokens);
         TokenList tokenList = cppTranslator.getTokenizer().tokenizeExtended(cppTranslator.prepareCode(tokens));
         HashMap<TokenGroup, Object> semanticValuesIndexes = new HashMap<>();
         for (int i = 0; i < indexes.keySet().stream().max(Long::compare).orElse(0); i++) {
