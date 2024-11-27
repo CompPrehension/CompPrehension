@@ -12,6 +12,7 @@ import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.List;
 
 public class MeaningTreeRDFHelper {
@@ -49,7 +50,11 @@ public class MeaningTreeRDFHelper {
         Model model = backendFactsToModel(stmtFacts);
         MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(model));
         try {
-            return language.createTranslator().getTokenizer().tokenizeExtended(mt);
+            return language.createTranslator(new HashMap<>() {{
+                put("skipErrors", "true");
+                put("expressionMode", "true");
+                put("translationUnitMode", "false");
+            }}).getTokenizer().tokenizeExtended(mt);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Tokenizer creation failed");
         }
