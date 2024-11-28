@@ -1,10 +1,11 @@
 package org.vstu.compprehension.config.logs;
 
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.logging.log4j.ThreadContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -12,8 +13,6 @@ import org.springframework.web.util.WebUtils;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 public class LoggableDispatcherServlet extends DispatcherServlet {
     private final UserService userService;
 
-    @Autowired
     public LoggableDispatcherServlet(UserService userService) {
         this.userService = userService;
     }

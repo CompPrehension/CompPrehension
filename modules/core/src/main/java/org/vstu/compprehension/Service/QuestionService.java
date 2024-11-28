@@ -3,12 +3,13 @@ package org.vstu.compprehension.Service;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -42,7 +43,6 @@ public class QuestionService {
     private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionBank questionStorage;
 
-    @Autowired
     public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
