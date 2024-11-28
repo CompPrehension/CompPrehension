@@ -16,7 +16,6 @@ import java.util.Set;
 public class BackendFactory {
     private HashMap<String, Backend> backends = new HashMap<>();
 
-    @Autowired
     public BackendFactory(@Qualifier("allBackends") List<Backend> backends) {
         for (val b : backends) {
             this.backends.put(b.getBackendId(), b);

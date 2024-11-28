@@ -1,10 +1,8 @@
 package org.vstu.compprehension.Service;
 
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.entities.DomainEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.models.entities.DomainEntity;
+import org.vstu.compprehension.models.repository.DomainRepository;
 
 import java.util.NoSuchElementException;
 
@@ -13,7 +11,6 @@ public class DomainService {
     
     private DomainRepository domainRepository;
 
-    @Autowired
     public DomainService(DomainRepository domainRepository) { this.domainRepository = domainRepository; }
 
 
