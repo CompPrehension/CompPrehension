@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1733344419000-1" author="Dmitry Shashkov">
+        <!-- Добавляем новый столбец skill_bits в таблицу questions_meta -->
+        <addColumn tableName="questions_meta">
+            <column name="skill_bits" type="bigint" defaultValueNumeric="0" afterColumn="law_bits" />
+        </addColumn>
+
+        <!-- Добавляем ограничение NOT NULL для столбца skill_bits -->
+        <addNotNullConstraint tableName="questions_meta" columnName="skill_bits" columnDataType="bigint" />
+    </changeSet>
+</databaseChangeLog>

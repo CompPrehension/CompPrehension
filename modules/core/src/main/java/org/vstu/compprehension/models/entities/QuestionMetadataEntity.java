@@ -44,6 +44,9 @@ public class QuestionMetadataEntity {
     @Column(name = "law_bits")
     private Long lawBits;
 
+    @Column(name = "skill_bits")
+    private Long skillBits;
+
     @Column(name = "violation_bits")
     private Long violationBits;
 
