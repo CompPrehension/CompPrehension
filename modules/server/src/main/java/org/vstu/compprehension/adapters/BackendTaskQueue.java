@@ -8,7 +8,7 @@ import javax.inject.Singleton;
 
 @Component @Singleton
 public class BackendTaskQueue extends TaskQueue {
-    public BackendTaskQueue(@Value("${config.property.backendsPoolSize}") int backendsPoolSize, @Value("${config.property.backendsQueueSize}") int backendsQueueSize) {
+    public BackendTaskQueue(@Value("${config.property.backendsPoolSize:4}") int backendsPoolSize, @Value("${config.property.backendsQueueSize:30}") int backendsQueueSize) {
         super(backendsPoolSize, backendsQueueSize);
     }
 }

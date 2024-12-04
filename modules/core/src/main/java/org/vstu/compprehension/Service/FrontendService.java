@@ -9,7 +9,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,50 +44,33 @@ import static org.vstu.compprehension.models.entities.EnumData.InteractionType.S
 @Service
 @Log4j2
 public class FrontendService {
-    @Autowired
-    private QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
+    private final ExerciseAttemptRepository exerciseAttemptRepository;
+    private final ExerciseAttemptService exerciseAttemptService;
+    private final ExerciseService exerciseService;
+    private final QuestionService questionService;
+    private final AbstractStrategyFactory strategyFactory;
+    private final FeedbackRepository feedbackRepository;
+    private final InteractionRepository interactionRepository;
+    private final LocalizationService localizationService;
+    private final DomainFactory domainFactory;
+    private final EntityManager entityManager;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private ExerciseAttemptRepository exerciseAttemptRepository;
-
-    @Autowired
-    private ExerciseAttemptService exerciseAttemptService;
-
-    @Autowired
-    private ExerciseService exerciseService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private QuestionService questionService;
-
-    @Autowired
-    private AbstractStrategyFactory strategyFactory;
-
-    @Autowired
-    private FeedbackRepository feedbackRepository;
-
-    @Autowired
-    private ResponseRepository responseRepository;
-
-    @Autowired
-    private InteractionRepository interactionRepository;
-
-    @Autowired
-    private ViolationRepository violationRepository;
-
-    @Autowired
-    private LocalizationService localizationService;
-
-    @Autowired
-    private DomainFactory domainFactory;
-
-    @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
-    private UserRepository userRepository;
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository) {
+        this.exerciseAttemptRepository = exerciseAttemptRepository;
+        this.questionRepository = questionRepository;
+        this.exerciseAttemptService = exerciseAttemptService;
+        this.exerciseService = exerciseService;
+        this.entityManager = entityManager;
+        this.questionService = questionService;
+        this.localizationService = localizationService;
+        this.strategyFactory = strategyFactory;
+        this.domainFactory = domainFactory;
+        this.userRepository = userRepository;
+        this.feedbackRepository = feedbackRepository;
+        this.interactionRepository = interactionRepository;
+    }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {

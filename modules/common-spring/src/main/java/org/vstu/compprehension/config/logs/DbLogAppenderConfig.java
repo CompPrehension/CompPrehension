@@ -27,7 +27,7 @@ public class DbLogAppenderConfig
     @Value("${config.property.db-logging.logger:root}")
     private String loggerName;
 
-    @Value("${spring.application.name}")
+    @Value("${spring.application.name:compprehension-server}")
     private String appName;
 
     @PostConstruct

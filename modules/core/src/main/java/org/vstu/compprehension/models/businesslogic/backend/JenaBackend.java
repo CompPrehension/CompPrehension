@@ -676,11 +676,4 @@ public class JenaBackend extends FactBackend {
         // b.getFacts(new HashSet<>());
         String uri = b.model.expandPrefix("type");
     }
-
-    public static void main(String ... args) {
-        // Make sure that environment setup is OK
-//        jenaBasicExample();
-//        JenaBackendSmokeTest();
-    }
-
 }

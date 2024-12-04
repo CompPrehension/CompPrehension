@@ -2,7 +2,6 @@ package org.vstu.compprehension.Service;
 
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
@@ -24,7 +23,6 @@ public class ExerciseService {
     private final ExerciseRepository exerciseRepository;
     private final DomainFactory domainFactory;
 
-    @Autowired
     public ExerciseService(
             DomainRepository domainRepository,
             ExerciseRepository exerciseRepository,
