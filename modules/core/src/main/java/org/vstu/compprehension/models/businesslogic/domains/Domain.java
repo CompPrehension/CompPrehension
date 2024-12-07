@@ -58,9 +58,8 @@ public abstract class Domain {
     }
     
     /**
-     * A temporary method to reuse DB-stored questions between Domains
-     * Is the same as {@link #getShortName()} by default
-     * FIXME - replace back to getShortName()
+     * A method to reuse DB-stored questions between Domains.
+     * Is the same as {@link #getShortName()} by default.
      */
     public String getShortnameForQuestionSearch(){
         return getShortName();
