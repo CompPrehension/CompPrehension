@@ -95,11 +95,7 @@ public class OperandEvaluationMap {
         log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
 
         try {
-            languageTranslator = language.createTranslator(new HashMap<>() {{
-                put("skipErrors", "true");
-                put("expressionMode", "true");
-                put("translationUnitMode", "false");
-            }});
+            languageTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException(e);
         }

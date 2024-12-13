@@ -114,11 +114,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
     // Извлечение выражения из существующего вопроса в старом формате и превращение его в общее дерево
     protected static MeaningTree extractExpression(List<BackendFactEntity> facts) {
-        CppTranslator cppTranslator = new CppTranslator(new HashMap<>() {{
-            put("skipErrors", "true");
-            put("expressionMode", "true");
-            put("translationUnitMode", "false");
-        }});
+        CppTranslator cppTranslator = new CppTranslator(new MeaningTreeDefaultExpressionConfig());
         StringBuilder tokenBuilder = new StringBuilder();
 
         Map<Integer, String> indexes = new HashMap<>();
@@ -177,11 +173,7 @@ public class MeaningTreeOrderQuestionBuilder {
                                                               ProgrammingLanguageExpressionDTDomain domain) {
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
         try {
-            builder.sourceExpressionTree = language.createTranslator(new HashMap<>() {{
-                put("skipErrors", "true");
-                put("translationUnitMode", "false");
-                put("expressionMode", "true");
-            }}).getMeaningTree(expression);
+            builder.sourceExpressionTree = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getMeaningTree(expression);
             return builder;
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
@@ -310,11 +302,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
     private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {
         try {
-            TokenList list = lang.createTranslator(new HashMap<>() {{
-                put("skipErrors", "true");
-                put("translationUnitMode", "false");
-                put("expressionMode", "true");
-            }}).getTokenizer().tokenizeExtended(mt);
+            TokenList list = lang.createTranslator().getTokenizer().tokenizeExtended(mt);
 
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < list.size(); i++) {
@@ -391,11 +379,7 @@ public class MeaningTreeOrderQuestionBuilder {
     protected void processTokens(SupportedLanguage language) {
         LanguageTranslator toTranslator;
         try {
-            toTranslator = language.createTranslator(new HashMap<String, String>() {{
-                put("expressionMode", "true");
-                put("skipErrors", "true");
-                put("translationUnitMode", "false");
-            }});
+            toTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }

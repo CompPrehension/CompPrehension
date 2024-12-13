@@ -47,11 +47,7 @@ public class MeaningTreeRDFTransformer {
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getQuestionData().getStatementFacts());
         MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(m));
         try {
-            return language.createTranslator(new HashMap<>() {{
-                put("skipErrors", "true");
-                put("expressionMode", "true");
-                put("translationUnitMode", "false");
-            }}).getTokenizer().tokenizeExtended(mt.getRootNode());
+            return language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt.getRootNode());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("MeaningTree translator creation failed");
         }
