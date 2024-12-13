@@ -11,6 +11,7 @@ import its.model.nodes.DecisionTree;
 import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -60,6 +61,75 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         return tags;
     }
 
+
+    public void fillSkills() {
+        skills = new HashMap<>();
+
+        addSkill("central_operand_needed");
+        addSkill("is_central_operand_evaluated");
+
+        Skill nearestOperandNeeded = addSkill("nearest_operand_needed");
+        addSkill("left_operand_needed", List.of(nearestOperandNeeded));
+        addSkill("right_operand_needed", List.of(nearestOperandNeeded));
+
+        Skill competingOperandPresent = addSkill("competing_operand_present");
+        addSkill("left_competing_operand_present", List.of(competingOperandPresent));
+        addSkill("right_competing_operand_present", List.of(competingOperandPresent));
+
+        Skill currentOperatorEnclosed = addSkill("current_operand_enclosed");
+        addSkill("left_operand_enclosed", List.of(currentOperatorEnclosed));
+        addSkill("right_operand_enclosed", List.of(currentOperatorEnclosed));
+
+        Skill currentParenthesizedNearestNot = addSkill("is_current_parenthesized_nearest_not");
+        addSkill("is_current_parenthesized_left_not", List.of(currentParenthesizedNearestNot));
+        addSkill("is_current_parenthesized_left_not", List.of(currentParenthesizedNearestNot));
+
+        Skill nearestParenthesizedCurrentNot = addSkill("is_nearest_parenthesized_current_not");
+        addSkill("is_left_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
+        addSkill("is_right_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
+
+        addSkill("order_determined_by_precedence");
+        addSkill("order_determined_by_associativity");
+
+        Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand");
+        addSkill("associativity_without_left_opposing_operand", List.of(associativityWithoutOpposingOperand));
+        addSkill("associativity_without_right_opposing_operand", List.of(associativityWithoutOpposingOperand));
+
+        Skill strictOrder = addSkill("strict_order_operators");
+        Skill fullEvaluation = addSkill("expression_fully_evaluated");
+
+        addSkill("strict_order_operators_present", List.of(strictOrder, fullEvaluation));
+        addSkill("strict_order_first_operand_to_be_evaluated", List.of(strictOrder, fullEvaluation));
+        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated", List.of(strictOrder));
+        addSkill("no_omitted_operands_despite_strict_order", List.of(strictOrder, fullEvaluation));
+        addSkill("should_strict_order_current_operand_be_omitted", List.of(strictOrder, fullEvaluation));
+
+        fillSkillTree();
+
+        // assign mask bits to Skills
+        val name2bit = _getSkillsName2bit();
+        for (Skill t : skills.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
+    }
+
+    /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
+    protected void fillSkillTree() {
+        for (Skill skill : skills.values()) {
+            if (skill.getBaseSkills() == null)
+                continue;
+            for (Skill base : skill.getBaseSkills()) {
+                if (base.getChildSkills() == null) {
+                    base.setChildSkills(new HashSet<>());
+                }
+                base.getChildSkills().add(skill);
+            }
+        }
+    }
+
     @Override
     public String getShortnameForQuestionSearch() {
         return "expression"; //
@@ -86,6 +156,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
             QuestionBank qMetaStorage) {
 
         super(domainEntity, localizationService, randomProvider, qMetaStorage);
+        fillSkills();
 
         //LOOK readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
@@ -635,4 +706,37 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         return new HyperText("WRONG");
     }
 
+    private HashMap<String, Long> _getSkillsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(32);
+        name2bit.put("central_operand_needed", 0x1L);  	// (1)
+        name2bit.put("is_central_operand_evaluated", 0x2L);  	// (2)
+        name2bit.put("nearest_operand_needed", 0x4L);  	// (4)
+        name2bit.put("left_operand_needed", 0x8L);  	// (8)
+        name2bit.put("right_operand_needed", 0x10L);  	// (16)
+        name2bit.put("competing_operator_present", 0x20L);  	// (32)
+        name2bit.put("left_competing_operator_present", 0x40L);  	// (64)
+        name2bit.put("right_competing_operator_present", 0x80L);  	// (128)
+        name2bit.put("current_operator_enclosed", 0x100L);  	// (256)
+        name2bit.put("left_operator_enclosed", 0x200L);  	// (512)
+        name2bit.put("right_operator_enclosed", 0x400L);  	// (1024)
+        name2bit.put("is_current_parenthesized_nearest_not", 0x800L);  	// (2048)
+        name2bit.put("is_current_parenthesized_left_not", 0x1000L);  	// (2^12)
+        name2bit.put("is_current_parenthesized_right_not", 0x2000L);  	// (2^13)
+        name2bit.put("is_nearest_parenthesized_current_not", 0x4000L);  	// (2^14)
+        name2bit.put("is_left_parenthesized_current_not", 0x8000L);  	// (2^15)
+        name2bit.put("is_right_parenthesized_current_not", 0x10000L);  	// (2^16)
+        name2bit.put("order_determined_by_precedence", 0x20000L);  	// (2^17)
+        name2bit.put("associativity_without_opposing_operand", 0x40000L);  	// (2^18)
+        name2bit.put("associativity_without_left_opposing_operand", 0x80000L);  	// (2^19)
+        name2bit.put("associativity_without_right_opposing_operand", 0x100000L);  	// (2^20)
+        name2bit.put("order_determined_by_associativity", 0x200000L);  	// (2^21)
+        name2bit.put("strict_order_operators", 0x400000L);  	// (2^22)
+        name2bit.put("expression_fully_evaluated", 0x800000L);  	// (2^23)
+        name2bit.put("strict_order_operators_present", 0x1000000L);  	// (2^24)
+        name2bit.put("strict_order_first_operand_to_be_evaluated", 0x2000000L);  	// (2^25)
+        name2bit.put("is_first_operand_of_strict_order_operator_fully_evaluated", 0x4000000L);  	// (2^26)
+        name2bit.put("no_omitted_operands_despite_strict_order", 0x8000000L);  	// (2^27)
+        name2bit.put("should_strict_order_current_operand_be_omitted", 0x10000000L);  	// (2^28)
+        return name2bit;
+    }
 }

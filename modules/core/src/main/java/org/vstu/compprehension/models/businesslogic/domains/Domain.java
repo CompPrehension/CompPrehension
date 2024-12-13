@@ -33,6 +33,7 @@ public abstract class Domain {
 
     /** name to Concept mapping */
     protected Map<String, Concept> concepts;
+    protected Map<String, Skill> skills;
 
     /**
      * domain name (used to get domain by name)
@@ -180,6 +181,10 @@ public abstract class Domain {
 
     public Concept getConcept(String name) {
         return concepts.getOrDefault(name, null);
+    }
+
+    public Skill getSkill(String name) {
+        return skills.getOrDefault(name, null);
     }
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
@@ -369,6 +374,20 @@ public abstract class Domain {
         concepts.put(t.getName(), t);
         return t;
     }
+
+    protected Skill addSkill(Skill t) {
+        skills.put(t.getName(), t);
+        return t;
+    }
+
+    protected Skill addSkill(String name) {
+        return addSkill(new Skill(name));
+    }
+
+    protected Skill addSkill(String name, List<Skill> baseSkills) {
+        return addSkill(new Skill(name, baseSkills));
+    }
+
     protected Concept addConcept(String name, List<Concept> bases, int flags) {
         return addConcept(new Concept(name, bases, flags));
     }
