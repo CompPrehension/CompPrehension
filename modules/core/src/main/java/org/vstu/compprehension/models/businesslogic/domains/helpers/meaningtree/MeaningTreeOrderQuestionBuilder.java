@@ -702,7 +702,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
 
-                if (foundNearestOp instanceof ComplexOperatorToken complex && complex.isOpening() && tokens.isInComplex(i).equals(complex)) {
+                if (foundNearestOp instanceof ComplexOperatorToken complex && complex.isOpening() && complex.equals(tokens.isInComplex(i))) {
                     set.add("current_operator_enclosed");
                 }
 
