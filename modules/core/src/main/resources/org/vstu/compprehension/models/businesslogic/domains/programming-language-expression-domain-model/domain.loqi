@@ -85,9 +85,9 @@ enum state {
 
 class element {
 	class prop countOfTokens: int[1,2] ;
-	obj prop state: state ;
 
 	rel has(token) : {1 -> *} ;
+	obj prop state: state ;
 
 	// rel isInside(element) ;
 	// rel surrounds(element) ;
@@ -121,7 +121,7 @@ class operand : element {
 	rel isOperatorTo(operand) : opposite to isOperandOf ;
 	rel isInOperandOf(operand) : transitive to isOperandOf;
 	rel isLeftOperandOf(operator) : {1->1};
-	rel isCenterOperandOf(operator) : {1->1};
+	rel isCenterOperandOf(operator) : {*->1};
 	rel isRightOperandOf(operator) : {1->1};
 
 	countOfTokens = 1 ;
@@ -140,8 +140,16 @@ class parenthesis : element {
 	EN.localizedName = "parenthesis" ;
 ]
 
+class separator : element {
+
+	countOfTokens = 1 ;
+} [
+	RU.localizedName = "разделитель" ;
+	EN.localizedName = "separator" ;
+]
+
 class operator : operand {
-	class prop arity: arity ;
+	class prop `arity`: arity ;
 	class prop place: place ; //Вообще не очень нужная характеристика, можно выкинуть
 	class prop precedence: int ;
 	class prop associativity: associativity ;
@@ -185,10 +193,30 @@ enum ExpectedValue { //b4
 	EN.localizedName = "value" ;
 ]
 
+enum OperandPosition {
+	left[
+		RU.localizedName = "левый" ;
+		EN.localizedName = "left" ;
+	],
+	right [
+		RU.localizedName = "правый" ;
+		EN.localizedName = "right" ;
+	],
+	center[
+		RU.localizedName = "центральный" ;
+		EN.localizedName = "center" ;
+	],
+}[
+	RU.localizedName = "положение операнда" ;
+	EN.localizedName = "operand position" ;
+]
+
 
 class StrictOrderOperator : operator { //b4
-	class prop requiredLeftValForRight : ExpectedValue;
-	class prop requiredLeftValForCenter : ExpectedValue;
+	class prop requiredFirstValForRight : ExpectedValue = ExpectedValue:any;
+	class prop requiredFirstValForCenter : ExpectedValue = ExpectedValue:any;
+	class prop requiredFirstValForLeft : ExpectedValue = ExpectedValue:any;
+	class prop firstOperandPosition : OperandPosition;
 	
 	hasStrictOperandOrder = true;
 }
