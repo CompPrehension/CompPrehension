@@ -43,6 +43,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain.DOMAIN_MODEL_LOCATION;
+
 @Log4j2
 public class MeaningTreeOrderQuestionBuilder {
     /***
@@ -431,7 +433,11 @@ public class MeaningTreeOrderQuestionBuilder {
         String languageStr = language.toString();
         tags.add(languageStr.substring(0, 1).toUpperCase() + languageStr.substring(1));
 
-        int solutionLength = answerObjects.size() - 1;
+        DomainModel questionModel = createDomainModel();
+        int omitted = (int) questionModel.getObjects().stream().filter((ObjectDef o) -> o.isInstanceOf("operand")
+                && o.getPropertyValue("state").equals(new EnumValueRef("state", "omitted"))).count();
+        int solutionLength = answerObjects.size() - omitted;
+
         possibleViolations = findPossibleViolations(tokens);
         Set<String> possibleSkills = findSkills(tokens);
         concepts = findConcepts(sourceExpressionTree, language);
