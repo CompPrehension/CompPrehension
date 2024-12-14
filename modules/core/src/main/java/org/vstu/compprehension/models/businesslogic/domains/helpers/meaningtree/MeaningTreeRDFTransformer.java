@@ -9,10 +9,10 @@ import its.model.definition.loqi.DomainLoqiWriter;
 import its.model.nodes.DecisionTree;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
-import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
+import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
@@ -43,8 +43,8 @@ public class MeaningTreeRDFTransformer {
     }
 
 
-    public static TokenList tokenize(Question q, SupportedLanguage language) {
-        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getQuestionData().getStatementFacts());
+    public static TokenList tokenize(List<BackendFactEntity> facts, SupportedLanguage language) {
+        Model m = MeaningTreeRDFHelper.backendFactsToModel(facts);
         MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(m));
         try {
             return language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt.getRootNode());
@@ -63,13 +63,13 @@ public class MeaningTreeRDFTransformer {
         return SupportedLanguage.CPP;
     }
 
-    public static DomainModel questionToDomainModel(DomainSolvingModel model, Question q,
+    public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactEntity> facts,
                                                     List<ResponseEntity> responses, List<Tag> tags) {
-        Model base = MeaningTreeRDFHelper.backendFactsToModel(q.getQuestionData().getStatementFacts());
+        Model base = MeaningTreeRDFHelper.backendFactsToModel(facts);
         Map<String, DecisionTree> decisionTreeMap = model.getDecisionTrees();
         boolean isLastSelectionVariable = true;
         SupportedLanguage language = detectLanguage(tags);
-        TokenList tokens = tokenize(q, language);
+        TokenList tokens = tokenize(facts, language);
         TokenList selected = new TokenList(responses.stream()
                 .map((r) -> {
                     String[] tokenName = base.getResource(BASE_TTL_PREF + r.getLeftAnswerObject().getDomainInfo()).getLocalName().split("_");
@@ -146,7 +146,7 @@ public class MeaningTreeRDFTransformer {
                 "state", className.equals("operand") ? "evaluated" : "unevaluated"
         );
         if(domainModel.getClasses().get(className).isSubclassOf("operand")) {
-            boolean evaluationValue = baseToken.getAssignedValue() == null || (boolean) baseToken.getAssignedValue();
+            boolean evaluationValue = baseToken.getAssignedValue() != null && (boolean) baseToken.getAssignedValue();
             setBoolProperty(resElement, "evaluatesTo", evaluationValue);
         }
         ObjectDef resToken = resTokenFromBase(tokenIndex, resElement);
@@ -209,10 +209,16 @@ public class MeaningTreeRDFTransformer {
                 complexEnd = baseTokens.findClosingComplex(i);
             } else if (currentToken.type.isOpeningBrace() && currentToken.type.isOnlyGroupingBrace()) {
                 // обычные скобки (не индексы или вызовы функций)
-                for (int j = i; j < baseTokens.size(); j++) {
+                int nesting = 1;
+                for (int j = i + 1; j < baseTokens.size(); j++) {
                     if (baseTokens.get(j).type.isClosingBrace() && baseTokens.get(j).type.isOnlyGroupingBrace()) {
-                        complexEnd = j;
-                        break;
+                        nesting--;
+                        if (nesting == 0) {
+                            complexEnd = j;
+                            break;
+                        }
+                    } else if (baseTokens.get(j).type.isOpeningBrace() && baseTokens.get(j).type.isOnlyGroupingBrace()) {
+                        nesting++;
                     }
                 }
             }
