@@ -97,6 +97,7 @@ public class SerializableQuestionTemplate {
         private Date dateCreated;
         private String language;
         private int treeHashCode;
+        private long skillBits;
 
         public QuestionMetadataEntity toMetadataEntity() {
             return QuestionMetadataEntity.builder()
@@ -115,6 +116,7 @@ public class SerializableQuestionTemplate {
                     .version(this.getVersion())
                     .structureHash(this.getStructureHash())
                     .origin(this.getOrigin())
+                    .skillBits(this.getSkillBits())
                     .build();
         }
     }

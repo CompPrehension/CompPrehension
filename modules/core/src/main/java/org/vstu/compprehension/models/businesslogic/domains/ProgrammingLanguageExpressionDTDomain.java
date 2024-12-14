@@ -88,21 +88,41 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         addSkill("is_left_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
         addSkill("is_right_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
 
-        addSkill("order_determined_by_precedence");
-        addSkill("order_determined_by_associativity");
+        Skill prec = addSkill("order_determined_by_precedence");
+        addSkill("left_competing_to_right_precedence", List.of(prec));
+        addSkill("right_competing_to_left_precedence", List.of(prec));
+
+        Skill assoc = addSkill("order_determined_by_associativity");
+        addSkill("left_competing_to_right_associativity", List.of(assoc));
+        addSkill("right_competing_to_left_associativity", List.of(assoc));
 
         Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand");
         addSkill("associativity_without_left_opposing_operand", List.of(associativityWithoutOpposingOperand));
         addSkill("associativity_without_right_opposing_operand", List.of(associativityWithoutOpposingOperand));
 
-        Skill strictOrder = addSkill("strict_order_operators");
-        Skill fullEvaluation = addSkill("expression_fully_evaluated");
+        addSkill("strict_order_operators_present");
+        addSkill("is_current_operator_strict_order");
 
-        addSkill("strict_order_operators_present", List.of(strictOrder, fullEvaluation));
-        addSkill("strict_order_first_operand_to_be_evaluated", List.of(strictOrder, fullEvaluation));
-        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated", List.of(strictOrder));
-        addSkill("no_omitted_operands_despite_strict_order", List.of(strictOrder, fullEvaluation));
-        addSkill("should_strict_order_current_operand_be_omitted", List.of(strictOrder, fullEvaluation));
+        Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated");
+        addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_solving", List.of(strictOrderFirstOperandToBeEvaluated));
+        addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_earlyfinish", List.of(strictOrderFirstOperandToBeEvaluated));
+
+        Skill isFirstOperandOfStrictOrderOperatorFullyEvaluated = addSkill("is_first_operand_of_strict_order_operator_fully_evaluated");
+        addSkill(isFirstOperandOfStrictOrderOperatorFullyEvaluated.name + "_while_solving", List.of(isFirstOperandOfStrictOrderOperatorFullyEvaluated));
+        addSkill(isFirstOperandOfStrictOrderOperatorFullyEvaluated.name + "_while_earlyfinish", List.of(isFirstOperandOfStrictOrderOperatorFullyEvaluated));
+
+        Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order");
+        addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_solving", List.of(noOmittedOperandsDespiteStrictOrder));
+        addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_earlyfinish", List.of(noOmittedOperandsDespiteStrictOrder));
+
+        Skill shouldStrictOrderCurrentOperandBeOmitted = addSkill("should_strict_order_current_operand_be_omitted");
+        addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_solving", List.of(shouldStrictOrderCurrentOperandBeOmitted));
+        addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_earlyfinish", List.of(shouldStrictOrderCurrentOperandBeOmitted));
+
+        addSkill("are_central_operands_strict_order");
+        addSkill("no_current_in_many_central_operands");
+        addSkill("no_comma_in_central_operands");
+        addSkill("previous_central_operands_are_unevaluated");
 
         fillSkillTree();
 
@@ -253,7 +273,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     ) {
                         return new DecisionTreeReasonerBackend.Input(
                                 MeaningTreeRDFTransformer.questionToDomainModel(
-                                        domainSolvingModel, question, responses, tags
+                                        domainSolvingModel, question.getStatementFacts(), responses, tags
                                 ),
                                 domainSolvingModel.getDecisionTree()
                         );
@@ -618,7 +638,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
         List<Tag> tags = q.getQuestionData().getExerciseAttempt().getExercise().getTags().stream().map(this::getTag).toList();
         DomainModel domain = MeaningTreeRDFTransformer.questionToDomainModel(
-                domainSolvingModel, q, responses, tags
+                domainSolvingModel, q.getStatementFacts(), responses, tags
         );
         DecisionTree dt = domainSolvingModel.getDecisionTree();
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
@@ -665,7 +685,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 getExercise().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 domainSolvingModel,
-                new Question(lastMainQuestionInteraction.getQuestion(), this),
+                new Question(lastMainQuestionInteraction.getQuestion(), this).getStatementFacts(),
                 lastMainQuestionInteraction.getResponses(), tags
         );
     }
@@ -730,13 +750,20 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         name2bit.put("associativity_without_left_opposing_operand", 0x80000L);  	// (2^19)
         name2bit.put("associativity_without_right_opposing_operand", 0x100000L);  	// (2^20)
         name2bit.put("order_determined_by_associativity", 0x200000L);  	// (2^21)
-        name2bit.put("strict_order_operators", 0x400000L);  	// (2^22)
-        name2bit.put("expression_fully_evaluated", 0x800000L);  	// (2^23)
+        name2bit.put("left_competing_to_right_associativity", 0x400000L);  	// (2^22)
+        name2bit.put("right_competing_to_left_associativity", 0x800000L);  	// (2^23)
         name2bit.put("strict_order_operators_present", 0x1000000L);  	// (2^24)
         name2bit.put("strict_order_first_operand_to_be_evaluated", 0x2000000L);  	// (2^25)
         name2bit.put("is_first_operand_of_strict_order_operator_fully_evaluated", 0x4000000L);  	// (2^26)
         name2bit.put("no_omitted_operands_despite_strict_order", 0x8000000L);  	// (2^27)
         name2bit.put("should_strict_order_current_operand_be_omitted", 0x10000000L);  	// (2^28)
+        name2bit.put("left_competing_to_right_precedence", 0x20000000L);
+        name2bit.put("right_competing_to_left_precedence", 0x40000000L);
+        name2bit.put("is_current_operator_strict_order", 0x80000000L);
+        name2bit.put("are_central_operands_strict_order", 0x100000000L);
+        name2bit.put("no_current_in_many_central_operands", 0x200000000L);
+        name2bit.put("no_comma_in_central_operands", 0x400000000L);
+        name2bit.put("previous_central_operands_are_unevaluated", 0x800000000L);
         return name2bit;
     }
 }
