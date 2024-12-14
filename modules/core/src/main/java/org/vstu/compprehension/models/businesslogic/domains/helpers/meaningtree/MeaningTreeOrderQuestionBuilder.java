@@ -8,6 +8,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
+import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
@@ -442,6 +443,7 @@ public class MeaningTreeOrderQuestionBuilder {
         Set<String> possibleSkills = findSkills(tokens);
         concepts = findConcepts(sourceExpressionTree, language);
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
+        complexity = MathHelper.sigmoid((complexity + 3) / 6);
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
         String customTemplateId = rawTranslatedCode.replaceAll(" ", "_").replaceAll("[/:*?\"<>|\\\\]", "");
