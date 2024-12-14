@@ -1,13 +1,14 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import its.model.DomainSolvingModel;
+import its.model.definition.DomainModel;
+import its.model.definition.EnumValueRef;
+import its.model.definition.ObjectDef;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
-import org.vstu.compprehension.models.businesslogic.Concept;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.Tag;
+import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
@@ -302,7 +303,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
     private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {
         try {
-            TokenList list = lang.createTranslator().getTokenizer().tokenizeExtended(mt);
+            TokenList list = lang.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt);
 
             StringBuilder builder = new StringBuilder();
             for (int i = 0; i < list.size(); i++) {
@@ -412,6 +413,15 @@ public class MeaningTreeOrderQuestionBuilder {
                 .build();
     }
 
+    private DomainModel createDomainModel() {
+        final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
+                this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
+                DomainSolvingModel.BuildMethod.LOQI
+        );
+       return MeaningTreeRDFTransformer.questionToDomainModel(domainSolvingModel,
+                MeaningTreeRDFHelper.serializableToBackendFacts(stmtFacts), List.of(), tags.stream().map(domain::getTag).toList());
+    }
+
     /**
      * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
      */
@@ -423,6 +433,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
         int solutionLength = answerObjects.size() - 1;
         possibleViolations = findPossibleViolations(tokens);
+        Set<String> possibleSkills = findSkills(tokens);
         concepts = findConcepts(sourceExpressionTree, language);
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
@@ -436,6 +447,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 .templateId(metadata != null ? metadata.getTemplateId() : customTemplateId)
                 .tagBits(tags.stream().map(domain::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a, b) -> a|b).orElse(0L))
                 .conceptBits(conceptBits)
+                .skillBits(possibleSkills.stream().map(domain::getSkill).filter(Objects::nonNull).map(Skill::getBitmask).reduce((a, b) -> a|b).orElse(0L))
                 .lawBits(metadata != null ? metadata.getLawBits() : 1)
                 .violationBits(possibleViolations.stream().map(domain::getNegativeLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a, b) -> a|b).orElse(0L))
                 .traceConceptBits(conceptBits)
@@ -651,6 +663,84 @@ public class MeaningTreeOrderQuestionBuilder {
             }
         }
 
+        return set;
+    }
+
+    /**
+     * Поиск возможных навыков, которые может получить студент
+     * @return набор уникальных возможных навыков
+     */
+    static Set<String> findSkills(TokenList tokens) {
+        Set<String> set = new TreeSet<>();
+        set.add("expression_fully_evaluated");
+        for (int i = 0; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (t instanceof OperandToken op && op.operandPosition() == OperandPosition.CENTER) {
+                set.add("central_operand_needed");
+                if (op instanceof OperatorToken) {
+                    set.add("is_central_operand_evaluated");
+                }
+            }
+
+            if (t instanceof OperandToken op && (op.operandPosition() == OperandPosition.LEFT || op.operandPosition() == OperandPosition.RIGHT)) {
+                int incr = op.operandPosition() == OperandPosition.LEFT ? -1 : 1;
+                set.add("nearest_operand_needed");
+                OperatorToken foundNearestOp = null;
+                for (int j = i;
+                     op.operandPosition() == OperandPosition.LEFT ? j >= 0 : j < tokens.size();
+                     j += incr) {
+                    if (tokens.get(j) instanceof OperatorToken leftOp) {
+                        set.add("competing_operator_present");
+                        foundNearestOp = leftOp;
+                        break;
+                    }
+                }
+
+                if (foundNearestOp instanceof ComplexOperatorToken complex && complex.isOpening() && tokens.isInComplex(i).equals(complex)) {
+                    set.add("current_operator_enclosed");
+                }
+
+                if (foundNearestOp != null && tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && !tokens.isParenthesized(i)) {
+                    set.add("is_nearest_parenthesized_current_not");
+                } else if (foundNearestOp != null && !tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && tokens.isParenthesized(i)) {
+                    set.add("is_current_parenthesized_nearest_not");
+                }
+
+                if (foundNearestOp != null && foundNearestOp.precedence != op.operandOf().precedence) {
+                    set.add("order_determined_by_precedence");
+                } else {
+                    if (op.operandOf().arity == OperatorArity.UNARY) {
+                        set.add("associativity_without_opposing_operand");
+                    } else {
+                        set.add("order_determined_by_associativity");
+                    }
+                }
+            }
+            if (t instanceof OperatorToken op && op.isStrictOrder) {
+                set.add("strict_order_operators_present");
+                set.add("is_current_strict_order");
+                Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
+                set.add("strict_order_first_operand_to_be_evaluated");
+                if (ops.get(op.getFirstOperandToEvaluation())
+                        .asSublist()
+                        .stream()
+                        .anyMatch((Token tt) -> tt instanceof OperatorToken)) {
+                    set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
+                }
+                if (op instanceof ComplexOperatorToken) {
+                    set.add("no_omitted_operands_despite_strict_order");
+                    set.add("should_strict_order_current_operand_be_omitted");
+                }
+                if (op.type == TokenType.CALL_OPENING_BRACE || op.type == TokenType.CALL_CLOSING_BRACE) {
+                    set.add("are_central_operands_strict_order");
+                    set.add("no_comma_in_central_operands");
+                    if (ops.get(OperandPosition.CENTER).length() > 1) {
+                        set.add("no_current_in_many_central_operands");
+                        set.add("previous_central_operands_are_unevaluated");
+                    }
+                }
+            }
+        }
         return set;
     }
 
