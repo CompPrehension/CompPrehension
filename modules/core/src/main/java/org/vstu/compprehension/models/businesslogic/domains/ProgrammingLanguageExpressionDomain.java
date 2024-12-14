@@ -2865,6 +2865,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_in", 0x800000000000L);  	// (140737488355328)
         name2bit.put("operator_@", 0x1000000000000L);  	// (281474976710656)
         name2bit.put("operator_//", 0x2000000000000L);  	// (562949953421312)
+        name2bit.put("operator_?", 0x4000000000000L);  	// (1125899906842624)
         return name2bit;
         // (developer tip: see sqlite2mysql)
     }
