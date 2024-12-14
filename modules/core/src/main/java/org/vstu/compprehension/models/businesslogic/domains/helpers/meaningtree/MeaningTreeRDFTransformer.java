@@ -303,10 +303,6 @@ public class MeaningTreeRDFTransformer {
         for (Map.Entry<Token, ObjectDef> entry : baseTokensToElements.entrySet()) {
             if (entry.getKey() instanceof OperandToken op && op.operandOf() != null
                     && op.type != TokenType.SEPARATOR
-                    // далее временное решение, пока не поддерживаются вызовы функций
-                    && op.operandOf().type == TokenType.OPERATOR
-                    && !op.operandOf().type.isBrace()
-                    && !op.type.isBrace()
             ) {
                 addRelationship(entry.getValue(), "isOperandOf",
                         String.format("element_op_%d", tokens.indexOf(op.operandOf())));

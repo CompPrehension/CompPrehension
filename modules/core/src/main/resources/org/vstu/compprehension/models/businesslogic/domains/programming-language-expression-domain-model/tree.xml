@@ -1997,7 +1997,7 @@
                _EN_nextStepQuestion="What is the first step when considering operators with strict operand order?"
                _EN_nextStepExplanation="That's incorrect. One should first find all such operators and check if they really hinder the evaluation of ${val('X', 'и')."
             >
-                <CycleAggregationNode operator="AND" _alias="Для всех операторов со строгим порядком для которых Х находится в правом или центральном операнде"
+                <CycleAggregationNode operator="AND" _alias="Для всех операторов со строгим порядком - T"
                     _RU_description="вычислению ${val('X','р')} ${result ? 'не' : ''} мешают операторы со строгим порядком операндов"
                     _RU_question="Выберите все операторы со строгим порядком операндов, которые могут помешать вычислению ${val('X','р')}"
 
@@ -2005,46 +2005,13 @@
                     _EN_question="Choose all operators with strict operand order that can influence the evaluation of ${val('X','р')}"
                 >
                     <SelectorExpression>
-                        <LogicalOr>
-                            <LogicalOr>
-                                <CheckRelationship>
-                                    <Relationship name="isCenterOperandOf" />
-                                    <DecisionTreeVar name="X" />
-                                    <Variable name="T" />
-                                </CheckRelationship>
-                                <ExistenceQuantifier varName="c" type="operator">
-                                    <CheckRelationship>
-                                        <Relationship name="isCenterOperandOf" />
-                                        <Variable name="c" />
-                                        <Variable name="T" />
-                                    </CheckRelationship>
-                                    <CheckRelationship>
-                                        <Relationship name="isInOperandOf" />
-                                        <DecisionTreeVar name="X" />
-                                        <Variable name="c" />
-                                    </CheckRelationship>
-                                </ExistenceQuantifier>
-                            </LogicalOr>
-                            <LogicalOr>
-                                <CheckRelationship>
-                                    <Relationship name="isRightOperandOf" />
-                                    <DecisionTreeVar name="X" />
-                                    <Variable name="T" />
-                                </CheckRelationship>
-                                <ExistenceQuantifier varName="r" type="operator">
-                                    <CheckRelationship>
-                                        <Relationship name="isRightOperandOf" />
-                                        <Variable name="r" />
-                                        <Variable name="T" />
-                                    </CheckRelationship>
-                                    <CheckRelationship>
-                                        <Relationship name="isInOperandOf" />
-                                        <DecisionTreeVar name="X" />
-                                        <Variable name="r" />
-                                    </CheckRelationship>
-                                </ExistenceQuantifier>
-                            </LogicalOr>
-                        </LogicalOr>
+                        <Compare operator="EQUAL">
+                            <GetPropertyValue>
+                                <Variable name="T" />
+                                <Property name="state" />
+                            </GetPropertyValue>
+                            <Enum owner="state" value="unevaluated" />
+                        </Compare>
                     </SelectorExpression>
                     <FindError priority="1" type="operator" _alias="T_notStrict"
                         _RU_explanation="${obj(checked, 'и')} не является оператором со строгим порядком операндов"
@@ -2065,64 +2032,6 @@
                             </LogicalAnd>
                         </Expression>   
                     </FindError>
-                    <FindError priority="2" _alias="T_toRight"
-                        _RU_explanation="${obj(checked, 'и')} находится справа от ${val('X','р')} и не может мешать его вычислению"
-                        _EN_explanation="${obj(checked, 'и')} is to the right of ${val('X','р')} and cannot hinder its evaluation"
-                    >
-                        <Expression>
-                            <CheckRelationship>
-                                <Relationship name="rightOf" />
-                                <Variable name="checked" />
-                                <DecisionTreeVar name="X" />
-                            </CheckRelationship>
-                        </Expression>   
-                    </FindError>
-                    <FindError priority="3" _alias="T_inLeft"
-                        _RU_explanation="${val('X','и')} находится в левом операнде ${obj(checked, 'р')}, и поэтому всегда должен вычисляться первым"
-                        _EN_explanation="${val('X','и')} is in the left operand of ${obj(checked, 'р')} and must always be evaluated first"
-                    >
-                        <Expression>
-                            <LogicalOr>
-                                <CheckRelationship>
-                                    <Relationship name="isLeftOperandOf" />
-                                    <DecisionTreeVar name="X" />
-                                    <Variable name="checked" />
-                                </CheckRelationship>
-                                <ExistenceQuantifier varName="left" type="operator">
-                                    <CheckRelationship>
-                                        <Relationship name="isLeftOperandOf" />
-                                        <Variable name="left" />
-                                        <Variable name="checked" />
-                                    </CheckRelationship>
-                                    <CheckRelationship>
-                                        <Relationship name="isInOperandOf" />
-                                        <DecisionTreeVar name="X" />
-                                        <Variable name="left" />
-                                    </CheckRelationship>
-                                </ExistenceQuantifier>
-                            </LogicalOr>
-                        </Expression>   
-                    </FindError>
-                    <FindError priority="4" _alias="T_notOperand"
-                        _RU_explanation="${val('X','и')} не является операндом ${obj(checked, 'р')} и поэтому ${obj(checked, 'и')} не может ему помешать"
-                        _EN_explanation="${val('X','и')} is not an operand of ${obj(checked, 'р')} and ${obj(checked, 'и')} cannot hinder its evaluation"
-                    >
-                        <Expression>
-                            <LogicalAnd>
-                                <Compare operator="NOT_EQUAL">
-                                    <DecisionTreeVar name="X"/>
-                                    <Variable name="checked"/>
-                                </Compare>
-                                <LogicalNot>
-                                    <CheckRelationship>
-                                        <Relationship name="isInOperandOf" />
-                                        <DecisionTreeVar name="X" />
-                                        <Variable name="checked" />
-                                    </CheckRelationship>
-                                </LogicalNot>
-                            </LogicalAnd>
-                        </Expression>   
-                    </FindError>
                     <DecisionTreeVarDecl name="T" type="StrictOrderOperator" />
                     <Outcome value="True" >
                         <BranchResultNode value="true"/>
@@ -2139,424 +2048,721 @@
                         _EN_nextStepQuestion="What is the first step to determine if ${val('T','и')} hinders the evaluation of ${val('X','р')}?"
                         _EN_nextStepExplanation="That's incorrect. We should first determine, if the left operand of ${val('T','р')} is fully evaluated."
                      >
-                        <QuestionNode
-                            _alias="Есть ли в левом операнде T невычисленный оператор (u)?"
-                            type="bool" isSwitch="false"
-                            
-                            _RU_asNextStep="Необходимо проверить, остались ли в левом операнде ${val('T','р')} невычисленные операторы."
-                            _RU_question="Остались ли в левом операнде ${val('T','р')} невычисленные операторы?"
-                            _RU_endingCause="Поскольку в левом операнде ${val('T','р')} не осталось невычисленных операторов"
-                            
-                            _EN_asNextStep="We need to check if there are any unevaluated operators in the left operand of ${val('T','р')}."
-                            _EN_question="Are there any unevaluated operators in the left operand of ${val('T','р')}?"
-                            _EN_endingCause="Because there are no unevaluated operators in the left operand of ${val('T','р')}"
-                        >
+                        <QuestionNode _alias="X не в операнде Т, либо в его первом операнде"
+                            type="bool" isSwitch="false">
                             <Expression>
-                                <ExistenceQuantifier varName="u" type="operator">
-                                    <CheckClass>
-                                        <Variable name="u" />
-                                        <Class name="operator" />
-                                    </CheckClass>
+                                <LogicalOr>
+                                    <LogicalOr>
+                                        <LogicalOr>
+                                            <LogicalNot>
+                                                <CheckRelationship>
+                                                    <Relationship name="isInOperandOf" />
+                                                    <DecisionTreeVar name="X" />
+                                                    <DecisionTreeVar name="T" />
+                                                </CheckRelationship>
+                                            </LogicalNot>
+                                            <LogicalAnd>
+                                                <Compare operator="EQUAL">
+                                                    <GetPropertyValue>
+                                                        <DecisionTreeVar name="T" />
+                                                        <Property name="firstOperandPosition" />
+                                                    </GetPropertyValue>
+                                                    <Enum owner="OperandPosition" value="left" />
+                                                </Compare>
+                                                <LogicalOr>
+                                                    <CheckRelationship>
+                                                        <Relationship name="isLeftOperandOf" />
+                                                        <DecisionTreeVar name="X" />
+                                                        <DecisionTreeVar name="T" />
+                                                    </CheckRelationship>
+                                                    <ExistenceQuantifier varName="l" type ="operator">
+                                                        <CheckRelationship>
+                                                            <Relationship name="isLeftOperandOf" />
+                                                            <Variable name="l" />
+                                                            <DecisionTreeVar name="T" />
+                                                        </CheckRelationship>
+                                                        <CheckRelationship>
+                                                            <Relationship name="isInOperandOf" />
+                                                            <DecisionTreeVar name="X" />
+                                                            <Variable name="l" />
+                                                        </CheckRelationship>
+                                                    </ExistenceQuantifier>
+                                                </LogicalOr>
+                                            </LogicalAnd>
+                                        </LogicalOr>
+                                        <LogicalAnd>
+                                            <Compare operator="EQUAL">
+                                                <GetPropertyValue>
+                                                    <DecisionTreeVar name="T" />
+                                                    <Property name="firstOperandPosition" />
+                                                </GetPropertyValue>
+                                                <Enum owner="OperandPosition" value="center" />
+                                            </Compare>
+                                            <LogicalOr>
+                                                <CheckRelationship>
+                                                    <Relationship name="isCenterOperandOf" />
+                                                    <DecisionTreeVar name="X" />
+                                                    <DecisionTreeVar name="T" />
+                                                </CheckRelationship>
+                                                <ExistenceQuantifier varName="c" type ="operator">
+                                                    <CheckRelationship>
+                                                        <Relationship name="isCenterOperandOf" />
+                                                        <Variable name="c" />
+                                                        <DecisionTreeVar name="T" />
+                                                    </CheckRelationship>
+                                                    <CheckRelationship>
+                                                        <Relationship name="isInOperandOf" />
+                                                        <DecisionTreeVar name="X" />
+                                                        <Variable name="c" />
+                                                    </CheckRelationship>
+                                                </ExistenceQuantifier>
+                                            </LogicalOr>
+                                        </LogicalAnd>
+                                    </LogicalOr>
                                     <LogicalAnd>
                                         <Compare operator="EQUAL">
                                             <GetPropertyValue>
-                                                <Variable name="u" />
-                                                <Property name="state" />
+                                                <DecisionTreeVar name="T" />
+                                                <Property name="firstOperandPosition" />
                                             </GetPropertyValue>
-                                            <Enum owner="state" value="unevaluated" />
+                                            <Enum owner="OperandPosition" value="right" />
                                         </Compare>
                                         <LogicalOr>
                                             <CheckRelationship>
-                                                <Relationship name="isLeftOperandOf" />
-                                                <Variable name="u" />
+                                                <Relationship name="isRightOperandOf" />
+                                                <DecisionTreeVar name="X" />
                                                 <DecisionTreeVar name="T" />
                                             </CheckRelationship>
-                                            <ExistenceQuantifier varName="l" type="operator">
+                                            <ExistenceQuantifier varName="r" type ="operator">
                                                 <CheckRelationship>
-                                                    <Relationship name="isCenterOperandOf" />
-                                                    <Variable name="l" />
+                                                    <Relationship name="isRightOperandOf" />
+                                                    <Variable name="r" />
                                                     <DecisionTreeVar name="T" />
                                                 </CheckRelationship>
                                                 <CheckRelationship>
                                                     <Relationship name="isInOperandOf" />
-                                                    <Variable name="u" />
-                                                    <Variable name="l" />
+                                                    <DecisionTreeVar name="X" />
+                                                    <Variable name="r" />
                                                 </CheckRelationship>
                                             </ExistenceQuantifier>
                                         </LogicalOr>
                                     </LogicalAnd>
-                                </ExistenceQuantifier>
+                                </LogicalOr>
                             </Expression>
-                            <Outcome value="True"
-                                _RU_explanation="Это неверно, поскольку такие операторы все еще есть."
-                                _RU_nextStepQuestion="Какой вывод можно сделать, если у оператора со строгим порядком операндов не вычислен левый операнд?"
-                                _RU_nextStepBranchResult="Левый операнд ${val('T','р')} ${branchResult ? 'опускается' : 'должен быть вычислен первым'}, а значит ${val('T','и')} ${branchResult ? 'не' : ''} мешает вычислению ${val('X','р')}."
-                                _RU_nextStepExplanation="Это неверно. В операторах со строгим порядком операндов левый операнд всегда должен вычисляться первым, и значит ${val('X','и')} пока не может быть вычислен."
-                                
-                                _EN_explanation="That's incorrect, because there are still unevaluated operators."
-                                _EN_nextStepQuestion="What can we decide if an operator with a strict order of operands has yet-unevaluated operand?"
-                                _EN_nextStepBranchResult="Left operand of ${val('T','р')} ${branchResult ? 'is omitted' : 'should be evaluated first'}, and so ${val('T','и')} does ${branchResult ? 'not' : ''} hinder the evaluation of ${val('X','р')}."
-                                _EN_nextStepExplanation="That's incorrect. In operators with strict operand order, the left operand must always be evaluated first, and so ${val('X','и')} cannot be evaluated yet."
-                            >
-                                <BranchResultNode value="false" _error="strict.leftShouldBeEvaluatedFirst" 
-                                    _RU_explanation="сначала должен быть полностью вычислен левый операнд ${val('T','р')} - потому что это оператор со строгим порядком операндов"
-                                    _EN_explanation="left operand of ${val('T','р')} should be fully evaluated first because ${val('T','р')} is an operator with a strict operand order"
-                                />
+                            <Outcome value="True">
+                                <BranchResultNode value="true" />
                             </Outcome>
-                            <Outcome value="False"
-                                _RU_explanation="Это неверно, поскольку таких операторов нет - все вычислены."
-                                _RU_nextStepQuestion="Какие дальнейшие шаги нужны при рассмотрении операторов со строгим порядком операндов?"
-                                _RU_nextStepExplanation="Это неверно. Большинство операторов со строгим порядком операндов также предполагают, 
-                                что в некоторых ситуациях их операнды могут быть опущены. Поэтому далее нужно проверить, применимо ли это в данном случае."
-                                        
-                                _EN_explanation="This is incorrect, because there are no such operators - they are all evaluated."
-                                _EN_nextStepQuestion="What further steps are needed when considering operators with strict operand order?"
-                                _EN_nextStepExplanation="This is incorrect. Most operators with strict operand ordering also involve their operands
-                                 being omitted in some situations. So next we need to check whether that applies in this case."
-                            >
-                                <QuestionNode _alias="Может ли опускать операнды"
+                            <Outcome value="False">
+                                <QuestionNode
+                                    _alias="Есть ли в первом операнде T невычисленный оператор (u)?"
                                     type="bool" isSwitch="false"
-
-                                    _RU_asNextStep="Нужно проверить, могут ли операнды ${class('T','р')} быть опущены."
-                                    _RU_question="Могут ли операнды ${class('T','р')} быть опущены?"
-                                    _RU_endingCause="Поскольку ${class('T','и')} не предполагает опущения своих операндов"
+                                    _RU_asNextStep="Необходимо проверить, остались ли в левом операнде ${val('T','р')} невычисленные операторы."
+                                    _RU_question="Остались ли в левом операнде ${val('T','р')} невычисленные операторы?"
+                                    _RU_endingCause="Поскольку в левом операнде ${val('T','р')} не осталось невычисленных операторов"
                                     
-                                    _EN_asNextStep="We need to check if the operands of ${class('T','p')} can be omitted."
-                                    _EN_question="Can the operands of ${class('T','p')} be omitted?"
-                                    _EN_endingCause="Because ${class('T','и')} does not involve the omission of its operands"
+                                    _EN_asNextStep="We need to check if there are any unevaluated operators in the left operand of ${val('T','р')}."
+                                    _EN_question="Are there any unevaluated operators in the left operand of ${val('T','р')}?"
+                                    _EN_endingCause="Because there are no unevaluated operators in the left operand of ${val('T','р')}"
                                 >
                                     <Expression>
-                                        <LogicalOr>
-                                            <Compare operator="NOT_EQUAL">
-                                                <GetPropertyValue>
-                                                    <DecisionTreeVar name="T" />
-                                                    <Property name="requiredLeftValForRight" />
-                                                </GetPropertyValue>
-                                                <Enum owner="ExpectedValue" value="any" />
-                                            </Compare>
-                                            <Compare operator="NOT_EQUAL">
-                                                <GetPropertyValue>
-                                                    <DecisionTreeVar name="T" />
-                                                    <Property name="requiredLeftValForCenter" />
-                                                </GetPropertyValue>
-                                                <Enum owner="ExpectedValue" value="any" />
-                                            </Compare>
-                                        </LogicalOr>
+                                        <ExistenceQuantifier varName="u">
+                                            <CheckClass>
+                                                <Variable name="u" />
+                                                <Class name="operator" />
+                                            </CheckClass>
+                                            <LogicalAnd>
+                                                <Compare operator="EQUAL">
+                                                    <GetPropertyValue>
+                                                        <Variable name="u" />
+                                                        <Property name="state" />
+                                                    </GetPropertyValue>
+                                                    <Enum owner="state" value="unevaluated" />
+                                                </Compare>
+                                                <LogicalOr>
+                                                    <LogicalOr>
+                                                        <LogicalAnd>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="T" />
+                                                                    <Property
+                                                                        name="firstOperandPosition" />
+                                                                </GetPropertyValue>
+                                                                <Enum owner="OperandPosition"
+                                                                    value="left" />
+                                                            </Compare>
+                                                            <LogicalOr>
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isLeftOperandOf" />
+                                                                    <Variable name="u" />
+                                                                    <DecisionTreeVar name="T" />
+                                                                </CheckRelationship>
+                                                                <ExistenceQuantifier varName="l" type ="operator">
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isLeftOperandOf" />
+                                                                        <Variable name="l" />
+                                                                        <DecisionTreeVar name="T" />
+                                                                    </CheckRelationship>
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isInOperandOf" />
+                                                                        <Variable name="u" />
+                                                                        <Variable name="l" />
+                                                                    </CheckRelationship>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalOr>
+                                                        </LogicalAnd>
+                                                        <LogicalAnd>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="T" />
+                                                                    <Property
+                                                                        name="firstOperandPosition" />
+                                                                </GetPropertyValue>
+                                                                <Enum owner="OperandPosition"
+                                                                    value="center" />
+                                                            </Compare>
+                                                            <LogicalOr>
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isCenterOperandOf" />
+                                                                    <Variable name="u" />
+                                                                    <DecisionTreeVar name="T" />
+                                                                </CheckRelationship>
+                                                                <ExistenceQuantifier varName="c" type ="operator">
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isCenterOperandOf" />
+                                                                        <Variable name="c" />
+                                                                        <DecisionTreeVar name="T" />
+                                                                    </CheckRelationship>
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isInOperandOf" />
+                                                                        <Variable name="u" />
+                                                                        <Variable name="c" />
+                                                                    </CheckRelationship>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalOr>
+                                                        </LogicalAnd>
+                                                    </LogicalOr>
+                                                    <LogicalAnd>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="T" />
+                                                                <Property
+                                                                    name="firstOperandPosition" />
+                                                            </GetPropertyValue>
+                                                            <Enum owner="OperandPosition"
+                                                                value="right" />
+                                                        </Compare>
+                                                        <LogicalOr>
+                                                            <CheckRelationship>
+                                                                <Relationship
+                                                                    name="isRightOperandOf" />
+                                                                <Variable name="u" />
+                                                                <DecisionTreeVar name="T" />
+                                                            </CheckRelationship>
+                                                            <ExistenceQuantifier varName="r" type ="operator">
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isRightOperandOf" />
+                                                                    <Variable name="r" />
+                                                                    <DecisionTreeVar name="T" />
+                                                                </CheckRelationship>
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isInOperandOf" />
+                                                                    <Variable name="u" />
+                                                                    <Variable name="r" />
+                                                                </CheckRelationship>
+                                                            </ExistenceQuantifier>
+                                                        </LogicalOr>
+                                                    </LogicalAnd>
+                                                </LogicalOr>
+                                            </LogicalAnd>
+                                        </ExistenceQuantifier>
                                     </Expression>
-                                    <Outcome value="False"
-                                        _RU_explanation="Это неверно. Хотя ${class('T','р')} и задает строгий порядок своих операндов, он не подразумевает их пропуска."
-                                        _RU_nextStepQuestion="Какой вывод можно сделать, в таком случае?"
-                                        _RU_nextStepExplanation="Это неверно. Поскольку ${class('T','и')} не опускает свои операнды, и его левый операнд уже полностью вычислен, 
-                                        то и вычислению ${val('X','и')} он не мешает."
-                                        
-                                        _EN_explanation="This is incorrect. Although ${class('T','р')} defines a strict order for its operands, it does not involve their omission."
-                                        _EN_nextStepQuestion="What can we decide in this case?"
-                                        _EN_nextStepExplanation="This is incorrect. Since ${class('T','и')} does not omit its operands, and its left operand is already fully evaluated,
-                                         it does not interfere with the evaluation of ${val('X','and')}."
-                                    >
-                                        <BranchResultNode value="true" />
-                                    </Outcome>
                                     <Outcome value="True"
-                                        _RU_explanation="Это неверно. Хотя ${class('T','р')} и задает строгий порядок своих операндов, он не подразумевает их пропуска."
-                                        _RU_nextStepQuestion="Какие дальнейшие шаги нужны при рассмотрении операторов со строгим порядком операндов?"
-                                        _RU_nextStepExplanation="Это неверно. Сначала необходимо определить, в каком операнде ${val('T','р')} находится ${val('X','и')},
-                                         а уже затем проверять, не должен ли он быть пропущен в данной ситуации."
-                                        
-                                        _EN_explanation="This is incorrect. Although ${class('T','р')} defines a strict order for its operands, it does not involve their omission."
-                                        _EN_nextStepQuestion="What further steps are needed when considering operators with strict operand order?"
-                                        _EN_nextStepExplanation="This is incorrect. First, we need to determine which operand of ${val('T','р')} contains ${val('X','и')}, 
-                                        and only then check whether it should be omitted in this situation."
+                                        _RU_explanation="Это неверно, поскольку такие операторы все еще есть."
+                                        _RU_nextStepQuestion="Какой вывод можно сделать, если у оператора со строгим порядком операндов не вычислен левый операнд?"
+                                        _RU_nextStepBranchResult="Левый операнд ${val('T','р')} ${branchResult ? 'опускается' : 'должен быть вычислен первым'}, а значит ${val('T','и')} ${branchResult ? 'не' : ''} мешает вычислению ${val('X','р')}."
+                                        _RU_nextStepExplanation="Это неверно. В операторах со строгим порядком операндов левый операнд всегда должен вычисляться первым, и значит ${val('X','и')} пока не может быть вычислен."
+                                        _EN_explanation="That's incorrect, because there are still unevaluated operators."
+                                        _EN_nextStepQuestion="What can we decide if an operator with a strict order of operands has yet-unevaluated operand?"
+                                        _EN_nextStepBranchResult="Left operand of ${val('T','р')} ${branchResult ? 'is omitted' : 'should be evaluated first'}, and so ${val('T','и')} does ${branchResult ? 'not' : ''} hinder the evaluation of ${val('X','р')}."
+                                        _EN_nextStepExplanation="That's incorrect. In operators with strict operand order, the left operand must always be evaluated first, and so ${val('X','и')} cannot be evaluated yet."
                                     >
-                                        <QuestionNode
-                                            _alias="Находится ли Х справа от Т (если да то правый операнд, если нет то центральный)"
+                                        <BranchResultNode value="false"
+                                            _error="strict.leftShouldBeEvaluatedFirst"
+                                            _RU_explanation="сначала должен быть полностью вычислен левый операнд ${val('T','р')} - потому что это оператор со строгим порядком операндов"
+                                            _EN_explanation="left operand of ${val('T','р')} should be fully evaluated first because ${val('T','р')} is an operator with a strict operand order"
+                                        />
+                                    </Outcome>
+                                    <Outcome value="False"
+                                        _RU_explanation="Это неверно, поскольку таких операторов нет - все вычислены."
+                                        _RU_nextStepQuestion="Какие дальнейшие шаги нужны при рассмотрении операторов со строгим порядком операндов?"
+                                        _RU_nextStepExplanation="Это неверно. Большинство операторов со строгим порядком операндов также предполагают, 
+                                что в некоторых ситуациях их операнды могут быть опущены. Поэтому далее нужно проверить, применимо ли это в данном случае."
+                                        
+                                        _EN_explanation="This is incorrect, because there are no such operators - they are all evaluated."
+                                        _EN_nextStepQuestion="What further steps are needed when considering operators with strict operand order?"
+                                        _EN_nextStepExplanation="This is incorrect. Most operators with strict operand ordering also involve their operands
+                                 being omitted in some situations. So next we need to check whether that applies in this case."
+                                    >
+                                        <QuestionNode _alias="Может ли опускать операнд, в котором X"
                                             type="bool" isSwitch="false"
-        
-                                            _RU_asNextStep="Необходимо определить, в каком операнде ${val('T','р')} находится ${val('X','и')}."
-                                            _RU_question="В каком операнде ${val('T','р')} находится ${val('X','и')}?"
-                                            
-                                            _EN_asNextStep="We need to determine in which operand of ${val('T','р')} is ${val('X','и')}."
-                                            _EN_question="In which operand of ${val('T','р')} is ${val('X','и')}?"
+                                            _RU_asNextStep="Нужно проверить, могут ли операнды ${class('T','р')} быть опущены."
+                                            _RU_question="Могут ли операнды ${class('T','р')} быть опущены?"
+                                            _RU_endingCause="Поскольку ${class('T','и')} не предполагает опущения своих операндов"
+                                            _EN_asNextStep="We need to check if the operands of ${class('T','p')} can be omitted."
+                                            _EN_question="Can the operands of ${class('T','p')} be omitted?"
+                                            _EN_endingCause="Because ${class('T','и')} does not involve the omission of its operands"
                                         >
                                             <Expression>
-                                                <CheckRelationship>
-                                                    <Relationship name="rightOf" />
-                                                    <DecisionTreeVar name="X" />
-                                                    <DecisionTreeVar name="T" />
-                                                </CheckRelationship>
+                                                <LogicalOr>
+                                                    <LogicalOr>
+                                                        <LogicalAnd>
+                                                            <Compare operator="NOT_EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="T" />
+                                                                    <Property
+                                                                        name="requiredFirstValForLeft" />
+                                                                </GetPropertyValue>
+                                                                <Enum owner="ExpectedValue"
+                                                                    value="any" />
+                                                            </Compare>
+                                                            <LogicalOr>
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isLeftOperandOf" />
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar name="T" />
+                                                                </CheckRelationship>
+                                                                <ExistenceQuantifier type="operator"
+                                                                    varName="l">
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isLeftOperandOf" />
+                                                                        <Variable name="l" />
+                                                                        <DecisionTreeVar name="T" />
+                                                                    </CheckRelationship>
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isInOperandOf" />
+                                                                        <DecisionTreeVar name="X" />
+                                                                        <Variable name="l" />
+                                                                    </CheckRelationship>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalOr>
+                                                        </LogicalAnd>
+                                                        <LogicalAnd>
+                                                            <Compare operator="NOT_EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="T" />
+                                                                    <Property
+                                                                        name="requiredFirstValForCenter" />
+                                                                </GetPropertyValue>
+                                                                <Enum owner="ExpectedValue"
+                                                                    value="any" />
+                                                            </Compare>
+                                                            <LogicalOr>
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isCenterOperandOf" />
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar name="T" />
+                                                                </CheckRelationship>
+                                                                <ExistenceQuantifier type="operator"
+                                                                    varName="c">
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isCenterOperandOf" />
+                                                                        <Variable name="c" />
+                                                                        <DecisionTreeVar name="T" />
+                                                                    </CheckRelationship>
+                                                                    <CheckRelationship>
+                                                                        <Relationship
+                                                                            name="isInOperandOf" />
+                                                                        <DecisionTreeVar name="X" />
+                                                                        <Variable name="c" />
+                                                                    </CheckRelationship>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalOr>
+                                                        </LogicalAnd>
+                                                    </LogicalOr>
+                                                    <LogicalAnd>
+                                                        <Compare operator="NOT_EQUAL">
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="T" />
+                                                                <Property
+                                                                    name="requiredFirstValForRight" />
+                                                            </GetPropertyValue>
+                                                            <Enum owner="ExpectedValue" value="any" />
+                                                        </Compare>
+                                                        <LogicalOr>
+                                                            <CheckRelationship>
+                                                                <Relationship
+                                                                    name="isRightOperandOf" />
+                                                                <DecisionTreeVar name="X" />
+                                                                <DecisionTreeVar name="T" />
+                                                            </CheckRelationship>
+                                                            <ExistenceQuantifier type="operator"
+                                                                varName="r">
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isRightOperandOf" />
+                                                                    <Variable name="r" />
+                                                                    <DecisionTreeVar name="T" />
+                                                                </CheckRelationship>
+                                                                <CheckRelationship>
+                                                                    <Relationship
+                                                                        name="isInOperandOf" />
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <Variable name="r" />
+                                                                </CheckRelationship>
+                                                            </ExistenceQuantifier>
+                                                        </LogicalOr>
+                                                    </LogicalAnd>
+                                                </LogicalOr>
                                             </Expression>
+                                            <Outcome value="False"
+                                                _RU_explanation="Это неверно. Хотя ${class('T','и')} и задает строгий порядок своих операндов, он не подразумевает их пропуска."
+                                                _RU_nextStepQuestion="Какой вывод можно сделать, в таком случае?"
+                                                _RU_nextStepExplanation="Это неверно. Поскольку ${class('T','и')} не опускает свои операнды, и его левый операнд уже полностью вычислен, 
+                                        то и вычислению ${val('X','и')} он не мешает."
+                                                _EN_explanation="This is incorrect. Although ${class('T','р')} defines a strict order for its operands, it does not involve their omission."
+                                                _EN_nextStepQuestion="What can we decide in this case?"
+                                                _EN_nextStepExplanation="This is incorrect. Since ${class('T','и')} does not omit its operands, and its left operand is already fully evaluated,
+                                         it does not interfere with the evaluation of ${val('X','and')}."
+                                            >
+                                                <BranchResultNode value="true" />
+                                            </Outcome>
                                             <Outcome value="True"
-                                                _RU_text="В правом"
-                                                _EN_text="In the right one"
-        
-                                                _RU_explanation="Это неверно. ${val('X','и')} находится справа от токена(ов) ${val('T','р')}, а значит находится в его правом операнде."
+                                                _RU_explanation="Это неверно. В ${class('T','п')} может быть опущен операнд, в котором находится ${val('X', 'и')}."
                                                 _RU_nextStepQuestion="Какие дальнейшие шаги нужны при рассмотрении операторов со строгим порядком операндов?"
-                                                _RU_nextStepExplanation="Это неверно. Далее необходимо проверить, опускается ли правый операнд ${val('T','р')} в данном случае."
-                                                
-                                                _EN_explanation="This is incorrect. ${val('X','и')} is to the right of the token(s) of ${val('T','р')}, and therefore is in its right operand."
+                                                _RU_nextStepExplanation="Это неверно. Сначала необходимо определить, в каком операнде ${val('T','р')} находится ${val('X','и')},
+                                         а уже затем проверять, не должен ли он быть пропущен в данной ситуации."
+                                                _EN_explanation="This is incorrect. Although ${class('T','р')} defines a strict order for its operands, it does not involve their omission."
                                                 _EN_nextStepQuestion="What further steps are needed when considering operators with strict operand order?"
-                                                _EN_nextStepExplanation="This is incorrect. We should next check if the right operand of ${val('T','р')} should be omitted in this case."
+                                                _EN_nextStepExplanation="This is incorrect. First, we need to determine which operand of ${val('T','р')} contains ${val('X','и')}, 
+                                        and only then check whether it should be omitted in this situation."
                                             >
                                                 <TupleQuestionNode
-                                                    _alias="опускается ли правый (кортеж)"
+                                                    _alias="опускается ли Х (кортеж)"
                                                     _RU_asNextStep="Необходимо проверить, опускается ли правый операнд ${val('T','р')} в данном случае."
                                                     _RU_endingCause="Поскольку ${val('X','и')} опускается как правый операнд ${class('T','р')}."
-                                                    
                                                     _EN_asNextStep="We need to check whether the right operand of ${class('T','р')} should be omitted."
                                                     _EN_endingCause="Because ${val('X','и')} is omitted as the right operand of ${class('T','р')}."
                                                 >
-                                                    <Part _alias="Какое значение должно быть у левого чтобы правый вычислился"
+                                                    <Part
+                                                        _alias="Какое значение должно быть у левого чтобы правый вычислился"
                                                         _RU_question="При каком значении левого операнда в ${class('T','п')} вычисляется правый операнд?"
                                                         _EN_question="What value should the left operand of ${class('T','п')} have in order for its right operand to be evaluated?"
                                                     >
                                                         <Expression>
-                                                            <GetPropertyValue>
-                                                                <DecisionTreeVar name="T" />
-                                                                <Property name="requiredLeftValForRight" />
-                                                            </GetPropertyValue>
+                                                            <LogicalOr>
+                                                                <LogicalOr>
+                                                                    <LogicalAnd>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar
+                                                                                    name="T" />
+                                                                                <Property
+                                                                                    name="requiredFirstValForLeft" />
+                                                                            </GetPropertyValue>
+                                                                            <Enum
+                                                                                owner="ExpectedValue"
+                                                                                value="true" />
+                                                                        </Compare>
+                                                                        <LogicalOr>
+                                                                            <CheckRelationship>
+                                                                                <Relationship
+                                                                                    name="isLeftOperandOf" />
+                                                                                <DecisionTreeVar
+                                                                                    name="X" />
+                                                                                <DecisionTreeVar
+                                                                                    name="T" />
+                                                                            </CheckRelationship>
+                                                                            <ExistenceQuantifier
+                                                                                type="operator"
+                                                                                varName="l">
+                                                                                <CheckRelationship>
+                                                                                    <Relationship
+                                                                                        name="isLeftOperandOf" />
+                                                                                    <Variable
+                                                                                        name="l" />
+                                                                                    <DecisionTreeVar
+                                                                                        name="T" />
+                                                                                </CheckRelationship>
+                                                                                <CheckRelationship>
+                                                                                    <Relationship
+                                                                                        name="isInOperandOf" />
+                                                                                    <DecisionTreeVar
+                                                                                        name="X" />
+                                                                                    <Variable
+                                                                                        name="l" />
+                                                                                </CheckRelationship>
+                                                                            </ExistenceQuantifier>
+                                                                        </LogicalOr>
+                                                                    </LogicalAnd>
+                                                                    <LogicalAnd>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar
+                                                                                    name="T" />
+                                                                                <Property
+                                                                                    name="requiredFirstValForCenter" />
+                                                                            </GetPropertyValue>
+                                                                            <Enum
+                                                                                owner="ExpectedValue"
+                                                                                value="true" />
+                                                                        </Compare>
+                                                                        <LogicalOr>
+                                                                            <CheckRelationship>
+                                                                                <Relationship
+                                                                                    name="isCenterOperandOf" />
+                                                                                <DecisionTreeVar
+                                                                                    name="X" />
+                                                                                <DecisionTreeVar
+                                                                                    name="T" />
+                                                                            </CheckRelationship>
+                                                                            <ExistenceQuantifier
+                                                                                type="operator"
+                                                                                varName="c">
+                                                                                <CheckRelationship>
+                                                                                    <Relationship
+                                                                                        name="isCenterOperandOf" />
+                                                                                    <Variable
+                                                                                        name="c" />
+                                                                                    <DecisionTreeVar
+                                                                                        name="T" />
+                                                                                </CheckRelationship>
+                                                                                <CheckRelationship>
+                                                                                    <Relationship
+                                                                                        name="isInOperandOf" />
+                                                                                    <DecisionTreeVar
+                                                                                        name="X" />
+                                                                                    <Variable
+                                                                                        name="c" />
+                                                                                </CheckRelationship>
+                                                                            </ExistenceQuantifier>
+                                                                        </LogicalOr>
+                                                                    </LogicalAnd>
+                                                                </LogicalOr>
+                                                                <LogicalAnd>
+                                                                    <Compare operator="EQUAL">
+                                                                        <GetPropertyValue>
+                                                                            <DecisionTreeVar
+                                                                                name="T" />
+                                                                            <Property
+                                                                                name="requiredFirstValForRight" />
+                                                                        </GetPropertyValue>
+                                                                        <Enum owner="ExpectedValue"
+                                                                            value="true" />
+                                                                    </Compare>
+                                                                    <LogicalOr>
+                                                                        <CheckRelationship>
+                                                                            <Relationship
+                                                                                name="isRightOperandOf" />
+                                                                            <DecisionTreeVar
+                                                                                name="X" />
+                                                                            <DecisionTreeVar
+                                                                                name="T" />
+                                                                        </CheckRelationship>
+                                                                        <ExistenceQuantifier
+                                                                            type="operator"
+                                                                            varName="r">
+                                                                            <CheckRelationship>
+                                                                                <Relationship
+                                                                                    name="isRightOperandOf" />
+                                                                                <Variable name="r" />
+                                                                                <DecisionTreeVar
+                                                                                    name="T" />
+                                                                            </CheckRelationship>
+                                                                            <CheckRelationship>
+                                                                                <Relationship
+                                                                                    name="isInOperandOf" />
+                                                                                <DecisionTreeVar
+                                                                                    name="X" />
+                                                                                <Variable name="r" />
+                                                                            </CheckRelationship>
+                                                                        </ExistenceQuantifier>
+                                                                    </LogicalOr>
+                                                                </LogicalAnd>
+                                                            </LogicalOr>
                                                         </Expression>
-                                                        <Outcome value="ExpectedValue:true"
+                                                        <Outcome value="true"
+                                                            _RU_text="true"
                                                             _RU_explanation="Это неверно. ${class('T','и')} вычисляет правый операнд только в случае, если левый имеет значение true.
                                                             В ином случае правый операнд опускается."
+                                                            _EN_text="true"
                                                             _EN_explanation="That's incorrect. ${class('T','и')} only evaluates its right operand, if the left evaluates as 'true'.
                                                             Otherwise the right operand is omitted."
                                                         />
-                                                        <Outcome value="ExpectedValue:false"
+                                                        <Outcome value="false"
+                                                            _RU_text="false"
                                                             _RU_explanation="Это неверно. ${class('T','и')} вычисляет правый операнд только в случае, если левый имеет значение false.
                                                             В ином случае правый операнд опускается."
+                                                            _EN_text="false"
                                                             _EN_explanation="That's incorrect. ${class('T','и')} only evaluates its right operand, if the left evaluates as 'false'.
                                                             Otherwise the right operand is omitted."
-                                                            />
+                                                        />
                                                     </Part>
-                                                    <Part _alias="Какое значение у левого"
-                                                        _RU_question="Какое значение имеет левый операнд ${val('T','р')} в данном случае?"
-                                                        _EN_question="What is the value of left operand of ${val('T','р')} in this case?"
+                                                    <Part _alias="Какое значение у первого"
+                                                        _RU_question="Какое значение имеет первый операнд ${val('T','р')} в данном случае?"
+                                                        _EN_question="What is the value of first operand of ${val('T','р')} in this case?"
                                                     >
                                                         <Expression>
-                                                            <GetPropertyValue>
-                                                                <GetByRelationship varName="">
-                                                                    <DecisionTreeVar name="T" />
-                                                                    <Relationship name="hasLeftOperand" />
-                                                                </GetByRelationship>
-                                                                <Property name="evaluatesTo" />
-                                                            </GetPropertyValue>
+                                                            <IfThen>
+                                                                <Compare operator="EQUAL">
+                                                                    <GetPropertyValue>
+                                                                        <DecisionTreeVar
+                                                                            name="T" />
+                                                                        <Property
+                                                                            name="firstOperandPosition" />
+                                                                    </GetPropertyValue>
+                                                                    <Enum
+                                                                        owner="OperandPosition"
+                                                                        value="left" />
+                                                                </Compare>
+                                                                <GetPropertyValue>
+                                                                    <GetByRelationship
+                                                                        varName="">
+                                                                        <DecisionTreeVar
+                                                                            name="T" />
+                                                                        <Relationship
+                                                                            name="hasLeftOperand" />
+                                                                    </GetByRelationship>
+                                                                    <Property name="evaluatesTo" />
+                                                                </GetPropertyValue>
+                                                                <IfThen>
+                                                                    <Compare operator="EQUAL">
+                                                                        <GetPropertyValue>
+                                                                            <DecisionTreeVar
+                                                                                name="T" />
+                                                                            <Property
+                                                                                name="firstOperandPosition" />
+                                                                        </GetPropertyValue>
+                                                                        <Enum
+                                                                            owner="OperandPosition"
+                                                                            value="right" />
+                                                                    </Compare>
+                                                                    <GetPropertyValue>
+                                                                        <GetByRelationship
+                                                                            varName="">
+                                                                            <DecisionTreeVar
+                                                                                name="T" />
+                                                                            <Relationship
+                                                                                name="hasRightOperand" />
+                                                                        </GetByRelationship>
+                                                                        <Property name="evaluatesTo" />
+                                                                    </GetPropertyValue>
+                                                                    <GetPropertyValue>
+                                                                        <GetByCondition
+                                                                            type="operand"
+                                                                            varName="c">
+                                                                            <CheckRelationship>
+                                                                                <Relationship
+                                                                                    name="hasCenterOperand" />
+                                                                                <DecisionTreeVar
+                                                                                    name="T" />
+                                                                                <Variable name="c" />
+                                                                            </CheckRelationship>
+                                                                        </GetByCondition>
+                                                                        <Property
+                                                                            name="evaluatesTo" />
+                                                                    </GetPropertyValue>
+                                                                </IfThen>
+                                                            </IfThen>
                                                         </Expression>
-                                                        <Outcome value="true" _RU_text="true" _EN_text="'true'"
+                                                        <Outcome value="true"
+                                                            _RU_text="true"
+                                                            _EN_text="'true'"
                                                             _RU_explanation="Это неверно. Левый операнд в данном случае имеет значение true.
                                                              Помните, что мы предполагаем, что все переменные и не-логические операции вычисляются как true."
                                                             _EN_explanation="That's incorrect. In this case the left operand evaluates as 'true'.
                                                              Remember that we assume that all variables and non-boolean operators evaluate as 'true'."
                                                         />
-                                                        <Outcome value="false" _RU_text="false" _EN_text="'false'"
+                                                        <Outcome value="false"
+                                                            _RU_text="false"
+                                                            _EN_text="'false'"
                                                             _RU_explanation="Это неверно. Левый операнд в данном случае имеет значение false.
                                                             Помните, что мы предполагаем, что все переменные и не-логические операции вычисляются как true."
                                                             _EN_explanation="That's incorrect. In this case the left operand evaluates as 'false'.
                                                             Remember that we assume that all variables and non-boolean operators evaluate as 'true'."
                                                         />
                                                     </Part>
-                                                    <Outcome value="(ExpectedValue:true;true)"
+                                                    <Outcome
+                                                        value="(true;true)"
                                                         _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
                                                         _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
                                                         _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} не опускается, и может быть свободно вычислен."
-                                                        
                                                         _EN_nextStepQuestion="What can we conclude in this case?"
                                                         _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
                                                         _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is not omitted, and can be evaluated."
                                                     >
                                                         <BranchResultNode value="true" />
                                                     </Outcome>
-                                                    <Outcome value="(ExpectedValue:false;false)"
+                                                    <Outcome
+                                                        value="(false;false)"
                                                         _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
                                                         _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
                                                         _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} не опускается, и может быть свободно вычислен."
-                                                        
                                                         _EN_nextStepQuestion="What can we conclude in this case?"
                                                         _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
                                                         _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is not omitted, and can be evaluated."
                                                     >
                                                         <BranchResultNode value="true" />
                                                     </Outcome>
-                                                    <Outcome value="(ExpectedValue:true;false)"
+                                                    <Outcome
+                                                        value="(true;false)"
                                                         _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
                                                         _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
                                                         _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} опускается, а значит не может быть вычислен."
-                                                        
                                                         _EN_nextStepQuestion="What can we conclude in this case?"
                                                         _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
                                                         _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is omitted, and so cannot be evaluated now."
                                                     >
-                                                        <BranchResultNode _alias="X опускается" value="false"
-                                                            _error="strict.leftShouldBeTrue_omittedInRight" 
+                                                        <BranchResultNode
+                                                            _alias="X опускается"
+                                                            value="false"
+                                                            _error="strict.leftShouldBeTrue_omittedInRight"
                                                             _RU_explanation="${val('X','и')} опускается оператором со строгим порядком операндов (${val('T','и')})"
                                                             _EN_explanation="${val('X','и')} is omitted by an operator with a strict operand order (${val('T','и')})"
                                                         >
                                                             <Expression>
                                                                 <AssignToProperty>
-                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar
+                                                                        name="X" />
                                                                     <Property name="state" />
                                                                     <Enum owner="state"
                                                                         value="omitted" />
                                                                 </AssignToProperty>
                                                             </Expression>
                                                         </BranchResultNode>
-                                                    </Outcome>
-                                                    <Outcome value="(ExpectedValue:false;true)"
+                                                    </Outcome>`
+                                                    <Outcome
+                                                        value="(false;true)"
                                                         _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
                                                         _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
                                                         _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} опускается, а значит не может быть вычислен."
-                                                        
                                                         _EN_nextStepQuestion="What can we conclude in this case?"
                                                         _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
                                                         _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is omitted, and so cannot be evaluated now."
                                                     >
-                                                        <BranchResultNode _alias="X опускается" value="false"
+                                                        <BranchResultNode
+                                                            _alias="X опускается"
+                                                            value="false"
                                                             _error="strict.leftShouldBeFalse_omittedInRight"
                                                             _RU_explanation="${val('X','и')} опускается оператором со строгим порядком операндов (${val('T','и')})"
                                                             _EN_explanation="${val('X','и')} is omitted by an operator with a strict operand order (${val('T','и')})"
                                                         >
                                                             <Expression>
                                                                 <AssignToProperty>
-                                                                    <DecisionTreeVar name="X" />
-                                                                    <Property name="state" />
-                                                                    <Enum owner="state"
-                                                                        value="omitted" />
-                                                                </AssignToProperty>
-                                                            </Expression>
-                                                        </BranchResultNode>
-                                                    </Outcome>
-                                                </TupleQuestionNode>
-                                            </Outcome>
-                                            <Outcome value="False"
-                                                _RU_text="В центральном"
-                                                _EN_text="In the center one"
-        
-                                                _RU_explanation="Это неверно. ${val('X','и')} находится между токенами ${val('T','р')}, а значит находится в его центральном операнде."
-                                                _RU_nextStepQuestion="Какие дальнейшие шаги нужны при рассмотрении операторов со строгим порядком операндов?"
-                                                _RU_nextStepExplanation="Это неверно. Далее необходимо проверить, опускается ли центральный операнд ${val('T','р')} в данном случае."
-                                                
-                                                _EN_explanation="This is incorrect. ${val('X','и')} is between the tokens of ${val('T','р')}, and therefore is in its center operand."
-                                                _EN_nextStepQuestion="What further steps are needed when considering operators with strict operand order?"
-                                                _EN_nextStepExplanation="This is incorrect. We should next check if the center operand of ${val('T','р')} should be omitted in this case."
-                                            >
-                                                <TupleQuestionNode
-                                                    _alias="опускается ли центральный (кортеж)"
-                                                    _RU_asNextStep="Необходимо проверить, опускается ли центральный операнд ${val('T','р')} в данном случае."
-                                                    _RU_endingCause="Поскольку ${val('X','и')} опускается как центральный операнд ${class('T','р')}."
-                                                    
-                                                    _EN_asNextStep="We need to check whether the center operand of ${class('T','р')} should be omitted."
-                                                    _EN_endingCause="Because ${val('X','и')} is omitted as the center operand of ${class('T','р')}."
-                                                >
-                                                    <Part _alias="Какое значение должно быть у левого чтобы центральный вычислился"
-                                                        _RU_question="При каком значении левого операнда в ${class('T','п')} вычисляется центральный операнд?"
-                                                        _EN_question="What value should the left operand of ${class('T','п')} have in order for its center operand to be evaluated?"
-                                                    >
-                                                        <Expression>
-                                                            <GetPropertyValue>
-                                                                <DecisionTreeVar name="T" />
-                                                                <Property name="requiredLeftValForCenter" />
-                                                            </GetPropertyValue>
-                                                        </Expression>
-                                                        <Outcome value="ExpectedValue:true"
-                                                            _RU_explanation="Это неверно. ${class('T','и')} вычисляет центральный операнд только в случае, если левый имеет значение true.
-                                                            В ином случае центральный операнд опускается."
-                                                            _EN_explanation="That's incorrect. ${class('T','и')} only evaluates its center operand, if the left evaluates as 'true'.
-                                                            Otherwise the center operand is omitted."
-                                                        />
-                                                        <Outcome value="ExpectedValue:false"
-                                                            _RU_explanation="Это неверно. ${class('T','и')} вычисляет центральный операнд только в случае, если левый имеет значение false.
-                                                            В ином случае центральный операнд опускается."
-                                                            _EN_explanation="That's incorrect. ${class('T','и')} only evaluates its center operand, if the left evaluates as 'false'.
-                                                            Otherwise the center operand is omitted."
-                                                            />
-                                                    </Part>
-                                                    <Part _alias="Какое значение у левого"
-                                                        _RU_question="Какое значение имеет левый операнд ${val('T','р')} в данном случае?"
-                                                        _EN_question="What is the value of left operand of ${val('T','р')} in this case?"
-                                                    >
-                                                        <Expression>
-                                                            <GetPropertyValue>
-                                                                <GetByRelationship varName="">
-                                                                    <DecisionTreeVar name="T" />
-                                                                    <Relationship name="hasLeftOperand" />
-                                                                </GetByRelationship>
-                                                                <Property name="evaluatesTo" />
-                                                            </GetPropertyValue>
-                                                        </Expression>
-                                                        <Outcome value="true" _RU_text="true" _EN_text="'true'"
-                                                            _RU_explanation="Это неверно. Левый операнд в данном случае имеет значение true.
-                                                            Помните, что мы предполагаем, что все переменные и не-логические операции вычисляются как true."
-                                                            _EN_explanation="That's incorrect. In this case the left operand evaluates as 'true'.
-                                                            Remember that we assume that all variables and non-boolean operators evaluate as 'true'."
-                                                        />
-                                                        <Outcome value="false" _RU_text="false" _EN_text="'false'"
-                                                            _RU_explanation="Это неверно. Левый операнд в данном случае имеет значение false.
-                                                            Помните, что мы предполагаем, что все переменные и не-логические операции вычисляются как true."
-                                                            _EN_explanation="That's incorrect. In this case the left operand evaluates as 'false'.
-                                                            Remember that we assume that all variables and non-boolean operators evaluate as 'true'."
-                                                        />
-                                                    </Part>
-                                                    <Outcome value="(ExpectedValue:true;true)"
-                                                        _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                        _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
-                                                        _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} не опускается, и может быть свободно вычислен."
-                                                        
-                                                        _EN_nextStepQuestion="What can we conclude in this case?"
-                                                        _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
-                                                        _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is not omitted, and can be evaluated."
-                                                    >
-                                                        <BranchResultNode value="true" />
-                                                    </Outcome>
-                                                    <Outcome value="(ExpectedValue:false;false)"
-                                                        _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                        _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
-                                                        _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} не опускается, и может быть свободно вычислен."
-                                                        
-                                                        _EN_nextStepQuestion="What can we conclude in this case?"
-                                                        _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
-                                                        _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is not omitted, and can be evaluated."
-                                                    >
-                                                        <BranchResultNode value="true" />
-                                                    </Outcome>
-                                                    <Outcome value="(ExpectedValue:true;false)"
-                                                        _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                        _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
-                                                        _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} опускается, а значит не может быть вычислен."
-                                                        
-                                                        _EN_nextStepQuestion="What can we conclude in this case?"
-                                                        _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
-                                                        _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is omitted, and so cannot be evaluated now."
-                                                    >
-                                                        <BranchResultNode _alias="X опускается" value="false"
-                                                            _error="strict.leftShouldBeTrue_omittedInCenter" 
-                                                            _RU_explanation="${val('X','и')} опускается оператором со строгим порядком операндов (${val('T','и')})"
-                                                            _EN_explanation="${val('X','и')} is omitted by an operator with a strict operand order (${val('T','и')})"
-                                                        >
-                                                            <Expression>
-                                                                <AssignToProperty>
-                                                                    <DecisionTreeVar name="X" />
-                                                                    <Property name="state" />
-                                                                    <Enum owner="state"
-                                                                        value="omitted" />
-                                                                </AssignToProperty>
-                                                            </Expression>
-                                                        </BranchResultNode>
-                                                    </Outcome>
-                                                    <Outcome value="(ExpectedValue:false;true)"
-                                                        _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                        _RU_nextStepBranchResult="${val('X','и')} ${branchResult ? 'может быть вычислен' : 'опускается'}."
-                                                        _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${val('X','и')} опускается, а значит не может быть вычислен."
-                                                        
-                                                        _EN_nextStepQuestion="What can we conclude in this case?"
-                                                        _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
-                                                        _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is omitted, and so cannot be evaluated now."
-                                                    >
-                                                        <BranchResultNode _alias="X опускается" value="false"
-                                                            _error="strict.leftShouldBeFalse_omittedInCenter"
-                                                            _RU_explanation="${val('X','и')} опускается оператором со строгим порядком операндов (${val('T','и')})"
-                                                            _EN_explanation="${val('X','и')} is omitted by an operator with a strict operand order (${val('T','и')})"
-                                                        >
-                                                            <Expression>
-                                                                <AssignToProperty>
-                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar
+                                                                        name="X" />
                                                                     <Property name="state" />
                                                                     <Enum owner="state"
                                                                         value="omitted" />
@@ -2575,7 +2781,7 @@
                 </CycleAggregationNode>
             </ThoughtBranch>
             <Outcome value="true">
-                <BranchResultNode value="true"> <!-- A, B, C становятся операндами и т.д.-->
+                <BranchResultNode value="true"> <!-- X вычисляется, A, B, C становятся использованными-->
                     <Expression>
                         <Block>
                             <AssignToProperty>
@@ -2631,8 +2837,13 @@
                                     <Enum owner="state" value="used"/>
                                 </AssignToProperty>
                             </IfThen>
-                            <IfThen>
-                                <ExistenceQuantifier varName="c" type="operand">
+                            <ForAllQuantifier varName="c" type="operand">
+                                <LogicalAnd>
+                                    <CheckRelationship>
+                                        <Relationship name="hasCenterOperand" />
+                                        <DecisionTreeVar name="X" />
+                                        <Variable name="c" />
+                                    </CheckRelationship>
                                     <Compare operator="NOT_EQUAL">
                                         <GetPropertyValue>
                                             <Variable name="c" />
@@ -2640,21 +2851,13 @@
                                         </GetPropertyValue>
                                         <Enum owner="state" value="omitted" />
                                     </Compare>
-                                    <CheckRelationship>
-                                        <Relationship name="hasCenterOperand" />
-                                        <DecisionTreeVar name="X" />
-                                        <Variable name="c" />
-                                    </CheckRelationship>
-                                </ExistenceQuantifier>
+                                </LogicalAnd>
                                 <AssignToProperty>
-                                    <GetByRelationship varName="c">
-                                        <DecisionTreeVar name="X" />
-                                        <Relationship name="hasCenterOperand" />
-                                    </GetByRelationship>
+                                    <Variable name="c" />
                                     <Property name="state" />
-                                    <Enum owner="state" value="used"/>
+                                    <Enum owner="state" value="used" />
                                 </AssignToProperty>
-                            </IfThen>
+                            </ForAllQuantifier>
                         </Block>
                     </Expression>
                     <!-- <Expression>

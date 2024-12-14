@@ -13,12 +13,46 @@ class `operator_&&` : StrictOrderOperator {
 	countOfTokens = 1 ;
 
 	isAnd = true;
-	requiredLeftValForRight = ExpectedValue:`true` ;
-	requiredLeftValForCenter = ExpectedValue:any ;
+    firstOperandPosition = OperandPosition:left;
+    requiredFirstValForRight = ExpectedValue:`true` ;
 } [
 	text = "&&" ;
 	RU.localizedName = "оператор &&" ;
 	EN.localizedName = "operator &&" ;
+]
+
+class operator_function_call : operator {
+       arity = arity:binary ;
+       place = place:infix ;
+       precedence = 2 ;
+       associativity = associativity:left ;
+       needsLeftOperand = false ;
+       needsRightOperand = false ;
+       needsInnerOperand = true ;
+       countOfTokens = 2 ;
+ } [
+       text = "(" ;
+       token2text = ")";
+       RU.localizedName = "вызов функции" ;
+       EN.localizedName = "function call" ;
+       isComplex = true ;
+ ]
+
+class operator_method_call : operator {
+    arity = arity:binary ;
+    place = place:infix ;
+    precedence = 2 ;
+    associativity = associativity:left ;
+    needsLeftOperand = true ;
+    needsRightOperand = false ;
+    needsInnerOperand = true ;
+    countOfTokens = 2 ;
+} [
+    text = "(" ;
+    token2text = ")";
+    RU.localizedName = "вызов метода" ;
+    EN.localizedName = "method call" ;
+    isComplex = true ;
 ]
 
 class `operator_?` : StrictOrderOperator {
@@ -33,8 +67,9 @@ class `operator_?` : StrictOrderOperator {
 	countOfTokens = 2 ;
 
 	isTConditional = true;
-	requiredLeftValForRight = ExpectedValue:`false` ;
-	requiredLeftValForCenter = ExpectedValue:`true` ;
+    firstOperandPosition = OperandPosition:left;
+    requiredFirstValForRight = ExpectedValue:`false` ;
+    requiredFirstValForCenter = ExpectedValue:`true` ;
 } [
 	text = "?" ;
 	token2text = ":";
@@ -54,8 +89,8 @@ class `operator_||` : StrictOrderOperator {
 	countOfTokens = 1 ;
 
 	isOr = true;
-	requiredLeftValForRight = ExpectedValue:`false` ;
-	requiredLeftValForCenter = ExpectedValue:any ;
+	firstOperandPosition = OperandPosition:left;
+    requiredFirstValForRight = ExpectedValue:`false` ;
 } [
 	text = "||" ;
 	RU.localizedName = "оператор ||" ;
