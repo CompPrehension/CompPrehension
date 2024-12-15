@@ -443,7 +443,7 @@ public class MeaningTreeOrderQuestionBuilder {
         Set<String> possibleSkills = findSkills(tokens);
         concepts = findConcepts(sourceExpressionTree, language);
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
-        complexity = MathHelper.sigmoid((complexity + 3) / 6);
+        complexity = MathHelper.sigmoid(complexity * 4 - 2);
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
         String customTemplateId = rawTranslatedCode.replaceAll(" ", "_").replaceAll("[/:*?\"<>|\\\\]", "");

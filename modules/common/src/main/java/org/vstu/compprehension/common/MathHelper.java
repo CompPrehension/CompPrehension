@@ -18,6 +18,6 @@ public class MathHelper {
      * Функция сигмоиды
      */
     public static double sigmoid(double value) {
-        return 1 / (1 + Math.exp(value));
+        return 1 / (1 + Math.exp(-value));
     }
 }
