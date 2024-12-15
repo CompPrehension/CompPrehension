@@ -305,6 +305,20 @@ class `operator_>` : operator {
 	EN.localizedName = "operator >" ;
 ]
 
+class operator_not : operator {
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 13 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	countOfTokens = 1 ;
+} [
+	text = "not" ;
+	RU.localizedName = "оператор not" ;
+	EN.localizedName = "operator not" ;
+]
 
 class `operator_@` : operator {
 

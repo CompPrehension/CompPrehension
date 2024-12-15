@@ -24,7 +24,7 @@ class `operator_&&` : StrictOrderOperator {
 class operator_function_call : operator {
        arity = arity:binary ;
        place = place:infix ;
-       precedence = 2 ;
+       precedence = 1 ;
        associativity = associativity:left ;
        needsLeftOperand = false ;
        needsRightOperand = false ;
@@ -41,7 +41,7 @@ class operator_function_call : operator {
 class operator_method_call : operator {
     arity = arity:binary ;
     place = place:infix ;
-    precedence = 2 ;
+    precedence = 1 ;
     associativity = associativity:left ;
     needsLeftOperand = true ;
     needsRightOperand = false ;

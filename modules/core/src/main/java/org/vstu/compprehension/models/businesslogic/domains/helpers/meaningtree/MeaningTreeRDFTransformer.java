@@ -178,6 +178,9 @@ public class MeaningTreeRDFTransformer {
     }
 
     private static ParsedClassName findClassName(DomainModel domainModel, Token token) {
+        if (token.type == TokenType.COMMA) {
+            return new ParsedClassName("separator");
+        }
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()
                         .anyMatch(metadata -> metadata.getPropertyName().contains("text") && token.value.equals(metadata.getValue()))
@@ -186,13 +189,13 @@ public class MeaningTreeRDFTransformer {
         if(possibleClasses.isEmpty()){
             return new ParsedClassName("operand", token.value.matches("[a-zA-Z_$][a-zA-Z0-9_$]*"));
         }
-        if(possibleClasses.size() == 1){
+        if(possibleClasses.size() == 1 || !(token instanceof OperatorToken)){
             return new ParsedClassName(possibleClasses.getFirst().getName());
         }
         int tokenPrecedence = ((OperatorToken)token).precedence;
         return new ParsedClassName(
                 possibleClasses.stream()
-                        .filter(classDef -> Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
+                        .filter(classDef -> classDef.isSubclassOf("operator") && Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
                         .findFirst()
                         .map(ClassDef::getName)
                         .orElseThrow()
@@ -303,7 +306,10 @@ public class MeaningTreeRDFTransformer {
         for (Map.Entry<Token, ObjectDef> entry : baseTokensToElements.entrySet()) {
             if (entry.getKey() instanceof OperandToken op && op.operandOf() != null
                     && op.type != TokenType.SEPARATOR
-            ) {
+                    && op.type != TokenType.CALLABLE_IDENTIFIER // чтобы не объединять имя функции и открывающую скобку
+                    && op.type != TokenType.COMMA
+                    && !(op.type.isBrace() && !(op instanceof OperatorToken))
+                    ) {
                 addRelationship(entry.getValue(), "isOperandOf",
                         String.format("element_op_%d", tokens.indexOf(op.operandOf())));
                 switch (op.operandPosition()) {
