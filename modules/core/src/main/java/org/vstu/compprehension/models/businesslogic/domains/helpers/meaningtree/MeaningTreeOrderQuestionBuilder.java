@@ -1,9 +1,5 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
-import its.model.DomainSolvingModel;
-import its.model.definition.DomainModel;
-import its.model.definition.EnumValueRef;
-import its.model.definition.ObjectDef;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,7 +40,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain.DOMAIN_MODEL_LOCATION;
 
 @Log4j2
 public class MeaningTreeOrderQuestionBuilder {
@@ -142,7 +137,7 @@ public class MeaningTreeOrderQuestionBuilder {
         }
         String tokens = tokenBuilder.substring(0, tokenBuilder.length() - 1);
         log.info("Extracted expression text from existing question: {}", tokens);
-        TokenList tokenList = cppTranslator.getTokenizer().tokenizeExtended(cppTranslator.prepareCode(tokens));
+        TokenList tokenList = cppTranslator.getTokenizer().tokenizeExtended(tokens);
         HashMap<TokenGroup, Object> semanticValuesIndexes = new HashMap<>();
         for (int i = 0; i < indexes.keySet().stream().max(Long::compare).orElse(0); i++) {
             if (semanticValues.containsKey(indexes.get(i))) {
@@ -367,12 +362,15 @@ public class MeaningTreeOrderQuestionBuilder {
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
         OperandEvaluationMap map = new OperandEvaluationMap(this, language);
         List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
+        MeaningTree initial = sourceExpressionTree;
         for (Pair<MeaningTree, Integer> pair : generatedValues) {
+            sourceExpressionTree = pair.getLeft();
             generated.add(generateFromTemplate(language, pair.getLeft(), pair.getRight()));
         }
         if (generatedValues.isEmpty()) {
             return List.of(generateFromTemplate(language));
         }
+        sourceExpressionTree = initial;
 
         return generated;
     }
@@ -416,15 +414,6 @@ public class MeaningTreeOrderQuestionBuilder {
                 .build();
     }
 
-    private DomainModel createDomainModel() {
-        final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-                this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
-                DomainSolvingModel.BuildMethod.LOQI
-        );
-       return MeaningTreeRDFTransformer.questionToDomainModel(domainSolvingModel,
-                MeaningTreeRDFHelper.serializableToBackendFacts(stmtFacts), List.of(), tags.stream().map(domain::getTag).toList());
-    }
-
     /**
      * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
      */
@@ -434,9 +423,7 @@ public class MeaningTreeOrderQuestionBuilder {
         String languageStr = language.toString();
         tags.add(languageStr.substring(0, 1).toUpperCase() + languageStr.substring(1));
 
-        DomainModel questionModel = createDomainModel();
-        int omitted = (int) questionModel.getObjects().stream().filter((ObjectDef o) -> o.isInstanceOf("operand")
-                && o.getPropertyValue("state").equals(new EnumValueRef("state", "omitted"))).count();
+        int omitted = findOmitted(sourceExpressionTree);
         int solutionLength = answerObjects.size() - omitted;
 
         possibleViolations = findPossibleViolations(tokens);
@@ -470,6 +457,27 @@ public class MeaningTreeOrderQuestionBuilder {
                 .origin(metadata != null ? (metadata.getOrigin().startsWith("mt_") ? "" :"mt_").concat(metadata.getOrigin()) :
                         (questionOrigin.startsWith("mt_") ? "" :"mt_").concat(questionOrigin))
                 .build();
+    }
+
+    /**
+     * Найти в сгенерированном дереве вопроса опущенные для вычисления операнды, сокращающие число шагов
+     * @param tree - заданное дерево
+     * @return число опущенных операндов
+     */
+    static int findOmitted(MeaningTree tree) {
+        int count = 0;
+        for (Node.Info info : tree) {
+            if (info.node() instanceof ShortCircuitAndOp
+                    && info.node().getAssignedValueTag() instanceof Boolean bool && !bool) {
+                count++;
+            } else if (info.node() instanceof ShortCircuitOrOp
+                    && info.node().getAssignedValueTag() instanceof Boolean bool && bool) {
+                count++;
+            } else if (info.node() instanceof TernaryOperator) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**
