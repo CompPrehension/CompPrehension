@@ -464,8 +464,8 @@ public class TaskGenerationJob {
 
         var result = new ArrayList<Path>(parsedRepos.size());
         for (var repoDir : parsedRepos) {
-            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
-            log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
+            var allFiles = FileUtility.findFiles(repoDir, new String[]{".ttl", ".json"});
+            log.info("Found {} question files in: {}", allFiles.size(), repoDir);
 
             String leafFolder = repoDir.getFileName().toString();
             Path destination = Path.of(generatorConfig.getOutputFolderPath(), leafFolder);
