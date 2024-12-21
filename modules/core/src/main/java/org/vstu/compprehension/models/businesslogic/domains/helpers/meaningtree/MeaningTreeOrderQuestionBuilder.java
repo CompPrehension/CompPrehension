@@ -438,7 +438,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
                 .name(metadata != null ? metadata.getName() : customQuestionId)
-                .domainShortname(metadata != null ? metadata.getDomainShortname() : "expression")
+                .domainShortname(domain.getShortnameForQuestionSearch())
                 .templateId(metadata != null ? metadata.getTemplateId() : customTemplateId)
                 .tagBits(tags.stream().map(domain::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a, b) -> a|b).orElse(0L))
                 .conceptBits(conceptBits)
