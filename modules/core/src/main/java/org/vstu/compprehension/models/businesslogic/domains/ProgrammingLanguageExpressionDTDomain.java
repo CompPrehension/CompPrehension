@@ -152,7 +152,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
     @Override
     public String getShortnameForQuestionSearch() {
-        return "expression"; //
+        return "expression_dt";
     }
 
     @Override
