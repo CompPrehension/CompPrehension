@@ -8,5 +8,6 @@ public class MeaningTreeDefaultExpressionConfig extends HashMap<String, String> 
         put("skipErrors", "true");
         put("translationUnitMode", "false");
         put("expressionMode", "true");
+        put("disableCompoundComparisonConversion", "true");
     };
 }
