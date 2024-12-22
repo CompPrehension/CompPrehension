@@ -404,9 +404,15 @@ public class TaskGenerationJob {
             Files.createDirectories(destination);
             result.add(destination);
 
-            var files = FileUtility.findFiles(repo, new String[]{".c", ".m"});
+            String[] supportedFilenames;
+            if (config.getDomainShortName().equals("expression_dt")) {
+                supportedFilenames = new String[]{".c", ".cpp", ".py", ".java", ".h", ".hpp", ".cxx"};
+            } else {
+                supportedFilenames = new String[] {".c", ".m"};
+            }
+            var files = FileUtility.findFiles(repo, supportedFilenames);
             files = files.subList(0, Math.min(50, files.size()));
-            log.info("Found {} *.c & *.m files", files.size());
+            log.info("Found {} source code files", files.size());
 
             // TODO: make parser cmd customizable?
 

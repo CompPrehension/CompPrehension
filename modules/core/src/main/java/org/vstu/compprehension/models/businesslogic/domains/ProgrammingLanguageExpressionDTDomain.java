@@ -31,7 +31,9 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
+import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.io.IOException;
@@ -397,9 +399,23 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 String parsedQuestionName = path.getFileName().toString();
 
                 SupportedLanguage currentLang = SupportedLanguage.CPP;
-                String expressionText;
+                String expressionText = null;
+                MeaningTreeOrderQuestionBuilder builder = null;
 
-                if (parsedQuestionName.endsWith(".ttl")) {
+                if (parsedQuestionName.endsWith(".mt.ttl")) {
+                    RDFDeserializer deserializer = new RDFDeserializer();
+                    Model templateModel = ModelFactory.createDefaultModel();
+                    RDFDataMgr.read(templateModel, file);
+                    MeaningTree mt = new MeaningTree(deserializer.deserialize(templateModel));
+                    for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
+                        String languageStr = language.toString().toLowerCase();
+                        if (parsedQuestionName.endsWith(String.format("_%s.mt.ttl", languageStr))) {
+                            currentLang = language;
+                            break;
+                        }
+                    }
+                    builder = MeaningTreeOrderQuestionBuilder.newQuestion(mt, currentLang, this);
+                } else if (parsedQuestionName.endsWith(".ttl")) {
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
                         String languageStr = language.toString().toLowerCase();
                         if (parsedQuestionName.endsWith(String.format("%s.ttl", languageStr))) {
@@ -446,12 +462,12 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 log.debug("{} \tUpload model number {}", templateName, count);
 
                 log.debug("Creating questions for template: {}", templateName);
-                MeaningTreeOrderQuestionBuilder builder =
-                        MeaningTreeOrderQuestionBuilder.
-                                newQuestion(expressionText, currentLang, this)
-                                .questionOrigin(origin)
-                        ;
-
+                if (builder == null) {
+                    builder =
+                            MeaningTreeOrderQuestionBuilder.
+                                    newQuestion(expressionText, currentLang, this)
+                                    .questionOrigin(origin);
+                }
 
                 int templateQuestionsCount = 0;
                 for (SerializableQuestionTemplate template : builder.buildAll()) {
