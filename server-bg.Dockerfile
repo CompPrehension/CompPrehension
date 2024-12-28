@@ -5,12 +5,20 @@ FROM eclipse-temurin:21-jre
 COPY ./modules/background-server/target/background-server-*.jar app.jar
 COPY ./modules/expr-domain-question-generator/target/expr-domain-question-generator-*.jar /generator/generator.jar
 
-# download parser
+# download parser for expr_domain
 RUN mkdir /parser && \
-    wget "https://github.com/CompPrehension/top-learning-generator/releases/download/v0.4.0/compph-task-generator" -O /parser/clang-task-generator && \
+    wget "https://github.com/brookite/ExpressionExtractor/releases/download/initial/expr-extractor-generator.jar" -O /parser/expr-extractor-generator.jar
+
+# download parser for ctrlflow
+RUN wget "https://github.com/CompPrehension/top-learning-generator/releases/download/v0.4.0/compph-task-generator" -O /parser/clang-task-generator && \
     chmod +x /parser/clang-task-generator
 
-# Generate the runner.sh script
+# Generate the runner.sh script for parser
+RUN echo '#!/bin/bash' > /parser/runner.sh && \
+    echo 'java -jar /parser/expr-extractor-generator.jar "$@"' >> /parser/runner.sh && \
+    chmod +x /parser/runner.sh
+
+# Generate the runner.sh script for generator
 RUN echo '#!/bin/bash' > /generator/runner.sh && \
     echo 'java -jar /generator/generator.jar "$@"' >> /generator/runner.sh && \
     chmod +x /generator/runner.sh
@@ -23,6 +31,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ENV TASK_GENERATION_GENERATOR_PATH_TO_EXECUTABLE=/generator/runner.sh
-ENV TASK_GENERATION_PARSER_PATH_TO_EXECUTABLE=/parser/clang-task-generator
+ENV TASK_GENERATION_PARSER_PATH_TO_EXECUTABLE=/parser/runner.sh
 
 ENTRYPOINT ["java","-jar","/app.jar"]
