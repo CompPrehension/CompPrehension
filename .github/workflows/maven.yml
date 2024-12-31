@@ -28,10 +28,5 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
-    - name: Install third-party depedencies
-      run: |
-         chmod +x ./thirdparty/install.sh
-         ./thirdparty/install.sh
-      shell: bash
     - name: Run the Maven verify phase
       run: mvn -B verify --file pom.xml -DskipTests
