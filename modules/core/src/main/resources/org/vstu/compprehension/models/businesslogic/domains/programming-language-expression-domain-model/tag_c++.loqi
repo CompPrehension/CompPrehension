@@ -635,13 +635,29 @@ class operator_new : operator {
 	precedence = 3 ;
 	associativity = associativity:right ;
 	needsLeftOperand = false ;
-	needsRightOperand = true ;
-	needsInnerOperand = false ;
+	needsRightOperand = false ;
+	needsInnerOperand = true ;
 	countOfTokens = 1 ;
 } [
 	text = "new" ;
 	RU.localizedName = "оператор new" ;
 	EN.localizedName = "operator new" ;
+]
+
+class operator_cast : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 2 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = false ;
+	needsInnerOperand = true ;
+	countOfTokens = 1 ;
+} [
+	text = "cast" ;
+	RU.localizedName = "оператор cast" ;
+	EN.localizedName = "operator cast" ;
 ]
 
 class `operator_postfix_++` : operator {

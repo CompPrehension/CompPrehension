@@ -55,6 +55,22 @@ class operator_method_call : operator {
     isComplex = true ;
 ]
 
+class operator_cast : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 1 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = false ;
+	needsInnerOperand = true ;
+	countOfTokens = 1 ;
+} [
+	text = "cast" ;
+	RU.localizedName = "оператор cast" ;
+	EN.localizedName = "operator cast" ;
+]
+
 class `operator_?` : StrictOrderOperator {
 
 	arity = arity:ternary ;
