@@ -191,6 +191,10 @@ public class MeaningTreeOrderQuestionBuilder {
         int tokenId = 0;
         for (Token t : tokens) {
             if (t instanceof OperatorToken) {
+                if (t instanceof ComplexOperatorToken complex && complex.isClosing()) {
+                    tokenId++;
+                    continue;
+                }
                 result.add(SerializableQuestion.AnswerObject.builder()
                         .answerId(answerObjId)
                         .isRightCol(false)
@@ -773,12 +777,22 @@ public class MeaningTreeOrderQuestionBuilder {
     ) {
         StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
+        HashMap<Integer, Integer> complexEndingsIds = new HashMap<>();
         int idx = 0;
         int answerIdx = -1;
         for (Token t: tokens) {
             String tokenValue = t.value;
             if (t instanceof OperatorToken) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn'").append(">").append(tokenValue).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_")
+                        .append(complexEndingsIds.containsKey(idx - 1) ? complexEndingsIds.get(idx - 1) : ++answerIdx)
+                        .append("' class='comp-ph-expr-op-btn'").append(">").append(tokenValue).append("</span>");
+
+                if (t instanceof ComplexOperatorToken complex && complex.isOpening()) {
+                    int pos = tokens.findClosingComplex(idx - 1);
+                    if (pos != -1) {
+                        complexEndingsIds.put(pos, answerIdx);
+                    }
+                }
             } else {
                 sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const'").append(">").append(tokenValue).append("</span>");
             }

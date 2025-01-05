@@ -30,6 +30,12 @@ import static its.model.definition.build.DomainBuilderUtils.*;
 
 
 public class MeaningTreeRDFTransformer {
+    private static final class EndToken extends Token {
+        public EndToken() {
+            super("student_end_evaluation", TokenType.SEPARATOR);
+        }
+    }
+
     private static final String DEBUG_DIR = "./modules/core/src/main/resources/" + ProgrammingLanguageExpressionDTDomain.DOMAIN_MODEL_LOCATION;
     private static final String BASE_TTL_PREF = "http://vstu.ru/poas/code#";
 
@@ -72,7 +78,11 @@ public class MeaningTreeRDFTransformer {
         TokenList tokens = tokenize(facts, language);
         TokenList selected = new TokenList(responses.stream()
                 .map((r) -> {
-                    String[] tokenName = base.getResource(BASE_TTL_PREF + r.getLeftAnswerObject().getDomainInfo()).getLocalName().split("_");
+                    String fullTokenName = base.getResource(BASE_TTL_PREF + r.getLeftAnswerObject().getDomainInfo()).getLocalName();
+                    String[] tokenName = fullTokenName.split("_");
+                    if (fullTokenName.equals("end_token")) {
+                        return new EndToken();
+                    }
                     return tokens.get(Integer.valueOf(tokenName[tokenName.length - 1]));
                 })
                 .toList());
@@ -274,8 +284,8 @@ public class MeaningTreeRDFTransformer {
 
         for (Token baseToken : selected) {
             //в зависимости от контекста, последний выбранный объект делаем переменной, и не записываем факт его вычисления
-            if(isLastSelectionVariable && baseToken == selected.getLast()){
-                if(baseTokensToElements.containsKey(baseToken)){
+            if(isLastSelectionVariable && baseToken.equals(selected.getLast())){
+                if(baseTokensToElements.containsKey(baseToken)) {
                     newVariable(situationDomain, "X", baseTokensToElements.get(baseToken).getName());
                     newVariable(situationDomain, "X1", baseTokensToTokens.get(baseToken).getName());
                 }
