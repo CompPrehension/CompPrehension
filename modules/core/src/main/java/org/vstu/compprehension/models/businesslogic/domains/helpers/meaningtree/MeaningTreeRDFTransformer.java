@@ -190,6 +190,8 @@ public class MeaningTreeRDFTransformer {
     private static ParsedClassName findClassName(DomainModel domainModel, Token token) {
         if (token.type == TokenType.COMMA) {
             return new ParsedClassName("separator");
+        } else if (token.type == TokenType.CAST) {
+            return new ParsedClassName("operator_cast");
         }
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()
