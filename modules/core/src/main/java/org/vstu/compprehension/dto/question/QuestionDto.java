@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor @AllArgsConstructor
 @SuperBuilder
 public class QuestionDto {
-    private Long attemptId;
     private Long questionId;
     private String type;
     private String text;

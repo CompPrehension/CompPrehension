@@ -135,9 +135,8 @@ export class QuestionStore {
         this.onAnswerEvaluated(feedbackEither.right);
     })
 
-    private sendAnswersImpl = flow(function* (this: QuestionStore, attemptId: number, questionId: number, answers: readonly Answer[]) {
+    private sendAnswersImpl = flow(function* (this: QuestionStore, questionId: number, answers: readonly Answer[]) {
         const body: Interaction = toJS({
-            attemptId,
             questionId,
             answers: toJS([...answers]),
         })
@@ -162,7 +161,7 @@ export class QuestionStore {
         if (!question) {
             return;
         }
-        yield this.sendAnswersImpl(question.attemptId, question.questionId, toJS(lastAnswer));        
+        yield this.sendAnswersImpl(question.questionId, toJS(lastAnswer));        
     });
 
 

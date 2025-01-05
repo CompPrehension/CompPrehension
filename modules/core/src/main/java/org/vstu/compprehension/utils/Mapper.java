@@ -120,7 +120,6 @@ public class Mapper {
                         .map(HyperText::getText)
                         .toArray(String[]::new);
                 return OrderQuestionDto.builder()
-                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(answerDtos)
@@ -133,7 +132,6 @@ public class Mapper {
             case MULTI_CHOICE:
             case SINGLE_CHOICE:
                 return QuestionDto.builder()
-                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(answerDtos)
@@ -153,7 +151,6 @@ public class Mapper {
                         .toArray(QuestionAnswerDto[]::new);
 
                 return MatchingQuestionDto.builder()
-                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
                         .type(question.getQuestionType().toString())
                         .answers(left)

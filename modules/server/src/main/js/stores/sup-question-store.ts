@@ -94,7 +94,6 @@ export class SupplementaryQuestionStore {
             throw new Error("Question is empty");
 
         const body: Interaction = toJS({
-            attemptId: question.attemptId,
             questionId: question.questionId,
             answers: toJS([...this.answer]),
         })

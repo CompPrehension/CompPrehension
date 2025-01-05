@@ -69,7 +69,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 1) {
             result = {
                 type: 'SINGLE_CHOICE',
-                attemptId: -1,
                 questionId: 1,
                 text: 'question text',
                 answers: [
@@ -89,7 +88,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 2) {
             result = {
                 type: 'MULTI_CHOICE',
-                attemptId: -1,
                 questionId: 2,
                 text: 'question text',
                 answers: [
@@ -110,7 +108,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 3) {
             result = {
                 type: 'SINGLE_CHOICE',
-                attemptId: -1,
                 questionId: 3,
                 text: 'question text with <span id="answer_0">select1</span> and <span id="answer_1">select2</span>',
                 answers: [],
@@ -126,7 +123,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 4) {
             result = {
                 type: 'MULTI_CHOICE',
-                attemptId: -1,
                 questionId: 4,
                 text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
                 answers: [],
@@ -142,7 +138,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 5) {
             result = {
                 type: 'MATCHING',
-                attemptId: -1,
                 questionId: 5,
                 text: 'question text ',
                 answers: [
@@ -186,7 +181,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 6) {
             result = {
                 type: 'MATCHING',
-                attemptId: -1,
                 questionId: 6,
                 text: 'question text with <span id="answer_0">drop</span> and <span id="answer_1">drop</span>',
                 answers: [],
@@ -217,7 +211,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 7) {
             result = {
                 type: 'MULTI_CHOICE',
-                attemptId: -1,
                 questionId: 7,
                 text: `question text with <span id="answer_0"></span> and <span id="answer_1"></span>`,
                 answers: [],

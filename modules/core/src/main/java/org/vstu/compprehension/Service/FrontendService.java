@@ -74,12 +74,11 @@ public class FrontendService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
-        val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
 
-        val attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
+        val attempt = exerciseAttemptRepository.findByQuestionId(questionId)
+                .orElseThrow(() -> new Exception("Can't find attempt for question with id " + questionId));
         val question = questionService.getQuestion(questionId);
         if (!question.isSupplementary()) {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
@@ -94,12 +93,11 @@ public class FrontendService {
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         Checkpointer ch = new Checkpointer(log);
 
-        val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
 
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
+        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findByQuestionId(questionId)
+                .orElseThrow(() -> new Exception("Can't find attempt for question with id " + questionId));
         // ch.hit("attempt found");
 
         // evaluate answer
@@ -173,7 +171,7 @@ public class FrontendService {
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
 //            ch.hit("results made");
-            val res = addQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
+            val res = addQuestionAnswer(new InteractionDto(questionId, newAnswer));
             ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;
         }
