@@ -160,6 +160,18 @@ public class MeaningTreeOrderQuestionBuilder {
         return SupportedLanguage.CPP;
     }
 
+    // Определить по тегам язык программирования
+    public static SupportedLanguage detectLanguageFromTags(long tags, ProgrammingLanguageExpressionDTDomain domain) {
+        // Считаем, что в тегах может быть указан только один язык
+        List<String> languages = SupportedLanguage.getMap().keySet().stream().map(SupportedLanguage::toString).toList();
+        for (Tag tag : domain.tagsFromBitmask(tags)) {
+            if (languages.contains(tag.getName().toLowerCase())) {
+                return SupportedLanguage.fromString(tag.getName().toLowerCase());
+            }
+        }
+        return SupportedLanguage.CPP;
+    }
+
     /**
      * Создать новый вопрос из выражения
      * @param expression строковое представление выражения
