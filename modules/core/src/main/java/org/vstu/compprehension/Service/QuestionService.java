@@ -106,9 +106,9 @@ public class QuestionService {
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
         Backend backend = backendFactory.getBackend(
-            domain.getSolvingBackendId()
+                domain.getJudgingBackendId()
         );
-        DomainToBackendAdapter usedInterface = domain.getBackendInterface(backend);
+        DomainToBackendAdapter usedInterface = domain.getBackendInterface(domain.getSolvingBackendId());
 
         usedInterface.updateQuestionAfterSolve(
             question,
@@ -154,7 +154,7 @@ public class QuestionService {
         Backend backend = backendFactory.getBackend(
             domain.getJudgingBackendId()
         );
-        DomainToBackendAdapter usedInterface = domain.getBackendInterface(backend);
+        DomainToBackendAdapter usedInterface = domain.getBackendInterface(domain.getJudgingBackendId());
 
         Object output = backend.judge(usedInterface.prepareBackendInfoForJudge(question, responses, tags));
         return usedInterface.interpretJudgeOutput(question, output);

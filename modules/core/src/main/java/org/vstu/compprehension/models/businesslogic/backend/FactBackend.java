@@ -103,12 +103,13 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         extends DomainToBackendAdapter<Input, Collection<Fact>, Back>
     {
         private final Domain domain;
+        private final String backendId;
 
-        public Interface(Class<Back> backendClass, Domain domain) {
+        public Interface(Class<Back> backendClass, Domain domain, String backendId) {
             super(backendClass);
             this.domain = domain;
+            this.backendId = backendId;
         }
-
 
         @Override
         public Input prepareBackendInfoForJudge(Question question, List<ResponseEntity> responses, List<Tag> tags) {
@@ -163,6 +164,11 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
             }
             // save facts to question
             question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
+        }
+
+        @Override
+        public String getBackendId() {
+            return backendId;
         }
     }
 }

@@ -5,7 +5,6 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * An "interface" between a {@link Domain} and a {@link Backend},
@@ -65,16 +64,5 @@ public abstract class DomainToBackendAdapter<BackendInput, BackendOutput, Back e
         BackendOutput backendOutput
     );
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DomainToBackendAdapter<?, ?, ?> that = (DomainToBackendAdapter<?, ?, ?>) o;
-        return Objects.equals(backendClass, that.backendClass);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(backendClass);
-    }
+    public abstract String getBackendId();
 }

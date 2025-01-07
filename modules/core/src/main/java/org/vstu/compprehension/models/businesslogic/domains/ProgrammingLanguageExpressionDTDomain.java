@@ -348,6 +348,11 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
                         return null; //Solve not used in DecisionTreeReasonerBackend
                     }
+
+                    @Override
+                    public String getBackendId() {
+                        return getSolvingBackendId();
+                    }
                 }
         );
     }

@@ -6,10 +6,8 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -984,14 +982,14 @@ public abstract class Domain {
      */
     protected Set<DomainToBackendAdapter<?, ?, ?>> createBackendAdapters(){
         return Set.of(
-            new FactBackend.Interface<>(JenaBackend.class, this)
+            new FactBackend.Interface<>(JenaBackend.class, this, "Jena")
         );
     }
 
-    private final Map<Class<?>, DomainToBackendAdapter<?, ?, ?>> backendClassToInterfaceMap =
+    private final Map<String, DomainToBackendAdapter<?, ?, ?>> backendClassToInterfaceMap =
         createBackendAdapters().stream()
             .collect(Collectors.toMap(
-                DomainToBackendAdapter::getBackendClass,
+                DomainToBackendAdapter::getBackendId,
                 Function.identity()
             ));
 
@@ -1000,10 +998,7 @@ public abstract class Domain {
      * Returns null if no such interface exists
      * - however, this situation should not be possible if the system is working correctly
      */
-    public final DomainToBackendAdapter<?, ?, ?> getBackendInterface(Backend<?, ?> backend){
-        return backendClassToInterfaceMap.get(
-            //Unwrapping Spring proxies and decorator backends
-            AopProxyUtils.ultimateTargetClass(backend.getActualBackend())
-        );
+    public final DomainToBackendAdapter<?, ?, ?> getBackendInterface(String backendId){
+        return backendClassToInterfaceMap.get(backendId);
     }
 }
