@@ -14,7 +14,7 @@ public class Skill implements TreeNodeWithBitmask {
     public String name;
 
     @Setter
-    public long bitmask;
+    long bitmask;
 
     @Setter
     int sortOrder = 999;
@@ -30,11 +30,18 @@ public class Skill implements TreeNodeWithBitmask {
 
     public Skill(String name) {
         this.name = name;
+        this.baseSkills = new ArrayList<>();
     }
 
     public Skill(String name, List<Skill> baseSkills) {
         this.name = name;
         this.baseSkills = new ArrayList<>(baseSkills);
+        for (Skill base : baseSkills) {
+            if (base.childSkills == null) {
+                base.childSkills = new ArrayList<>();
+            }
+            base.childSkills.add(this);
+        }
     }
 
     public boolean hasBaseSkill(Skill skill) {
