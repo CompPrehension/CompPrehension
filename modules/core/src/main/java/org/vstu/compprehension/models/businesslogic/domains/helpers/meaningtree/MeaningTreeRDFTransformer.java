@@ -4,6 +4,7 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 import its.model.DomainSolvingModel;
 import its.model.definition.ClassDef;
 import its.model.definition.DomainModel;
+import its.model.definition.InvalidDomainDefinitionException;
 import its.model.definition.ObjectDef;
 import its.model.definition.loqi.DomainLoqiWriter;
 import its.model.nodes.DecisionTree;
@@ -80,7 +81,7 @@ public class MeaningTreeRDFTransformer {
                 .map((r) -> {
                     String fullTokenName = base.getResource(BASE_TTL_PREF + r.getLeftAnswerObject().getDomainInfo()).getLocalName();
                     String[] tokenName = fullTokenName.split("_");
-                    if (fullTokenName.equals("end_token")) {
+                    if (fullTokenName.equals("end_token") || fullTokenName.equals("student_end_evaluation")) {
                         return new EndToken();
                     }
                     return tokens.get(Integer.valueOf(tokenName[tokenName.length - 1]));
@@ -188,7 +189,7 @@ public class MeaningTreeRDFTransformer {
     }
 
     private static ParsedClassName findClassName(DomainModel domainModel, Token token) {
-        if (token.type == TokenType.COMMA) {
+        if (token.type == TokenType.COMMA && !(token instanceof OperatorToken)) {
             return new ParsedClassName("separator");
         } else if (token.type == TokenType.CAST) {
             return new ParsedClassName("operator_cast");
@@ -294,6 +295,10 @@ public class MeaningTreeRDFTransformer {
                 continue;
             }
 
+            if (baseToken instanceof EndToken) {
+                continue;
+            }
+
             ObjectDef operator = baseTokensToElements.get(baseToken);
             setEnumProperty(
                     operator, "state",
@@ -320,10 +325,20 @@ public class MeaningTreeRDFTransformer {
                     && op.type != TokenType.SEPARATOR
                     && op.type != TokenType.CALLABLE_IDENTIFIER // чтобы не объединять имя функции и открывающую скобку
                     && op.type != TokenType.COMMA
+                    && op.type != TokenType.UNKNOWN
                     && !(op.type.isBrace() && !(op instanceof OperatorToken))
                     ) {
                 addRelationship(entry.getValue(), "isOperandOf",
                         String.format("element_op_%d", tokens.indexOf(op.operandOf())));
+                Map<OperandPosition, TokenList> operands = tokens.findOperandsAsList(tokens.indexOf(op.operandOf()));
+                if (op.operandPosition() != OperandPosition.CENTER && operands.containsKey(op.operandPosition()) && operands.get(op.operandPosition()).size() > 1
+                    && operands.get(op.operandPosition()).stream().filter(baseTokensToElements::containsKey).count() == operands.get(op.operandPosition()).size()
+                ) {
+                    throw new InvalidDomainDefinitionException(String.format(
+                            "Invalid operand token count (supported only one operand of another operand) for position %s, new operand: %s, existing operands: %s",
+                            op.operandPosition(), entry.getValue(), operands.get(op.operandPosition())
+                    ));
+                }
                 switch (op.operandPosition()) {
                     case LEFT -> addRelationship(entry.getValue(), "isLeftOperandOf",
                             String.format("element_op_%d", tokens.indexOf(op.operandOf())));
