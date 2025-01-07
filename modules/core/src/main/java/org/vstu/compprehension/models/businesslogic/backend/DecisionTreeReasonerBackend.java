@@ -19,6 +19,7 @@ import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -136,6 +137,14 @@ public class DecisionTreeReasonerBackend
             result.violations = mistakes;
             result.correctlyAppliedLaws = new ArrayList<>();
             result.isAnswerCorrect = mistakes.isEmpty();
+            for (DecisionTreeReasoner.DecisionTreeEvaluationResult res : backendOutput.results) {
+                String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
+                        res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
+                String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
+                        res.getNode().getMetadata().get("law").toString().split(";") : new String[0];
+                Collections.addAll(result.domainSkills, resSkill);
+                Collections.addAll(result.domainNegativeLaws, resLaw);
+            }
 
             updateJudgeInterpretationResult(result, backendOutput);
 

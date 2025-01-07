@@ -15,6 +15,8 @@ import java.util.function.BiConsumer;
  * A helper class used to solve problems from the {@link ProgrammingLanguageExpressionDTDomain}
  */
 public class ProgrammingLanguageExpressionsSolver {
+    public record SolveResult(boolean solved, List<String> laws, List<String> skills) {}
+
     public static List<ObjectDef> getUnevaluated(DomainModel domain) {
         return domain.getObjects().stream()
             .filter(obj ->
@@ -25,13 +27,26 @@ public class ProgrammingLanguageExpressionsSolver {
             .toList();
     }
 
-    public boolean solveForX(ObjectDef xObject, DomainModel domain, DecisionTree decisionTree) {
+    public SolveResult solveForX(ObjectDef xObject, DomainModel domain, DecisionTree decisionTree) {
         LearningSituation situation = new LearningSituation(
             domain,
             new HashMap<>(Collections.singletonMap("X", xObject.getReference()))
         );
-        return DecisionTreeReasoner.solve(decisionTree, situation).getLast().getNode().getValue();
+        List<DecisionTreeReasoner.DecisionTreeEvaluationResult> lst = DecisionTreeReasoner.solve(decisionTree, situation);
+        List<String> skills = new ArrayList<>();
+        List<String> laws = new ArrayList<>();
+        boolean solved = DecisionTreeReasoner.solve(decisionTree, situation).getLast().getNode().getValue();
+        for (DecisionTreeReasoner.DecisionTreeEvaluationResult res : lst) {
+            String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
+                    res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
+            String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
+                    res.getNode().getMetadata().get("law").toString().split(";") : new String[0];
+            Collections.addAll(skills, resSkill);
+            Collections.addAll(laws, resLaw);
+        }
+        return new SolveResult(solved, laws, skills);
     }
+
 
     private void solve(DomainModel domain, DecisionTree decisionTree, BiConsumer<ObjectDef, ObjectDef> retain) {
         DomainModel situationDomain = domain.copy();
