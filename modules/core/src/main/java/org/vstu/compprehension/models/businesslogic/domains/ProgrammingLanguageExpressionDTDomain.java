@@ -266,7 +266,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     private static final String STILL_UNEVALUATED_LEFT_VIOLATION_NAME = "stillUnevaluatedLeft";
 
     @Override
-    public Set<DomainToBackendInterface<?, ?, ?>> createBackendInterfaces() {
+    public Set<DomainToBackendAdapter<?, ?, ?>> createBackendAdapters() {
         return Set.of(
                 new DecisionTreeReasonerBackend.Interface() {
 

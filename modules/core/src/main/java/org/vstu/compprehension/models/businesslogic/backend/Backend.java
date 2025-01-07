@@ -2,17 +2,14 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.Service.QuestionService;
-import org.vstu.compprehension.models.businesslogic.DomainToBackendInterface;
-import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-
-import java.util.List;
 
 /**
  * A reasoning backend that determines the process a question gets judged/solved.
  * Is used via {@link QuestionService} to judge/solve a question,
  * which produces output that can then be interpreted by a {@link Domain}.<br>
- * A single {@link Domain} may interact with multiple Backends by way of {@link DomainToBackendInterface}s
+ * A single {@link Domain} may interact with multiple Backends by way of {@link DomainToBackendAdapter}s
  * @param <BackendInput> determines the format the information about a question is fed into the backend
  * @param <BackendOutput> determines the format of the backend's judge/solve output to be interpreted
  */
@@ -27,8 +24,8 @@ public interface Backend<BackendInput, BackendOutput> {
      * Judge a question, providing information on if the user answered it correctly
      * It is assumed that the argument of this method contains all the neccessary information
      * about the question and the user's response(s)
-     * (being prepared by the {@link DomainToBackendInterface#prepareBackendInfoForJudge} method)
-     * The output of this is then passed into {@link DomainToBackendInterface#interpretJudgeOutput}
+     * (being prepared by the {@link DomainToBackendAdapter#prepareBackendInfoForJudge} method)
+     * The output of this is then passed into {@link DomainToBackendAdapter#interpretJudgeOutput}
      */
     BackendOutput judge(BackendInput questionData);
 
@@ -36,8 +33,8 @@ public interface Backend<BackendInput, BackendOutput> {
      * Solve a question, adding some helpful information to it
      * which can then be stored or used later for the {@link #judge}
      * It is assumed that the argument of this method contains all the neccessary information about the question
-     * (being prepared by the {@link DomainToBackendInterface#prepareBackendInfoForSolve} method)
-     * The output of this is then passed into {@link DomainToBackendInterface#updateQuestionAfterSolve}
+     * (being prepared by the {@link DomainToBackendAdapter#prepareBackendInfoForSolve} method)
+     * The output of this is then passed into {@link DomainToBackendAdapter#updateQuestionAfterSolve}
      */
     BackendOutput solve(BackendInput questionData);
 

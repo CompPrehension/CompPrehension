@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
-import org.vstu.compprehension.models.businesslogic.DomainToBackendInterface;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.Tag;
@@ -108,7 +108,7 @@ public class QuestionService {
         Backend backend = backendFactory.getBackend(
             domain.getSolvingBackendId()
         );
-        DomainToBackendInterface usedInterface = domain.getBackendInterface(backend);
+        DomainToBackendAdapter usedInterface = domain.getBackendInterface(backend);
 
         usedInterface.updateQuestionAfterSolve(
             question,
@@ -154,7 +154,7 @@ public class QuestionService {
         Backend backend = backendFactory.getBackend(
             domain.getJudgingBackendId()
         );
-        DomainToBackendInterface usedInterface = domain.getBackendInterface(backend);
+        DomainToBackendAdapter usedInterface = domain.getBackendInterface(backend);
 
         Object output = backend.judge(usedInterface.prepareBackendInfoForJudge(question, responses, tags));
         return usedInterface.interpretJudgeOutput(question, output);

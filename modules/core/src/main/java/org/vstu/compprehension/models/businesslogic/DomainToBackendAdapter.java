@@ -15,14 +15,14 @@ import java.util.Objects;
  * <br>
  * The meaning of type parameters are identical to that of the {@link Backend}
  */
-public abstract class DomainToBackendInterface<BackendInput, BackendOutput, Back extends Backend<BackendInput, BackendOutput>> {
+public abstract class DomainToBackendAdapter<BackendInput, BackendOutput, Back extends Backend<BackendInput, BackendOutput>> {
 
     /**
      * The class of the backend this interface is defined for
      */
     protected final Class<Back> backendClass;
 
-    public DomainToBackendInterface(Class<Back> backendClass) {
+    public DomainToBackendAdapter(Class<Back> backendClass) {
         this.backendClass = backendClass;
     }
 
@@ -69,7 +69,7 @@ public abstract class DomainToBackendInterface<BackendInput, BackendOutput, Back
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DomainToBackendInterface<?, ?, ?> that = (DomainToBackendInterface<?, ?, ?>) o;
+        DomainToBackendAdapter<?, ?, ?> that = (DomainToBackendAdapter<?, ?, ?>) o;
         return Objects.equals(backendClass, that.backendClass);
     }
 

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
-import org.vstu.compprehension.models.businesslogic.DomainToBackendInterface;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
@@ -102,7 +102,7 @@ public class DecisionTreeReasonerBackend
     }
 
     public static abstract class Interface
-        extends DomainToBackendInterface<Input, Output, DecisionTreeReasonerBackend> {
+        extends DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
 
         public Interface() {
             super(DecisionTreeReasonerBackend.class);

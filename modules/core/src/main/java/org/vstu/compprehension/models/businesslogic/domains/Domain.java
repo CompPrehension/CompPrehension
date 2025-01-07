@@ -980,18 +980,18 @@ public abstract class Domain {
     //-----
 
     /**
-     * Define all the {@link DomainToBackendInterface} this domain supports
+     * Define all the {@link DomainToBackendAdapter} this domain supports
      */
-    protected Set<DomainToBackendInterface<?, ?, ?>> createBackendInterfaces(){
+    protected Set<DomainToBackendAdapter<?, ?, ?>> createBackendAdapters(){
         return Set.of(
             new FactBackend.Interface<>(JenaBackend.class, this)
         );
     }
 
-    private final Map<Class<?>, DomainToBackendInterface<?, ?, ?>> backendClassToInterfaceMap =
-        createBackendInterfaces().stream()
+    private final Map<Class<?>, DomainToBackendAdapter<?, ?, ?>> backendClassToInterfaceMap =
+        createBackendAdapters().stream()
             .collect(Collectors.toMap(
-                DomainToBackendInterface::getBackendClass,
+                DomainToBackendAdapter::getBackendClass,
                 Function.identity()
             ));
 
@@ -1000,7 +1000,7 @@ public abstract class Domain {
      * Returns null if no such interface exists
      * - however, this situation should not be possible if the system is working correctly
      */
-    public final DomainToBackendInterface<?, ?, ?> getBackendInterface(Backend<?, ?> backend){
+    public final DomainToBackendAdapter<?, ?, ?> getBackendInterface(Backend<?, ?> backend){
         return backendClassToInterfaceMap.get(
             //Unwrapping Spring proxies and decorator backends
             AopProxyUtils.ultimateTargetClass(backend.getActualBackend())

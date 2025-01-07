@@ -1,6 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
-import org.vstu.compprehension.models.businesslogic.DomainToBackendInterface;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
@@ -100,7 +100,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
 
 
     public static class Interface<Back extends FactBackend>
-        extends DomainToBackendInterface<Input, Collection<Fact>, Back>
+        extends DomainToBackendAdapter<Input, Collection<Fact>, Back>
     {
         private final Domain domain;
 
