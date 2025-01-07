@@ -183,6 +183,104 @@ public abstract class Domain {
         return concepts.getOrDefault(name, null);
     }
 
+    public List<Concept> getAllConcepts() {
+        return new ArrayList<>(concepts.values());
+    }
+
+    public List<Skill> getAllSkills() {
+        return new ArrayList<>(skills.values());
+    }
+
+    public List<Law> getAllLaws() {
+        ArrayList<Law> result = new ArrayList<>(positiveLaws.values());
+        result.addAll(negativeLaws.values());
+        return result;
+    }
+
+    public List<Tag> getAllTags() {
+        return new ArrayList<>(getTags().values());
+    }
+
+    private static List<Long> splitIntoBits(long value) {
+        List<Long> result = new ArrayList<>();
+        long mask = 1L;
+
+        for (int i = 0; i < Long.SIZE; i++) {
+            if ((value & mask) != 0) {
+                result.add(mask);
+            } else {
+                result.add(0L);
+            }
+            mask <<= 1;
+        }
+        return result;
+    }
+
+    public List<Skill> skillsFromBitmask(long bitmask) {
+        List<Long> masks = splitIntoBits(bitmask);
+        List<Skill> result = new ArrayList<>();
+        for (long mask : masks) {
+            for (Skill skill : getAllSkills()) {
+                if (skill.getBitmask() == mask) {
+                    result.add(skill);
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<Concept> conceptsFromBitmask(long bitmask) {
+        List<Long> masks = splitIntoBits(bitmask);
+        List<Concept> result = new ArrayList<>();
+        for (long mask : masks) {
+            for (Concept concept : getAllConcepts()) {
+                if (concept.getBitmask() == mask) {
+                    result.add(concept);
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<NegativeLaw> negativeLawFromBitmask(long bitmask) {
+        List<Long> masks = splitIntoBits(bitmask);
+        List<NegativeLaw> result = new ArrayList<>();
+        for (long mask : masks) {
+            for (Law law : getAllLaws()) {
+                if (law instanceof NegativeLaw negLaw && law.getBitmask() == mask) {
+                    result.add(negLaw);
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<PositiveLaw> positiveLawFromBitmask(long bitmask) {
+        List<Long> masks = splitIntoBits(bitmask);
+        List<PositiveLaw> result = new ArrayList<>();
+        for (long mask : masks) {
+            for (Law law : getAllLaws()) {
+                if (law instanceof PositiveLaw posLaw && law.getBitmask() == mask) {
+                    result.add(posLaw);
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<Tag> tagsFromBitmask(long bitmask) {
+        List<Long> masks = splitIntoBits(bitmask);
+        List<Tag> result = new ArrayList<>();
+        for (long mask : masks) {
+            for (Tag tag : getAllTags()) {
+                if (tag.getBitmask() == mask) {
+                    result.add(tag);
+                }
+            }
+        }
+        return result;
+    }
+
     public Skill getSkill(String name) {
         return skills.getOrDefault(name, null);
     }
@@ -644,6 +742,10 @@ public abstract class Domain {
          * All violations
          */
         public List<ViolationEntity> violations;
+
+        public List<String> domainSkills = new ArrayList<>();
+
+        public List<String> domainNegativeLaws = new ArrayList<>();
 
         public List<HyperText> explanations;
         /**
