@@ -1,10 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,6 +18,8 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -28,9 +27,9 @@ import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.StreamSupport;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -59,11 +58,17 @@ public class ExpressionDTDomainMetadataValidationTest {
     public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
 
     @BeforeAll
-    public void init() {
+    public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
-        exercise = StreamSupport.stream(
-                exerciseRepository.findAll().spliterator(), false
-        ).filter((ExerciseEntity exercise) -> exercise.getDomain().getShortName().equals("expression_dt")).toList().getFirst();
+        exercise = new ExerciseEntity();
+        exercise.setDomain(domain.getDomainEntity());
+        exercise.setBackendId("DTReasoner");
+        exercise.setTags("");
+        exercise.setOptions(new ExerciseOptionsEntity(null, true,
+                true, true, true,
+                true));
+        exercise.setName("test");
+        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
         exercise.setStrategyId("StaticStrategy");
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
@@ -72,6 +77,12 @@ public class ExpressionDTDomainMetadataValidationTest {
         attempt.setExercise(exercise);
         attempt.setUser(userRepository.findAll().iterator().next());
         exerciseAttemptRepository.save(attempt);
+    }
+
+    @AfterAll
+    public void tearDown() {
+        exerciseAttemptRepository.delete(attempt);
+        exerciseRepository.delete(exercise);
     }
 
     @Test
