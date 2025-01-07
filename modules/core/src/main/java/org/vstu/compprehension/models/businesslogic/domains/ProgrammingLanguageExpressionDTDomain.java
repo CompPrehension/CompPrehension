@@ -74,17 +74,17 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         addSkill("left_operand_needed", List.of(nearestOperandNeeded));
         addSkill("right_operand_needed", List.of(nearestOperandNeeded));
 
-        Skill competingOperandPresent = addSkill("competing_operand_present");
-        addSkill("left_competing_operand_present", List.of(competingOperandPresent));
-        addSkill("right_competing_operand_present", List.of(competingOperandPresent));
+        Skill competingOperandPresent = addSkill("competing_operator_present");
+        addSkill("left_competing_operator_present", List.of(competingOperandPresent));
+        addSkill("right_competing_operator_present", List.of(competingOperandPresent));
 
-        Skill currentOperatorEnclosed = addSkill("current_operand_enclosed");
-        addSkill("left_operand_enclosed", List.of(currentOperatorEnclosed));
-        addSkill("right_operand_enclosed", List.of(currentOperatorEnclosed));
+        Skill currentOperatorEnclosed = addSkill("current_operator_enclosed");
+        addSkill("left_operator_enclosed", List.of(currentOperatorEnclosed));
+        addSkill("right_operator_enclosed", List.of(currentOperatorEnclosed));
 
         Skill currentParenthesizedNearestNot = addSkill("is_current_parenthesized_nearest_not");
         addSkill("is_current_parenthesized_left_not", List.of(currentParenthesizedNearestNot));
-        addSkill("is_current_parenthesized_left_not", List.of(currentParenthesizedNearestNot));
+        addSkill("is_current_parenthesized_right_not", List.of(currentParenthesizedNearestNot));
 
         Skill nearestParenthesizedCurrentNot = addSkill("is_nearest_parenthesized_current_not");
         addSkill("is_left_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
@@ -102,16 +102,17 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         addSkill("associativity_without_left_opposing_operand", List.of(associativityWithoutOpposingOperand));
         addSkill("associativity_without_right_opposing_operand", List.of(associativityWithoutOpposingOperand));
 
-        addSkill("strict_order_operators_present");
+        Skill strictOrder = addSkill("strict_order_operators_present");
+        addSkill("expression_strict_order_operators_present", List.of(strictOrder));
+        addSkill("earlyfinish_strict_order_operators_present", List.of(strictOrder));
+
         addSkill("is_current_operator_strict_order");
 
         Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated");
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_solving", List.of(strictOrderFirstOperandToBeEvaluated));
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_earlyfinish", List.of(strictOrderFirstOperandToBeEvaluated));
 
-        Skill isFirstOperandOfStrictOrderOperatorFullyEvaluated = addSkill("is_first_operand_of_strict_order_operator_fully_evaluated");
-        addSkill(isFirstOperandOfStrictOrderOperatorFullyEvaluated.name + "_while_solving", List.of(isFirstOperandOfStrictOrderOperatorFullyEvaluated));
-        addSkill(isFirstOperandOfStrictOrderOperatorFullyEvaluated.name + "_while_earlyfinish", List.of(isFirstOperandOfStrictOrderOperatorFullyEvaluated));
+        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated");
 
         Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order");
         addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_solving", List.of(noOmittedOperandsDespiteStrictOrder));
@@ -134,6 +135,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
             val name = t.getName();
             if (name2bit.containsKey(name)) {
                 t.setBitmask(name2bit.get(name));
+            } else {
+                throw new RuntimeException("Invalid bitmask for skill " + name);
             }
         }
     }
@@ -659,7 +662,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         DecisionTree dt = domainSolvingModel.getDecisionTree();
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
         Optional<ObjectDef> found = domain.getObjects().stream().filter(domainObj ->
-                domainObj.getClazz().isSubclassOf("operator") && solver.solveForX(domainObj, domain, dt)).findFirst();
+                domainObj.getClazz().isSubclassOf("operator") && solver.solveForX(domainObj, domain, dt).solved()).findFirst();
         if (found.isPresent()) {
             String[] objName = found.get().getName().split("_");
             int tokenPos = Integer.parseInt(objName[objName.length - 1]);
@@ -780,6 +783,14 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         name2bit.put("no_current_in_many_central_operands", 0x200000000L);
         name2bit.put("no_comma_in_central_operands", 0x400000000L);
         name2bit.put("previous_central_operands_are_unevaluated", 0x800000000L);
+        name2bit.put("expression_strict_order_operators_present", 0x1000000000L);
+        name2bit.put("earlyfinish_strict_order_operators_present", 0x2000000000L);
+        name2bit.put("strict_order_first_operand_to_be_evaluated_while_solving", 0x4000000000L);
+        name2bit.put("strict_order_first_operand_to_be_evaluated_while_earlyfinish", 0x8000000000L);
+        name2bit.put("no_omitted_operands_despite_strict_order_while_solving", 0x10000000000L);
+        name2bit.put("no_omitted_operands_despite_strict_order_while_earlyfinish", 0x20000000000L);
+        name2bit.put("should_strict_order_current_operand_be_omitted_while_solving", 0x40000000000L);
+        name2bit.put("should_strict_order_current_operand_be_omitted_while_earlyfinish", 0x80000000000L);
         return name2bit;
     }
 }

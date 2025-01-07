@@ -692,7 +692,6 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     static Set<String> findSkills(TokenList tokens) {
         Set<String> set = new TreeSet<>();
-        set.add("expression_fully_evaluated");
         for (int i = 0; i < tokens.size(); i++) {
             Token t = tokens.get(i);
             if (t instanceof OperandToken op && op.operandPosition() == OperandPosition.CENTER) {
@@ -726,9 +725,9 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("is_current_parenthesized_nearest_not");
                 }
 
-                if (foundNearestOp != null && foundNearestOp.precedence != op.operandOf().precedence) {
+                if (foundNearestOp != null && op.operandOf() != null && foundNearestOp.precedence != op.operandOf().precedence) {
                     set.add("order_determined_by_precedence");
-                } else {
+                } else if (op.operandOf() != null) {
                     if (op.operandOf().arity == OperatorArity.UNARY) {
                         set.add("associativity_without_opposing_operand");
                     } else {
@@ -738,7 +737,7 @@ public class MeaningTreeOrderQuestionBuilder {
             }
             if (t instanceof OperatorToken op && op.isStrictOrder) {
                 set.add("strict_order_operators_present");
-                set.add("is_current_strict_order");
+                set.add("is_current_operator_strict_order");
                 Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
                 set.add("strict_order_first_operand_to_be_evaluated");
                 if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation())
