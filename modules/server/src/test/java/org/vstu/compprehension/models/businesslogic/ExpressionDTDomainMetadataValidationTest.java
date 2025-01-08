@@ -11,6 +11,8 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
@@ -25,6 +27,7 @@ import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
+import org.vstu.meaningtree.exceptions.MeaningTreeException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,7 +99,13 @@ public class ExpressionDTDomainMetadataValidationTest {
                 }
                 Question q = prepareQuestion(meta);
                 SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(meta.getTagBits(), domain);
-                String qInfo = String.format("[Question metadata id %d, lang %s, name %s]: ", meta.getId(), lang.toString(), meta.getName());
+                String text;
+                try {
+                    text = MeaningTreeUtils.viewExpression(MeaningTreeRDFHelper.backendFactsToMeaningTree(q.getStatementFacts()), lang);
+                } catch (MeaningTreeException e) {
+                    text = meta.getName();
+                }
+                String qInfo = String.format("[Question metadata id %d, lang %s, text: %s]: ", meta.getId(), lang.toString(), text);
                 List<AnswerObjectEntity> ansObj = q.getAnswerObjects().stream()
                         .filter((AnswerObjectEntity obj) -> !obj.getDomainInfo().equals("end_token")).toList();
                 List<List<AnswerObjectEntity>> combinations = generateAllCombinations(ansObj);
