@@ -637,17 +637,16 @@ public class MeaningTreeOrderQuestionBuilder {
             }
 
             if (token instanceof OperatorToken op) {
-                if (
-                        lastOperatorToken != null
-                                && lastOperatorToken.isStrictOrder
-                                && (op.precedence < lastOperatorToken.precedence || isInComplex)
-                ) {
+                if (op.operandOf() != null && op.operandOf().isStrictOrder) {
                     set.add("error_base_student_error_strict_operands_order");
                     set.add("error_base_student_error_unevaluated_operand");
                 }
 
-                if (token.type == TokenType.SUBSCRIPT_OPENING_BRACE || token.type == TokenType.SUBSCRIPT_CLOSING_BRACE) {
+                if (op.operandOf() != null &&
+                        (op.operandOf().type == TokenType.SUBSCRIPT_OPENING_BRACE ||
+                                op.operandOf().type == TokenType.SUBSCRIPT_CLOSING_BRACE)) {
                     set.add("error_base_enclosing_operators");
+                    set.add("error_base_student_error_unevaluated_operand");
                 }
 
                 if (isInComplex) {
@@ -748,26 +747,27 @@ public class MeaningTreeOrderQuestionBuilder {
                 }
             }
             if (t instanceof OperatorToken op && op.isStrictOrder) {
-                set.add("strict_order_operators_present");
-                set.add("is_current_operator_strict_order");
                 Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
-                set.add("strict_order_first_operand_to_be_evaluated");
-                if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation())
-                        .asSublist()
-                        .stream()
-                        .anyMatch((Token tt) -> tt instanceof OperatorToken)) {
-                    set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
-                }
-                if (op instanceof ComplexOperatorToken) {
-                    set.add("no_omitted_operands_despite_strict_order");
-                    set.add("should_strict_order_current_operand_be_omitted");
-                }
                 if (op.type == TokenType.CALL_OPENING_BRACE || op.type == TokenType.CALL_CLOSING_BRACE) {
                     set.add("are_central_operands_strict_order");
                     set.add("no_comma_in_central_operands");
                     if (ops.containsKey(OperandPosition.CENTER) && ops.get(OperandPosition.CENTER).length() > 1) {
                         set.add("no_current_in_many_central_operands");
                         set.add("previous_central_operands_are_unevaluated");
+                    }
+                } else {
+                    set.add("strict_order_operators_present");
+                    set.add("is_current_operator_strict_order");
+                    set.add("strict_order_first_operand_to_be_evaluated");
+                    if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation())
+                            .asSublist()
+                            .stream()
+                            .anyMatch((Token tt) -> tt instanceof OperatorToken)) {
+                        set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
+                    }
+                    if (op instanceof ComplexOperatorToken) {
+                        set.add("no_omitted_operands_despite_strict_order");
+                        set.add("should_strict_order_current_operand_be_omitted");
                     }
                 }
             }
