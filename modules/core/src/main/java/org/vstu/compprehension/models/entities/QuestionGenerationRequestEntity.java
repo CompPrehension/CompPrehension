@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 
 import java.util.Date;
@@ -19,7 +21,7 @@ import java.util.Date;
     @Index(name = "question_generation_requests_search_idx", columnList = "status,domain_shortname,created_at,questions_to_generate")
 })
 public class QuestionGenerationRequestEntity {
-    public QuestionGenerationRequestEntity(QuestionBankSearchRequest questionRequest, int questionsToGenerate, Long exerciseAttemptId) {
+    public QuestionGenerationRequestEntity(@NotNull QuestionBankSearchRequest questionRequest, int questionsToGenerate, @Nullable Long exerciseAttemptId) {
         this.questionRequest = questionRequest;
         this.questionsToGenerate = questionsToGenerate;
         this.exerciseAttemptId = exerciseAttemptId;

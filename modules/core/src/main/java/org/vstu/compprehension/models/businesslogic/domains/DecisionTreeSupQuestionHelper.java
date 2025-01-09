@@ -8,6 +8,7 @@ import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
 import its.questions.gen.strategies.QuestionAutomata;
 import lombok.val;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
@@ -104,7 +105,7 @@ public class DecisionTreeSupQuestionHelper {
                         : state.getId()
         );
 
-        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, mainQuestion.getExerciseAttempt());
+        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, mainQuestion.getExerciseAttempt(), userLang);
         if(response.getQuestion() != null){
             supplementaryChain.setSupplementaryQuestion(response.getQuestion().getQuestionData());
         }
@@ -145,7 +146,7 @@ public class DecisionTreeSupQuestionHelper {
 
     private static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
     private static final int aggregationShift = 2;
-    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, ExerciseAttemptEntity exerciseAttempt){
+    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
         QuestionEntity generated = new QuestionEntity();
         generated.setQuestionText(q.getText());
         //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
@@ -163,7 +164,7 @@ public class DecisionTreeSupQuestionHelper {
             for(AnswerObjectEntity a : answers){
                 a.setAnswerId(a.getAnswerId() + aggregationShift); //чтобы избежать пересечения с answerId ответов в aggregationMathching
             }
-            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(exerciseAttempt.getUser().getPreferred_language().toLocaleString()));
+            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(language.toLocaleString()));
             for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
                 AnswerObjectEntity ans = new AnswerObjectEntity();
                 ans.setAnswerId(m.getValue());
@@ -198,9 +199,9 @@ public class DecisionTreeSupQuestionHelper {
                         : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
         );
     }
-    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, ExerciseAttemptEntity exerciseAttempt){
+    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
         if(q instanceof Question){
-            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseAttempt);
+            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseAttempt, language);
             return new SupplementaryResponse(supQuestion);
         }
         else {

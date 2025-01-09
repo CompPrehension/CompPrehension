@@ -24,9 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Модель вопроса для сериализации
@@ -102,7 +102,7 @@ public class SerializableQuestion {
                         ).toList()).build())
                 .concepts(question.getConcepts())
                 .negativeLaws(question.getNegativeLaws())
-                .tags(question.getTags().stream().toList())
+                .tags(question.getTagNames())
                 .build();
 
         return builder.build();
@@ -134,7 +134,7 @@ public class SerializableQuestion {
                         .isRightCol(a.isRightCol())
                         .concept(a.getConcept())
                         .build())
-                .toList());
+                .collect(Collectors.toCollection(ArrayList::new)));
         questionEntity.setInteractions(new ArrayList<>());
         questionEntity.setDomainEntity(domain.getDomainEntity());
         questionEntity.setStatementFacts(questionData.getStatementFacts()
@@ -145,12 +145,12 @@ public class SerializableQuestion {
                         s.getVerb(),
                         s.getObjectType(),
                         s.getObject()))
-                .toList());
+                .collect(Collectors.toCollection(ArrayList::new)));
         questionEntity.setSolutionFacts(new ArrayList<>());
+        questionEntity.setTags(getTags());
 
         var result = new Question(questionEntity, domain);
         result.setConcepts(new ArrayList<>(getConcepts()));
-        result.setTags(new HashSet<>(getTags()));
         result.setNegativeLaws(new ArrayList<>(Optional.ofNullable(getNegativeLaws()).orElse(List.of())));
         return result;
     }

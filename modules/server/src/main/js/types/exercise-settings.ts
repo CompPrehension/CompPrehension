@@ -150,12 +150,19 @@ export const TStrategy: io.Type<Strategy> = io.type({
     }),
 })
 
-export type QuestionBankCount = {
+export type QuestionBankSearchResult = {
     count: number,
     topRatedCount: number,
+    questions: {
+        metadataId: number,
+        name: string,
+    }[],
 }
-export const TQuestionBankCount: io.Type<QuestionBankCount> = io.type({
+export const TQuestionBankSearchResult: io.Type<QuestionBankSearchResult> = io.type({
     count: io.number,
     topRatedCount: io.number,
+    questions: io.array(io.type({
+        metadataId: io.number,
+        name: io.string,
+    })),
 })
-

@@ -8,12 +8,25 @@ import i18next from "i18next";
 import {initReactI18next} from "react-i18next";
 import {SurveyController} from "./controllers/exercise/survey-controller";
 import {ExerciseSettingsController} from "./controllers/exercise/exercise-settings";
+import { QuestionController } from "./controllers/exercise/question-controller";
+import { UserController } from "./controllers/exercise/user-controller";
 
 // init DI container
+const isSandbox = () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null;
 container.register(ExerciseController, { 
-    useFactory: () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null
+    useFactory: () => isSandbox()
         ? new TestExerciseController() 
         : new ExerciseController()
+});
+container.register(QuestionController, { 
+    useFactory: () => isSandbox()
+        ? new TestExerciseController() 
+        : new QuestionController()
+});
+container.register(UserController, { 
+    useFactory: () => isSandbox()
+        ? new TestExerciseController() 
+        : new UserController()
 });
 container.register(QuestionStore, QuestionStore);
 container.registerSingleton(ExerciseStore);
@@ -69,6 +82,7 @@ const resources = {
             exercisesettings_stageN_qnumber: "Number of questions",
             exercisesettings_stageN_concepts: "Concepts",
             exercisesettings_stageN_laws: "Laws",
+            exercisesettings_stageN_matchedQuestionExamples: "Question examples",
             exercisesettings_addStage: "Add stage",
             exercisesettings_removeStage: "Remove stage",
             exercisesettings_save: "Save",
@@ -130,6 +144,7 @@ const resources = {
             exercisesettings_stageN_qnumber: "Количество вопросов",
             exercisesettings_stageN_concepts: "Концепты",
             exercisesettings_stageN_laws: "Законы",
+            exercisesettings_stageN_matchedQuestionExamples: "Примеры вопросов",
             exercisesettings_addStage: "Добавить стадию",
             exercisesettings_removeStage: "Удалить стадию",
             exercisesettings_save: "Сохранить",
@@ -191,6 +206,7 @@ const resources = {
             exercisesettings_stageN_qnumber: "Number of questions",
             exercisesettings_stageN_concepts: "Concepts",
             exercisesettings_stageN_laws: "Laws",
+            exercisesettings_stageN_matchedQuestionExamples: "Question examples",
             exercisesettings_addStage: "Add stage",
             exercisesettings_removeStage: "Remove stage",
             exercisesettings_save: "Save",

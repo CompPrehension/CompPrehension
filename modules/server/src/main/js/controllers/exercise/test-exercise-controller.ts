@@ -16,9 +16,11 @@ import {RequestError} from "../../types/request-error";
 import {delayPromise} from "../../utils/helpers";
 import {Exercise} from "../../types/exercise";
 import {UserInfo} from "../../types/user-info";
+import { IQuestionController } from "./question-controller";
+import { IUserController } from "./user-controller";
 
 @injectable()
-export class TestExerciseController implements IExerciseController {
+export class TestExerciseController implements IExerciseController, IQuestionController, IUserController {
     async getCurrentUser(): PromiseEither<RequestError, UserInfo> {
         return E.right({
             id: 999999,
@@ -232,8 +234,13 @@ export class TestExerciseController implements IExerciseController {
             return E.right(result);
         return E.left({ message: "No such question" });
     }
-    async generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
-        console.log(`generateQuestion?attemptId=${attemptId}`);
+    async generateQuestionByAttempt(attemptId: number): PromiseEither<RequestError, Question> {
+        console.log(`generateQuestionByAttempt?attemptId=${attemptId}`);
+        await delayPromise(3000);
+        return E.left({ message:"Method not implemented."});
+    }
+    async generateQuestionByMetadata(metadataId: number): PromiseEither<RequestError, Question> {
+        console.log(`generateQuestionByMetadata?metadataId=${metadataId}`);
         await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }

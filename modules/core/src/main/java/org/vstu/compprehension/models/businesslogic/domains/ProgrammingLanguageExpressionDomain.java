@@ -425,7 +425,54 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return fl;
     }
 
-    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
+
+    @Override
+    public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
+                                          @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull Language userLanguage) {
+        HashSet<String> conceptNames = new HashSet<>();
+        for (Concept concept : questionRequest.getTargetConcepts()) {
+            conceptNames.add(concept.getName());
+        }
+
+        List<QuestionMetadataEntity> foundQuestions = null;
+        if (!conceptNames.contains("SystemIntegrationTest")) {
+            try {
+                // new version - invoke rdfStorage search
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1);
+
+                // search again if nothing found with "TO_COMPLEX"
+                SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+                if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                    foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1);
+                }
+            } catch (Exception e) {
+                // file storage was not configured properly...
+                log.error("Error searching questions - {}", e.getMessage(), e);
+                foundQuestions = new ArrayList<>();
+            }
+        }
+
+        if (foundQuestions == null || foundQuestions.isEmpty()) {
+            throw new IllegalStateException("No valid questions found");
+        }
+
+        var res = foundQuestions.getFirst();
+        log.info("Expression domain has prepared the question: {}", res.getName());
+        return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage);
+    }
+
+    @Override
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
+                                          @NotNull List<Tag> tags,
+                                          @NotNull Language userLang) {
+        var questionData = metadata.getQuestionData();
+        return makeQuestion(questionData.getData().toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
+    }
+
+    private Question makeQuestion(Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(true)
@@ -471,6 +518,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setMetadata(q.getMetadata());
+        entity.setTags(tags.stream().map(Tag::getName).collect(Collectors.toList()));
 
         //TODO: remove this hack supporting old format
         if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
@@ -580,42 +628,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // replace with generated html
         String text = ExpressionToHtmlEnablingButtonDuplicates(expression);
         return text;
-    }
-
-    @Override
-    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
-
-        HashSet<String> conceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getTargetConcepts()) {
-            conceptNames.add(concept.getName());
-        }
-
-        List<Question> foundQuestions = null;
-        if (!conceptNames.contains("SystemIntegrationTest")) {
-            try {
-                // new version - invoke rdfStorage search
-                foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
-
-                // search again if nothing found with "TO_COMPLEX"
-                SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
-                if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
-                }
-            } catch (Exception e) {
-                // file storage was not configured properly...
-                log.error("Error searching questions - {}", e.getMessage(), e);
-                foundQuestions = new ArrayList<>();
-            }
-        }
-        
-        if (foundQuestions == null || foundQuestions.isEmpty()) {
-            throw new IllegalStateException("No valid questions found");
-        }
-
-        var res = foundQuestions.getFirst();
-        log.info("Expression domain has prepared the question: {}", res.getQuestionName());
-        return makeQuestionCopy(res, exerciseAttempt, userLanguage);
     }
 
     @Override
@@ -1244,7 +1256,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ArrayList<AnswerObjectEntity> explain = new ArrayList<>();
         TreeMap<Integer, String> posToExplanation = new TreeMap<>();
         
-        Language lang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
+        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
+                .map(a -> a.getUser().getPreferred_language())
+                .orElse(Language.ENGLISH);
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
@@ -1513,7 +1527,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
-        if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
+        var attempt = sourceQuestion.getExerciseAttempt();
+        if (attempt == null || attempt.getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {
@@ -1533,7 +1548,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v)).build())
                     .findFirst()
                     .orElse(null);
-            val locale = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language().toLocale();
+            val locale = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
+                    .map(a -> a.getUser().getPreferred_language())
+                    .orElse(Language.ENGLISH);
             val message = judgeResult.isAnswerCorrect
                     ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
                     : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
@@ -1565,7 +1582,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Question res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            Question copy = makeQuestionCopy(res, exerciseAttemptEntity, userLang);
+            Question copy = makeQuestion(res, exerciseAttemptEntity, List.of(), userLang);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
         }
 
@@ -2490,8 +2507,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // finished with the results of external Python tool.
 
         List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
-
-        question.getTags().addAll(tagNames);
+        entity.setTags(tagNames);
 
         entity.setSolutionFacts(null);
 
@@ -2506,7 +2522,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setOptions(options);
         }
 
-        question.setTags(new HashSet<>(tagNames));
         question.setNegativeLaws(new ArrayList<>(violations));
         question.setConcepts(new ArrayList<>(concepts));
         
@@ -2727,7 +2742,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
+        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
+            .map(a -> a.getUser().getPreferred_language())
+            .orElse(Language.ENGLISH);
 
         ArrayList<HyperText> result = new ArrayList<>();
 

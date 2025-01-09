@@ -65,4 +65,9 @@ public class FakeQuestionDataRepository implements QuestionDataRepository {
     public void deleteAll() {
 
     }
+
+    @Override
+    public Optional<QuestionDataEntity> findByMetadataId(int questionMetadataId) {
+        return Optional.empty();
+    }
 }

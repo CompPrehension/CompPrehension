@@ -166,11 +166,22 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
 
     @Override
-    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
-        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(exerciseAttempt.getExercise().getTags());
+    public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
+                                          @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull Language userLanguage) {
+        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(super.makeQuestion(exerciseAttempt,
-                questionRequest, tags, userLanguage), exerciseAttempt, qMetaStorage, lang, this);
+        return QuestionDynamicDataAppender.appendQuestionData(super.makeQuestion(questionRequest, exerciseAttempt, userLanguage), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
+    }
+
+    @Override
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
+                                          @NotNull List<Tag> tags,
+                                          @NotNull Language userLang) {
+        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
+
+        return QuestionDynamicDataAppender.appendQuestionData(super.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
     }
 
     @SneakyThrows
@@ -600,9 +611,10 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
-        SupportedLanguage plang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(
-                question.getQuestionData().getExerciseAttempt().getExercise().getTags());
+        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
+            .map(a -> a.getUser().getPreferred_language())
+            .orElse(Language.ENGLISH);
+        SupportedLanguage plang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(question.getTagNames());
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -663,7 +675,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 .reduce((first, second) -> second);
         List<ResponseEntity> responses = new ArrayList<>();
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
-        List<Tag> tags = q.getQuestionData().getExerciseAttempt().getExercise().getTags().stream().map(this::getTag).toList();
+        List<Tag> tags = q.getTags();
         DomainModel domain = MeaningTreeRDFTransformer.questionToDomainModel(
                 domainSolvingModel, q.getStatementFacts(), responses, tags
         );
@@ -708,8 +720,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
 
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
-        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getExerciseAttempt().
-                getExercise().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
+        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 domainSolvingModel,
                 new Question(lastMainQuestionInteraction.getQuestion(), this).getStatementFacts(),

@@ -17,6 +17,7 @@ import {Link} from "react-router-dom";
 import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
 import {Header} from "../components/common/header";
+import { API_URL } from "../appconfig";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -332,9 +333,9 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     <div>
                         <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
                         {
-                            stage.bankLoadingState === 'IN_PROGRESS' || stage.bankQuestionsCount === null
+                            stage.bankLoadingState === 'IN_PROGRESS' || stage.bankSearchResult === null
                                 ? <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
-                                : <span>{`${stage.bankQuestionsCount.count} (${stage.bankQuestionsCount?.topRatedCount})`}</span>
+                                : <span>{`${stage.bankSearchResult.count} (${stage.bankSearchResult?.topRatedCount})`}</span>
                         }
                     </div>
                 </div>
@@ -401,6 +402,20 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     </div>
                     || null
                 }
+                
+                <div className="form-group">
+                    <label className="font-weight-bold">{t('exercisesettings_stageN_matchedQuestionExamples')}</label>
+                    {
+                        stage.bankLoadingState === 'IN_PROGRESS' 
+                            && <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
+                            || <div className="list-group">
+                                {stage.bankSearchResult?.questions.map((q, i) =>
+                                    <div key={i} className="list-group-item">
+                                        <a target="_blank" href={`${API_URL}/pages/question?metadataId=${q.metadataId}`}>{q.name}</a>
+                                    </div>)}
+                               </div>
+                    }
+                </div>
                 {showDeleteBtn &&
                     <div className="d-flex justify-content-end">
                         <button type="button" className="btn btn-danger" onClick={() => store.removeStage(stageIdx)}>{t('exercisesettings_removeStage')}</button>

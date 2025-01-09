@@ -7,7 +7,7 @@ import { GenerateSupQuestion } from "./generate-sup-question";
 import { observer } from "mobx-react";
 import { Alert, Badge } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { notNulAndUndefinded } from "../../utils/helpers";
+import { isNullOrUndefined } from "../../utils/helpers";
 
 type FeedbackProps = { 
     store: QuestionStore,
@@ -48,8 +48,8 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                         <div>
                             {feedback.grade !== null && <><Badge variant="primary">{t('grade_feeback')}: {feedback.grade}</Badge>{' '}</>}
                             {feedback.correctSteps !== null && <><Badge variant="success">{t('correctsteps_feeback')}: {feedback.correctSteps}</Badge>{' '}</>}
-                            {notNulAndUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0 && <><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</>}
-                            {notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0 && <><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</>}
+                            {!isNullOrUndefined(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0 && <><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</>}
+                            {!isNullOrUndefined(feedback.stepsLeft) && feedback.stepsLeft > 0 && <><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</>}
                         </div>
                     }
                 </>

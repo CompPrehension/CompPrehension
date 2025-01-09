@@ -166,7 +166,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(attempt, r, tags, Language.ENGLISH);
+        Question q = domain.makeQuestion(r, attempt, Language.ENGLISH);
 
         // Check tree correctness
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
@@ -200,7 +200,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(attempt, r, tags, Language.ENGLISH);
+        Question q = domain.makeQuestion(r, attempt, Language.ENGLISH);
 
         // Check tree correctness
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());

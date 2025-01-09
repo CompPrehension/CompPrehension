@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Answer } from "../../../types/answer";
 import { OrderQuestionFeedback } from "../../../types/feedback";
 import { OrderQuestion } from "../../../types/question";
-import { notNulAndUndefinded } from "../../../utils/helpers";
+import { isNullOrUndefined } from "../../../utils/helpers";
 import { Optional } from "../optional";
 
 type OrderQuestionComponentProps = {
@@ -107,7 +107,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
     }, [question.questionId, getAnswers().length])
     
     const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
-    const isTraceVisible = options.showTrace && notNulAndUndefinded(trace) && trace.length > 0;
+    const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;
 
     return (
         <div id={`question_${question.questionId}`}>

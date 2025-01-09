@@ -1,9 +1,7 @@
 package org.vstu.compprehension.adapters;
 
 import com.google.common.collect.Lists;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -19,7 +17,8 @@ import java.util.Set;
 @Component
 @Singleton
 public class DomainFactoryImpl implements DomainFactory {
-    private @NotNull HashMap<String, Domain> domainToClassMap = new HashMap<>();
+    private @NotNull HashMap<String, Domain> domainIdToClassMap = new HashMap<>();
+    private @NotNull HashMap<String, Domain> domainShortNameToClassMap = new HashMap<>(); // TODO remove this
 
     @Autowired
     public DomainFactoryImpl(DomainRepository domainRepository,
@@ -38,7 +37,8 @@ public class DomainFactoryImpl implements DomainFactory {
                     localizationService,
                     randomProvider,
                     questionStorage);
-            domainToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
+            domainIdToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
+            domainShortNameToClassMap.put(progExprDomainEntity.getShortName(), progExprDomain);
         }
         {
             var controlFlowDomainEntity = domains
@@ -50,7 +50,8 @@ public class DomainFactoryImpl implements DomainFactory {
                     localizationService,
                     randomProvider,
                     questionStorage);
-            domainToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
+            domainIdToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
+            domainShortNameToClassMap.put(controlFlowDomainEntity.getShortName(), controlFlowDomain);
         }
         {
             var dtDomainEntity = domains
@@ -62,7 +63,8 @@ public class DomainFactoryImpl implements DomainFactory {
                     localizationService,
                     randomProvider,
                     questionStorage);
-            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
+            domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
+            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
         }
         {
             var dtDomainEntity = domains
@@ -74,26 +76,29 @@ public class DomainFactoryImpl implements DomainFactory {
                     localizationService,
                     randomProvider,
                     questionStorage);
-            domainToClassMap.put(dtDomain.getDomainId(), dtDomain);
+            domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
+            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
         }
 
     }
 
     @NotNull
     public Set<String> getDomainIds() {
-        return domainToClassMap.keySet();
+        return domainIdToClassMap.keySet();
     }
 
     public @NotNull Domain getDomain(@NotNull String domainId) {
-        if (!domainToClassMap.containsKey(domainId)) {
-            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve domain with id %s", domainId));
+        if (!domainIdToClassMap.containsKey(domainId) && !domainShortNameToClassMap.containsKey(domainId)) {
+            throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));
         }
 
-        try {
-            val domain = domainToClassMap.get(domainId);
-            return domain;
-        } catch (Exception e) {
-            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve domain with id %s", domainId));
+        var domain = domainIdToClassMap.get(domainId);
+        if (domain == null) {
+            domain = domainShortNameToClassMap.get(domainId);
         }
+        if (domain == null) {
+            throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));
+        }
+        return domain;
     }
 }

@@ -5,20 +5,19 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.dto.QuestionBankCountDto;
-import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.dto.QuestionBankSearchResultDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.entities.QuestionDataEntity;
+import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 @Log4j2
 public class QuestionBank {
@@ -112,18 +111,24 @@ public class QuestionBank {
         return questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
     }
 
-    public QuestionBankCountDto countQuestionsWithTopRated(QuestionRequest qr) {
+    public QuestionBankSearchResultDto getStatsByQuestionRequest(QuestionRequest qr, int limit) {
         var bankSearchRequest = createBankSearchRequest(qr);
         var ordinaryCount = questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
         var topRatedCount = questionMetadataRepository.countTopRatedQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
-        return new QuestionBankCountDto(ordinaryCount, topRatedCount);
+        var metadata = questionMetadataRepository.findMetadata(bankSearchRequest, COMPLEXITY_WINDOW, limit)
+            .stream()
+            .map(m -> new QuestionBankSearchResultDto.QuestionMetadataDto(m.getId(), m.getName()))
+            .toList();
+        return new QuestionBankSearchResultDto(ordinaryCount, topRatedCount, metadata);
     }
 
-    public List<Question> searchQuestions(Domain domain, ExerciseAttemptEntity attempt, QuestionRequest qr, int limit) {
+    public List<QuestionMetadataEntity> searchQuestions(@NotNull QuestionRequest qr, int limit) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
         
-        var prevQuestionsMetadata = questionMetadataRepository.findLastNExerciseAttemptMeta(attempt.getId(), 4);
+        var prevQuestionsMetadata = qr.getExerciseAttemptId() != null
+            ? questionMetadataRepository.findLastNExerciseAttemptMeta(qr.getExerciseAttemptId(), 4)
+            : List.<QuestionMetadataEntity>of();
 
         long targetConceptsBitmaskInPlan = bankSearchRequest.getTargetConceptsBitmask();
         long targetConceptsBitmask = targetConceptsBitmaskInPlan;
@@ -145,9 +150,7 @@ public class QuestionBank {
         targetLawsBitmask &= ~deniedLawsBitmask;
 
         // use violations from all questions is exercise attempt
-        long unwantedViolationsBitmask = attempt.getQuestions().stream()
-                .map(QuestionEntity::getMetadata)
-                .filter(Objects::nonNull)
+        long unwantedViolationsBitmask = prevQuestionsMetadata.stream()
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
 
@@ -180,7 +183,7 @@ public class QuestionBank {
         int generatorThreshold = 7;
         if (foundQuestionMetas.size() < generatorThreshold) {
             log.info("no enough candidates found, need additional generation");
-            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), attempt.getId()));
+            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), qr.getExerciseAttemptId()));
         }
         
         if (foundQuestionMetas.isEmpty()) {
@@ -211,32 +214,19 @@ public class QuestionBank {
             }
         }
 
-        List<Question> loadedQuestions = loadQuestions(domain, foundQuestionMetas);
-        log.info("{} questions loaded", loadedQuestions.size());
-
-        return loadedQuestions;
+        return foundQuestionMetas;
     }
 
-    private List<Question> loadQuestions(Domain domain, Collection<QuestionMetadataEntity> metas) {
-        List<Question> list = new ArrayList<>();
-        for (QuestionMetadataEntity meta : metas) {
-            Question question = loadQuestion(domain, meta);
-            if (question != null) {
-                list.add(question);
-            }
-        }
-        return list;
-    }
-
-    private @Nullable Question loadQuestion(Domain domain, @NotNull QuestionMetadataEntity qMeta) {
+    public @Nullable QuestionMetadataEntity loadQuestion(int questionMetadataId) {
         try {
-            var questionData = qMeta.getQuestionData();
-            if (questionData != null) {
-                return questionData.getData().toQuestion(domain, qMeta);
+            var questionMeta = questionMetadataRepository.findById(questionMetadataId)
+                    .orElse(null);
+            if (questionMeta != null) {
+                return questionMeta;
             }
-            log.warn("Question data NOT found for metadata id: {}", qMeta.getId());
+            log.warn("Question data NOT found for metadata id: {}", questionMetadataId);
         } catch (Exception e) {
-            log.error("Error loading question with metadata id [{}] - {}", qMeta.getId(), e.getMessage(), e);
+            log.error("Error loading question with metadata id [{}] - {}", questionMetadataId, e.getMessage(), e);
         }
         return null;
     }

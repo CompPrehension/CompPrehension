@@ -10,6 +10,7 @@ import { ExercisesList } from './pages/exercises-list';
 import { SurveyPage } from './pages/survey';
 import { ExerciseSettings } from './pages/exercise-settings';
 import { StrategySettings } from './pages/strategy-settings';
+import { QuestionPage } from './pages/question';
 
 const Home = () => (
     <div className="container comp-ph-container">
@@ -20,6 +21,7 @@ const Home = () => (
                 <Route path="/pages/exercise-settings" element={<ExerciseSettings />} />
                 <Route path="/pages/strategy-settings" element={<StrategySettings />} />
                 <Route path="/pages/survey" element={<SurveyPage />} />
+                <Route path="/pages/question" element={<QuestionPage />} />
                 <Route path="/pages/exercises-list" element={<ExercisesList />} />
                 <Route path="/" element={<Navigate to="/pages/exercise-settings" replace />} />
             </Routes>

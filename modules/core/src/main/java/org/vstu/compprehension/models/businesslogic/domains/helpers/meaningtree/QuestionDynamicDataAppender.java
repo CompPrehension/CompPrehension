@@ -1,13 +1,14 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
@@ -25,13 +26,13 @@ public class QuestionDynamicDataAppender {
      * @param domain домен, для которого вопрос предназначается
      * @return заполненный вопрос или новый объект вопроса в новом формате
      */
-    public static Question appendQuestionData(Question q, ExerciseAttemptEntity attempt, QuestionBank bank,
-                                              SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
-        if (q.getMetadata().getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
+    public static Question appendQuestionData(Question q, @Nullable ExerciseAttemptEntity attempt, QuestionBank bank,
+                                              SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain, Language userLang) {
+        var meta = q.getMetadata();
+        if (meta != null && meta.getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
             q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, lang, domain);
             QuestionDataEntity dataEntity = new QuestionDataEntity(null, SerializableQuestion.fromQuestion(q));
             bank.saveQuestionDataEntity(dataEntity);
-            QuestionMetadataEntity meta = q.getMetadata();
             meta.setQuestionData(dataEntity);
             bank.saveMetadataEntity(q.getMetadata());
         }
@@ -47,7 +48,7 @@ public class QuestionDynamicDataAppender {
                     ansEntity.setRightCol(obj.isRightCol());
                     return ansEntity;
                 }).toList()));
-        q.getQuestionData().setQuestionText(MeaningTreeOrderQuestionBuilder.questionToHtml(tokens, domain, attempt.getUser().getPreferred_language()));
+        q.getQuestionData().setQuestionText(MeaningTreeOrderQuestionBuilder.questionToHtml(tokens, domain, userLang));
         q.getQuestionData().setExerciseAttempt(attempt);
         return q;
     }

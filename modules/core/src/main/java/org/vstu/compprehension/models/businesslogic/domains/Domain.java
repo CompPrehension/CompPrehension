@@ -586,11 +586,24 @@ public abstract class Domain {
     /**
      * Generate domain question with restrictions
      * @param questionRequest params of needed question
-     * @param tags question tags (like programming language)
      * @param userLanguage question wording language
      * @return generated question
      */
-    public abstract Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage);
+    public abstract @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
+                                                   @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                                   @NotNull Language userLanguage);
+
+    /**
+     * Generate domain question from question data
+     * @param metadata question metadata
+     * @param exerciseAttemptEntity exercise attempt
+     * @param userLang question wording language
+     * @return generated question
+     */
+    public abstract @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+                                                   @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
+                                                   @NotNull List<Tag> tags,
+                                                   @NotNull Language userLang);
 
     public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
         return questionRequest;

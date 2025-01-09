@@ -25,7 +25,6 @@ import org.vstu.compprehension.utils.Mapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -65,10 +64,23 @@ public class QuestionService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         qr = domain.ensureQuestionRequestValid(qr);
 
-        var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
-        Question question = domain.makeQuestion(exerciseAttempt, qr, tags, exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(qr, exerciseAttempt, exerciseAttempt.getUser().getPreferred_language());
         question.setQuestionRequest(createQuestionRequestLog(qr));
 
+        saveQuestion(question);
+        return question;
+    }
+
+    public Question generateQuestion(int questionMetadataId) {
+        var rawQuestion = questionStorage.loadQuestion(questionMetadataId);
+        if (rawQuestion == null) {
+            throw new RuntimeException("Metadata with id " + questionMetadataId + " not found");
+        }
+        var domain = domainFactory.getDomain(rawQuestion.getDomainShortname());
+        var tags = domain.getAllTags().stream()
+                .filter(t -> rawQuestion.getTagBits() != null && (rawQuestion.getTagBits() & t.getBitmask()) != 0)
+                .toList();
+        var question = domain.makeQuestion(rawQuestion, null, tags, Language.ENGLISH);
         saveQuestion(question);
         return question;
     }
@@ -79,7 +91,7 @@ public class QuestionService {
     }
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
-        val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
+        val domain = domainFactory.getDomain(sourceQuestion.getDomainEntity().getName());
         val responseGen = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
         if(responseGen.getResponse().getQuestion() != null){
             Question question = responseGen.getResponse().getQuestion();
@@ -92,8 +104,8 @@ public class QuestionService {
         return Mapper.toDto(responseGen.getResponse());
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses) {
+        Domain domain = question.getDomain();
         val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
         val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses);
         if(feedbackGen.getNewStep() != null){
@@ -168,8 +180,7 @@ public class QuestionService {
 
     public Question getSolvedQuestion(Long questionId) {
         val question = getQuestion(questionId);
-        var tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags()
-                .stream().map(t -> question.getDomain().getTag(t)).filter(Objects::nonNull).toList();
+        var tags = question.getTags();
         return solveQuestion(question, tags);
     }
 
@@ -225,7 +236,7 @@ public class QuestionService {
     */
 
     public Question generateBusinessLogicQuestion(QuestionEntity question) {
-        Domain domain = domainFactory.getDomain(question.getExerciseAttempt().getExercise().getDomain().getName());
+        Domain domain = domainFactory.getDomain(question.getDomainEntity().getName());
         return new Question(question, domain);
     }
 

@@ -1,7 +1,7 @@
 import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, QuestionBankCount, Strategy } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -12,6 +12,8 @@ import i18next from "i18next";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
 import { RequestError } from "../types/request-error";
+import { useCallback } from "react";
+import { IUserController, UserController } from "../controllers/exercise/user-controller";
 
 export type ExerciseCardViewModel = {
     id: number,
@@ -30,7 +32,7 @@ export class ExerciseStageStore implements Disposable {
     laws: ExerciseCardLaw[]
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
-    bankQuestionsCount: QuestionBankCount | null = null
+    bankSearchResult: QuestionBankSearchResult | null = null
     complexity: number = 0.5
     autorunner?: IReactionDisposer
 
@@ -47,17 +49,17 @@ export class ExerciseStageStore implements Disposable {
             const complexity = this.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
-            await this.updateBankStats(concepts, laws, card.tags, complexity);
+            this.updateBankStats(concepts, laws, card.tags, complexity);
         }, { delay: 1000 });
     }
     
     *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number) {
         const { card } = this;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
-        const newData: E.Either<RequestError, QuestionBankCount> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, tags, complexity);
+        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, tags, complexity, 5);
         if (E.isRight(newData)) {
             runInAction(() => {
-                this.bankQuestionsCount = newData.right;
+                this.bankSearchResult = newData.right;
             });
         }
         runInAction(() => this.bankLoadingState = 'COMPLETED');
@@ -81,6 +83,7 @@ export class ExerciseSettingsStore {
 
     constructor(
         @inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController,
+        @inject(UserController) private readonly userController: IUserController,
         @inject(ExerciseController) private readonly exerciseController: IExerciseController) {
         
         makeAutoObservable(this);
@@ -125,7 +128,7 @@ export class ExerciseSettingsStore {
             this.exerciseSettingsController.getDomains(),
             this.exerciseSettingsController.getBackends(),
             this.exerciseSettingsController.getStrategies(),
-            this.exerciseController.getCurrentUser(),
+            this.userController.getCurrentUser(),
         ])
         if (E.isRight(rawExercises) && E.isRight(domains) &&
             E.isRight(backends) && E.isRight(strategies) && E.isRight(user)) {
