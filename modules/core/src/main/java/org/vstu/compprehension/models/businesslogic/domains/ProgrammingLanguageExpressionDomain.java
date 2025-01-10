@@ -225,6 +225,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_>>", List.of(singleTokenBinaryConcept, stream_io), "in >> var", invisible);
         addConcept("operator_<<", List.of(singleTokenBinaryConcept, stream_io), "out << msg", invisible);
 
+        addConcept("operator_cast", List.of(twoTokenUnaryConcept), "(type)a", invisible);
+        addConcept("operator_sizeof", List.of(twoTokenUnaryConcept), "sizeof(int)", invisible);
+
         // currently, absent in the data:
 //        Concept namespace_static = addConcept("namespace_static", List.of(), "Пространство имён", noFlags);
 //        addConcept("operator_:", List.of(singleTokenBinaryConcept, namespace_static), "Class:member", invisible);
@@ -2866,6 +2869,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_@", 0x1000000000000L);  	// (281474976710656)
         name2bit.put("operator_//", 0x2000000000000L);  	// (562949953421312)
         name2bit.put("operator_?", 0x4000000000000L);  	// (1125899906842624)
+        name2bit.put("operator_sizeof", 0x8000000000000L);
+        name2bit.put("operator_cast", 0x10000000000000L);
         return name2bit;
         // (developer tip: see sqlite2mysql)
     }

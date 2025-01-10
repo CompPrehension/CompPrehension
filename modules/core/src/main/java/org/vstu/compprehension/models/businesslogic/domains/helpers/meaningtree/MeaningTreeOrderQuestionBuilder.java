@@ -531,6 +531,8 @@ public class MeaningTreeOrderQuestionBuilder {
             else if (node instanceof GeOp) result.add("operator_>=");
             else if (node instanceof ThreeWayComparisonOp) result.add("operator_<=>");
             else if (node instanceof ContainsOp) result.add("operator_in");
+            else if (node instanceof SizeofExpression) result.add("operator_sizeof");
+            else if (node instanceof CastTypeExpression) result.add("operator_cast");
             else if (node instanceof InversionOp) result.add("operator_~");
             else if (node instanceof BitwiseAndOp) result.add("operator_binary_&");
             else if (node instanceof BitwiseOrOp) result.add("operator_|");
