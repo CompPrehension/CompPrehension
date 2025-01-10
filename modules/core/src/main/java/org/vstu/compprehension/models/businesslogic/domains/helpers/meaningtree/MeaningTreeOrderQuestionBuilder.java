@@ -430,6 +430,11 @@ public class MeaningTreeOrderQuestionBuilder {
                 .build();
     }
 
+    private static String truncateString(String input, int maxLength) {
+        if (input == null) return null;
+        return input.length() > maxLength ? input.substring(0, maxLength) : input;
+    }
+
     /**
      * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
      */
@@ -449,7 +454,9 @@ public class MeaningTreeOrderQuestionBuilder {
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
-        String customTemplateId = rawTranslatedCode.replaceAll(" ", "_").replaceAll("[/:*?\"<>|\\\\]", "");
+        String customTemplateId = truncateString(rawTranslatedCode.replaceAll(
+                " ", "_").replaceAll("[/:*?\"<>|\\\\]", ""),
+                64);
         String customQuestionId = customTemplateId.concat(Integer.toString(treeHash)).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
