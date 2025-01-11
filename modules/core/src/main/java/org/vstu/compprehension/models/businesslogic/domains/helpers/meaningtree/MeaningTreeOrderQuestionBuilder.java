@@ -5,6 +5,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.vstu.compprehension.common.MathHelper;
+import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
@@ -430,10 +431,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 .build();
     }
 
-    private static String truncateString(String input, int maxLength) {
-        if (input == null) return null;
-        return input.length() > maxLength ? input.substring(0, maxLength) : input;
-    }
+
 
     /**
      * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
@@ -454,7 +452,7 @@ public class MeaningTreeOrderQuestionBuilder {
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
-        String customTemplateId = truncateString(rawTranslatedCode.replaceAll(
+        String customTemplateId = StringHelper.truncate(rawTranslatedCode.replaceAll(
                 " ", "_").replaceAll("[/:*?\"<>|\\\\]", ""),
                 64);
         String customQuestionId = customTemplateId.concat(Integer.toString(treeHash)).concat("_v");
