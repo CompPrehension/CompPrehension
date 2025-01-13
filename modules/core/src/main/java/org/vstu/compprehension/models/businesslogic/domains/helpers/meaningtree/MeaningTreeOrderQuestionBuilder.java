@@ -712,11 +712,9 @@ public class MeaningTreeOrderQuestionBuilder {
         Set<String> set = new TreeSet<>();
         for (int i = 0; i < tokens.size(); i++) {
             Token t = tokens.get(i);
-            if (t instanceof OperandToken op && op.operandPosition() == OperandPosition.CENTER) {
-                set.add("central_operand_needed");
-                if (op instanceof OperatorToken) {
-                    set.add("is_central_operand_evaluated");
-                }
+            set.add("central_operand_needed");
+            if (t instanceof OperatorToken op && op.operandPosition() == OperandPosition.CENTER) {
+                set.add("is_central_operand_evaluated");
             }
 
             if (t instanceof OperandToken op && (op.operandPosition() == OperandPosition.LEFT || op.operandPosition() == OperandPosition.RIGHT)) {
@@ -753,28 +751,33 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
             }
+
+            if (t instanceof OperatorToken op && op.operandOf() != null && op.operandOf().isStrictOrder) {
+                set.add("strict_order_first_operand_to_be_evaluated");
+            }
+
+            set.add("strict_order_operators_present");
+            set.add("are_central_operands_strict_order");
+
             if (t instanceof OperatorToken op && op.isStrictOrder) {
                 Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
                 if (op.type == TokenType.CALL_OPENING_BRACE || op.type == TokenType.CALL_CLOSING_BRACE) {
-                    set.add("are_central_operands_strict_order");
+                    set.add("no_current_in_many_central_operands");
                     set.add("no_comma_in_central_operands");
                     if (ops.containsKey(OperandPosition.CENTER) && ops.get(OperandPosition.CENTER).length() > 1) {
-                        set.add("no_current_in_many_central_operands");
                         set.add("previous_central_operands_are_unevaluated");
                     }
                 } else {
-                    set.add("strict_order_operators_present");
                     set.add("is_current_operator_strict_order");
-                    set.add("strict_order_first_operand_to_be_evaluated");
                     if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation())
                             .asSublist()
                             .stream()
                             .anyMatch((Token tt) -> tt instanceof OperatorToken)) {
                         set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
-                    }
-                    if (op instanceof ComplexOperatorToken) {
                         set.add("no_omitted_operands_despite_strict_order");
-                        set.add("should_strict_order_current_operand_be_omitted");
+                        if (op.type != TokenType.COMMA) {
+                            set.add("should_strict_order_current_operand_be_omitted");
+                        }
                     }
                 }
             }
