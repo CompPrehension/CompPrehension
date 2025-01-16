@@ -15,6 +15,8 @@ import java.util.Date;
 @Entity
 @Table(name = "questions_meta", indexes = {
     @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
+    @Index(name = "idx_questions_meta_domainshortname_name", columnList = "domain_shortname, name"),
+    @Index(name = "idx_questions_meta_domainshortname_templateid", columnList = "domain_shortname, template_id"),
 })
 public class QuestionMetadataEntity {
     @Id

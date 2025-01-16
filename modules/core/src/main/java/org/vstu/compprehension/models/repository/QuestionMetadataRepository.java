@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.repository;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -48,8 +47,9 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query
     boolean existsByName(String questionName);
 
-    @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and (m.name = :questionName or :templateId is not null and m.templateId = :templateId))")
-    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") @Nullable String templateId);
+    @Query("select exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name = :questionName) " +
+            "or exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
+    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") String templateId);
 
     @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
             "count(*), " +

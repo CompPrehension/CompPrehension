@@ -31,10 +31,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -542,14 +539,17 @@ public class TaskGenerationJob {
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
+            var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
+
             for (val file : allJsonFiles) {
                 val q = SerializableQuestionTemplate.deserialize(file);
                 if (q == null) {
                     continue;
                 }
 
-                List<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
-                        .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity).toList();
+                HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
+                        .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity)
+                        .collect(Collectors.toCollection(HashSet::new));
                 if (metaList.isEmpty()) {
                     skippedQuestions += 1;
                     // в вопросе нет метаданных, невозможно проверить
@@ -557,12 +557,18 @@ public class TaskGenerationJob {
                     continue;
                 }
 
+                metadataToRemove.clear();
                 for (QuestionMetadataEntity meta : metaList) {
                     if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
                         skippedQuestions += 1;
                         log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
-                        continue;
+                        metadataToRemove.add(meta);
                     }
+                }
+                metadataToRemove.forEach(metaList::remove);
+                if (metaList.isEmpty()) {
+                    log.info("All metadata already exists for file [{}]. Skipping...", file);
+                    continue;
                 }
 
                 // Проверить, подходит ли он нам
@@ -577,23 +583,28 @@ public class TaskGenerationJob {
                             continue;
                         
                         var searchRequest = gr.getQuestionRequest();
+
+                        metadataToRemove.clear();
                         for (QuestionMetadataEntity meta : metaList) {
                             if (!storage.isMatch(meta, searchRequest)) {
                                 log.debug("Question [{}] does not match generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
-                                continue;
+                                metadataToRemove.add(meta);
                             }
                         }
+                        metadataToRemove.forEach(metaList::remove);
 
-                        log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                        if (!metaList.isEmpty()) {
+                            log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
 
-                        // set flag to use this question
-                        shouldSave = true;
-                        questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
-                        matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
+                            // set flag to use this question
+                            shouldSave = true;
+                            questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
+                            matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
+                        }
                     }
                 }
 
-                if (!shouldSave) {
+                if (!shouldSave || metaList.isEmpty()) {
                     skippedQuestions += 1;
                     log.debug("Question [{}] skipped because zero qr matches: ", metaList.stream()
                             .map(QuestionMetadataEntity::getName).collect(Collectors.joining(", ")));
