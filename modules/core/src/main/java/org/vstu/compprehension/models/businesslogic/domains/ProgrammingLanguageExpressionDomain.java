@@ -2543,7 +2543,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param questionsLimit
      * @param origin
      */
-    public void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
+    public void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit,
+                                      String origin, String license) {
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;

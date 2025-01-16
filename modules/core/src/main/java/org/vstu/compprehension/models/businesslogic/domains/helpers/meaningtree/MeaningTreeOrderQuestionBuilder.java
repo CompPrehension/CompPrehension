@@ -56,7 +56,8 @@ public class MeaningTreeOrderQuestionBuilder {
     protected QuestionMetadataEntity existingMetadata = null;
 
     // Дополнительные входные данные для нового вопроса: источник вопроса
-    protected String questionOrigin = ""; // источник вопроса для метаданных
+    protected String questionOrigin = null; // источник вопроса для метаданных
+    protected String originLicense = null; // лицензия источника для метаданных
 
     // Домен, для которого выполняется преобразование
     protected ProgrammingLanguageExpressionDTDomain domain;
@@ -108,7 +109,7 @@ public class MeaningTreeOrderQuestionBuilder {
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
         builder.sourceExpressionTree = mt;
         builder.existingMetadata = q.getMetadata();
-        builder.questionOrigin(q.getMetadata().getOrigin());
+        builder.questionOrigin(q.getMetadata().getOrigin(), null);
         return builder;
     }
 
@@ -261,8 +262,9 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param name - название источника
      * @return построитель вопроса
      */
-    public MeaningTreeOrderQuestionBuilder questionOrigin(String name) {
+    public MeaningTreeOrderQuestionBuilder questionOrigin(String name, String license) {
         questionOrigin = name;
+        originLicense = license;
         return this;
     }
 
@@ -441,6 +443,9 @@ public class MeaningTreeOrderQuestionBuilder {
         tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
         String languageStr = language.toString();
         tags.add(languageStr.substring(0, 1).toUpperCase() + languageStr.substring(1));
+        if (questionOrigin == null || questionOrigin.isEmpty()) {
+            throw new MeaningTreeException("Question origin didn't specified");
+        }
 
         int omitted = findOmitted(sourceExpressionTree);
         int solutionLength = answerObjects.size() - omitted;
@@ -475,8 +480,8 @@ public class MeaningTreeOrderQuestionBuilder {
                 .treeHashCode(treeHash)
                 .language(language.toString())
                 .structureHash(metadata != null ? metadata.getStructureHash() : "")
-                .origin(metadata != null ? (metadata.getOrigin().startsWith("mt_") ? "" :"mt_").concat(metadata.getOrigin()) :
-                        (questionOrigin.startsWith("mt_") ? "" :"mt_").concat(questionOrigin))
+                .origin(questionOrigin)
+                .originLicense(originLicense)
                 .build();
     }
 

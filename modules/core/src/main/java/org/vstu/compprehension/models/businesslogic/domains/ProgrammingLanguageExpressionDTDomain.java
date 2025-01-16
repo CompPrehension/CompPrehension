@@ -384,8 +384,11 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
      * @param outputDir
      * @param questionsLimit
      * @param origin
+     * @param license
      */
-    public void generateManyQuestions(List<String> templatePaths, String outputDir, int questionsLimit, String origin) {
+    public void generateManyQuestions(List<String> templatePaths, String outputDir,
+                                      int questionsLimit, String origin, String license
+    ) {
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;
@@ -422,7 +425,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                             break;
                         }
                     }
-                    builder = MeaningTreeOrderQuestionBuilder.newQuestion(mt, currentLang, this);
+                    builder = MeaningTreeOrderQuestionBuilder.newQuestion(mt, currentLang, this).questionOrigin(origin, license);
                 } else if (parsedQuestionName.endsWith(".ttl")) {
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
                         String languageStr = language.toString().toLowerCase();
@@ -474,7 +477,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     builder =
                             MeaningTreeOrderQuestionBuilder.
                                     newQuestion(expressionText, currentLang, this)
-                                    .questionOrigin(origin);
+                                    .questionOrigin(origin, license);
                 }
 
                 int templateQuestionsCount = 0;

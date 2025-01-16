@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 @Log4j2
 public class Main {
+
     public static void main(String[] args) {
         Main main = new Main();
         try {
@@ -75,7 +76,7 @@ public class Main {
         // treat leaf directory name of source path as questions' origin name
         String leafDir = Path.of(sourcePath).getFileName().toString();
 
-        domain.generateManyQuestions(files, outputPath, qCountLimit, leafDir);
+        domain.generateManyQuestions(files, outputPath, qCountLimit, leafDir, null);
     }
 
 

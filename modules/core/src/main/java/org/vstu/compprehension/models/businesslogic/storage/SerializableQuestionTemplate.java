@@ -94,6 +94,7 @@ public class SerializableQuestionTemplate {
         private int version;
         private String structureHash;
         private String origin;
+        private String originLicense;
         private Date dateCreated;
         private String language;
         private int treeHashCode;
@@ -116,6 +117,7 @@ public class SerializableQuestionTemplate {
                     .version(this.getVersion())
                     .structureHash(this.getStructureHash())
                     .origin(this.getOrigin())
+                    .originLicense(this.getOriginLicense())
                     .skillBits(this.getSkillBits())
                     .build();
         }

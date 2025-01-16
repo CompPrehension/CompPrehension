@@ -81,6 +81,13 @@ public class QuestionMetadataEntity {
     @Column(name = "origin")
     private String origin = "";
 
+    /**
+     * License type of GitHub repository from which this question was created
+     */
+    @Builder.Default
+    @Column(name = "origin_license")
+    private String originLicense = null;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
