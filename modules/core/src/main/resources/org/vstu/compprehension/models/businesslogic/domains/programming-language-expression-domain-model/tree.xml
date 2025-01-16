@@ -637,7 +637,7 @@
                                                     _EN_nextStepQuestion="What is the next reasoning step if we know that ${class('Y','и')} has just one token?"
                                                     _EN_nextStepExplanation="That's incorrect - ${class('Y','и')} having only one token means that it does not have an internal operand, and therefore cannot enclose other operators."
                                                 >
-                                                    <BranchResultNode value="false" _skill="left_operator_enclosed" _law="error_base_enclosing_operators"/>
+                                                    <BranchResultNode value="false"/>
                                                 </Outcome>
                                                 <Outcome value="true"
                                                     _RU_nextStepQuestion="Какие выводы можно сделать, если ${class('Y','и')} является окружающим оператором?"
@@ -823,7 +823,7 @@
                                                                     _EN_nextStepQuestion="What can we now conclude?"
                                                                     _EN_nextStepExplanation="That's incorrect."
                                                                 >
-                                                                    <BranchResultNode value="false" _skill="left_operator_enclosed" _law="error_base_enclosing_operators"/>
+                                                                    <BranchResultNode value="false"/>
                                                                 </Outcome>
                                                                 <Outcome value="true"
                                                                     _RU_nextStepQuestion="Какие выводы можно сделать на данном этапе?"
@@ -908,7 +908,7 @@
                                                     </ExistenceQuantifier>
                                                 </Expression>
                                                 <Outcome value="false">
-                                                    <BranchResultNode value="false" _skill="is_current_parenthesized_left_not" _law="error_base_enclosing_operators" />
+                                                    <BranchResultNode value="false"/>
                                                 </Outcome>
                                                 <Outcome value="true">
                                                     <BranchResultNode value="true" _skill="is_current_parenthesized_left_not"/>
@@ -987,10 +987,10 @@
                                                     </ExistenceQuantifier>
                                                 </Expression>
                                                 <Outcome value="false">
-                                                    <BranchResultNode value="false" _law="error_base_enclosing_operators" _skill="is_left_parenthesized_current_not" />
+                                                    <BranchResultNode value="false"/>
                                                 </Outcome>
                                                 <Outcome value="true">
-                                                    <BranchResultNode value="true" _skill="is_left_parenthesized_current_not"  />
+                                                    <BranchResultNode value="true" _skill="is_left_parenthesized_current_not" />
                                                 </Outcome>
                                             </QuestionNode>
                                         </ThoughtBranch>
@@ -1484,7 +1484,7 @@
                                                     _EN_nextStepQuestion="What is the next reasoning step if we know that ${class('Z','и')} has just one token?"
                                                     _EN_nextStepExplanation="That's incorrect - ${class('Z','и')} having only one token means that it does not have an internal operand, and therefore cannot enclose other operators."
                                                 >
-                                                    <BranchResultNode value="false" _skill="right_operator_enclosed" _law="error_base_enclosing_operators" />
+                                                    <BranchResultNode value="false"/>
                                                 </Outcome>
                                                 <Outcome value="true"
                                                     _RU_nextStepQuestion="Какие выводы можно сделать, если ${class('Z','и')} является окружающим оператором?"
@@ -1670,7 +1670,7 @@
                                                                     _EN_nextStepQuestion="What can we now conclude?"
                                                                     _EN_nextStepExplanation="That's incorrect."
                                                                 >
-                                                                    <BranchResultNode value="false" _skill="right_operator_enclosed" _law="error_base_enclosing_operators" />
+                                                                    <BranchResultNode value="false"/>
                                                                 </Outcome>
                                                                 <Outcome value="true"
                                                                     _RU_nextStepQuestion="Какие выводы можно сделать на данном этапе?"
@@ -1751,7 +1751,7 @@
                                                     </ExistenceQuantifier>
                                                 </Expression>
                                                 <Outcome value="false">
-                                                    <BranchResultNode value="false" _law="error_base_enclosing_operators" _skill="is_current_parenthesized_right_not" />
+                                                    <BranchResultNode value="false"/>
                                                 </Outcome>
                                                 <Outcome value="true">
                                                     <BranchResultNode value="true" _skill="is_current_parenthesized_right_not" />
@@ -1828,7 +1828,7 @@
                                                     </ExistenceQuantifier>
                                                 </Expression>
                                                 <Outcome value="false">
-                                                    <BranchResultNode value="false" _skill="is_right_parenthesized_current_not" _law="error_base_enclosing_operators" />
+                                                    <BranchResultNode value="false"/>
                                                 </Outcome>
                                                 <Outcome value="true">
                                                     <BranchResultNode value="true" _skill="is_right_parenthesized_current_not"/>
