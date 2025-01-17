@@ -16,6 +16,7 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
@@ -201,7 +202,7 @@ public class ExpressionDTDomainMetadataValidationTest {
     public Question prepareQuestion(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(meta.getTagBits(), domain);
         Question q = meta.getQuestionData().getData().toQuestion(domain, meta);
-        return QuestionDynamicDataAppender.appendQuestionData(q, attempt, qBank, lang, domain);
+        return QuestionDynamicDataAppender.appendQuestionData(q, attempt, qBank, lang, domain, Language.ENGLISH);
     }
 
     public Domain.InterpretSentenceResult solve(Question q, SupportedLanguage language, List<AnswerObjectEntity> answerSequence) {
