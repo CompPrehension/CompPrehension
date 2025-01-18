@@ -109,7 +109,7 @@ public class MeaningTreeOrderQuestionBuilder {
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
         builder.sourceExpressionTree = mt;
         builder.existingMetadata = q.getMetadata();
-        builder.questionOrigin(q.getMetadata().getOrigin(), null);
+        builder.questionOrigin(q.getMetadata().getOrigin(), q.getMetadata().getOriginLicense());
         return builder;
     }
 
@@ -192,6 +192,17 @@ public class MeaningTreeOrderQuestionBuilder {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }
 
+    }
+
+    public static QuestionMetadataEntity metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
+                                                                                    QuestionMetadataEntity qMeta) {
+        Question q = qMeta.getQuestionData().getData().toQuestion(domain, qMeta);
+        MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.fromExistingQuestion(q, domain);
+        SupportedLanguage language = detectLanguageFromTags(qMeta.getTagBits(), domain);
+        builder.processTokens(language);
+        builder.answerObjects = generateAnswerObjects(builder.tokens);
+        builder.processMetadata(language, builder.sourceExpressionTree.hashCode());
+        return builder.metadata.toMetadataEntity();
     }
 
     /**
@@ -466,7 +477,7 @@ public class MeaningTreeOrderQuestionBuilder {
         String customQuestionId = customTemplateId.concat(Integer.toString(treeHash)).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
-                .name(metadata != null ? metadata.getName() : customQuestionId)
+                .name(customQuestionId)
                 .domainShortname(domain.getShortnameForQuestionSearch())
                 .templateId(metadata != null ? metadata.getTemplateId() : customTemplateId)
                 .tagBits(tags.stream().map(domain::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a, b) -> a|b).orElse(0L))
