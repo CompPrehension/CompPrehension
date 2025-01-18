@@ -189,7 +189,7 @@ public class MeaningTreeRDFTransformer {
     }
 
     private static ParsedClassName findClassName(DomainModel domainModel, Token token) {
-        if (token.type == TokenType.COMMA && !(token instanceof OperatorToken)) {
+        if ((token.type == TokenType.COMMA && !(token instanceof OperatorToken) || token.type == TokenType.SEPARATOR)) {
             return new ParsedClassName("separator");
         } else if (token.type == TokenType.CAST) {
             return new ParsedClassName("operator_cast");
