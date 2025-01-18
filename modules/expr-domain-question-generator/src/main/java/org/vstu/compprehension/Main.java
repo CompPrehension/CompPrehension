@@ -76,7 +76,7 @@ public class Main {
         // treat leaf directory name of source path as questions' origin name
         String leafDir = Path.of(sourcePath).getFileName().toString();
 
-        domain.generateManyQuestions(files, outputPath, qCountLimit, leafDir, null);
+        domain.generateManyQuestions(files, outputPath, qCountLimit, leafDir);
     }
 
 

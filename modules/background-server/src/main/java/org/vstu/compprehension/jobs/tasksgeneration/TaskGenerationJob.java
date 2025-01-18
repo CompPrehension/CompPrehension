@@ -1,5 +1,7 @@
 package org.vstu.compprehension.jobs.tasksgeneration;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.dto.GenerationRequest;
+import org.vstu.compprehension.models.businesslogic.SourceCodeRepositoryInfo;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
@@ -24,10 +27,7 @@ import org.vstu.compprehension.utils.ZipUtility;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -324,6 +324,19 @@ public class TaskGenerationJob {
                                     ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
                                     Files.delete(zipFile);
                                     downloadedRepos.add(targetFolderPath);
+                                    SourceCodeRepositoryInfo info = SourceCodeRepositoryInfo.builder()
+                                            .name(repo.getFullName())
+                                            .license(repo.getLicense().getName())
+                                            .url(repo.getHtmlUrl().toString())
+                                            .build();
+                                    Gson gson = new GsonBuilder()
+                                            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                                            .disableHtmlEscaping()
+                                            .setPrettyPrinting()
+                                            .create();
+                                    Files.createFile(Path.of(targetFolderPath.toString(), ".gh_repo_info"));
+                                    Files.writeString(Path.of(targetFolderPath.toString(), ".gh_repo_info"),
+                                            gson.toJson(info), StandardOpenOption.WRITE);
                                     log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);
@@ -422,6 +435,7 @@ public class TaskGenerationJob {
             parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
 
             parserProcessCommandBuilder.add("--");
+            parserProcessCommandBuilder.add(Path.of(repo.toString(), ".gh_repo_info").toString());  // e.g. "expression"
             parserProcessCommandBuilder.add(fixDomainShortName(config.getDomainShortName()));  // e.g. "expression"
             parserProcessCommandBuilder.add(destination.toString());
             log.debug("Parser executable command: {}", parserProcessCommandBuilder);

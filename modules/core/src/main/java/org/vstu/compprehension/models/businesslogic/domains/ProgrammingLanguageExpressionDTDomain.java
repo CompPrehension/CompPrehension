@@ -395,10 +395,9 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
      * @param outputDir
      * @param questionsLimit
      * @param origin
-     * @param license
      */
     public void generateManyQuestions(List<String> templatePaths, String outputDir,
-                                      int questionsLimit, String origin, String license
+                                      int questionsLimit, String origin
     ) {
         int count = 0;  // templates
         int qCount = 0;
@@ -423,8 +422,18 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 SupportedLanguage currentLang = SupportedLanguage.CPP;
                 String expressionText = null;
                 MeaningTreeOrderQuestionBuilder builder = null;
+                String license = null;
 
                 if (parsedQuestionName.endsWith(".mt.ttl")) {
+                    String[] lines = Files.readString(Path.of(file)).split("\n");
+                    for (String line : lines) {
+                        if (line.strip().startsWith("# LICENSE ")) {
+                            license = line.strip().replaceFirst("# LICENSE ", "");
+                        } else if (line.strip().startsWith("# REPO_NAME ")) {
+                            origin = line.strip().replaceFirst("# REPO_NAME ", "");
+                        }
+                    }
+
                     RDFDeserializer deserializer = new RDFDeserializer();
                     Model templateModel = ModelFactory.createDefaultModel();
                     RDFDataMgr.read(templateModel, file);
@@ -436,6 +445,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                             break;
                         }
                     }
+
                     builder = MeaningTreeOrderQuestionBuilder.newQuestion(mt, currentLang, this).questionOrigin(origin, license);
                 } else if (parsedQuestionName.endsWith(".ttl")) {
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
