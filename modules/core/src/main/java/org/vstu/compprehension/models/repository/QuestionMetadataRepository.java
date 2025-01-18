@@ -20,11 +20,20 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
 
     @NotNull
     @Query(value = 
-            "select * from questions_meta " +
-            "where id > :lastLoadedId " +
-            "order by id " +
-            "limit :limit", nativeQuery = true)
+            "select m from QuestionMetadataEntity m " +
+            "where m.id > :lastLoadedId " +
+            "order by m.id " +
+            "limit :limit")
     List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+
+    @NotNull
+    @Query(value =
+            "select m from QuestionMetadataEntity m " +
+            "inner join fetch QuestionDataEntity d on m.questionData.id = d.id " +
+            "where m.id > :lastLoadedId " +
+            "order by m.id " +
+            "limit :limit")
+    List<QuestionMetadataEntity> loadPageWithData(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
     
     @Query
     long countByDomainShortname(String domainShortname);
