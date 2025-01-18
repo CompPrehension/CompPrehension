@@ -449,6 +449,9 @@ public class MeaningTreeOrderQuestionBuilder {
 
         int omitted = findOmitted(sourceExpressionTree);
         int solutionLength = answerObjects.size() - omitted;
+        if (solutionLength <= 0) {
+            solutionLength = 1;
+        }
 
         possibleViolations = findPossibleViolations(tokens);
         Set<String> possibleSkills = findSkills(tokens);
@@ -459,7 +462,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
         String customTemplateId = StringHelper.truncate(rawTranslatedCode.replaceAll(
                 " ", "_").replaceAll("[/:*?\"<>|\\\\]", ""),
-                64);
+                64).concat("_").concat(languageStr);
         String customQuestionId = customTemplateId.concat(Integer.toString(treeHash)).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
@@ -493,11 +496,11 @@ public class MeaningTreeOrderQuestionBuilder {
     static int findOmitted(MeaningTree tree) {
         int count = 0;
         for (Node.Info info : tree) {
-            if (info.node() instanceof ShortCircuitAndOp
-                    && info.node().getAssignedValueTag() instanceof Boolean bool && !bool) {
+            if (info.node() instanceof ShortCircuitAndOp op
+                    && op.getLeft().getAssignedValueTag() instanceof Boolean bool && !bool) {
                 count++;
-            } else if (info.node() instanceof ShortCircuitOrOp
-                    && info.node().getAssignedValueTag() instanceof Boolean bool && bool) {
+            } else if (info.node() instanceof ShortCircuitOrOp op
+                    && op.getLeft().getAssignedValueTag() instanceof Boolean bool && bool) {
                 count++;
             } else if (info.node() instanceof TernaryOperator) {
                 count++;
@@ -642,23 +645,24 @@ public class MeaningTreeOrderQuestionBuilder {
         boolean hasOperatorInComplex = false;
         boolean hasOperatorsOutsideComplex = false;
         for (Token token : tokens) {
-            if (List.of(TokenType.OPENING_BRACE, TokenType.CALL_OPENING_BRACE).contains(token.type)) {
+            if (List.of(TokenType.OPENING_BRACE, TokenType.CALL_OPENING_BRACE, TokenType.SUBSCRIPT_OPENING_BRACE).contains(token.type)) {
                 isInComplex = true;
-            } else if (List.of(TokenType.CALL_CLOSING_BRACE, TokenType.CLOSING_BRACE).contains(token.type)) {
+            } else if (List.of(TokenType.CALL_CLOSING_BRACE, TokenType.CLOSING_BRACE, TokenType.SUBSCRIPT_CLOSING_BRACE).contains(token.type)) {
                 isInComplex = false;
             }
 
             if (token instanceof OperatorToken op) {
                 if (op.operandOf() != null && op.operandOf().isStrictOrder) {
                     set.add("error_base_student_error_strict_operands_order");
-                    set.add("error_base_student_error_unevaluated_operand");
+                    if (op.operandOf().type != TokenType.COMMA) {
+                        set.add("error_base_student_error_unevaluated_operand");
+                    }
                 }
 
                 if (op.operandOf() != null &&
                         (op.operandOf().type == TokenType.SUBSCRIPT_OPENING_BRACE ||
                                 op.operandOf().type == TokenType.SUBSCRIPT_CLOSING_BRACE)) {
                     set.add("error_base_enclosing_operators");
-                    set.add("error_base_student_error_unevaluated_operand");
                 }
 
                 if (isInComplex) {
@@ -767,17 +771,41 @@ public class MeaningTreeOrderQuestionBuilder {
             if (t instanceof OperatorToken op && op.isStrictOrder) {
                 Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
                 if (op.type == TokenType.CALL_OPENING_BRACE || op.type == TokenType.CALL_CLOSING_BRACE) {
+                    long commaCount = 0;
+                    if (ops.containsKey(OperandPosition.CENTER) && ops.get(OperandPosition.CENTER) != null) {
+                        commaCount = ops.get(OperandPosition.CENTER).asSublist()
+                                .stream().filter((Token token) -> token.type == TokenType.COMMA).count();
+                    }
                     set.add("no_current_in_many_central_operands");
-                    set.add("no_comma_in_central_operands");
-                    if (ops.containsKey(OperandPosition.CENTER) && ops.get(OperandPosition.CENTER).length() > 1) {
-                        set.add("previous_central_operands_are_unevaluated");
+                    if (commaCount > 1) {
+                        set.add("no_comma_in_central_operands");
+                        boolean operatorInCenterCount = ops.get(OperandPosition.CENTER).asSublist()
+                                .stream().anyMatch((Token token) -> token instanceof OperatorToken);
+                        if (operatorInCenterCount) {
+                            set.add("previous_central_operands_are_unevaluated");
+                        }
                     }
                 } else {
-                    set.add("is_current_operator_strict_order");
-                    if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation())
-                            .asSublist()
-                            .stream()
-                            .anyMatch((Token tt) -> tt instanceof OperatorToken)) {
+                    boolean isOperatorInAnyOperandOfStrictOrder = false;
+                    for (TokenGroup grp : ops.values()) {
+                        if (grp == null) {
+                            continue;
+                        }
+                        isOperatorInAnyOperandOfStrictOrder = isOperatorInAnyOperandOfStrictOrder || grp.asSublist()
+                                .stream()
+                                .anyMatch((Token tt) -> tt instanceof OperatorToken);
+                    }
+                    if (isOperatorInAnyOperandOfStrictOrder) {
+                        set.add("is_current_operator_strict_order");
+                    }
+                    boolean hasFirstEvalOperandOperator = false;
+                    if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation()) != null) {
+                        hasFirstEvalOperandOperator = ops.get(op.getFirstOperandToEvaluation())
+                                .asSublist()
+                                .stream()
+                                .anyMatch((Token tt) -> tt instanceof OperatorToken);
+                    }
+                    if (ops.containsKey(op.getFirstOperandToEvaluation()) && hasFirstEvalOperandOperator) {
                         set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
                         set.add("no_omitted_operands_despite_strict_order");
                         if (op.type != TokenType.COMMA) {
