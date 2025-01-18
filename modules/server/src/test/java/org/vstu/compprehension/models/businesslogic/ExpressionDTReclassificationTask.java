@@ -43,11 +43,14 @@ public class ExpressionDTReclassificationTask {
     @Commit
     @Rollback(false)
     public void performReclassification() {
-        long count = qMetaRepo.count();
-        final int BATCH = 50 * 1024;
-        for (long i = 1; i <= count; i += BATCH) {
-            System.err.printf("Processing: %d/%d%n", i, count);
-            List<QuestionMetadataEntity> batchList = qMetaRepo.loadPageWithData((int) i, BATCH);
+        final int BATCH = 32 * 1024;
+        int lastId = 0;
+        while (true) {
+            List<QuestionMetadataEntity> batchList = qMetaRepo.loadPageWithData(lastId, BATCH);
+            System.err.printf("Processed %d metadata%n", lastId);
+            if (batchList.isEmpty()) {
+                break;
+            }
             ArrayList<QuestionMetadataEntity> newMeta = new ArrayList<>();
             for (QuestionMetadataEntity meta : batchList) {
                 if (!meta.getDomainShortname().equals("expression_dt")) {
@@ -59,6 +62,7 @@ public class ExpressionDTReclassificationTask {
                 obj.setGenerationRequestId(meta.getGenerationRequestId());
                 obj.setCreatedAt(meta.getCreatedAt());
                 newMeta.add(obj);
+                lastId = meta.getId();
             }
             qMetaRepo.saveAll(newMeta);
         }
