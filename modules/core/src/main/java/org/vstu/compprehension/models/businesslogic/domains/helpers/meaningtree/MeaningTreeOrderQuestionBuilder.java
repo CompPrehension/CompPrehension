@@ -465,7 +465,7 @@ public class MeaningTreeOrderQuestionBuilder {
         }
 
         possibleViolations = findPossibleViolations(tokens);
-        Set<String> possibleSkills = findSkills(tokens);
+        Set<String> possibleSkills = findSkills(tokens, language);
         concepts = findConcepts(sourceExpressionTree, language);
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
@@ -728,7 +728,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * Поиск возможных навыков, которые может получить студент
      * @return набор уникальных возможных навыков
      */
-    static Set<String> findSkills(TokenList tokens) {
+    static Set<String> findSkills(TokenList tokens, SupportedLanguage lang) {
         Set<String> set = new TreeSet<>();
         for (int i = 0; i < tokens.size(); i++) {
             Token t = tokens.get(i);
@@ -776,8 +776,13 @@ public class MeaningTreeOrderQuestionBuilder {
                 set.add("strict_order_first_operand_to_be_evaluated");
             }
 
-            set.add("strict_order_operators_present");
-            set.add("are_central_operands_strict_order");
+            if (tokens.stream().noneMatch((Token token) -> token instanceof OperatorToken op && op.isStrictOrder)) {
+                set.add("strict_order_operators_present");
+            }
+
+            if (lang.equals(SupportedLanguage.JAVA)) {
+                set.add("are_central_operands_strict_order");
+            }
 
             if (t instanceof OperatorToken op && op.isStrictOrder) {
                 Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
@@ -818,7 +823,9 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                     if (ops.containsKey(op.getFirstOperandToEvaluation()) && hasFirstEvalOperandOperator) {
                         set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
-                        set.add("no_omitted_operands_despite_strict_order");
+                        if (op.type == TokenType.COMMA) {
+                            set.add("no_omitted_operands_despite_strict_order");
+                        }
                         if (op.type != TokenType.COMMA) {
                             set.add("should_strict_order_current_operand_be_omitted");
                         }
