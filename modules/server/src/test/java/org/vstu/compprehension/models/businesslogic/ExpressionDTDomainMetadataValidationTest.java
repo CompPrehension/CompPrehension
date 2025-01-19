@@ -107,6 +107,7 @@ public class ExpressionDTDomainMetadataValidationTest {
                     text = meta.getName();
                 }
                 String qInfo = String.format("[Question metadata id %d, lang %s, text: %s]: ", meta.getId(), lang.toString(), text);
+                System.err.println(qInfo.concat("Processing"));
                 List<AnswerObjectEntity> ansObj = q.getAnswerObjects().stream()
                         .filter((AnswerObjectEntity obj) -> !obj.getDomainInfo().equals("end_token")).toList();
                 List<List<AnswerObjectEntity>> combinations = generateAllCombinations(ansObj);
@@ -120,7 +121,8 @@ public class ExpressionDTDomainMetadataValidationTest {
                         questionSkills.addAll(skill.baseSkills);
                     }
                 }
-                HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getMetadata().getSkillBits()));
+                HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getMetadata().getSkillBits()).stream().filter(
+                        (NegativeLaw nLaw) -> nLaw.getLawsImplied() != null && !nLaw.getLawsImplied().isEmpty()).toList());
                 questionLaws.remove(domain.getNegativeLaw("error_base_student_error_early_finish"));
                 boolean foundCorrectSolution = false;
                 for (List<AnswerObjectEntity> ans : combinations) {
