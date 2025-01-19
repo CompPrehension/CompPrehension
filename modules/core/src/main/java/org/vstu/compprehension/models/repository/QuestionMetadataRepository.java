@@ -29,7 +29,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @NotNull
     @Query(value =
             "select m from QuestionMetadataEntity m " +
-            "inner join fetch QuestionDataEntity d on m.questionData.id = d.id " +
+            "inner join fetch m.questionData " +
             "where m.id > :lastLoadedId " +
             "order by m.id " +
             "limit :limit")
