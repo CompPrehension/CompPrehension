@@ -43,7 +43,7 @@ public class ExpressionDTReclassificationTask {
     @Commit
     @Rollback(false)
     public void performReclassification() {
-        final int BATCH = 8 * 1024;
+        final int BATCH = 2048;
         int lastId = 0;
         int count = 0;
         while (true) {
