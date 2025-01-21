@@ -1,8 +1,10 @@
 package org.vstu.compprehension.models.repository;
 
+import jakarta.persistence.QueryHint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,6 +26,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "where m.id > :lastLoadedId " +
             "order by m.id " +
             "limit :limit")
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
     List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
 
     @NotNull
@@ -32,7 +35,9 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
             "inner join fetch m.questionData " +
             "where m.id > :lastLoadedId " +
             "order by m.id " +
-            "limit :limit")
+            "limit :limit"
+    )
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
     List<QuestionMetadataEntity> loadPageWithData(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
     
     @Query
