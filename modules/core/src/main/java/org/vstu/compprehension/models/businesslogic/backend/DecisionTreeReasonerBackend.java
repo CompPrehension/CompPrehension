@@ -146,6 +146,22 @@ public class DecisionTreeReasonerBackend
                 Collections.addAll(result.domainNegativeLaws, resLaw);
             }
 
+            /*
+            // Used for debug purposes, uncomment if debugging of DT reasoner is required
+            result.debugInfo.put("variables", backendOutput.situation.getDecisionTreeVariables().entrySet().stream()
+                    .filter(entry -> entry.getValue().findIn(backendOutput.situation.getDomainModel()) != null &&
+                            entry.getValue().findIn(backendOutput.situation.getDomainModel()).getMetadata().containsLocalized("EN", "localizedName"))
+                    .map(entry -> entry.getKey() + "=" + entry.getValue().findIn(backendOutput.situation.getDomainModel())
+                            .getMetadata().get("EN", "localizedName"))
+                    .collect(Collectors.joining(", ")));
+            result.debugInfo.put("states", backendOutput.situation.getDomainModel().getObjects().stream()
+                    .filter(ref -> ref.getMetadata().containsLocalized("EN", "localizedName") && ref.getAllProperties().stream().anyMatch(
+                            def -> def.getName().equals("state")))
+                    .map(
+                    ref -> ref.getMetadata().get("EN", "localizedName").toString().concat("-> ")
+                            .concat(ref.getPropertyValue("state").toString())).collect(Collectors.joining(";\n")));
+             */
+
             updateJudgeInterpretationResult(result, backendOutput);
 
             result.explanations = makeExplanations(
