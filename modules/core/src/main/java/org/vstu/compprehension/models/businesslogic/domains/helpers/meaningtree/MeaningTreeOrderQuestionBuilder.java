@@ -647,8 +647,16 @@ public class MeaningTreeOrderQuestionBuilder {
      * Поиск возможных допускаемых студентом ошибок в выражении вопроса
      * @return набор уникальных возможных ошибок
      */
-    static Set<String> findPossibleViolations(TokenList tokens) {
-        Set<String> set = new TreeSet<>();
+    public static Set<String> findPossibleViolations(TokenList tokens) {
+        return new HashSet<>(findAllPossibleViolations(tokens));
+    }
+
+    /**
+     * Поиск возможных допускаемых студентом ошибок в выражении вопроса
+     * @return набор уникальных возможных ошибок
+     */
+    public static List<String> findAllPossibleViolations(TokenList tokens) {
+        List<String> set = new ArrayList<>();
         set.add("error_base_student_error_early_finish");
 
         OperatorToken lastOperatorToken = null;
@@ -728,8 +736,16 @@ public class MeaningTreeOrderQuestionBuilder {
      * Поиск возможных навыков, которые может получить студент
      * @return набор уникальных возможных навыков
      */
-    static Set<String> findSkills(TokenList tokens, SupportedLanguage lang) {
-        Set<String> set = new TreeSet<>();
+    public static Set<String> findSkills(TokenList tokens, SupportedLanguage lang) {
+        return new TreeSet<>(findAllSkills(tokens, lang));
+    }
+
+    /**
+     * Поиск возможных навыков, которые может получить студент
+     * @return набор уникальных возможных навыков
+     */
+    public static List<String> findAllSkills(TokenList tokens, SupportedLanguage lang) {
+        List<String> set = new ArrayList<>();
         for (int i = 0; i < tokens.size(); i++) {
             Token t = tokens.get(i);
             set.add("central_operand_needed");
@@ -757,7 +773,8 @@ public class MeaningTreeOrderQuestionBuilder {
 
                 if (foundNearestOp != null && tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && !tokens.isParenthesized(i)) {
                     set.add("is_nearest_parenthesized_current_not");
-                } else if (foundNearestOp != null && !tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && tokens.isParenthesized(i)) {
+                }
+                if (foundNearestOp != null && !tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && tokens.isParenthesized(i)) {
                     set.add("is_current_parenthesized_nearest_not");
                 }
 
