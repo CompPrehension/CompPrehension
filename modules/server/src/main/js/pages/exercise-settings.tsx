@@ -5,9 +5,11 @@ import {
     DomainConcept,
     DomainConceptFlag,
     DomainLaw,
+    DomainSkill,
     ExerciseCardConcept,
     ExerciseCardConceptKind,
     ExerciseCardLaw,
+    ExerciseCardSkill,
     Strategy
 } from "../types/exercise-settings";
 import {ExerciseCardViewModel, ExerciseSettingsStore, ExerciseStageStore} from "../stores/exercise-settings-store";
@@ -122,12 +124,14 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
     const stageDomainConcepts = currentDomain?.concepts
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+    const stageDomainSkills = currentDomain?.skills
     const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
     const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
     const sharedDomainLaws = currentDomain?.laws
         .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
     const sharedDomainConcepts = currentDomain?.concepts
         .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+    const sharedDomainSkills : DomainSkill[] = []; // TODO: temporarily disabled due to missing flags in domain skills
     const currentStrategy = strategies.find(s => s.id === card.strategyId);
 
     return (
@@ -269,6 +273,27 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     </div>
                     || null
                 }
+                {sharedDomainSkills?.length
+                    && <div className="form-group">
+                        <label className="font-weight-bold">{t('exercisesettings_commonSkills')}</label>
+                        <div className="list-group list-group-flush">
+                            <ExerciseSkills
+                                id="common_skills"
+                                store={store}
+                                skills={sharedDomainSkills}
+                                cardSkills={cardLaws}
+                                onChange={(skill, skillValue, parent) => {
+                                    store.setCardCommonSkillValue(skill.name, skillValue)
+                                    if (!parent)
+                                        skill.childs.forEach(c => store.setCardCommonSkillValue(c.name, skillValue));
+                                    else
+                                        store.setCardCommonSkillValue(parent.name, 'PERMITTED');
+                                }}
+                            />
+                        </div>
+                    </div>
+                    || null
+                }
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_stages')}</label>
                     <div className="list-group list-group-flush">
@@ -281,6 +306,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                 showDeleteBtn={stages.length > 1}
                                 strategy={currentStrategy}
                                 stageDomainConcepts={stageDomainConcepts}
+                                stageDomainSkills={stageDomainSkills}
                                 stageDomainLaws={stageDomainLaws} />)
                         }
                     </div>
@@ -315,15 +341,17 @@ type ExerciseStageProps = {
     strategy?: Strategy,
     stageDomainConcepts?: DomainConcept[],
     stageDomainLaws?: DomainLaw[],
+    stageDomainSkills?: DomainSkill[],
 }
 const ExerciseStage = observer((props: ExerciseStageProps) => {
     const { t } = useTranslation();
-    const { store, stage, strategy, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws } = props;
+    const { store, stage, strategy, stageIdx, showDeleteBtn, stageDomainConcepts, stageDomainLaws, stageDomainSkills } = props;
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
     const cardConcepts = stage.concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
     const cardLaws = stage.laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
+    const cardSkills = stage.skills.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardSkill>);
 
     return (
         <div className="card mb-3">
@@ -396,6 +424,28 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                                         law.childs.forEach(c => store.setCardStageLawValue(stageIdx, c.name, lawValue));
                                     else
                                         store.setCardStageLawValue(stageIdx, parent.name, 'PERMITTED');
+                                }}
+                            />
+                        </div>
+                    </div>
+                    || null
+                }
+                {(stageDomainSkills && stageDomainSkills.length > 0)
+                    &&
+                    <div className="form-group">
+                        <label className="font-weight-bold">{t('exercisesettings_stageN_skills')}</label>
+                        <div className="list-group list-group-flush">
+                            <ExerciseSkills
+                                id={`stage${stageIdx}_skills`}
+                                store={store}
+                                skills={stageDomainSkills}
+                                cardSkills={cardSkills}
+                                onChange={(skill, skillValue, parent) => {
+                                    store.setCardStageSkillValue(stageIdx, skill.name, skillValue)
+                                    if (!parent)
+                                        skill.childs.forEach(c => store.setCardStageSkillValue(stageIdx, c.name, skillValue));
+                                    else
+                                        store.setCardStageSkillValue(stageIdx, parent.name, 'PERMITTED');
                                 }}
                             />
                         </div>
@@ -531,6 +581,61 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
                                         displayNames={lawFlagNames}
                                         onChange={val => onChange(childLaw, mapValueToKind(val), coreLaw)} />
                                         <div style={{ marginLeft: '15px' }}>{childLaw.displayName}</div>
+                                    </li>
+                                </>)}
+                        </ul>}
+                </div>))
+        }
+    </>)
+})
+
+type ExerciseSkillsProps = {    
+    id: string | number,
+    store: ExerciseSettingsStore,
+    skills: DomainSkill[],
+    cardSkills: Record<string, ExerciseCardSkill>,
+    onChange: (skill: DomainSkill, skillValue: ExerciseCardConceptKind, parent?: DomainSkill) => void,
+}
+const ExerciseSkills = observer((props: ExerciseSkillsProps) => {
+    const { id, store, skills, cardSkills, onChange } = props;
+    const { t  } = useTranslation();
+    const card = store.currentCard;
+    if (!card)
+        throw new Error('card not set');   
+    
+    const skillFlagNames = useMemo(() => {
+        return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
+    }, [store.user?.language])
+
+    return(
+    <>
+        {
+            skills.map((coreSkill, idx) =>
+                (<div className="list-group-item p-0 bg-transparent pt-2 pb-2" key={idx}>
+                    <div>
+                        <div className={`d-flex flex-row align-items-center`}>
+                            <ToggleSwitch id={`skill_${id}_toggle_${card.id}_${idx}`}
+                                selected={mapKindToValue(cardSkills[coreSkill.name]?.kind)}
+                                values={['Denied', 'Allowed', 'Target']}
+                                valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                displayNames={skillFlagNames}
+                                onChange={val => onChange(coreSkill, mapValueToKind(val))} />
+                            <div style={{ marginLeft: '15px' }}>{coreSkill.displayName}</div>
+                        </div>
+                    </div>
+
+                    {coreSkill.childs.length > 0 &&
+                        <ul className="">
+                            {coreSkill.childs.map((childSkill, i) =>
+                                <>
+                                    <li key={i} className={`d-flex flex-row align-items-centers mt-3`}>
+                                    <ToggleSwitch id={`skill_${id}_toggle_${card.id}_${idx}_${i}`}
+                                        selected={mapKindToValue(cardSkills[childSkill.name]?.kind)}
+                                        values={['Denied', 'Allowed', 'Target']}
+                                        valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
+                                        displayNames={skillFlagNames}
+                                        onChange={val => onChange(childSkill, mapValueToKind(val), coreSkill)} />
+                                        <div style={{ marginLeft: '15px' }}>{childSkill.displayName}</div>
                                     </li>
                                 </>)}
                         </ul>}

@@ -1,7 +1,7 @@
 import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -30,6 +30,7 @@ export class ExerciseStageStore implements Disposable {
     card: ExerciseCardViewModel
     concepts: ExerciseCardConcept[]
     laws: ExerciseCardLaw[]
+    skills: ExerciseCardSkill[]
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
     bankSearchResult: QuestionBankSearchResult | null = null
@@ -39,6 +40,7 @@ export class ExerciseStageStore implements Disposable {
     constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
+        this.skills     = stage.skills;
         this.numberOfQuestions = stage.numberOfQuestions;
         this.complexity        = stage.complexity;
         this.card     = card;
@@ -49,14 +51,15 @@ export class ExerciseStageStore implements Disposable {
             const complexity = this.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
-            this.updateBankStats(concepts, laws, card.tags, complexity);
+            const skills = this.skills.slice()
+            this.updateBankStats(concepts, laws, skills, card.tags, complexity);
         }, { delay: 1000 });
     }
     
-    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number) {
+    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
         const { card } = this;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
-        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, tags, complexity, 5);
+        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5);
         if (E.isRight(newData)) {
             runInAction(() => {
                 this.bankSearchResult = newData.right;
@@ -112,7 +115,7 @@ export class ExerciseSettingsStore {
             ...card,
             stages: pipe(
                 card.stages,
-                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
+                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
             ),
         }
     }
@@ -345,6 +348,57 @@ export class ExerciseSettingsStore {
             }
         }
     }
+
+     setCardStageSkillValue(stageIdx: number, skillName: string, skillValue: ExerciseCardConceptKind) {
+        if (!this.currentCard || !this.currentCard.stages[stageIdx])
+            return;
+        const stage = this.currentCard.stages[stageIdx];
+        const targetSkillIdx = stage.skills.findIndex(x => x.name == skillName);
+        let targetSkill = targetSkillIdx !== -1 ? stage.skills[targetSkillIdx] : null;
+        if (skillName === 'PERMITTED') {
+            if (targetSkill)
+                stage.skills.splice(targetSkillIdx, 1)
+            return;
+        }
+        if (!targetSkill) {
+            targetSkill = {
+                name: skillName,
+                kind: skillValue,
+            }
+            stage.skills = [...stage.skills, targetSkill];
+        } else {
+            stage.skills[targetSkillIdx] = {
+                ...targetSkill,
+                kind: skillValue,
+            }
+        }
+    }
+
+    setCardCommonSkillValue(skillName: string, skillValue: ExerciseCardConceptKind) {
+        if (!this.currentCard)
+            return;
+        for(const stage of this.currentCard.stages) {
+            const targetSkillIdx = stage.skills.findIndex(x => x.name == skillName);
+            let targetSkill = targetSkillIdx !== -1 ? stage.laws[targetSkillIdx] : null;
+            if (skillValue === 'PERMITTED') {
+                if (targetSkill)
+                    stage.laws.splice(targetSkillIdx, 1)
+                continue;
+            }
+            if (!targetSkill) {
+                targetSkill = {
+                    name: skillName,
+                    kind: skillValue,
+                }
+                stage.skills = [...stage.skills, targetSkill];
+            } else {
+                stage.skills[targetSkillIdx] = {
+                    ...targetSkill,
+                    kind: skillValue,
+                }
+            }
+        }        
+    }
     
     setCardStageNumberOfQuestions(stageIdx: number, rawNumberOfQuesions: string) {
         if (!this.currentCard || !this.currentCard.stages[stageIdx])
@@ -407,8 +461,12 @@ export class ExerciseSettingsStore {
         const sharedDomainConcepts = this.domains.find(z => z.id === card.domainId)?.concepts
             .flatMap(c => [c, ...c.childs])
             .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+        const sharedDomainSkills = this.domains.find(z => z.id === card.domainId)?.skills
+            .flatMap(c => [c, ...c.childs]) ?? [];
         var stageConcepts = card.stages[0].concepts
             .filter(c => c.kind !== 'PERMITTED' && sharedDomainConcepts.some(x => x.name === c.name))
+        var stageSkills = card.stages[0].skills
+            .filter(c => c.kind !== 'PERMITTED' && sharedDomainSkills.some(x => x.name === c.name))
         var stageLaws = card.stages[0].laws
             .filter(l => l.kind !== 'PERMITTED' && sharedDomainLaws.some(x => x.name === l.name));
 
@@ -420,6 +478,7 @@ export class ExerciseSettingsStore {
                 complexity: 0.5,
                 laws: stageLaws,
                 concepts: stageConcepts,
+                skills: stageSkills
             });
         this.currentCard.stages.push(newStage);
     }

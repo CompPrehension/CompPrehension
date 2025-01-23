@@ -47,18 +47,34 @@ export const TExerciseCardLaw: io.Type<ExerciseCardLaw> = io.type({
     })
 })
 
+export type ExerciseCardSkill = {
+    name: string,
+    kind: ExerciseCardConceptKind,
+}
+
+export const TExerciseCardSkill: io.Type<ExerciseCardSkill> = io.type({
+    name: io.string,
+    kind: io.keyof({
+        'FORBIDDEN': null,
+        'PERMITTED': null,
+        'TARGETED': null,
+    })
+})
+
 
 export type ExerciseStage = {
     numberOfQuestions: number,
     complexity: number,
     concepts: ExerciseCardConcept[],
     laws: ExerciseCardLaw[],
+    skills: ExerciseCardSkill[]
 }
 export const TExerciseStage : io.Type<ExerciseStage> = io.type({
     numberOfQuestions: io.number,
     complexity: io.number,
     concepts: io.array(TExerciseCardConcept),
     laws: io.array(TExerciseCardLaw),
+    skills: io.array(TExerciseCardSkill)
 })
 
 
@@ -83,6 +99,18 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     tags: io.array(io.string),
     options: TExerciseOptions,
 })
+
+export type DomainSkill = {
+    name: string,
+    displayName: string,
+    childs: DomainSkill[]
+}
+
+export const TDomainSkill : io.Type<DomainSkill> = io.recursion('DomainSkill', () => io.type({
+    name: io.string,
+    displayName: io.string,
+    childs: io.array(TDomainSkill),
+}))
 
 
 export type DomainLaw = {
@@ -122,6 +150,7 @@ export type Domain = {
     description: string | null,
     laws: DomainLaw[],
     concepts: DomainConcept[],
+    skills: DomainSkill[],
     tags: string[],
 }
 export const TDomain : io.Type<Domain> = io.type({
@@ -129,6 +158,7 @@ export const TDomain : io.Type<Domain> = io.type({
     displayName: io.string,
     description: io.union([io.string, io.null]),
     laws: io.array(TDomainLaw),
+    skills: io.array(TDomainSkill),
     concepts: io.array(TDomainConcept),
     tags: io.array(io.string),
 })
