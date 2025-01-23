@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1737643532000-1" author="Dmitry Shashkov">
+        <!-- Добавляем nullable-->
+        <update tableName="question_request_log">
+            <column name="skills_targeted_bitmask" valueNumeric="0" />
+            <column name="skills_denied_bitmask" valueNumeric="0" />
+        </update>
+
+        <addNotNullConstraint
+                columnName="skills_targeted_bitmask"
+                tableName="question_request_log"
+                columnDataType="bigint"
+                defaultNullValue="0"/>
+
+        <addNotNullConstraint
+                columnName="skills_denied_bitmask"
+                tableName="question_request_log"
+                columnDataType="bigint"
+                defaultNullValue="0"/>
+    </changeSet>
+</databaseChangeLog>
