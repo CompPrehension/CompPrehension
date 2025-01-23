@@ -103,6 +103,10 @@ public abstract class Domain {
         return getMessage(lawName, "law.", language);
     }
 
+    public String getSkillDisplayName(String skillName, Language language) {
+        return getMessage(skillName, "skill.", language);
+    }
+
     public @Nullable PositiveLaw getPositiveLaw(String name) {
         return positiveLaws.getOrDefault(name, null);
     }
@@ -186,6 +190,9 @@ public abstract class Domain {
     }
 
     public List<Skill> getAllSkills() {
+        if (skills == null) {
+            return List.of();
+        }
         return new ArrayList<>(skills.values());
     }
 
@@ -281,6 +288,20 @@ public abstract class Domain {
 
     public Skill getSkill(String name) {
         return skills.getOrDefault(name, null);
+    }
+
+    /** Get skills organized into one-level hierarchy
+     * @return map representing groups of skills (base skill -> skills in the group)
+     */
+    public Map<Skill, List<Skill>> getSkillSimplifiedHierarchy() {
+        Map<Skill, List<Skill>> res = new TreeMap<>();
+        List<Skill> skills = getAllSkills();
+        for (Skill skill : getAllSkills()) {
+            if (skill.getBaseSkills().isEmpty()) {
+                res.put(skill, new ArrayList<>());
+            }
+        }
+        return res;
     }
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
@@ -743,8 +764,12 @@ public abstract class Domain {
          * Shortest number of steps (iterations) left
          */
         public int IterationsLeft;
-    }
 
+        /**
+         * For debug purposes
+         */
+        public Map<String, String> debugInfo = new HashMap<>();
+    }
     /**
      * Info about one iteration
      */
