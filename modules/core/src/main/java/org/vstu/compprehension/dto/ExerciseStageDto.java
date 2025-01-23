@@ -17,4 +17,5 @@ public class ExerciseStageDto {
     private float complexity;
     private @NotNull List<ExerciseLawDto> laws;
     private @NotNull List<ExerciseConceptDto> concepts;
+    private @NotNull List<ExerciseSkillDto> skills;
 }

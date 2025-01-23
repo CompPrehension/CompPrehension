@@ -94,6 +94,11 @@ public class QuestionBank {
             return false;
         }
 
+        // Присутствует хотя бы один из целевых скиллов
+        if (qr.getTargetSkillsBitmask() != 0 && (meta.getSkillBits() & qr.getTargetSkillsBitmask()) == 0) {
+            return false;
+        }
+
         /*
         // Присутствует хотя бы половина целевых концептов и законов
         if (qr.getTargetConceptsBitmask() != 0 && ((meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0 || Long.bitCount(meta.getConceptBits() & qr.getTargetConceptsBitmask()) < Long.bitCount(qr.getTargetConceptsBitmask()) / 2)
@@ -137,7 +142,8 @@ public class QuestionBank {
                 .mapToLong(QuestionMetadataEntity::getConceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
-        targetConceptsBitmask &= ~deniedConceptsBitmask;        
+        targetConceptsBitmask &= ~deniedConceptsBitmask;
+
 
         // use laws, for e.g. Expr domain
         long targetViolationsBitmaskInPlan = bankSearchRequest.getTargetLawsBitmask();
@@ -154,11 +160,22 @@ public class QuestionBank {
                 .mapToLong(QuestionMetadataEntity::getViolationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
 
+        long targetSkillsBitmaskInPlan = bankSearchRequest.getTargetSkillsBitmask();
+        long targetSkillsBitmask = targetSkillsBitmaskInPlan;
+        long deniedSkillsBitmask = bankSearchRequest.getDeniedSkillsBitmask();
+        long unwantedSkillsBitmask = prevQuestionsMetadata.stream()
+                .mapToLong(QuestionMetadataEntity::getLawBits).
+                reduce((t, t2) -> t | t2).orElse(0);
+        // guard: don't allow overlapping of target & denied
+        targetSkillsBitmask &= ~deniedSkillsBitmask;
+
         var preparedQuery = bankSearchRequest.toBuilder()
                 .targetConceptsBitmask(targetConceptsBitmask)
                 .targetLawsBitmask(targetLawsBitmask)
+                .targetSkillsBitmask(targetSkillsBitmask)
                 .unwantedConceptsBitmask(unwantedConceptsBitmask)
                 .unwantedLawsBitmask(unwantedLawsBitmask)
+                .unwantedSkillsBitmask(unwantedSkillsBitmask)
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
                 .build();
         log.info("search query prepared: {}", new Gson().toJson(preparedQuery));
@@ -204,9 +221,11 @@ public class QuestionBank {
         for (QuestionMetadataEntity m : foundQuestionMetas) {
             m.setConceptBitsInPlan(targetConceptsBitmaskInPlan);
             m.setViolationBitsInPlan(targetViolationsBitmaskInPlan);
+            m.setSkillBitsInPlan(targetSkillsBitmaskInPlan);
             // Save actual requested bits as well
             m.setConceptBitsInRequest(targetConceptsBitmask);
             m.setViolationBitsInRequest(targetLawsBitmask);
+            m.setSkillBitsInRequest(targetSkillsBitmask);
 
             /// debug check law bits
             if (targetLawsBitmask != 0 && (targetLawsBitmask & m.getViolationBits()) == 0) {

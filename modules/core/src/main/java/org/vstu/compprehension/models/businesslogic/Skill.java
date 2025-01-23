@@ -44,6 +44,23 @@ public class Skill implements TreeNodeWithBitmask {
         }
     }
 
+    public static long combineToBitmask(List<Skill> targetSkills) {
+        if (targetSkills == null)
+            return 0;
+
+        long skillBitmask = 0;
+        // Note: violations are not positive laws.
+        for (Skill t : targetSkills) {
+            long newBit = t.getBitmask();
+            if (newBit == 0) {
+                // make use of children
+                newBit = t.getSubTreeBitmask();
+            }
+            skillBitmask |= newBit;
+        }
+        return skillBitmask;
+    }
+
     public boolean hasBaseSkill(Skill skill) {
         if (baseSkills.contains(skill)) {
             return true;

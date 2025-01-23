@@ -5,9 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.Skill;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -65,6 +67,17 @@ public interface AbstractStrategy {
                 .flatMap(ec -> Stream.concat(
                         domain.getPositiveLawWithImplied(ec.getName()).stream(),
                         domain.getNegativeLawWithImplied(ec.getName()).stream()))
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    default List<Skill> getExerciseStageSkillsWithImplied(
+            @NotNull List<ExerciseSkillDto> stageSkills,
+            Domain domain,
+            RoleInExercise role) {
+        return stageSkills.stream()
+                .filter(ec -> ec.getKind().equals(role))
+                .flatMap(ec -> Stream.of(domain.getSkill(ec.getName())))
                 .collect(Collectors.toList());
     }
 
@@ -150,6 +163,9 @@ public interface AbstractStrategy {
         qr.setAllowedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.PERMITTED));
         qr.setTargetTags(exerciseAttempt.getExercise().getTags().stream().map(t -> domain.getTags().get(t)).filter(Objects::nonNull).toList());
         qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
+        qr.setTargetSkills(exerciseStage.getSkills().stream().map(t -> domain.getSkill(t.getName())).filter(Objects::nonNull).toList());
+        qr.setDeniedSkills(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.FORBIDDEN));
+        qr.setAllowedSkills(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.PERMITTED));
 
         // questions
         qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));

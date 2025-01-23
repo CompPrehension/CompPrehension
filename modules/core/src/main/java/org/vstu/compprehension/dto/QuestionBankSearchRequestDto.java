@@ -18,6 +18,7 @@ public class QuestionBankSearchRequestDto {
     private @NotNull List<String> tags;
     private @NotNull List<ExerciseLawDto> laws;
     private @NotNull List<ExerciseConceptDto> concepts;
+    private @NotNull List<ExerciseSkillDto> skills;
     @Builder.Default
     private int limit = 5;
 }

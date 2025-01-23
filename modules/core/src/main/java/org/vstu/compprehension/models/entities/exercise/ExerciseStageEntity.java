@@ -2,12 +2,16 @@ package org.vstu.compprehension.models.entities.exercise;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.Value;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,4 +35,7 @@ public class ExerciseStageEntity {
     
     @Builder.Default
     @NotNull List<ExerciseConceptDto> concepts = new ArrayList<>(0);
+
+    @Builder.Default
+    @NotNull List<ExerciseSkillDto> skills = new ArrayList<>(0);
 }

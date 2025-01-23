@@ -24,6 +24,9 @@ public class QuestionRequest {
     private List<Law> deniedLaws;
     private List<Law> allowedLaws;
     private List<Tag> targetTags;
+    private List<Skill> targetSkills;
+    private List<Skill> deniedSkills;
+    private List<Skill> allowedSkills;
 
     private @Nullable List<String> deniedQuestionNames;
     private @Nullable List<String> deniedQuestionTemplateIds;
@@ -78,6 +81,9 @@ public class QuestionRequest {
                 .allowedConceptNames(allowedConcepts.stream().map(Concept::getName).collect(Collectors.toList()))
                 .targetLawNames(targetLaws.stream().map(Law::getName).collect(Collectors.toList()))
                 .deniedLawNames(deniedLaws.stream().map(Law::getName).collect(Collectors.toList()))
+                .targetSkillNames(targetSkills.stream().map(Skill::getName).collect(Collectors.toList()))
+                .deniedSkillNames(deniedSkills.stream().map(Skill::getName).collect(Collectors.toList()))
+                .allowedSkillNames(allowedSkills.stream().map(Skill::getName).collect(Collectors.toList()))
                 .allowedLawNames(allowedLaws.stream().map(Law::getName).collect(Collectors.toList()))
                 .targetTags(targetTags.stream().map(Tag::getName).collect(Collectors.toList()))
                 .conceptsTargetedBitmask(Concept.combineToBitmask(targetConcepts))
@@ -85,6 +91,8 @@ public class QuestionRequest {
                 .lawsTargetedBitmask(Law.combineToBitmask(targetLaws))
                 .lawsDeniedBitmask(Law.combineToBitmask(deniedLaws))
                 .targetTagsBitmask(Tag.combineToBitmask(targetTags))
+                .skillsTargetedBitmask(Skill.combineToBitmask(targetSkills))
+                .skillsDeniedBitmask(Skill.combineToBitmask(deniedSkills))
                 .deniedQuestionNames(deniedQuestionNames)
                 .deniedQuestionTemplateIds(deniedQuestionTemplateIds)
                 .deniedQuestionMetaIds(deniedQuestionMetaIds)

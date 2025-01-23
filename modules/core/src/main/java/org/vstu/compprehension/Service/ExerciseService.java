@@ -59,7 +59,7 @@ public class ExerciseService {
                 .supplementaryQuestionsEnabled(true)
                 .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>()))));
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;
@@ -80,7 +80,7 @@ public class ExerciseService {
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
         exercise.setStages(card.getStages()
-                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
+                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
                 .collect(Collectors.toList()));
 
         exerciseRepository.save(exercise);
@@ -97,7 +97,8 @@ public class ExerciseService {
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .stages(exercise.getStages()
-                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
+                        .stream().map(s -> new ExerciseStageDto(
+                                s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
                         .collect(Collectors.toList()))
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())

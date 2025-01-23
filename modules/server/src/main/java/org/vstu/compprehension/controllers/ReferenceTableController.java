@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.StrategyFactory;
-import org.vstu.compprehension.dto.ConceptTreeItemDto;
-import org.vstu.compprehension.dto.DomainDto;
-import org.vstu.compprehension.dto.LawTreeItemDto;
-import org.vstu.compprehension.dto.StrategyDto;
+import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
@@ -22,7 +19,6 @@ import org.vstu.compprehension.models.entities.UserEntity;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Controller
 @RequestMapping({"api/refTables" })
@@ -104,6 +100,17 @@ public class ReferenceTableController {
                                                 d.getLawDisplayName(z.getName(), currentLanguage),
                                                 z.getBitflags())
                                         ).toArray(LawTreeItemDto[]::new)))
+                                .collect(Collectors.toList()))
+                        .skills(d.getSkillSimplifiedHierarchy()
+                                .entrySet()
+                                .stream()
+                                .map(kv -> new SkillTreeItemDto(
+                                        kv.getKey().getName(),
+                                        d.getSkillDisplayName(kv.getKey().getName(), currentLanguage),
+                                        kv.getValue().stream().map(z -> new SkillTreeItemDto(
+                                                z.getName(),
+                                                d.getLawDisplayName(z.getName(), currentLanguage))
+                                        ).toArray(SkillTreeItemDto[]::new)))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());
