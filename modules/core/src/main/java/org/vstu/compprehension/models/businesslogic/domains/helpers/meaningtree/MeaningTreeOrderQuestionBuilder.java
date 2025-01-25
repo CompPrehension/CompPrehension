@@ -6,6 +6,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
@@ -478,8 +479,30 @@ public class MeaningTreeOrderQuestionBuilder {
             solutionLength = 1;
         }
 
-        possibleViolations = findPossibleViolations(tokens);
-        Set<String> possibleSkills = findSkills(tokens, language);
+        var violations = findAllPossibleViolations(tokens);
+        var skills = findAllPossibleViolations(tokens);
+
+        // Отсеиваем вопросы, в которых много шагов и при этом больше есть повторяющиеся скиллы и ошибки
+        final int targetSolutionLength = 16;
+        final int maxSkillRepeatCount = 8;
+        final int maxErrorRepeatCount = 5;
+        if (solutionLength > targetSolutionLength) {
+            var counter = Utils.countElements(skills);
+            for (var entry : counter.entrySet()) {
+                if (entry.getValue() > maxSkillRepeatCount) {
+                    allChecksArePassed = false;
+                }
+            }
+            counter = Utils.countElements(violations);
+            for (var entry : counter.entrySet()) {
+                if (entry.getValue() > maxErrorRepeatCount) {
+                    allChecksArePassed = false;
+                }
+            }
+        }
+
+        possibleViolations = new HashSet<>(violations);
+        Set<String> possibleSkills = new HashSet<>(skills);
         concepts = findConcepts(sourceExpressionTree, language);
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
