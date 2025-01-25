@@ -33,7 +33,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var stepsMax = qr.getStepsMax();
         var deniedConceptBits = qr.getDeniedConceptsBitmask();
         var deniedLawBits = qr.getDeniedLawsBitmask();
-        var deniedSkillBits = qr.getDeniedLawsBitmask();
+        var deniedSkillBits = qr.getDeniedSkillsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
@@ -93,7 +93,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var stepsMax = qr.getStepsMax();
         var deniedConceptBits = qr.getDeniedConceptsBitmask();
         var deniedLawBits = qr.getDeniedLawsBitmask();
-        var deniedSkillBits = qr.getDeniedLawsBitmask();
+        var deniedSkillBits = qr.getDeniedSkillsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
@@ -179,7 +179,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var stepsMax = qr.getStepsMax();
         var deniedConceptBits = qr.getDeniedConceptsBitmask();
         var deniedLawBits = qr.getDeniedLawsBitmask();
-        var deniedSkillBits = qr.getDeniedLawsBitmask();
+        var deniedSkillBits = qr.getDeniedSkillsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
@@ -256,7 +256,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var stepsMax = qr.getStepsMax();
         var deniedConceptBits = qr.getDeniedConceptsBitmask();
         var deniedLawBits = qr.getDeniedLawsBitmask();
-        var deniedSkillBits = qr.getDeniedLawsBitmask();
+        var deniedSkillBits = qr.getDeniedSkillsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
@@ -331,7 +331,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var stepsMax = qr.getStepsMax();
         var deniedConceptBits = qr.getDeniedConceptsBitmask();
         var deniedLawBits = qr.getDeniedLawsBitmask();
-        var deniedSkillBits = qr.getDeniedLawsBitmask();
+        var deniedSkillBits = qr.getDeniedSkillsBitmask();
         var deniedQuestionNames = qr.getDeniedQuestionNames() == null || qr.getDeniedQuestionNames().isEmpty()
                 ? null
                 : qr.getDeniedQuestionNames();
