@@ -22,20 +22,15 @@ import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.CppTranslator;
 import org.vstu.meaningtree.languages.LanguageTranslator;
 import org.vstu.meaningtree.nodes.Node;
-import org.vstu.meaningtree.nodes.expressions.bitwise.*;
 import org.vstu.meaningtree.nodes.expressions.calls.FunctionCall;
-import org.vstu.meaningtree.nodes.expressions.comparison.*;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
-import org.vstu.meaningtree.nodes.expressions.math.*;
-import org.vstu.meaningtree.nodes.expressions.other.*;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerMemberAccess;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerPackOp;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerUnpackOp;
 import org.vstu.meaningtree.nodes.expressions.unary.UnaryMinusOp;
 import org.vstu.meaningtree.nodes.expressions.unary.UnaryPlusOp;
 import org.vstu.meaningtree.serializers.rdf.RDFSerializer;
-import org.vstu.meaningtree.utils.tokens.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -77,6 +72,8 @@ public class MeaningTreeOrderQuestionBuilder {
 
     protected static final int MIN_VERSION = 12;
     protected static final int TARGET_VERSION = 12;
+
+    private boolean allChecksArePassed = true;
 
     private static final List<String> defaultTags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
 
@@ -390,6 +387,9 @@ public class MeaningTreeOrderQuestionBuilder {
             return List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
+        if (!allChecksArePassed) {
+            return generated;
+        }
         OperandEvaluationMap map = new OperandEvaluationMap(this, language);
         List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
         MeaningTree initial = sourceExpressionTree;
@@ -415,8 +415,14 @@ public class MeaningTreeOrderQuestionBuilder {
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }
-        rawTranslatedCode = toTranslator.getCode(sourceExpressionTree);
-        tokens = toTranslator.getTokenizer().tokenizeExtended(rawTranslatedCode);
+        var result = toTranslator.tryGetCode(sourceExpressionTree);
+        allChecksArePassed = result.getLeft();
+        rawTranslatedCode = result.getRight();
+        if (rawTranslatedCode != null) {
+            tokens = toTranslator.getTokenizer().tokenizeExtended(rawTranslatedCode);
+        } else {
+            tokens = new TokenList();
+        }
     }
 
     /**
