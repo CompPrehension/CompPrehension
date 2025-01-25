@@ -46,6 +46,7 @@ public class ExpressionDTReclassificationTask {
         final int BATCH = 2048;
         int lastId = 0;
         int count = 0;
+        ArrayList<QuestionMetadataEntity> toDelete = new ArrayList<>();
         while (true) {
             List<QuestionMetadataEntity> batchList = qMetaRepo.loadPageWithData(lastId, BATCH);
             System.err.println("New batch loaded");
@@ -63,6 +64,12 @@ public class ExpressionDTReclassificationTask {
                 }
                 System.err.printf("Processing metadata id=%d%n", meta.getId());
                 QuestionMetadataEntity obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
+                if (obj == null) {
+                    toDelete.add(meta);
+                    lastId = meta.getId();
+                    System.err.println("This metadata will be deleted");
+                    continue;
+                }
                 obj.setId(meta.getId());
                 obj.setQuestionData(meta.getQuestionData());
                 obj.setGenerationRequestId(meta.getGenerationRequestId());
@@ -73,6 +80,7 @@ public class ExpressionDTReclassificationTask {
             System.err.println("Saving this batch");
             qMetaRepo.saveAll(newMeta);
         }
+        qMetaRepo.deleteAll(toDelete);
     }
 
 }

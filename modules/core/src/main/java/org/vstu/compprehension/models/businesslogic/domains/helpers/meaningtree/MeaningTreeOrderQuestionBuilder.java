@@ -22,15 +22,20 @@ import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.CppTranslator;
 import org.vstu.meaningtree.languages.LanguageTranslator;
 import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.nodes.expressions.bitwise.*;
 import org.vstu.meaningtree.nodes.expressions.calls.FunctionCall;
+import org.vstu.meaningtree.nodes.expressions.comparison.*;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
+import org.vstu.meaningtree.nodes.expressions.math.*;
+import org.vstu.meaningtree.nodes.expressions.other.*;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerMemberAccess;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerPackOp;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerUnpackOp;
 import org.vstu.meaningtree.nodes.expressions.unary.UnaryMinusOp;
 import org.vstu.meaningtree.nodes.expressions.unary.UnaryPlusOp;
 import org.vstu.meaningtree.serializers.rdf.RDFSerializer;
+import org.vstu.meaningtree.utils.tokens.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -197,6 +202,9 @@ public class MeaningTreeOrderQuestionBuilder {
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.fromExistingQuestion(q, domain);
         SupportedLanguage language = detectLanguageFromTags(qMeta.getTagBits(), domain);
         builder.processTokens(language);
+        if (!builder.allChecksArePassed) {
+            return null;
+        }
         builder.answerObjects = generateAnswerObjects(builder.tokens);
         builder.processMetadata(language, builder.sourceExpressionTree.hashCode());
         return builder.metadata.toMetadataEntity();

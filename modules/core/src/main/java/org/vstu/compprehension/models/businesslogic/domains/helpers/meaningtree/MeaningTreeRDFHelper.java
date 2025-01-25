@@ -9,7 +9,9 @@ import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
+import org.vstu.meaningtree.utils.tokens.Token;
 import org.vstu.meaningtree.utils.tokens.TokenList;
+import org.vstu.meaningtree.utils.tokens.TokenType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -49,7 +51,12 @@ public class MeaningTreeRDFHelper {
         Model model = backendFactsToModel(stmtFacts);
         MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(model));
         try {
-            return language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt);
+            var result = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tryTokenizeExtended(mt);
+            if (result.getLeft()) {
+                return result.getRight();
+            } else {
+                return new TokenList(List.of(new Token("Sorry, this question is unsupported. Please skip it", TokenType.UNKNOWN)));
+            }
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Tokenizer creation failed");
         }
