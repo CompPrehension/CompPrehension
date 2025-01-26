@@ -48,7 +48,7 @@ public class QuestionDynamicDataAppender {
                     ansEntity.setRightCol(obj.isRightCol());
                     return ansEntity;
                 }).toList()));
-        q.getQuestionData().setQuestionText(MeaningTreeOrderQuestionBuilder.questionToHtml(tokens, domain, userLang));
+        q.getQuestionData().setQuestionText(MeaningTreeOrderQuestionBuilder.questionToHtml(tokens, domain, userLang, q.getMetadata() == null ? -1 : q.getMetadata().getId()));
         q.getQuestionData().setExerciseAttempt(attempt);
         return q;
     }

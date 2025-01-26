@@ -26,6 +26,7 @@ import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.bitwise.*;
 import org.vstu.meaningtree.nodes.expressions.calls.FunctionCall;
 import org.vstu.meaningtree.nodes.expressions.comparison.*;
+import org.vstu.meaningtree.nodes.expressions.logical.NotOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
 import org.vstu.meaningtree.nodes.expressions.math.*;
@@ -506,6 +507,9 @@ public class MeaningTreeOrderQuestionBuilder {
         possibleViolations = new HashSet<>(violations);
         Set<String> possibleSkills = new HashSet<>(skills);
         concepts = findConcepts(sourceExpressionTree, language);
+        if (concepts.isEmpty() || solutionLength == 1) {
+            allChecksArePassed = false;
+        }
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
@@ -575,8 +579,8 @@ public class MeaningTreeOrderQuestionBuilder {
      */
      static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
         HashSet<String> result = new HashSet<>();
-        List<Node> descendants = mt.getRootNode().walkAllNodes();
-        for (Node node: descendants) {
+        for (Node.Info nodeInfo: mt) {
+            Node node = nodeInfo.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");
             else if (node instanceof DivOp) result.add("operator_/");
@@ -630,6 +634,8 @@ public class MeaningTreeOrderQuestionBuilder {
                     result.add("operator_or");
                 }
                 result.add("operator_||");
+            } else if (node instanceof NotOp) {
+                 result.add("operator_!");
             }
             else if (node instanceof AssignmentExpression expr) {
                 switch (expr.getAugmentedOperator()) {
@@ -810,10 +816,13 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("current_operator_enclosed");
                 }
 
-                if (foundNearestOp != null && tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && !tokens.isParenthesized(i)) {
+                if (foundNearestOp != null && !tokens.getEnclosingParentheses(tokens.indexOf(foundNearestOp)).equals(tokens.getEnclosingParentheses(i))
+                        && tokens.getEnclosingParentheses(i).getLeft() == -1
+                ) {
                     set.add("is_nearest_parenthesized_current_not");
                 }
-                if (foundNearestOp != null && !tokens.isParenthesized(tokens.indexOf(foundNearestOp)) && tokens.isParenthesized(i)) {
+                if (foundNearestOp != null && !tokens.getEnclosingParentheses(tokens.indexOf(foundNearestOp)).equals(tokens.getEnclosingParentheses(i))
+                        && tokens.getEnclosingParentheses(i).getLeft() != -1) {
                     set.add("is_current_parenthesized_nearest_not");
                 }
 
@@ -836,8 +845,10 @@ public class MeaningTreeOrderQuestionBuilder {
                 set.add("strict_order_operators_present");
             }
 
-            if (lang.equals(SupportedLanguage.JAVA)) {
+            if (!lang.equals(SupportedLanguage.JAVA)) {
                 set.add("are_central_operands_strict_order");
+            } else {
+                set.add("no_current_in_many_central_operands");
             }
 
             if (t instanceof OperatorToken op && op.isStrictOrder) {
@@ -848,14 +859,14 @@ public class MeaningTreeOrderQuestionBuilder {
                         commaCount = ops.get(OperandPosition.CENTER).asSublist()
                                 .stream().filter((Token token) -> token.type == TokenType.COMMA).count();
                     }
-                    set.add("no_current_in_many_central_operands");
                     if (commaCount > 1) {
-                        set.add("no_comma_in_central_operands");
                         boolean operatorInCenterCount = ops.get(OperandPosition.CENTER).asSublist()
                                 .stream().anyMatch((Token token) -> token instanceof OperatorToken);
                         if (operatorInCenterCount) {
                             set.add("previous_central_operands_are_unevaluated");
                         }
+                    } else {
+                        set.add("no_comma_in_central_operands");
                     }
                 } else {
                     boolean isOperatorInAnyOperandOfStrictOrder = false;
@@ -901,7 +912,7 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     static String questionToHtml(TokenList tokens,
                                  ProgrammingLanguageExpressionDTDomain domain,
-                                 Language lang
+                                 Language lang, int metaId
     ) {
         StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
@@ -933,7 +944,11 @@ public class MeaningTreeOrderQuestionBuilder {
         sb.append("<!-- Original expression: ");
         sb.append(tokens.stream().map((Token t) -> t.value).collect(Collectors.joining(" ")));
         sb.append(' ');
-        sb.append("-->").append("</p>");
+        sb.append("-->");
+        sb.append("<!-- Metadata id: ");
+        sb.append(metaId);
+        sb.append("-->");
+        sb.append("</p>");
         String text = sb.toString();
 
         sb = new StringBuilder(text
