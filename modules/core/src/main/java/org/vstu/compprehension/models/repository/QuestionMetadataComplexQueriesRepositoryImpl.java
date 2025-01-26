@@ -64,8 +64,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
 
                     "AND q.integral_complexity BETWEEN :complexity - :complWindow AND :complexity + :complWindow " +
                     "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
-                    "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
-                    "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) ", Integer.class)
+                    "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
+                    "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
@@ -197,6 +197,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var unwantedConceptsBitmask = qr.getUnwantedConceptsBitmask();
         var unwantedLawsBitmask = qr.getUnwantedLawsBitmask();
         var unwantedViolationsBitmask = qr.getUnwantedViolationsBitmask();
+        var unwantedSkillsBitmask = qr.getUnwantedSkillsBitmask();
 
         var result = entityManager.createNativeQuery(
                 "select * from questions_meta q where " +
@@ -220,8 +221,19 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                         //"AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
                         
                         "order by " + 
-                        " (GREATEST(bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), bit_count(q.concept_bits & :unwantedConceptsBitmask)) + bit_count(q.law_bits & :unwantedLawsBitmask) + bit_count(q.violation_bits & :unwantedViolationsBitmask)) DIV 3 ASC, " +
-                        " GREATEST(bit_count(q.trace_concept_bits & :targetConceptsBitmask), bit_count(q.concept_bits & :targetConceptsBitmask)) + bit_count(q.violation_bits & :targetLawsBitmask) DESC " +
+                        "(GREATEST(" +
+                             "bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), " +
+                             "bit_count(q.concept_bits & :unwantedConceptsBitmask))" +
+                        " + bit_count(q.law_bits & :unwantedLawsBitmask)" +
+                        " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
+                        " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
+                        ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
+                        "GREATEST(" +
+                             "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
+                             "bit_count(q.concept_bits & :targetConceptsBitmask))" +
+                        " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                        " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
+                        ") DESC " +  // raise rating of questions with target bits
                         "limit :lim " 
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
@@ -240,6 +252,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("unwantedConceptsBitmask", unwantedConceptsBitmask)
                 .setParameter("unwantedLawsBitmask", unwantedLawsBitmask)
                 .setParameter("unwantedViolationsBitmask", unwantedViolationsBitmask)
+                .setParameter("unwantedSkillsBitmask", unwantedSkillsBitmask)
                 .setParameter("complexity", complexity)
                 .setParameter("complWindow", complexityWindow)
                 .setParameter("lim", limitNumber)
@@ -274,6 +287,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var unwantedConceptsBitmask = qr.getUnwantedConceptsBitmask();
         var unwantedLawsBitmask = qr.getUnwantedLawsBitmask();
         var unwantedViolationsBitmask = qr.getUnwantedViolationsBitmask();
+        var unwantedSkillsBitmask = qr.getUnwantedSkillsBitmask();
 
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
@@ -292,8 +306,19 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "order by " +
                                 " abs(q.integral_complexity - :complexity) DIV :complWindow ASC, " +
                                 " (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) ASC, " +  // less often show "hot" questions
-                                " (GREATEST(bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), bit_count(q.concept_bits & :unwantedConceptsBitmask)) + bit_count(q.law_bits & :unwantedLawsBitmask) + bit_count(q.violation_bits & :unwantedViolationsBitmask)) DIV 3 ASC, " +
-                                " GREATEST(bit_count(q.trace_concept_bits & :targetConceptsBitmask), bit_count(q.concept_bits & :targetConceptsBitmask)) + bit_count(q.violation_bits & :targetLawsBitmask) DESC " +
+                                "(GREATEST(" +
+                                     "bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), " +
+                                     "bit_count(q.concept_bits & :unwantedConceptsBitmask))" +
+                                " + bit_count(q.law_bits & :unwantedLawsBitmask)" +
+                                " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
+                                " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
+                                ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
+                                "GREATEST(" +
+                                     "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
+                                     "bit_count(q.concept_bits & :targetConceptsBitmask))" +
+                                " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                                " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
+                                ") DESC " +  // raise rating of questions with target bits
                                 "limit :lim "
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
@@ -312,6 +337,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("unwantedConceptsBitmask", unwantedConceptsBitmask)
                 .setParameter("unwantedLawsBitmask", unwantedLawsBitmask)
                 .setParameter("unwantedViolationsBitmask", unwantedViolationsBitmask)
+                .setParameter("unwantedSkillsBitmask", unwantedSkillsBitmask)
                 .setParameter("complexity", complexity)
                 .setParameter("complWindow", complexityWindow)
                 .setParameter("lim", limitNumber)
@@ -347,6 +373,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var unwantedConceptsBitmask = qr.getUnwantedConceptsBitmask();
         var unwantedLawsBitmask = qr.getUnwantedLawsBitmask();
         var unwantedViolationsBitmask = qr.getUnwantedViolationsBitmask();
+        var unwantedSkillsBitmask = qr.getUnwantedSkillsBitmask();
 
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
@@ -363,8 +390,19 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 " bit_count(q.concept_bits & :deniedConceptBits) + bit_count(q.violation_bits & :deniedLawBits) ASC, " +
                                 " IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) DESC, " +
                                 " (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) ASC, " +  // less often show "hot" questions
-                                " (GREATEST(bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), bit_count(q.concept_bits & :unwantedConceptsBitmask)) + bit_count(q.law_bits & :unwantedLawsBitmask) + bit_count(q.violation_bits & :unwantedViolationsBitmask)) DIV 3 ASC, " +
-                                " GREATEST(bit_count(q.trace_concept_bits & :targetConceptsBitmask), bit_count(q.concept_bits & :targetConceptsBitmask)) + bit_count(q.violation_bits & :targetLawsBitmask) DESC " +
+                                "(GREATEST(" +
+                                     "bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), " +
+                                     "bit_count(q.concept_bits & :unwantedConceptsBitmask))" +
+                                " + bit_count(q.law_bits & :unwantedLawsBitmask)" +
+                                " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
+                                " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
+                                ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
+                                "GREATEST(" +
+                                     "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
+                                     "bit_count(q.concept_bits & :targetConceptsBitmask))" +
+                                " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                                " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
+                                ") DESC " +  // raise rating of questions with target bits
                                 "limit :lim "
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
@@ -383,6 +421,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("unwantedConceptsBitmask", unwantedConceptsBitmask)
                 .setParameter("unwantedLawsBitmask", unwantedLawsBitmask)
                 .setParameter("unwantedViolationsBitmask", unwantedViolationsBitmask)
+                .setParameter("unwantedSkillsBitmask", unwantedSkillsBitmask)
                 .setParameter("complexity", complexity)
                 .setParameter("complWindow", complexityWindow)
                 .setParameter("lim", limitNumber)
