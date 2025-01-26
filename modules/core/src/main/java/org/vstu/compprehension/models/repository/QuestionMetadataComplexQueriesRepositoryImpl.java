@@ -286,9 +286,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
                                 "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
                                 "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
-                                "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
-                                "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) = :targetLawsBitmask, 1) " +
-                                "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) = :targetSkillsBitmask, 1) " +
+                                "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) <> 0, 1) " +
+                                "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
+                                "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
                                 "AND q.integral_complexity <= :complexity + :complWindow " +
 
                                 "order by " +

@@ -49,7 +49,6 @@ public class Skill implements TreeNodeWithBitmask {
             return 0;
 
         long skillBitmask = 0;
-        // Note: violations are not positive laws.
         for (Skill t : targetSkills) {
             long newBit = t.getBitmask();
             if (newBit == 0) {
