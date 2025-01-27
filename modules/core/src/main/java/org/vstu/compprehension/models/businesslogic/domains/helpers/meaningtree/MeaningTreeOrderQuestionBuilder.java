@@ -787,15 +787,10 @@ public class MeaningTreeOrderQuestionBuilder {
                             && lastOperatorToken.assoc == OperatorAssociativity.LEFT
                     ) {
                         set.add("error_base_same_precedence_left_associativity_left");
-                        String s = null;
-                        if (op.arity == OperatorArity.BINARY) {
-                            s = "binary";
-                        } else if (op.arity == OperatorArity.UNARY) {
-                            s = "unary";
-                        }
-
-                        if (s != null) {
-                            set.add(String.format("error_base_%s_having_associativity_left", s));
+                        if (op.arity == OperatorArity.UNARY) {
+                            set.add("error_base_unary_having_associativity_left");
+                        } else if (op.arity == OperatorArity.BINARY) {
+                            set.add("error_base_binary_having_associativity_left");
                         }
                         set.add("associativity");
                     } else if (lastOperatorToken != null
@@ -803,17 +798,11 @@ public class MeaningTreeOrderQuestionBuilder {
                             && lastOperatorToken.assoc == OperatorAssociativity.RIGHT
                     ) {
                         set.add("error_base_same_precedence_right_associativity_right");
-                        String s = null;
-                        if (op.arity == OperatorArity.BINARY) {
-                            s = "binary";
-                        } else if (op.arity == OperatorArity.UNARY) {
-                            s = "unary";
+                        if (op.arity == OperatorArity.UNARY) {
+                            set.add("error_base_unary_having_associativity_right");
+                        } else if (op.arity == OperatorArity.BINARY) {
+                            set.add("error_base_binary_having_associativity_right");
                         }
-
-                        if (s != null) {
-                            set.add(String.format("error_base_%s_having_associativity_right", s));
-                        }
-
                         set.add("associativity");
                     }
                 }
@@ -1003,7 +992,7 @@ public class MeaningTreeOrderQuestionBuilder {
                                 .stream()
                                 .anyMatch((Token tt) -> tt instanceof OperatorToken);
                     }
-                    if (ops.containsKey(op.getFirstOperandToEvaluation()) && hasFirstEvalOperandOperator) {
+                    if (hasFirstEvalOperandOperator) {
                         set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
                         if (op.type == TokenType.COMMA) {
                             set.add("no_omitted_operands_despite_strict_order");
@@ -1030,6 +1019,7 @@ public class MeaningTreeOrderQuestionBuilder {
                                  Language lang, int metaId
     ) {
         StringBuilder sb = new StringBuilder();
+        sb.append(domain.getMessage("BASE_QUESTION_TEXT", lang));
         sb.append("<p class='comp-ph-expr'>");
         HashMap<Integer, Integer> complexEndingsIds = new HashMap<>();
         int idx = 0;
