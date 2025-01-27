@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -39,48 +38,62 @@ public class ExpressionDTReclassificationTask {
     }
 
     @Test
-    @Transactional
-    @Commit
-    @Rollback(false)
     public void performReclassification() {
-        final int BATCH = 2048;
+        final int BATCH_SIZE = 5 * 1024;
         int lastId = 0;
-        int count = 0;
-        ArrayList<QuestionMetadataEntity> toDelete = new ArrayList<>();
+        int batches = 0;
+
         while (true) {
-            List<QuestionMetadataEntity> batchList = qMetaRepo.loadPageWithData(lastId, BATCH);
+            List<QuestionMetadataEntity> batchList = qMetaRepo.loadPageWithData(lastId, BATCH_SIZE);
             System.err.println("New batch loaded");
+
             if (batchList.isEmpty()) {
                 break;
             }
-            ArrayList<QuestionMetadataEntity> newMeta = new ArrayList<>();
-            for (QuestionMetadataEntity meta : batchList) {
-                if (!meta.getDomainShortname().equals("expression_dt")) {
-                    continue;
-                }
-                count++;
-                if (count % 5000 == 0) {
-                    System.err.printf("Processed %d metadata%n", count);
-                }
-                System.err.printf("Processing metadata id=%d%n", meta.getId());
-                QuestionMetadataEntity obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
-                if (obj == null) {
-                    toDelete.add(meta);
-                    lastId = meta.getId();
-                    System.err.println("This metadata will be deleted");
-                    continue;
-                }
-                obj.setId(meta.getId());
-                obj.setQuestionData(meta.getQuestionData());
-                obj.setGenerationRequestId(meta.getGenerationRequestId());
-                obj.setCreatedAt(meta.getCreatedAt());
-                newMeta.add(obj);
-                lastId = meta.getId();
+
+            lastId = processBatch(batchList, lastId);
+            batches++;
+            if (batches % 8 == 0) {
+                System.gc();
             }
-            System.err.println("Saving this batch");
-            qMetaRepo.saveAll(newMeta);
         }
-        qMetaRepo.deleteAll(toDelete);
     }
 
+    @Transactional
+    @Rollback(false)
+    protected int processBatch(List<QuestionMetadataEntity> batchList, int lastId) {
+        List<Integer> toDelete = new ArrayList<>();
+        List<QuestionMetadataEntity> newMeta = new ArrayList<>();
+
+        for (QuestionMetadataEntity meta : batchList) {
+            if (!meta.getDomainShortname().equals("expression_dt")) {
+                continue;
+            }
+
+            System.err.printf("Processing metadata id=%d%n", meta.getId());
+            QuestionMetadataEntity obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
+
+            if (obj == null) {
+                toDelete.add(meta.getId());
+                lastId = meta.getId();
+                System.err.println("This metadata will be deleted");
+                continue;
+            }
+
+            obj.setId(meta.getId());
+            obj.setQuestionData(meta.getQuestionData());
+            obj.setGenerationRequestId(meta.getGenerationRequestId());
+            obj.setCreatedAt(meta.getCreatedAt());
+            newMeta.add(obj);
+            lastId = meta.getId();
+        }
+
+        System.err.println("Saving this batch");
+        qMetaRepo.saveAll(newMeta);
+        if (!toDelete.isEmpty()) {
+            System.err.printf("Deleting %d metadata %n", toDelete.size());
+            qMetaRepo.deleteAllById(toDelete);
+        }
+        return lastId;
+    }
 }
