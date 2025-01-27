@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import jakarta.transaction.Transactional;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -28,6 +29,8 @@ public class ExpressionDTReclassificationTask {
     private QuestionMetadataRepository qMetaRepo;
     @Autowired
     private QuestionMetadataRepository qDataRepo;
+    @Autowired
+    private SessionFactory sessionFactory;
 
     private ProgrammingLanguageExpressionDTDomain domain;
     public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
@@ -89,7 +92,13 @@ public class ExpressionDTReclassificationTask {
         }
 
         System.err.println("Saving this batch");
-        qMetaRepo.saveAll(newMeta);
+        try (var session = sessionFactory.openSession()) {
+            var transaction = session.beginTransaction();
+            for (QuestionMetadataEntity meta : newMeta) {
+                session.saveOrUpdate(meta);
+            }
+            transaction.commit();
+        }
         if (!toDelete.isEmpty()) {
             System.err.printf("Deleting %d metadata %n", toDelete.size());
             qMetaRepo.deleteAllById(toDelete);
