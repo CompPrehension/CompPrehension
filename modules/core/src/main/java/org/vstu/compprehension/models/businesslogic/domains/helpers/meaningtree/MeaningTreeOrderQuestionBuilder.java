@@ -23,19 +23,23 @@ import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.CppTranslator;
 import org.vstu.meaningtree.languages.LanguageTranslator;
 import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.nodes.expressions.ParenthesizedExpression;
 import org.vstu.meaningtree.nodes.expressions.bitwise.*;
 import org.vstu.meaningtree.nodes.expressions.calls.FunctionCall;
 import org.vstu.meaningtree.nodes.expressions.comparison.*;
+import org.vstu.meaningtree.nodes.expressions.literals.PlainCollectionLiteral;
 import org.vstu.meaningtree.nodes.expressions.logical.NotOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
 import org.vstu.meaningtree.nodes.expressions.math.*;
+import org.vstu.meaningtree.nodes.expressions.newexpr.NewExpression;
 import org.vstu.meaningtree.nodes.expressions.other.*;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerMemberAccess;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerPackOp;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerUnpackOp;
-import org.vstu.meaningtree.nodes.expressions.unary.UnaryMinusOp;
-import org.vstu.meaningtree.nodes.expressions.unary.UnaryPlusOp;
+import org.vstu.meaningtree.nodes.expressions.unary.*;
+import org.vstu.meaningtree.nodes.io.InputCommand;
+import org.vstu.meaningtree.nodes.io.PrintCommand;
 import org.vstu.meaningtree.serializers.rdf.RDFSerializer;
 import org.vstu.meaningtree.utils.tokens.*;
 
@@ -483,7 +487,7 @@ public class MeaningTreeOrderQuestionBuilder {
         }
 
         var violations = findAllPossibleViolations(tokens);
-        var skills = findAllPossibleViolations(tokens);
+        var skills = findAllSkills(tokens, language);
 
         // Отсеиваем вопросы, в которых много шагов и при этом больше есть повторяющиеся скиллы и ошибки
         final int targetSolutionLength = 16;
@@ -599,17 +603,25 @@ public class MeaningTreeOrderQuestionBuilder {
             else if (node instanceof ThreeWayComparisonOp) result.add("operator_<=>");
             else if (node instanceof ContainsOp) result.add("operator_in");
             else if (node instanceof SizeofExpression) result.add("operator_sizeof");
+            else if (node instanceof NewExpression) result.add("operator_new");
+            else if (node instanceof PlainCollectionLiteral) result.add("collection_literal");
             else if (node instanceof CastTypeExpression) result.add("operator_cast");
             else if (node instanceof InversionOp) result.add("operator_~");
             else if (node instanceof BitwiseAndOp) result.add("operator_binary_&");
             else if (node instanceof BitwiseOrOp) result.add("operator_|");
             else if (node instanceof XorOp) result.add("operator_^");
             else if (node instanceof LeftShiftOp) result.add("operator_<<");
+            else if (node instanceof ParenthesizedExpression) result.add("operator_(");
+            else if (node instanceof PrintCommand || node instanceof InputCommand) result.add("stream_io");
             else if (node instanceof RightShiftOp) result.add("operator_>>");
             else if (node instanceof IndexExpression) result.add("operator_subscript");
             else if (node instanceof PointerPackOp) result.add("operator_unary_&");
             else if (node instanceof PointerUnpackOp) result.add("operator_unary_*");
             else if (node instanceof PointerMemberAccess) result.add("operator_->");
+            else if (node instanceof PrefixIncrementOp) result.add("operator_prefix_++");
+            else if (node instanceof PrefixDecrementOp) result.add("operator_prefix_--");
+            else if (node instanceof PostfixIncrementOp) result.add("operator_postfix_++");
+            else if (node instanceof PostfixDecrementOp) result.add("operator_postfix_--");
             else if (node instanceof MemberAccess) result.add("operator_.");
             else if (node instanceof TernaryOperator) result.add("operator_?");
             else if (node instanceof ExpressionSequence && toLanguage == SupportedLanguage.CPP) result.add("operator_,");
@@ -706,6 +718,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
         OperatorToken lastOperatorToken = null;
         boolean isInComplex = false;
+        boolean isInSimpleParentheses = false;
         boolean hasOperatorInComplex = false;
         boolean hasOperatorsOutsideComplex = false;
         for (Token token : tokens) {
@@ -715,7 +728,29 @@ public class MeaningTreeOrderQuestionBuilder {
                 isInComplex = false;
             }
 
+            if (Objects.equals(TokenType.OPENING_BRACE, token.type) && !(token instanceof OperatorToken)) {
+                isInSimpleParentheses = true;
+            } else if (Objects.equals(TokenType.CLOSING_BRACE, token.type) && !(token instanceof OperatorToken)) {
+                isInSimpleParentheses = false;
+            }
+
             if (token instanceof OperatorToken op) {
+                if (op.operandOf() != null && op.operandPosition() == OperandPosition.RIGHT
+                        && op.operandOf().isStrictOrder && op.operandOf().additionalOpType == OperatorType.AND
+                        && op.operandOf().getAssignedValue() != null && op.operandOf().getAssignedValue() instanceof Boolean
+                        && !((boolean)op.operandOf().getAssignedValue())
+                ) {
+                    continue;
+                }
+
+                if (op.operandOf() != null && op.operandPosition() == OperandPosition.RIGHT
+                        && op.operandOf().isStrictOrder && op.operandOf().additionalOpType == OperatorType.OR
+                        && op.operandOf().getAssignedValue() != null && op.operandOf().getAssignedValue() instanceof Boolean
+                        && ((boolean)op.operandOf().getAssignedValue())
+                ) {
+                    continue;
+                }
+
                 if (op.operandOf() != null && op.operandOf().isStrictOrder) {
                     set.add("error_base_student_error_strict_operands_order");
                     if (op.operandOf().type != TokenType.COMMA) {
@@ -725,7 +760,9 @@ public class MeaningTreeOrderQuestionBuilder {
 
                 if (op.operandOf() != null &&
                         (op.operandOf().type == TokenType.SUBSCRIPT_OPENING_BRACE ||
-                                op.operandOf().type == TokenType.SUBSCRIPT_CLOSING_BRACE)) {
+                                op.operandOf().type == TokenType.CALL_OPENING_BRACE ||
+                                op.operandOf().type == TokenType.SUBSCRIPT_CLOSING_BRACE ||
+                                op.operandOf().type == TokenType.CALL_CLOSING_BRACE)) {
                     set.add("error_base_enclosing_operators");
                 }
 
@@ -735,37 +772,50 @@ public class MeaningTreeOrderQuestionBuilder {
                     hasOperatorsOutsideComplex = true;
                 }
 
-                if (lastOperatorToken != null && op.precedence > lastOperatorToken.precedence) {
-                    set.add("error_base_higher_precedence_right");
-                    set.add("precedence");
-                } else if (lastOperatorToken != null && lastOperatorToken.precedence > op.precedence) {
-                    set.add("error_base_higher_precedence_left");
-                    set.add("precedence");
-                } else if (lastOperatorToken != null
-                        && lastOperatorToken.assoc == op.assoc
-                        && lastOperatorToken.assoc == OperatorAssociativity.LEFT
-                ) {
-                    set.add("error_base_same_precedence_left_associativity_left");
-                    set.add("associativity");
-                } else if (lastOperatorToken != null
-                        && lastOperatorToken.assoc == op.assoc
-                        && lastOperatorToken.assoc == OperatorAssociativity.RIGHT
-                ) {
-                    set.add("error_base_same_precedence_right_associativity_right");
-                    String s = null;
-                    if (op.arity == OperatorArity.BINARY) {
-                        s = "binary";
-                    } else if (op.arity == OperatorArity.UNARY) {
-                        s = "unary";
-                    } else if (op.arity == OperatorArity.TERNARY) {
-                        s = "ternary";
-                    }
+                if (isInSimpleParentheses) {
+                    set.add("error_base_parenthesized_operators");
+                }
 
-                    if (s != null) {
-                        set.add(String.format("error_base_%s_having_associativity_left", s));
-                    }
+                if (!(token instanceof ComplexOperatorToken)) {
+                    if (lastOperatorToken != null && op.precedence > lastOperatorToken.precedence) {
+                        set.add("error_base_higher_precedence_right");
+                        set.add("precedence");
+                    } else if (lastOperatorToken != null && lastOperatorToken.precedence > op.precedence) {
+                        set.add("error_base_higher_precedence_left");
+                        set.add("precedence");
+                    } else if (lastOperatorToken != null && lastOperatorToken.assoc == op.assoc
+                            && lastOperatorToken.assoc == OperatorAssociativity.LEFT
+                    ) {
+                        set.add("error_base_same_precedence_left_associativity_left");
+                        String s = null;
+                        if (op.arity == OperatorArity.BINARY) {
+                            s = "binary";
+                        } else if (op.arity == OperatorArity.UNARY) {
+                            s = "unary";
+                        }
 
-                    set.add("associativity");
+                        if (s != null) {
+                            set.add(String.format("error_base_%s_having_associativity_left", s));
+                        }
+                        set.add("associativity");
+                    } else if (lastOperatorToken != null
+                            && lastOperatorToken.assoc == op.assoc
+                            && lastOperatorToken.assoc == OperatorAssociativity.RIGHT
+                    ) {
+                        set.add("error_base_same_precedence_right_associativity_right");
+                        String s = null;
+                        if (op.arity == OperatorArity.BINARY) {
+                            s = "binary";
+                        } else if (op.arity == OperatorArity.UNARY) {
+                            s = "unary";
+                        }
+
+                        if (s != null) {
+                            set.add(String.format("error_base_%s_having_associativity_right", s));
+                        }
+
+                        set.add("associativity");
+                    }
                 }
                 lastOperatorToken = op;
             }
@@ -785,6 +835,47 @@ public class MeaningTreeOrderQuestionBuilder {
         return new TreeSet<>(findAllSkills(tokens, lang));
     }
 
+    /***
+     * Определить токен-операнд из двух переданных, заключенный в обычных скобках (не скобках - частей оператора)
+     * @param op1 - первый токен, не являющийся скобкой
+     * @param op2 - второй токен, не являющийся скобкой
+     * @param tokens - все токены выражения
+     * @return индекс заключенного в скобки, либо Integer.MAX_VALUE - если оба в разных скобках, -1 - ни один не в скобках
+     */
+    private static int getParenthesizedOperand(int op1, int op2, TokenList tokens) {
+        /**
+         * X - первый токен-операнд, Y - второй токен-операнд. Нужно определить какой из них заключен в скобки
+         * (X) -> Y или X <- (Y)
+         * 1. Смотрим точки в диапазоне [X, Y]
+         * 2. Считаем глубины скобок на краях (начальный край равен 0)
+         * 3. Считаем по всему маршруту минимальная глубину вложенности
+         * 4. Если глубины на краях - разные. В скобках то - у кого глубина больше
+         * 5. Если они равны - если минимальная глубина == 0, то ничего не в скобках
+         *                   - если минимальная глубина < 0, то каждый в своих скобках
+         */
+        int depth = 0; // глубина на левом крае диапазона
+        int minDepth = 0; // минимальная глубина вложенности на диапазоне
+        for (int i = Math.min(op1, op2); i < Math.max(op1, op2); i++) {
+            if (tokens.get(i).type.equals(TokenType.OPENING_BRACE)) {
+                depth++;
+            } else if (tokens.get(i).type.equals(TokenType.CLOSING_BRACE)) {
+                depth--;
+            }
+            minDepth = Math.min(depth, minDepth);
+        }
+        if (depth > 0) {
+            return Math.max(op1, op2);
+        } else if (depth < 0) {
+            return Math.min(op1, op2);
+        } else {
+            if (minDepth == 0) {
+                return -1; // ни один не в скобах
+            } else {
+                return Integer.MAX_VALUE; // оба в разных скобках
+            }
+        }
+    }
+
     /**
      * Поиск возможных навыков, которые может получить студент
      * @return набор уникальных возможных навыков
@@ -792,6 +883,7 @@ public class MeaningTreeOrderQuestionBuilder {
     public static List<String> findAllSkills(TokenList tokens, SupportedLanguage lang) {
         List<String> set = new ArrayList<>();
         for (int i = 0; i < tokens.size(); i++) {
+
             Token t = tokens.get(i);
             set.add("central_operand_needed");
             if (t instanceof OperatorToken op && op.operandPosition() == OperandPosition.CENTER) {
@@ -799,15 +891,37 @@ public class MeaningTreeOrderQuestionBuilder {
             }
 
             if (t instanceof OperandToken op && (op.operandPosition() == OperandPosition.LEFT || op.operandPosition() == OperandPosition.RIGHT)) {
+                if (op.operandOf() != null && op.operandOf().isStrictOrder &&
+                        op.operandOf().additionalOpType == OperatorType.AND && op.operandPosition() == OperandPosition.RIGHT
+                        && op.operandOf().getAssignedValue() != null &&
+                        op.operandOf().getAssignedValue() instanceof Boolean &&
+                        !((boolean) op.operandOf().getAssignedValue())) {
+                    continue;
+                }
+                if (op.operandOf() != null && op.operandOf().isStrictOrder &&
+                        op.operandOf().additionalOpType == OperatorType.OR && op.operandPosition() == OperandPosition.RIGHT
+                        && op.operandOf().getAssignedValue() != null
+                        && op.operandOf().getAssignedValue() instanceof Boolean
+                        && ((boolean) op.operandOf().getAssignedValue())) {
+                    continue;
+                }
+
                 int incr = op.operandPosition() == OperandPosition.LEFT ? -1 : 1;
                 set.add("nearest_operand_needed");
+                if (op.operandPosition() == OperandPosition.LEFT) {
+                    set.add("left_operand_needed");
+                } else {
+                    set.add("right_operand_needed");
+                }
                 OperatorToken foundNearestOp = null;
+                int nearestOpIndex = -1;
                 for (int j = i;
                      op.operandPosition() == OperandPosition.LEFT ? j >= 0 : j < tokens.size();
                      j += incr) {
-                    if (tokens.get(j) instanceof OperatorToken leftOp) {
+                    if (tokens.get(j) instanceof OperatorToken nearOp && i != j && !nearOp.equals(op.operandOf())) {
                         set.add("competing_operator_present");
-                        foundNearestOp = leftOp;
+                        foundNearestOp = nearOp;
+                        nearestOpIndex = j;
                         break;
                     }
                 }
@@ -816,13 +930,14 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("current_operator_enclosed");
                 }
 
-                if (foundNearestOp != null && !tokens.getEnclosingParentheses(tokens.indexOf(foundNearestOp)).equals(tokens.getEnclosingParentheses(i))
-                        && tokens.getEnclosingParentheses(i).getLeft() == -1
-                ) {
+                if (foundNearestOp != null
+                        && t instanceof OperatorToken
+                        && getParenthesizedOperand(i, nearestOpIndex, tokens) == nearestOpIndex) {
                     set.add("is_nearest_parenthesized_current_not");
                 }
-                if (foundNearestOp != null && !tokens.getEnclosingParentheses(tokens.indexOf(foundNearestOp)).equals(tokens.getEnclosingParentheses(i))
-                        && tokens.getEnclosingParentheses(i).getLeft() != -1) {
+                if (foundNearestOp != null
+                        && t instanceof OperatorToken
+                        && getParenthesizedOperand(i, nearestOpIndex, tokens) == i)  {
                     set.add("is_current_parenthesized_nearest_not");
                 }
 

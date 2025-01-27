@@ -196,7 +196,8 @@ public class MeaningTreeRDFTransformer {
         }
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()
-                        .anyMatch(metadata -> metadata.getPropertyName().contains("text") && token.value.equals(metadata.getValue()))
+                        .anyMatch(metadata -> metadata.getPropertyName().contains("text") &&
+                                token.value.replace(" ", "_").equals(metadata.getValue()))
                 )
                 .toList();
         if(possibleClasses.isEmpty()){

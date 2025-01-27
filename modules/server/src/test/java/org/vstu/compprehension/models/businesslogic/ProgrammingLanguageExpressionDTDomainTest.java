@@ -89,7 +89,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
     }
 
     public boolean generateAndSolve(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
-        List<Question> questions = MeaningTreeOrderQuestionBuilder.newQuestion(expression, inLang, domain).buildQuestion(outLang);
+        List<Question> questions = MeaningTreeOrderQuestionBuilder.newQuestion(expression, inLang, domain).questionOrigin("test", "MIT").buildQuestion(outLang);
         String outLangStr = outLang.toString().substring(0, 1).toUpperCase() + outLang.toString().substring(1);
 
         boolean allPassed = true;
@@ -255,12 +255,14 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         generateAndSolve("a[i + 3 * b] = b * 4 + 5;", SupportedLanguage.CPP,
                 SupportedLanguage.PYTHON, List.of(5, 3, 1, 10, 12));
         generateAndSolve("x = a < ty(e, t, f) + 4 * (a && v || c);", SupportedLanguage.CPP,
-                        SupportedLanguage.PYTHON, List.of(5, 17, 19, 14));
+                        SupportedLanguage.PYTHON, List.of(5, 17, 14, 12, 3));
         generateAndSolve("a + b if a > c else 11", SupportedLanguage.PYTHON,
                 SupportedLanguage.PYTHON, List.of(5, 3));
         generateAndSolve("x = a > c ? a + b : 11;", SupportedLanguage.CPP,
                 // x = a + b if a > c else 11
                 SupportedLanguage.PYTHON, List.of(7, 5));
+        generateAndSolve("(a * (b + c)) * m - ((a + k) * b) + c;", SupportedLanguage.CPP,
+                SupportedLanguage.PYTHON, List.of());
     }
 
 }

@@ -278,7 +278,7 @@
                                         _EN_nextStepQuestion="What can we conclude if there are unevaluated operators between ${val('X1', 'и')} and ${val('X2', 'и')}?"
                                         _EN_nextStepExplanation="That's incorrect. Any unevaluated operator between ${val('X1', 'и')} and ${val('X2', 'и')}, means that the inner operand of ${val('X','р')} is not fully evaluated. Therefore, it is preventing its further evaluation.."
                                     >
-                                        <BranchResultNode value="false" _skill="is_central_operand_evaluated" _law="error_base_student_error_in_complex;error_base_student_error_unevaluated_operand" _error="central.isUnevaluated" 
+                                        <BranchResultNode value="false" _skill="is_central_operand_evaluated" _law="error_base_student_error_in_complex;error_base_student_error_unevaluated_operand;error_base_enclosing_operators" _error="central.isUnevaluated"
                                             _RU_explanation="${val('X','и')} не может быть вычислен, поскольку сначала должен быть вычислен его центральный операнд." 
                                             _EN_explanation="${val('X','и')} cannot be evaluated yet, because its center operand should be evaluated first." 
                                         />
@@ -929,7 +929,7 @@
                                         _EN_nextStepBranchResult="The operator ${branchResult ? 'outside' : 'inside'} the parenthesis is always evaluated first"
                                         _EN_nextStepExplanation="That's incorrect. Operators in parentheses always take precedence over external operators. Therefore, as ${val('Y','и')} is inside of parenthesis, and ${val('X','и')} is ouside of them, then the ${val('Y','и')} should be evaluated first, blocking ${val('X','д')}."
                                     >
-                                        <BranchResultNode value="false" _law="error_base_enclosing_operators" _skill="is_left_parenthesized_current_not" _error="left.parenthesis" 
+                                        <BranchResultNode value="false" _law="error_base_student_error_in_complex;error_base_parenthesized_operators" _skill="is_left_parenthesized_current_not" _error="left.parenthesis"
                                             _RU_explanation="${val('X','и')} не может быть вычислен, поскольку сначала должен быть вычислен ${val('Y','и')} слева от него - поскольку он окружен скобками." 
                                             _EN_explanation="${val('X','и')} cannot be evaluated yet, because ${val('Y','и')} on its left must be evaluated first - because it is in paretheses." 
                                         />
@@ -1776,7 +1776,7 @@
                                             _RU_explanation="${val('X','и')} не может быть вычислен, поскольку сначала должен быть вычислен ${val('Z','и')} справа от него - поскольку он окружен скобками." 
                                             _EN_explanation="${val('X','и')} cannot be evaluated yet, because ${val('Z','и')} on its right must be evaluated first - because it is in paretheses." 
                                             _skill="is_right_parenthesized_current_not"
-                                            _law="error_base_enclosing_operators"
+                                            _law="error_base_parenthesized_operators;error_base_student_error_in_complex"
                                         />
                                         <ThoughtBranch type="bool" _alias="right.predetermining.3"
                                             _RU_description="${result ? '${val('Z','и')} находится в скобках, а ${val('X','и')} - за их пределами' : 'не существует скобок, окружающих ${val('Z','и')}, но не окружающих ${val('X','в')}'}"

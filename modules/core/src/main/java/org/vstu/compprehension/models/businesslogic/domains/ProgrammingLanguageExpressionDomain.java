@@ -196,6 +196,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
         addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
 
+        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", noFlags);
         Concept bitwise = addConcept("bitwise", List.of(), "Побитовые операции", flags);
         addConcept("operator_~", List.of(singleTokenUnaryConcept, bitwise), "~b", invisible);
         addConcept("operator_binary_&", List.of(singleTokenBinaryConcept, bitwise), "a & b", invisible);
@@ -207,6 +208,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Concept arrays = addConcept("arrays", List.of(), "Массивы", noFlags);
         Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", flags);
+        Concept collections = addConcept("collection_literal", List.of(arrays), "Литералы коллекций и массивов", flags);
 
         Concept pointers = addConcept("pointers", List.of(singleTokenUnaryConcept), "Операции c указателями", flags);
         addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
@@ -221,10 +223,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", invisible);  // c ? a : b
 
         Concept operatorBinaryCommaConcept = addConcept("operator_,", List.of(singleTokenBinaryConcept), "Запятая между выражениями", flags);
-
-        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", noFlags);
-        addConcept("operator_>>", List.of(singleTokenBinaryConcept, stream_io), "in >> var", invisible);
-        addConcept("operator_<<", List.of(singleTokenBinaryConcept, stream_io), "out << msg", invisible);
+        Concept operatorNew = addConcept("operator_new", List.of(), "Создание нового динамического объекта или массива", flags);
 
         addConcept("operator_cast", List.of(twoTokenUnaryConcept), "(type)a", invisible);
         addConcept("operator_sizeof", List.of(twoTokenUnaryConcept), "sizeof(int)", invisible);
@@ -2890,6 +2889,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_?", 0x4000000000000L);  	// (1125899906842624)
         name2bit.put("operator_sizeof", 0x8000000000000L);
         name2bit.put("operator_cast", 0x10000000000000L);
+        name2bit.put("stream_io", 0x20000000000000L);
+        name2bit.put("operator_new", 0x40000000000000L);
+        name2bit.put("collection_literal", 0x80000000000000L);
         return name2bit;
         // (developer tip: see sqlite2mysql)
     }
@@ -2910,6 +2912,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("error_base_binary_having_associativity_right", 0x1000L);  // (4096)
         name2bit.put("error_base_unary_having_associativity_left", 0x2000L);  	// (8192)
         name2bit.put("error_base_enclosing_operators", 0x4000L);  	// (16384)
+        name2bit.put("error_base_parenthesized_operators", 0x8000L);  	// (16384)
         return name2bit;
     }
     private HashMap<String, Long> _getLawsName2bit() {

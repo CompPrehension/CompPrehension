@@ -412,6 +412,22 @@ class operator_in : operator {
 	EN.localizedName = "operator in" ;
 ]
 
+class operator_not_in : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 12 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	countOfTokens = 1 ;
+} [
+	text = "not in" ;
+	RU.localizedName = "оператор not in" ;
+	EN.localizedName = "operator not in" ;
+]
+
 class operator_is : operator {
 
 	arity = arity:binary ;
@@ -426,6 +442,22 @@ class operator_is : operator {
 	text = "is" ;
 	RU.localizedName = "оператор is" ;
 	EN.localizedName = "operator is" ;
+]
+
+class operator_is_not : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 12 ;
+	associativity = associativity:left ;
+	needsLeftOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
+	countOfTokens = 1 ;
+} [
+	text = "is not" ;
+	RU.localizedName = "оператор is not" ;
+	EN.localizedName = "operator is not" ;
 ]
 
 class operator_lambda : operator {
