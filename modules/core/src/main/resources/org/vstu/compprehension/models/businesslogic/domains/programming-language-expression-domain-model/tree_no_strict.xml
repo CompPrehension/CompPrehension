@@ -835,6 +835,14 @@
                                                 _EN_endingCause="Потому что существуют скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}"
                                             >
                                                 <Expression>
+                                                    <LogicalAnd>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="Y" />
+                                                                <Property name="countOfTokens" />
+                                                            </GetPropertyValue>
+                                                            <Integer value="1" />
+                                                        </Compare>
                                                     <ExistenceQuantifier varName="p">
                                                         <CheckClass>
                                                             <Variable name="p" />
@@ -871,6 +879,7 @@
                                                             </ExistenceQuantifier>
                                                         </ExistenceQuantifier>
                                                     </ExistenceQuantifier>
+                                                    </LogicalAnd>
                                                 </Expression>
                                                 <Outcome value="false">
                                                     <BranchResultNode value="false" />
@@ -1637,6 +1646,14 @@
                                                 _RU_endingCause="Потому что существуют скобки, окружающие ${val('X','и')}, но не ${val('Z','и')}"
                                             >
                                                 <Expression>
+                                                    <LogicalAnd>
+                                                    <Compare operator="EQUAL">
+                                                        <GetPropertyValue>
+                                                            <DecisionTreeVar name="Z" />
+                                                            <Property name="countOfTokens" />
+                                                        </GetPropertyValue>
+                                                        <Integer value="1" />
+                                                    </Compare>
                                                     <ExistenceQuantifier varName="p">
                                                         <CheckClass>
                                                             <Variable name="p" />
@@ -1673,6 +1690,7 @@
                                                             </ExistenceQuantifier>
                                                         </ExistenceQuantifier>
                                                     </ExistenceQuantifier>
+                                                    </LogicalAnd>
                                                 </Expression>
                                                 <Outcome value="false">
                                                     <BranchResultNode value="false" />
