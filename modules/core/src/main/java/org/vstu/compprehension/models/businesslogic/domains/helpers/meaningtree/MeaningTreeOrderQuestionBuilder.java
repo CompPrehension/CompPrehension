@@ -921,12 +921,12 @@ public class MeaningTreeOrderQuestionBuilder {
 
                 if (foundNearestOp != null
                         && t instanceof OperatorToken
-                        && getParenthesizedOperand(i, nearestOpIndex, tokens) == nearestOpIndex) {
+                        && List.of(nearestOpIndex, Integer.MAX_VALUE).contains(getParenthesizedOperand(i, nearestOpIndex, tokens))) {
                     set.add("is_nearest_parenthesized_current_not");
                 }
                 if (foundNearestOp != null
                         && t instanceof OperatorToken
-                        && getParenthesizedOperand(i, nearestOpIndex, tokens) == i)  {
+                        && List.of(i, Integer.MAX_VALUE).contains(getParenthesizedOperand(i, nearestOpIndex, tokens)))  {
                     set.add("is_current_parenthesized_nearest_not");
                 }
 
@@ -1011,7 +1011,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * Создание текста вопроса, рекомендуемое для вызова перед выдачей вопроса
      * @param tokens токены результирующего вопроса
      * @param domain домен, для которого генерируется
-     * @param lang язык программирования
+     * @param lang язык локализации пользователя
      * @return строка вопроса в HTML
      */
     static String questionToHtml(TokenList tokens,
