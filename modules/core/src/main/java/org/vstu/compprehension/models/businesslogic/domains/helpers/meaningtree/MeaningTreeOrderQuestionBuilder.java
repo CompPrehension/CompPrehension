@@ -459,8 +459,11 @@ public class MeaningTreeOrderQuestionBuilder {
         rawTranslatedCode = result.getRight();
         if (rawTranslatedCode != null) {
             var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(sourceExpressionTree);
-            var tokenRes2 = toTranslator.getTokenizer().tryTokenizeExtended(rawTranslatedCode);
-            allChecksArePassed &= tokenRes.getLeft() && tokenRes2.getLeft();
+            allChecksArePassed &= tokenRes.getLeft();
+            if (tokenRes.getLeft()) {
+                var tokenRes2 = toTranslator.getTokenizer().tryTokenizeExtended(rawTranslatedCode);
+                allChecksArePassed &= tokenRes2.getLeft();
+            }
             tokens = tokenRes.getLeft() ? tokenRes.getRight() : new TokenList();
         } else {
             tokens = new TokenList();
