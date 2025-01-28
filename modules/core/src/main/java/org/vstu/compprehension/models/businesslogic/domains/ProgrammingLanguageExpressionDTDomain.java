@@ -316,8 +316,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
                     private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap() {
                         return Map.ofEntries(
-                                Pair.of("RU", "В выражении все еще есть невычисленные операторы"),
-                                Pair.of("EN", "There are still unevaluated operators left in the expression")
+                                Pair.of("RU", "В выражении всё ещё есть невычисленные операторы"),
+                                Pair.of("EN", "There are still unevaluated operators in the expression")
                         );
                     }
 

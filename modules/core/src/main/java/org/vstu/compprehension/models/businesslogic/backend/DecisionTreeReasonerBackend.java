@@ -231,7 +231,14 @@ public class DecisionTreeReasonerBackend
         private static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation){
             Object explanation = resultNode.getMetadata().get(textSituation.getLocalizationCode(), "explanation");
             String explanationTemplate = explanation == null ? "WRONG" : explanation.toString();
-            return textSituation.getTemplating().interpret(explanationTemplate);
+            String expanded = textSituation.getTemplating().interpret(explanationTemplate);
+            {
+                if (expanded.contains("операто ")) {
+                    // Fix spelling (note the space at the end).
+                    expanded = expanded.replaceAll("операто ", "оператор ");
+                }
+            }
+            return expanded;
         }
 
         @Override
