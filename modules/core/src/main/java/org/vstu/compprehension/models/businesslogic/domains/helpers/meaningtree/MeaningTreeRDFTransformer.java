@@ -201,6 +201,12 @@ public class MeaningTreeRDFTransformer {
                 )
                 .toList();
         if(possibleClasses.isEmpty()){
+            if (token.type == TokenType.CALL_OPENING_BRACE) {
+                var method = domainModel.getClasses().stream().filter(classDef -> classDef.getName().contains("method_call")).findFirst();
+                if (method.isPresent()) {
+                    return new ParsedClassName(method.get().getName());
+                }
+            }
             return new ParsedClassName("operand", token.value.matches("[a-zA-Z_$][a-zA-Z0-9_$]*"));
         }
         if(possibleClasses.size() == 1 || !(token instanceof OperatorToken)){
@@ -332,6 +338,8 @@ public class MeaningTreeRDFTransformer {
                     && op.type != TokenType.SEPARATOR
                     && op.type != TokenType.CALLABLE_IDENTIFIER // чтобы не объединять имя функции и открывающую скобку
                     && op.type != TokenType.COMMA
+                    && op.type != TokenType.OPENING_BRACE && op.type != TokenType.CLOSING_BRACE
+                    && op.type != TokenType.COMPOUND_OPENING_BRACE && op.type != TokenType.COMPOUND_CLOSING_BRACE
                     && op.type != TokenType.UNKNOWN
                     && !(op.type.isBrace() && !(op instanceof OperatorToken))
                     ) {

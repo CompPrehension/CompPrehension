@@ -871,13 +871,42 @@
                                             >
                                                 <Expression>
                                                     <LogicalAnd>
-                                                        <Compare operator="EQUAL">
-                                                            <GetPropertyValue>
-                                                                <DecisionTreeVar name="Y" />
-                                                                <Property name="countOfTokens" />
-                                                            </GetPropertyValue>
-                                                            <Integer value="1" />
-                                                        </Compare>
+                                                        <LogicalOr>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="Y" />
+                                                                    <Property name="countOfTokens" />
+                                                                </GetPropertyValue>
+                                                                <Integer value="1" />
+                                                            </Compare>
+
+                                                            <LogicalNot>
+                                                                <CheckRelationship>
+                                                                    <Relationship name="isBetween" />
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar name="Y1" />
+                                                                    <GetByCondition varName="y2">
+                                                                        <LogicalAnd>
+                                                                            <LogicalAnd>
+                                                                                <CheckClass>
+                                                                                    <Variable name="y2" />
+                                                                                    <Class name="token" />
+                                                                                </CheckClass>
+                                                                                <CheckRelationship>
+                                                                                    <Relationship name="belongsTo" />
+                                                                                    <Variable name="y2" />
+                                                                                    <DecisionTreeVar name="Y" />
+                                                                                </CheckRelationship>
+                                                                            </LogicalAnd>
+                                                                            <Compare operator="NOT_EQUAL">
+                                                                                <Variable name="y2" />
+                                                                                <DecisionTreeVar name="Y1" />
+                                                                            </Compare>
+                                                                        </LogicalAnd>
+                                                                    </GetByCondition>
+                                                                </CheckRelationship>
+                                                            </LogicalNot>
+                                                        </LogicalOr>
                                                     <ExistenceQuantifier varName="p">
                                                         <CheckClass>
                                                             <Variable name="p" />
@@ -1723,13 +1752,42 @@
                                             >
                                                 <Expression>
                                                     <LogicalAnd>
-                                                    <Compare operator="EQUAL">
-                                                        <GetPropertyValue>
-                                                            <DecisionTreeVar name="Z" />
-                                                            <Property name="countOfTokens" />
-                                                        </GetPropertyValue>
-                                                        <Integer value="1" />
-                                                    </Compare>
+                                                        <LogicalOr>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="Z" />
+                                                                    <Property name="countOfTokens" />
+                                                                </GetPropertyValue>
+                                                                <Integer value="1" />
+                                                            </Compare>
+
+                                                            <LogicalNot>
+                                                                <CheckRelationship>
+                                                                    <Relationship name="isBetween" />
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar name="Z1" />
+                                                                    <GetByCondition varName="z2">
+                                                                        <LogicalAnd>
+                                                                            <LogicalAnd>
+                                                                                <CheckClass>
+                                                                                    <Variable name="z2" />
+                                                                                    <Class name="token" />
+                                                                                </CheckClass>
+                                                                                <CheckRelationship>
+                                                                                    <Relationship name="belongsTo" />
+                                                                                    <Variable name="z2" />
+                                                                                    <DecisionTreeVar name="Z" />
+                                                                                </CheckRelationship>
+                                                                            </LogicalAnd>
+                                                                            <Compare operator="NOT_EQUAL">
+                                                                                <Variable name="z2" />
+                                                                                <DecisionTreeVar name="Z1" />
+                                                                            </Compare>
+                                                                        </LogicalAnd>
+                                                                    </GetByCondition>
+                                                                </CheckRelationship>
+                                                            </LogicalNot>
+                                                        </LogicalOr>
                                                     <ExistenceQuantifier varName="p">
                                                         <CheckClass>
                                                             <Variable name="p" />
