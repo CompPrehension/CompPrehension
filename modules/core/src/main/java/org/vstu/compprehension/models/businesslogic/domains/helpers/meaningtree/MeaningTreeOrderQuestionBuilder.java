@@ -213,6 +213,9 @@ public class MeaningTreeOrderQuestionBuilder {
         }
         builder.answerObjects = generateAnswerObjects(builder.tokens);
         builder.processMetadata(language, builder.sourceExpressionTree.hashCode());
+        if (!builder.allChecksArePassed) {
+            return null;
+        }
         return builder.metadata.toMetadataEntity();
     }
 
