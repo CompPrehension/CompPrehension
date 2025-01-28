@@ -197,11 +197,11 @@ public class FrontendService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public @NotNull QuestionDto generateQuestionByMetadata(Integer metadataId) throws Exception {
+    public @NotNull QuestionDto generateQuestionByMetadata(Integer metadataId, Language lang) throws Exception {
         if (metadataId == null) {
             throw new Exception("Metadata id is null");
         }
-        val question = questionService.generateQuestion(metadataId);
+        val question = questionService.generateQuestion(metadataId, lang);
         return Mapper.toDto(question);
     }
 

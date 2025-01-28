@@ -86,7 +86,7 @@ public class QuestionController {
             throw new AuthorizationServiceException("Unathorized");
         }
 
-        return frontendService.generateQuestionByMetadata(metadataId);
+        return frontendService.generateQuestionByMetadata(metadataId, currentUser.getPreferred_language());
     }
 
     /**

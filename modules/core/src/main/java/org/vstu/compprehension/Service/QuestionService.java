@@ -71,7 +71,7 @@ public class QuestionService {
         return question;
     }
 
-    public Question generateQuestion(int questionMetadataId) {
+    public Question generateQuestion(int questionMetadataId, Language lang) {
         var rawQuestion = questionStorage.loadQuestion(questionMetadataId);
         if (rawQuestion == null) {
             throw new RuntimeException("Metadata with id " + questionMetadataId + " not found");
@@ -80,7 +80,7 @@ public class QuestionService {
         var tags = domain.getAllTags().stream()
                 .filter(t -> rawQuestion.getTagBits() != null && (rawQuestion.getTagBits() & t.getBitmask()) != 0)
                 .toList();
-        var question = domain.makeQuestion(rawQuestion, null, tags, Language.ENGLISH);
+        var question = domain.makeQuestion(rawQuestion, null, tags, lang);
         saveQuestion(question);
         return question;
     }
