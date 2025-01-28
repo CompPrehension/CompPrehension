@@ -182,7 +182,7 @@ public class DecisionTreeReasonerBackend
                     .getUser()
                     .getPreferred_language(); // The language currently selected in UI
             } catch (NullPointerException e) {
-                return Language.ENGLISH;  // fallback if it cannot be figured out
+                return Language.RUSSIAN/*ENGLISH*/;  // fallback if it cannot be figured out
             }
         }
 

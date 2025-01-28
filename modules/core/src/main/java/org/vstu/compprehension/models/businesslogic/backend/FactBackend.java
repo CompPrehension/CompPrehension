@@ -137,7 +137,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
             try {
                 lang = judgedQuestion.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
             } catch (NullPointerException e) {
-                lang = Language.ENGLISH;  // fallback if it cannot be figured out
+                lang = Language.RUSSIAN/*ENGLISH*/;  // fallback if it cannot be figured out
             }
             result.explanations = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, lang);
             return result;

@@ -224,7 +224,7 @@ public class FrontendService {
     private Language getQuestionLanguage(ExerciseAttemptEntity attempt) {
         return attempt != null
             ? attempt.getUser().getPreferred_language()
-            : Language.ENGLISH;
+            : Language.RUSSIAN/*ENGLISH*/;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

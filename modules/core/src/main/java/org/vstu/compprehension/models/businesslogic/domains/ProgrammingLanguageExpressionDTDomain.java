@@ -623,7 +623,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     public List<HyperText> getFullSolutionTrace(Question question) {
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
             .map(a -> a.getUser().getPreferred_language())
-            .orElse(Language.ENGLISH);
+            .orElse(Language.RUSSIAN/*ENGLISH*/);
         SupportedLanguage plang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(question.getTagNames());
 
         ArrayList<HyperText> result = new ArrayList<>();
@@ -681,7 +681,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
         Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
                 .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.ENGLISH);
+                .orElse(Language.RUSSIAN/*ENGLISH*/);
 
         Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)

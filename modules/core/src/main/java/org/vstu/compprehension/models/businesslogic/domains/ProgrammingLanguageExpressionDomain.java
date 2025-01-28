@@ -1258,7 +1258,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         
         Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
                 .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.ENGLISH);
+                .orElse(Language.RUSSIAN/*ENGLISH*/);
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
@@ -1550,7 +1550,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .orElse(null);
             val locale = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
                     .map(a -> a.getUser().getPreferred_language())
-                    .orElse(Language.ENGLISH);
+                    .orElse(Language.RUSSIAN/*ENGLISH*/);
             val message = judgeResult.isAnswerCorrect
                     ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
                     : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
@@ -2744,7 +2744,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     public List<HyperText> getFullSolutionTrace(Question question) {
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
             .map(a -> a.getUser().getPreferred_language())
-            .orElse(Language.ENGLISH);
+            .orElse(Language.RUSSIAN/*ENGLISH*/);
 
         ArrayList<HyperText> result = new ArrayList<>();
 
