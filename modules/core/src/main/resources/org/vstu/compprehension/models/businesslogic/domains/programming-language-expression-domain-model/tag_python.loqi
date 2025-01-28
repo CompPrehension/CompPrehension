@@ -527,8 +527,8 @@ class operator_call : operator {
 } [
 	text = "(" ;
 	token2text = ")";
-	RU.localizedName = "вызов функции" ;
-	EN.localizedName = "function call" ;
+	RU.localizedName = "вызов функции или метода" ;
+	EN.localizedName = "function or method call" ;
 	isComplex = true ;
 ]
 

@@ -197,7 +197,7 @@ public class MeaningTreeRDFTransformer {
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()
                         .anyMatch(metadata -> metadata.getPropertyName().contains("text") &&
-                                token.value.replace(" ", "_").equals(metadata.getValue()))
+                                token.value.equals(metadata.getValue()))
                 )
                 .toList();
         if(possibleClasses.isEmpty()){
@@ -210,6 +210,12 @@ public class MeaningTreeRDFTransformer {
         return new ParsedClassName(
                 possibleClasses.stream()
                         .filter(classDef -> classDef.isSubclassOf("operator") && Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
+                        .filter(classDef -> {
+                            if (((OperatorToken)token).additionalOpType == OperatorType.METHOD_CALL) {
+                                return classDef.getName().contains("method_call");
+                            }
+                            return true;
+                        })
                         .findFirst()
                         .map(ClassDef::getName)
                         .orElseThrow()

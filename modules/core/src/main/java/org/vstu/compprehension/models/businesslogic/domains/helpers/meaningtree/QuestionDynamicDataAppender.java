@@ -38,6 +38,7 @@ public class QuestionDynamicDataAppender {
         }
 
         TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(q.getStatementFacts(), lang);
+        MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, q.getMetadata());
         q.setAnswerObjects(new ArrayList<>(MeaningTreeOrderQuestionBuilder.generateAnswerObjects(tokens).stream().map(
                 (SerializableQuestion.AnswerObject obj) -> {
                     AnswerObjectEntity ansEntity = new AnswerObjectEntity();

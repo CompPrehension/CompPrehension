@@ -430,11 +430,11 @@ public class MeaningTreeOrderQuestionBuilder {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }
         var result = toTranslator.tryGetCode(sourceExpressionTree);
-        allChecksArePassed = result.getLeft();
+        allChecksArePassed &= result.getLeft();
         rawTranslatedCode = result.getRight();
         if (rawTranslatedCode != null) {
-            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(rawTranslatedCode);
-            allChecksArePassed = tokenRes.getLeft();
+            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(sourceExpressionTree);
+            allChecksArePassed &= tokenRes.getLeft();
             tokens = tokenRes.getLeft() ? tokenRes.getRight() : new TokenList();
         } else {
             tokens = new TokenList();
