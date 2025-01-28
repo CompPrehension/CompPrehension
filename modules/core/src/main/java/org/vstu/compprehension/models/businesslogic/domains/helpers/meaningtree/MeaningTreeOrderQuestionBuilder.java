@@ -207,7 +207,7 @@ public class MeaningTreeOrderQuestionBuilder {
         Question q = qMeta.getQuestionData().getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.fromExistingQuestion(q, domain);
         SupportedLanguage language = detectLanguageFromTags(qMeta.getTagBits(), domain);
-        builder.processTokens(language);
+        builder.processTokensDebug(language);
         if (!builder.allChecksArePassed) {
             return null;
         }
@@ -435,6 +435,29 @@ public class MeaningTreeOrderQuestionBuilder {
         if (rawTranslatedCode != null) {
             var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(sourceExpressionTree);
             allChecksArePassed &= tokenRes.getLeft();
+            tokens = tokenRes.getLeft() ? tokenRes.getRight() : new TokenList();
+        } else {
+            tokens = new TokenList();
+        }
+    }
+
+    /**
+     * Для целей отладки и переклассификации, точная проверка несовместимости преобразований
+     */
+    private void processTokensDebug(SupportedLanguage language) {
+        LanguageTranslator toTranslator;
+        try {
+            toTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
+        }
+        var result = toTranslator.tryGetCode(sourceExpressionTree);
+        allChecksArePassed &= result.getLeft();
+        rawTranslatedCode = result.getRight();
+        if (rawTranslatedCode != null) {
+            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(sourceExpressionTree);
+            var tokenRes2 = toTranslator.getTokenizer().tryTokenizeExtended(rawTranslatedCode);
+            allChecksArePassed &= tokenRes.getLeft() && tokenRes2.getLeft();
             tokens = tokenRes.getLeft() ? tokenRes.getRight() : new TokenList();
         } else {
             tokens = new TokenList();

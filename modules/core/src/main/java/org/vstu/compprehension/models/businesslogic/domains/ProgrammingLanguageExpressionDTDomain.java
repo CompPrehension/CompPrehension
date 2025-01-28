@@ -679,6 +679,10 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
+        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
+                .map(a -> a.getUser().getPreferred_language())
+                .orElse(Language.ENGLISH);
+
         Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
@@ -702,7 +706,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.lawName = ""; // TODO: add correct data
-                    correctAnswer.explanation = new HyperText("Explanation of correct answer is temporarily unavailable"); // TODO: add correct data
+                    correctAnswer.explanation = new HyperText(getMessage("service.unsupported_correct_answer_explanation", lang)); // TODO: add correct data
                     return correctAnswer;
                 }
             }

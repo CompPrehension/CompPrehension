@@ -196,7 +196,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
         addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
 
-        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", noFlags);
+        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", flags);
         Concept bitwise = addConcept("bitwise", List.of(), "Побитовые операции", flags);
         addConcept("operator_~", List.of(singleTokenUnaryConcept, bitwise), "~b", invisible);
         addConcept("operator_binary_&", List.of(singleTokenBinaryConcept, bitwise), "a & b", invisible);
@@ -220,13 +220,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept), "Вызов функции", invisible);
         Concept functionCallConcept_2 = addConcept("operator_function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
-        Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", invisible);  // c ? a : b
+        Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", flags);  // c ? a : b
 
         Concept operatorBinaryCommaConcept = addConcept("operator_,", List.of(singleTokenBinaryConcept), "Запятая между выражениями", flags);
         Concept operatorNew = addConcept("operator_new", List.of(), "Создание нового динамического объекта или массива", flags);
 
-        addConcept("operator_cast", List.of(twoTokenUnaryConcept), "(type)a", invisible);
-        addConcept("operator_sizeof", List.of(twoTokenUnaryConcept), "sizeof(int)", invisible);
+        addConcept("operator_cast", List.of(twoTokenUnaryConcept), "(type)a", flags);
+        addConcept("operator_sizeof", List.of(twoTokenUnaryConcept), "sizeof(int)", flags);
 
         // currently, absent in the data:
 //        Concept namespace_static = addConcept("namespace_static", List.of(), "Пространство имён", noFlags);
