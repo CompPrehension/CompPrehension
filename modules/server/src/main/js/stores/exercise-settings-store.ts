@@ -36,6 +36,7 @@ export class ExerciseStageStore implements Disposable {
     bankSearchResult: QuestionBankSearchResult | null = null
     complexity: number = 0.5
     autorunner?: IReactionDisposer
+    private abortController: AbortController | null = null
 
     constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
@@ -58,14 +59,32 @@ export class ExerciseStageStore implements Disposable {
     
     *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
         const { card } = this;
+
+        // Cancel previous request
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
+
+        // Create new controller for this request
+        const currentAbortController = new AbortController();
+        this.abortController = currentAbortController;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
-        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5);
+
+        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, currentAbortController.signal);
         if (E.isRight(newData)) {
             runInAction(() => {
                 this.bankSearchResult = newData.right;
             });
+
+            // TODO handle AbortError properly
+            runInAction(() => this.bankLoadingState = 'COMPLETED');
         }
-        runInAction(() => this.bankLoadingState = 'COMPLETED');
+
+        // Cleanup if this is still the active request
+        if (this.abortController === currentAbortController) {
+            this.abortController = null;
+        }
     }
     
     [Symbol.dispose](): void {
