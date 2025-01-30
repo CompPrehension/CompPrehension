@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageExpressionDomain {
@@ -334,13 +335,43 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                             LearningSituation situation
                     ) {
                         interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-                        interpretationResult.IterationsLeft = (int) situation.getDomainModel().getObjects()
+                        int unevaluatedCount = (int) situation.getDomainModel().getObjects()
                                 .stream().filter(objectDef ->
                                         hasState(objectDef, "unevaluated")
-                                                || (hasState(objectDef, "omitted")
-                                                && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
                                 )
                                 .count();
+                        // Добавляем количество таких, о которых уже известно,
+                        // что выполняться они не будут, но их родитель ещё не выполнился,
+                        // и нам не нужно давать студенту подсказку об этом через видимое число оставшихся шагов.
+                        int omittedDistractorCount = (int) situation.getDomainModel().getObjects()
+                                .stream().filter(objectDef ->
+                                        (hasState(objectDef, "omitted")
+                                        && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
+                                )
+                                .count();
+
+                        int omittedCount = (int) situation.getDomainModel().getObjects()
+                                .stream().filter(objectDef ->
+                                        hasState(objectDef, "omitted")
+                                )
+                                .count();
+
+                        // Эвристика, может давать сбои: если студент нажал "ничего больше не выполнится",
+                        // то дерево не запускалось и его переменные не задавались.
+                        boolean endEvaluationClicked = situation.getDecisionTreeVariables().isEmpty();
+
+                        // Потребовать нажать кнопку "ничего больше не выполнится", если есть корректно опущенные операторы (чтобы проверить, понимает ли студент это).
+                        int oneMoreStepForEndEvaluation = omittedCount > 0 && !endEvaluationClicked ? 1 : 0;
+
+                        interpretationResult.IterationsLeft = unevaluatedCount + omittedDistractorCount + oneMoreStepForEndEvaluation;
+
+                        if (interpretationResult.IterationsLeft == 0) {
+                            // Достигли полного завершения задачи.
+                            // Ошибок уже быть не может — сбросим их все.
+                            interpretationResult.isAnswerCorrect = true;
+                            interpretationResult.violations = List.of();
+                            interpretationResult.explanations = List.of();
+                        }
                     }
 
                     private Optional<ObjectDef> getParent(ObjectDef object) {
