@@ -123,13 +123,14 @@ public class OperandEvaluationMap {
             Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
             if (foundDisposable.isPresent()) {
                 DisposableIndex grp = foundDisposable.get();
-                if (grp.id().partialEval) {
-                    nodeInfo.node().setAssignedValueTag(grp.alt == 0);
-                    nodeInfo.node().removeLabel(NodeLabel.DUMMY);
+                if (grp.id().partialEval && nodeInfo.node() instanceof TernaryOperator ternary) {
+                    ternary.getCondition().setAssignedValueTag(grp.alt == 0);
+                    ternary.getCondition().removeLabel(NodeLabel.DUMMY);
                     preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.alt == 0));
                 } else {
-                    nodeInfo.node().removeLabel(NodeLabel.DUMMY);
-                    nodeInfo.node().setAssignedValueTag(!grp.id().valRequiredForEval);
+                    BinaryExpression expr = (BinaryExpression) nodeInfo.node();
+                    expr.getLeft().removeLabel(NodeLabel.DUMMY);
+                    expr.getLeft().setAssignedValueTag(!grp.id().valRequiredForEval);
                     preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.id().valRequiredForEval));
                 }
             }
@@ -184,7 +185,11 @@ public class OperandEvaluationMap {
             if (foundDisposable.isPresent()) {
                 DisposableIndex grp = foundDisposable.get();
                 int index = groupViolations.sequencedKeySet().stream().toList().indexOf(grp);
-                nodeInfo.node().setAssignedValueTag(combination[index]);
+                if (nodeInfo.node() instanceof TernaryOperator ternary) {
+                    ternary.getCondition().setAssignedValueTag(combination[index]);
+                } else if (nodeInfo.node() instanceof BinaryExpression expr) {
+                    expr.getLeft().setAssignedValueTag(combination[index]);
+                }
                 preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination[index]));
             }
         }
@@ -274,8 +279,8 @@ public class OperandEvaluationMap {
             if (foundDisposable.isPresent()) {
                 if (node.node() instanceof BinaryExpression binOp) {
                     binOp.getLeft().setAssignedValueTag(!(binOp instanceof ShortCircuitAndOp));
-                } else {
-                    node.node().setAssignedValueTag(false);
+                } else if (node.node() instanceof TernaryOperator ternary) {
+                    ternary.getCondition().setAssignedValueTag(false);
                 }
             }
         }
