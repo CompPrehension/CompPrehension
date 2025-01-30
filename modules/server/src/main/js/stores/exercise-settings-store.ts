@@ -33,7 +33,7 @@ export class ExerciseStageStore implements Disposable {
     skills: ExerciseCardSkill[]
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
-    bankSearchResult: QuestionBankSearchResult | null = null
+    bankSearchResult: QuestionBankSearchResult = { questions: [], count: 0, topRatedCount: 0 }
     complexity: number = 0.5
     autorunner?: IReactionDisposer
     private abortController: AbortController | null = null
@@ -90,6 +90,11 @@ export class ExerciseStageStore implements Disposable {
     [Symbol.dispose](): void {
         if (this.autorunner)
             this.autorunner();
+        // Cancel any pending request on dispose
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
     }
 }
 

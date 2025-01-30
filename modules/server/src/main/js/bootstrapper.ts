@@ -95,6 +95,7 @@ const resources = {
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
             exercisesettings_questionsInBank: "Questions in bank",
+            exercisesettings_noQuestionsFound: 'No suitable questions found',
 
             survey_sendresults: "Send survey results",
         },
@@ -159,6 +160,7 @@ const resources = {
             exercisesettings_optAllowed: "Разреш.",
             exercisesettings_optTarget: "Цель",
             exercisesettings_questionsInBank: "Вопросов в банке задач",
+            exercisesettings_noQuestionsFound: 'Подходящих вопросов не найдено',
 
             survey_sendresults: "Отправить результаты опроса",
         },
@@ -221,6 +223,7 @@ const resources = {
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
             exercisesettings_questionsInBank: "Questions in bank",
+            exercisesettings_noQuestionsFound: 'No suitable questions found',
 
             survey_sendresults: "Send survey results",
         },

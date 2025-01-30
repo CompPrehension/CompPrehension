@@ -55,6 +55,7 @@ public class Mapper {
                 .displayName(displayName)
                 .email(user.getEmail())
                 .language(user.getPreferred_language().toLocaleString())
+                .roles(user.getRoles().stream().map(Enum::name).collect(Collectors.toList()))
                 .build();
     }
 

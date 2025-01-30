@@ -318,15 +318,17 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     : null
                 }
             </form >
-            <div className="mt-5">
-                <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>
-                <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>
-                <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
-                {currentStrategy?.options.multiStagesEnabled &&
-                    <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
-                }
+            {store.user?.roles.includes('ADMIN') && // TODO временный фикс, убрать в будущем
+                <div className="mt-5">
+                    <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>
+                    <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>
+                    <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
+                    {currentStrategy?.options.multiStagesEnabled &&
+                        <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
+                    }
                 </div>
-        </div >
+                || null}
+            </div >
 
 
     );
@@ -459,10 +461,14 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                         stage.bankLoadingState === 'IN_PROGRESS' 
                             && <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
                             || <div className="list-group">
-                                {stage.bankSearchResult?.questions.map((q, i) =>
-                                    <div key={i} className="list-group-item">
-                                        <a target="_blank" href={`${API_URL}/pages/question?metadataId=${q.metadataId}`}>{q.name}</a>
-                                    </div>)}
+                                {
+                                    stage.bankSearchResult.questions.length === 0
+                                    ? <div className="list-group-item">{t('exercisesettings_noQuestionsFound')}</div>
+                                    : stage.bankSearchResult.questions.map((q, i) =>
+                                        <div key={i} className="list-group-item">
+                                            <a target="_blank" href={`${API_URL}/pages/question?metadataId=${q.metadataId}`}>{q.name}</a>
+                                        </div>)
+                                }
                                </div>
                     }
                 </div>
