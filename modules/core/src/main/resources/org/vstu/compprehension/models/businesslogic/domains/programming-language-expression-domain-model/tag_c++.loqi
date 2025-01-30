@@ -651,8 +651,8 @@ class operator_cast : operator {
 	precedence = 2 ;
 	associativity = associativity:right ;
 	needsLeftOperand = false ;
-	needsRightOperand = false ;
-	needsInnerOperand = true ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
 	countOfTokens = 1 ;
 } [
 	text = "cast" ;

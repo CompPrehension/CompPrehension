@@ -55,7 +55,7 @@ class operator_method_call : operator {
     isComplex = true ;
 ]
 
-class operator_cast : operator {
+class operator_new : operator {
 
 	arity = arity:unary ;
 	place = place:prefix ;
@@ -64,6 +64,22 @@ class operator_cast : operator {
 	needsLeftOperand = false ;
 	needsRightOperand = false ;
 	needsInnerOperand = true ;
+	countOfTokens = 1 ;
+} [
+	text = "new" ;
+	RU.localizedName = "оператор new" ;
+	EN.localizedName = "operator new" ;
+]
+
+class operator_cast : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 1 ;
+	associativity = associativity:right ;
+	needsLeftOperand = false ;
+	needsRightOperand = true ;
+	needsInnerOperand = false ;
 	countOfTokens = 1 ;
 } [
 	text = "cast" ;
