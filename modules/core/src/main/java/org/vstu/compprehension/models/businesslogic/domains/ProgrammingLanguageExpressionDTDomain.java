@@ -664,34 +664,39 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
             TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(question.getStatementFacts(), plang);
 
             for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
-                StringJoiner builder = new StringJoiner(" ");
-                builder.add("<span>" + getMessage("OPERATOR", lang) + "</span>");
                 // format a trace line ...
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.equals("end_token")) {
                     continue;
                 }
+                StringJoiner builder = new StringJoiner(" ");
+                builder.add("<span>" + getMessage("OPERATOR", lang) + "</span>");
                 String[] domainInfoComponents = domainInfo.split("_");
                 int tokenIndex = Integer.parseInt(domainInfoComponents[domainInfoComponents.length - 1]);
+                int tokenPositionInUI = tokenIndex + 1;
                 builder.add("<span style='color: #700;text-decoration: underline;'>" +
                         tokens.get(tokenIndex).value +
                         "</span>");
                 builder.add("<span>" + getMessage("AT_POS", lang) + "</span>");
                 builder.add("<span style='color: #f00;font-weight: bold;'>" +
-                        tokenIndex +
+                        tokenPositionInUI +
                         "</span>");
                 builder.add("<span>" + getMessage("CALCULATED", lang) + "</span>");
 
-                Object value = tokens.get(tokenIndex).getAssignedValue();
-                if (value != null) {
-                    builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
-                    builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
-                            value +
-                            "</span>");
+                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
+
+                if (!responseIsWrong) {
+                    // Show the value only if this is a correct choice.
+                    Object value = tokens.get(tokenIndex).getAssignedValue();
+                    if (value != null) {
+                        builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
+                        builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
+                                value +
+                                "</span>");
+                    }
                 }
 
-                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
                 var finalHtml = responseIsWrong
                         ? "<span style='background-color: #ff9;'>" + builder + "</span>"
                         : builder.toString();
