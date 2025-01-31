@@ -159,7 +159,7 @@ public class OperandEvaluationMap {
                     DisposableIndex nextTokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
                     if (tokenIndex.id().valRequiredForEval() != array[j]
                             && isTransitiveDependency(nextTokenIndex.getNodeId(), tokenIndex.getNodeId())) {
-                        array[j] = false;
+                        array[j] = tokenIndex.id().valRequiredForEval();
                     }
                 }
             }
@@ -170,7 +170,7 @@ public class OperandEvaluationMap {
             combinations.add(combination);
         }
 
-        List<List<Boolean>> values = new ArrayList<>(combinations.stream().limit(16).toList());
+        List<List<Boolean>> values = new ArrayList<>(combinations.stream().limit(10).toList());
         List<Pair<MeaningTree, Integer>> result = new ArrayList<>();
         for (List<Boolean> combination : values) {
             result.add(makeTreeFromValues(initialTree, combination));
@@ -242,16 +242,16 @@ public class OperandEvaluationMap {
             }
         }
 
-        // Если больше 8 отключаемых групп, отсечем 30%
+        // Если больше 8 отключаемых групп, отсечем 25%
         Set<DisposableIndex> redundant = groupFeatures.keySet().stream()
                 .filter((e) -> !e.id.partialEval)
-                .skip((long) (nonPartialCount > 8 ? 0.70 * nonPartialCount : nonPartialCount)).collect(Collectors.toSet());
+                .skip((long) (nonPartialCount > 5 ? 0.75 * nonPartialCount : nonPartialCount)).collect(Collectors.toSet());
 
         if (nonPartialCount > 8) deleteCandidates.addAll(redundant);
 
         for (var entry : groupFeatures.entrySet()) {
-            // для остальных операндов (не тернарный) отбираем только то, что полезно (больше 3 фич), но только если отключаемых групп больше 3
-            if (!entry.getKey().id.partialEval && entry.getValue().size() < 4 && nonPartialCount > 3) {
+            // для остальных операндов (не тернарный) отбираем только то, что полезно (больше 3 фич), но только если отключаемых групп больше 2
+            if (!entry.getKey().id.partialEval && entry.getValue().size() < 4 && nonPartialCount > 2) {
                 deleteCandidates.add(entry.getKey());
             }
         }
