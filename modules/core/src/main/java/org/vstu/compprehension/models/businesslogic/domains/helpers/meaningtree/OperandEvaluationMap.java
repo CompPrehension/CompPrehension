@@ -68,7 +68,7 @@ public class OperandEvaluationMap {
     /**
      *  [отключаемая группа, номер альтернативы] -> уникальные типы ошибок студента, если эта группа вычислится
      */
-    private final SequencedMap<DisposableIndex, Set<String>> groupViolations = new LinkedHashMap<>();
+    private final SequencedMap<DisposableIndex, Set<String>> groupFeatures = new LinkedHashMap<>();
 
     /**
      * Зависимости между узлами. Пример: a && b && c. Здесь c не имеет значения, если b = false, следовательно, его вычислимость зависит от b
@@ -80,7 +80,7 @@ public class OperandEvaluationMap {
      * Изначальные типы ошибок, когда все потенциально не вычисляемые зоны отключены,
      * а те, что не отключаются полностью переведены в стандартное положение (у тернарного - false)
      */
-    private Set<String> initialDisposedViolations;
+    private Set<String> initialDisposedFeatures;
 
     /**
      * Дерево, где все потенциально не вычисляемые участки переведены в значение,
@@ -88,11 +88,14 @@ public class OperandEvaluationMap {
      */
     private MeaningTree initialTree;
 
+    private SupportedLanguage language;
+
     private LanguageTranslator languageTranslator;
 
     OperandEvaluationMap(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
         this.builder = builder;
         initialTree = builder.sourceExpressionTree.clone();
+        this.language = language;
 
         log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
 
@@ -103,9 +106,9 @@ public class OperandEvaluationMap {
         }
 
         findDisposableGroups();
-        calculateInitialViolations();
-        calculateViolations();
-        filterViolations();
+        calculateInitialFeatures();
+        calculateFeatures();
+        filterFeatures();
     }
 
     /**
@@ -137,44 +140,50 @@ public class OperandEvaluationMap {
         }
 
         // Больше 128 комбинаций не экономно по памяти и производительности
-        if (groupViolations.size() > 7) {
+        if (groupFeatures.size() > 7) {
             log.info("Too many values can be generated for question. Generated questions will be shorten");
             return List.of(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
         }
 
         // Здесь будут отфильтрованные комбинации, без бесполезных комбинаций
-        Set<boolean[]> combinations = new HashSet<>();
+        Set<List<Boolean>> combinations = new HashSet<>();
 
-        for (boolean[] array : generateCombinations(groupViolations.size())) {
+        for (boolean[] array : generateCombinations(groupFeatures.size())) {
             boolean[] arrayCopy = new boolean[array.length];
             System.arraycopy(array, 0, arrayCopy, 0, array.length);
 
             for (int i = 0; i < array.length; i++) {
                 // Приводим одинаковые по смыслу комбинации к одному виду, чтобы они не дублировались в результирующем множестве
-                DisposableIndex tokenIndex = groupViolations.sequencedKeySet().stream().toList().get(i);
+                DisposableIndex tokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
                 for (int j = i + 1; j < array.length; j++) {
-                    DisposableIndex nextTokenIndex = groupViolations.sequencedKeySet().stream().toList().get(i);
+                    DisposableIndex nextTokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
                     if (tokenIndex.id().valRequiredForEval() != array[j]
                             && isTransitiveDependency(nextTokenIndex.getNodeId(), tokenIndex.getNodeId())) {
                         array[j] = false;
                     }
                 }
             }
-            combinations.add(arrayCopy);
+            List<Boolean> combination = new ArrayList<>();
+            for (boolean val : arrayCopy) {
+                combination.add(val);
+            }
+            combinations.add(combination);
         }
 
-        List<boolean[]> values = new ArrayList<>(combinations.stream().limit(10).toList());
+        List<List<Boolean>> values = new ArrayList<>(combinations.stream().limit(16).toList());
         List<Pair<MeaningTree, Integer>> result = new ArrayList<>();
-        for (boolean[] combination : values) {
+        for (List<Boolean> combination : values) {
             result.add(makeTreeFromValues(initialTree, combination));
         }
-        result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
+        if (result.stream().map((e) -> e.getLeft().hashCode()).noneMatch((e) -> e == preferred.hashCode())) {
+            result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
+        }
 
         return result;
     }
 
     // Собрать дерево, в котором потенциально не вычисляемые участки будут иметь заданную комбинацию значений
-    private Pair<MeaningTree, Integer> makeTreeFromValues(MeaningTree initialTree, boolean[] combination) {
+    private Pair<MeaningTree, Integer> makeTreeFromValues(MeaningTree initialTree, List<Boolean> combination) {
         MeaningTree preferred = initialTree.clone();
         int initialHash = preferred.hashCode();
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
@@ -184,39 +193,71 @@ public class OperandEvaluationMap {
             Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
             if (foundDisposable.isPresent()) {
                 DisposableIndex grp = foundDisposable.get();
-                int index = groupViolations.sequencedKeySet().stream().toList().indexOf(grp);
+                int index = groupFeatures.sequencedKeySet().stream().toList().indexOf(grp);
                 if (nodeInfo.node() instanceof TernaryOperator ternary) {
-                    ternary.getCondition().setAssignedValueTag(combination[index]);
+                    ternary.getCondition().setAssignedValueTag(combination.get(index));
                 } else if (nodeInfo.node() instanceof BinaryExpression expr) {
-                    expr.getLeft().setAssignedValueTag(combination[index]);
+                    expr.getLeft().setAssignedValueTag(combination.get(index));
                 }
-                preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination[index]));
+                preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination.get(index)));
             }
         }
         return new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash));
     }
 
     // Отобрать типы ошибок, которые будут полезны в вопросе
-    private void filterViolations() {
-        Set<DisposableIndex> filteredAndLimited = groupViolations.entrySet().stream()
-                .flatMap(entry1 -> groupViolations.entrySet().stream()
-                        .filter(entry2 -> !entry1.getKey().equals(entry2.getKey()))
-                        .map(entry2 -> {
-                            Set<String> difference = new HashSet<>(entry1.getValue());
-                            difference.removeAll(entry2.getValue());
-                            return new AbstractMap.SimpleEntry<>(entry1.getKey(), difference);
-                        })
-                        .filter(e -> e.getValue().size() > 2) // больше 2 различий
-                )
-                .distinct()
-                .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
-                .skip(groupViolations.size() > 5 ? (int) (0.4 * groupViolations.size()) : 0)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-        Set<DisposableIndex> keys = new HashSet<>(groupViolations.keySet());
-        keys.removeAll(filteredAndLimited);
-        for (DisposableIndex key : keys) {
-            groupViolations.remove(key);
+    private void filterFeatures() {
+        Set<DisposableIndex> deleteCandidates = new HashSet<>();
+
+        long nonPartialCount = groupFeatures.entrySet().stream()
+                .filter((e) -> !e.getKey().id.partialEval).count();
+
+        HashMap<DisposableNodeInfo, List<DisposableIndex>> partialEvalMap = new HashMap<>();
+        for (DisposableIndex index : groupFeatures.keySet()) {
+            if (index.id.partialEval) {
+                if (!partialEvalMap.containsKey(index.id)) {
+                    partialEvalMap.put(index.id, new ArrayList<>(2));
+                    partialEvalMap.get(index.id).add(null);
+                    partialEvalMap.get(index.id).add(null);
+                }
+                partialEvalMap.get(index.id).set(index.alt, index);
+            }
+        }
+
+        // Для тернарного (всегда частично вычисляемого)
+        for (Map.Entry<DisposableNodeInfo, List<DisposableIndex>> partialEvalElem : partialEvalMap.entrySet()) {
+            Set<String> features1 = new HashSet<>(groupFeatures.get(partialEvalElem.getValue().getFirst()));
+            Set<String> features2 = new HashSet<>(groupFeatures.get(partialEvalElem.getValue().get(1)));
+
+            Set<String> intersection = new HashSet<>(features1);
+            intersection.retainAll(features2);
+
+            features1.removeAll(intersection);
+            features2.removeAll(intersection);
+
+            if (features1.size() < features2.size()) {
+                deleteCandidates.add(partialEvalElem.getValue().getFirst());
+            } else {
+                deleteCandidates.add(partialEvalElem.getValue().get(1));
+            }
+        }
+
+        // Если больше 8 отключаемых групп, отсечем 30%
+        Set<DisposableIndex> redundant = groupFeatures.keySet().stream()
+                .filter((e) -> !e.id.partialEval)
+                .skip((long) (nonPartialCount > 8 ? 0.70 * nonPartialCount : nonPartialCount)).collect(Collectors.toSet());
+
+        if (nonPartialCount > 8) deleteCandidates.addAll(redundant);
+
+        for (var entry : groupFeatures.entrySet()) {
+            // для остальных операндов (не тернарный) отбираем только то, что полезно (больше 3 фич), но только если отключаемых групп больше 3
+            if (!entry.getKey().id.partialEval && entry.getValue().size() < 4 && nonPartialCount > 3) {
+                deleteCandidates.add(entry.getKey());
+            }
+        }
+
+        for (DisposableIndex key : deleteCandidates) {
+            groupFeatures.remove(key);
         }
     }
 
@@ -228,7 +269,7 @@ public class OperandEvaluationMap {
     }
 
     private Optional<DisposableIndex> findDisposableIndex(long compareId) {
-        return groupViolations.keySet()
+        return groupFeatures.keySet()
                 .stream()
                 .filter((DisposableIndex disposable) -> disposable.id().node.node().getId() == compareId)
                 .findFirst();
@@ -245,7 +286,7 @@ public class OperandEvaluationMap {
     }
 
     // Подсчитать, какие токены и типы ошибок будут у выражения, если отключить все не вычисляемые группы
-    private void calculateInitialViolations() {
+    private void calculateInitialFeatures() {
         MeaningTree calculationTree = initialTree.clone();
 
         for (Node.Info node : calculationTree) {
@@ -286,14 +327,15 @@ public class OperandEvaluationMap {
         }
         log.debug("Question with disposed groups of tokens (initial): {}", languageTranslator.getCode(calculationTree));
         TokenList tokens = languageTranslator.getTokenizer().tokenizeExtended(calculationTree);
-        initialDisposedViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
+        initialDisposedFeatures = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
+        initialDisposedFeatures.addAll(MeaningTreeOrderQuestionBuilder.findSkills(tokens, language));
     }
 
     // Посчитать по отключаемым зонам возможные типы ошибок в них
-    private void calculateViolations() {
+    private void calculateFeatures() {
         for (int i = 0; i < possibleDisposableOperands.size(); i++) {
             DisposableNodeInfo grp = possibleDisposableOperands.get(i);
-            calcDisposableGroupDiff(grp, initialDisposedViolations);
+            calcDisposableGroupDiff(grp, initialDisposedFeatures);
         }
     }
 
@@ -304,14 +346,16 @@ public class OperandEvaluationMap {
                 Node target = k == 0 ? ternary.getThenExpr() : ternary.getElseExpr();
                 TokenList tokens = languageTranslator.getTokenizer().tokenizeExtended(target);
                 Set<String> currentViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
+                currentViolations.addAll(MeaningTreeOrderQuestionBuilder.findSkills(tokens, language));
                 currentViolations.removeAll(initial);
-                groupViolations.put(new DisposableIndex(id, k), currentViolations);
+                groupFeatures.put(new DisposableIndex(id, k), currentViolations);
             }
         } else if (id.node.node() instanceof BinaryExpression binOp) {
             TokenList tokens = languageTranslator.getTokenizer().tokenizeExtended(binOp.getRight());
             Set<String> currentViolations = MeaningTreeOrderQuestionBuilder.findPossibleViolations(tokens);
+            currentViolations.addAll(MeaningTreeOrderQuestionBuilder.findSkills(tokens, language));
             currentViolations.removeAll(initial);
-            groupViolations.put(new DisposableIndex(id, 0), currentViolations);
+            groupFeatures.put(new DisposableIndex(id, 0), currentViolations);
         }
     }
 
