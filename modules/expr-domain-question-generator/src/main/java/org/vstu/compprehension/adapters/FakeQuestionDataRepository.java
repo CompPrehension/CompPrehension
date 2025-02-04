@@ -1,8 +1,10 @@
 package org.vstu.compprehension.adapters;
 
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public class FakeQuestionDataRepository implements QuestionDataRepository {
@@ -69,5 +71,11 @@ public class FakeQuestionDataRepository implements QuestionDataRepository {
     @Override
     public Optional<QuestionDataEntity> findByMetadataId(int questionMetadataId) {
         return Optional.empty();
+    }
+
+    @NotNull
+    @Override
+    public List<QuestionDataEntity> loadPage(int lastLoadedId, int limit) {
+        return List.of();
     }
 }
