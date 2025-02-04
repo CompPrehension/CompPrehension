@@ -683,9 +683,8 @@ public class MeaningTreeOrderQuestionBuilder {
                     case NONE -> {
                         if (toLanguage == SupportedLanguage.PYTHON) {
                             result.add("operator_:=");
-                        } else {
-                            result.add("operator_=");
                         }
+                        result.add("operator_=");
                     }
                     case ADD -> {
                         result.add("operator_+=");
