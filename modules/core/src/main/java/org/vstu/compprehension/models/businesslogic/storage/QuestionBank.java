@@ -70,7 +70,7 @@ public class QuestionBank {
                 || qr.getDeniedConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getDeniedConceptsBitmask()) != 0
                 || qr.getDeniedLawsBitmask() != 0 && (meta.getViolationBits() & qr.getDeniedLawsBitmask()) != 0
                 || qr.getDeniedSkillsBitmask() != 0 && (meta.getSkillBits() & qr.getDeniedSkillsBitmask()) != 0
-                || qr.getTargetTagsBitmask() != 0 && (meta.getTagBits() & qr.getTargetTagsBitmask()) != meta.getTagBits() // требуем наличия всех тэгов
+                || qr.getTargetTagsBitmask() != 0 && (meta.getTagBits() & qr.getTargetTagsBitmask()) != qr.getTargetTagsBitmask() // требуем наличия всех тэгов из qr
         ) {
             return false;
         }
