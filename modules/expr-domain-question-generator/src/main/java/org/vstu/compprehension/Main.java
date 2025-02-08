@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -56,7 +55,6 @@ public class Main {
                 new QuestionBank(
                         new FakeQuestionMetadataRepository(),
                         new FakeQuestionDataRepository(),
-                        new QuestionMetadataManager( new FakeQuestionMetadataRepository()),
                         null
                 )
         );

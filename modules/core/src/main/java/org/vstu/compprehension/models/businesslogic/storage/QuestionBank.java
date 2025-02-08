@@ -30,11 +30,10 @@ public class QuestionBank {
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
-            QuestionMetadataManager questionMetadataManager, 
             QuestionGenerationRequestRepository generationRequestRepository) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
-        this.questionMetadataManager = questionMetadataManager;
+        this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
         this.generationRequestRepository = generationRequestRepository;
     }
 
