@@ -128,7 +128,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                                 "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                                 "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
-                                "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id) ", Integer.class)
+                                "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id AND exercise_attempt_id IS NOT NULL) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
@@ -220,7 +220,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                         "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                         "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                         "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
-                        "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id) " +
+                        "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id AND exercise_attempt_id IS NOT NULL) " +
                         //"AND bit_count(q.trace_concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
                         //"AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
                         
