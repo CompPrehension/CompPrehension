@@ -70,14 +70,16 @@ public class QuestionBank {
                 || qr.getStepsMax() != 0 && meta.getSolutionSteps() > qr.getStepsMax()
                 || qr.getDeniedConceptsBitmask() != 0 && (meta.getConceptBits() & qr.getDeniedConceptsBitmask()) != 0
                 || qr.getDeniedLawsBitmask() != 0 && (meta.getViolationBits() & qr.getDeniedLawsBitmask()) != 0
+                || qr.getDeniedSkillsBitmask() != 0 && (meta.getSkillBits() & qr.getDeniedSkillsBitmask()) != 0
                 || qr.getTargetTagsBitmask() != 0 && (meta.getTagBits() & qr.getTargetTagsBitmask()) != meta.getTagBits() // требуем наличия всех тэгов
         ) {
             return false;
         }
 
-        // Если есть запрет по ID шаблона или имени вопроса
+        // Если есть запрет по ID шаблона/метаданных или имени вопроса
         if (qr.getDeniedQuestionTemplateIds() != null && !qr.getDeniedQuestionTemplateIds().isEmpty() && qr.getDeniedQuestionTemplateIds().contains(meta.getTemplateId())
-                || qr.getDeniedQuestionNames() != null && !qr.getDeniedQuestionNames().isEmpty() && qr.getDeniedQuestionNames().contains(meta.getName())) {
+                || qr.getDeniedQuestionNames() != null && !qr.getDeniedQuestionNames().isEmpty() && qr.getDeniedQuestionNames().contains(meta.getName())
+                || qr.getDeniedQuestionMetaIds() != null && meta.getId() != null && !qr.getDeniedQuestionMetaIds().isEmpty() && qr.getDeniedQuestionMetaIds().contains(meta.getId())) {
             return false;
         }
 
