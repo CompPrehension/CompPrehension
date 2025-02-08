@@ -379,7 +379,7 @@ export class ExerciseSettingsStore {
         const stage = this.currentCard.stages[stageIdx];
         const targetSkillIdx = stage.skills.findIndex(x => x.name == skillName);
         let targetSkill = targetSkillIdx !== -1 ? stage.skills[targetSkillIdx] : null;
-        if (skillName === 'PERMITTED') {
+        if (skillValue === 'PERMITTED') {
             if (targetSkill)
                 stage.skills.splice(targetSkillIdx, 1)
             return;
@@ -480,6 +480,7 @@ export class ExerciseSettingsStore {
 
         const card = this.currentCard;
 
+        /*
         const sharedDomainLaws = this.domains.find(z => z.id === card.domainId)?.laws
             .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
         const sharedDomainConcepts = this.domains.find(z => z.id === card.domainId)?.concepts
@@ -493,16 +494,17 @@ export class ExerciseSettingsStore {
             .filter(c => c.kind !== 'PERMITTED' && sharedDomainSkills.some(x => x.name === c.name))
         var stageLaws = card.stages[0].laws
             .filter(l => l.kind !== 'PERMITTED' && sharedDomainLaws.some(x => x.name === l.name));
+        */
 
         const newStage = new ExerciseStageStore(
             this.exerciseSettingsController,
-            this.currentCard, 
+            card,
             {
                 numberOfQuestions: 10,
                 complexity: 0.5,
-                laws: stageLaws,
-                concepts: stageConcepts,
-                skills: stageSkills
+                laws: [],
+                concepts: [],
+                skills: [],
             });
         this.currentCard.stages.push(newStage);
     }
