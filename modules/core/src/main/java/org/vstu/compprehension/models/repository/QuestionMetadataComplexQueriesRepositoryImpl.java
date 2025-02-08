@@ -48,12 +48,14 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var minComplexity = complexity - complexityWindow;
+        var maxComplexity = complexity + complexityWindow;
 
         var query = entityManager.createNativeQuery(
                 "select count(*) as number from questions_meta q where " +
                     "q.domain_shortname = :domainShortname " +
-                    "AND q.solution_steps >= :stepsMin " +
-                    "AND q.solution_steps <= :stepsMax " +
+                    "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
+                    "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
                     "AND q.concept_bits & :deniedConceptBits = 0 " +
                     "AND q.violation_bits & :deniedLawBits = 0 " +
                     "AND q.skill_bits & :deniedSkillBits = 0 " +
@@ -62,7 +64,6 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                     "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                     "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
 
-                    "AND q.integral_complexity BETWEEN :complexity - :complWindow AND :complexity + :complWindow " +
                     "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                     "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                     "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) ", Integer.class)
@@ -79,8 +80,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("targetConceptsBitmask", targetConceptsBitmask)
                 .setParameter("targetLawsBitmask", targetLawsBitmask)
                 .setParameter("targetSkillsBitmask", targetSkillsBitmask)
-                .setParameter("complWindow", complexityWindow)
-                .setParameter("complexity", complexity);
+                .setParameter("minComplexity", minComplexity)
+                .setParameter("maxComplexity", maxComplexity);
         return ((Number) query.getSingleResult()).intValue();
     }
 
@@ -108,12 +109,14 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var minComplexity = complexity - complexityWindow;
+        var maxComplexity = complexity + complexityWindow;
 
         var query = entityManager.createNativeQuery(
                         "select count(*) from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
-                                "AND q.solution_steps >= :stepsMin " +
-                                "AND q.solution_steps <= :stepsMax " +
+                                "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
+                                "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
                                 "AND q.concept_bits & :deniedConceptBits = 0 " +
                                 "AND q.violation_bits & :deniedLawBits = 0 " +
                                 "AND q.skill_bits & :deniedSkillBits = 0 " +
@@ -122,11 +125,10 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                                 "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
 
-                                "AND q.integral_complexity BETWEEN :complexity - :complWindow AND :complexity + :complWindow " +
                                 "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                                 "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                                 "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
-                                "AND (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) = 0 ", Integer.class)
+                                "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id) ", Integer.class)
                 .setParameter("domainShortname", domainShortname)
                 .setParameter("stepsMin", stepsMin)
                 .setParameter("stepsMax", stepsMax)
@@ -140,8 +142,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("targetConceptsBitmask", targetConceptsBitmask)
                 .setParameter("targetLawsBitmask", targetLawsBitmask)
                 .setParameter("targetSkillsBitmask", targetSkillsBitmask)
-                .setParameter("complWindow", complexityWindow)
-                .setParameter("complexity", complexity);
+                .setParameter("minComplexity", minComplexity)
+                .setParameter("maxComplexity", maxComplexity);
         return ((Number) query.getSingleResult()).intValue();
     }
 
@@ -194,6 +196,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var minComplexity = complexity - complexityWindow;
+        var maxComplexity = complexity + complexityWindow;
+
         var unwantedConceptsBitmask = qr.getUnwantedConceptsBitmask();
         var unwantedLawsBitmask = qr.getUnwantedLawsBitmask();
         var unwantedViolationsBitmask = qr.getUnwantedViolationsBitmask();
@@ -202,8 +207,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
                 "select * from questions_meta q where " +
                         "q.domain_shortname = :domainShortname " +
-                        "AND q.solution_steps >= :stepsMin " +
-                        "AND q.solution_steps <= :stepsMax " +
+                        "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
+                        "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
                         "AND q.concept_bits & :deniedConceptBits = 0 " +
                         "AND q.violation_bits & :deniedLawBits = 0 " +
                         "AND q.skill_bits & :deniedSkillBits = 0 " +
@@ -212,11 +217,10 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                         "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                         "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
                         
-                        "AND q.integral_complexity BETWEEN :complexity - :complWindow AND :complexity + :complWindow " +
                         "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
                         "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
                         "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
-                        "AND (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) = 0 " +
+                        "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id) " +
                         //"AND bit_count(q.trace_concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
                         //"AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
                         
@@ -253,8 +257,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("unwantedLawsBitmask", unwantedLawsBitmask)
                 .setParameter("unwantedViolationsBitmask", unwantedViolationsBitmask)
                 .setParameter("unwantedSkillsBitmask", unwantedSkillsBitmask)
-                .setParameter("complexity", complexity)
-                .setParameter("complWindow", complexityWindow)
+                .setParameter("minComplexity", minComplexity)
+                .setParameter("maxComplexity", maxComplexity)
                 .setParameter("lim", limitNumber)
                 .getResultList();
         //noinspection unchecked
@@ -292,8 +296,8 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
-                                "AND q.solution_steps >= :stepsMin " +
-                                "AND q.solution_steps <= :stepsMax " +
+                                "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
+                                "AND q.integral_complexity <= :complexity + :complWindow " +
                                 "AND q.concept_bits & :deniedConceptBits = 0 " +
                                 "AND q.violation_bits & :deniedLawBits = 0 " +
                                 "AND q.skill_bits & :deniedSkillBits = 0 " +
@@ -301,7 +305,6 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
                                 "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
                                 "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
-                                "AND q.integral_complexity <= :complexity + :complWindow " +
 
                                 "order by " +
                                 " abs(q.integral_complexity - :complexity) DIV :complWindow ASC, " +
@@ -378,8 +381,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var result = entityManager.createNativeQuery(
                         "select * from questions_meta q where " +
                                 "q.domain_shortname = :domainShortname " +
-                                "AND q.solution_steps >= :stepsMin " +
-                                "AND q.solution_steps <= :stepsMax " +
+                                "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
 
                                 "order by " +
                                 " (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.name NOT IN (:deniedQuestionMetaIds)) DESC, " +
