@@ -411,7 +411,9 @@ public class TaskGenerationJob {
                                     downloadedRepos.add(targetFolderPath);
                                     SourceCodeRepositoryInfo info = SourceCodeRepositoryInfo.builder()
                                             .name(repo.getFullName())
-                                            .license(repo.getLicense().getName())
+                                            .license(repo.getLicense() != null
+                                                ? repo.getLicense().getName()
+                                                : null)
                                             .url(repo.getHtmlUrl().toString())
                                             .build();
                                     Gson gson = new GsonBuilder()
