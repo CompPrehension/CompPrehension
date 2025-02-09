@@ -82,7 +82,7 @@ public class QuestionEntity {
 
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "exerciseAttempt_id", nullable = true)
+    @JoinColumn(name = "exercise_attempt_id", nullable = true)
     @Nullable
     private ExerciseAttemptEntity exerciseAttempt;
 

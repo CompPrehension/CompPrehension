@@ -12,8 +12,10 @@ import java.util.Optional;
 @Repository
 public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemptEntity, Long> {
     @Query("select a from ExerciseAttemptEntity a " +
-            "inner join fetch a.exercise left join fetch a.questions q left join fetch a.user " +
-            "where q.id = ?1")
+            "inner join fetch a.exercise " +
+            "left join fetch a.questions q " +
+            "left join fetch a.user " +
+            "where a.id IN (select q.exerciseAttempt.id from QuestionEntity q where q.id = ?1 and q.exerciseAttempt is not null)")
     Optional<ExerciseAttemptEntity> findByQuestionId(long questionId);
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user where a.id = ?1")
     Optional<ExerciseAttemptEntity> getById(Long attemptId);
