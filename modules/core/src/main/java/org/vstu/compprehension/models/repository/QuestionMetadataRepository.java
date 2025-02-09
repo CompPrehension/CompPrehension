@@ -39,6 +39,16 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     )
     @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
     List<QuestionMetadataEntity> loadPageWithData(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+
+    @NotNull
+    @Query(value =
+            "select m from QuestionMetadataEntity m " +
+            "where m.id > :lastLoadedId AND m.domainShortname = :domainShortName " +
+            "order by m.id " +
+            "limit :limit"
+    )
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("domainShortName") String domainShortName, @Param("limit") int limit);
     
     @Query
     long countByDomainShortname(String domainShortname);

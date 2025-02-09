@@ -45,6 +45,12 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
         return List.of();
     }
 
+    @NotNull
+    @Override
+    public List<QuestionMetadataEntity> loadPage(int lastLoadedId, String domainShortName, int limit) {
+        return List.of();
+    }
+
     @Override
     public long countByDomainShortname(String domainShortname) {
         return 0;
@@ -129,6 +135,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @Override
     public List<Integer> findMostUsedMetadataIds(@Nullable Integer weekUsageThreshold, @Nullable Integer dayUsageThreshold, @Nullable Integer hourUsageThreshold, @Nullable Integer min15UsageThreshold, @Nullable Integer min5UsageThreshold) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
         return List.of();
     }
 

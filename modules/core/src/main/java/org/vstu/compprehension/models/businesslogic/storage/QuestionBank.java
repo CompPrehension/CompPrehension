@@ -180,7 +180,7 @@ public class QuestionBank {
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
                 .build();
         log.info("search query prepared: {}", new Gson().toJson(preparedQuery));
-        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
+        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
         log.info("search query executed with {} candidates", foundQuestionMetas.size());
 
         // runtime assert to find possible desync between findTopRatedMetadata and isMatch methods

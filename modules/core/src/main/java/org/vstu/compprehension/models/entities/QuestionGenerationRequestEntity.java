@@ -72,6 +72,16 @@ public class QuestionGenerationRequestEntity {
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedConceptsBitmask\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
     private Long deniedConceptsBitmask;
+
+    @Column(name = "denied_laws_bitmask",
+            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedLawsBitmask\") VIRTUAL NOT NULL",
+            insertable = false, updatable = false)
+    private Long deniedLawsBitmask;
+
+    @Column(name = "denied_skills_bitmask",
+            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedSkillsBitmask\") VIRTUAL NOT NULL",
+            insertable = false, updatable = false)
+    private Long deniedSkillsBitmask;
     
     @Column(name = "target_concepts_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetConceptsBitmask\") VIRTUAL NOT NULL",
@@ -82,11 +92,11 @@ public class QuestionGenerationRequestEntity {
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetLawsBitmask\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
     private Long targetLawsBitmask;
-    
-    @Column(name = "denied_laws_bitmask",
-            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedLawsBitmask\") VIRTUAL NOT NULL",
+
+    @Column(name = "target_skills_bitmask",
+            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetSkillsBitmask\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
-    private Long deniedLawsBitmask;
+    private Long targetSkillsBitmask;
     
     @Column(name = "target_tags_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetTagsBitmask\") VIRTUAL NOT NULL",

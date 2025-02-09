@@ -173,7 +173,15 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         return (List<Integer>)query.getResultList();        
     }
 
+    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return findTopRatedMetadata(qr, complexityWindow, limitNumber, false);
+    }
+
     public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+        return findTopRatedMetadata(qr, complexityWindow, limitNumber, true);
+    }
+
+    private List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber, boolean ignoreUsage) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();
@@ -205,40 +213,40 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var unwantedSkillsBitmask = qr.getUnwantedSkillsBitmask();
 
         var result = entityManager.createNativeQuery(
-                "select * from questions_meta q where " +
-                        "q.domain_shortname = :domainShortname " +
-                        "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
-                        "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
-                        "AND q.concept_bits & :deniedConceptBits = 0 " +
-                        "AND q.violation_bits & :deniedLawBits = 0 " +
-                        "AND q.skill_bits & :deniedSkillBits = 0 " +
-                        "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
-                        "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
-                        "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
-                        "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
-                        
-                        "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
-                        "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
-                        "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
-                        "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id AND exercise_attempt_id IS NOT NULL) " +
-                        //"AND bit_count(q.trace_concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
-                        //"AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
-                        
-                        "order by " + 
-                        "(GREATEST(" +
-                             "bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), " +
-                             "bit_count(q.concept_bits & :unwantedConceptsBitmask))" +
-                        " + bit_count(q.law_bits & :unwantedLawsBitmask)" +
-                        " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
-                        " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
-                        ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
-                        "GREATEST(" +
-                             "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
-                             "bit_count(q.concept_bits & :targetConceptsBitmask))" +
-                        " + bit_count(q.violation_bits & :targetLawsBitmask" +
-                        " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
-                        ") DESC " +  // raise rating of questions with target bits
-                        "limit :lim " 
+                        "select * from questions_meta q where " +
+                                "q.domain_shortname = :domainShortname " +
+                                "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
+                                "AND q.integral_complexity BETWEEN :minComplexity AND :maxComplexity " +
+                                "AND q.concept_bits & :deniedConceptBits = 0 " +
+                                "AND q.violation_bits & :deniedLawBits = 0 " +
+                                "AND q.skill_bits & :deniedSkillBits = 0 " +
+                                "AND (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) " +
+                                "AND (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) " +
+                                "AND (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) " +
+                                "AND IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) " +
+
+                                "AND IF(:targetConceptsBitmask <> 0, (q.trace_concept_bits & :targetConceptsBitmask) <> 0, 1) " +
+                                "AND IF(:targetLawsBitmask <> 0, (q.violation_bits & :targetLawsBitmask) <> 0, 1) " +
+                                "AND IF(:targetSkillsBitmask <> 0, (q.skill_bits & :targetSkillsBitmask) <> 0, 1) " +
+                                (!ignoreUsage ? "AND NOT EXISTS(SELECT 1 FROM question WHERE metadata_id = q.id AND exercise_attempt_id IS NOT NULL) " : "") +
+                                //"AND bit_count(q.trace_concept_bits & :targetConceptsBitmask) >= bit_count(:targetConceptsBitmask) DIV 2 " +
+                                //"AND bit_count(q.violation_bits & :targetLawsBitmask) >= bit_count(:targetLawsBitmask) DIV 2 " +
+
+                                "order by " +
+                                "(GREATEST(" +
+                                "bit_count(q.trace_concept_bits & :unwantedConceptsBitmask), " +
+                                "bit_count(q.concept_bits & :unwantedConceptsBitmask))" +
+                                " + bit_count(q.law_bits & :unwantedLawsBitmask)" +
+                                " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
+                                " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
+                                ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
+                                "GREATEST(" +
+                                "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
+                                "bit_count(q.concept_bits & :targetConceptsBitmask))" +
+                                " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                                " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
+                                ") DESC " +  // raise rating of questions with target bits
+                                "limit :lim "
                         , QuestionMetadataEntity.class)
                 .setParameter("domainShortname", domainShortname)
                 .setParameter("stepsMin", stepsMin)
