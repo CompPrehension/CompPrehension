@@ -705,8 +705,7 @@ public class TaskGenerationJob {
 
                 if (!shouldSave || metaList.isEmpty()) {
                     skippedQuestions += 1;
-                    log.debug("Question [{}] skipped because zero qr matches: ", metaList.stream()
-                            .map(QuestionMetadataEntity::getName).collect(Collectors.joining(", ")));
+                    log.debug("Question [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
                     continue;
                 }
 
