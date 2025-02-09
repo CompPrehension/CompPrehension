@@ -389,7 +389,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 " (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.name NOT IN (:deniedQuestionTemplateIds)) DESC, " +
                                 " abs(q.integral_complexity - :complexity) DIV :complWindow ASC, " +
                                 " q.integral_complexity <= :complexity + :complWindow DESC, " +
-                                " bit_count(q.concept_bits & :deniedConceptBits) + bit_count(q.violation_bits & :deniedLawBits) ASC, " +
+                                " bit_count(q.concept_bits & :deniedConceptBits) + bit_count(q.violation_bits & :deniedLawBits) + bit_count(q.skill_bits & :deniedSkillBits) ASC, " +
                                 " IF(:targetTagsBitmask <> 0, (q.tag_bits & :targetTagsBitmask) = :targetTagsBitmask, 1) DESC, " +
                                 " (SELECT COUNT(*) FROM question WHERE metadata_id = q.id) ASC, " +  // less often show "hot" questions
                                 "(GREATEST(" +

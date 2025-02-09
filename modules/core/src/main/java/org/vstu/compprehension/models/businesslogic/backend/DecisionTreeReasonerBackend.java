@@ -237,6 +237,10 @@ public class DecisionTreeReasonerBackend
                     // Fix spelling (note the space at the end).
                     expanded = expanded.replaceAll("операто ", "оператор ");
                 }
+                if (expanded.contains("operato ")) {
+                    // Fix spelling (note the space at the end).
+                    expanded = expanded.replaceAll("operato ", "operator ");
+                }
             }
             return expanded;
         }
