@@ -176,7 +176,7 @@
         <dependency>
             <groupId>com.github.bardoor</groupId>
             <artifactId>meaning_tree</artifactId>
-            <version>expr-stable-SNAPSHOT</version>
+            <version>${meaningtree.version}</version>
         </dependency>
         <dependency>
             <groupId>org.vstu.compprehension</groupId>
