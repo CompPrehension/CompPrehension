@@ -155,6 +155,18 @@ public class OperandEvaluationMap {
             for (int i = 0; i < array.length; i++) {
                 // Приводим одинаковые по смыслу комбинации к одному виду, чтобы они не дублировались в результирующем множестве
                 DisposableIndex tokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
+                if (tokenIndex.id().node.node() instanceof BinaryExpression binary) {
+                    int leftOperandValueIndex = groupFeatures.sequencedKeySet()
+                            .stream()
+                            .map(DisposableIndex::getNode)
+                            .toList().indexOf(binary.getLeft());
+
+                    if (binary instanceof ShortCircuitAndOp && !array[i] && leftOperandValueIndex != -1) {
+                        array[leftOperandValueIndex] = false;
+                    } else if (binary instanceof ShortCircuitOrOp && array[i] && leftOperandValueIndex != -1) {
+                        array[leftOperandValueIndex] = true;
+                    }
+                }
                 for (int j = i + 1; j < array.length; j++) {
                     DisposableIndex nextTokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
                     if (tokenIndex.id().valRequiredForEval() != array[j]
