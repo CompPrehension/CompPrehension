@@ -247,27 +247,49 @@
                                     _EN_endingCause="Because of the presence/absence of unevaluated operators between ${val('X1', 'и')} and ${val('X2', 'и')}."
                                 >
                                     <Expression>
-                                        <ExistenceQuantifier varName="i">
-                                            <CheckClass>
-                                                <Variable name="i" />
-                                                <Class name="operator" />
-                                            </CheckClass>
-                                            <LogicalAnd>
-                                                <CheckRelationship>
-                                                    <Relationship name="isBetween" />
-                                                    <Variable name="i" />
-                                                    <DecisionTreeVar name="X1" />
-                                                    <DecisionTreeVar name="X2" />
-                                                </CheckRelationship>
-                                                <Compare operator="EQUAL">
+                                        <LogicalAnd>
+                                            <LogicalOr>
+                                                <LogicalNot>
                                                     <GetPropertyValue>
-                                                        <Variable name="i" />
-                                                        <Property name="state" />
+                                                        <DecisionTreeVar name="X" />
+                                                        <Property name="needsLeftOperand" />
                                                     </GetPropertyValue>
-                                                    <Enum owner="state" value="unevaluated" />
-                                                </Compare>
-                                            </LogicalAnd>
-                                        </ExistenceQuantifier>
+                                                </LogicalNot>
+                                                <LogicalNot>
+                                                    <Compare operator="EQUAL">
+                                                        <GetPropertyValue>
+                                                            <GetByRelationship varName="t">
+                                                                <DecisionTreeVar name="X" />
+                                                                <Relationship name="hasLeftOperand" />
+                                                            </GetByRelationship>
+                                                            <Property name="state" />
+                                                        </GetPropertyValue>
+                                                        <Enum owner="state" value="unevaluated" />
+                                                    </Compare>
+                                                </LogicalNot>
+                                            </LogicalOr>
+                                            <ExistenceQuantifier varName="i">
+                                                <CheckClass>
+                                                    <Variable name="i" />
+                                                    <Class name="operator" />
+                                                </CheckClass>
+                                                <LogicalAnd>
+                                                    <CheckRelationship>
+                                                        <Relationship name="isBetween" />
+                                                        <Variable name="i" />
+                                                        <DecisionTreeVar name="X1" />
+                                                        <DecisionTreeVar name="X2" />
+                                                    </CheckRelationship>
+                                                    <Compare operator="EQUAL">
+                                                        <GetPropertyValue>
+                                                            <Variable name="i" />
+                                                            <Property name="state" />
+                                                        </GetPropertyValue>
+                                                        <Enum owner="state" value="unevaluated" />
+                                                    </Compare>
+                                                </LogicalAnd>
+                                            </ExistenceQuantifier>
+                                        </LogicalAnd>
                                     </Expression>
                                     <Outcome value="true"
                                         _RU_explanation="Это неверно. Внутри ${val('X','р')} присутствуют невычисленные операторы."
