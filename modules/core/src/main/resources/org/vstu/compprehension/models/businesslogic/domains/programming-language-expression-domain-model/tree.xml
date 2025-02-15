@@ -356,48 +356,67 @@
                             <DecisionTreeVarDecl name="Y1" type="token"/>
                             <Expression>
                                 <GetExtreme extremeVarName="y1_ex" varName="y1">
-                                    <LogicalNot>
-                                        <ExistenceQuantifier varName="y1">
-                                            <LogicalAnd>
+                                    <LogicalAnd>
+                                        <LogicalNot>
+                                            <ExistenceQuantifier varName="commaSep" type="token">
+                                                <CheckRelationship>
+                                                    <Relationship name="isBetween" />
+                                                    <Variable name="commaSep" />
+                                                    <Variable name="y1_ex" />
+                                                    <DecisionTreeVar name="X" />
+                                                </CheckRelationship>
+                                                <CheckClass>
+                                                    <GetByRelationship varName="var">
+                                                        <Variable name="commaSep" />
+                                                        <Relationship name="belongsTo" />
+                                                    </GetByRelationship>
+                                                    <Class name="separator" />
+                                                </CheckClass>
+                                            </ExistenceQuantifier>
+                                        </LogicalNot>
+                                        <LogicalNot>
+                                            <ExistenceQuantifier varName="y1">
                                                 <LogicalAnd>
-                                                    <CheckClass>
-                                                        <Variable name="y1" />
-                                                        <Class name="token" />
-                                                    </CheckClass>
-                                                    <CheckRelationship>
-                                                        <Relationship name="leftOf" />
-                                                        <Variable name="y1" />
-                                                        <DecisionTreeVar name="X" />
-                                                    </CheckRelationship>
-                                                </LogicalAnd>
-                                                <LogicalAnd>
-                                                    <CheckClass>
-                                                        <GetByRelationship varName="var">
+                                                    <LogicalAnd>
+                                                        <CheckClass>
                                                             <Variable name="y1" />
-                                                            <Relationship name="belongsTo" />
-                                                        </GetByRelationship>
-                                                        <Class name="operator" />
-                                                    </CheckClass>
-                                                    <Compare operator="EQUAL">
-                                                        <GetPropertyValue>
+                                                            <Class name="token" />
+                                                        </CheckClass>
+                                                        <CheckRelationship>
+                                                            <Relationship name="leftOf" />
+                                                            <Variable name="y1" />
+                                                            <DecisionTreeVar name="X" />
+                                                        </CheckRelationship>
+                                                    </LogicalAnd>
+                                                    <LogicalAnd>
+                                                        <CheckClass>
                                                             <GetByRelationship varName="var">
                                                                 <Variable name="y1" />
                                                                 <Relationship name="belongsTo" />
                                                             </GetByRelationship>
-                                                            <Property name="state" />
-                                                        </GetPropertyValue>
-                                                        <Enum owner="state" value="unevaluated" />
-                                                    </Compare>
+                                                            <Class name="operator" />
+                                                        </CheckClass>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <GetByRelationship varName="var">
+                                                                    <Variable name="y1" />
+                                                                    <Relationship name="belongsTo" />
+                                                                </GetByRelationship>
+                                                                <Property name="state" />
+                                                            </GetPropertyValue>
+                                                            <Enum owner="state" value="unevaluated" />
+                                                        </Compare>
+                                                    </LogicalAnd>
                                                 </LogicalAnd>
-                                            </LogicalAnd>
-                                            <CheckRelationship>
-                                                <Relationship name="isBetween" />
-                                                <Variable name="y1" />
-                                                <Variable name="y1_ex" />
-                                                <DecisionTreeVar name="X" />
-                                            </CheckRelationship>
-                                        </ExistenceQuantifier>
-                                    </LogicalNot>
+                                                <CheckRelationship>
+                                                    <Relationship name="isBetween" />
+                                                    <Variable name="y1" />
+                                                    <Variable name="y1_ex" />
+                                                    <DecisionTreeVar name="X" />
+                                                </CheckRelationship>
+                                            </ExistenceQuantifier>
+                                        </LogicalNot>
+                                    </LogicalAnd>
                                     <LogicalAnd>
                                         <LogicalAnd>
                                             <CheckClass>
@@ -1241,48 +1260,67 @@
                             <DecisionTreeVarDecl name="Z1" type="token" />
                             <Expression>
                                 <GetExtreme extremeVarName="z1_ex" varName="z1">
-                                    <LogicalNot>
-                                        <ExistenceQuantifier varName="z1">
-                                            <LogicalAnd>
+                                    <LogicalAnd>
+                                        <LogicalNot>
+                                            <ExistenceQuantifier varName="commaSep" type="token">
+                                                <CheckRelationship>
+                                                    <Relationship name="isBetween" />
+                                                    <Variable name="commaSep" />
+                                                    <Variable name="z1_ex" />
+                                                    <DecisionTreeVar name="X" />
+                                                </CheckRelationship>
+                                                <CheckClass>
+                                                    <GetByRelationship varName="var">
+                                                        <Variable name="commaSep" />
+                                                        <Relationship name="belongsTo" />
+                                                    </GetByRelationship>
+                                                    <Class name="separator" />
+                                                </CheckClass>
+                                            </ExistenceQuantifier>
+                                        </LogicalNot>
+                                        <LogicalNot>
+                                            <ExistenceQuantifier varName="z1">
                                                 <LogicalAnd>
-                                                    <CheckClass>
-                                                        <Variable name="z1" />
-                                                        <Class name="token" />
-                                                    </CheckClass>
-                                                    <CheckRelationship>
-                                                        <Relationship name="rightOf" />
-                                                        <Variable name="z1" />
-                                                        <DecisionTreeVar name="X" />
-                                                    </CheckRelationship>
-                                                </LogicalAnd>
-                                                <LogicalAnd>
-                                                    <CheckClass>
-                                                        <GetByRelationship varName="var">
+                                                    <LogicalAnd>
+                                                        <CheckClass>
                                                             <Variable name="z1" />
-                                                            <Relationship name="belongsTo" />
-                                                        </GetByRelationship>
-                                                        <Class name="operator" />
-                                                    </CheckClass>
-                                                    <Compare operator="EQUAL">
-                                                        <GetPropertyValue>
+                                                            <Class name="token" />
+                                                        </CheckClass>
+                                                        <CheckRelationship>
+                                                            <Relationship name="rightOf" />
+                                                            <Variable name="z1" />
+                                                            <DecisionTreeVar name="X" />
+                                                        </CheckRelationship>
+                                                    </LogicalAnd>
+                                                    <LogicalAnd>
+                                                        <CheckClass>
                                                             <GetByRelationship varName="var">
                                                                 <Variable name="z1" />
                                                                 <Relationship name="belongsTo" />
                                                             </GetByRelationship>
-                                                            <Property name="state" />
-                                                        </GetPropertyValue>
-                                                        <Enum owner="state" value="unevaluated" />
-                                                    </Compare>
+                                                            <Class name="operator" />
+                                                        </CheckClass>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <GetByRelationship varName="var">
+                                                                    <Variable name="z1" />
+                                                                    <Relationship name="belongsTo" />
+                                                                </GetByRelationship>
+                                                                <Property name="state" />
+                                                            </GetPropertyValue>
+                                                            <Enum owner="state" value="unevaluated" />
+                                                        </Compare>
+                                                    </LogicalAnd>
                                                 </LogicalAnd>
-                                            </LogicalAnd>
-                                            <CheckRelationship>
-                                                <Relationship name="isBetween" />
-                                                <Variable name="z1" />
-                                                <Variable name="z1_ex" />
-                                                <DecisionTreeVar name="X" />
-                                            </CheckRelationship>
-                                        </ExistenceQuantifier>
-                                    </LogicalNot>
+                                                <CheckRelationship>
+                                                    <Relationship name="isBetween" />
+                                                    <Variable name="z1" />
+                                                    <Variable name="z1_ex" />
+                                                    <DecisionTreeVar name="X" />
+                                                </CheckRelationship>
+                                            </ExistenceQuantifier>
+                                        </LogicalNot>
+                                    </LogicalAnd>
                                     <LogicalAnd>
                                         <LogicalAnd>
                                             <CheckClass>
@@ -2083,13 +2121,7 @@
                     _EN_question="Choose all operators with strict operand order that can influence the evaluation of ${val('X','р')}"
                 >
                     <SelectorExpression>
-                        <Compare operator="EQUAL">
-                            <GetPropertyValue>
-                                <Variable name="T" />
-                                <Property name="state" />
-                            </GetPropertyValue>
-                            <Enum owner="state" value="unevaluated" />
-                        </Compare>
+                        <Boolean value="true" />
                     </SelectorExpression>
                     <FindError priority="1" type="operator" _alias="T_notStrict"
                         _RU_explanation="${obj(checked, 'и')} не является оператором со строгим порядком операндов"
