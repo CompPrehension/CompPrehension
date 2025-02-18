@@ -387,13 +387,42 @@
                                                     <Variable name="y1_ex" />
                                                     <DecisionTreeVar name="X" />
                                                 </CheckRelationship>
-                                                <CheckClass>
-                                                    <GetByRelationship varName="var">
-                                                        <Variable name="commaSep" />
-                                                        <Relationship name="belongsTo" />
-                                                    </GetByRelationship>
-                                                    <Class name="separator" />
-                                                </CheckClass>
+                                                <LogicalAnd>
+                                                    <CheckClass>
+                                                        <GetByRelationship varName="var">
+                                                            <Variable name="commaSep" />
+                                                            <Relationship name="belongsTo" />
+                                                        </GetByRelationship>
+                                                        <Class name="separator" />
+                                                    </CheckClass>
+                                                    <LogicalAnd>
+                                                        <CheckRelationship>
+                                                            <Relationship name="isInOperandOf" />
+                                                            <GetByRelationship varName="y1_ex_op">
+                                                                <Variable name="y1_ex" />
+                                                                <Relationship name="belongsTo" />
+                                                            </GetByRelationship>
+                                                            <GetByRelationship varName="ownerOfComma">
+                                                                <GetByRelationship varName="var">
+                                                                    <Variable name="commaSep" />
+                                                                    <Relationship name="belongsTo" />
+                                                                </GetByRelationship>
+                                                                <Relationship name="belongsToOperator" />
+                                                            </GetByRelationship>
+                                                        </CheckRelationship>
+                                                        <CheckRelationship>
+                                                            <Relationship name="isInOperandOf" />
+                                                            <DecisionTreeVar name="X" />
+                                                            <GetByRelationship varName="ownerOfComma">
+                                                                <GetByRelationship varName="var">
+                                                                    <Variable name="commaSep" />
+                                                                    <Relationship name="belongsTo" />
+                                                                </GetByRelationship>
+                                                                <Relationship name="belongsToOperator" />
+                                                            </GetByRelationship>
+                                                        </CheckRelationship>
+                                                    </LogicalAnd>
+                                                </LogicalAnd>
                                             </ExistenceQuantifier>
                                         </LogicalNot>
                                         <LogicalNot>
@@ -1291,13 +1320,42 @@
                                                     <Variable name="z1_ex" />
                                                     <DecisionTreeVar name="X" />
                                                 </CheckRelationship>
-                                                <CheckClass>
-                                                    <GetByRelationship varName="var">
-                                                        <Variable name="commaSep" />
-                                                        <Relationship name="belongsTo" />
-                                                    </GetByRelationship>
-                                                    <Class name="separator" />
-                                                </CheckClass>
+                                                <LogicalAnd>
+                                                    <CheckClass>
+                                                        <GetByRelationship varName="var">
+                                                            <Variable name="commaSep" />
+                                                            <Relationship name="belongsTo" />
+                                                        </GetByRelationship>
+                                                        <Class name="separator" />
+                                                    </CheckClass>
+                                                    <LogicalAnd>
+                                                        <CheckRelationship>
+                                                            <Relationship name="isInOperandOf" />
+                                                            <GetByRelationship varName="y1_ex_op">
+                                                                <Variable name="z1_ex" />
+                                                                <Relationship name="belongsTo" />
+                                                            </GetByRelationship>
+                                                            <GetByRelationship varName="ownerOfComma">
+                                                                <GetByRelationship varName="var">
+                                                                    <Variable name="commaSep" />
+                                                                    <Relationship name="belongsTo" />
+                                                                </GetByRelationship>
+                                                                <Relationship name="belongsToOperator" />
+                                                            </GetByRelationship>
+                                                        </CheckRelationship>
+                                                        <CheckRelationship>
+                                                            <Relationship name="isInOperandOf" />
+                                                            <DecisionTreeVar name="X" />
+                                                            <GetByRelationship varName="ownerOfComma">
+                                                                <GetByRelationship varName="var">
+                                                                    <Variable name="commaSep" />
+                                                                    <Relationship name="belongsTo" />
+                                                                </GetByRelationship>
+                                                                <Relationship name="belongsToOperator" />
+                                                            </GetByRelationship>
+                                                        </CheckRelationship>
+                                                    </LogicalAnd>
+                                                </LogicalAnd>
                                             </ExistenceQuantifier>
                                         </LogicalNot>
                                         <LogicalNot>

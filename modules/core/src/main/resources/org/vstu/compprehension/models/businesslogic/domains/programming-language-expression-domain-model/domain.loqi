@@ -143,6 +143,7 @@ class parenthesis : element {
 class separator : element {
 
 	countOfTokens = 1 ;
+	rel belongsToOperator(operator) : {* -> 1};
 } [
 	RU.localizedName = "разделитель" ;
 	EN.localizedName = "separator" ;
