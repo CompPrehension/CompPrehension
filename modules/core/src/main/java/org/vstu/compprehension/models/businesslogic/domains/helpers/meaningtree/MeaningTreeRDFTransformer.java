@@ -72,9 +72,13 @@ public class MeaningTreeRDFTransformer {
 
     public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactEntity> facts,
                                                     List<ResponseEntity> responses, List<Tag> tags) {
+        return questionToDomainModel(model, facts, responses, tags, true);
+    }
+
+    public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactEntity> facts,
+                                                    List<ResponseEntity> responses, List<Tag> tags, boolean setX) {
         Model base = MeaningTreeRDFHelper.backendFactsToModel(facts);
         Map<String, DecisionTree> decisionTreeMap = model.getDecisionTrees();
-        boolean isLastSelectionVariable = true;
         SupportedLanguage language = detectLanguage(tags);
         TokenList tokens = tokenize(facts, language);
         TokenList selected = new TokenList(responses.stream()
@@ -124,7 +128,7 @@ public class MeaningTreeRDFTransformer {
                 decisionTreeMap,
                 tokens,
                 selected,
-                isLastSelectionVariable,
+                setX,
                 baseTokensToElements,
                 baseTokensToTokens
         );
@@ -334,6 +338,9 @@ public class MeaningTreeRDFTransformer {
 
     private static void appendTreeInfo(TokenList tokens, Map<Token, ObjectDef> baseTokensToElements) {
         for (Map.Entry<Token, ObjectDef> entry : baseTokensToElements.entrySet()) {
+            if ((entry.getKey().type == TokenType.SEPARATOR || entry.getKey().type == TokenType.COMMA) && entry.getKey().belongsTo() != null) {
+                addRelationship(entry.getValue(), "belongsToOperator", String.format("element_op_%d", tokens.indexOf(entry.getKey().belongsTo())));
+            }
             if (entry.getKey() instanceof OperandToken op && op.operandOf() != null
                     && op.type != TokenType.SEPARATOR
                     && op.type != TokenType.CALLABLE_IDENTIFIER // чтобы не объединять имя функции и открывающую скобку

@@ -228,7 +228,7 @@ public class DecisionTreeReasonerBackend
             return explanations;
         }
 
-        private static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation){
+        public static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation){
             Object explanation = resultNode.getMetadata().get(textSituation.getLocalizationCode(), "explanation");
             String explanationTemplate = explanation == null ? "WRONG" : explanation.toString();
             String expanded = textSituation.getTemplating().interpret(explanationTemplate);

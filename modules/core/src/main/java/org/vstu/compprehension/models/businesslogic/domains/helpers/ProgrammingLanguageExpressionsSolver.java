@@ -4,6 +4,7 @@ import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
 import its.model.nodes.DecisionTree;
+import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
@@ -15,7 +16,10 @@ import java.util.function.BiConsumer;
  * A helper class used to solve problems from the {@link ProgrammingLanguageExpressionDTDomain}
  */
 public class ProgrammingLanguageExpressionsSolver {
-    public record SolveResult(boolean solved, List<String> laws, List<String> skills) {}
+    public record SolveResult(boolean solved,
+                              List<String> laws,
+                              List<String> skills,
+                              List<DecisionTreeReasoner.DecisionTreeEvaluationResult> dtNodes) {}
 
     public static List<ObjectDef> getUnevaluated(DomainModel domain) {
         return domain.getObjects().stream()
@@ -35,7 +39,7 @@ public class ProgrammingLanguageExpressionsSolver {
         List<DecisionTreeReasoner.DecisionTreeEvaluationResult> lst = DecisionTreeReasoner.solve(decisionTree, situation);
         List<String> skills = new ArrayList<>();
         List<String> laws = new ArrayList<>();
-        boolean solved = DecisionTreeReasoner.solve(decisionTree, situation).getLast().getNode().getValue();
+        boolean solved = lst.getLast().getNode().getValue();
         for (DecisionTreeReasoner.DecisionTreeEvaluationResult res : lst) {
             String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
                     res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
@@ -44,7 +48,7 @@ public class ProgrammingLanguageExpressionsSolver {
             Collections.addAll(skills, resSkill);
             Collections.addAll(laws, resLaw);
         }
-        return new SolveResult(solved, laws, skills);
+        return new SolveResult(solved, laws, skills, lst);
     }
 
 

@@ -314,7 +314,10 @@
                                         _EN_nextStepQuestion="What can we conclude if there are no unevaluated operators between ${val('X1', 'и')} and ${val('X2', 'и')}?"
                                         _EN_nextStepExplanation="That's incorrect. If all of the operators between ${val('X1', 'и')} and ${val('X2', 'и')} are evaluated, then the inner operand of ${val('X','р')} is fully evaluated. Therefore, it is not preventing its further evaluation."
                                     >
-                                        <BranchResultNode value="true" _skill="is_central_operand_evaluated" />
+                                        <BranchResultNode value="true" _skill="is_central_operand_evaluated" 
+                                        _RU_explanation="Центральный операнд может быть вычислен в ${val('X','п')}."
+                                        _EN_explanation="The central operand can be evaluated in ${val('X','п')}."
+                                        />
                                     </Outcome>
                                 </QuestionNode>
                             </Outcome>
@@ -641,7 +644,10 @@
                                 _EN_nextStepQuestion="What is the next reasoning step if we know that there are only evaluated operators to the left of ${val('X','р')}?"
                                 _EN_nextStepExplanation="That's incorrect. If the expression to the left of the ${val('X','р')} is already evaluated, then the left operand of ${val('X','р')} is fully evaluated. Therefore, it is not preventing its further evaluation."
                             >
-                                <BranchResultNode value="true" _skill="left_competing_operator_present" />
+                                <BranchResultNode value="true" _skill="left_competing_operator_present" 
+                                _RU_explanation="Вычислению левого операнда (${val('X','и')}) не мешает другой оператор слева."
+                                _EN_explanation="Evaluation of the left operand (${val('X','и')}) the other operator on the left does not interfere."
+                                />
                             </Outcome>
                             <Outcome value="found"
                                 _RU_explanation="слева от ${val('X','р')} есть потенциально мешающий оператор - это ${val('Y','и')}"
@@ -676,7 +682,10 @@
                                         _EN_nextStepBranchResult="The ${branchResult ? 'enclosing' : 'enclosed'} operator is always evaluated first."
                                         _EN_nextStepExplanation="That's incorrect - ${val('Y','и')} enclosing ${val('X','в')} means that the ${val('X','и')} is an inner operand to ${val('Y','р')} and should be evaluated first."
                                     >
-                                        <BranchResultNode value="true" _skill="left_operator_enclosed"/>
+                                        <BranchResultNode value="true" _skill="left_operator_enclosed"
+                                            _RU_explanation="${val('X','и')} заключен в ближайший слева к нему ${val('Y','и')}, поэтому может быть вычислен раньше."
+                                            _EN_explanation="${val('X','и')} is enclosed in the ${val('Y','и')} closest to it from the left, so it can be evaluated earlier."
+                                        />
                                         <ThoughtBranch type="bool" _alias="left.predetermining.1"
                                             _RU_description="${val('Y','и')} ${result ? '' : 'не'} окружает ${val('X','и')}"
                                             _EN_description="${val('Y','и')} does ${result ? '' : 'not'} enclose ${val('X','в')}"
@@ -924,7 +933,10 @@
                                         _EN_nextStepBranchResult="The operator ${branchResult ? 'inside' : 'outside'} the parenthesis is always evaluated first"
                                         _EN_nextStepExplanation="That's incorrect. Operators in parenthesis always take precedence over external operators. Therefore, as ${val('X','и')} is inside of parenthesis, and ${val('Y','и')} is ouside of them, then the ${val('X','и')} should be evaluated first."
                                     >
-                                        <BranchResultNode value="true" _skill="is_current_parenthesized_left_not"/>
+                                        <BranchResultNode value="true" _skill="is_current_parenthesized_left_not"
+                                            _RU_explanation="${val('X','и')} находится в скобках, в которых нет ближайшего слева к нему ${val('Y','р')}, поэтому может быть вычислен раньше."
+                                            _EN_explanation="${val('X','и')} is in parentheses, which do not contain the ${val('Y','р') closest to it, so it can be evaluated earlier."
+                                        />
                                         <ThoughtBranch type="bool" _alias="left.predetermining.2"
                                             _RU_description="${result ? '${val('X','и')} находится в скобках, а ${val('Y','и')} - за их пределами' : 'не существует скобок, окружающих ${val('X','и')}, но не окружающих ${val('Y','в')}'}"
                                             _EN_description="${result ? '${val('X','и')} is inside of parenthesis, and ${val('Y','и')} is ouside of them' : 'there are no parenthesis that enclose ${val('X','и')} but not ${val('Y','в')}'}"
@@ -1164,7 +1176,10 @@
                                                 _EN_nextStepBranchResult="Operator with a ${branchResult ? 'higher' : 'lower'} precedence is always evaluated first"
                                                 _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${val('X','и')} should be evaluated first, and we can conclude that its left operand does not prevent its evaluation."
                                             >
-                                                <BranchResultNode value="true" _skill="right_competing_to_left_precedence" />
+                                                <BranchResultNode value="true" _skill="right_competing_to_left_precedence"
+                                                    _RU_explanation="${val('X','и')} имеет приоритет выше, чем ${val('Y','в')}."
+                                                    _EN_explanation="${val('X','и')} has a higher priority than ${val('Y','в')}."
+                                                />
                                             </Outcome>
                                             <Outcome value="Comparison:greater"
                                                 _RU_text="Приоритет ${class('Y','р')} больше."
@@ -1243,7 +1258,10 @@
                                                         _EN_nextStepBranchResult="The one on the ${branchResult ? 'right' : 'left'}"
                                                         _EN_nextStepExplanation="That's incorrect. Operators that have right associativity evaluate from right to left. Therefore, in this case, ${class('X','и')} should be evaluated first, anand we can conclude that its left operand does not prevent its evaluation."
                                                     >
-                                                        <BranchResultNode value="true" _skill="right_competing_to_left_associativity" />
+                                                        <BranchResultNode value="true" _skill="right_competing_to_left_associativity"
+                                                            _RU_explanation="${val('X','и')} может быть вычислен, так как имеет правую ассоциативность вместе с ${val('Y','р')}."
+                                                            _EN_explanation="${val('X','и')} can be evaluated because it has right associativity together with ${val('Y','р')}."
+                                                        />
                                                     </Outcome>
                                                 </QuestionNode>
                                             </Outcome>
@@ -1574,7 +1592,10 @@
                                 _EN_nextStepQuestion="What is the next reasoning step if we know that there are only evaluated operators to the right of ${val('X','р')}?"
                                 _EN_nextStepExplanation="That's incorrect. If the expression to the right of the ${val('X','р')} is already evaluated, then the right operand of ${val('X','р')} is fully evaluated. Therefore, it is not preventing its further evaluation."
                             >
-                                <BranchResultNode value="true" skill="right_competing_operator_present" />
+                                <BranchResultNode value="true" skill="right_competing_operator_present" 
+                                    _RU_explanation="Вычислению правого операнда (${val('X','и')}) не мешает другой оператор справа."
+                                    _EN_explanation="Evaluation of the right operand (${val('X','и')}) the other operator on the right does not interfere."
+                                />
                             </Outcome>
                             <Outcome value="found"
                                 _RU_explanation="справа от ${val('X','р')} есть потенциально мешающий оператор - это ${val('Z','и')}"
@@ -1609,7 +1630,10 @@
                                         _EN_nextStepBranchResult="The ${branchResult ? 'enclosing' : 'enclosed'} operator is always evaluated first."
                                         _EN_nextStepExplanation="That's incorrect - ${val('Z','и')} enclosing ${val('X','в')} means that the ${val('X','и')} is an inner operand to ${val('Z','р')} and should be evaluated first."
                                     >
-                                        <BranchResultNode value="true" _skill="right_operator_enclosed" />
+                                        <BranchResultNode value="true" _skill="right_operator_enclosed"
+                                            _RU_explanation="${val('X','и')} заключен в ближайший справа к нему оператор ${val('Z','и')}, поэтому может быть вычислен раньше."
+                                            _EN_explanation="${val('X','и')} is enclosed in the operator ${val('Z','и')} closest to it, so it can be evaluated earlier."
+                                        />
                                         <ThoughtBranch type="bool" _alias="right.predetermining.1"
                                             _RU_description="${val('Z','и')} ${result ? '' : 'не'} окружает ${val('X','и')}"
                                             _EN_description="${val('Z','и')} does ${result ? '' : 'not'} enclose ${val('X','в')}"
@@ -1857,7 +1881,10 @@
                                         _EN_nextStepBranchResult="The operator ${branchResult ? 'inside' : 'outside'} the parenthesis is always evaluated first"
                                         _EN_nextStepExplanation="That's incorrect. Operators in parenthesis always take precedence over external operators. Therefore, as ${val('X','и')} is inside of parenthesis, and ${val('Z','и')} is ouside of them, then the ${val('X','и')} should be evaluated first."
                                     >
-                                        <BranchResultNode value="true" _skill="is_current_parenthesized_right_not"/>
+                                        <BranchResultNode value="true" _skill="is_current_parenthesized_right_not"
+                                            _RU_explanation="${val('X','и')} находится в скобках, в которых нет ближайшего справа к нему ${val('Z','р')}, поэтому может быть вычислен раньше."
+                                            _EN_explanation="${val('X','и')} is in parentheses, which do not contain the ${val('Z','р') closest to it, so it can be evaluated earlier."
+                                        />
                                         <ThoughtBranch type="bool" _alias="right.predetermining.2"
                                             _RU_description="${result ? '${val('X','и')} находится в скобках, а ${val('Z','и')} - за их пределами' : 'не существует скобок, окружающих ${val('X','и')}, но не окружающих ${val('Z','в')}'}"
                                             _EN_description="${result ? '${val('X','и')} is inside of parenthesis, and ${val('Z','и')} is ouside of them' : 'there are no parenthesis that enclose ${val('X','и')} but not ${val('Z','в')}'}"
@@ -2093,7 +2120,10 @@
                                                 _EN_nextStepBranchResult="Operator with a ${branchResult ? 'higher' : 'lower'} precedence is always evaluated first"
                                                 _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${val('X','и')} should be evaluated first, and we can conclude that its left operand does not prevent its evaluation."
                                             >
-                                                <BranchResultNode value="true" _skill="left_competing_to_right_precedence"/>
+                                                <BranchResultNode value="true" _skill="left_competing_to_right_precedence"
+                                                    _RU_explanation="${val('X','и')} имеет приоритет выше, чем ${val('Z','и')}."
+                                                    _EN_explanation="${val('X','и')} has a higher priority than ${val('Z','и')}."
+                                                />
                                             </Outcome>
                                             <Outcome value="Comparison:greater"
                                                 _RU_text="Приоритет ${class('Z','р')} больше."
@@ -2172,7 +2202,10 @@
                                                         _EN_nextStepBranchResult="The one on the ${branchResult ? 'left' : 'right'}"
                                                         _EN_nextStepExplanation="That's incorrect. Operators that have left associativity evaluate from left to right. Therefore, in this case, ${class('X','и')} should be evaluated first, anand we can conclude that its left operand does not prevent its evaluation."
                                                     >
-                                                        <BranchResultNode value="true" _skill="left_competing_to_right_associativity" />
+                                                        <BranchResultNode value="true" _skill="left_competing_to_right_associativity" 
+                                                            _RU_explanation="${val('X','и')} может быть вычислен, так как имеет левую ассоциативность вместе с ${val('Z','р')}."
+                                                            _EN_explanation="${val('X','и')} can be evaluated because it has left associativity together with ${val('Z','р')}."
+                                                        />
                                                     </Outcome>
                                                 </QuestionNode>
                                             </Outcome>
@@ -2340,7 +2373,10 @@
                                 </LogicalOr>
                             </Expression>
                             <Outcome value="True">
-                                <BranchResultNode value="true" _skill="is_current_operator_strict_order;strict_order_first_operand_to_be_evaluated_while_solving"/>
+                                <BranchResultNode value="true" _skill="is_current_operator_strict_order;strict_order_first_operand_to_be_evaluated_while_solving"
+                                    _RU_explanation="${val('X','и')} должен быть вычислен первым в ${val('T','п')}."
+                                    _EN_explanation="${val('X','и')} must be evaluated first in ${val('T','п')}."
+                                />
                             </Outcome>
                             <Outcome value="False">
                                 <QuestionNode
@@ -2629,7 +2665,10 @@
                                                 _EN_nextStepExplanation="This is incorrect. Since ${class('T','и')} does not omit its operands, and its left operand is already fully evaluated,
                                          it does not interfere with the evaluation of ${val('X','and')}."
                                             >
-                                                <BranchResultNode value="true" _skill="no_omitted_operands_despite_strict_order_while_solving"/>
+                                                <BranchResultNode value="true" _skill="no_omitted_operands_despite_strict_order_while_solving"
+                                                    _RU_explanation="В ${val('T','п')} нет операндов, вычисление которых можно было бы опустить."
+                                                    _EN_explanation="In ${val('T','п')} there are no operands whose evaluation could be omitted."
+                                                />
                                             </Outcome>
                                             <Outcome value="True"
                                                 _RU_explanation="Это неверно. В ${class('T','п')} может быть опущен операнд, в котором находится ${val('X', 'и')}."
@@ -2786,7 +2825,6 @@
                                                             </LogicalOr>
                                                         </Expression>
                                                         <Outcome value="true"
-                                                            _skill="should_strict_order_current_operand_be_omitted_while_solving"
                                                             _RU_text="true"
                                                             _RU_explanation="Это неверно. ${class('T','и')} вычисляет правый операнд только в случае, если левый имеет значение true.
                                                             В ином случае правый операнд опускается."
@@ -2896,7 +2934,10 @@
                                                         _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
                                                         _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is not omitted, and can be evaluated."
                                                     >
-                                                        <BranchResultNode value="true" _skill="should_strict_order_current_operand_be_omitted_while_solving"/>
+                                                        <BranchResultNode value="true" _skill="should_strict_order_current_operand_be_omitted_while_solving"
+                                                            _RU_explanation="${val('X','и')} не должен быть опущен в ${val('T','п')}."
+                                                            _EN_explanation="${val('X','и')} should not be omitted in ${val('T','п')}."
+                                                        />
                                                     </Outcome>
                                                     <Outcome
                                                         value="(false;false)"
@@ -2907,7 +2948,10 @@
                                                         _EN_nextStepBranchResult="${val('X','и')} ${branchResult ? 'can be evaluated' : 'is omitted'}."
                                                         _EN_nextStepExplanation="This is incorrect. Given the above, ${val('X','и')} is not omitted, and can be evaluated."
                                                     >
-                                                        <BranchResultNode value="true" _skill="should_strict_order_current_operand_be_omitted_while_solving"/>
+                                                        <BranchResultNode value="true" _skill="should_strict_order_current_operand_be_omitted_while_solving"
+                                                            _RU_explanation="${val('X','и')} не должен быть опущен в ${val('T','п')}."
+                                                            _EN_explanation="${val('X','и')} should not be omitted in ${val('T','п')}."
+                                                        />
                                                     </Outcome>
                                                     <Outcome
                                                         value="(true;false)"

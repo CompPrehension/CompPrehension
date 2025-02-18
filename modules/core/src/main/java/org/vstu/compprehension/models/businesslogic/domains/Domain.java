@@ -26,8 +26,8 @@ import java.util.stream.Stream;
 @RequestScope
 public abstract class Domain {
     public static final String NAME_PREFIX_IS_HUMAN = "[human]";
-    protected  Map<String, PositiveLaw> positiveLaws;
-    protected  Map<String, NegativeLaw> negativeLaws;
+    protected Map<String, PositiveLaw> positiveLaws;
+    protected Map<String, NegativeLaw> negativeLaws;
 
     /** name to Concept mapping */
     protected Map<String, Concept> concepts;
@@ -848,6 +848,10 @@ public abstract class Domain {
          * Positive law name for this answer
          */
         public String lawName;
+        /**
+         * Skill name for this answer
+         */
+        public String skillName;
 
         @AllArgsConstructor @Data
         public static class Response {

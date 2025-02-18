@@ -7,7 +7,9 @@ import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
+import its.model.nodes.BranchResultNode;
 import its.model.nodes.DecisionTree;
+import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -725,24 +727,56 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 .reduce((first, second) -> second);
         List<ResponseEntity> responses = new ArrayList<>();
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
+        List<Integer> responseTokenIndexes = responses.stream()
+                .map(res ->
+                        Integer.parseInt(res.getLeftAnswerObject().getDomainInfo().split("_")[1]))
+                .toList();
         List<Tag> tags = q.getTags();
         DomainModel domain = MeaningTreeRDFTransformer.questionToDomainModel(
-                domainSolvingModel, q.getStatementFacts(), responses, tags
+                domainSolvingModel, q.getStatementFacts(), responses, tags, false
         );
         DecisionTree dt = domainSolvingModel.getDecisionTree();
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
-        Optional<ObjectDef> found = domain.getObjects().stream().filter(domainObj ->
-                domainObj.getClazz().isSubclassOf("operator") && solver.solveForX(domainObj, domain, dt).solved()).findFirst();
+        Optional<Pair<ObjectDef, ProgrammingLanguageExpressionsSolver.SolveResult>> found = domain.getObjects().stream()
+                .filter(domainObj ->
+                    domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
+                            rel -> rel.getObjects().stream().noneMatch(obj ->
+                                    responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
+                    )
+                ).map(
+                        domainObj -> Pair.of(domainObj, solver.solveForX(domainObj, domain, dt))
+                ).filter(
+                        pair -> pair.getRight().solved()
+                )
+                .findFirst();
         if (found.isPresent()) {
-            String[] objName = found.get().getName().split("_");
+            var solveRes = found.get().getRight();
+            String[] objName = found.get().getLeft().getName().split("_");
             int tokenPos = Integer.parseInt(objName[objName.length - 1]);
             for (AnswerObjectEntity answer : q.getAnswerObjects()) {
                 if (answer.getDomainInfo().endsWith(String.valueOf(tokenPos))) {
+
+                    var explanationNodeList = solveRes.dtNodes().stream().filter(x ->
+                                    x.getNode().getMetadata().containsAny("explanation"))
+                            .toList();
+                    BranchResultNode explanationNode = null;
+                    QuestioningSituation questioningSituation = null;
+
+                    if (!explanationNodeList.isEmpty()) {
+                        explanationNode = explanationNodeList.getLast().getNode();
+                        questioningSituation = new QuestioningSituation(domain, lang.toLocaleString());
+                        questioningSituation.getDecisionTreeVariables().putAll(explanationNodeList.getLast().getVariablesSnapshot());
+                    }
+
                     CorrectAnswer correctAnswer = new CorrectAnswer();
                     correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
                     correctAnswer.question = q.getQuestionData();
-                    correctAnswer.lawName = ""; // TODO: add correct data
-                    correctAnswer.explanation = new HyperText(getMessage("service.unsupported_correct_answer_explanation", lang)); // TODO: add correct data
+                    correctAnswer.lawName = null;
+                    correctAnswer.skillName = solveRes.skills().getFirst();
+                    correctAnswer.explanation = explanationNode == null ?
+                            new HyperText(getMessage("service.missing_correct_answer_explanation", lang)) :
+                            new HyperText(DecisionTreeReasonerBackend.Interface.getExplanation(explanationNode, questioningSituation))
+                    ;
                     return correctAnswer;
                 }
             }
