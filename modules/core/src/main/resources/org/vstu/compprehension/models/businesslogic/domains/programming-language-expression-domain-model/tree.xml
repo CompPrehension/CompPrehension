@@ -248,6 +248,7 @@
                                 >
                                     <Expression>
                                         <LogicalAnd>
+                                            <!-- Patch: В операторах, где есть и левый и центральный операнд могли появляться лишние сообщения об ошибках. Поэтому центральный операнд не считается невычисленным, пока левый операнд не будет вычислен (на тернарные в питоне по итогам тестов не повлияло)--> 
                                             <LogicalOr>
                                                 <LogicalNot>
                                                     <GetPropertyValue>
@@ -382,6 +383,7 @@
                             <Expression>
                                 <GetExtreme extremeVarName="y1_ex" varName="y1">
                                     <LogicalAnd>
+                                        <!-- Patch: между ближайшим левым и текущим ищется запятая-разделитель, которая не позволяет найти ближайший оператор в вызове функций--> 
                                         <LogicalNot>
                                             <ExistenceQuantifier varName="commaSep" type="token">
                                                 <CheckRelationship>
@@ -1330,6 +1332,7 @@
                             <Expression>
                                 <GetExtreme extremeVarName="z1_ex" varName="z1">
                                     <LogicalAnd>
+                                        <!-- Patch: между ближайшим левым и текущим ищется запятая-разделитель, которая не позволяет найти ближайший оператор в вызове функций--> 
                                         <LogicalNot>
                                             <ExistenceQuantifier varName="commaSep" type="token">
                                                 <CheckRelationship>
@@ -2234,6 +2237,7 @@
                     _EN_question="Choose all operators with strict operand order that can influence the evaluation of ${val('X','р')}"
                 >
                     <SelectorExpression>
+                        <!-- Patch: операторы строгого порядка не обязательно должны быть невычисленными--> 
                         <Boolean value="true" />
                     </SelectorExpression>
                     <FindError priority="1" type="operator" _alias="T_notStrict"
