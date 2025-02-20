@@ -85,13 +85,11 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         addSkill("left_operator_enclosed", List.of(currentOperatorEnclosed));
         addSkill("right_operator_enclosed", List.of(currentOperatorEnclosed));
 
-        Skill currentParenthesizedNearestNot = addSkill("is_current_parenthesized_nearest_not");
-        addSkill("is_current_parenthesized_left_not", List.of(currentParenthesizedNearestNot));
-        addSkill("is_current_parenthesized_right_not", List.of(currentParenthesizedNearestNot));
-
-        Skill nearestParenthesizedCurrentNot = addSkill("is_nearest_parenthesized_current_not");
-        addSkill("is_left_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
-        addSkill("is_right_parenthesized_current_not", List.of(nearestParenthesizedCurrentNot));
+        Skill parenthesizedSkills = addSkill("order_determined_by_parentheses");
+        addSkill("is_current_parenthesized_left_not", List.of(parenthesizedSkills));
+        addSkill("is_current_parenthesized_right_not", List.of(parenthesizedSkills));
+        addSkill("is_left_parenthesized_current_not", List.of(parenthesizedSkills));
+        addSkill("is_right_parenthesized_current_not", List.of(parenthesizedSkills));
 
         Skill prec = addSkill("order_determined_by_precedence");
         addSkill("left_competing_to_right_precedence", List.of(prec));
@@ -861,10 +859,10 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         name2bit.put("current_operator_enclosed", 0x100L);  	// (256)
         name2bit.put("left_operator_enclosed", 0x200L);  	// (512)
         name2bit.put("right_operator_enclosed", 0x400L);  	// (1024)
-        name2bit.put("is_current_parenthesized_nearest_not", 0x800L);  	// (2048)
+        name2bit.put("order_determined_by_parentheses", 0x800L);  	// (2048)
         name2bit.put("is_current_parenthesized_left_not", 0x1000L);  	// (2^12)
         name2bit.put("is_current_parenthesized_right_not", 0x2000L);  	// (2^13)
-        name2bit.put("is_nearest_parenthesized_current_not", 0x4000L);  	// (2^14)
+        // (2^14) empty
         name2bit.put("is_left_parenthesized_current_not", 0x8000L);  	// (2^15)
         name2bit.put("is_right_parenthesized_current_not", 0x10000L);  	// (2^16)
         name2bit.put("order_determined_by_precedence", 0x20000L);  	// (2^17)

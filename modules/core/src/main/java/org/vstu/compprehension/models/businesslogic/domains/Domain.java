@@ -293,11 +293,10 @@ public abstract class Domain {
     /** Get skills organized into one-level hierarchy
      * @return map representing groups of skills (base skill -> skills in the group)
      */
-    public Map<Skill, List<Skill>> getSkillSimplifiedHierarchy() {
+    public Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags) {
         Map<Skill, List<Skill>> res = new TreeMap<>();
-        List<Skill> skills = getAllSkills();
         for (Skill skill : getAllSkills()) {
-            if (skill.getBaseSkills().isEmpty()) {
+            if (skill.getBaseSkills().isEmpty() && skill.hasFlag(bitflags)) {
                 res.put(skill, new ArrayList<>());
             }
         }
@@ -503,6 +502,10 @@ public abstract class Domain {
 
     protected Skill addSkill(String name, List<Skill> baseSkills) {
         return addSkill(new Skill(name, baseSkills));
+    }
+
+    protected Skill addSkill(String name, List<Skill> baseSkills, int bitflags) {
+        return addSkill(new Skill(name, baseSkills, bitflags));
     }
 
     protected Concept addConcept(String name, List<Concept> bases, int flags) {

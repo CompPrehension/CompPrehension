@@ -10,6 +10,7 @@ import org.vstu.compprehension.adapters.StrategyFactory;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.Skill;
 import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
@@ -101,7 +102,7 @@ public class ReferenceTableController {
                                                 z.getBitflags())
                                         ).toArray(LawTreeItemDto[]::new)))
                                 .collect(Collectors.toList()))
-                        .skills(d.getSkillSimplifiedHierarchy()
+                        .skills(d.getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER)
                                 .entrySet()
                                 .stream()
                                 .map(kv -> new SkillTreeItemDto(
@@ -109,8 +110,12 @@ public class ReferenceTableController {
                                         d.getSkillDisplayName(kv.getKey().getName(), currentLanguage),
                                         kv.getValue().stream().map(z -> new SkillTreeItemDto(
                                                 z.getName(),
-                                                d.getLawDisplayName(z.getName(), currentLanguage))
-                                        ).toArray(SkillTreeItemDto[]::new)))
+                                                d.getLawDisplayName(z.getName(), currentLanguage),
+                                                z.getBitflags()
+                                                )
+                                        ).toArray(SkillTreeItemDto[]::new),
+                                        kv.getKey().getBitflags()
+                                ))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());

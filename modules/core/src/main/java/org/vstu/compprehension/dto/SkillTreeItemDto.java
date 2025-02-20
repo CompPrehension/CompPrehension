@@ -15,10 +15,13 @@ public class SkillTreeItemDto {
     private String displayName;
     @NotNull
     private final SkillTreeItemDto[] childs;
+    @NotNull
+    private int bitflags;
 
-    public SkillTreeItemDto(@NotNull String name, @NotNull String displayName) {
+    public SkillTreeItemDto(@NotNull String name, @NotNull String displayName, int bitflags) {
         this.name = name;
         this.displayName = displayName;
         this.childs = new SkillTreeItemDto[0];
+        this.bitflags = bitflags;
     }
 }

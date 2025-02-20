@@ -10,8 +10,19 @@ import java.util.*;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Skill implements TreeNodeWithBitmask {
+    /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
+    public static int FLAG_VISIBLE_TO_TEACHER = 1;
+    /** When present, this flag blocks selection this skill as denied */
+    // TODO: implement in frontend
+    public static int FLAG_DENIED_DISABLED = 2;
+
+    /** All flags are OFF by default */
+    public static int DEFAULT_FLAGS = FLAG_VISIBLE_TO_TEACHER;
+
     @EqualsAndHashCode.Include
     public String name;
+
+    int bitflags;
 
     @Setter
     long bitmask;
@@ -31,10 +42,12 @@ public class Skill implements TreeNodeWithBitmask {
     public Skill(String name) {
         this.name = name;
         this.baseSkills = new ArrayList<>();
+        this.bitflags = DEFAULT_FLAGS;
     }
 
-    public Skill(String name, List<Skill> baseSkills) {
+    public Skill(String name, List<Skill> baseSkills, int bitflags) {
         this.name = name;
+        this.bitflags = bitflags;
         this.baseSkills = new ArrayList<>(baseSkills);
         for (Skill base : baseSkills) {
             if (base.childSkills == null) {
@@ -42,6 +55,14 @@ public class Skill implements TreeNodeWithBitmask {
             }
             base.childSkills.add(this);
         }
+    }
+
+    public Skill(String name, List<Skill> baseSkills) {
+        this(name, baseSkills, DEFAULT_FLAGS);
+    }
+
+    public boolean hasFlag(int flagCode) {
+        return (bitflags & flagCode) != 0;
     }
 
     public static long combineToBitmask(List<Skill> targetSkills) {
