@@ -918,10 +918,10 @@ public class MeaningTreeOrderQuestionBuilder {
         // Самый левый токен - не префиксный оператор, а самый правый - не постфиксный
         boolean isLeftmostPrefix = tokens.getFirst() instanceof OperatorToken leftmostOp
                 && leftmostOp.arity == OperatorArity.UNARY
-                && leftmostOp.tokenPos == OperatorTokenPosition.PREFIX;
-        boolean isRightmostPostfix = tokens.getFirst() instanceof OperatorToken leftmostOp
+                && (leftmostOp.tokenPos == OperatorTokenPosition.PREFIX && !tokens.findOperands(0).containsKey(OperandPosition.LEFT));
+        boolean isRightmostPostfix = tokens.getLast() instanceof OperatorToken leftmostOp
                 && leftmostOp.arity == OperatorArity.UNARY
-                && leftmostOp.tokenPos == OperatorTokenPosition.POSTFIX;
+                && leftmostOp.tokenPos == OperatorTokenPosition.POSTFIX  && !tokens.findOperands(tokens.size() - 1).containsKey(OperandPosition.RIGHT);
         if (!(isLeftmostPrefix && isRightmostPostfix)) {
             set.add("competing_operator_present");
         }
@@ -951,6 +951,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 } else if (!operands.containsKey(OperandPosition.RIGHT)) {
                     set.add("right_operand_needed");
                 }
+
                 if (!operands.containsKey(OperandPosition.LEFT) || !operands.containsKey(OperandPosition.RIGHT)) {
                     set.add("nearest_operand_needed");
                 }
@@ -975,6 +976,11 @@ public class MeaningTreeOrderQuestionBuilder {
                             continue;
                         }
 
+                        // Оператор не должен содержаться в другом
+                        if (op.isInOperandOf(nearOp) || nearOp.isInOperandOf(op)) {
+                            continue;
+                        }
+
                         boolean differentRightPrecedence = op.precedence != nearOp.precedence;
                         if (differentRightPrecedence && !hasDifferentPrec) {
                             set.add("order_determined_by_precedence");
@@ -984,10 +990,11 @@ public class MeaningTreeOrderQuestionBuilder {
 
                         var nearRightOperands = tokens.findOperands(j);
                         if (op.precedence == nearOp.precedence &&
-                                !nearRightOperands.containsKey(OperandPosition.LEFT) ||
-                                !nearRightOperands.containsKey(OperandPosition.RIGHT)) {
+                                (!nearRightOperands.containsKey(OperandPosition.LEFT) ||
+                                !nearRightOperands.containsKey(OperandPosition.RIGHT))
+                        ) {
                             set.add("associativity_without_opposing_operand");
-                            break; // ?? нужно?
+                            break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
@@ -1020,6 +1027,11 @@ public class MeaningTreeOrderQuestionBuilder {
                             continue;
                         }
 
+                        // Оператор не должен содержаться в другом
+                        if (op.isInOperandOf(nearOp) || nearOp.isInOperandOf(op)) {
+                            continue;
+                        }
+
                         boolean differentLeftPrecedence = op.precedence != nearOp.precedence;
                         if (differentLeftPrecedence && !hasDifferentPrec) {
                             set.add("order_determined_by_precedence");
@@ -1029,10 +1041,10 @@ public class MeaningTreeOrderQuestionBuilder {
 
                         var nearLeftOperands = tokens.findOperands(j);
                         if (op.precedence == nearOp.precedence &&
-                                !nearLeftOperands.containsKey(OperandPosition.LEFT) ||
-                                !nearLeftOperands.containsKey(OperandPosition.RIGHT)) {
+                                (!nearLeftOperands.containsKey(OperandPosition.LEFT) ||
+                                !nearLeftOperands.containsKey(OperandPosition.RIGHT))) {
                             set.add("associativity_without_opposing_operand");
-                            break; // ?? нужно?
+                            break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
@@ -1099,7 +1111,8 @@ public class MeaningTreeOrderQuestionBuilder {
                 }
 
                 // Оператор не принадлежит оператору строгого порядка (не содержится в его операндах)
-                if (op.operandOfHierarchy().stream().noneMatch(o -> o.isStrictOrder)) {
+                if (op.operandOfHierarchy().stream().noneMatch(o -> o.isStrictOrder)
+                        && tokens.stream().anyMatch(o -> o instanceof OperatorToken op1 && op1.isStrictOrder)) {
                     set.add("is_current_operator_strict_order");
                 }
             }
