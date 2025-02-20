@@ -899,139 +899,217 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     public static List<String> findAllSkills(TokenList tokens, SupportedLanguage lang) {
         List<String> set = new ArrayList<>();
-        for (int i = 0; i < tokens.size(); i++) {
 
-            Token t = tokens.get(i);
+        // Хотя бы один оператор, не являющийся комплексным (больше 1 токена)
+        if (tokens.stream().anyMatch(t -> t instanceof OperatorToken && !(t instanceof ComplexOperatorToken))) {
             set.add("central_operand_needed");
-            if (t instanceof OperatorToken op && op.operandPosition() == OperandPosition.CENTER) {
-                set.add("is_central_operand_evaluated");
-            }
+        }
 
-            if (t instanceof OperandToken op && (op.operandPosition() == OperandPosition.LEFT || op.operandPosition() == OperandPosition.RIGHT)) {
-                if (op.operandOf() != null && op.operandOf().isStrictOrder &&
-                        op.operandOf().additionalOpType == OperatorType.AND && op.operandPosition() == OperandPosition.RIGHT
-                        && op.operandOf().getAssignedValue() != null &&
-                        op.operandOf().getAssignedValue() instanceof Boolean &&
-                        !((boolean) op.operandOf().getAssignedValue())) {
-                    continue;
-                }
-                if (op.operandOf() != null && op.operandOf().isStrictOrder &&
-                        op.operandOf().additionalOpType == OperatorType.OR && op.operandPosition() == OperandPosition.RIGHT
-                        && op.operandOf().getAssignedValue() != null
-                        && op.operandOf().getAssignedValue() instanceof Boolean
-                        && ((boolean) op.operandOf().getAssignedValue())) {
-                    continue;
-                }
+        // Ни одной операции строгого порядка
+        if (tokens.stream().noneMatch(t -> t instanceof OperatorToken op && op.isStrictOrder)) {
+            set.add("expression_strict_order_operators_present");
+        }
 
-                int incr = op.operandPosition() == OperandPosition.LEFT ? -1 : 1;
-                set.add("nearest_operand_needed");
-                if (op.operandPosition() == OperandPosition.LEFT) {
-                    set.add("left_operand_needed");
-                } else {
-                    set.add("right_operand_needed");
-                }
-                OperatorToken foundNearestOp = null;
-                int nearestOpIndex = -1;
-                for (int j = i;
-                     op.operandPosition() == OperandPosition.LEFT ? j >= 0 : j < tokens.size();
-                     j += incr) {
-                    if (tokens.get(j) instanceof OperatorToken nearOp && i != j && !nearOp.equals(op.operandOf())) {
-                        set.add("competing_operator_present");
-                        foundNearestOp = nearOp;
-                        nearestOpIndex = j;
-                        break;
-                    }
-                }
+        // Язык c++ не имеет строгого порядка вычисления вызовов функции
+        if (lang.equals(SupportedLanguage.CPP)) {
+            set.add("are_central_operands_strict_order");
+        }
 
-                if (foundNearestOp instanceof ComplexOperatorToken complex && complex.isOpening() && complex.equals(tokens.isInComplex(i))) {
+        // Самый левый токен - не префиксный оператор, а самый правый - не постфиксный
+        boolean isLeftmostPrefix = tokens.getFirst() instanceof OperatorToken leftmostOp
+                && leftmostOp.arity == OperatorArity.UNARY
+                && leftmostOp.tokenPos == OperatorTokenPosition.PREFIX;
+        boolean isRightmostPostfix = tokens.getFirst() instanceof OperatorToken leftmostOp
+                && leftmostOp.arity == OperatorArity.UNARY
+                && leftmostOp.tokenPos == OperatorTokenPosition.POSTFIX;
+        if (!(isLeftmostPrefix && isRightmostPostfix)) {
+            set.add("competing_operator_present");
+        }
+
+        HashSet<Pair<Integer, Integer>> parentheses = new HashSet<>();
+
+        for (int i = 0; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+
+            // Токен - оператор
+            if (t instanceof OperatorToken op) {
+                // оператор является чьим-то центральным операндом
+                if (op.operandPosition() == OperandPosition.CENTER) {
                     set.add("current_operator_enclosed");
                 }
 
-                if (foundNearestOp != null
-                        && t instanceof OperatorToken
-                        && List.of(nearestOpIndex, Integer.MAX_VALUE).contains(getParenthesizedOperand(i, nearestOpIndex, tokens))) {
-                    set.add("is_nearest_parenthesized_current_not");
-                }
-                if (foundNearestOp != null
-                        && t instanceof OperatorToken
-                        && List.of(i, Integer.MAX_VALUE).contains(getParenthesizedOperand(i, nearestOpIndex, tokens)))  {
-                    set.add("is_current_parenthesized_nearest_not");
+                var operands = tokens.findOperands(i);
+
+                // оператор имеет любой центральный операнд
+                if (operands.containsKey(OperandPosition.CENTER)) {
+                    set.add("is_central_operand_evaluated");
                 }
 
-                if (foundNearestOp != null && op.operandOf() != null && foundNearestOp.precedence != op.operandOf().precedence) {
-                    set.add("order_determined_by_precedence");
-                } else if (op.operandOf() != null) {
-                    if (op.operandOf().arity == OperatorArity.UNARY) {
-                        set.add("associativity_without_opposing_operand");
-                    } else {
-                        set.add("order_determined_by_associativity");
-                    }
+                // оператор не имеет левого оператора или правого оператора
+                if (!operands.containsKey(OperandPosition.LEFT)) {
+                    set.add("left_operand_needed");
+                } else if (!operands.containsKey(OperandPosition.RIGHT)) {
+                    set.add("right_operand_needed");
                 }
-            }
+                if (!operands.containsKey(OperandPosition.LEFT) || !operands.containsKey(OperandPosition.RIGHT)) {
+                    set.add("nearest_operand_needed");
+                }
 
-            if (t instanceof OperatorToken op && op.operandOf() != null && op.operandOf().isStrictOrder) {
-                set.add("strict_order_first_operand_to_be_evaluated");
-            }
+                // Посмотрим, в каких скобках данный оператор. Если ни в каких - тоже сохранить это как пару -1, -1
+                var currentParen = tokens.getEnclosingParentheses(i);
+                parentheses.add(currentParen);
 
-            if (tokens.stream().noneMatch((Token token) -> token instanceof OperatorToken op && op.isStrictOrder)) {
-                set.add("strict_order_operators_present");
-            }
+                boolean hasDifferentPrec = false; // встречались операторы с разными приоритетами в направлении
 
-            if (!lang.equals(SupportedLanguage.JAVA)) {
-                set.add("are_central_operands_strict_order");
-            } else {
-                set.add("no_current_in_many_central_operands");
-            }
-
-            if (t instanceof OperatorToken op && op.isStrictOrder) {
-                Map<OperandPosition, TokenGroup> ops = tokens.findOperands(i);
-                if (op.type == TokenType.CALL_OPENING_BRACE || op.type == TokenType.CALL_CLOSING_BRACE) {
-                    long commaCount = 0;
-                    if (ops.containsKey(OperandPosition.CENTER) && ops.get(OperandPosition.CENTER) != null) {
-                        commaCount = ops.get(OperandPosition.CENTER).asSublist()
-                                .stream().filter((Token token) -> token.type == TokenType.COMMA).count();
+                // Поиск ближайших операторов справа
+                for (int j = i; j < tokens.size(); j++) {
+                    // Запятая или другой разделитель останавливают поиск ближайшего оператора
+                    if (tokens.get(j).type == TokenType.SEPARATOR || (tokens.get(j).type == TokenType.COMMA
+                            && !(tokens.get(j) instanceof OperatorToken))) {
+                        break;
                     }
-                    if (commaCount > 1) {
-                        boolean operatorInCenterCount = ops.get(OperandPosition.CENTER).asSublist()
-                                .stream().anyMatch((Token token) -> token instanceof OperatorToken);
-                        if (operatorInCenterCount) {
-                            set.add("previous_central_operands_are_unevaluated");
-                        }
-                    } else {
-                        set.add("no_comma_in_central_operands");
-                    }
-                } else {
-                    boolean isOperatorInAnyOperandOfStrictOrder = false;
-                    for (TokenGroup grp : ops.values()) {
-                        if (grp == null) {
+                    if (tokens.get(j) instanceof OperatorToken nearOp && i != j) {
+                        var paren = tokens.getEnclosingParentheses(j);
+                        // Оператор в скобках, которые между двумя операторами
+                        if (paren.getLeft() != -1 && paren.getRight() > i && paren.getRight() < j) {
                             continue;
                         }
-                        isOperatorInAnyOperandOfStrictOrder = isOperatorInAnyOperandOfStrictOrder || grp.asSublist()
-                                .stream()
-                                .anyMatch((Token tt) -> tt instanceof OperatorToken);
-                    }
-                    if (isOperatorInAnyOperandOfStrictOrder) {
-                        set.add("is_current_operator_strict_order");
-                    }
-                    boolean hasFirstEvalOperandOperator = false;
-                    if (ops.containsKey(op.getFirstOperandToEvaluation()) && ops.get(op.getFirstOperandToEvaluation()) != null) {
-                        hasFirstEvalOperandOperator = ops.get(op.getFirstOperandToEvaluation())
-                                .asSublist()
-                                .stream()
-                                .anyMatch((Token tt) -> tt instanceof OperatorToken);
-                    }
-                    if (hasFirstEvalOperandOperator) {
-                        set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
-                        if (op.type == TokenType.COMMA) {
-                            set.add("no_omitted_operands_despite_strict_order");
+
+                        boolean differentRightPrecedence = op.precedence != nearOp.precedence;
+                        if (differentRightPrecedence && !hasDifferentPrec) {
+                            set.add("order_determined_by_precedence");
+                            hasDifferentPrec = true;
+                            // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
                         }
-                        if (op.type != TokenType.COMMA) {
-                            set.add("should_strict_order_current_operand_be_omitted");
+
+                        var nearRightOperands = tokens.findOperands(j);
+                        if (op.precedence == nearOp.precedence &&
+                                !nearRightOperands.containsKey(OperandPosition.LEFT) ||
+                                !nearRightOperands.containsKey(OperandPosition.RIGHT)) {
+                            set.add("associativity_without_opposing_operand");
+                            break; // ?? нужно?
+                        }
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.LEFT) {
+                            set.add("order_determined_by_associativity");
+                            set.add("left_competing_to_right_associativity");
+                            break;
+                        }
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.RIGHT) {
+                            set.add("order_determined_by_associativity");
+                            set.add("right_competing_to_left_associativity");
+                            break;
                         }
                     }
+                }
+
+                // Поиск ближайших операторов слева
+                for (int j = i; j >= 0; j--) {
+                    // Запятая или другой разделитель останавливают поиск ближайшего
+                    if (tokens.get(j).type == TokenType.SEPARATOR || (tokens.get(j).type == TokenType.COMMA
+                            && !(tokens.get(j) instanceof OperatorToken))) {
+                        break;
+                    }
+                    if (tokens.get(j) instanceof OperatorToken nearOp && i != j) {
+                        var paren = tokens.getEnclosingParentheses(j);
+                        // Оператор в скобках, которые между двумя операторами
+                        if (paren.getLeft() != -1 && paren.getRight() > i && paren.getRight() < j) {
+                            continue;
+                        }
+
+                        boolean differentLeftPrecedence = op.precedence != nearOp.precedence;
+                        if (differentLeftPrecedence && !hasDifferentPrec) {
+                            set.add("order_determined_by_precedence");
+                            hasDifferentPrec = true;
+                            // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
+                        }
+
+                        var nearLeftOperands = tokens.findOperands(j);
+                        if (op.precedence == nearOp.precedence &&
+                                !nearLeftOperands.containsKey(OperandPosition.LEFT) ||
+                                !nearLeftOperands.containsKey(OperandPosition.RIGHT)) {
+                            set.add("associativity_without_opposing_operand");
+                            break; // ?? нужно?
+                        }
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.LEFT) {
+                            set.add("order_determined_by_associativity");
+                            set.add("left_competing_to_right_associativity");
+                            break;
+                        }
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.RIGHT) {
+                            set.add("order_determined_by_associativity");
+                            set.add("right_competing_to_left_associativity");
+                            break;
+                        }
+                    }
+                }
+
+                // данный оператор - операнд оператора строгого порядка
+                if (op.operandOf() != null && op.operandOf().isStrictOrder) {
+                    set.add("strict_order_first_operand_to_be_evaluated");
+                    set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
+                }
+
+                boolean pyStrictOrderNoOmit = lang.equals(SupportedLanguage.PYTHON) && op.arity != OperatorArity.UNARY && !op.isStrictOrder;
+                // запятая в Си или любой не унарный оператор в Python
+                if ((op.isStrictOrder && op.type == TokenType.COMMA) || pyStrictOrderNoOmit) {
+                    set.add("no_omitted_operands_despite_strict_order");
+                }
+                // все операторы строгого порядка
+                if (op.isStrictOrder && op.type != TokenType.COMMA) {
+                    set.add("should_strict_order_current_operand_be_omitted");
+                }
+
+                // только для строгого порядка вычисления аргументов функций в языке
+                if (!lang.equals(SupportedLanguage.CPP)) {
+                    // Нет операторов в аргументах вызова функции
+                    if (op.type == TokenType.CALL_OPENING_BRACE
+                            && tokens.findOperands(i)
+                            .getOrDefault(OperandPosition.CENTER, new TokenGroup(0, 0, tokens))
+                            .asSublist().stream().noneMatch(tok -> tok instanceof OperatorToken)
+                    ) {
+                        set.add("no_current_in_many_central_operands");
+                    }
+
+                    if (op.type == TokenType.CALL_OPENING_BRACE) {
+                        // Найдем всю группу токенов, являющуюся аргументами вызова функций
+                        var args = tokens.findOperands(i)
+                                .getOrDefault(OperandPosition.CENTER,
+                                        new TokenGroup(0, 0, tokens));
+                        int argNum = 1; // номер аргумента в вызове функции
+                        for (var argToken : args) {
+                            if (argToken instanceof OperatorToken && argNum == 1) {
+                                set.add("no_comma_in_central_operands");
+                            }
+                            if (argToken instanceof OperatorToken && argNum > 1) {
+                                set.add("previous_central_operands_are_unevaluated");
+                            }
+                            if (argToken.type == TokenType.COMMA || !(argToken instanceof OperatorToken)) {
+                                argNum++;
+                            }
+                        }
+                    }
+                }
+
+                // Оператор не принадлежит оператору строгого порядка (не содержится в его операндах)
+                if (op.operandOfHierarchy().stream().noneMatch(o -> o.isStrictOrder)) {
+                    set.add("is_current_operator_strict_order");
                 }
             }
         }
+
+        // Есть хотя бы один оператор в скобках, все выражение в скобках (и нигде больше скобок внутри) не считается
+        if (parentheses.size() > 1) {
+            set.add("order_determined_by_parentheses");
+        }
+
         return set;
     }
 
