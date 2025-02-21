@@ -1102,7 +1102,7 @@ public class MeaningTreeOrderQuestionBuilder {
                             if (argToken instanceof OperatorToken && argNum > 1) {
                                 set.add("previous_central_operands_are_unevaluated");
                             }
-                            if (argToken.type == TokenType.COMMA || !(argToken instanceof OperatorToken)) {
+                            if (argToken.type == TokenType.COMMA && !(argToken instanceof OperatorToken)) {
                                 argNum++;
                             }
                         }

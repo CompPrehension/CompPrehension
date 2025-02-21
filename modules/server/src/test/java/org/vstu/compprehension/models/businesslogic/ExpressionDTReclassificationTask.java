@@ -42,7 +42,7 @@ public class ExpressionDTReclassificationTask {
 
     @Test
     public void performReclassification() {
-        final int BATCH_SIZE = 5 * 1024;
+        final int BATCH_SIZE = 8 * 1024;
         int lastId = 0;
         int batches = 0;
 
