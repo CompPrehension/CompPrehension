@@ -916,13 +916,11 @@ public class MeaningTreeOrderQuestionBuilder {
         }
 
         // Самый левый токен - не префиксный оператор, а самый правый - не постфиксный
-        boolean isLeftmostPrefix = tokens.getFirst() instanceof OperatorToken leftmostOp
-                && leftmostOp.arity == OperatorArity.UNARY
-                && (leftmostOp.tokenPos == OperatorTokenPosition.PREFIX && !tokens.findOperands(0).containsKey(OperandPosition.LEFT));
-        boolean isRightmostPostfix = tokens.getLast() instanceof OperatorToken leftmostOp
-                && leftmostOp.arity == OperatorArity.UNARY
-                && leftmostOp.tokenPos == OperatorTokenPosition.POSTFIX  && !tokens.findOperands(tokens.size() - 1).containsKey(OperandPosition.RIGHT);
-        if (!(isLeftmostPrefix && isRightmostPostfix)) {
+        boolean isLeftmostWithNoLeftOperands = tokens.getFirst() instanceof OperatorToken
+                && !tokens.findOperands(0).containsKey(OperandPosition.LEFT);
+        boolean isRightmostWithNoRightOperands = tokens.getLast() instanceof OperatorToken
+                && !tokens.findOperands(tokens.size() - 1).containsKey(OperandPosition.RIGHT);
+        if (!(isLeftmostWithNoLeftOperands && isRightmostWithNoRightOperands)) {
             set.add("competing_operator_present");
         }
 
@@ -972,12 +970,12 @@ public class MeaningTreeOrderQuestionBuilder {
                     if (tokens.get(j) instanceof OperatorToken nearOp && i != j) {
                         var paren = tokens.getEnclosingParentheses(j);
                         // Оператор в скобках, которые между двумя операторами
-                        if (paren.getLeft() != -1 && paren.getRight() > i && paren.getRight() < j) {
+                        if (paren.getLeft() != -1 && i < paren.getLeft() && paren.getLeft() < j) {
                             continue;
                         }
 
                         // Оператор не должен содержаться в другом
-                        if (op.isInOperandOf(nearOp) || nearOp.isInOperandOf(op)) {
+                        if (op.isInOperandOf(nearOp, OperandPosition.CENTER) || nearOp.isInOperandOf(op, OperandPosition.CENTER)) {
                             continue;
                         }
 
@@ -1023,12 +1021,12 @@ public class MeaningTreeOrderQuestionBuilder {
                     if (tokens.get(j) instanceof OperatorToken nearOp && i != j) {
                         var paren = tokens.getEnclosingParentheses(j);
                         // Оператор в скобках, которые между двумя операторами
-                        if (paren.getLeft() != -1 && paren.getRight() > i && paren.getRight() < j) {
+                        if (paren.getLeft() != -1 && j < paren.getRight() && paren.getRight() < i) {
                             continue;
                         }
 
                         // Оператор не должен содержаться в другом
-                        if (op.isInOperandOf(nearOp) || nearOp.isInOperandOf(op)) {
+                        if (op.isInOperandOf(nearOp, OperandPosition.CENTER) || nearOp.isInOperandOf(op, OperandPosition.CENTER)) {
                             continue;
                         }
 
@@ -1063,8 +1061,9 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
 
-                // данный оператор - операнд оператора строгого порядка
-                if (op.operandOf() != null && op.operandOf().isStrictOrder) {
+                // данный оператор - первый вычисляемый операнд оператора строгого порядка
+                if (op.operandOf() != null && op.operandOf().isStrictOrder
+                        && op.operandPosition().equals(op.operandOf().getFirstOperandToEvaluation())) {
                     set.add("strict_order_first_operand_to_be_evaluated");
                     set.add("is_first_operand_of_strict_order_operator_fully_evaluated");
                 }
@@ -1075,7 +1074,10 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("no_omitted_operands_despite_strict_order");
                 }
                 // все операторы строгого порядка
-                if (op.isStrictOrder && op.type != TokenType.COMMA) {
+                if (op.operandOf() != null && op.operandOf().isStrictOrder
+                        && op.operandOf().type != TokenType.COMMA
+                        && op.operandPosition() != op.operandOf().getFirstOperandToEvaluation()
+                ) {
                     set.add("should_strict_order_current_operand_be_omitted");
                 }
 
@@ -1111,7 +1113,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 }
 
                 // Оператор не принадлежит оператору строгого порядка (не содержится в его операндах)
-                if (op.operandOfHierarchy().stream().noneMatch(o -> o.isStrictOrder)
+                if (op.operandOfHierarchy().stream().noneMatch(o -> o.getLeft().isStrictOrder)
                         && tokens.stream().anyMatch(o -> o instanceof OperatorToken op1 && op1.isStrictOrder)) {
                     set.add("is_current_operator_strict_order");
                 }
