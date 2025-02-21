@@ -404,9 +404,6 @@ public class MeaningTreeOrderQuestionBuilder {
             return List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
-        if (!allChecksArePassed) {
-            return generated;
-        }
         OperandEvaluationMap map = new OperandEvaluationMap(this, language);
         List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
         MeaningTree initial = sourceExpressionTree;
@@ -419,7 +416,7 @@ public class MeaningTreeOrderQuestionBuilder {
         }
         sourceExpressionTree = initial;
 
-        return generated;
+        return !allChecksArePassed ? List.of() : generated;
     }
 
     /**
