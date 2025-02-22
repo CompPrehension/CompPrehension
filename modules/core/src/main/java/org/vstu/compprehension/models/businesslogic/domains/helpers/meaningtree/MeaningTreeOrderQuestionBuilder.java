@@ -796,6 +796,8 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
 
+                hasDifferentPrec = false;
+
                 // Поиск ближайших операторов слева
                 for (int j = i; j >= 0; j--) {
                     // Запятая или другой разделитель останавливают поиск ближайшего
@@ -825,14 +827,14 @@ public class MeaningTreeOrderQuestionBuilder {
 
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.assoc == OperatorAssociativity.RIGHT) {
                             set.add("associativity");
                             set.add("error_base_same_precedence_right_associativity_right");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.assoc == OperatorAssociativity.LEFT) {
                             set.add("associativity");
                             set.add("error_base_same_precedence_left_associativity_left");
                             break;
@@ -841,17 +843,21 @@ public class MeaningTreeOrderQuestionBuilder {
                 }
 
                 if (op.arity == OperatorArity.UNARY && op.assoc == OperatorAssociativity.LEFT) {
+                    set.add("associativity");
                     set.add("error_base_unary_having_associativity_left");
                 }
 
                 if (op.arity == OperatorArity.BINARY && op.assoc == OperatorAssociativity.LEFT) {
+                    set.add("associativity");
                     set.add("error_base_binary_having_associativity_left");
                 }
 
                 if (op.arity == OperatorArity.BINARY && op.assoc == OperatorAssociativity.RIGHT) {
+                    set.add("associativity");
                     set.add("error_base_binary_having_associativity_right");
                 }
 
+                // операторы строгого порядка - не запятая: второй вычисляемый операнд
                 if (op.operandOf() != null
                         && op.operandOf().type != TokenType.COMMA
                         && op.operandPosition() != op.operandOf().getFirstOperandToEvaluation()
@@ -859,7 +865,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("error_base_student_error_unevaluated_operand");
                 }
 
-                // все операторы строгого порядка
+                // операнд оператора строгого порядка
                 if (op.operandOf() != null && op.operandOf().isStrictOrder) {
                     set.add("error_base_student_error_strict_operands_order");
                 }
@@ -1036,14 +1042,14 @@ public class MeaningTreeOrderQuestionBuilder {
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.assoc == OperatorAssociativity.RIGHT) {
                             set.add("order_determined_by_associativity");
                             set.add("left_competing_to_right_associativity");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.assoc == OperatorAssociativity.LEFT) {
                             set.add("order_determined_by_associativity");
                             set.add("right_competing_to_left_associativity");
                             break;
