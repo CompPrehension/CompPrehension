@@ -739,103 +739,146 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     public static List<String> findAllPossibleViolations(TokenList tokens) {
         List<String> set = new ArrayList<>();
+        HashSet<Pair<Integer, Integer>> parentheses = new HashSet<>();
         set.add("error_base_student_error_early_finish");
 
-        OperatorToken lastOperatorToken = null;
-        boolean isInComplex = false;
-        boolean isInSimpleParentheses = false;
-        boolean hasOperatorInComplex = false;
-        boolean hasOperatorsOutsideComplex = false;
-        for (Token token : tokens) {
-            if (List.of(TokenType.OPENING_BRACE, TokenType.CALL_OPENING_BRACE, TokenType.SUBSCRIPT_OPENING_BRACE).contains(token.type)) {
-                isInComplex = true;
-            } else if (List.of(TokenType.CALL_CLOSING_BRACE, TokenType.CLOSING_BRACE, TokenType.SUBSCRIPT_CLOSING_BRACE).contains(token.type)) {
-                isInComplex = false;
-            }
-
-            if (Objects.equals(TokenType.OPENING_BRACE, token.type) && !(token instanceof OperatorToken)) {
-                isInSimpleParentheses = true;
-            } else if (Objects.equals(TokenType.CLOSING_BRACE, token.type) && !(token instanceof OperatorToken)) {
-                isInSimpleParentheses = false;
-            }
+        for (int i = 0; i < tokens.size(); i++) {
+            Token token = tokens.get(i);
 
             if (token instanceof OperatorToken op) {
-                if (op.operandOf() != null && op.operandPosition() == OperandPosition.RIGHT
-                        && op.operandOf().isStrictOrder && op.operandOf().additionalOpType == OperatorType.AND
-                        && op.operandOf().getAssignedValue() != null && op.operandOf().getAssignedValue() instanceof Boolean
-                        && !((boolean)op.operandOf().getAssignedValue())
-                ) {
-                    continue;
-                }
+                boolean hasDifferentPrec = false; // встречались операторы с разными приоритетами в направлении
 
-                if (op.operandOf() != null && op.operandPosition() == OperandPosition.RIGHT
-                        && op.operandOf().isStrictOrder && op.operandOf().additionalOpType == OperatorType.OR
-                        && op.operandOf().getAssignedValue() != null && op.operandOf().getAssignedValue() instanceof Boolean
-                        && ((boolean)op.operandOf().getAssignedValue())
-                ) {
-                    continue;
-                }
+                // Посмотрим, в каких скобках данный оператор. Если ни в каких - тоже сохранить это как пару -1, -1
+                var currentParen = tokens.getEnclosingParentheses(i);
+                parentheses.add(currentParen);
 
-                if (op.operandOf() != null && op.operandOf().isStrictOrder) {
-                    set.add("error_base_student_error_strict_operands_order");
-                    if (op.operandOf().type != TokenType.COMMA) {
-                        set.add("error_base_student_error_unevaluated_operand");
+                // Поиск ближайших операторов справа
+                for (int j = i; j < tokens.size(); j++) {
+                    // Запятая или другой разделитель останавливают поиск ближайшего оператора
+                    if (tokens.get(j).type == TokenType.SEPARATOR || (tokens.get(j).type == TokenType.COMMA
+                            && !(tokens.get(j) instanceof OperatorToken))) {
+                        break;
+                    }
+                    if (tokens.get(j) instanceof OperatorToken nearOp && i != j) {
+                        var paren = tokens.getEnclosingParentheses(j);
+                        // Оператор в скобках, которые между двумя операторами
+                        if (paren.getLeft() != -1 && i < paren.getLeft() && paren.getLeft() < j) {
+                            continue;
+                        }
+
+                        // Оператор не должен содержаться в другом
+                        if (op.isInOperandOf(nearOp, OperandPosition.CENTER) || nearOp.isInOperandOf(op, OperandPosition.CENTER)) {
+                            continue;
+                        }
+
+                        boolean higherRightPrecedence = nearOp.precedence > op.precedence;
+                        if (higherRightPrecedence && !hasDifferentPrec) {
+                            set.add("error_base_higher_precedence_right");
+                            set.add("precedence");
+                            hasDifferentPrec = true;
+                            // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
+                        }
+
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.LEFT) {
+                            set.add("associativity");
+                            set.add("error_base_same_precedence_right_associativity_right");
+                            break;
+                        }
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.RIGHT) {
+                            set.add("associativity");
+                            set.add("error_base_same_precedence_left_associativity_left");
+                            break;
+                        }
                     }
                 }
 
-                if (op.operandOf() != null &&
-                        (op.operandOf().type == TokenType.SUBSCRIPT_OPENING_BRACE ||
-                                op.operandOf().type == TokenType.CALL_OPENING_BRACE ||
-                                op.operandOf().type == TokenType.SUBSCRIPT_CLOSING_BRACE ||
-                                op.operandOf().type == TokenType.CALL_CLOSING_BRACE)) {
+                // Поиск ближайших операторов слева
+                for (int j = i; j >= 0; j--) {
+                    // Запятая или другой разделитель останавливают поиск ближайшего
+                    if (tokens.get(j).type == TokenType.SEPARATOR || (tokens.get(j).type == TokenType.COMMA
+                            && !(tokens.get(j) instanceof OperatorToken))) {
+                        break;
+                    }
+                    if (tokens.get(j) instanceof OperatorToken nearOp && i != j) {
+                        var paren = tokens.getEnclosingParentheses(j);
+                        // Оператор в скобках, которые между двумя операторами
+                        if (paren.getLeft() != -1 && j < paren.getRight() && paren.getRight() < i) {
+                            continue;
+                        }
+
+                        // Оператор не должен содержаться в другом
+                        if (op.isInOperandOf(nearOp, OperandPosition.CENTER) || nearOp.isInOperandOf(op, OperandPosition.CENTER)) {
+                            continue;
+                        }
+
+                        boolean higherLeftPrecedence = nearOp.precedence > op.precedence;
+                        if (higherLeftPrecedence && !hasDifferentPrec) {
+                            set.add("error_base_higher_precedence_left");
+                            set.add("precedence");
+                            hasDifferentPrec = true;
+                            // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
+                        }
+
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.LEFT) {
+                            set.add("associativity");
+                            set.add("error_base_same_precedence_right_associativity_right");
+                            break;
+                        }
+                        if (op.precedence == nearOp.precedence &&
+                                op.assoc == nearOp.assoc &&
+                                op.assoc == OperatorAssociativity.RIGHT) {
+                            set.add("associativity");
+                            set.add("error_base_same_precedence_left_associativity_left");
+                            break;
+                        }
+                    }
+                }
+
+                if (op.arity == OperatorArity.UNARY && op.assoc == OperatorAssociativity.LEFT) {
+                    set.add("error_base_unary_having_associativity_left");
+                }
+
+                if (op.arity == OperatorArity.BINARY && op.assoc == OperatorAssociativity.LEFT) {
+                    set.add("error_base_binary_having_associativity_left");
+                }
+
+                if (op.arity == OperatorArity.BINARY && op.assoc == OperatorAssociativity.RIGHT) {
+                    set.add("error_base_binary_having_associativity_right");
+                }
+
+                if (op.operandOf() != null
+                        && op.operandOf().type != TokenType.COMMA
+                        && op.operandPosition() != op.operandOf().getFirstOperandToEvaluation()
+                ) {
+                    set.add("error_base_student_error_unevaluated_operand");
+                }
+
+                // все операторы строгого порядка
+                if (op.operandOf() != null && op.operandOf().isStrictOrder) {
+                    set.add("error_base_student_error_strict_operands_order");
+                }
+
+                // оператор является чьим-то центральным операндом
+                if (op.operandPosition() == OperandPosition.CENTER) {
                     set.add("error_base_enclosing_operators");
                 }
 
-                if (isInComplex) {
-                    hasOperatorInComplex = true;
-                } else {
-                    hasOperatorsOutsideComplex = true;
+                if (op.operandOf() != null && op.operandOf() instanceof ComplexOperatorToken) {
+                    set.add("error_base_student_error_in_complex");
                 }
-
-                if (isInSimpleParentheses) {
-                    set.add("error_base_parenthesized_operators");
-                }
-
-                if (!(token instanceof ComplexOperatorToken)) {
-                    if (lastOperatorToken != null && op.precedence > lastOperatorToken.precedence) {
-                        set.add("error_base_higher_precedence_right");
-                        set.add("precedence");
-                    } else if (lastOperatorToken != null && lastOperatorToken.precedence > op.precedence) {
-                        set.add("error_base_higher_precedence_left");
-                        set.add("precedence");
-                    } else if (lastOperatorToken != null && lastOperatorToken.assoc == op.assoc
-                            && lastOperatorToken.assoc == OperatorAssociativity.LEFT
-                    ) {
-                        set.add("error_base_same_precedence_left_associativity_left");
-                        if (op.arity == OperatorArity.UNARY) {
-                            set.add("error_base_unary_having_associativity_left");
-                        } else if (op.arity == OperatorArity.BINARY) {
-                            set.add("error_base_binary_having_associativity_left");
-                        }
-                        set.add("associativity");
-                    } else if (lastOperatorToken != null
-                            && lastOperatorToken.assoc == op.assoc
-                            && lastOperatorToken.assoc == OperatorAssociativity.RIGHT
-                    ) {
-                        set.add("error_base_same_precedence_right_associativity_right");
-                        if (op.arity == OperatorArity.UNARY) {
-                            set.add("error_base_unary_having_associativity_right");
-                        } else if (op.arity == OperatorArity.BINARY) {
-                            set.add("error_base_binary_having_associativity_right");
-                        }
-                        set.add("associativity");
-                    }
-                }
-                lastOperatorToken = op;
             }
-            if (hasOperatorInComplex && hasOperatorsOutsideComplex) {
-                set.add("error_base_student_error_in_complex");
-            }
+        }
+
+        // Есть хотя бы один оператор в скобках, все выражение в скобках (и нигде больше скобок внутри) не считается
+        if (parentheses.size() > 1) {
+            set.add("error_base_parenthesized_operators");
+            set.add("error_base_student_error_in_complex");
         }
 
         return set;
