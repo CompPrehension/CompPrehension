@@ -863,7 +863,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 }
 
                 // операторы строгого порядка - не запятая: второй вычисляемый операнд
-                if (op.operandOf() != null
+                if (op.operandOf() != null && op.operandOf().isStrictOrder
                         && op.operandOf().type != TokenType.COMMA
                         && op.operandPosition() != op.operandOf().getFirstOperandToEvaluation()
                 ) {
