@@ -781,14 +781,14 @@ public class MeaningTreeOrderQuestionBuilder {
 
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.assoc == OperatorAssociativity.RIGHT) {
                             set.add("associativity");
                             set.add("error_base_same_precedence_right_associativity_right");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.assoc == OperatorAssociativity.LEFT) {
                             set.add("associativity");
                             set.add("error_base_same_precedence_left_associativity_left");
                             break;
@@ -845,6 +845,11 @@ public class MeaningTreeOrderQuestionBuilder {
                 if (op.arity == OperatorArity.UNARY && op.assoc == OperatorAssociativity.LEFT) {
                     set.add("associativity");
                     set.add("error_base_unary_having_associativity_left");
+                }
+
+                if (op.arity == OperatorArity.UNARY && op.assoc == OperatorAssociativity.RIGHT) {
+                    set.add("associativity");
+                    set.add("error_base_unary_having_associativity_right");
                 }
 
                 if (op.arity == OperatorArity.BINARY && op.assoc == OperatorAssociativity.LEFT) {
@@ -1092,14 +1097,14 @@ public class MeaningTreeOrderQuestionBuilder {
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.assoc == OperatorAssociativity.RIGHT) {
                             set.add("order_determined_by_associativity");
                             set.add("left_competing_to_right_associativity");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.assoc == OperatorAssociativity.LEFT) {
                             set.add("order_determined_by_associativity");
                             set.add("right_competing_to_left_associativity");
                             break;
