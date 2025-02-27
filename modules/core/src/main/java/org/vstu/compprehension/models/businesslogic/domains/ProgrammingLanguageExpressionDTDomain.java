@@ -773,7 +773,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     correctAnswer.skillName = solveRes.skills().getFirst();
                     correctAnswer.explanation = explanationNode == null ?
                             new HyperText(getMessage("service.missing_correct_answer_explanation", lang)) :
-                            new HyperText(DecisionTreeReasonerBackend.Interface.getExplanation(explanationNode, questioningSituation))
+                            new HyperText(DecisionTreeReasonerBackend.Interface.getExplanation(explanationNode, questioningSituation,
+                                    DecisionTreeReasonerBackend.ExplanationType.HINT))
                     ;
                     return correctAnswer;
                 }

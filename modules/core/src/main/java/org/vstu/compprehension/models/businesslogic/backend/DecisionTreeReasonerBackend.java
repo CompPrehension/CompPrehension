@@ -21,6 +21,7 @@ import org.vstu.compprehension.utils.HyperText;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.vstu.compprehension.models.businesslogic.domains.Domain.InterpretSentenceResult;
@@ -55,6 +56,14 @@ public class DecisionTreeReasonerBackend
         DomainModel situationDomainModel,
         DecisionTree decisionTree
     ){}
+
+    /**
+     * Type of explanation
+     */
+    public enum ExplanationType {
+        HINT,
+        ERROR
+    }
 
     /**
      * Output of a decision-tree based reasoning
@@ -167,7 +176,7 @@ public class DecisionTreeReasonerBackend
             result.explanations = makeExplanations(
                 errResults,
                 backendOutput.situation,
-                getUserLanguageByQuestion(judgedQuestion)
+                getUserLanguageByQuestion(judgedQuestion), ExplanationType.ERROR
             );
             return result;
         }
@@ -211,7 +220,8 @@ public class DecisionTreeReasonerBackend
         private List<HyperText> makeExplanations(
             List<DecisionTreeReasoner.DecisionTreeEvaluationResult> results,
             LearningSituation situation,
-            Language lang
+            Language lang,
+            ExplanationType type
         ){
 
             QuestioningSituation textSituation = new QuestioningSituation(
@@ -223,14 +233,17 @@ public class DecisionTreeReasonerBackend
             for(var result : results){
                 textSituation.getDecisionTreeVariables().clear();
                 textSituation.getDecisionTreeVariables().putAll(result.getVariablesSnapshot());
-                explanations.add(new HyperText(getExplanation(result.getNode(), textSituation)));
+                explanations.add(new HyperText(getExplanation(result.getNode(), textSituation, type)));
             }
             return explanations;
         }
 
-        public static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation){
+        public static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation, ExplanationType type){
             Object explanation = resultNode.getMetadata().get(textSituation.getLocalizationCode(), "explanation");
-            String explanationTemplate = explanation == null ? "WRONG" : explanation.toString();
+            Object meta = resultNode.getDecisionTree().getMainBranch().getMetadata().get(textSituation.getLocalizationCode(),
+                    (type == ExplanationType.ERROR ? "error" : "hint") + "_prefix");
+            String prefix = meta != null ? meta.toString() : "";
+            String explanationTemplate = explanation == null ? "WRONG" : prefix.concat(explanation.toString());
             String expanded = textSituation.getTemplating().interpret(explanationTemplate);
             {
                 if (expanded.contains("операто ")) {
