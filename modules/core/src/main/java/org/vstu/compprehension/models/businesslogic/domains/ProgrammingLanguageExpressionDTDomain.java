@@ -754,16 +754,19 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
             for (AnswerObjectEntity answer : q.getAnswerObjects()) {
                 if (answer.getDomainInfo().endsWith(String.valueOf(tokenPos))) {
 
+                    //TODO: temporary solution (print all result green node explanation)
                     var explanationNodeList = solveRes.dtNodes().stream().filter(x ->
-                                    x.getNode().getMetadata().containsAny("explanation"))
-                            .toList();
-                    BranchResultNode explanationNode = null;
+                                    x.getNode().getMetadata().containsAny("explanation") && x.getNode().getValue()
+                            ).toList();
                     QuestioningSituation questioningSituation = null;
+                    StringBuilder explanation = new StringBuilder();
 
-                    if (!explanationNodeList.isEmpty()) {
-                        explanationNode = explanationNodeList.getLast().getNode();
+                    for (var explanationNode : explanationNodeList) {
                         questioningSituation = new QuestioningSituation(domain, lang.toLocaleString());
                         questioningSituation.getDecisionTreeVariables().putAll(explanationNodeList.getLast().getVariablesSnapshot());
+                        explanation.append(DecisionTreeReasonerBackend.Interface.getExplanation(explanationNode.getNode(), questioningSituation,
+                                DecisionTreeReasonerBackend.ExplanationType.HINT));
+                        explanation.append("</br>");
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -771,10 +774,9 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.lawName = null;
                     correctAnswer.skillName = solveRes.skills().getFirst();
-                    correctAnswer.explanation = explanationNode == null ?
+                    correctAnswer.explanation = explanation.isEmpty() ?
                             new HyperText(getMessage("service.missing_correct_answer_explanation", lang)) :
-                            new HyperText(DecisionTreeReasonerBackend.Interface.getExplanation(explanationNode, questioningSituation,
-                                    DecisionTreeReasonerBackend.ExplanationType.HINT))
+                            new HyperText(explanation.toString())
                     ;
                     return correctAnswer;
                 }
