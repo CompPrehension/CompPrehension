@@ -2,33 +2,26 @@ package org.vstu.compprehension.jobs.tasksgeneration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.Level;
-import org.hibernate.SessionFactory;
 import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.dto.GenerationRequest;
 import org.vstu.compprehension.models.businesslogic.SourceCodeRepositoryInfo;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.utils.FileUtility;
-import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.ZipUtility;
 
 import java.io.BufferedReader;
@@ -52,19 +45,13 @@ public class TaskGenerationJob {
     private final QuestionGenerationRequestRepository generatorRequestsQueue;
     private final TaskGenerationJobConfig tasks;
     private final QuestionBank storage;
-    private final DomainRepository domainRepository;
-    private final LocalizationService localizationService;
-    private final SessionFactory sessionFactory;
 
     @Autowired
-    public TaskGenerationJob(QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage, DomainRepository domainRepository, LocalizationService localizationService, SessionFactory sessionFactory) {
+    public TaskGenerationJob(QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.metadataRep = metadataRep;
         this.generatorRequestsQueue = generatorRequestsQueue;
         this.tasks = tasks;
         this.storage = storage;
-        this.domainRepository = domainRepository;
-        this.localizationService = localizationService;
-        this.sessionFactory = sessionFactory;
     }
 
     @Job(name = "task-generation-job", retries = 0)
@@ -85,78 +72,6 @@ public class TaskGenerationJob {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    private void performReclassification() {
-        try {
-            var domain = new ProgrammingLanguageExpressionDTDomain(
-                    domainRepository.findById("ProgrammingLanguageExpressionDTDomain").orElseThrow(),
-                    localizationService,
-                    new RandomProvider(),
-                    storage
-            );
-
-            final int BATCH_SIZE = 5000;
-            int lastId = 0;
-            long processed = 0;
-            long total = metadataRep.count();
-
-            while (true) {
-                List<QuestionMetadataEntity> batchList = metadataRep.loadPageWithData(lastId, BATCH_SIZE);
-                if (batchList.isEmpty()) {
-                    break;
-                }
-
-                lastId = processBatch(domain, batchList, lastId);
-                processed += batchList.size();
-
-                log.info("Processed {}/{} ({}%). Last id: {}", processed, total, processed * 100f / total, lastId);
-            }
-
-
-        } catch (Exception e) {
-            log.error("Exception  - {} | {}", e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    @Transactional
-    protected int processBatch(ProgrammingLanguageExpressionDTDomain domain, List<QuestionMetadataEntity> batchList, int lastId) {
-        List<Integer> toDelete = new ArrayList<>();
-        List<QuestionMetadataEntity> newMeta = new ArrayList<>();
-
-        for (QuestionMetadataEntity meta : batchList) {
-            if (!meta.getDomainShortname().equals("expression_dt")) {
-                continue;
-            }
-
-            QuestionMetadataEntity obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
-
-            if (obj == null) {
-                toDelete.add(meta.getId());
-                lastId = meta.getId();
-                continue;
-            }
-
-            obj.setId(meta.getId());
-            obj.setQuestionData(meta.getQuestionData());
-            obj.setGenerationRequestId(meta.getGenerationRequestId());
-            obj.setCreatedAt(meta.getCreatedAt());
-            newMeta.add(obj);
-            lastId = meta.getId();
-        }
-
-        try (var session = sessionFactory.openSession()) {
-            var transaction = session.beginTransaction();
-            for (QuestionMetadataEntity meta : newMeta) {
-                session.saveOrUpdate(meta);
-            }
-            transaction.commit();
-        }
-        if (!toDelete.isEmpty()) {
-            metadataRep.deleteAllById(toDelete);
-        }
-        return lastId;
     }
     
     private void runWithMode(TaskGenerationJobConfig.TaskConfig config) {
