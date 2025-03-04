@@ -7,7 +7,6 @@ import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
-import its.model.nodes.BranchResultNode;
 import its.model.nodes.DecisionTree;
 import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
@@ -42,7 +41,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageExpressionDomain {
@@ -156,11 +154,13 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         }
     }
 
+    @NotNull
     @Override
     public String getShortnameForQuestionSearch() {
         return "expression_dt";
     }
 
+    @NotNull
     @Override
     public String getSolvingBackendId() {
         return DecisionTreeReasonerBackend.BACKEND_ID;
@@ -782,18 +782,6 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 }
             }
         }
-        return null;
-    }
-
-    @Override
-    @Deprecated
-    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
-        return null;
-    }
-
-    @Override
-    @Deprecated
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
         return null;
     }
 

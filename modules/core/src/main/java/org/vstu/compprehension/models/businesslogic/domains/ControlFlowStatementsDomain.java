@@ -43,13 +43,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
 @Log4j2
-public class ControlFlowStatementsDomain extends Domain {
+public class ControlFlowStatementsDomain extends DomainBase {
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
@@ -219,11 +218,6 @@ public class ControlFlowStatementsDomain extends Domain {
         }
     }
 
-    @Override
-    public List<Concept> getLawConcepts(Law law) {
-        return null;
-    }
-
     public Model getSchemaForSolving() {
         return getVocabulary().getModel();
     }
@@ -232,6 +226,7 @@ public class ControlFlowStatementsDomain extends Domain {
      * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
      * Returns {@link JenaBackend#BackendId}
      */
+    @NotNull
     public String getSolvingBackendId(){
         return JenaBackend.BackendId;
     }
@@ -1618,7 +1613,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return new JenaFactList(factsModel);
     }
 
-    @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         OntModel model = factsAndSchemaToOntModel(solution);
 
@@ -1968,15 +1962,6 @@ public class ControlFlowStatementsDomain extends Domain {
         return userLang;
     }
 
-    @Override
-    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
-        return possibleViolationsByStep(q,completedSteps)
-                .stream()
-                .flatMap(Collection::stream)
-                .collect(toSet());
-    }
-
-    @Override
     public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
 
         // use existing solution steps if given

@@ -61,7 +61,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.random;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDomain extends Domain {
+public class ProgrammingLanguageExpressionDomain extends DomainBase {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -352,11 +352,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                 t.setBitmask(name2bit.get(name));
             }
         }
-    }
-
-    @Override
-    public List<Concept> getLawConcepts(Law law) {
-        return law.getConcepts();
     }
 
     @NotNull
@@ -825,6 +820,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
      * Returns {@link JenaBackend#BackendId}
      */
+    @NotNull
     public String getSolvingBackendId(){
         return JenaBackend.BackendId;
     }
@@ -1158,7 +1154,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         Map<String, String> studentPos = new HashMap<>();
         Map<String, String> unevalOp = new HashMap<>();
@@ -1438,7 +1433,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return null;
     }
 
-    @Override
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
         return possibleViolations(q.getSolutionFacts(), completedSteps);
     }
@@ -1490,11 +1484,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             }
         }
         return result;
-    }
-
-    @Override
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
-        return new HashSet<>();
     }
 
     @Override

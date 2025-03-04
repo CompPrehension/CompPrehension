@@ -35,7 +35,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toSet;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 
 @Log4j2
@@ -101,6 +100,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     /**
      * Jena is used to SOLVE this domain's questions
      **/
+    @NotNull
     @Override
     public String getSolvingBackendId() {
         return JenaBackend.BackendId;
@@ -109,11 +109,13 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     /**
      * Decision Tree Reasoner is used to JUDGE this domain's questions.
      */
+    @NotNull
     @Override
     public String getJudgingBackendId(/* TODO: pass question type ??*/){
         return DecisionTreeReasonerBackend.BACKEND_ID;
     }
 
+    @NotNull
     public String getShortnameForQuestionSearch(){
         return "ctrl_flow";
     }
@@ -511,12 +513,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     }
 
     @Override
-    public List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang) {
-        throw new RuntimeException();
-//        return DecisionTreeReasonerBackend.makeExplanations(reasonerOutputFacts, lang);
-    }
-
-    @Override
     public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<HyperText> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
@@ -590,14 +586,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     @Nullable
     protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
         return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
-    }
-
-    @Override
-    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
-        return possibleViolationsByStep(q,completedSteps)
-                .stream()
-                .flatMap(Collection::stream)
-                .collect(toSet());
     }
 
     @Override
