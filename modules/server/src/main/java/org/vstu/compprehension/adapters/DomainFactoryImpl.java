@@ -54,28 +54,26 @@ public class DomainFactoryImpl implements DomainFactory {
             domainShortNameToClassMap.put(controlFlowDomainEntity.getShortName(), controlFlowDomain);
         }
         {
+            var progExprDomain = (ProgrammingLanguageExpressionDomain)domainShortNameToClassMap.get("expression");
             var dtDomainEntity = domains
                     .stream().filter(x -> x.getShortName().equals("expression_dt"))
                     .findFirst()
                     .orElseThrow();
             var dtDomain = new ProgrammingLanguageExpressionDTDomain(
                     dtDomainEntity,
-                    localizationService,
-                    randomProvider,
-                    questionStorage);
+                    progExprDomain);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
             domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
         }
         {
+            var controlFlowDomain = (ControlFlowStatementsDomain)domainShortNameToClassMap.get("ctrl_flow");
             var dtDomainEntity = domains
                     .stream().filter(x -> x.getName/*!*/().equals("ControlFlowStatementsDTDomain"))
                     .findFirst()
                     .orElseThrow();
             var dtDomain = new ControlFlowStatementsDTDomain(
                     dtDomainEntity,
-                    localizationService,
-                    randomProvider,
-                    questionStorage);
+                    controlFlowDomain);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
             domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
         }

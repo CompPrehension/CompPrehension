@@ -6,6 +6,7 @@ import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 
 import java.io.IOException;
@@ -50,12 +51,15 @@ public class Main {
         var domainEntity = new FakeDomainRepository().findById("").orElseThrow();
         var domain = new ProgrammingLanguageExpressionDTDomain(
                 domainEntity,
-                new FakeLocalizationService(),
-                new FakeRandomProvider(),
-                new QuestionBank(
-                        new FakeQuestionMetadataRepository(),
-                        new FakeQuestionDataRepository(),
-                        null
+                new ProgrammingLanguageExpressionDomain(
+                        domainEntity,
+                        new FakeLocalizationService(),
+                        new FakeRandomProvider(),
+                        new QuestionBank(
+                                new FakeQuestionMetadataRepository(),
+                                new FakeQuestionDataRepository(),
+                                null
+                        )
                 )
         );
 

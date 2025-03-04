@@ -31,7 +31,6 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
-import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
@@ -43,9 +42,24 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageExpressionDomain {
-    public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-dt-messages";
+public class ProgrammingLanguageExpressionDTDomain extends DomainBase {
+    public static final String MESSAGES_CONFIG_PATH = "classpath:/" + ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-dt-messages";
     static final String MESSAGE_PREFIX = "expr_domain_dt.";
+
+    private final ProgrammingLanguageExpressionDomain baseDomain;
+    private final LocalizationService localizationService;
+    private final QuestionBank qMetaStorage;
+
+    @SneakyThrows
+    public ProgrammingLanguageExpressionDTDomain(DomainEntity domainEntity, ProgrammingLanguageExpressionDomain baseDomain) {
+        super(domainEntity, baseDomain.randomProvider);
+
+        this.baseDomain = baseDomain;
+        this.localizationService = baseDomain.localizationService;
+        this.qMetaStorage = baseDomain.qMetaStorage;
+
+        fillSkills();
+    }
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 1L));    // (2 ^ 0)
@@ -172,7 +186,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                                           @NotNull Language userLanguage) {
         SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(super.makeQuestion(questionRequest, exerciseAttempt, userLanguage), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
     }
 
     @Override
@@ -182,23 +196,10 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                                           @NotNull Language userLang) {
         SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(super.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
     }
 
-    @SneakyThrows
-    public ProgrammingLanguageExpressionDTDomain(
-            DomainEntity domainEntity,
-            LocalizationService localizationService,
-            RandomProvider randomProvider,
-            QuestionBank qMetaStorage) {
-
-        super(domainEntity, localizationService, randomProvider, qMetaStorage);
-        fillSkills();
-
-        //LOOK readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
-    }
-
-    public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
+    public static final String DOMAIN_MODEL_LOCATION = ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-model/";
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
             DomainSolvingModel.BuildMethod.LOQI
@@ -221,11 +222,16 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         throw new UnsupportedOperationException("no Laws are used for " + this.getClass().getSimpleName());
     }
 
+    @Override
+    protected List<Question> getQuestionTemplates() {
+        return baseDomain.getQuestionTemplates();
+    }
+
     // filter positive laws by question type and tags
     @Override
     public List<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
-        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)
-                || questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+        if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(ProgrammingLanguageExpressionDomain.DEFINE_TYPE_QUESTION_TYPE) || questionDomainType.equals(ProgrammingLanguageExpressionDomain.OPERANDS_TYPE_QUESTION_TYPE)
+                || questionDomainType.equals(ProgrammingLanguageExpressionDomain.PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<PositiveLaw> positiveLaws = new ArrayList<>();
             for (PositiveLaw law : getPositiveLaws()) {
                 boolean needLaw = true;
@@ -488,7 +494,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     }
                     Model templateModel = ModelFactory.createDefaultModel();
                     RDFDataMgr.read(templateModel, file);
-                    Model domainSchemaModel = getFullSchema();
+                    Model domainSchemaModel = baseDomain.getFullSchema();
                     Model targetModel = domainSchemaModel
                             .union(templateModel);
                     expressionText = oldQuestionModelToTokens(MeaningTreeRDFHelper.factsFromModel(targetModel));
@@ -556,7 +562,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
             List<ResponseEntity> responses,
             List<AnswerObjectEntity> answerObjects
     ) {
-        if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+        if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
@@ -581,7 +587,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                     result.add(new Fact(
                             "owl:NamedIndividual",
                             "end_token",
-                            END_EVALUATION,
+                            ProgrammingLanguageExpressionDomain.END_EVALUATION,
                             "xsd:boolean",
                             "true"
                     ));
@@ -604,7 +610,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 }
             }
             return result;
-        } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
+        } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.DEFINE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             for (ResponseEntity response : responses) {
                 result.add(new Fact(
@@ -616,7 +622,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 ));
             }
             return result;
-        } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
+        } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.OPERANDS_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             for (ResponseEntity response : responses) {
                 result.add(new Fact(
@@ -628,7 +634,7 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
                 ));
             }
             return result;
-        } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
+        } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             for (ResponseEntity response : responses) {
                 result.add(new Fact(
@@ -645,9 +651,8 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
     }
 
     @Override
-    @Deprecated
-    public ProcessSolutionResult processSolution(Collection<Fact> solution) {
-        return null;
+    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
+        return baseDomain.getQuestionStatementFactsWithSchema(q);
     }
 
     @Override
@@ -660,10 +665,10 @@ public class ProgrammingLanguageExpressionDTDomain extends ProgrammingLanguageEx
         ArrayList<HyperText> result = new ArrayList<>();
 
         String qType = question.getQuestionData().getQuestionDomainType();
-        if (qType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
+        if (qType.equals(ProgrammingLanguageExpressionDomain.EVALUATION_ORDER_QUESTION_TYPE)) {
             TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(question.getStatementFacts(), plang);
 
-            for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+            for (ResponseEntity response : baseDomain.responsesForTrace(question.getQuestionData(), true)) {
                 // format a trace line ...
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();

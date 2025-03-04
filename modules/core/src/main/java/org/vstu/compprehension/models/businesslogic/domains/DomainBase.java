@@ -34,7 +34,7 @@ public abstract class DomainBase implements Domain {
     @Getter
     private final DomainEntity domainEntity;
 
-    public DomainBase(DomainEntity domainEntity, RandomProvider randomProvider) {
+    protected DomainBase(DomainEntity domainEntity, RandomProvider randomProvider) {
         this.domainEntity = domainEntity;
         this.randomProvider = randomProvider;
     }

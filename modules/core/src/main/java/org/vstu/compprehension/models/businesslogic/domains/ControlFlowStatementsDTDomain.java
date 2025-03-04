@@ -28,7 +28,6 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.utils.HyperText;
-import org.vstu.compprehension.utils.RandomProvider;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -38,7 +37,7 @@ import java.util.stream.Stream;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 
 @Log4j2
-public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
+public class ControlFlowStatementsDTDomain extends DomainBase {
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
@@ -78,16 +77,21 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             );
     }
 
+    private final ControlFlowStatementsDomain baseDomain;
+    private final LocalizationService localizationService;
+    private final QuestionBank qMetaStorage;
 
     @SneakyThrows
     public ControlFlowStatementsDTDomain(
             DomainEntity domainEntity,
-            LocalizationService localizationService,
-            RandomProvider randomProvider,
-            QuestionBank qMetaStorage
-//            QuestionMetadataRepository questionMetadataRepository
+            ControlFlowStatementsDomain baseDomain
     ) {
-        super(domainEntity, localizationService, randomProvider, qMetaStorage);
+        super(domainEntity, baseDomain.randomProvider);
+
+        this.baseDomain = baseDomain;
+        this.localizationService = baseDomain.localizationService;
+        this.qMetaStorage = baseDomain.qMetaStorage;
+
         loadDTModel();
     }
 
@@ -95,6 +99,12 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     @Override
     public String getDisplayName(Language language) {
         return localizationService.getMessage("ctrlflow_text.display_name" + MESSAGE_DT_SUFFIX, language);
+    }
+
+    @Nullable
+    @Override
+    public String getDescription(Language language) {
+        return baseDomain.getDescription(language);
     }
 
     /**
@@ -124,6 +134,26 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     @Override
     public Map<String, Tag> getTags() {
         return tags;
+    }
+
+    @Override
+    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+        return baseDomain.responseToFacts(questionDomainType, responses, answerObjects);
+    }
+
+    @Override
+    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
+        return baseDomain.getQuestionStatementFactsWithSchema(q);
+    }
+
+    @Override
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+        return baseDomain.getViolationVerbs(questionDomainType, statementFacts);
+    }
+
+    @Override
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+        return baseDomain.getSolutionVerbs(questionDomainType, statementFacts);
     }
 
     @Override
@@ -228,7 +258,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             ///
 
         }
-        Question questionCopy = makeQuestion(res, exerciseAttempt, tags, userLanguage);
+        Question questionCopy = baseDomain.makeQuestion(res, exerciseAttempt, tags, userLanguage);
 
         //// patch question text for survey: hide comments
         // questionCopy.getQuestionData().setQuestionText(
@@ -241,6 +271,22 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         log.info("CtrlFlow domain has prepared the question: {}", questionCopy.getQuestionName());
 
         return questionCopy;
+    }
+
+    @NotNull
+    @Override
+    public Question makeQuestion(@NotNull QuestionMetadataEntity metadata, @Nullable ExerciseAttemptEntity exerciseAttemptEntity, @NotNull List<Tag> tags, @NotNull Language userLang) {
+        return baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang);
+    }
+
+    @Override
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+        return baseDomain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
+    }
+
+    @Override
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+        return baseDomain.judgeSupplementaryQuestion(question, supplementaryStep, responses);
     }
 
 
@@ -266,13 +312,13 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             String value = item.getValue();
 
             // handle special locale-dependent placeholders
-            value = replaceLocaleMarks(userLang, value);
+            value = baseDomain.replaceLocaleMarks(userLang, value);
             replacementMap.put(item.getFieldName(), value);
         }
 
         // Replace in msg
         msg = replaceInString(msg, replacementMap);
-        msg = postProcessFormattedMessage(msg);
+        msg = baseDomain.postProcessFormattedMessage(msg);
 
         return new HyperText(msg);
     }
@@ -375,7 +421,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
                 continue;
             String stmt_name = t.getObject().asLiteral().getString();
             if (stmt_name.contains(LOCALE_KEY_MARK)) {
-                stmt_name = replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
+                stmt_name = baseDomain.replaceLocaleMarks(Language.RUSSIAN, stmt_name);  // TODO: use language as preferred by user or webpage.
             } else {
                 stmt_name = String.format("«%s»", stmt_name);  // Format name in HTML.
             }
@@ -521,6 +567,11 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return result;
     }
 
+    @Override
+    public boolean needSupplementaryQuestion(ViolationEntity violation) {
+        return baseDomain.needSupplementaryQuestion(violation);
+    }
+
     private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
         return new HyperText("WRONG");
     }
@@ -532,7 +583,6 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return ontModel;
     }
 
-    @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         DomainModel domain =
             null;
@@ -544,7 +594,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
         assert domain != null;
         OntModel ontModel = ModelFactory.createOntologyModel(OWL_MEM);
-        Model schema = getVocabulary().getModel();
+        Model schema = ControlFlowStatementsDomain.getVocabulary().getModel();
         ontModel.add(schema);
         Model model = DomainRDFWriter.saveDomain(domain,
             "http://vstu.ru/poas/code#",
@@ -553,7 +603,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         ontModel.add(model);
 
 
-        return processSolution(ontModel);
+        return baseDomain.processSolution(ontModel);
     }
 
     @Override
@@ -572,6 +622,11 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
     }
 
+    @Override
+    public List<HyperText> getFullSolutionTrace(Question question) {
+        return baseDomain.getFullSolutionTrace(question);
+    }
+
     /**
      * @param q question
      * @return solution & statement facts as single model
@@ -585,10 +640,9 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
 
     @Nullable
     protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
-        return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
+        return baseDomain.getNextCorrectAnswer(q, correctTraceAnswersObjects, ControlFlowStatementsDomain.modelToOntModel(getSolutionModelOfQuestion(q)));
     }
 
-    @Override
     public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
 
         // use existing solution steps if given
@@ -611,7 +665,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
             correctTraceAnswersObjects.add(currentAct.answers.get(0).getLeft());
 
             // find violations possible on this step
-            final Set<String> possibleViolations = possibleMistakesByLaw(currentAct.lawName);
+            final Set<String> possibleViolations = baseDomain.possibleMistakesByLaw(currentAct.lawName);
 
             final ArrayList<String> possibleViolationsSorted = new ArrayList<>(possibleViolations);
             Collections.sort(possibleViolationsSorted);
@@ -627,7 +681,7 @@ public class ControlFlowStatementsDTDomain extends ControlFlowStatementsDomain {
     @Override
     public List<Question> getQuestionTemplates() {
         if (QUESTIONS == null) {
-            QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
+            QUESTIONS = baseDomain.readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
         }
         return QUESTIONS;
     }
