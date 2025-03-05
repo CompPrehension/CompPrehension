@@ -50,6 +50,7 @@ public class QuestionDynamicDataAppender {
                 }).toList()));
         q.getQuestionData().setQuestionText(MeaningTreeOrderQuestionBuilder.questionToHtml(tokens, domain, userLang, q.getMetadata() == null ? -1 : q.getMetadata().getId()));
         q.getQuestionData().setExerciseAttempt(attempt);
+        q.getQuestionData().setDomainEntity(domain.getDomainEntity());
         return q;
     }
 }

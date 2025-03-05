@@ -7,12 +7,9 @@ import org.springframework.stereotype.Service;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
-import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.Tag;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -33,7 +30,6 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerObjectRepository answerObjectRepository;
     private final AbstractStrategyFactory strategyFactory;
-    private final BackendFactory backendFactory;
     private final DomainService domainService;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
@@ -42,11 +38,10 @@ public class QuestionService {
     private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionBank questionStorage;
 
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
-        this.backendFactory = backendFactory;
         this.domainService = domainService;
         this.interactionRepository = interactionRepository;
         this.responseRepository = responseRepository;
@@ -117,17 +112,7 @@ public class QuestionService {
     @SuppressWarnings("unchecked")
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Backend backend = backendFactory.getBackend(
-                domain.getJudgingBackendId()
-        );
-        DomainToBackendAdapter usedInterface = domain.getBackendInterface(domain.getSolvingBackendId());
-
-        usedInterface.updateQuestionAfterSolve(
-            question,
-            backend.solve(usedInterface.prepareBackendInfoForSolve(question, tags))
-        );
-
-        return question;
+        return domain.solveQuestion(question, tags);
     }
 
     /*
@@ -154,22 +139,10 @@ public class QuestionService {
         return result;
     }
 
-    /**
-     * @param question current question being solved
-     * @param responses new responses from student (to add to solution if correct)
-     * @param tags Exercise tags
-     * @return interpretation of backend's judgement
-     */
     @SuppressWarnings("unchecked")
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Backend backend = backendFactory.getBackend(
-            domain.getJudgingBackendId()
-        );
-        DomainToBackendAdapter usedInterface = domain.getBackendInterface(domain.getJudgingBackendId());
-
-        Object output = backend.judge(usedInterface.prepareBackendInfoForJudge(question, responses, tags));
-        return usedInterface.interpretJudgeOutput(question, output);
+        return domain.judgeQuestion(question, responses, tags);
     }
 
     public Question getQuestion(Long questionId) {

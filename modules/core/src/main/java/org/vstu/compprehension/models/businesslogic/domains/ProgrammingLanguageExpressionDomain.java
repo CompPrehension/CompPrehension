@@ -61,7 +61,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.random;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDomain extends DomainBase {
+public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -814,15 +814,6 @@ public class ProgrammingLanguageExpressionDomain extends DomainBase {
             schemaModel.read(VOCAB_SCHEMA_PATH);
         }
         return schemaModel;
-    }
-
-    /**
-     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
-     * Returns {@link JenaBackend#BackendId}
-     */
-    @NotNull
-    public String getSolvingBackendId(){
-        return JenaBackend.BackendId;
     }
 
     @Override

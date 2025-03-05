@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
@@ -48,7 +47,7 @@ import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabul
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
 @Log4j2
-public class ControlFlowStatementsDomain extends DomainBase {
+public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
@@ -220,15 +219,6 @@ public class ControlFlowStatementsDomain extends DomainBase {
 
     public Model getSchemaForSolving() {
         return getVocabulary().getModel();
-    }
-
-    /**
-     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
-     * Returns {@link JenaBackend#BackendId}
-     */
-    @NotNull
-    public String getSolvingBackendId(){
-        return JenaBackend.BackendId;
     }
 
     @Override

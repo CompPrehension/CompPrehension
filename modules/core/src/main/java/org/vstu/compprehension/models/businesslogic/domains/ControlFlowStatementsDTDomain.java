@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
@@ -37,7 +36,7 @@ import java.util.stream.Stream;
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 
 @Log4j2
-public class ControlFlowStatementsDTDomain extends DomainBase {
+public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
@@ -77,6 +76,16 @@ public class ControlFlowStatementsDTDomain extends DomainBase {
             );
     }
 
+    @Override
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return baseDomain.ensureQuestionRequestValid(questionRequest);
+    }
+
+    @Override
+    public String getDefaultQuestionType(boolean supplementary) {
+        return baseDomain.getDefaultQuestionType(supplementary);
+    }
+
     private final ControlFlowStatementsDomain baseDomain;
     private final LocalizationService localizationService;
     private final QuestionBank qMetaStorage;
@@ -86,12 +95,15 @@ public class ControlFlowStatementsDTDomain extends DomainBase {
             DomainEntity domainEntity,
             ControlFlowStatementsDomain baseDomain
     ) {
-        super(domainEntity, baseDomain.randomProvider);
+        super(domainEntity, baseDomain.randomProvider, null /* TODO fix that */);
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
         this.qMetaStorage = baseDomain.qMetaStorage;
 
+        this.concepts = baseDomain.concepts;
+        this.positiveLaws = baseDomain.positiveLaws;
+        this.negativeLaws = baseDomain.negativeLaws;
         loadDTModel();
     }
 
@@ -114,15 +126,6 @@ public class ControlFlowStatementsDTDomain extends DomainBase {
     @Override
     public String getSolvingBackendId() {
         return JenaBackend.BackendId;
-    }
-
-    /**
-     * Decision Tree Reasoner is used to JUDGE this domain's questions.
-     */
-    @NotNull
-    @Override
-    public String getJudgingBackendId(/* TODO: pass question type ??*/){
-        return DecisionTreeReasonerBackend.BACKEND_ID;
     }
 
     @NotNull

@@ -42,7 +42,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDTDomain extends DomainBase {
+public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoningDomain {
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-dt-messages";
     static final String MESSAGE_PREFIX = "expr_domain_dt.";
 
@@ -52,12 +52,16 @@ public class ProgrammingLanguageExpressionDTDomain extends DomainBase {
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(DomainEntity domainEntity, ProgrammingLanguageExpressionDomain baseDomain) {
-        super(domainEntity, baseDomain.randomProvider);
+        super(domainEntity, baseDomain.randomProvider, null /* will be set after superclass call */);
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
         this.qMetaStorage = baseDomain.qMetaStorage;
+        this.setBackendInterface(new DecisionTreeInterface()); // TODO у dt циклическая зависимость с доменом, нужно это пересмотреть
 
+        this.concepts = baseDomain.concepts;
+        this.positiveLaws = baseDomain.positiveLaws;
+        this.negativeLaws = baseDomain.negativeLaws;
         fillSkills();
     }
 
@@ -174,10 +178,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DomainBase {
         return "expression_dt";
     }
 
-    @NotNull
     @Override
-    public String getSolvingBackendId() {
-        return DecisionTreeReasonerBackend.BACKEND_ID;
+    public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
+        return baseDomain.ensureQuestionRequestValid(questionRequest);
     }
 
     @Override
@@ -255,6 +258,21 @@ public class ProgrammingLanguageExpressionDTDomain extends DomainBase {
         return new ArrayList<>();
     }
 
+    @Override
+    public List<NegativeLaw> getNegativeLaws() {
+        return baseDomain.getNegativeLaws();
+    }
+
+    @Override
+    public String getDefaultQuestionType(boolean supplementary) {
+        return baseDomain.getDefaultQuestionType(supplementary);
+    }
+
+    @Override
+    public List<Tag> getDefaultQuestionTags(String questionDomainType) {
+        return baseDomain.getDefaultQuestionTags(questionDomainType);
+    }
+
     public List<NegativeLaw> getQuestionNegativeLaws(String questionDomainType, List<Tag> tags) {
         throw new UnsupportedOperationException("no Laws are used for " + this.getClass().getSimpleName());
     }
@@ -283,126 +301,120 @@ public class ProgrammingLanguageExpressionDTDomain extends DomainBase {
 
     private static final String STILL_UNEVALUATED_LEFT_VIOLATION_NAME = "stillUnevaluatedLeft";
 
-    @Override
-    public Set<DomainToBackendAdapter<?, ?, ?>> createBackendAdapters() {
-        return Set.of(
-                new DecisionTreeReasonerBackend.Interface() {
+    private class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
+        @Override
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
+                Question question,
+                List<ResponseEntity> responses,
+                List<Tag> tags
+        ) {
+            return new DecisionTreeReasonerBackend.Input(
+                    MeaningTreeRDFTransformer.questionToDomainModel(
+                            domainSolvingModel, question.getStatementFacts(), responses, tags
+                    ),
+                    domainSolvingModel.getDecisionTree()
+            );
+        }
 
-                    @Override
-                    public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
-                            Question question,
-                            List<ResponseEntity> responses,
-                            List<Tag> tags
-                    ) {
-                        return new DecisionTreeReasonerBackend.Input(
-                                MeaningTreeRDFTransformer.questionToDomainModel(
-                                        domainSolvingModel, question.getStatementFacts(), responses, tags
-                                ),
-                                domainSolvingModel.getDecisionTree()
-                        );
-                    }
+        @Override
+        protected InterpretSentenceResult interpretJudgeNotPerformed(
+                Question judgedQuestion,
+                LearningSituation preparedSituation
+        ) {
+            ViolationEntity violation = new ViolationEntity();
+            violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
+            violation.setViolationFacts(new ArrayList<>());
+            InterpretSentenceResult result = new InterpretSentenceResult();
+            result.violations = List.of(violation);
+            result.explanations = List.of(new HyperText(
+                    locCodeToStillUnevaluatedElementsLeftFormulationsMap().get(
+                            getUserLanguageByQuestion(judgedQuestion).toLocaleString().toUpperCase()
+                    )
+            ));
+            updateInterpretationResult(result, preparedSituation);
+            return result;
+        }
 
-                    @Override
-                    protected InterpretSentenceResult interpretJudgeNotPerformed(
-                            Question judgedQuestion,
-                            LearningSituation preparedSituation
-                    ) {
-                        ViolationEntity violation = new ViolationEntity();
-                        violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
-                        violation.setViolationFacts(new ArrayList<>());
-                        InterpretSentenceResult result = new InterpretSentenceResult();
-                        result.violations = List.of(violation);
-                        result.explanations = List.of(new HyperText(
-                                locCodeToStillUnevaluatedElementsLeftFormulationsMap().get(
-                                        getUserLanguageByQuestion(judgedQuestion).toLocaleString().toUpperCase()
-                                )
-                        ));
-                        updateInterpretationResult(result, preparedSituation);
-                        return result;
-                    }
+        private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap() {
+            return Map.ofEntries(
+                    Pair.of("RU", "В выражении всё ещё есть невычисленные операторы"),
+                    Pair.of("EN", "There are still unevaluated operators in the expression")
+            );
+        }
 
-                    private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap() {
-                        return Map.ofEntries(
-                                Pair.of("RU", "В выражении всё ещё есть невычисленные операторы"),
-                                Pair.of("EN", "There are still unevaluated operators in the expression")
-                        );
-                    }
+        @Override
+        protected void updateJudgeInterpretationResult(
+                InterpretSentenceResult interpretationResult,
+                DecisionTreeReasonerBackend.Output backendOutput
+        ) {
+            updateInterpretationResult(interpretationResult, backendOutput.situation());
+        }
 
-                    @Override
-                    protected void updateJudgeInterpretationResult(
-                            InterpretSentenceResult interpretationResult,
-                            DecisionTreeReasonerBackend.Output backendOutput
-                    ) {
-                        updateInterpretationResult(interpretationResult, backendOutput.situation());
-                    }
+        private void updateInterpretationResult(
+                InterpretSentenceResult interpretationResult,
+                LearningSituation situation
+        ) {
+            interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
+            int unevaluatedCount = (int) situation.getDomainModel().getObjects()
+                    .stream().filter(objectDef ->
+                            hasState(objectDef, "unevaluated")
+                    )
+                    .count();
+            // Добавляем количество таких, о которых уже известно,
+            // что выполняться они не будут, но их родитель ещё не выполнился,
+            // и нам не нужно давать студенту подсказку об этом через видимое число оставшихся шагов.
+            int omittedDistractorCount = (int) situation.getDomainModel().getObjects()
+                    .stream().filter(objectDef ->
+                            (hasState(objectDef, "omitted")
+                                    && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
+                    )
+                    .count();
 
-                    private void updateInterpretationResult(
-                            InterpretSentenceResult interpretationResult,
-                            LearningSituation situation
-                    ) {
-                        interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-                        int unevaluatedCount = (int) situation.getDomainModel().getObjects()
-                                .stream().filter(objectDef ->
-                                        hasState(objectDef, "unevaluated")
-                                )
-                                .count();
-                        // Добавляем количество таких, о которых уже известно,
-                        // что выполняться они не будут, но их родитель ещё не выполнился,
-                        // и нам не нужно давать студенту подсказку об этом через видимое число оставшихся шагов.
-                        int omittedDistractorCount = (int) situation.getDomainModel().getObjects()
-                                .stream().filter(objectDef ->
-                                        (hasState(objectDef, "omitted")
-                                        && getParent(objectDef).map(parent -> hasState(parent, "unevaluated")).orElse(false))
-                                )
-                                .count();
+            int omittedCount = (int) situation.getDomainModel().getObjects()
+                    .stream().filter(objectDef ->
+                            hasState(objectDef, "omitted")
+                    )
+                    .count();
 
-                        int omittedCount = (int) situation.getDomainModel().getObjects()
-                                .stream().filter(objectDef ->
-                                        hasState(objectDef, "omitted")
-                                )
-                                .count();
+            // Эвристика, может давать сбои: если студент нажал "ничего больше не выполнится",
+            // то дерево не запускалось и его переменные не задавались.
+            boolean endEvaluationClicked = situation.getDecisionTreeVariables().isEmpty();
 
-                        // Эвристика, может давать сбои: если студент нажал "ничего больше не выполнится",
-                        // то дерево не запускалось и его переменные не задавались.
-                        boolean endEvaluationClicked = situation.getDecisionTreeVariables().isEmpty();
+            // Потребовать нажать кнопку "ничего больше не выполнится", если есть корректно опущенные операторы (чтобы проверить, понимает ли студент это).
+            int oneMoreStepForEndEvaluation = omittedCount > 0 && !endEvaluationClicked ? 1 : 0;
 
-                        // Потребовать нажать кнопку "ничего больше не выполнится", если есть корректно опущенные операторы (чтобы проверить, понимает ли студент это).
-                        int oneMoreStepForEndEvaluation = omittedCount > 0 && !endEvaluationClicked ? 1 : 0;
+            interpretationResult.IterationsLeft = unevaluatedCount + omittedDistractorCount + oneMoreStepForEndEvaluation;
 
-                        interpretationResult.IterationsLeft = unevaluatedCount + omittedDistractorCount + oneMoreStepForEndEvaluation;
+            if (interpretationResult.IterationsLeft == 0) {
+                // Достигли полного завершения задачи.
+                // Ошибок уже быть не может — сбросим их все.
+                interpretationResult.isAnswerCorrect = true;
+                interpretationResult.violations = List.of();
+                interpretationResult.explanations = List.of();
+            }
+        }
 
-                        if (interpretationResult.IterationsLeft == 0) {
-                            // Достигли полного завершения задачи.
-                            // Ошибок уже быть не может — сбросим их все.
-                            interpretationResult.isAnswerCorrect = true;
-                            interpretationResult.violations = List.of();
-                            interpretationResult.explanations = List.of();
-                        }
-                    }
+        private Optional<ObjectDef> getParent(ObjectDef object) {
+            return object.getRelationshipLinks().listByName("isOperandOf").stream().findFirst()
+                    .map(link -> link.getObjects().get(0));
+        }
 
-                    private Optional<ObjectDef> getParent(ObjectDef object) {
-                        return object.getRelationshipLinks().listByName("isOperandOf").stream().findFirst()
-                                .map(link -> link.getObjects().get(0));
-                    }
+        private boolean hasState(ObjectDef object, String stateValueName) {
+            if (!object.isInstanceOf("operand")) {
+                return false;
+            }
+            return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state"));
+        }
 
-                    private boolean hasState(ObjectDef object, String stateValueName) {
-                        if (!object.isInstanceOf("operand")) {
-                            return false;
-                        }
-                        return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state"));
-                    }
+        @Override
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
+            return null; //Solve not used in DecisionTreeReasonerBackend
+        }
 
-                    @Override
-                    public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
-                        return null; //Solve not used in DecisionTreeReasonerBackend
-                    }
-
-                    @Override
-                    public String getBackendId() {
-                        return getSolvingBackendId();
-                    }
-                }
-        );
+        @Override
+        public String getBackendId() {
+            return DecisionTreeReasonerBackend.BACKEND_ID;
+        }
     }
 
     protected static String oldQuestionModelToTokens(List<BackendFactEntity> facts) {

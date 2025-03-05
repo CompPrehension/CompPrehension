@@ -2,12 +2,23 @@ package org.vstu.compprehension.models.businesslogic.backend;
 
 
 import lombok.extern.log4j.Log4j2;
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.ontology.*;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.rulesys.BuiltinRegistry;
-import org.apache.jena.vocabulary.*;
+import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
+import org.apache.jena.reasoner.rulesys.Rule;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.util.PrintUtil;
+import org.apache.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.VCARD;
 import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.Law;
+import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
@@ -15,17 +26,6 @@ import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
-import org.vstu.compprehension.models.businesslogic.LawFormulation;
-import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.ontology.*;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
-import org.apache.jena.reasoner.rulesys.Rule;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.util.PrintUtil;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
@@ -38,8 +38,6 @@ import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
 import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
 
 
-@Primary
-@Component @RequestScope
 @Log4j2
 public class JenaBackend extends FactBackend {
 

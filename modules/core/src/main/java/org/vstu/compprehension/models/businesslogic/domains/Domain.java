@@ -201,13 +201,15 @@ public interface Domain {
      */
     Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags);
 
+    Question solveQuestion(Question question, List<Tag> tags);
+
     /**
-     * TODO REMOVE
-     * Get an interface instance which this Domain uses to interact with a given backend <br>
-     * Returns null if no such interface exists
-     * - however, this situation should not be possible if the system is working correctly
+     * @param question current question being solved
+     * @param responses new responses from student (to add to solution if correct)
+     * @param tags Exercise tags
+     * @return interpretation of backend's judgement
      */
-    DomainToBackendAdapter<?, ?, ?> getBackendInterface(String backendId);
+    InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags);
 
 
     /**

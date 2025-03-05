@@ -6,15 +6,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -582,14 +579,6 @@ public abstract class DomainBase implements Domain {
         return questionRequest;
     }
 
-    /**
-     * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
-     */
-    @NotNull
-    public String getJudgingBackendId(/* TODO: pass question type ??*/){
-        return this.getSolvingBackendId();
-    }
-
     public List<Law> getQuestionLaws(String questionDomainType, List<Tag> tags) {
         Collection<PositiveLaw> positiveLaws = getQuestionPositiveLaws(questionDomainType, tags);
         Collection<NegativeLaw> negativeLaws = getQuestionNegativeLaws(questionDomainType, tags);
@@ -710,32 +699,5 @@ public abstract class DomainBase implements Domain {
 
             return question;
         }
-    }
-
-    //-----
-
-    /**
-     * Define all the {@link DomainToBackendAdapter} this domain supports
-     */
-    protected Set<DomainToBackendAdapter<?, ?, ?>> createBackendAdapters(){
-        return Set.of(
-            new FactBackend.Interface<>(JenaBackend.class, this, "Jena")
-        );
-    }
-
-    private final Map<String, DomainToBackendAdapter<?, ?, ?>> backendClassToInterfaceMap =
-        createBackendAdapters().stream()
-            .collect(Collectors.toMap(
-                DomainToBackendAdapter::getBackendId,
-                Function.identity()
-            ));
-
-    /**
-     * Get an interface instance which this Domain uses to interact with a given backend <br>
-     * Returns null if no such interface exists
-     * - however, this situation should not be possible if the system is working correctly
-     */
-    public final DomainToBackendAdapter<?, ?, ?> getBackendInterface(String backendId){
-        return backendClassToInterfaceMap.get(backendId);
     }
 }

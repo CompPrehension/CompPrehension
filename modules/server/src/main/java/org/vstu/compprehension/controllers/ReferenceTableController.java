@@ -11,7 +11,8 @@ import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.Skill;
-import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -26,14 +27,12 @@ import java.util.stream.Collectors;
 public class ReferenceTableController {
     private final DomainFactory domainFactory;
     private final AbstractStrategyFactory strategyFactory;
-    private final BackendFactory backendFactory;
     private final UserService userService;
 
     @Autowired
-    public ReferenceTableController(DomainFactory domainFactory, StrategyFactory strategyFactory, BackendFactory backendFactory, UserService userService) {
+    public ReferenceTableController(DomainFactory domainFactory, StrategyFactory strategyFactory, UserService userService) {
         this.domainFactory = domainFactory;
         this.strategyFactory = strategyFactory;
-        this.backendFactory = backendFactory;
         this.userService = userService;
     }
 
@@ -59,7 +58,7 @@ public class ReferenceTableController {
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })
     @ResponseBody
     public Set<String> getBackends() {
-        return backendFactory.getBackendIds();
+        return Set.of(JenaBackend.BackendId, DecisionTreeReasonerBackend.BACKEND_ID);
     }
 
     @RequestMapping(value = {"/domains"}, method = { RequestMethod.GET })
