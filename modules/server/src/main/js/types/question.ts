@@ -26,7 +26,6 @@ export const TQuestionAnswer : io.Type<QuestionAnswer> = io.type({
 }, 'QuestionAnswer');
 
 type QuestionBase = {
-    attemptId: number,
     questionId: number,
     type: QuestionType,
     options: QuestionOptions,
@@ -36,7 +35,6 @@ type QuestionBase = {
     feedback: Feedback | null,
 }
 const TQuestionBase : io.Type<QuestionBase> = io.type({
-    attemptId: io.number,
     questionId: io.number,
     type: TQuestionType,
     options: TQuestionOptions,

@@ -47,6 +47,16 @@ public class QuestionRequestLogEntity {
     private List<String> allowedLawNames;
 
     @Type(JsonType.class)
+    private List<String> targetSkillNames;
+
+    @Type(JsonType.class)
+    private List<String> deniedSkillNames;
+
+    @Type(JsonType.class)
+    private List<String> allowedSkillNames;
+
+
+    @Type(JsonType.class)
     private List<String> targetTags;
 
     // bit fields
@@ -54,6 +64,8 @@ public class QuestionRequestLogEntity {
     long conceptsDeniedBitmask;
     long lawsTargetedBitmask;
     long lawsDeniedBitmask;
+    long skillsDeniedBitmask;
+    long skillsTargetedBitmask;
     long targetTagsBitmask;
 
     @Type(JsonType.class)

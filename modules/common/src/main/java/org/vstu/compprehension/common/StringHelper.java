@@ -68,4 +68,9 @@ public class StringHelper {
         }
         return false;
     }
+
+    public static String truncate(@Nullable String input, int maxLength) {
+        if (input == null) return null;
+        return input.length() > maxLength ? input.substring(0, maxLength) : input;
+    }
 }

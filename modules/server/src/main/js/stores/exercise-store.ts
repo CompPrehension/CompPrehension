@@ -13,6 +13,7 @@ import { zero } from "fp-ts/lib/OptionT";
 import { getUrlParameterByName } from "../types/utils";
 import { UserInfo } from "../types/user-info";
 import { Exercise } from "../types/exercise";
+import { IUserController, UserController } from "../controllers/exercise/user-controller";
 
 @injectable()
 export class ExerciseStore {
@@ -29,6 +30,7 @@ export class ExerciseStore {
     @observable isDebug = false;
 
     constructor(@inject(ExerciseController) private readonly exerciseController: IExerciseController,
+        @inject(UserController) private readonly userController: IUserController,
         @inject(SurveyController) private readonly surveyController: SurveyController,
         @inject(QuestionStore) currentQuestion: QuestionStore) {
         // calc store initial state
@@ -98,7 +100,7 @@ export class ExerciseStore {
         })
 
         const [user, exercise] = await Promise.all([
-            this.exerciseController.getCurrentUser(),
+            this.userController.getCurrentUser(),
             this.exerciseController.getExerciseShortInfo(this.exerciseId)
         ])
         

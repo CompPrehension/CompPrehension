@@ -7,12 +7,12 @@ export type UserInfo = {
     displayName: string,
     email: string | null,
     language: Language,
-    //roles: Role[],
+    roles: string[],
 }
 export const TUserInfo : io.Type<UserInfo> = io.type({
     id: io.number,
     displayName: io.string,
     email: io.union([io.string, io.null]),
     language: TLanguage,
-    //roles: io.array(TRole),
+    roles: io.array(io.string),
 }, 'UserInfo')

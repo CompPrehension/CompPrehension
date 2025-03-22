@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.storage;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
@@ -22,7 +23,10 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Модель вопроса для сериализации
@@ -32,7 +36,6 @@ import java.util.*;
 @Log4j2
 public class SerializableQuestion {
     private QuestionData questionData;
-    private QuestionMetadata metadata;
     private List<String> concepts;
     private List<String> negativeLaws;
     private List<String> tags;
@@ -61,33 +64,13 @@ public class SerializableQuestion {
 
     @Builder
     @Getter @ToString
+    @EqualsAndHashCode
     public static class StatementFact {
         private String subjectType;
         private String subject;
         private String verb;
         private String objectType;
         private String object;
-    }
-    
-    @Builder
-    @Getter
-    public static class QuestionMetadata {
-        private String name;
-        private String domainShortname;
-        private String templateId;
-        private long tagBits;
-        private long conceptBits;
-        private long lawBits;
-        private long violationBits;
-        private long traceConceptBits;
-        private double solutionStructuralComplexity;
-        private double integralComplexity;
-        private int solutionSteps;
-        private int distinctErrorsCount;
-        private int version;
-        private String structureHash;
-        private String origin;
-        private Date dateCreated;
     }
     
     public static SerializableQuestion fromQuestion(Question question) {
@@ -119,50 +102,10 @@ public class SerializableQuestion {
                         ).toList()).build())
                 .concepts(question.getConcepts())
                 .negativeLaws(question.getNegativeLaws())
-                .tags(question.getTags().stream().toList())
+                .tags(question.getTagNames())
                 .build();
-        if (question.getMetadata() != null) {
-            builder.metadata(QuestionMetadata.builder()
-                    .name(question.getMetadata().getName())
-                    .domainShortname(question.getDomain().getShortName())
-                    .templateId(question.getMetadata().getTemplateId())
-                    .tagBits(question.getMetadata().getTagBits())
-                    .conceptBits(question.getMetadata().getConceptBits())
-                    .lawBits(question.getMetadata().getLawBits())
-                    .violationBits(question.getMetadata().getViolationBits())
-                    .traceConceptBits(question.getMetadata().getTraceConceptBits())
-                    .solutionStructuralComplexity(question.getMetadata().getSolutionStructuralComplexity())
-                    .integralComplexity(question.getMetadata().getIntegralComplexity())
-                    .solutionSteps(question.getMetadata().getSolutionSteps())
-                    .distinctErrorsCount(question.getMetadata().getDistinctErrorsCount())
-                    .version(question.getMetadata().getVersion())
-                    .structureHash(question.getMetadata().getStructureHash())
-                    .origin(question.getMetadata().getOrigin())
-                    .dateCreated(question.getMetadata().getCreatedAt())
-                    .build());
-        }       
 
         return builder.build();
-    }
-    
-    public QuestionMetadataEntity toMetadataEntity() {
-        return QuestionMetadataEntity.builder()
-                .name(metadata.getName())
-                .domainShortname(metadata.getDomainShortname())
-                .templateId(metadata.getTemplateId())
-                .tagBits(metadata.getTagBits())
-                .conceptBits(metadata.getConceptBits())
-                .lawBits(metadata.getLawBits())
-                .violationBits(metadata.getViolationBits())
-                .traceConceptBits(metadata.getTraceConceptBits())
-                .solutionStructuralComplexity(metadata.getSolutionStructuralComplexity())
-                .integralComplexity(metadata.getIntegralComplexity())
-                .solutionSteps(metadata.getSolutionSteps())
-                .distinctErrorsCount(metadata.getDistinctErrorsCount())
-                .version(metadata.getVersion())
-                .structureHash(metadata.getStructureHash())
-                .origin(metadata.getOrigin())
-                .build();
     }
     
     public Question toQuestion(@NotNull Domain domain) {
@@ -191,7 +134,7 @@ public class SerializableQuestion {
                         .isRightCol(a.isRightCol())
                         .concept(a.getConcept())
                         .build())
-                .toList());
+                .collect(Collectors.toCollection(ArrayList::new)));
         questionEntity.setInteractions(new ArrayList<>());
         questionEntity.setDomainEntity(domain.getDomainEntity());
         questionEntity.setStatementFacts(questionData.getStatementFacts()
@@ -202,12 +145,12 @@ public class SerializableQuestion {
                         s.getVerb(),
                         s.getObjectType(),
                         s.getObject()))
-                .toList());
+                .collect(Collectors.toCollection(ArrayList::new)));
         questionEntity.setSolutionFacts(new ArrayList<>());
+        questionEntity.setTags(getTags());
 
         var result = new Question(questionEntity, domain);
         result.setConcepts(new ArrayList<>(getConcepts()));
-        result.setTags(new HashSet<>(getTags()));
         result.setNegativeLaws(new ArrayList<>(Optional.ofNullable(getNegativeLaws()).orElse(List.of())));
         return result;
     }
@@ -268,7 +211,7 @@ public class SerializableQuestion {
         return gson.toJson(question);
     }
     
-    private static class QuestionDataDeserializer implements JsonDeserializer<QuestionData> {
+    protected static class QuestionDataDeserializer implements JsonDeserializer<QuestionData> {
         @Override
         public QuestionData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) 
                 throws JsonParseException {

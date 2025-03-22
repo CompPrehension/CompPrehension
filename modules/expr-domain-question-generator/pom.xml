@@ -30,6 +30,11 @@
             <artifactId>jcommander</artifactId>
             <version>1.82</version>
         </dependency>
+       <dependency>
+           <groupId>com.github.bardoor</groupId>
+           <artifactId>meaning_tree</artifactId>
+           <version>${meaningtree.version}</version>
+       </dependency>
     </dependencies>
 
 

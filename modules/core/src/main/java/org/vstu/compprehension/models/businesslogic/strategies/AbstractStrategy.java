@@ -5,9 +5,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.ExerciseConceptDto;
 import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.Skill;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -65,6 +67,17 @@ public interface AbstractStrategy {
                 .flatMap(ec -> Stream.concat(
                         domain.getPositiveLawWithImplied(ec.getName()).stream(),
                         domain.getNegativeLawWithImplied(ec.getName()).stream()))
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    default List<Skill> getExerciseStageSkillsWithImplied(
+            @NotNull List<ExerciseSkillDto> stageSkills,
+            Domain domain,
+            RoleInExercise role) {
+        return stageSkills.stream()
+                .filter(ec -> ec.getKind().equals(role))
+                .map(ec -> domain.getSkill(ec.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -135,25 +148,31 @@ public interface AbstractStrategy {
 
         // concepts
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();
-        // take target concepts as is, use their children as `allowed`
-        qr.setTargetConcepts (filterExerciseStageConcepts(exConcepts, domain, RoleInExercise.TARGETED));
+        qr.setTargetConcepts(filterExerciseStageConcepts(exConcepts, domain, RoleInExercise.TARGETED));
 
         Set<Concept> allowed = new HashSet<>(getExerciseStageConceptsWithChildren(exConcepts, domain, RoleInExercise.PERMITTED));
         allowed.addAll(exConcepts.stream().filter(ec -> ec.getKind().equals(RoleInExercise.TARGETED)).flatMap(ec -> domain.getChildrenOfConcept(ec.getName()).stream()).collect(Collectors.toSet()));
         qr.setAllowedConcepts(List.copyOf(allowed));
 
-        qr.setDeniedConcepts (getExerciseStageConceptsWithChildren(exConcepts, domain, RoleInExercise.FORBIDDEN));
+        qr.setDeniedConcepts(getExerciseStageConceptsWithChildren(exConcepts, domain, RoleInExercise.FORBIDDEN));
 
         // laws
         List<ExerciseLawDto> exLaws = exerciseStage.getLaws();
         qr.setTargetLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.TARGETED));
         qr.setAllowedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.PERMITTED));
-        qr.setTargetTags(exerciseAttempt.getExercise().getTags().stream().map(t -> domain.getTags().get(t)).filter(Objects::nonNull).toList());
         qr.setDeniedLaws(getExerciseStageLawsWithImplied(exLaws, domain, RoleInExercise.FORBIDDEN));
+
+        // tags
+        qr.setTargetTags(exerciseAttempt.getExercise().getTags().stream().map(t -> domain.getTags().get(t)).filter(Objects::nonNull).toList());
+
+        // skills
+        qr.setTargetSkills(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.TARGETED));
+        qr.setAllowedSkills(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.PERMITTED));
+        qr.setDeniedSkills(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.FORBIDDEN));
 
         // questions
         qr.setDeniedQuestionNames(listQuestionNamesOfAttempt(exerciseAttempt));
-        
+
         // deny individual questions only
         qr.setDeniedQuestionMetaIds(exerciseAttempt.getQuestions().stream()
                 .filter(q -> q.getMetadata() != null)

@@ -1,21 +1,23 @@
 package org.vstu.compprehension.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.dto.*;
-import org.vstu.compprehension.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.dto.ExerciseAttemptDto;
+import org.vstu.compprehension.dto.ExerciseDto;
+import org.vstu.compprehension.dto.ExerciseInfoDto;
+import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
@@ -33,7 +35,10 @@ public class ExerciseController {
         this.exerciseRepository = exerciseRepository;
     }
 
-
+    /**
+     * Returns all exercises
+     * @return List of exercises
+     */
     @RequestMapping(value = { "all"}, method = { RequestMethod.GET })
     @ResponseBody
     public List<ExerciseDto> getAll() {
@@ -41,97 +46,11 @@ public class ExerciseController {
     }
 
     /**
-     * Add an answer to the question
-     * @param interaction Interaction object
-     * @param request Current request
-     * @return Feedback
+     * Returns exercise by id
+     * @param id Exercise id
+     * @return Exercise
      * @throws Exception Something got wrong
      */
-    @RequestMapping(value = {"addQuestionAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
-            consumes = "application/json")
-    @ResponseBody
-    public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        return frontendService.addQuestionAnswer(interaction);
-    }
-
-    /**
-     * Add an answer to the question
-     * @param interaction Interaction object
-     * @param request Current request
-     * @return Feedback
-     * @throws Exception Something got wrong
-     */
-    @RequestMapping(value = {"addSupplementaryQuestionAnswer"}, method = { RequestMethod.POST }, produces = "application/json",
-            consumes = "application/json")
-    @ResponseBody
-    public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        return frontendService.addSupplementaryQuestionAnswer(interaction);
-    }
-
-    /**
-     * Generate new question for exercise attempt
-     * @param attemptId Exercise attempt id
-     * @param request Current request
-     * @return Question
-     * @throws Exception Something got wrong
-     */
-    @RequestMapping(value = {"generateQuestion"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();;
-        return frontendService.generateQuestion(attemptId);
-    }
-
-    /**
-     * Generate new supplementary question
-     * @param questionRequest QuestionRequest
-     * @param request Current request
-     * @return Question
-     * @throws Exception Something got wrong
-     */
-    @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
-    @ResponseBody
-    public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();
-        return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
-    }
-
-    /**
-     * Get question by id
-     * @param questionId Question Id
-     * @param request Current request
-     * @return Question
-     * @throws Exception Something got wrong
-     */
-    @RequestMapping(value = {"getQuestion"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
-        return frontendService.getQuestion(questionId);
-    }
-
-    /**
-     * Generate next correct answer
-     * @param questionId Question Id
-     * @param request Current request
-     * @return Next correct answer
-     * @throws Exception Something got wrong
-     */
-    @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();;
-        return frontendService.generateNextCorrectAnswer(questionId);
-    }
-
-
-    /**
-     * Load session info
-     * @param request Current request
-     * @return Session info
-     * @throws Exception Something got wrong
-     */
-
-
     @RequestMapping(value = {"shortInfo"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseInfoDto getExerciseShortInfo(long id, HttpServletRequest request) throws Exception {

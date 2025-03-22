@@ -16,9 +16,11 @@ import {RequestError} from "../../types/request-error";
 import {delayPromise} from "../../utils/helpers";
 import {Exercise} from "../../types/exercise";
 import {UserInfo} from "../../types/user-info";
+import { IQuestionController } from "./question-controller";
+import { IUserController } from "./user-controller";
 
 @injectable()
-export class TestExerciseController implements IExerciseController {
+export class TestExerciseController implements IExerciseController, IQuestionController, IUserController {
     async getCurrentUser(): PromiseEither<RequestError, UserInfo> {
         return E.right({
             id: 999999,
@@ -69,7 +71,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 1) {
             result = {
                 type: 'SINGLE_CHOICE',
-                attemptId: -1,
                 questionId: 1,
                 text: 'question text',
                 answers: [
@@ -89,7 +90,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 2) {
             result = {
                 type: 'MULTI_CHOICE',
-                attemptId: -1,
                 questionId: 2,
                 text: 'question text',
                 answers: [
@@ -110,7 +110,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 3) {
             result = {
                 type: 'SINGLE_CHOICE',
-                attemptId: -1,
                 questionId: 3,
                 text: 'question text with <span id="answer_0">select1</span> and <span id="answer_1">select2</span>',
                 answers: [],
@@ -126,7 +125,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 4) {
             result = {
                 type: 'MULTI_CHOICE',
-                attemptId: -1,
                 questionId: 4,
                 text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
                 answers: [],
@@ -142,7 +140,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 5) {
             result = {
                 type: 'MATCHING',
-                attemptId: -1,
                 questionId: 5,
                 text: 'question text ',
                 answers: [
@@ -186,7 +183,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 6) {
             result = {
                 type: 'MATCHING',
-                attemptId: -1,
                 questionId: 6,
                 text: 'question text with <span id="answer_0">drop</span> and <span id="answer_1">drop</span>',
                 answers: [],
@@ -217,7 +213,6 @@ export class TestExerciseController implements IExerciseController {
         if (questionId === 7) {
             result = {
                 type: 'MULTI_CHOICE',
-                attemptId: -1,
                 questionId: 7,
                 text: `question text with <span id="answer_0"></span> and <span id="answer_1"></span>`,
                 answers: [],
@@ -239,8 +234,13 @@ export class TestExerciseController implements IExerciseController {
             return E.right(result);
         return E.left({ message: "No such question" });
     }
-    async generateQuestion(attemptId: number): PromiseEither<RequestError, Question> {
-        console.log(`generateQuestion?attemptId=${attemptId}`);
+    async generateQuestionByAttempt(attemptId: number): PromiseEither<RequestError, Question> {
+        console.log(`generateQuestionByAttempt?attemptId=${attemptId}`);
+        await delayPromise(3000);
+        return E.left({ message:"Method not implemented."});
+    }
+    async generateQuestionByMetadata(metadataId: number): PromiseEither<RequestError, Question> {
+        console.log(`generateQuestionByMetadata?metadataId=${metadataId}`);
         await delayPromise(3000);
         return E.left({ message:"Method not implemented."});
     }

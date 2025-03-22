@@ -25,9 +25,7 @@ public class Question {
     public @Nullable QuestionMetadataEntity getMetadata() {
         return questionData.getMetadata();
     }
-    @Getter
-    @Setter
-    protected Set<String> tags;
+
     @Getter
     @NotNull 
     final protected Domain domain;
@@ -37,12 +35,21 @@ public class Question {
         this.domain = domain;
         concepts = new ArrayList<>();
         negativeLaws = new ArrayList<>();
-        tags = new HashSet<>();
     }
 
     public int answerObjectsCount() {
-        
         return questionData.getAnswerObjects().size();
+    }
+
+    public @NotNull List<String> getTagNames() {
+        return questionData.getTags();
+    }
+
+    public List<Tag> getTags() {
+        return getTagNames().stream()
+                .map(domain::getTag)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     public void addAnswerObject(AnswerObjectEntity newObject) {

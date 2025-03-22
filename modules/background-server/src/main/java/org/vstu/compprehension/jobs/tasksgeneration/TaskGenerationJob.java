@@ -1,5 +1,7 @@
 package org.vstu.compprehension.jobs.tasksgeneration;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -12,8 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.dto.GenerationRequest;
+import org.vstu.compprehension.models.businesslogic.SourceCodeRepositoryInfo;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
@@ -24,17 +27,11 @@ import org.vstu.compprehension.utils.ZipUtility;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -327,6 +324,21 @@ public class TaskGenerationJob {
                                     ZipUtility.unzip(zipFile.toString(), targetFolderPath.toString());
                                     Files.delete(zipFile);
                                     downloadedRepos.add(targetFolderPath);
+                                    SourceCodeRepositoryInfo info = SourceCodeRepositoryInfo.builder()
+                                            .name(repo.getFullName())
+                                            .license(repo.getLicense() != null
+                                                ? repo.getLicense().getName()
+                                                : null)
+                                            .url(repo.getHtmlUrl().toString())
+                                            .build();
+                                    Gson gson = new GsonBuilder()
+                                            .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                                            .disableHtmlEscaping()
+                                            .setPrettyPrinting()
+                                            .create();
+                                    Files.createFile(Path.of(targetFolderPath.toString(), ".gh_repo_info"));
+                                    Files.writeString(Path.of(targetFolderPath.toString(), ".gh_repo_info"),
+                                            gson.toJson(info), StandardOpenOption.WRITE);
                                     log.info("Downloaded repo [{}] to location [{}]", repo.getFullName(), targetFolderPath);
                                 } catch (IOException e) {
                                     throw new RuntimeException(e);
@@ -404,9 +416,15 @@ public class TaskGenerationJob {
             Files.createDirectories(destination);
             result.add(destination);
 
-            var files = FileUtility.findFiles(repo, new String[]{".c", ".m"});
+            String[] supportedFilenames;
+            if (config.getDomainShortName().equals("expression_dt")) {
+                supportedFilenames = new String[]{".c", ".cpp", ".py", ".java", ".h", ".hpp", ".cxx"};
+            } else {
+                supportedFilenames = new String[] {".c", ".m"};
+            }
+            var files = FileUtility.findFiles(repo, supportedFilenames);
             files = files.subList(0, Math.min(50, files.size()));
-            log.info("Found {} *.c & *.m files", files.size());
+            log.info("Found {} source code files", files.size());
 
             // TODO: make parser cmd customizable?
 
@@ -419,6 +437,7 @@ public class TaskGenerationJob {
             parserProcessCommandBuilder = FileUtility.truncateLongCommandline(parserProcessCommandBuilder, 2 + 10 + 5 + destination.toString().length());
 
             parserProcessCommandBuilder.add("--");
+            parserProcessCommandBuilder.add(Path.of(repo.toString(), ".gh_repo_info").toString());  // e.g. "expression"
             parserProcessCommandBuilder.add(fixDomainShortName(config.getDomainShortName()));  // e.g. "expression"
             parserProcessCommandBuilder.add(destination.toString());
             log.debug("Parser executable command: {}", parserProcessCommandBuilder);
@@ -464,8 +483,8 @@ public class TaskGenerationJob {
 
         var result = new ArrayList<Path>(parsedRepos.size());
         for (var repoDir : parsedRepos) {
-            var allTtlFiles = FileUtility.findFiles(repoDir, new String[]{".ttl"});
-            log.info("Found {} ttl files in: {}", allTtlFiles.size(), repoDir);
+            var allFiles = FileUtility.findFiles(repoDir, new String[]{".ttl", ".json"});
+            log.info("Found {} question files in: {}", allFiles.size(), repoDir);
 
             String leafFolder = repoDir.getFileName().toString();
             Path destination = Path.of(generatorConfig.getOutputFolderPath(), leafFolder);
@@ -536,23 +555,35 @@ public class TaskGenerationJob {
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
+            var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
+
             for (val file : allJsonFiles) {
-                val q = SerializableQuestion.deserialize(file);
+                val q = SerializableQuestionTemplate.deserialize(file);
                 if (q == null) {
                     continue;
                 }
 
-                QuestionMetadataEntity meta = q.toMetadataEntity();
-                if (meta == null) {
+                HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
+                        .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity)
+                        .collect(Collectors.toCollection(HashSet::new));
+                if (metaList.isEmpty()) {
                     skippedQuestions += 1;
                     // в вопросе нет метаданных, невозможно проверить
                     log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
                     continue;
                 }
-                
-                if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
-                    skippedQuestions += 1;
-                    log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+
+                metadataToRemove.clear();
+                for (QuestionMetadataEntity meta : metaList) {
+                    if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
+                        skippedQuestions += 1;
+                        log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+                        metadataToRemove.add(meta);
+                    }
+                }
+                metadataToRemove.forEach(metaList::remove);
+                if (metaList.isEmpty()) {
+                    log.info("All metadata already exists for file [{}]. Skipping...", file);
                     continue;
                 }
 
@@ -567,42 +598,55 @@ public class TaskGenerationJob {
                         if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
                             continue;
                         
-                        var searchRequest = gr.getQuestionRequest();                        
-                        if (!storage.isMatch(meta, searchRequest)) {
-                            log.debug("Question [{}] does not match generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
-                            continue;
+                        var searchRequest = gr.getQuestionRequest();
+
+                        metadataToRemove.clear();
+                        for (QuestionMetadataEntity meta : metaList) {
+                            if (!storage.isMatch(meta, searchRequest)) {
+                                log.debug("Question [{}] does not match generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                                metadataToRemove.add(meta);
+                            }
                         }
+                        metadataToRemove.forEach(metaList::remove);
 
-                        log.debug("Question [{}] matches generation requests {}", q.getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                        if (!metaList.isEmpty()) {
+                            log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
 
-                        // set flag to use this question
-                        shouldSave = true;
-                        questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
-                        matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
+                            // set flag to use this question
+                            shouldSave = true;
+                            questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
+                            matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
+                        }
                     }
                 }
 
-                if (!shouldSave) {
+                if (!shouldSave || metaList.isEmpty()) {
                     skippedQuestions += 1;
-                    log.debug("Question [{}] skipped because zero qr matches", meta.getName());
+                    log.debug("Question [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
                     continue;
                 }
 
                 if (generatorConfig.isSaveToDb()) {
                     // save question data in the database
                     QuestionDataEntity questionData = new QuestionDataEntity();
-                    questionData.setData(q);
+                    questionData.setData(q.getCommonQuestion());
                     questionData = storage.saveQuestionDataEntity(questionData);
 
                     // then save metadata
-                    meta.setGenerationRequestId(matchedGenerationRequestId);
-                    meta.setQuestionData(questionData);
-                    meta = storage.saveMetadataEntity(meta);
+                    for (QuestionMetadataEntity meta : metaList) {
+                        meta.setGenerationRequestId(matchedGenerationRequestId);
+                        meta.setQuestionData(questionData);
+                        meta = storage.saveMetadataEntity(meta);
+                    }
                 } else {
                     log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                 }
                 log.info("* * *");
-                log.info("Question [{}] saved with data in database. Metadata id: {}", q.getQuestionData().getQuestionName(), meta.getId());
+                log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
+                        metaList.stream()
+                                .map(QuestionMetadataEntity::getId)
+                                .map((Integer i) -> Integer.toString(i))
+                                .collect(Collectors.joining(", ")));
                 savedQuestions += 1;
             }
 

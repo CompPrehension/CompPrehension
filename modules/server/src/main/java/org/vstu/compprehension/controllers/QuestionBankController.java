@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.dto.QuestionBankCountDto;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
+import org.vstu.compprehension.dto.QuestionBankSearchResultDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -35,9 +35,9 @@ public class QuestionBankController {
         this.userService     = userService;
     }
 
-    @RequestMapping(value = {"count"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
+    @RequestMapping(value = {"search"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public QuestionBankCountDto getQuestionsCount(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
+    public QuestionBankSearchResultDto search(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");
@@ -74,17 +74,37 @@ public class QuestionBankController {
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
+        var targetSkills = searchRequest.getSkills().stream()
+                .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                .map(c -> domain.getSkill(c.getName()))
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        var deniedSkills = searchRequest.getSkills().stream()
+                .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                .map(c -> domain.getSkill(c.getName()))
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
 
         var qr = QuestionRequest.builder()
                 .targetConcepts(targetConcepts)
                 .deniedConcepts(deniedConcepts)
                 .targetLaws(targetLaws)
                 .deniedLaws(deniedLaws)
+                .targetSkills(targetSkills)
+                .deniedSkills(deniedSkills)
                 .complexity(searchRequest.getComplexity())
                 .targetTags(targetTags)
                 .domainShortname(domain.getShortnameForQuestionSearch())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);
-        return questionStorage.countQuestionsWithTopRated(qr);
+
+        var questionsLimit = searchRequest.getLimit();
+        if (questionsLimit < 0 || questionsLimit > 100) {
+            throw new IllegalArgumentException("Limit must be in range [0, 100]");
+        }
+
+        return questionStorage.getStatsByQuestionRequest(qr, questionsLimit);
     }
 }

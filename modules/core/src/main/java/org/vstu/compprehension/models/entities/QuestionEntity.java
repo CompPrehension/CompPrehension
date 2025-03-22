@@ -61,6 +61,11 @@ public class QuestionEntity {
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
+    @Type(JsonType.class)
+    @Column(name = "tags", columnDefinition = "json", nullable = false)
+    @NotNull
+    private List<String> tags = new ArrayList<>(0);
+
     @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     @OrderBy("answerId")
@@ -77,7 +82,8 @@ public class QuestionEntity {
 
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "exerciseAttempt_id", nullable = false)
+    @JoinColumn(name = "exercise_attempt_id", nullable = true)
+    @Nullable
     private ExerciseAttemptEntity exerciseAttempt;
 
     @ToString.Exclude

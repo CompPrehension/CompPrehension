@@ -5,9 +5,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.adapters.*;
+import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 @Log4j2
 public class Main {
+
     public static void main(String[] args) {
         Main main = new Main();
         try {
@@ -48,15 +49,17 @@ public class Main {
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 
         var domainEntity = new FakeDomainRepository().findById("").orElseThrow();
-        var domain = new ProgrammingLanguageExpressionDomain(
+        var domain = new ProgrammingLanguageExpressionDTDomain(
                 domainEntity,
-                new FakeLocalizationService(),
-                new FakeRandomProvider(),
-                new QuestionBank(
-                        new FakeQuestionMetadataRepository(),
-                        new FakeQuestionDataRepository(),
-                        new QuestionMetadataManager( new FakeQuestionMetadataRepository()),
-                        null
+                new ProgrammingLanguageExpressionDomain(
+                        domainEntity,
+                        new FakeLocalizationService(),
+                        new FakeRandomProvider(),
+                        new QuestionBank(
+                                new FakeQuestionMetadataRepository(),
+                                new FakeQuestionDataRepository(),
+                                null
+                        )
                 )
         );
 

@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseListItem, QuestionBankCount, Strategy, TDomain, TExerciseCard, TExerciseListItem, TQuestionBankCount, TStrategy } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseListItem, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
@@ -52,14 +52,16 @@ export class ExerciseSettingsController {
         return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
 
-    getBankStats(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number): PromiseEither<RequestError, QuestionBankCount> {
+    search(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number, limit: number, signal?: AbortSignal): PromiseEither<RequestError, QuestionBankSearchResult> {
         const body = {
             domainId,
             tags,
             concepts,
             laws,
+            skills,
             complexity,
+            limit,
         }
-        return ajaxPost(`${API_URL}/api/question-bank/count`, body, TQuestionBankCount);
-    }    
+        return ajaxPost(`${API_URL}/api/question-bank/search`, body, TQuestionBankSearchResult, signal);
+    }
 }

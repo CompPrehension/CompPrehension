@@ -212,7 +212,7 @@ body ul {
 
 .switch-field {
   font-family: "Lucida Grande", Tahoma, Verdana, sans-serif;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .switch-title {

@@ -1,20 +1,20 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
-import its.model.definition.rdf.DomainRDFFiller;
+import its.model.definition.DomainModel;
 import its.questions.gen.QuestioningSituation;
 import its.questions.gen.formulations.Localization;
-import its.questions.gen.states.Question;
 import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
 import its.questions.gen.strategies.QuestionAutomata;
 import lombok.val;
-import org.apache.jena.rdf.model.Model;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
-import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.DecisionTreeHelper;
+import org.vstu.compprehension.models.businesslogic.SupplementaryFeedbackGenerationResult;
+import org.vstu.compprehension.models.businesslogic.SupplementaryResponse;
+import org.vstu.compprehension.models.businesslogic.SupplementaryResponseGenerationResult;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -32,21 +32,33 @@ import java.util.stream.Collectors;
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
         Domain domain,
-        URL domainModelDirectoryURL,
-        Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer
+        DomainSolvingModel domainSolvingModel,
+        Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
-        this.domainModel = DecisionTreeHelper.buildDomainModelFromLOQI(domainModelDirectoryURL);
+        this.domainModel = domainSolvingModel;
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
-                domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
+            domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
         this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
+    }
+
+    public DecisionTreeSupQuestionHelper(
+        Domain domain,
+        URL domainModelDirectoryURL,
+        Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+    ) {
+        this(
+            domain,
+            new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
+            mainQuestionToModelTransformer
+        );
     }
 
     private final Domain domain;
     final DomainSolvingModel domainModel ;
     private final QuestionAutomata supplementaryAutomata;
-    private final Function<InteractionEntity, its.model.definition.Domain> mainQuestionToModelTransformer;
+    private final Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer;
 
     //DT = Decision Tree
     protected SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
@@ -61,7 +73,7 @@ public class DecisionTreeSupQuestionHelper {
         SupplementaryStepEntity latestStep = supplementarySteps.isEmpty() ? null : supplementarySteps.get(supplementarySteps.size() - 1);
 
         //Создать соответствующую ситуации рдф-модель
-        its.model.definition.Domain situationModel = mainQuestionToModelTransformer.apply(lastInteraction);
+        DomainModel situationModel = mainQuestionToModelTransformer.apply(lastInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation;
@@ -93,7 +105,7 @@ public class DecisionTreeSupQuestionHelper {
                         : state.getId()
         );
 
-        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, mainQuestion.getExerciseAttempt());
+        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, mainQuestion.getExerciseAttempt(), userLang);
         if(response.getQuestion() != null){
             supplementaryChain.setSupplementaryQuestion(response.getQuestion().getQuestionData());
         }
@@ -118,7 +130,7 @@ public class DecisionTreeSupQuestionHelper {
 
         //Создать соответствующую ситуации рдф-модель
         InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
-        its.model.definition.Domain situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
+        DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(situationModel);
@@ -134,7 +146,7 @@ public class DecisionTreeSupQuestionHelper {
 
     private static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
     private static final int aggregationShift = 2;
-    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, ExerciseAttemptEntity exerciseAttempt){
+    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
         QuestionEntity generated = new QuestionEntity();
         generated.setQuestionText(q.getText());
         //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
@@ -152,7 +164,7 @@ public class DecisionTreeSupQuestionHelper {
             for(AnswerObjectEntity a : answers){
                 a.setAnswerId(a.getAnswerId() + aggregationShift); //чтобы избежать пересечения с answerId ответов в aggregationMathching
             }
-            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(exerciseAttempt.getUser().getPreferred_language().toLocaleString()));
+            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(language.toLocaleString()));
             for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
                 AnswerObjectEntity ans = new AnswerObjectEntity();
                 ans.setAnswerId(m.getValue());
@@ -187,9 +199,9 @@ public class DecisionTreeSupQuestionHelper {
                         : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
         );
     }
-    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, ExerciseAttemptEntity exerciseAttempt){
+    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
         if(q instanceof Question){
-            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseAttempt);
+            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseAttempt, language);
             return new SupplementaryResponse(supQuestion);
         }
         else {

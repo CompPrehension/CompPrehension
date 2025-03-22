@@ -21,6 +21,15 @@ public interface QuestionMetadataComplexQueriesRepository {
      * @param limitNumber максимальное число вопросов в результате
      * @return подходящие вопросы
      */
+    List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber);
+
+    /**
+     * Найти самые лучшие вопросы.
+     * @param qr поисковый запрос к банку вопросов
+     * @param complexityWindow ширина допуска для сопоставления complexity
+     * @param limitNumber максимальное число вопросов в результате
+     * @return подходящие вопросы
+     */
     List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber);
 
     /**

@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJobConfig;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
@@ -25,6 +24,6 @@ public class CoreConfg {
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired TaskGenerationJobConfig tasks,
             @Autowired QuestionGenerationRequestRepository generationRequestRepository) throws Exception {
-        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository), generationRequestRepository);
+        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository);
     }
 }

@@ -3473,6 +3473,23 @@
     "displayName": "Сгруппированные операнды ([], (), ?:)",
     "bitflags": 2,
     "positive": false,
+    "impliesLaws": [
+      "error_base_parenthesized_operators"
+    ],
+    "formulations": [
+    ],
+    "concepts": [
+      {"name": "two_token"},
+      {"name": "precedence"}
+    ],
+    "tags": [
+    ]
+  },
+  {
+    "name": "error_base_parenthesized_operators",
+    "displayName": "Операнды в круглых группирующих скобках",
+    "bitflags": 2,
+    "positive": false,
     "formulations": [
     ],
     "concepts": [

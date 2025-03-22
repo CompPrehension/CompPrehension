@@ -3,7 +3,10 @@ package org.vstu.compprehension.common;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Utils {
     public static <P, C extends P> Optional<C> tryCast(@Nullable P obj, @NotNull Class<C> target) {
@@ -12,5 +15,14 @@ public class Utils {
             return Optional.of((C)obj);
         }
         return Optional.empty();
+    }
+
+    public static <T> Map<T, Integer> countElements(List<T> items) {
+        return items.stream()
+                .collect(Collectors.toMap(
+                        item -> item,
+                        item -> 1,
+                        Integer::sum
+                ));
     }
 }

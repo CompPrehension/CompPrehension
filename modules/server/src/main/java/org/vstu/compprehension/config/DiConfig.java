@@ -19,7 +19,6 @@ import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionMetadataManager;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy;
 import org.vstu.compprehension.strategies.GradeConfidenceBaseStrategy_Manual50Autogen50;
@@ -35,7 +34,7 @@ public class DiConfig {
     @Bean
     @Qualifier("allBackends")
     @RequestScope
-    List<Backend> getAllBackends(
+    List<Backend<?, ?>> getAllBackends(
             @Autowired @Lazy JenaBackend jenaBackend,
             @Autowired @Lazy PelletBackend pelletBackend,
             @Autowired DecisionTreeReasonerBackend decisionTreeReasonerBackend,
@@ -43,13 +42,13 @@ public class DiConfig {
             @Autowired Cache<String, JenaFactList> jenaCache)
     {
         return List.of(
-            new RateLimitBackendDecorator(
+            new RateLimitBackendDecorator<>(
                 JenaBackend.BackendId,
                 new SolutionCachingJenaBackendDecorator(jenaBackend, jenaCache),
                 taskQueue
             ),
             decisionTreeReasonerBackend, //FIXME wrap with RateLimitBackendDecorator
-            new RateLimitBackendDecorator(PelletBackend.BackendId, pelletBackend, taskQueue)
+            new RateLimitBackendDecorator<>(PelletBackend.BackendId, pelletBackend, taskQueue)
         );
     }
 
@@ -89,7 +88,7 @@ public class DiConfig {
             @Autowired QuestionDataRepository questionDataRepository,
             @Autowired QuestionGenerationRequestRepository generationRequestRepository) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, new QuestionMetadataManager(metadataRepository), generationRequestRepository);
+        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository);
     }
 
     @Bean

@@ -1,11 +1,11 @@
 package org.vstu.compprehension.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.vstu.compprehension.models.entities.EnumData.Language;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor @AllArgsConstructor
@@ -15,4 +15,5 @@ public class UserInfoDto {
     private String displayName;
     private String email;
     private String language;
+    private List<String> roles;
 }

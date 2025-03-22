@@ -19,13 +19,12 @@ import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
-import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
@@ -74,12 +73,8 @@ public class FrontendService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
-        val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
-
-        val attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val question = questionService.getQuestion(questionId);
         if (!question.isSupplementary()) {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
@@ -87,25 +82,23 @@ public class FrontendService {
 
         val responses = questionService.responseQuestion(question, answers);
 
-        return questionService.judgeSupplementaryQuestion(question, responses, attempt);
+        return questionService.judgeSupplementaryQuestion(question, responses);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         Checkpointer ch = new Checkpointer(log);
 
-        val exAttemptId = interaction.getAttemptId();
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
 
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        // ch.hit("attempt found");
+        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findByQuestionId(questionId)
+                .orElse(null);
 
         // evaluate answer
-        val domain = domainFactory.getDomain(attempt.getExercise().getDomain().getName());
-        val tags = attempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
         val question = questionService.getSolvedQuestion(questionId);
+        val domain = question.getDomain();
+        val tags = question.getTags();
         ch.hit("solved question obtained");
         val responses = questionService.responseQuestion(question, answers);
         val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
@@ -120,31 +113,32 @@ public class FrontendService {
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
         // ch.hit("add interaction ("+correctInteractionsCount+")");
 
-        // add feedback
-        val strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-        val grade = strategy.grade(attempt);
-        ch.hit("graded with strategy ("+grade+")");
-        ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
-        ie.getFeedback().setGrade(grade);
-        feedbackRepository.save(ie.getFeedback());
+        // add feedback & decide next exercise state
+        var feedback = ie.getFeedback();
+        feedback.setInteractionsLeft(judgeResult.IterationsLeft);
+        var grade = 1f;
+        var strategyAttemptDecision = Decision.CONTINUE;
+        if (attempt != null) {
+            var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
+            grade = strategy.grade(attempt);
+            ch.hit("graded with strategy ("+grade+")");
+
+            strategyAttemptDecision = strategy.decide(attempt);
+            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
+        }
+        feedback.setGrade(grade);
+        feedbackRepository.save(feedback);
         ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
-
-        // decide next exercise state
-        val strategyAttemptDecision = strategy.decide(attempt);
-        exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
-
-        ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
 
         // calculate error message
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .filter(Objects::nonNull);
-        val explanations = judgeResult.explanations != null
-            ? judgeResult.explanations.stream().map(HyperText::getText)
-            : questionService.explainViolations(question, judgeResult.violations).stream().map(HyperText::getText);
+        val explanations = judgeResult.explanations.stream().map(HyperText::getText);
         val errors = Streams.zip(violations, explanations, Pair::of)
                 .collect(Collectors.toList());
-        val locale = attempt.getUser().getPreferred_language().toLocale();
+        val locale = getQuestionLanguage(attempt);
         val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
                 : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
@@ -175,7 +169,7 @@ public class FrontendService {
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
 //            ch.hit("results made");
-            val res = addQuestionAnswer(new InteractionDto(exAttemptId, questionId, newAnswer));
+            val res = addQuestionAnswer(new InteractionDto(questionId, newAnswer));
             ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;
         }
@@ -203,6 +197,15 @@ public class FrontendService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
+    public @NotNull QuestionDto generateQuestionByMetadata(Integer metadataId, Language lang) throws Exception {
+        if (metadataId == null) {
+            throw new Exception("Metadata id is null");
+        }
+        val question = questionService.generateQuestion(metadataId, lang);
+        return Mapper.toDto(question);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
         val question = questionRepository.findByIdEager(questionId)
                 .orElseThrow();
@@ -210,9 +213,18 @@ public class FrontendService {
         val violation = new ViolationEntity(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
 
-        // domain.generateSupplementaryQuestion(question, violation)
+        var language = getQuestionLanguage(question);
+        return questionService.generateSupplementaryQuestion(question, violation, language);
+    }
 
-        return questionService.generateSupplementaryQuestion(question, violation, question.getExerciseAttempt().getUser().getPreferred_language());
+    private Language getQuestionLanguage(QuestionEntity question) {
+        return getQuestionLanguage(question.getExerciseAttempt());
+    }
+
+    private Language getQuestionLanguage(ExerciseAttemptEntity attempt) {
+        return attempt != null
+            ? attempt.getUser().getPreferred_language()
+            : Language.RUSSIAN/*ENGLISH*/;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -243,9 +255,8 @@ public class FrontendService {
         //responseRepository.saveAll(responses);
 
         // evaluate new answer
-        val exerciseAttempt = question.getQuestionData().getExerciseAttempt();
-        val domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        val tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
+        val attempt = question.getQuestionData().getExerciseAttempt();
+        val tags = question.getTags();
         val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
@@ -255,17 +266,20 @@ public class FrontendService {
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
 
-        // add feedback
-        val strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
-        val grade = strategy.grade(exerciseAttempt);
-        ie.getFeedback().setInteractionsLeft(judgeResult.IterationsLeft);
-        ie.getFeedback().setGrade(grade);
-        //feedbackRepository.save(ie.getFeedback());
-        interactionRepository.save(ie);
+        // add feedback & decide next exercise state
+        var feedback = ie.getFeedback();
+        feedback.setInteractionsLeft(judgeResult.IterationsLeft);
+        var grade = 1f;
+        var strategyAttemptDecision = Decision.CONTINUE;
+        if (attempt != null) {
+            var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
+            grade = strategy.grade(attempt);
 
-        // decide next exercise state
-        val strategyAttemptDecision = strategy.decide(exerciseAttempt);
-        exerciseAttemptService.ensureAttemptStatus(exerciseAttempt, strategyAttemptDecision);
+            strategyAttemptDecision = strategy.decide(attempt);
+            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+        }
+        feedback.setGrade(grade);
+        feedbackRepository.save(feedback);
 
         // build feedback message
         val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswer.explanation.toString()) };
@@ -336,6 +350,7 @@ public class FrontendService {
         return result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         var ea = createNewAttempt(exerciseId, userId);
         return Mapper.toDto(ea);
@@ -345,7 +360,6 @@ public class FrontendService {
     public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
         var ea = createNewAttempt(exerciseId, userId);
         var strategy = strategyFactory.getStrategy(ea.getExercise().getStrategyId());
-        var domain = domainFactory.getDomain(ea.getExercise().getDomain().getName());
         var targetQuestionCount = strategy.getOptions().isMultiStagesEnabled()
                 ? ea.getExercise().getStages().stream()
                     .map(ExerciseStageEntity::getNumberOfQuestions)

@@ -10,23 +10,19 @@ import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.Tag;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.repository.*;
-import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -34,7 +30,6 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerObjectRepository answerObjectRepository;
     private final AbstractStrategyFactory strategyFactory;
-    private final BackendFactory backendFactory;
     private final DomainService domainService;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
@@ -43,11 +38,10 @@ public class QuestionService {
     private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionBank questionStorage;
 
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, BackendFactory backendFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
-        this.backendFactory = backendFactory;
         this.domainService = domainService;
         this.interactionRepository = interactionRepository;
         this.responseRepository = responseRepository;
@@ -61,14 +55,27 @@ public class QuestionService {
     public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
         Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
         AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
-       
+
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt);
         qr = domain.ensureQuestionRequestValid(qr);
-        
-        var tags = exerciseAttempt.getExercise().getTags().stream().map(domain::getTag).filter(Objects::nonNull).toList();
-        Question question = domain.makeQuestion(exerciseAttempt, qr, tags, exerciseAttempt.getUser().getPreferred_language());
+
+        Question question = domain.makeQuestion(qr, exerciseAttempt, exerciseAttempt.getUser().getPreferred_language());
         question.setQuestionRequest(createQuestionRequestLog(qr));
-        
+
+        saveQuestion(question);
+        return question;
+    }
+
+    public Question generateQuestion(int questionMetadataId, Language lang) {
+        var rawQuestion = questionStorage.loadQuestion(questionMetadataId);
+        if (rawQuestion == null) {
+            throw new RuntimeException("Metadata with id " + questionMetadataId + " not found");
+        }
+        var domain = domainFactory.getDomain(rawQuestion.getDomainShortname());
+        var tags = domain.getAllTags().stream()
+                .filter(t -> rawQuestion.getTagBits() != null && (rawQuestion.getTagBits() & t.getBitmask()) != 0)
+                .toList();
+        var question = domain.makeQuestion(rawQuestion, null, tags, lang);
         saveQuestion(question);
         return question;
     }
@@ -79,7 +86,7 @@ public class QuestionService {
     }
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
-        val domain = domainFactory.getDomain(sourceQuestion.getExerciseAttempt().getExercise().getDomain().getName());
+        val domain = domainFactory.getDomain(sourceQuestion.getDomainEntity().getName());
         val responseGen = domain.makeSupplementaryQuestion(sourceQuestion, violation, lang);
         if(responseGen.getResponse().getQuestion() != null){
             Question question = responseGen.getResponse().getQuestion();
@@ -92,8 +99,8 @@ public class QuestionService {
         return Mapper.toDto(responseGen.getResponse());
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses, ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses) {
+        Domain domain = question.getDomain();
         val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData());
         val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses);
         if(feedbackGen.getNewStep() != null){
@@ -102,33 +109,10 @@ public class QuestionService {
         return feedbackGen.getFeedback();
     }
 
+    @SuppressWarnings("unchecked")
     public Question solveQuestion(Question question, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Backend backend = backendFactory.getBackend(domain.getSolvingBackendId());
-//        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
-
-        // use reasoner to solve question
-        Collection<Fact> solution = backend.solve(
-                /*new ArrayList<>*/(domain.getQuestionLaws(question.getQuestionDomainType(), tags)),
-                domain.processQuestionFactsForBackendSolve(question.getStatementFactsWithSchema()),
-                new ReasoningOptions(
-                        false,
-                        domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
-                        question.getQuestionUniqueTemplateName()
-                ));
-
-        List<BackendFactEntity> storedSolution = question.getQuestionData().getSolutionFacts();
-        if (storedSolution != null && !storedSolution.isEmpty()) {
-            // add anything set as solution before
-            solution.addAll(Fact.entitiesToFacts(storedSolution));
-        }
-        // save facts to question
-        question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
-
-        // don't save solution into DB
-        // // saveQuestion(question.getQuestionData());
-
-        return question;
+        return domain.solveQuestion(question, tags);
     }
 
     /*
@@ -155,50 +139,10 @@ public class QuestionService {
         return result;
     }
 
-    /**
-     * @param question current question being solved
-     * @param responses new responses from student (to add to solution if correct)
-     * @param tags Exercise tags
-     * @return interpretation of backend's judgement
-     */
+    @SuppressWarnings("unchecked")
     public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Collection<Fact> responseFacts = question.responseToFacts(responses);
-        Backend backend = backendFactory.getBackend(domain.getJudgingBackendId());
-//        Backend backend = backendFactory.getBackend(question.getQuestionData().getExerciseAttempt().getExercise().getBackendId());
-        Collection<Fact> solutionFacts = Fact.entitiesToFacts(question.getSolutionFacts());
-        Collection<Fact> violations = backend.judge(
-                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                domain.processQuestionFactsForBackendJudge(question.getStatementFactsWithSchema(), responses, responseFacts, solutionFacts),
-                solutionFacts,
-                responseFacts,
-                new ReasoningOptions(
-                        false,
-                        domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
-                        question.getQuestionUniqueTemplateName())
-        );
-        Domain.InterpretSentenceResult result = domain.interpretSentence(violations);
-
-        Language lang;
-        try {
-            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            lang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-        result.explanations = domain.makeExplanations(violations.stream().toList(), lang);
-
-        return result;
-    }
-
-    public List<HyperText> explainViolations(Question question, List<ViolationEntity> violations) {
-        Domain domain = domainFactory.getDomain(question.getQuestionData().getDomainEntity().getName());
-        Language lang;
-        try {
-            lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            lang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-        return domain.makeExplanation(violations, FeedbackType.EXPLANATION, lang);
+        return domain.judgeQuestion(question, responses, tags);
     }
 
     public Question getQuestion(Long questionId) {
@@ -209,8 +153,7 @@ public class QuestionService {
 
     public Question getSolvedQuestion(Long questionId) {
         val question = getQuestion(questionId);
-        var tags = question.getQuestionData().getExerciseAttempt().getExercise().getTags()
-                .stream().map(t -> question.getDomain().getTag(t)).filter(Objects::nonNull).toList();
+        var tags = question.getTags();
         return solveQuestion(question, tags);
     }
 
@@ -220,7 +163,7 @@ public class QuestionService {
 
     public void saveQuestion(Question question) {
         var questionData = question.getQuestionData();
-        
+
         if (questionData.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
@@ -229,7 +172,7 @@ public class QuestionService {
             }
             answerObjectRepository.saveAll(questionData.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
         }
-        
+
         if (question.getQuestionRequest() != null) {
             questionRequestLogRepository.save(question.getQuestionRequest());
         }
@@ -239,7 +182,7 @@ public class QuestionService {
                 interactionEntity.setQuestion(questionData);
             }
         }
-        
+
         questionRepository.save(questionData);
     }
 
@@ -266,7 +209,7 @@ public class QuestionService {
     */
 
     public Question generateBusinessLogicQuestion(QuestionEntity question) {
-        Domain domain = domainFactory.getDomain(question.getExerciseAttempt().getExercise().getDomain().getName());
+        Domain domain = domainFactory.getDomain(question.getDomainEntity().getName());
         return new Question(question, domain);
     }
 

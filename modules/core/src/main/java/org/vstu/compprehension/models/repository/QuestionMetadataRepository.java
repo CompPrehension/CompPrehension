@@ -1,9 +1,10 @@
 package org.vstu.compprehension.models.repository;
 
+import jakarta.persistence.QueryHint;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,11 +22,33 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
 
     @NotNull
     @Query(value = 
-            "select * from questions_meta " +
-            "where id > :lastLoadedId " +
-            "order by id " +
-            "limit :limit", nativeQuery = true)
+            "select m from QuestionMetadataEntity m " +
+            "where m.id > :lastLoadedId " +
+            "order by m.id " +
+            "limit :limit")
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
     List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+
+    @NotNull
+    @Query(value =
+            "select m from QuestionMetadataEntity m " +
+            "inner join fetch m.questionData " +
+            "where m.id > :lastLoadedId " +
+            "order by m.id " +
+            "limit :limit"
+    )
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    List<QuestionMetadataEntity> loadPageWithData(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+
+    @NotNull
+    @Query(value =
+            "select m from QuestionMetadataEntity m " +
+            "where m.id > :lastLoadedId AND m.domainShortname = :domainShortName " +
+            "order by m.id " +
+            "limit :limit"
+    )
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("domainShortName") String domainShortName, @Param("limit") int limit);
     
     @Query
     long countByDomainShortname(String domainShortname);
@@ -48,8 +71,9 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query
     boolean existsByName(String questionName);
 
-    @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and (m.name = :questionName or :templateId is not null and m.templateId = :templateId))")
-    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") @Nullable String templateId);
+    @Query("select exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name = :questionName) " +
+            "or exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
+    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") String templateId);
 
     @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
             "count(*), " +

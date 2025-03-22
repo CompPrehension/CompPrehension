@@ -10,7 +10,6 @@ import lombok.extern.jackson.Jacksonized;
 @Builder @Jacksonized
 @AllArgsConstructor @NoArgsConstructor
 public class InteractionDto {
-    private Long attemptId;
     private Long questionId;
     private AnswerDto[] answers;
 }

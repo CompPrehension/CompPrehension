@@ -37,12 +37,14 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
                             "WHERE r.status = 0 AND r.domain_shortname = :domainShortname AND r.created_at >= :createdAfter " +
                             "GROUP BY " +
                             " r.denied_concepts_bitmask, " +
+                            " r.denied_laws_bitmask, " +
+                            " r.denied_skills_bitmask, " +
                             " r.target_concepts_bitmask, " +
                             " r.target_laws_bitmask," +
-                            " r.denied_laws_bitmask, " +
+                            " r.target_skills_bitmask," +
                             " r.target_tags_bitmask, " +
-                            " r.complexity," +
-                            " r.steps_min," +
+                            " r.complexity, " +
+                            " r.steps_min, " +
                             " r.steps_max", RawFindAllActualResult.class)
                 .setParameter("domainShortname", domainShortname)
                 .setParameter("createdAfter", createdAfter);

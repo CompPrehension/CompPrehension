@@ -13,4 +13,11 @@ public class MathHelper {
         float m = (newRangeEnd - newRangeStart) / (valueRangeEnd - valueRangeStart);
         return newRangeStart + m * (value - valueRangeStart);
     }
+
+    /**
+     * Функция сигмоиды
+     */
+    public static double sigmoid(double value) {
+        return 1 / (1 + Math.exp(-value));
+    }
 }

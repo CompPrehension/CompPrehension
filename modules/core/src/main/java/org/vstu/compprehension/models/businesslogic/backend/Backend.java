@@ -1,62 +1,49 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
+import org.vstu.compprehension.Service.QuestionService;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+/**
+ * A reasoning backend that determines the process a question gets judged/solved.
+ * Is used via {@link QuestionService} to judge/solve a question,
+ * which produces output that can then be interpreted by a {@link Domain}.<br>
+ * A single {@link Domain} may interact with multiple Backends by way of {@link DomainToBackendAdapter}s
+ * @param <BackendInput> determines the format the information about a question is fed into the backend
+ * @param <BackendOutput> determines the format of the backend's judge/solve output to be interpreted
+ */
+public interface Backend<BackendInput, BackendOutput> {
 
-public interface Backend {
+    /**
+     * A name-like id to represent this backend and retrieve it by
+     */
     @NotNull String getBackendId();
 
-    Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions);
+    /**
+     * Judge a question, providing information on if the user answered it correctly
+     * It is assumed that the argument of this method contains all the neccessary information
+     * about the question and the user's response(s)
+     * (being prepared by the {@link DomainToBackendAdapter#prepareBackendInfoForJudge} method)
+     * The output of this is then passed into {@link DomainToBackendAdapter#interpretJudgeOutput}
+     */
+    BackendOutput judge(BackendInput questionData);
 
-    Collection<Fact> solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions);
+    /**
+     * Solve a question, adding some helpful information to it
+     * which can then be stored or used later for the {@link #judge}
+     * It is assumed that the argument of this method contains all the neccessary information about the question
+     * (being prepared by the {@link DomainToBackendAdapter#prepareBackendInfoForSolve} method)
+     * The output of this is then passed into {@link DomainToBackendAdapter#updateQuestionAfterSolve}
+     */
+    BackendOutput solve(BackendInput questionData);
 
 
     /**
-     * FIXME? Удалить? не используется
-     * @see #judge(List, Collection, Collection, Collection, ReasoningOptions)
+     * If this backend is a decorator, then return the most nested backend (the actual object doing the reasoning)
+     * Otherwise, return this
      */
-    Collection<Fact> judge(
-        List<Law> laws,
-        List<BackendFactEntity> statement,
-        List<BackendFactEntity> correctAnswer,
-        List<BackendFactEntity> response,
-        ReasoningOptions reasoningOptions
-    );
-
-    /**
-     * Judge if a problem step is performed correctly
-     * @return list of facts describing the violations made by the student
-     *      (these are then passed to {@link Domain#interpretSentence}
-     */
-    Collection<Fact> judge(
-        List<Law> laws,
-        Collection<Fact> statement,
-        Collection<Fact> correctAnswer,
-        Collection<Fact> response,
-        ReasoningOptions reasoningOptions
-    );
-
-    /* helpers: fact conversion */
-
-    default Fact convertFactEntity(BackendFactEntity factEntity) {
-        return convertFact(new Fact(factEntity));
-    }
-    default Fact convertFact(Fact fact) {
-        return fact;
-    }
-    default Collection<Fact> convertFactEntities(Collection<BackendFactEntity> factEntities) {
-        return factEntities.stream().map(this::convertFactEntity).collect(Collectors.toList());
-    }
-    default Collection<Fact> convertFacts(Collection<Fact> facts) {
-        return facts.stream().map(this::convertFact).collect(Collectors.toList());
+    default Backend<BackendInput, BackendOutput> getActualBackend(){
+        return this;
     }
 }

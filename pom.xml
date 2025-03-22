@@ -29,9 +29,18 @@
         <springcore.version>6.0.12</springcore.version>
         <jackson.version>2.15.2</jackson.version>
         <log4j2.version>2.20.0</log4j2.version>
+        <meaningtree.version>0ab1d24d2b</meaningtree.version>
     </properties>
 
-    <!-- required depedencies -->
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <!-- required dependencies -->
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -50,7 +59,7 @@
         </dependency>
     </dependencies>
 
-    <!-- optional depedencies -->
+    <!-- optional dependencies -->
     <dependencyManagement>
         <dependencies>
             <dependency>

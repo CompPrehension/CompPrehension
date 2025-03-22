@@ -15,6 +15,8 @@ import java.util.Date;
 @Entity
 @Table(name = "questions_meta", indexes = {
     @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
+    @Index(name = "idx_questions_meta_domainshortname_name", columnList = "domain_shortname, name"),
+    @Index(name = "idx_questions_meta_domainshortname_templateid", columnList = "domain_shortname, template_id"),
 })
 public class QuestionMetadataEntity {
     @Id
@@ -43,6 +45,9 @@ public class QuestionMetadataEntity {
 
     @Column(name = "law_bits")
     private Long lawBits;
+
+    @Column(name = "skill_bits")
+    private Long skillBits;
 
     @Column(name = "violation_bits")
     private Long violationBits;
@@ -78,6 +83,13 @@ public class QuestionMetadataEntity {
     @Column(name = "origin")
     private String origin = "";
 
+    /**
+     * License type of GitHub repository from which this question was created
+     */
+    @Builder.Default
+    @Column(name = "origin_license")
+    private String originLicense = null;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
@@ -105,9 +117,19 @@ public class QuestionMetadataEntity {
     @Transient
     @Builder.Default
     private Long violationBitsInPlan = 0L; // planned by exercise
+
+
     @Transient
     @Builder.Default
     private Long violationBitsInRequest = 0L; // actually requested
+
+    @Transient
+    @Builder.Default
+    private Long skillBitsInPlan = 0L; // planned by exercise
+
+    @Transient
+    @Builder.Default
+    private Long skillBitsInRequest = 0L; // actually requested
 
 
     public double complexityAbsDiff(double complexity) {
@@ -136,6 +158,14 @@ public class QuestionMetadataEntity {
         return ~violationBits & violationBitsInPlan;
     }
 
+    /** Common bits of skills in plan and violations in question */
+    public Long skillsSatisfiedFromPlan() {
+        return skillBits & skillBitsInPlan;
+    }
+    /** Skills from plan absent in question's violations */
+    public Long skillsUnsatisfiedFromPlan() {
+        return ~skillBits & skillBitsInPlan;
+    }
 
     /** Common bits of concepts in request and concepts (or trace concepts) in question */
     public Long traceConceptsSatisfiedFromRequest() {
@@ -153,5 +183,14 @@ public class QuestionMetadataEntity {
     /** Violations from request absent in question's violations */
     public Long violationsUnsatisfiedFromRequest() {
         return ~violationBits & violationBitsInRequest;
+    }
+
+    /** Common bits of skills in request and violations in question */
+    public Long skillsSatisfiedFromRequest() {
+        return skillBits & skillBitsInRequest;
+    }
+    /** Skills from request absent in question's violations */
+    public Long skillsUnsatisfiedFromRequest() {
+        return ~skillBits & skillBitsInRequest;
     }
 }
